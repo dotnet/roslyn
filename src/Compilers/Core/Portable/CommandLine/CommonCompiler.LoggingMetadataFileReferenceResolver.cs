@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
 
             public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string? baseFilePath, MetadataReferenceProperties properties)
             {
-                string fullPath = _pathResolver.ResolvePath(reference, baseFilePath);
+                string? fullPath = _pathResolver.ResolvePath(reference, baseFilePath);
 
                 if (fullPath != null)
                 {

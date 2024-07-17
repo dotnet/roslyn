@@ -5,17 +5,16 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
+
+internal class RQMemberParameterIndexFromPartialSignature(
+    RQMember containingMember,
+    int parameterIndex) : RQMemberParameterIndex(containingMember, parameterIndex)
 {
-    internal class RQMemberParameterIndexFromPartialSignature(
-        RQMember containingMember,
-        int parameterIndex) : RQMemberParameterIndex(containingMember, parameterIndex)
+    protected override void AppendChildren(List<SimpleTreeNode> childList)
     {
-        protected override void AppendChildren(List<SimpleTreeNode> childList)
-        {
-            childList.Add(ContainingMember.ToSimpleTree());
-            childList.Add(new SimpleLeafNode(ParameterIndex.ToString()));
-            childList.Add(new SimpleLeafNode(RQNameStrings.PartialSignature));
-        }
+        childList.Add(ContainingMember.ToSimpleTree());
+        childList.Add(new SimpleLeafNode(ParameterIndex.ToString()));
+        childList.Add(new SimpleLeafNode(RQNameStrings.PartialSignature));
     }
 }

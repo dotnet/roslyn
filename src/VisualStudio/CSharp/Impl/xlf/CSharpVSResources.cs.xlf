@@ -32,11 +32,6 @@
         <target state="translated">Povolit vložené příkazy na stejném řádku</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
-        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="translated">Použít všechna formátovací pravidla jazyka C# (odsazení, zabalení, mezery)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
         <source>Automatically complete statement on semicolon</source>
         <target state="translated">Automaticky dokončit příkaz středníkem</target>
@@ -59,7 +54,17 @@
       </trans-unit>
       <trans-unit id="CSharp_Interactive">
         <source>C# Interactive</source>
-        <target state="new">C# Interactive</target>
+        <target state="translated">C# Interactive</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CancelQuery">
+        <source>Cancel Query</source>
+        <target state="translated">Zrušit dotaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CancelQueryCommandToolTip">
+        <source>Cancel (Escape)</source>
+        <target state="translated">Zrušit (Escape)</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
@@ -85,11 +90,6 @@
       <trans-unit id="File_scoped">
         <source>File scoped</source>
         <target state="translated">Obor souboru</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_document_settings">
-        <source>Format Document Settings (Experiment) </source>
-        <target state="translated">Nastavení formátování dokumentu (experiment)</target>
         <note />
       </trans-unit>
       <trans-unit id="General">
@@ -130,11 +130,6 @@
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">Předvolby porovnávání vzorů:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
-        <source>Perform additional code cleanup during formatting</source>
-        <target state="translated">Při formátování provést dodatečné vyčištění kódu</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -187,6 +182,21 @@
         <target state="translated">Odebrat nepotřebné direktivy using</target>
         <note />
       </trans-unit>
+      <trans-unit id="RunQuery">
+        <source>Run Query</source>
+        <target state="translated">Spustit dotaz</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RunQueryCommandToolTip">
+        <source>Run (Ctrl+Enter)</source>
+        <target state="translated">Spustit (Ctrl+Enter)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticSearch">
+        <source>Semantic Search</source>
+        <target state="translated">Sémantické vyhledávání</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
         <source>Show hints for 'new' expressions</source>
         <target state="translated">Zobrazit nápovědy pro výrazy new</target>
@@ -205,11 +215,6 @@
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
         <target state="translated">Zobrazit poznámky v Rychlých informacích</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_usings">
-        <source>Sort usings</source>
-        <target state="translated">Seřadit direktivy using</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
@@ -522,11 +527,6 @@
         <target state="translated">Nepoužitá místní</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_var_when_generating_locals">
-        <source>Use 'var' when generating locals</source>
-        <target state="translated">Při generování lokálních proměnných použijte var.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
         <target state="translated">Zob_razit oddělovače řádků procedur</target>
@@ -650,11 +650,6 @@
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in _NuGet packages</source>
         <target state="translated">Navrhnout použití typů v balíčcích _NuGet</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Inference_preferences_colon">
-        <source>Type Inference preferences:</source>
-        <target state="translated">Předvolby odvození typu proměnné:</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -820,16 +815,6 @@
       <trans-unit id="Prefer_pattern_matching_over_as_with_null_check">
         <source>Prefer pattern matching over 'as' with 'null' check</source>
         <target state="translated">Preferovat porovnávání vzorů přes prvek as s kontrolou hodnot null</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_block_body">
-        <source>Prefer block body</source>
-        <target state="translated">Dávat přednost textu bloku</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_expression_body">
-        <source>Prefer expression body</source>
-        <target state="translated">Dávat přednost textu výrazu</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_on_return">

@@ -82,16 +82,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         return _lazySessionScopeTask;
                     }
 
-                    task = getSessionAnalysisScopeTaskSlow(this, analyzerExecutor, cancellationToken);
+                    task = getSessionAnalysisScopeTaskSlowAsync(this, analyzerExecutor, cancellationToken);
                     _lazySessionScopeTask = task;
                     return task;
 
-                    static Task<HostSessionStartAnalysisScope> getSessionAnalysisScopeTaskSlow(AnalyzerExecutionContext context, AnalyzerExecutor executor, CancellationToken cancellationToken)
+                    static Task<HostSessionStartAnalysisScope> getSessionAnalysisScopeTaskSlowAsync(AnalyzerExecutionContext context, AnalyzerExecutor executor, CancellationToken cancellationToken)
                     {
                         return Task.Run(() =>
                         {
                             var sessionScope = new HostSessionStartAnalysisScope();
-                            executor.ExecuteInitializeMethod(context._analyzer, sessionScope, cancellationToken);
+                            executor.ExecuteInitializeMethod(context._analyzer, sessionScope, executor.SeverityFilter, cancellationToken);
                             return sessionScope;
                         }, cancellationToken);
                     }
@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 memberSet.Add(member);
 
                                 // Ensure that we include symbols for both parts of partial methods.
+                                // https://github.com/dotnet/roslyn/issues/73772: also cascade to partial property implementation part
                                 if (member is IMethodSymbol method &&
                                     !(method.PartialImplementationPart is null))
                                 {

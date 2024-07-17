@@ -5,6 +5,7 @@
 Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.CSharp.Syntax
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
@@ -13,6 +14,7 @@ Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Remote.Testing
+Imports Microsoft.CodeAnalysis.Test.Utilities.FindUsages
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.PreprocessorDirectives
 Imports Roslyn.Utilities
@@ -64,7 +66,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 Return
             End If
 
-            Using workspace = TestWorkspace.Create(element, composition:=s_composition.WithTestHostParts(host))
+            Using workspace = EditorTestWorkspace.Create(element, composition:=s_composition.WithTestHostParts(host))
                 Assert.True(workspace.Documents.Any(Function(d) d.CursorPosition.HasValue))
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
@@ -74,9 +76,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                       Await workspace.CurrentSolution.GetSourceGeneratedDocumentAsync(cursorDocument.Id, CancellationToken.None))
                     Assert.NotNull(startDocument)
 
+                    Dim classificationOptions = workspace.GlobalOptions.GetClassificationOptionsProvider()
                     Dim findRefsService = startDocument.GetLanguageService(Of IFindUsagesService)
-                    Dim context = New TestContext()
-                    Await findRefsService.FindReferencesAsync(context, startDocument, cursorPosition, CancellationToken.None)
+                    Dim context = New FindUsagesTestContext()
+                    Await findRefsService.FindReferencesAsync(context, startDocument, cursorPosition, classificationOptions, CancellationToken.None)
 
                     Dim expectedDefinitions =
                         workspace.Documents.Where(Function(d) d.AnnotatedSpans.ContainsKey(DefinitionKey) AndAlso d.AnnotatedSpans(DefinitionKey).Any()).
@@ -144,10 +147,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                                                        d.Name, d.AnnotatedSpans(annotationKey).ToList())).ToList()
                             Dim actual = GetFileNamesAndSpans(
                                 context.References.Where(Function(r)
-                                                             Dim actualValue As String = Nothing
-                                                             If r.AdditionalProperties.TryGetValue(propertyName, actualValue) Then
-                                                                 Return actualValue = propertyValue
-                                                             End If
+                                                             For Each tuple In r.AdditionalProperties
+                                                                 If tuple.key = propertyName Then
+                                                                     Return tuple.value = propertyValue
+                                                                 End If
+                                                             Next
 
                                                              Return propertyValue.Length = 0
                                                          End Function).Select(Function(r) r.SourceSpan))
@@ -159,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
             End Using
         End Function
 
-        Private Shared Function GetExpectedAdditionalPropertiesMap(workspace As TestWorkspace) As Dictionary(Of String, HashSet(Of String))
+        Private Shared Function GetExpectedAdditionalPropertiesMap(workspace As EditorTestWorkspace) As Dictionary(Of String, HashSet(Of String))
             Dim additionalPropertyKeys = workspace.Documents.SelectMany(Function(d) d.AnnotatedSpans.Keys.Where(Function(key) key.StartsWith(AdditionalPropertyKey)).Select(Function(key) key.Substring(AdditionalPropertyKey.Length)))
             Dim additionalPropertiesMap As New Dictionary(Of String, HashSet(Of String))
             For Each key In additionalPropertyKeys
@@ -219,46 +223,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         End Structure
 
-        Friend Class TestContext
-            Inherits FindUsagesContext
-
-            Private ReadOnly gate As Object = New Object()
-
-            Public ReadOnly Definitions As List(Of DefinitionItem) = New List(Of DefinitionItem)()
-            Public ReadOnly References As List(Of SourceReferenceItem) = New List(Of SourceReferenceItem)()
-
-            Public Sub New()
-            End Sub
-
-            Public Overrides Function GetOptionsAsync(language As String, cancellationToken As CancellationToken) As ValueTask(Of FindUsagesOptions)
-                Return ValueTaskFactory.FromResult(FindUsagesOptions.Default)
-            End Function
-
-            Public Function ShouldShow(definition As DefinitionItem) As Boolean
-                If References.Any(Function(r) r.Definition Is definition) Then
-                    Return True
-                End If
-
-                Return definition.DisplayIfNoReferences
-            End Function
-
-            Public Overrides Function OnDefinitionFoundAsync(definition As DefinitionItem, cancellationToken As CancellationToken) As ValueTask
-                SyncLock gate
-                    Me.Definitions.Add(definition)
-                End SyncLock
-
-                Return Nothing
-            End Function
-
-            Public Overrides Function OnReferenceFoundAsync(reference As SourceReferenceItem, cancellationToken As CancellationToken) As ValueTask
-                SyncLock gate
-                    References.Add(reference)
-                End SyncLock
-
-                Return Nothing
-            End Function
-        End Class
-
         Private Async Function TestAPI(
                 definition As XElement,
                 host As TestHost,
@@ -276,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                 uiVisibleOnly As Boolean,
                 options As FindReferencesSearchOptions) As Task
 
-            Using workspace = TestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host).AddParts(GetType(WorkspaceTestLogger)))
+            Using workspace = EditorTestWorkspace.Create(definition, composition:=s_composition.WithTestHostParts(host).AddParts(GetType(WorkspaceTestLogger)))
                 workspace.Services.SolutionServices.SetWorkspaceTestOutput(_outputHelper)
 
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
@@ -379,17 +343,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
                         For Each propertyValue In kvp.Value
                             Dim annotationKey = AdditionalPropertyKey + propertyName + "." + propertyValue
                             For Each doc In documentsWithAnnotatedSpans.Where(Function(d) d.AnnotatedSpans.ContainsKey(annotationKey))
-
                                 Dim expectedSpans = doc.AnnotatedSpans(annotationKey).Order()
 
-                                actualReferences = GetActualReferences(result, uiVisibleOnly, options, document, Function(r)
-                                                                                                                     Dim actualValue As String = Nothing
-                                                                                                                     If r.AdditionalProperties.TryGetValue(propertyName, actualValue) Then
-                                                                                                                         Return actualValue = propertyValue
-                                                                                                                     End If
+                                actualReferences = GetActualReferences(
+                                    result, uiVisibleOnly, options, document,
+                                    Function(r)
+                                        For Each tuple In r.AdditionalProperties
+                                            If tuple.key = propertyName Then
+                                                Return tuple.value = propertyValue
+                                            End If
+                                        Next
 
-                                                                                                                     Return propertyValue.Length = 0
-                                                                                                                 End Function)
+                                        Return propertyValue.Length = 0
+                                    End Function)
                                 Dim actualSpans = actualReferences(GetFilePathAndProjectLabel(doc)).Order()
 
                                 If Not TextSpansMatch(expectedSpans, actualSpans) Then
@@ -518,7 +484,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
 
         <Fact>
         Public Async Function LinkedFilesWhereContentHasChangedInOneLink() As Task
-            Using workspace = TestWorkspace.Create("
+            Using workspace = EditorTestWorkspace.Create("
 <Workspace>
     <Project Language='C#' CommonReferences='true' AssemblyName='LinkedProj1' Name='CSProj.1'>
         <Document FilePath='C.cs'>
@@ -589,7 +555,7 @@ partial class C
 
         <Fact, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1758726")>
         Public Async Function TestFindReferencesInDocumentsNoCompilation() As Task
-            Using workspace = TestWorkspace.Create("
+            Using workspace = EditorTestWorkspace.Create("
 <Workspace>
     <Project Language=""NoCompilation"" AssemblyName=""NoCompilationAssembly"" CommonReferencesPortable=""true"">
         <Document>

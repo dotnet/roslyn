@@ -26,22 +26,25 @@ namespace Microsoft.CodeAnalysis
         private readonly string _sourceExtension;
 
         internal readonly ISyntaxHelper SyntaxHelper;
+        internal readonly bool CatchAnalyzerExceptions;
 
         internal IncrementalGeneratorInitializationContext(
             ArrayBuilder<SyntaxInputNode> syntaxInputBuilder,
             ArrayBuilder<IIncrementalGeneratorOutputNode> outputNodes,
             ISyntaxHelper syntaxHelper,
-            string sourceExtension)
+            string sourceExtension,
+            bool catchAnalyzerExceptions)
         {
             _syntaxInputBuilder = syntaxInputBuilder;
             _outputNodes = outputNodes;
             SyntaxHelper = syntaxHelper;
             _sourceExtension = sourceExtension;
+            CatchAnalyzerExceptions = catchAnalyzerExceptions;
         }
 
         public SyntaxValueProvider SyntaxProvider => new(this, _syntaxInputBuilder, RegisterOutput, SyntaxHelper);
 
-        public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.Compilation));
+        public IncrementalValueProvider<Compilation> CompilationProvider => new IncrementalValueProvider<Compilation>(SharedInputNodes.Compilation.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.Compilation), CatchAnalyzerExceptions);
 
         // Use a ReferenceEqualityComparer as we want to rerun this stage whenever the CompilationOptions changes at all
         // (e.g. we don't care if it has the same conceptual value, we're ok rerunning as long as the actual instance
@@ -49,15 +52,15 @@ namespace Microsoft.CodeAnalysis
         internal IncrementalValueProvider<CompilationOptions> CompilationOptionsProvider
             => new(SharedInputNodes.CompilationOptions.WithRegisterOutput(RegisterOutput)
                 .WithComparer(ReferenceEqualityComparer.Instance)
-                .WithTrackingName(WellKnownGeneratorInputs.CompilationOptions));
+                .WithTrackingName(WellKnownGeneratorInputs.CompilationOptions), CatchAnalyzerExceptions);
 
-        public IncrementalValueProvider<ParseOptions> ParseOptionsProvider => new IncrementalValueProvider<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.ParseOptions));
+        public IncrementalValueProvider<ParseOptions> ParseOptionsProvider => new IncrementalValueProvider<ParseOptions>(SharedInputNodes.ParseOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.ParseOptions), CatchAnalyzerExceptions);
 
-        public IncrementalValuesProvider<AdditionalText> AdditionalTextsProvider => new IncrementalValuesProvider<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AdditionalTexts));
+        public IncrementalValuesProvider<AdditionalText> AdditionalTextsProvider => new IncrementalValuesProvider<AdditionalText>(SharedInputNodes.AdditionalTexts.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AdditionalTexts), CatchAnalyzerExceptions);
 
-        public IncrementalValueProvider<AnalyzerConfigOptionsProvider> AnalyzerConfigOptionsProvider => new IncrementalValueProvider<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AnalyzerConfigOptions));
+        public IncrementalValueProvider<AnalyzerConfigOptionsProvider> AnalyzerConfigOptionsProvider => new IncrementalValueProvider<AnalyzerConfigOptionsProvider>(SharedInputNodes.AnalyzerConfigOptions.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.AnalyzerConfigOptions), CatchAnalyzerExceptions);
 
-        public IncrementalValuesProvider<MetadataReference> MetadataReferencesProvider => new IncrementalValuesProvider<MetadataReference>(SharedInputNodes.MetadataReferences.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.MetadataReferences));
+        public IncrementalValuesProvider<MetadataReference> MetadataReferencesProvider => new IncrementalValuesProvider<MetadataReference>(SharedInputNodes.MetadataReferences.WithRegisterOutput(RegisterOutput).WithTrackingName(WellKnownGeneratorInputs.MetadataReferences), CatchAnalyzerExceptions);
 
         public void RegisterSourceOutput<TSource>(IncrementalValueProvider<TSource> source, Action<SourceProductionContext, TSource> action) => RegisterSourceOutput(source.Node, action, IncrementalGeneratorOutputKind.Source, _sourceExtension);
 
@@ -67,7 +70,7 @@ namespace Microsoft.CodeAnalysis
 
         public void RegisterImplementationSourceOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<SourceProductionContext, TSource> action) => RegisterSourceOutput(source.Node, action, IncrementalGeneratorOutputKind.Implementation, _sourceExtension);
 
-        public void RegisterPostInitializationOutput(Action<IncrementalGeneratorPostInitializationContext> callback) => _outputNodes.Add(new PostInitOutputNode(callback.WrapUserAction()));
+        public void RegisterPostInitializationOutput(Action<IncrementalGeneratorPostInitializationContext> callback) => _outputNodes.Add(new PostInitOutputNode(callback.WrapUserAction(CatchAnalyzerExceptions)));
 
         private void RegisterOutput(IIncrementalGeneratorOutputNode outputNode)
         {
@@ -77,9 +80,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private static void RegisterSourceOutput<TSource>(IIncrementalGeneratorNode<TSource> node, Action<SourceProductionContext, TSource> action, IncrementalGeneratorOutputKind kind, string sourceExt)
+        private void RegisterSourceOutput<TSource>(IIncrementalGeneratorNode<TSource> node, Action<SourceProductionContext, TSource> action, IncrementalGeneratorOutputKind kind, string sourceExt)
         {
-            node.RegisterOutput(new SourceOutputNode<TSource>(node, action.WrapUserAction(), kind, sourceExt));
+            node.RegisterOutput(new SourceOutputNode<TSource>(node, action.WrapUserAction(CatchAnalyzerExceptions), kind, sourceExt));
         }
     }
 
@@ -171,6 +174,28 @@ namespace Microsoft.CodeAnalysis
             DiagnosticAnalysisContextHelpers.VerifyArguments(diagnostic, Compilation, isSupportedDiagnostic: static (_, _) => true, CancellationToken);
             Diagnostics.Add(diagnostic);
         }
+    }
+
+    /// <summary>
+    /// Context passed to a filter to determine if a generator should be executed or not.
+    /// </summary>
+    public readonly struct GeneratorFilterContext
+    {
+        internal GeneratorFilterContext(ISourceGenerator generator, CancellationToken cancellationToken)
+        {
+            Generator = generator;
+            CancellationToken = cancellationToken;
+        }
+
+        /// <summary>
+        /// The generator instance that is being filtered
+        /// </summary>
+        public ISourceGenerator Generator { get; }
+
+        /// <summary>
+        /// A <see cref="System.Threading.CancellationToken"/> that can be checked to see if the filtering should be cancelled.
+        /// </summary>
+        public CancellationToken CancellationToken { get; }
     }
 
     // https://github.com/dotnet/roslyn/issues/53608 right now we only support generating source + diagnostics, but actively want to support generation of other things

@@ -7,10 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.ExtractClass
+namespace Microsoft.CodeAnalysis.ExtractClass;
+
+internal interface IExtractClassOptionsService : IWorkspaceService
 {
-    internal interface IExtractClassOptionsService : IWorkspaceService
-    {
-        Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalType, ImmutableArray<ISymbol> selectedMembers, CancellationToken cancellationToken);
-    }
+    Task<ExtractClassOptions?> GetExtractClassOptionsAsync(Document document, INamedTypeSymbol originalType, ImmutableArray<ISymbol> selectedMembers, CancellationToken cancellationToken);
 }

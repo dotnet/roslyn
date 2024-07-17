@@ -538,6 +538,60 @@ public class UseCollectionExpressionForStackAllocTests
     }
 
     [Fact]
+    public async Task TestCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        var r = (ReadOnlySpan<int>)[|[|stackalloc|] int[]|] { };
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        var r = (ReadOnlySpan<int>)[];
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
+    public async Task TestIdentifierCast()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using X = System.ReadOnlySpan<int>;
+
+                class C
+                {
+                    void M()
+                    {
+                        var r = (X)stackalloc int[] { };
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact]
     public async Task TestEmptyWithSize()
     {
         await new VerifyCS.Test

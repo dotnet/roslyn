@@ -4,6 +4,9 @@
         Some classifications do not define Foreground colors because we want them to
         inherit their color from the their parent classification (For instance Type
         and Member name classifications inherit from Identifier).
+
+        After editing this file, use "<vs install dir>\VSSDK\VisualStudioIntegration\Tools\Bin\VsixColorEditor.exe"
+        to update VisualStudio2019.pkgdef as well.
     -->
     <Theme Name="Light" GUID="{de3dbbcd-f642-433c-8353-8f1df4370aba}">
         <Category Name="Roslyn Text Editor MEF Items" GUID="{75a05685-00a8-4ded-bae5-e7a50bfa929a}">
@@ -180,6 +183,12 @@
             </Color>
             <Color Name="xml literal - text">
                 <Foreground Type="CT_RAW" Source="FF555555" />
+            </Color>
+            <Color Name="roslyn test code">
+                <Background Type="CT_RAW" Source="FFE5E5E5" />
+            </Color>
+            <Color Name="roslyn test code markdown">
+                <Foreground Type="CT_RAW" Source="FFFF01C1" />
             </Color>
         </Category>
     </Theme>
@@ -359,6 +368,12 @@
             <Color Name="xml literal - text">
                 <Foreground Type="CT_RAW" Source="FF555555" />
             </Color>
+            <Color Name="roslyn test code">
+                <Background Type="CT_RAW" Source="FFE5E5E5" />
+            </Color>
+            <Color Name="roslyn test code markdown">
+                <Foreground Type="CT_RAW" Source="FFFF01C1" />
+            </Color>
         </Category>
     </Theme>
     <Theme Name="AdditionalContrast" GUID="{ce94d289-8481-498b-8ca9-9b6191a315b9}">
@@ -536,6 +551,9 @@
             </Color>
             <Color Name="xml literal - text">
                 <Foreground Type="CT_RAW" Source="FF3F3F3F" />
+            </Color>
+            <Color Name="roslyn test code">
+                <Background Type="CT_RAW" Source="FFE5E5E5" />
             </Color>
        </Category>
     </Theme>
@@ -715,6 +733,12 @@
             <Color Name="xml literal - text">
                 <Foreground Type="CT_RAW" Source="FFC8C8C8" />
             </Color>
+            <Color Name="roslyn test code">
+                <Background Type="CT_RAW" Source="FF505050" />
+            </Color>
+            <Color Name="roslyn test code markdown">
+                <Foreground Type="CT_RAW" Source="FFFF01C1" />
+            </Color>
         </Category>
     </Theme>
     <!-- IMPORTANT: The HighContrast Theme settings should be the same across Scheme files. -->
@@ -883,6 +907,12 @@
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
             <Color Name="xml literal - text">
+                <Foreground Type="CT_SYSCOLOR" Source="00000008" />
+            </Color>
+            <Color Name="roslyn test code">
+                <Background Type="CT_SYSCOLOR" Source="00000005" />
+            </Color>
+            <Color Name="roslyn test code markdown">
                 <Foreground Type="CT_SYSCOLOR" Source="00000008" />
             </Color>
         </Category>

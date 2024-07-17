@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // looking up file-local types. If there is no document name, use an invalid FilePathChecksumOpt.
             FileIdentifier fileIdentifier = methodDebugInfo.ContainingDocumentName is { } documentName
                 ? FileIdentifier.Create(documentName)
-                : new FileIdentifier { EncoderFallbackErrorMessage = null, FilePathChecksumOpt = ImmutableArray<byte>.Empty, DisplayFilePath = string.Empty };
+                : FileIdentifier.Create(filePathChecksumOpt: ImmutableArray<byte>.Empty, displayFilePath: string.Empty);
 
             NamespaceBinder = CreateBinderChain(
                 Compilation,

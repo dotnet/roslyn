@@ -2,65 +2,33 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Roslyn.Utilities
+namespace Roslyn.Utilities;
+
+internal readonly partial struct BKTree
 {
-    internal readonly partial struct BKTree
+    internal void WriteTo(ObjectWriter writer)
     {
-        internal void WriteTo(ObjectWriter writer)
+        writer.WriteCharArray(_concatenatedLowerCaseWords);
+        writer.WriteArray(_nodes, static (w, n) => n.WriteTo(w));
+        writer.WriteArray(_edges, static (w, n) => n.WriteTo(w));
+    }
+
+    internal static BKTree? ReadFrom(ObjectReader reader)
+    {
+        try
         {
-            writer.WriteInt32(_concatenatedLowerCaseWords.Length);
-            foreach (var c in _concatenatedLowerCaseWords)
-            {
-                writer.WriteChar(c);
-            }
-
-            writer.WriteInt32(_nodes.Length);
-            foreach (var node in _nodes)
-            {
-                node.WriteTo(writer);
-            }
-
-            writer.WriteInt32(_edges.Length);
-            foreach (var edge in _edges)
-            {
-                edge.WriteTo(writer);
-            }
+            return new BKTree(
+                reader.ReadCharArray(),
+                reader.ReadArray(Node.ReadFrom),
+                reader.ReadArray(Edge.ReadFrom));
         }
-
-        internal static BKTree? ReadFrom(ObjectReader reader)
+        catch
         {
-            try
-            {
-                var concatenatedLowerCaseWords = new char[reader.ReadInt32()];
-                for (var i = 0; i < concatenatedLowerCaseWords.Length; i++)
-                {
-                    concatenatedLowerCaseWords[i] = reader.ReadChar();
-                }
-
-                var nodeCount = reader.ReadInt32();
-                var nodes = ImmutableArray.CreateBuilder<Node>(nodeCount);
-                for (var i = 0; i < nodeCount; i++)
-                {
-                    nodes.Add(Node.ReadFrom(reader));
-                }
-
-                var edgeCount = reader.ReadInt32();
-                var edges = ImmutableArray.CreateBuilder<Edge>(edgeCount);
-                for (var i = 0; i < edgeCount; i++)
-                {
-                    edges.Add(Edge.ReadFrom(reader));
-                }
-
-                return new BKTree(concatenatedLowerCaseWords, nodes.MoveToImmutable(), edges.MoveToImmutable());
-            }
-            catch
-            {
-                Logger.Log(FunctionId.BKTree_ExceptionInCacheRead);
-                return null;
-            }
+            Logger.Log(FunctionId.BKTree_ExceptionInCacheRead);
+            return null;
         }
     }
 }

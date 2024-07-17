@@ -11,34 +11,33 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Internal.Log;
 
-namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember
+namespace Microsoft.CodeAnalysis.GenerateMember.GenerateEnumMember;
+
+internal abstract partial class AbstractGenerateEnumMemberService<TService, TSimpleNameSyntax, TExpressionSyntax> :
+    AbstractGenerateMemberService<TSimpleNameSyntax, TExpressionSyntax>, IGenerateEnumMemberService
+    where TService : AbstractGenerateEnumMemberService<TService, TSimpleNameSyntax, TExpressionSyntax>
+    where TSimpleNameSyntax : TExpressionSyntax
+    where TExpressionSyntax : SyntaxNode
 {
-    internal abstract partial class AbstractGenerateEnumMemberService<TService, TSimpleNameSyntax, TExpressionSyntax> :
-        AbstractGenerateMemberService<TSimpleNameSyntax, TExpressionSyntax>, IGenerateEnumMemberService
-        where TService : AbstractGenerateEnumMemberService<TService, TSimpleNameSyntax, TExpressionSyntax>
-        where TSimpleNameSyntax : TExpressionSyntax
-        where TExpressionSyntax : SyntaxNode
+    protected AbstractGenerateEnumMemberService()
     {
-        protected AbstractGenerateEnumMemberService()
-        {
-        }
+    }
 
-        protected abstract bool IsIdentifierNameGeneration(SyntaxNode node);
-        protected abstract bool TryInitializeIdentifierNameState(SemanticDocument document, TSimpleNameSyntax identifierName, CancellationToken cancellationToken, out SyntaxToken identifierToken, out TExpressionSyntax simpleNameOrMemberAccessExpression);
+    protected abstract bool IsIdentifierNameGeneration(SyntaxNode node);
+    protected abstract bool TryInitializeIdentifierNameState(SemanticDocument document, TSimpleNameSyntax identifierName, CancellationToken cancellationToken, out SyntaxToken identifierToken, out TExpressionSyntax simpleNameOrMemberAccessExpression);
 
-        public async Task<ImmutableArray<CodeAction>> GenerateEnumMemberAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<CodeAction>> GenerateEnumMemberAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+    {
+        using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateEnumMember, cancellationToken))
         {
-            using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateEnumMember, cancellationToken))
+            var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
+            if (state == null)
             {
-                var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-                var state = await State.GenerateAsync((TService)this, semanticDocument, node, cancellationToken).ConfigureAwait(false);
-                if (state == null)
-                {
-                    return ImmutableArray<CodeAction>.Empty;
-                }
-
-                return ImmutableArray.Create<CodeAction>(new GenerateEnumMemberCodeAction(document, state, fallbackOptions));
+                return [];
             }
+
+            return [new GenerateEnumMemberCodeAction(document, state)];
         }
     }
 }

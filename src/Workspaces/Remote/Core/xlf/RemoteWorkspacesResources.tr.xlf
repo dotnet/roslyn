@@ -127,9 +127,19 @@
         <target state="translated">Anlamsal sınıflandırma</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_SemanticSearch">
+        <source>Semantic search</source>
+        <target state="translated">Anlamsal arama</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">Varlık sağlayıcısı</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">Kaynak oluşturma</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">

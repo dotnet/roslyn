@@ -887,12 +887,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Dim cookie As Object = GetStackStateCookie() ' implicit goto here
 
                 Me.SetStackDepth(origStack) ' consequence is evaluated with original stack
-                Dim valueTypeReceiver = DirectCast(Me.Visit(node.ValueTypeReceiver), BoundExpression)
+                Dim valueTypeReceiver = DirectCast(Me.VisitExpression(node.ValueTypeReceiver, Me._context), BoundExpression)
 
                 EnsureStackState(cookie) ' implicit label here
 
                 Me.SetStackDepth(origStack) ' alternative is evaluated with original stack
-                Dim referenceTypeReceiver = DirectCast(Me.Visit(node.ReferenceTypeReceiver), BoundExpression)
+                Dim referenceTypeReceiver = DirectCast(Me.VisitExpression(node.ReferenceTypeReceiver, Me._context), BoundExpression)
 
                 EnsureStackState(cookie) ' implicit label here
 

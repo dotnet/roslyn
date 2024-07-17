@@ -15,18 +15,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
     Friend Class EncapsulateFieldTestState
         Implements IDisposable
 
-        Private ReadOnly _testDocument As TestHostDocument
-        Public Workspace As TestWorkspace
+        Private ReadOnly _testDocument As EditorTestHostDocument
+        Public Workspace As EditorTestWorkspace
         Public TargetDocument As Document
 
-        Private Sub New(workspace As TestWorkspace)
+        Private Sub New(workspace As EditorTestWorkspace)
             Me.Workspace = workspace
             _testDocument = workspace.Documents.Single(Function(d) d.CursorPosition.HasValue OrElse d.SelectedSpans.Any())
             TargetDocument = workspace.CurrentSolution.GetDocument(_testDocument.Id)
         End Sub
 
         Public Shared Function Create(markup As String) As EncapsulateFieldTestState
-            Dim workspace = TestWorkspace.CreateVisualBasic(markup, composition:=EditorTestCompositions.EditorFeatures)
+            Dim workspace = EditorTestWorkspace.CreateVisualBasic(markup, composition:=EditorTestCompositions.EditorFeatures)
             Return New EncapsulateFieldTestState(workspace)
         End Function
 
@@ -35,7 +35,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EncapsulateField
             Dim commandHandler = New EncapsulateFieldCommandHandler(
                 Workspace.ExportProvider.GetExportedValue(Of IThreadingContext)(),
                 Workspace.GetService(Of ITextBufferUndoManagerProvider)(),
-                Workspace.GlobalOptions,
                 Workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider))
             Dim provider = Workspace.ExportProvider.GetExportedValue(Of IAsynchronousOperationListenerProvider)()
             Dim waiter = DirectCast(provider.GetListener(FeatureAttribute.EncapsulateField), IAsynchronousOperationWaiter)

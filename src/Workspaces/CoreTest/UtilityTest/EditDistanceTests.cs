@@ -134,8 +134,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             VerifyEditDistance("aaaabbbb", "bbbbcccc", 8);
         }
 
-        public static readonly string[] Top1000 = new string[]
-            {
+        public static readonly string[] Top1000 =
+#pragma warning disable format // https://github.com/dotnet/roslyn/issues/70711 tracks removing this suppression.
+            [
                 "a","able","about","above","act","add","afraid","after","again","against","age","ago","agree","air","all",
                 "allow","also","always","am","among","an","and","anger","animal","answer","any","appear","apple","are",
                 "area","arm","arrange","arrive","art","as","ask","at","atom","baby","back","bad","ball","band","bank",
@@ -211,7 +212,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 "who","whole","whose","why","wide","wife","wild","will","win","wind","window","wing","winter","wire",
                 "wish","with","woman","women","wonder","wont","wood","word","work","world","would","write","written",
                 "wrong","wrote","yard","year","yellow","yes","yet","you","young","your",
-            };
+            ];
+#pragma warning restore format
 
         [Fact]
         public void Top1000Test()

@@ -507,5 +507,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override bool HasUnscopedRefAttribute => false;
         }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
+
+        internal override int? TryGetOverloadResolutionPriority()
+        {
+            return null;
+        }
     }
 }

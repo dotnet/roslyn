@@ -791,7 +791,7 @@ public class Test
 }
 ";
             CreateCompilation(test).VerifyDiagnostics(
-                // (5,22): error CS0401: The new() constraint must be the last constraint specified
+                // (5,22): error CS0401: The new() constraint must be the last restrictive constraint specified
                 // class C<T> where T : new(), IA // CS0401 - should be T : IA, new()
                 Diagnostic(ErrorCode.ERR_NewBoundMustBeLast, "new").WithLocation(5, 22));
         }
@@ -4918,7 +4918,7 @@ public class Test
 }
 ";
             CreateCompilationWithMscorlibAndSpan(test, options: TestOptions.ReleaseDll.WithAllowUnsafe(true)).VerifyDiagnostics(
-                // (6,16): error CS1674: 'Span<int>': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // (6,16): error CS1674: 'Span<int>': type used in a using statement must implement 'System.IDisposable'
                 //         using (var v = stackalloc int[1])
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var v = stackalloc int[1]").WithArguments("System.Span<int>").WithLocation(6, 16));
         }
@@ -5629,9 +5629,9 @@ class C
                 // (4,17): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Goo()'
                 //     partial int Goo() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Goo").WithArguments("C.Goo()").WithLocation(4, 17),
-                // (4,17): error CS0751: A partial method must be declared within a partial type
+                // (4,17): error CS0751: A partial member must be declared within a partial type
                 //     partial int Goo() { }
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "Goo").WithLocation(4, 17),
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "Goo").WithLocation(4, 17),
                 // (4,17): error CS8796: Partial method 'C.Goo()' must have accessibility modifiers because it has a non-void return type.
                 //     partial int Goo() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "Goo").WithArguments("C.Goo()").WithLocation(4, 17),
@@ -5645,9 +5645,9 @@ class C
                 // (4,17): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Goo()'
                 //     partial int Goo() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "Goo").WithArguments("C.Goo()").WithLocation(4, 17),
-                // (4,17): error CS0751: A partial method must be declared within a partial type
+                // (4,17): error CS0751: A partial member must be declared within a partial type
                 //     partial int Goo() { }
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "Goo").WithLocation(4, 17),
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "Goo").WithLocation(4, 17),
                 // (4,17): error CS8796: Partial method 'C.Goo()' must have accessibility modifiers because it has a non-void return type.
                 //     partial int Goo() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods, "Goo").WithArguments("C.Goo()").WithLocation(4, 17),
@@ -6735,7 +6735,7 @@ class Program
                 builder.AppendLine("}, u = 0");
             }
 
-            builder.Append(@"}");
+            builder.Append('}');
 
             var expr = SyntaxFactory.ParseExpression(builder.ToString());
             var actualErrors = expr.GetDiagnostics().ToArray();
@@ -6762,7 +6762,7 @@ class Program
                 builder.AppendLine("}, u = 0");
             }
 
-            builder.Append(@"}");
+            builder.Append('}');
 
             var stmt = SyntaxFactory.ParseStatement(builder.ToString());
             var actualErrors = stmt.GetDiagnostics().ToArray();

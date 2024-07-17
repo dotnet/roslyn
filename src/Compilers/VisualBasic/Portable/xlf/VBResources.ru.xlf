@@ -42,6 +42,21 @@
         <target state="translated">"System.Runtime.CompilerServices.RequiredMemberAttribute" зарезервирован только для использования компилятором.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="translated">Аргумент diagnosticId атрибута "Experimental" должен быть допустимым идентификатором</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidVersionFormatDeterministic">
+        <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
+        <target state="new">The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LockTypeUnsupported">
+        <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
+        <target state="translated">Значение типа "System.Threading.Lock" не поддерживается в SyncLock. Попробуйте вручную вызвать методы "Enter" и "Exit" в блоке Try/Finally.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">В одном каталоге ("{0}") не может находиться несколько файлов конфигурации анализатора.</target>
@@ -603,6 +618,16 @@ optionstrict[+|-]                Принудительное применени
         <target state="translated">Применение класса CallerArgumentExpressionAttribute к параметру не подействует, так как он ссылается сам на себя.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">Значение типа "System.Threading.Lock", преобразованное в другой тип, будет использовать (скорее всего, непреднамеренную) блокировку на основе монитора в инструкции SyncLock.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">Значение типа "System.Threading.Lock", преобразованное в другой тип, будет использовать (скорее всего, непреднамеренную) блокировку на основе монитора в инструкции SyncLock.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">
         <source>Analyzer reference '{0}' specified multiple times</source>
         <target state="translated">Ссылка анализатора "{0}" указана несколько раз</target>
@@ -614,16 +639,14 @@ optionstrict[+|-]                Принудительное применени
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">Генератору "{0}" не удалось создать источник. Это не повлияет на выходные данные и ошибки компиляции, которые могут возникнуть в результате. Тип возникшего исключения: "{1}", сообщение: "{2}"</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Генератор создал следующее исключение:
-"{0}".</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Генератору "{0}" не удалось создать источник. Это не повлияет на выходные данные и ошибки компиляции, которые могут возникнуть в результате. Тип возникшего исключения: "{1}", сообщение: "{2}".
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -631,16 +654,14 @@ optionstrict[+|-]                Принудительное применени
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">Не удалось инициализировать генератор "{0}". Это не повлияет на выходные данные и ошибки компиляции, которые могут возникнуть в результате. Тип возникшего исключения: "{1}", сообщение: "{2}"</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">Генератор создал следующее исключение:
-"{0}".</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">Не удалось инициализировать генератор "{0}". Это не повлияет на выходные данные и ошибки компиляции, которые могут возникнуть в результате. Тип возникшего исключения: "{1}", сообщение: "{2}".
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
@@ -7676,8 +7697,8 @@ optionstrict[+|-]                Принудительное применени
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
-        <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">Указанная строка версии не соответствует рекомендованному формату — основной номер.дополнительный номер.сборка.редакция</target>
+        <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
+        <target state="needs-review-translation">Указанная строка версии не соответствует рекомендованному формату — основной номер.дополнительный номер.сборка.редакция</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">

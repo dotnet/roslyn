@@ -1678,10 +1678,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lookupResult.Free();
             }
 
-            ImmutableArray<ISymbol> sealedResults = results.ToImmutableAndFree();
-            return name == null
-                ? FilterNotReferencable(sealedResults)
-                : sealedResults;
+            if (name == null)
+                FilterNotReferenceable(results);
+
+            return results.ToImmutableAndFree();
         }
 
         private void AppendSymbolsWithName(ArrayBuilder<ISymbol> results, string name, Binder binder, NamespaceOrTypeSymbol container, LookupOptions options, LookupSymbolsInfo info)
@@ -1795,25 +1795,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal abstract Symbol RemapSymbolIfNecessaryCore(Symbol symbol);
 
-        private static ImmutableArray<ISymbol> FilterNotReferencable(ImmutableArray<ISymbol> sealedResults)
+        private static void FilterNotReferenceable(ArrayBuilder<ISymbol> sealedResults)
         {
-            ArrayBuilder<ISymbol> builder = null;
-            int pos = 0;
-            foreach (var result in sealedResults)
+            var writeIndex = 0;
+            for (var i = 0; i < sealedResults.Count; i++)
             {
-                if (result.CanBeReferencedByName)
+                var symbol = sealedResults[i];
+                if (symbol.CanBeReferencedByName)
                 {
-                    builder?.Add(result);
+                    if (writeIndex != i)
+                        sealedResults[writeIndex] = symbol;
+
+                    writeIndex++;
                 }
-                else if (builder == null)
-                {
-                    builder = ArrayBuilder<ISymbol>.GetInstance();
-                    builder.AddRange(sealedResults, pos);
-                }
-                pos++;
             }
 
-            return builder?.ToImmutableAndFree() ?? sealedResults;
+            sealedResults.Count = writeIndex;
         }
 
         /// <summary>
@@ -2192,13 +2189,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                         convertedNullability = convertedCollection.TopLevelNullability;
                         conversion = convertedCollectionConversion;
                     }
+                    else if (highestBoundExpr is BoundConversion { ConversionKind: ConversionKind.ImplicitNullable, Conversion.UnderlyingConversions: [{ Kind: ConversionKind.CollectionExpression }] } boundConversion)
+                    {
+                        convertedType = highestBoundExpr.Type;
+                        convertedNullability = convertedCollection.TopLevelNullability;
+                        conversion = boundConversion.Conversion;
+                    }
                     else
                     {
-                        // There was an explicit cast on top of this.
-                        (convertedType, convertedNullability) = (convertedCollection.Type, nullability);
-                        conversion = convertedCollection.CollectionTypeKind == CollectionExpressionTypeKind.None
-                            ? Conversion.NoConversion
-                            : Conversion.CollectionExpression;
+                        // Explicit cast or error scenario like `object x = [];`
+                        convertedNullability = nullability;
+                        convertedType = null;
+                        conversion = Conversion.Identity;
                     }
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
@@ -2955,7 +2957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="declarationSyntax">The syntax node that declares a member.</param>
         /// <param name="cancellationToken">The cancellation token.</param>
         /// <returns>The symbol that was declared.</returns>
-        public abstract ISymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
+        public abstract IMethodSymbol GetDeclaredSymbol(LocalFunctionStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Given a compilation unit syntax, get the corresponding Simple Program entry point symbol.
@@ -3845,9 +3847,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)increment.MethodOpt == null && increment.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
                 UnaryOperatorKind op = increment.OperatorKind.Operator();
-                symbols = OneOrMany.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(increment.Operand.Type.StrippedType(),
+                TypeSymbol opType = increment.Operand.Type.StrippedType();
+                symbols = OneOrMany.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(opType,
                                                                                           OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked: increment.OperatorKind.IsChecked()),
-                                                                                          increment.Type.StrippedType()));
+                                                                                          opType));
                 resultKind = increment.ResultKind;
             }
         }
@@ -4114,10 +4117,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ImmutableArray<IPropertySymbol>.Empty;
             }
 
-            return FilterOverriddenOrHiddenIndexers(symbols.ToImmutableAndFree());
+            var result = FilterOverriddenOrHiddenIndexers(symbols);
+            symbols.Free();
+
+            return result;
         }
 
-        private static ImmutableArray<IPropertySymbol> FilterOverriddenOrHiddenIndexers(ImmutableArray<ISymbol> symbols)
+        private static ImmutableArray<IPropertySymbol> FilterOverriddenOrHiddenIndexers(ArrayBuilder<ISymbol> symbols)
         {
             PooledHashSet<Symbol> hiddenSymbols = null;
             foreach (ISymbol iSymbol in symbols)
@@ -5194,6 +5200,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ? ImmutableArray.Create(symbol)
                 : ImmutableArray<ISymbol>.Empty;
         }
+
+#nullable enable
+        public IMethodSymbol? GetInterceptorMethod(InvocationExpressionSyntax node, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            CheckSyntaxNode(node);
+
+            if (node.GetInterceptableNameSyntax() is { } nameSyntax && Compilation.TryGetInterceptor(nameSyntax) is (_, MethodSymbol interceptor))
+            {
+                return interceptor.GetPublicSymbol();
+            }
+
+            return null;
+        }
+
+#pragma warning disable RSEXPERIMENTAL002 // Internal usage of experimental API
+        public InterceptableLocation? GetInterceptableLocation(InvocationExpressionSyntax node, CancellationToken cancellationToken)
+        {
+            CheckSyntaxNode(node);
+            if (node.GetInterceptableNameSyntax() is not { } nameSyntax)
+            {
+                return null;
+            }
+
+            return GetInterceptableLocationInternal(nameSyntax, cancellationToken);
+        }
+
+        // Factored out for ease of test authoring, especially for scenarios involving unsupported syntax.
+        internal InterceptableLocation GetInterceptableLocationInternal(SyntaxNode nameSyntax, CancellationToken cancellationToken)
+        {
+            var tree = nameSyntax.SyntaxTree;
+            var text = tree.GetText(cancellationToken);
+            var path = tree.FilePath;
+            var checksum = text.GetContentHash();
+
+            var lineSpan = nameSyntax.Location.GetLineSpan().Span.Start;
+            var lineNumberOneIndexed = lineSpan.Line + 1;
+            var characterNumberOneIndexed = lineSpan.Character + 1;
+
+            return new InterceptableLocation1(checksum, path, nameSyntax.Position, lineNumberOneIndexed, characterNumberOneIndexed);
+        }
+#nullable disable
 
         protected static SynthesizedPrimaryConstructor TryGetSynthesizedPrimaryConstructor(TypeDeclarationSyntax node, NamedTypeSymbol type)
         {

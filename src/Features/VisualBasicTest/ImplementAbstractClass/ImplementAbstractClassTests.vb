@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.ImplementAbstractClass
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractClass
     Partial Public Class ImplementAbstractClassTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicImplementAbstractClassCodeFixProvider)
@@ -632,7 +632,7 @@ Class C
             Throw New System.NotImplementedException()
         End Set
     End Property
-End Class", parameters:=New TestParameters(globalOptions:=[Option](ImplementTypeOptionsStorage.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties)))
+End Class", parameters:=New TestParameters(options:=[Option](ImplementTypeOptionsStorage.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties)))
         End Function
     End Class
 End Namespace

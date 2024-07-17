@@ -3266,7 +3266,7 @@ class C
         public void HugeTupleCreationParses()
         {
             StringBuilder b = new StringBuilder();
-            b.Append("(");
+            b.Append('(');
             for (int i = 0; i < 3000; i++)
             {
                 b.Append("1, ");
@@ -3292,7 +3292,7 @@ class C
         public void HugeTupleDeclarationParses()
         {
             StringBuilder b = new StringBuilder();
-            b.Append("(");
+            b.Append('(');
             for (int i = 0; i < 3000; i++)
             {
                 b.Append("int, ");
@@ -3918,7 +3918,7 @@ class C
         set
         {
             var t = (M(), value);
-            System.Console.Write(t.value);
+            System.Console.Write(t.@value);
         }
     }
 }
@@ -7370,9 +7370,6 @@ class C
                 // (17,13): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,9);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "((0, 0),1,2,3,4,5,6,7,8,9)").WithArguments("System.ValueTuple`3").WithLocation(17, 13),
-                // (17,13): error CS0029: Cannot implicitly convert type 'System.ValueTuple<(int, int), int, int, int, int, int, int, (int, int, int)>' to '((int, int) x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10)'
-                //         x = ((0, 0),1,2,3,4,5,6,7,8,9);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "((0, 0),1,2,3,4,5,6,7,8,9)").WithArguments("System.ValueTuple<(int, int), int, int, int, int, int, int, (int, int, int)>", "((int, int) x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10)").WithLocation(17, 13),
                 // (18,37): error CS8179: Predefined type 'System.ValueTuple`3' is not defined or imported
                 //         x = ((0, 0),1,2,3,4,5,6,7,8,(1,1,1), 10);
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(1,1,1)").WithArguments("System.ValueTuple`3").WithLocation(18, 37));
@@ -20501,10 +20498,12 @@ public class C4 : I2, I3
 
             void assertExplicitInterfaceImplementations(INamedTypeSymbol c)
             {
-                var cMabImplementations = ((IMethodSymbol)c.GetMember("I1<(System.Int32a,System.Int32b)>.M")).ExplicitInterfaceImplementations;
+                var members = c.GetMembers("I1<System.ValueTuple<System.Int32,System.Int32>>.M");
+                Assert.Equal(2, members.Length);
+                var cMabImplementations = ((IMethodSymbol)members[0]).ExplicitInterfaceImplementations;
                 Assert.Equal(1, cMabImplementations.Length);
                 Assert.Equal("void I1<(System.Int32 a, System.Int32 b)>.M()", cMabImplementations[0].ToTestDisplayString());
-                var cMcdImplementations = ((IMethodSymbol)c.GetMember("I1<(System.Int32c,System.Int32d)>.M")).ExplicitInterfaceImplementations;
+                var cMcdImplementations = ((IMethodSymbol)members[1]).ExplicitInterfaceImplementations;
                 Assert.Equal(1, cMcdImplementations.Length);
                 Assert.Equal("void I1<(System.Int32 c, System.Int32 d)>.M()", cMcdImplementations[0].ToTestDisplayString());
             }
@@ -20568,7 +20567,7 @@ public class C2 : C1, I1<(int c, int d)>
                 Assert.Equal("void C2.M1()",
                              c2.FindImplementationForInterfaceMember(((TypeSymbol)c1Interfaces[0]).GetMember("M1")).ToTestDisplayString());
 
-                var m2 = (MethodSymbol)((TypeSymbol)c2).GetMember("I1<(System.Int32c,System.Int32d)>.M2");
+                var m2 = (MethodSymbol)((TypeSymbol)c2).GetMember("I1<System.ValueTuple<System.Int32,System.Int32>>.M2");
                 var m2Implementations = m2.ExplicitInterfaceImplementations;
                 Assert.Equal(1, m2Implementations.Length);
                 Assert.Equal(isMetadata ?
@@ -20715,10 +20714,12 @@ public class C4<T> : I2<T>, I3<T>
 
             void assertExplicitInterfaceImplementations(INamedTypeSymbol c)
             {
-                var cMabImplementations = ((IMethodSymbol)c.GetMember("I1<(Ta,Tb)>.M")).ExplicitInterfaceImplementations;
+                var members = c.GetMembers("I1<System.ValueTuple<T,T>>.M");
+                Assert.Equal(2, members.Length);
+                var cMabImplementations = ((IMethodSymbol)members[0]).ExplicitInterfaceImplementations;
                 Assert.Equal(1, cMabImplementations.Length);
                 Assert.Equal("void I1<(T a, T b)>.M()", cMabImplementations[0].ToTestDisplayString());
-                var cMcdImplementations = ((IMethodSymbol)c.GetMember("I1<(Tc,Td)>.M")).ExplicitInterfaceImplementations;
+                var cMcdImplementations = ((IMethodSymbol)members[1]).ExplicitInterfaceImplementations;
                 Assert.Equal(1, cMcdImplementations.Length);
                 Assert.Equal("void I1<(T c, T d)>.M()", cMcdImplementations[0].ToTestDisplayString());
             }
@@ -20760,10 +20761,10 @@ public class C3<T, U> : I1<(T a, T b)>, I1<(U c, U d)>
 
             void assertExplicitInterfaceImplementations(INamedTypeSymbol c)
             {
-                var cMabImplementations = ((IMethodSymbol)c.GetMember("I1<(Ta,Tb)>.M")).ExplicitInterfaceImplementations;
+                var cMabImplementations = ((IMethodSymbol)c.GetMember("I1<System.ValueTuple<T,T>>.M")).ExplicitInterfaceImplementations;
                 Assert.Equal(1, cMabImplementations.Length);
                 Assert.Equal("void I1<(T a, T b)>.M()", cMabImplementations[0].ToTestDisplayString());
-                var cMcdImplementations = ((IMethodSymbol)c.GetMember("I1<(Uc,Ud)>.M")).ExplicitInterfaceImplementations;
+                var cMcdImplementations = ((IMethodSymbol)c.GetMember("I1<System.ValueTuple<U,U>>.M")).ExplicitInterfaceImplementations;
                 Assert.Equal(1, cMcdImplementations.Length);
                 Assert.Equal("void I1<(U c, U d)>.M()", cMcdImplementations[0].ToTestDisplayString());
             }
@@ -20804,7 +20805,7 @@ public class C4 : I1<(int c, int d)>
             Assert.Equal("I1<(System.Int32 a, System.Int32 b)>", c3Interfaces[0].ToTestDisplayString());
             Assert.Equal("I1<(System.Int32 a, System.Int32 b)>", c3AllInterfaces[0].ToTestDisplayString());
 
-            var mImplementations = ((MethodSymbol)c3.GetMember("I1<(System.Int32c,System.Int32d)>.M")).GetPublicSymbol().ExplicitInterfaceImplementations;
+            var mImplementations = ((MethodSymbol)c3.GetMember("I1<System.ValueTuple<System.Int32,System.Int32>>.M")).GetPublicSymbol().ExplicitInterfaceImplementations;
             Assert.Equal(1, mImplementations.Length);
             Assert.Equal("void I1<(System.Int32 c, System.Int32 d)>.M()", mImplementations[0].ToTestDisplayString());
 
@@ -21006,15 +21007,15 @@ public partial class C
 ";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (10,18): error CS8142: Both partial method declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
+                // (10,18): error CS8142: Both partial member declarations, 'C.M1((int a, int b))' and 'C.M1((int notA, int notB))', must use the same tuple element names.
                 //     partial void M1((int notA, int notB) y) { }
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M1").WithArguments("C.M1((int a, int b))", "C.M1((int notA, int notB))").WithLocation(10, 18),
+                Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "M1").WithArguments("C.M1((int a, int b))", "C.M1((int notA, int notB))").WithLocation(10, 18),
                 // (10,18): warning CS8826: Partial method declarations 'void C.M1((int a, int b) x)' and 'void C.M1((int notA, int notB) y)' have signature differences.
                 //     partial void M1((int notA, int notB) y) { }
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M1").WithArguments("void C.M1((int a, int b) x)", "void C.M1((int notA, int notB) y)").WithLocation(10, 18),
-                // (11,18): error CS8142: Both partial method declarations, 'C.M2((int a, int b))' and 'C.M2((int, int))', must use the same tuple element names.
+                // (11,18): error CS8142: Both partial member declarations, 'C.M2((int a, int b))' and 'C.M2((int, int))', must use the same tuple element names.
                 //     partial void M2((int, int) y) { }
-                Diagnostic(ErrorCode.ERR_PartialMethodInconsistentTupleNames, "M2").WithArguments("C.M2((int a, int b))", "C.M2((int, int))").WithLocation(11, 18),
+                Diagnostic(ErrorCode.ERR_PartialMemberInconsistentTupleNames, "M2").WithArguments("C.M2((int a, int b))", "C.M2((int, int))").WithLocation(11, 18),
                 // (11,18): warning CS8826: Partial method declarations 'void C.M2((int a, int b) x)' and 'void C.M2((int, int) y)' have signature differences.
                 //     partial void M2((int, int) y) { }
                 Diagnostic(ErrorCode.WRN_PartialMethodTypeDifference, "M2").WithArguments("void C.M2((int a, int b) x)", "void C.M2((int, int) y)").WithLocation(11, 18),
@@ -21920,37 +21921,7 @@ namespace System
                 assemblyName: "comp",
                 parseOptions: TestOptions.Regular);
 
-            comp.VerifyDiagnostics(
-                // (8,13): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //             (string I1,
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, @"(string I1,
-                string I2,
-                string I3,
-                string I4,
-                string I5,
-                string I6,
-                string I7,
-                string I8)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(8, 13),
-                // (30,13): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //             (string I1,
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, @"(string I1,
-                string I2,
-                string I3,
-                string I4,
-                string I5,
-                string I6,
-                string I7,
-                string I8)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(30, 13),
-                // (52,13): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //             (string I1,
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, @"(string I1,
-                string I2,
-                string I3,
-                string I4,
-                string I5,
-                string I6,
-                string I7,
-                string I8)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(52, 13),
+            comp.VerifyEmitDiagnostics(
                 // (70,38): error CS0165: Use of unassigned local variable 'ss'
                 //             System.Console.WriteLine(ss); // should fail
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "ss").WithArguments("ss").WithLocation(70, 38)
@@ -27964,7 +27935,7 @@ class C
             Assert.False(field.HasComplete(CompletionPart.All));
             Assert.False(underlyingField.HasComplete(CompletionPart.All));
 
-            field.ForceComplete(null, default);
+            field.ForceComplete(null, filter: null, default);
 
             Assert.True(field.RequiresCompletion);
             Assert.True(underlyingField.RequiresCompletion);

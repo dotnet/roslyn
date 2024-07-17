@@ -34,10 +34,11 @@
   <ValueType Name="BoundLocalDeclarationKind"/>
   <ValueType Name="NullableAnnotation"/>
   <ValueType Name="ErrorCode"/>
-  <ValueType Name="ImmutableBindingDiagnostic"/>
+  <ValueType Name="ReadOnlyBindingDiagnostic"/>
   <ValueType Name="InterpolatedStringHandlerData"/>
   <ValueType Name="WellKnownMember"/>
   <ValueType Name="CollectionExpressionTypeKind"/>
+  <ValueType Name="AccessorKind" />
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -690,6 +691,7 @@
 
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="AwaitableInfo" Type="BoundAwaitableInfo" Null="disallow"/>
+    <Field Name="DebugInfo" Type="BoundAwaitExpressionDebugInfo" Null="NotApplicable"/>
   </Node>
 
   <AbstractNode Name="BoundTypeOf" Base="BoundExpression">
@@ -705,9 +707,15 @@
 
   <!-- Instrumentation info attached to BoundBlock -->
   <Node Name="BoundBlockInstrumentation" Base="BoundNode">
-    <Field Name="Local" Type="LocalSymbol" Null="disallow"/>
-    <Field Name="Prologue" Type="BoundStatement" Null="disallow"/>
-    <Field Name="Epilogue" Type="BoundStatement" Null="disallow"/>
+    <!-- Local variables with scope that cover the entire block including the instrumentation prologue and epilogue. -->
+    <Field Name="Locals" Type="OneOrMany&lt;LocalSymbol&gt;" Null="disallow"/>
+    <!-- Optional prologue emitted in front of any instructions of the block, so that it always executes. -->
+    <Field Name="Prologue" Type="BoundStatement?" Null="allow"/>
+    <!--
+      If specified, a try-finally block is emitted around the instrumented block. The epilogue is emitted to the finally clause,
+      so that it always executes when the execution leaves the instrumented block.
+     -->
+    <Field Name="Epilogue" Type="BoundStatement?" Null="allow"/>
   </Node>
   
   <!-- Represents the raw metadata RowId value for a method definition.
@@ -755,6 +763,17 @@
   <Node Name="BoundInstrumentationPayloadRoot" Base="BoundExpression">
     <Field Name="AnalysisKind" Type="int"/>
     <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
+  <!-- Call to PrivateImplementationDetails.ModuleCancellationToken.ThrowIfCancellationRequested().
+       PrivateImplementationDetails.ModuleCancellationToken has no language-level symbol. -->
+  <Node Name="BoundThrowIfModuleCancellationRequested" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
+  <!-- Returns the value of PrivateImplementationDetails.ModuleCancellationToken. It has no language-level symbol. -->
+  <Node Name="ModuleCancellationTokenExpression" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
@@ -1716,7 +1735,7 @@
   
   <Node Name="BoundDynamicInvocation" Base="BoundDynamicInvocableBase">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     
     <!-- If the receiver is statically typed the set of applicable methods that may be invoked at runtime. Empty otherwise. -->
@@ -1791,7 +1810,7 @@
     <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="Method" Type="MethodSymbol"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="IsDelegateCall" Type="bool"/>
     <Field Name="Expanded" Type="bool"/>
@@ -1861,7 +1880,7 @@
     <Field Name="ConstructorsGroup" Type="ImmutableArray&lt;MethodSymbol&gt;"/>
     
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" PropertyOverrides="true"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow" PropertyOverrides="true"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow" PropertyOverrides="true"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" PropertyOverrides="true"/>
     <Field Name="Expanded" Type="bool" PropertyOverrides="true"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow" PropertyOverrides="true"/>
@@ -1870,19 +1889,22 @@
     <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true"/>
     <Field Name="WasTargetTyped" Type="bool" PropertyOverrides="true"/>
   </Node>
-  
+
+  <AbstractNode Name="BoundCollectionExpressionBase" Base="BoundExpression">
+    <!-- Collection expression elements. -->
+    <Field Name="Elements" Type="ImmutableArray&lt;BoundNode&gt;"/>
+  </AbstractNode>
+
   <!--
   An unconverted collection expression.
   It does not survive past initial binding.
   -->
-  <Node Name="BoundUnconvertedCollectionExpression" Base="BoundExpression">
+  <Node Name="BoundUnconvertedCollectionExpression" Base="BoundCollectionExpressionBase">
     <!-- Type is not significant for this node type; always null -->
     <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
-    <!-- Collection expression elements. -->
-    <Field Name="Elements" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>
 
-  <Node Name="BoundCollectionExpression" Base="BoundExpression">
+  <Node Name="BoundCollectionExpression" Base="BoundCollectionExpressionBase">
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
     <Field Name="CollectionTypeKind" Type="CollectionExpressionTypeKind"/>
@@ -1892,18 +1914,32 @@
     <Field Name="CollectionCreation" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
     <!-- Construct method for collection types with [CollectionBuilder]. -->
     <Field Name="CollectionBuilderMethod" Type="MethodSymbol?" Null="allow"/>
-    <!-- Collection expression elements. -->
-    <Field Name="Elements" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+    <!-- Placeholder for collection builder method invocation. -->
+    <Field Name="CollectionBuilderInvocationPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Conversion from collection builder method invocation to collection type. -->
+    <Field Name="CollectionBuilderInvocationConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    <!-- Indicates whether the collection expression was successfully target-typed (it is inside a conversion) -->
+    <Field Name="WasTargetTyped" Type="bool" />
+    <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>
   </Node>
 
-  <Node Name="BoundCollectionExpressionSpreadElement" Base="BoundExpression">
-    <!-- Non-null type is required for this node kind -->
-    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  <Node Name="BoundCollectionExpressionSpreadExpressionPlaceholder" Base="BoundValuePlaceholderBase"/>
+
+  <Node Name="BoundCollectionExpressionSpreadElement" Base="BoundNode">
+    <!-- Collection being spread. -->
     <Field Name="Expression" Type="BoundExpression"/>
+    <!-- Collection placeholder, used in Conversion and LengthOrCount fields. -->
+    <Field Name="ExpressionPlaceholder" Type="BoundCollectionExpressionSpreadExpressionPlaceholder?" SkipInVisitor="true" Null="allow"/>
+    <!-- Collection conversion to the type expected for foreach. -->
+    <Field Name="Conversion" Type="BoundExpression?" Null="allow" SkipInVisitor="true"/>
+    <!-- Collection enumerator info. -->
     <Field Name="EnumeratorInfoOpt" Type="ForEachEnumeratorInfo?"/>
+    <!-- Collection Length or Count property value. -->
+    <Field Name="LengthOrCount" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    <!-- Collection element placeholder, used in IteratorBody. -->
     <Field Name="ElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
-    <Field Name="AddElementPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
-    <Field Name="AddMethodInvocation" Type="BoundStatement?" SkipInVisitor="true" Null="allow"/>
+    <!-- Statement executed for each collection element. -->
+    <Field Name="IteratorBody" Type="BoundStatement?" SkipInVisitor="true" Null="allow"/>
   </Node>
 
   <!-- 
@@ -1949,7 +1985,7 @@
   <Node Name="BoundDynamicObjectCreationExpression" Base="BoundObjectCreationExpressionBase">
     <Field Name="Name" Type="string" Null="disallow"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;" PropertyOverrides="true"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow" PropertyOverrides="true"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow" PropertyOverrides="true"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow" PropertyOverrides="true"/>
     <Field Name="InitializerExpressionOpt" Type="BoundObjectInitializerExpressionBase?" PropertyOverrides="true"/>
     <Field Name="ApplicableMethods" Type="ImmutableArray&lt;MethodSymbol&gt;" />
@@ -1979,12 +2015,13 @@
 
     <Field Name="MemberSymbol" Type="Symbol?"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="DefaultArguments" Type="BitVector" />
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <Field Name="AccessorKind" Type="AccessorKind" />
 
     <!-- Used by IOperation to reconstruct the receiver for this expression. -->
     <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow"/>
@@ -2170,9 +2207,10 @@
     <Field Name="InitialBindingReceiverIsSubjectToCloning" Type="ThreeState"/>
     <Field Name="Indexer" Type="PropertySymbol"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
+    <Field Name="AccessorKind" Type="AccessorKind" />
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="DefaultArguments" Type="BitVector" />
     <!--The set of indexer symbols from which this call's indexer was chosen.
@@ -2225,7 +2263,7 @@
 
     <Field Name="Receiver" Type="BoundExpression"/>
     <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
-    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
 
     <!-- If the receiver is statically typed the set of applicable methods that may be invoked at runtime. Empty otherwise. -->
@@ -2238,7 +2276,7 @@
     <Field Name="Symbol" Type="LambdaSymbol" Null="disallow"/>
     <Field Name="Type" Type="TypeSymbol?" Override="true"/>
     <Field Name="Body" Type="BoundBlock"/>
-    <Field Name="Diagnostics" Type="ImmutableBindingDiagnostic&lt;AssemblySymbol&gt;"/>
+    <Field Name="Diagnostics" Type="ReadOnlyBindingDiagnostic&lt;AssemblySymbol&gt;"/>
     <Field Name="Binder" Type="Binder" Null="disallow" />
   </Node>
 

@@ -22,6 +22,16 @@
         <target state="translated">単一行のコントロール ステートメントに対する必須の波かっこを追加する</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_0">
+        <source>Apply '{0}'</source>
+        <target state="translated">'{0}' を適用する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_Copilot_suggestion">
+        <source>Apply Copilot suggestion</source>
+        <target state="translated">Copilot の提案を適用する</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">コンストラクター初期化子のコロンの空白行に関する基本設定を適用する (試験段階)</target>
@@ -57,6 +67,11 @@
         <target state="translated">式/ブロック本体の基本設定を適用します</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_fix_from">
+        <source>Apply fix from</source>
+        <target state="translated">修正プログラムの適用元</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_inline_out_variable_preferences">
         <source>Apply inline 'out' variables preferences</source>
         <target state="translated">インラインの 'out' 変数の基本設定を適用します</target>
@@ -80,11 +95,6 @@
       <trans-unit id="Apply_new_preferences">
         <source>Apply new() preferences</source>
         <target state="translated">new() の基本設定を適用する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_parameter_null_preferences">
-        <source>Apply parameter null preferences</source>
-        <target state="translated">パラメーターの null 値の基本設定を適用する</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
@@ -127,6 +137,11 @@
         <target state="translated">パターン変数宣言の可能性があるため、自動選択は無効になっています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
+        <source>Cannot determine valid range of statements to extract</source>
+        <target state="translated">抽出するステートメントの有効な範囲を決定できません</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">'as' 式に変更</target>
@@ -150,6 +165,11 @@
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">生文字列に変換する</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_regular_constructor">
+        <source>Convert to regular constructor</source>
+        <target state="translated">通常のコンストラクターに変換する</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -232,6 +252,11 @@
         <target state="translated">警告: 一時変数をインライン化すると、コードの意味が変わる可能性があります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_colon_AI_suggestions_might_be_inaccurate">
+        <source>Warning: AI suggestions might be inaccurate.</source>
+        <target state="translated">警告: AI の提案は不正確である可能性があります。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
         <source>asynchronous foreach statement</source>
         <target state="translated">非同期の foreach ステートメント</target>
@@ -241,6 +266,11 @@
         <source>asynchronous using declaration</source>
         <target state="translated">非同期の using 宣言</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="do_while_loop">
+        <source>do-while loop</source>
+        <target state="translated">do-while ループ</target>
+        <note>{Locked="do"}{Locked="while"} "do" and "while" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
@@ -312,11 +342,6 @@
         <target state="translated">this' 修飾子を削除します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
-        <source>Can't determine valid range of statements to extract</source>
-        <target state="translated">抽出するステートメントの有効な範囲を決定できません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
         <source>Not all code paths return</source>
         <target state="translated">返されないコード パスがあります</target>
@@ -379,7 +404,7 @@
       </trans-unit>
       <trans-unit id="extension">
         <source>extension</source>
-        <target state="translated">拡張子</target>
+        <target state="translated">拡張</target>
         <note />
       </trans-unit>
       <trans-unit id="awaitable">
@@ -389,7 +414,7 @@
       </trans-unit>
       <trans-unit id="awaitable_extension">
         <source>awaitable, extension</source>
-        <target state="translated">待機可能、拡張子</target>
+        <target state="translated">待機可能、拡張</target>
         <note />
       </trans-unit>
       <trans-unit id="Organize_Usings">
@@ -434,12 +459,12 @@
       </trans-unit>
       <trans-unit id="top_level_code">
         <source>top-level code</source>
-        <target state="new">top-level code</target>
+        <target state="translated">最上位のコード</target>
         <note />
       </trans-unit>
       <trans-unit id="top_level_statement">
         <source>top-level statement</source>
-        <target state="new">top-level statement</target>
+        <target state="translated">最上位のステートメント</target>
         <note />
       </trans-unit>
       <trans-unit id="try_block">

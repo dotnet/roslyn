@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class LambdaParameterSymbol : SourceComplexParameterSymbolBase
     {
+        private readonly TypeWithAnnotations _parameterType;
         private readonly SyntaxList<AttributeListSyntax> _attributeLists;
 
         public LambdaParameterSymbol(
@@ -22,13 +23,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
            ScopedKind scope,
            string name,
            bool isDiscard,
-           bool isParams,
+           bool hasParamsModifier,
            Location location)
-           : base(owner, ordinal, parameterType, refKind, name, location, syntaxRef, isParams, isExtensionMethodThis: false, scope)
+           : base(owner, ordinal, refKind, name, location, syntaxRef, hasParamsModifier: hasParamsModifier, isParams: hasParamsModifier, isExtensionMethodThis: false, scope)
         {
+            _parameterType = parameterType;
             _attributeLists = attributeLists;
             IsDiscard = isDiscard;
         }
+
+        public override TypeWithAnnotations TypeWithAnnotations => _parameterType;
 
         public override bool IsDiscard { get; }
 

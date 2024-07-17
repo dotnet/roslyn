@@ -86,6 +86,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// All analyzer callbacks for non-concurrent analyzers will be guarded with a lock on the gate.
         /// </param>
         /// <param name="getSemanticModel">Delegate to get a semantic model for the given syntax tree which can be shared across analyzers.</param>
+        /// <param name="severityFilter"><see cref="SeverityFilter"/> for analysis.</param>
         /// <param name="shouldSkipAnalysisOnGeneratedCode">Delegate to identify if analysis should be skipped on generated code.</param>
         /// <param name="shouldSuppressGeneratedCodeDiagnostic">Delegate to identify if diagnostic reported while analyzing generated code should be suppressed.</param>
         /// <param name="isGeneratedCodeLocation">Delegate to identify if the given location is in generated code.</param>
@@ -108,6 +109,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, CancellationToken, bool> isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?> getAnalyzerGate,
             Func<SyntaxTree, SemanticModel> getSemanticModel,
+            SeverityFilter severityFilter,
             bool logExecutionTime = false,
             Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? addCategorizedLocalDiagnostic = null,
             Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? addCategorizedNonLocalDiagnostic = null,
@@ -121,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             return new AnalyzerExecutor(compilation, analyzerOptions, addNonCategorizedDiagnostic, onAnalyzerException, analyzerExceptionFilter,
                 isCompilerAnalyzer, analyzerManager, shouldSkipAnalysisOnGeneratedCode, shouldSuppressGeneratedCodeDiagnostic, isGeneratedCodeLocation,
-                isAnalyzerSuppressedForTree, getAnalyzerGate, getSemanticModel, analyzerExecutionTimeMap, addCategorizedLocalDiagnostic, addCategorizedNonLocalDiagnostic,
+                isAnalyzerSuppressedForTree, getAnalyzerGate, getSemanticModel, severityFilter, analyzerExecutionTimeMap, addCategorizedLocalDiagnostic, addCategorizedNonLocalDiagnostic,
                 addSuppression);
         }
 
@@ -139,6 +141,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             Func<DiagnosticAnalyzer, SyntaxTree, SyntaxTreeOptionsProvider?, CancellationToken, bool> isAnalyzerSuppressedForTree,
             Func<DiagnosticAnalyzer, object?> getAnalyzerGate,
             Func<SyntaxTree, SemanticModel> getSemanticModel,
+            SeverityFilter severityFilter,
             ConcurrentDictionary<DiagnosticAnalyzer, StrongBox<long>>? analyzerExecutionTimeMap,
             Action<Diagnostic, DiagnosticAnalyzer, bool, CancellationToken>? addCategorizedLocalDiagnostic,
             Action<Diagnostic, DiagnosticAnalyzer, CancellationToken>? addCategorizedNonLocalDiagnostic,
@@ -157,6 +160,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _isAnalyzerSuppressedForTree = isAnalyzerSuppressedForTree;
             _getAnalyzerGate = getAnalyzerGate;
             _getSemanticModel = getSemanticModel;
+            SeverityFilter = severityFilter;
             _analyzerExecutionTimeMap = analyzerExecutionTimeMap;
             _addCategorizedLocalDiagnostic = addCategorizedLocalDiagnostic;
             _addCategorizedNonLocalDiagnostic = addCategorizedNonLocalDiagnostic;
@@ -169,7 +173,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         internal AnalyzerOptions AnalyzerOptions { get; }
 
+        internal SeverityFilter SeverityFilter { get; }
+
         internal Action<Exception, DiagnosticAnalyzer, Diagnostic, CancellationToken> OnAnalyzerException { get; }
+
         internal ImmutableDictionary<DiagnosticAnalyzer, TimeSpan> AnalyzerExecutionTimes
         {
             get
@@ -184,15 +191,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="analyzer">Analyzer to get session wide analyzer actions.</param>
         /// <param name="sessionScope">Session scope to store register session wide analyzer actions.</param>
+        /// <param name="severityFilter">Severity filter for analysis.</param>
         /// <param name="cancellationToken">Cancellation token.</param>
         /// <remarks>
         /// Note that this API doesn't execute any <see cref="CompilationStartAnalyzerAction"/> registered by the Initialize invocation.
         /// Use <see cref="ExecuteCompilationStartActions(ImmutableArray{CompilationStartAnalyzerAction}, HostCompilationStartAnalysisScope, CancellationToken)"/> API
         /// to get execute these actions to get the per-compilation analyzer actions.
         /// </remarks>
-        public void ExecuteInitializeMethod(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope sessionScope, CancellationToken cancellationToken)
+        public void ExecuteInitializeMethod(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope sessionScope, SeverityFilter severityFilter, CancellationToken cancellationToken)
         {
-            var context = new AnalyzerAnalysisContext(analyzer, sessionScope);
+            var context = new AnalyzerAnalysisContext(analyzer, sessionScope, severityFilter);
 
             // The Initialize method should be run asynchronously in case it is not well behaved, e.g. does not terminate.
             ExecuteAndCatchIfThrows(
@@ -1176,9 +1184,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 cancellationToken.ThrowIfCancellationRequested();
                 analyze(argument);
             }
-            catch (Exception ex) when (HandleAnalyzerException(ex, analyzer, info, OnAnalyzerException, _analyzerExceptionFilter, cancellationToken))
+            catch (Exception ex) when (HandleAnalyzerException(analyzer, ex, info) &&
+                HandleAnalyzerException(ex, analyzer, info, OnAnalyzerException, _analyzerExceptionFilter, cancellationToken))
             {
             }
+        }
+
+        private bool HandleAnalyzerException(DiagnosticAnalyzer analyzer, Exception ex, in AnalysisContextInfo? info)
+        {
+            if (!this.Compilation.CatchAnalyzerExceptions)
+            {
+                Debug.Assert(false);
+                Environment.FailFast(CreateAnalyzerExceptionDiagnostic(analyzer, ex, info).ToString());
+                return false;
+            }
+
+            return true;
         }
 
         internal static bool HandleAnalyzerException(
@@ -1230,8 +1251,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var messageFormat = CodeAnalysisResources.CompilerAnalyzerThrows;
             var contextInformation = string.Join(Environment.NewLine, CreateDiagnosticDescription(info, e), CreateDisablingMessage(analyzer, analyzerName)).Trim();
             var messageArguments = new[] { analyzerName, e.GetType().ToString(), e.Message, contextInformation };
-            var description = string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, CreateDiagnosticDescription(info, e));
-            var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerExceptionDiagnosticId, title, description, messageFormat);
+            var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerExceptionDiagnosticId, title, messageFormat);
             return Diagnostic.Create(descriptor, Location.None, messageArguments);
         }
 
@@ -1262,7 +1282,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             catch (Exception ex)
             {
-                return string.Format(CodeAnalysisResources.CompilerAnalyzerThrowsDescription, analyzerName, ex.CreateDiagnosticDescription());
+                return string.Format(CodeAnalysisResources.CompilerAnalyzerThrows, analyzerName, ex.GetType().ToString(), ex.Message, ex.CreateDiagnosticDescription());
             }
 
             if (diagnosticIds.IsEmpty)
@@ -1277,13 +1297,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var title = CodeAnalysisResources.AnalyzerDriverFailure;
             var messageFormat = CodeAnalysisResources.AnalyzerDriverThrows;
-            var messageArguments = new[] { e.GetType().ToString(), e.Message };
-            var description = string.Format(CodeAnalysisResources.AnalyzerDriverThrowsDescription, e.CreateDiagnosticDescription());
-            var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerDriverExceptionDiagnosticId, title, description, messageFormat);
+            var messageArguments = new[] { e.GetType().ToString(), e.Message, e.CreateDiagnosticDescription() };
+            var descriptor = GetAnalyzerExceptionDiagnosticDescriptor(AnalyzerDriverExceptionDiagnosticId, title, messageFormat);
             return Diagnostic.Create(descriptor, Location.None, messageArguments);
         }
 
-        internal static DiagnosticDescriptor GetAnalyzerExceptionDiagnosticDescriptor(string? id = null, string? title = null, string? description = null, string? messageFormat = null)
+        internal static DiagnosticDescriptor GetAnalyzerExceptionDiagnosticDescriptor(string? id = null, string? title = null, string? messageFormat = null)
         {
             // TODO: It is not ideal to create a new descriptor per analyzer exception diagnostic instance.
             // However, until we add a LongMessage field to the Diagnostic, we are forced to park the instance specific description onto the Descriptor's Description field.
@@ -1292,13 +1311,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             id ??= AnalyzerExceptionDiagnosticId;
             title ??= CodeAnalysisResources.CompilerAnalyzerFailure;
             messageFormat ??= CodeAnalysisResources.CompilerAnalyzerThrows;
-            description ??= CodeAnalysisResources.CompilerAnalyzerFailure;
 
             return new DiagnosticDescriptor(
                 id,
                 title,
                 messageFormat,
-                description: description,
                 category: DiagnosticCategory,
                 defaultSeverity: DiagnosticSeverity.Warning,
                 isEnabledByDefault: true,

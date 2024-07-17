@@ -29,6 +29,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Formatting
 Imports Microsoft.CodeAnalysis.VisualBasic.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.MakeFieldReadonly
 Imports Microsoft.CodeAnalysis.AddFileBanner
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
     <UseExportProvider>
@@ -528,10 +529,6 @@ End Class
                 project = project.AddAnalyzerConfigDocument(".editorconfig", SourceText.From(editorconfigText), filePath:="z:\\.editorconfig").Project
                 workspace.TryApplyChanges(project.Solution)
 
-                ' register this workspace to solution crawler so that analyzer service associate itself with given workspace
-                Dim incrementalAnalyzerProvider = TryCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)(), IIncrementalAnalyzerProvider)
-                incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace)
-
                 Dim hostdoc = workspace.Documents.[Single]()
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
 
@@ -542,7 +539,7 @@ End Class
                 Dim newDoc = Await codeCleanupService.CleanupAsync(
                     document,
                     enabledDiagnostics,
-                    New ProgressTracker,
+                    CodeAnalysisProgress.None,
                     options,
                     CancellationToken.None)
 
@@ -566,10 +563,10 @@ End Class
                                                                              Optional separateImportsGroups As Boolean = False) As Task
             Using workspace = TestWorkspace.CreateVisualBasic(code, composition:=EditorTestCompositions.EditorFeaturesWpf)
 
-                ' must set global options since incremental analyzer infra reads from global options
-                Dim globalOptions = workspace.GlobalOptions
-                globalOptions.SetGlobalOption(GenerationOptions.SeparateImportDirectiveGroups, LanguageNames.VisualBasic, separateImportsGroups)
-                globalOptions.SetGlobalOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, systemImportsFirst)
+                workspace.SetAnalyzerFallbackOptions(New OptionsCollection(LanguageNames.VisualBasic) From {
+                    {GenerationOptions.SeparateImportDirectiveGroups, separateImportsGroups},
+                    {GenerationOptions.PlaceSystemNamespaceFirst, systemImportsFirst}
+                })
 
                 Dim solution = workspace.CurrentSolution.WithAnalyzerReferences(
                 {
@@ -579,10 +576,6 @@ End Class
                 })
 
                 workspace.TryApplyChanges(solution)
-
-                ' register this workspace to solution crawler so that analyzer service associate itself with given workspace
-                Dim incrementalAnalyzerProvider = TryCast(workspace.ExportProvider.GetExportedValue(Of IDiagnosticAnalyzerService)(), IIncrementalAnalyzerProvider)
-                incrementalAnalyzerProvider.CreateIncrementalAnalyzer(workspace)
 
                 Dim hostdoc = workspace.Documents.[Single]()
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
@@ -594,8 +587,8 @@ End Class
                 Dim newDoc = Await codeCleanupService.CleanupAsync(
                     document,
                     enabledDiagnostics,
-                    New ProgressTracker,
-                    globalOptions.CreateProvider(),
+                    CodeAnalysisProgress.None,
+                    workspace.GlobalOptions.CreateProvider(),
                     CancellationToken.None)
 
                 Dim actual = Await newDoc.GetTextAsync()

@@ -258,13 +258,14 @@ End Module",
             comp1.VerifyDiagnostics()
             Dim comp2 = CreateVisualBasicCompilation(
                 Nothing,
-"Module M
+"Imports System.Globalization
+Module M
     Sub Main()
         Dim d = 1.5  ' must not be stack local
         C(Of Double).P = d
         C(Of Double).P = d  ' assign second time, should not be on stack
         C(Of Double).P += 2.0
-        System.Console.Write(C(Of Double).P)
+        System.Console.Write(C(Of Double).P.ToString(CultureInfo.InvariantCulture))
     End Sub
 End Module",
                 referencedCompilations:={comp1},
@@ -273,7 +274,7 @@ End Module",
             verifier.VerifyIL("M.Main",
             <![CDATA[
 {
-  // Code size       58 (0x3a)
+  // Code size       67 (0x43)
   .maxstack  3
   .locals init (Double V_0) //d
   IL_0000:  ldc.r8     1.5
@@ -291,9 +292,10 @@ End Module",
   IL_002c:  add
   IL_002d:  stind.r8
   IL_002e:  call       "ByRef Function C(Of Double).get_P() As Double"
-  IL_0033:  ldind.r8
-  IL_0034:  call       "Sub System.Console.Write(Double)"
-  IL_0039:  ret
+  IL_0033:  call       "Function System.Globalization.CultureInfo.get_InvariantCulture() As System.Globalization.CultureInfo"
+  IL_0038:  call       "Function Double.ToString(System.IFormatProvider) As String"
+  IL_003d:  call       "Sub System.Console.Write(String)"
+  IL_0042:  ret
 }
 ]]>)
             verifier.VerifyDiagnostics()
@@ -420,6 +422,585 @@ End Module",
   IL_002c:  call       "Sub System.Console.Write(Integer)"
   IL_0031:  nop
   IL_0032:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70256")>
+        Public Sub DefaultPropertyAsTheTargetInCompoundAssignment()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    public T[] P;
+
+    public ref T this[int index]
+    {
+        get
+        {
+            System.Console.WriteLine(""get_this"");
+            ref T x = ref P[index];
+            P = new T[10];
+            return ref x;
+        }
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim a As Integer() = { 100 } 
+        Dim o = New C(Of Integer) With { .P = a }
+        Test(o)
+        System.Console.WriteLine(a(0))
+    End Sub
+
+    Sub Test(o As C(Of Integer))
+        o(GetIndex()) += 2
+    End Sub
+
+    Function GetIndex() As Integer
+        System.Console.WriteLine(""GetIndex"")
+        return 0
+    End Function
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="
+GetIndex
+get_this
+get_this
+2
+")
+            verifier.VerifyIL("M.Test",
+            <![CDATA[
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (C(Of Integer) V_0,
+                Integer V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  call       "Function M.GetIndex() As Integer"
+  IL_0009:  dup
+  IL_000a:  stloc.1
+  IL_000b:  callvirt   "ByRef Function C(Of Integer).get_Item(Integer) As Integer"
+  IL_0010:  ldloc.0
+  IL_0011:  ldloc.1
+  IL_0012:  callvirt   "ByRef Function C(Of Integer).get_Item(Integer) As Integer"
+  IL_0017:  ldind.i4
+  IL_0018:  ldc.i4.2
+  IL_0019:  add.ovf
+  IL_001a:  stind.i4
+  IL_001b:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub MethodAsTheTargetInCompoundAssignment()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    public T[] P;
+
+    public ref T M(int index)
+    {
+        System.Console.WriteLine(""get_this"");
+        ref T x = ref P[index];
+        P = new T[10];
+        return ref x;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim a As Integer() = { 100 } 
+        Dim o = New C(Of Integer) With { .P = a }
+        Test(o)
+        System.Console.WriteLine(a(0))
+    End Sub
+
+    Sub Test(o As C(Of Integer))
+        o.M(GetIndex()) += 2
+    End Sub
+
+    Function GetIndex() As Integer
+        System.Console.WriteLine(""GetIndex"")
+        return 0
+    End Function
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="
+GetIndex
+get_this
+102
+")
+            verifier.VerifyIL("M.Test",
+            <![CDATA[
+{
+  // Code size       20 (0x14)
+  .maxstack  3
+  .locals init (Integer& V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       "Function M.GetIndex() As Integer"
+  IL_0007:  callvirt   "ByRef Function C(Of Integer).M(Integer) As Integer"
+  IL_000c:  dup
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  ldind.i4
+  IL_0010:  ldc.i4.2
+  IL_0011:  add.ovf
+  IL_0012:  stind.i4
+  IL_0013:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub DefaultPropertyAsByRefArgument()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    public T[] P;
+
+    public ref T this[int index]
+    {
+        get
+        {
+            System.Console.WriteLine(""get_this"");
+            ref T x = ref P[index];
+            P = new T[10];
+            return ref x;
+        }
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim a As Integer() = { 100 } 
+        Dim o = New C(Of Integer) With { .P = a }
+        Test(o)
+        System.Console.WriteLine(a(0))
+    End Sub
+
+    Sub Test(o As C(Of Integer))
+        M(o(GetIndex()))
+    End Sub
+
+    Sub M(ByRef x as Integer)
+        x += 2
+    End Sub
+
+    Function GetIndex() As Integer
+        System.Console.WriteLine(""GetIndex"")
+        return 0
+    End Function
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="
+GetIndex
+get_this
+102
+")
+            verifier.VerifyIL("M.Test",
+            <![CDATA[
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       "Function M.GetIndex() As Integer"
+  IL_0007:  callvirt   "ByRef Function C(Of Integer).get_Item(Integer) As Integer"
+  IL_000c:  call       "Sub M.M(ByRef Integer)"
+  IL_0011:  nop
+  IL_0012:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub MethodAsByRefArgument()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    public T[] P;
+
+    public ref T M(int index)
+    {
+        System.Console.WriteLine(""get_this"");
+        ref T x = ref P[index];
+        P = new T[10];
+        return ref x;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim a As Integer() = { 100 } 
+        Dim o = New C(Of Integer) With { .P = a }
+        Test(o)
+        System.Console.WriteLine(a(0))
+    End Sub
+
+    Sub Test(o As C(Of Integer))
+        M(o.M(GetIndex()))
+    End Sub
+
+    Sub M(ByRef x as Integer)
+        x += 2
+    End Sub
+
+    Function GetIndex() As Integer
+        System.Console.WriteLine(""GetIndex"")
+        return 0
+    End Function
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="
+GetIndex
+get_this
+102
+")
+            verifier.VerifyIL("M.Test",
+            <![CDATA[
+{
+  // Code size       19 (0x13)
+  .maxstack  2
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       "Function M.GetIndex() As Integer"
+  IL_0007:  callvirt   "ByRef Function C(Of Integer).M(Integer) As Integer"
+  IL_000c:  call       "Sub M.M(ByRef Integer)"
+  IL_0011:  nop
+  IL_0012:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70256")>
+        Public Sub DefaultPropertyAsByRefArgumentWithCopyBack()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    public T[] P;
+
+    public ref T this[int index]
+    {
+        get
+        {
+            System.Console.WriteLine(""get_this"");
+            ref T x = ref P[index];
+            P = new T[10];
+            return ref x;
+        }
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim a As Integer() = { 100 } 
+        Dim o = New C(Of Integer) With { .P = a }
+        Test(o)
+        System.Console.WriteLine(a(0))
+    End Sub
+
+    Sub Test(o As C(Of Integer))
+        M(o(GetIndex()))
+    End Sub
+
+    Sub M(ByRef x as Long)
+        x += 2
+    End Sub
+
+    Function GetIndex() As Integer
+        System.Console.WriteLine(""GetIndex"")
+        return 0
+    End Function
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="
+GetIndex
+get_this
+get_this
+100
+")
+            verifier.VerifyIL("M.Test",
+            <![CDATA[
+{
+  // Code size       38 (0x26)
+  .maxstack  3
+  .locals init (C(Of Integer) V_0,
+                Integer V_1,
+                Long V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  dup
+  IL_0003:  stloc.0
+  IL_0004:  call       "Function M.GetIndex() As Integer"
+  IL_0009:  dup
+  IL_000a:  stloc.1
+  IL_000b:  callvirt   "ByRef Function C(Of Integer).get_Item(Integer) As Integer"
+  IL_0010:  ldind.i4
+  IL_0011:  conv.i8
+  IL_0012:  stloc.2
+  IL_0013:  ldloca.s   V_2
+  IL_0015:  call       "Sub M.M(ByRef Long)"
+  IL_001a:  nop
+  IL_001b:  ldloc.0
+  IL_001c:  ldloc.1
+  IL_001d:  callvirt   "ByRef Function C(Of Integer).get_Item(Integer) As Integer"
+  IL_0022:  ldloc.2
+  IL_0023:  conv.ovf.i4
+  IL_0024:  stind.i4
+  IL_0025:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub MethodAsByRefArgumentWithCopyBack()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+#pragma warning disable 0649
+    public T[] P;
+
+    public ref T M(int index)
+    {
+        System.Console.WriteLine(""get_this"");
+        ref T x = ref P[index];
+        P = new T[10];
+        return ref x;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim a As Integer() = { 100 } 
+        Dim o = New C(Of Integer) With { .P = a }
+        Test(o)
+        System.Console.WriteLine(a(0))
+    End Sub
+
+    Sub Test(o As C(Of Integer))
+        M(o.M(GetIndex()))
+    End Sub
+
+    Sub M(ByRef x as Long)
+        x += 2
+    End Sub
+
+    Function GetIndex() As Integer
+        System.Console.WriteLine(""GetIndex"")
+        return 0
+    End Function
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="
+GetIndex
+get_this
+102
+")
+            verifier.VerifyIL("M.Test",
+            <![CDATA[
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (Integer& V_0,
+                Long V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       "Function M.GetIndex() As Integer"
+  IL_0007:  callvirt   "ByRef Function C(Of Integer).M(Integer) As Integer"
+  IL_000c:  dup
+  IL_000d:  stloc.0
+  IL_000e:  ldind.i4
+  IL_000f:  conv.i8
+  IL_0010:  stloc.1
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  call       "Sub M.M(ByRef Long)"
+  IL_0018:  nop
+  IL_0019:  ldloc.0
+  IL_001a:  ldloc.1
+  IL_001b:  conv.ovf.i4
+  IL_001c:  stind.i4
+  IL_001d:  ret
+}
+]]>)
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/70257")>
+        Public Sub DefaultPropertyAsReceiverOfTheTargetInCompoundAssignment()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C
+{
+#pragma warning disable 0649
+    public S[] P;
+
+    public ref S this[int index]
+    {
+        get
+        {
+            System.Console.WriteLine(""get_this"");
+            ref S x = ref P[index];
+            P = new[] { new S() };
+            return ref x;
+        }
+    }
+}
+
+public struct S
+{
+    public int F {get; set;}
+}
+")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim a As S() = { new S() with { .F = 100 } } 
+        Dim o = New C() With { .P = a }
+        Test(o)
+        System.Console.WriteLine(a(0).F)
+    End Sub
+
+    Sub Test(o As C)
+        o(GetIndex()).F += 2
+    End Sub
+
+    Sub Test2(ByRef x As S)
+        x.F += 2
+    End Sub
+
+    Function GetIndex() As Integer
+        System.Console.WriteLine(""GetIndex"")
+        return 0
+    End Function
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics(
+<expected>
+BC30068: Expression is a value and therefore cannot be the target of an assignment.
+        o(GetIndex()).F += 2
+        ~~~~~~~~~~~~~~~
+</expected>
+            )
+            '            Dim verifier = CompileAndVerify(comp2, expectedOutput:="
+            '")
+            '            verifier.VerifyIL("M.Test",
+            '            <![CDATA[
+            '{
+            '}
+            ']]>)
+            '            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact()>
+        Public Sub MethodAsReceiverOfTheTargetInCompoundAssignment()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C
+{
+#pragma warning disable 0649
+    public S[] P;
+
+    public ref S M(int index)
+    {
+        System.Console.WriteLine(""get_this"");
+        ref S x = ref P[index];
+        P = new[] { new S() };
+        return ref x;
+    }
+}
+
+public struct S
+{
+    public int F {get; set;}
+}
+")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"Module M
+    Sub Main()
+        Dim a As S() = { new S() with { .F = 100 } } 
+        Dim o = New C() With { .P = a }
+        Test(o)
+        System.Console.WriteLine(a(0).F)
+    End Sub
+
+    Sub Test(o As C)
+        o.M(GetIndex()).F += 2
+    End Sub
+
+    Function GetIndex() As Integer
+        System.Console.WriteLine(""GetIndex"")
+        return 0
+    End Function
+End Module",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugExe)
+
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:="
+GetIndex
+get_this
+102
+")
+            verifier.VerifyIL("M.Test",
+            <![CDATA[
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (S& V_0)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       "Function M.GetIndex() As Integer"
+  IL_0007:  callvirt   "ByRef Function C.M(Integer) As S"
+  IL_000c:  dup
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  call       "Function S.get_F() As Integer"
+  IL_0014:  ldc.i4.2
+  IL_0015:  add.ovf
+  IL_0016:  call       "Sub S.set_F(Integer)"
+  IL_001b:  nop
+  IL_001c:  ret
 }
 ]]>)
             verifier.VerifyDiagnostics()
@@ -3013,6 +3594,184 @@ End Module",
 ]]>)
             verifier.VerifyDiagnostics()
         End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/71115")>
+        Public Sub With_RegionAnalysisRefIndexer()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+    private T _p;
+    public ref T this[int i]
+    {
+        get { return ref _p; }
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"
+Public Class LocalDeclConversionError
+    Private Structure SomeStruct
+        Dim SomeField As Integer
+        Dim Text As String
+    End Structure
+
+    Dim lst As New C(Of SomeStruct)
+
+    Sub S()
+        Dim s As String
+
+        With lst(0)
+            .SomeField = 5
+            s = .Text
+        End With
+    End Sub
+End Class
+",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugDll)
+
+            comp2.AssertTheseEmitDiagnostics()
+
+            Dim tree = comp2.SyntaxTrees(0)
+            Dim model = comp2.GetSemanticModel(tree)
+            Dim syntax = tree.GetRoot().DescendantNodes().OfType(Of Syntax.MethodBlockBaseSyntax).Single()
+
+            Dim methodFlow = model.AnalyzeDataFlow(syntax.Statements.First(), syntax.Statements.Last())
+            Assert.True(methodFlow.Succeeded)
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.ReadInside))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.Captured))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.DataFlowsOut))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.DefinitelyAssignedOnEntry))
+            Assert.Equal("[Me], [s]", GetSymbolNamesJoined(methodFlow.DefinitelyAssignedOnExit))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.ReadOutside))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.VariablesDeclared))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.WrittenInside))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.WrittenOutside))
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/71115")>
+        Public Sub With_RegionAnalysisRefProperty()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+    private T _p;
+    public ref T P
+    {
+        get { return ref _p; }
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"
+Public Class LocalDeclConversionError
+    Private Structure SomeStruct
+        Dim SomeField As Integer
+        Dim Text As String
+    End Structure
+
+    Dim lst As New C(Of SomeStruct)
+
+    Sub S()
+        Dim s As String
+
+        With lst.P
+            .SomeField = 5
+            s = .Text
+        End With
+    End Sub
+End Class
+",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugDll)
+
+            comp2.AssertTheseEmitDiagnostics()
+
+            Dim tree = comp2.SyntaxTrees(0)
+            Dim model = comp2.GetSemanticModel(tree)
+            Dim syntax = tree.GetRoot().DescendantNodes().OfType(Of Syntax.MethodBlockBaseSyntax).Single()
+
+            Dim methodFlow = model.AnalyzeDataFlow(syntax.Statements.First(), syntax.Statements.Last())
+            Assert.True(methodFlow.Succeeded)
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.ReadInside))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.Captured))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.DataFlowsOut))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.DefinitelyAssignedOnEntry))
+            Assert.Equal("[Me], [s]", GetSymbolNamesJoined(methodFlow.DefinitelyAssignedOnExit))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.ReadOutside))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.VariablesDeclared))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.WrittenInside))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.WrittenOutside))
+        End Sub
+
+        <Fact>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/71115")>
+        Public Sub With_RegionAnalysisRefMethod()
+            Dim comp1 = CreateCSharpCompilation(
+"public class C<T>
+{
+    private T _p;
+    public ref T GetP()
+    {
+        return ref _p;
+    }
+}")
+            comp1.VerifyDiagnostics()
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"
+Public Class LocalDeclConversionError
+    Private Structure SomeStruct
+        Dim SomeField As Integer
+        Dim Text As String
+    End Structure
+
+    Dim lst As New C(Of SomeStruct)
+
+    Sub S()
+        Dim s As String
+
+        With lst.GetP()
+            .SomeField = 5
+            s = .Text
+        End With
+    End Sub
+End Class
+",
+                referencedCompilations:={comp1},
+                compilationOptions:=TestOptions.DebugDll)
+
+            comp2.AssertTheseEmitDiagnostics()
+
+            Dim tree = comp2.SyntaxTrees(0)
+            Dim model = comp2.GetSemanticModel(tree)
+            Dim syntax = tree.GetRoot().DescendantNodes().OfType(Of Syntax.MethodBlockBaseSyntax).Single()
+
+            Dim methodFlow = model.AnalyzeDataFlow(syntax.Statements.First(), syntax.Statements.Last())
+            Assert.True(methodFlow.Succeeded)
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.ReadInside))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.AlwaysAssigned))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.Captured))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.DataFlowsIn))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.DataFlowsOut))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.DefinitelyAssignedOnEntry))
+            Assert.Equal("[Me], [s]", GetSymbolNamesJoined(methodFlow.DefinitelyAssignedOnExit))
+            Assert.Equal(Nothing, GetSymbolNamesJoined(methodFlow.ReadOutside))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.VariablesDeclared))
+            Assert.Equal("[s]", GetSymbolNamesJoined(methodFlow.WrittenInside))
+            Assert.Equal("[Me]", GetSymbolNamesJoined(methodFlow.WrittenOutside))
+        End Sub
+
+        Protected Shared Function GetSymbolNamesJoined(Of T As ISymbol)(symbols As IEnumerable(Of T)) As String
+            Return If(Not symbols.IsEmpty(), String.Join(", ", symbols.Select(Function(symbol) "[" + symbol.Name + "]")), Nothing)
+        End Function
 
     End Class
 

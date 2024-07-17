@@ -9,6 +9,7 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Progress\CodeAnalysisProgressExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\FixAllHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddImport\AddImportPlacementOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CodeFixOptionsProvider.cs" />
@@ -121,8 +122,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ParsedDocument.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\IProgressTracker.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\NoOpProgressTracker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SemanticDocument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SyntacticDocument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TextReaderWithLength.cs" />
@@ -135,17 +134,18 @@
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\CodeChangeProviderMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\FileExtensionsMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\ILanguageMetadata.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\ILayeredServiceMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\ILanguagesMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\IMefHostExportProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\LanguageMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\LanguageServiceMetadata.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\LayeredServiceUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefConstruction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefLanguageServices.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\MefWorkspaceServices.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\OrderableLanguageMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\OrderableMetadata.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\WorkspaceKindMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\WorkspaceServiceMetadata.cs" />
   </ItemGroup>
   <ItemGroup>

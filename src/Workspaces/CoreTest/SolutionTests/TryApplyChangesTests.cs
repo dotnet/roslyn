@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Func<CompilationOptions, CompilationOptions, bool>? canApplyCompilationOptions = null)
                 : base(Host.Mef.MefHostServices.DefaultHost, workspaceKind: nameof(CustomizedCanApplyWorkspace))
             {
-                _allowedKinds = allowedKinds.ToImmutableArray();
+                _allowedKinds = [.. allowedKinds];
                 _canApplyParseOptions = canApplyParseOptions;
                 _canApplyCompilationOptions = canApplyCompilationOptions;
 
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // If we simply support the main change kind, then any type of change should be supported and we should not get called
             // to the other method
             using var workspace = new CustomizedCanApplyWorkspace(
-                allowedKinds: new[] { ApplyChangesKind.ChangeCompilationOptions },
+                allowedKinds: [ApplyChangesKind.ChangeCompilationOptions],
                 canApplyCompilationOptions: (_, __) => throw new Exception("This should not have been called."));
 
             var project = workspace.CurrentSolution.Projects.Single();
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             // If we don't support the main change kind, then the other method should be called
             using var workspace = new CustomizedCanApplyWorkspace(
-                allowedKinds: new ApplyChangesKind[] { },
+                allowedKinds: [],
                 canApplyCompilationOptions: (_, newCompilationOptions) => newCompilationOptions.MainTypeName == "Test");
 
             var project = workspace.CurrentSolution.Projects.Single();
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             // If we don't support the main change kind, then the other method should be called
             using var workspace = new CustomizedCanApplyWorkspace(
-                allowedKinds: new ApplyChangesKind[] { },
+                allowedKinds: [],
                 canApplyCompilationOptions: (_, newCompilationOptions) => newCompilationOptions.MainTypeName == "Expected");
 
             var project = workspace.CurrentSolution.Projects.Single();
@@ -114,14 +114,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // If we simply support the main change kind, then any type of change should be supported and we should not get called
             // to the other method
             using var workspace = new CustomizedCanApplyWorkspace(
-                allowedKinds: new[] { ApplyChangesKind.ChangeParseOptions },
+                allowedKinds: [ApplyChangesKind.ChangeParseOptions],
                 canApplyParseOptions: (_, __) => throw new Exception("This should not have been called."));
 
             var project = workspace.CurrentSolution.Projects.Single();
 
             Assert.True(workspace.TryApplyChanges(
                 project.WithParseOptions(
-                    project.ParseOptions!.WithFeatures(new[] { KeyValuePairUtil.Create("Feature", "") })).Solution));
+                    project.ParseOptions!.WithFeatures([KeyValuePairUtil.Create("Feature", "")])).Solution));
         }
 
         [Fact]
@@ -129,14 +129,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             // If we don't support the main change kind, then the other method should be called
             using var workspace = new CustomizedCanApplyWorkspace(
-                allowedKinds: new ApplyChangesKind[] { },
+                allowedKinds: [],
                 canApplyParseOptions: (_, newParseOptions) => newParseOptions.Features["Feature"] == "ExpectedValue");
 
             var project = workspace.CurrentSolution.Projects.Single();
 
             Assert.True(
                 workspace.TryApplyChanges(
-                    project.WithParseOptions(project.ParseOptions!.WithFeatures(new[] { KeyValuePairUtil.Create("Feature", "ExpectedValue") })).Solution));
+                    project.WithParseOptions(project.ParseOptions!.WithFeatures([KeyValuePairUtil.Create("Feature", "ExpectedValue")])).Solution));
         }
 
         [Fact]
@@ -144,14 +144,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             // If we don't support the main change kind, then the other method should be called
             using var workspace = new CustomizedCanApplyWorkspace(
-                allowedKinds: new ApplyChangesKind[] { },
+                allowedKinds: [],
                 canApplyParseOptions: (_, newParseOptions) => newParseOptions.Features["Feature"] == "ExpectedValue");
 
             var project = workspace.CurrentSolution.Projects.Single();
 
             var exception = Assert.Throws<NotSupportedException>(
                 () => workspace.TryApplyChanges(
-                    project.WithParseOptions(project.ParseOptions!.WithFeatures(new[] { KeyValuePairUtil.Create("Feature", "WrongThing") })).Solution));
+                    project.WithParseOptions(project.ParseOptions!.WithFeatures([KeyValuePairUtil.Create("Feature", "WrongThing")])).Solution));
 
             Assert.Equal(WorkspacesResources.Changing_parse_options_is_not_supported, exception.Message);
         }

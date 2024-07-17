@@ -6391,7 +6391,7 @@ End Class
             Dim exceptionThrown = False
 
             Try
-                compilation.GetSpecialType(type)
+                DirectCast(compilation, Compilation).GetSpecialType(type)
             Catch ex As ArgumentOutOfRangeException
                 exceptionThrown = True
 

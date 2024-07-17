@@ -4,47 +4,68 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Structure
+namespace Microsoft.CodeAnalysis.Structure;
+
+/// <summary>
+/// Note: this type is for subclassing by the VB and C# provider only.
+/// It presumes that the language supports Syntax Trees.
+/// </summary>
+internal abstract class AbstractBlockStructureProvider : BlockStructureProvider
 {
-    /// <summary>
-    /// Note: this type is for subclassing by the VB and C# provider only.
-    /// It presumes that the language supports Syntax Trees.
-    /// </summary>
-    internal abstract class AbstractBlockStructureProvider : BlockStructureProvider
+    private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> _nodeProviderMap;
+    private readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> _triviaProviderMap;
+
+    protected AbstractBlockStructureProvider(
+        ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> defaultNodeOutlinerMap,
+        ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> defaultTriviaOutlinerMap)
     {
-        private readonly ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> _nodeProviderMap;
-        private readonly ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> _triviaProviderMap;
+        _nodeProviderMap = defaultNodeOutlinerMap;
+        _triviaProviderMap = defaultTriviaOutlinerMap;
+    }
 
-        protected AbstractBlockStructureProvider(
-            ImmutableDictionary<Type, ImmutableArray<AbstractSyntaxStructureProvider>> defaultNodeOutlinerMap,
-            ImmutableDictionary<int, ImmutableArray<AbstractSyntaxStructureProvider>> defaultTriviaOutlinerMap)
+    public override void ProvideBlockStructure(in BlockStructureContext context)
+    {
+        try
         {
-            _nodeProviderMap = defaultNodeOutlinerMap;
-            _triviaProviderMap = defaultTriviaOutlinerMap;
+            var syntaxRoot = context.SyntaxTree.GetRoot(context.CancellationToken);
+            using var spans = TemporaryArray<BlockSpan>.Empty;
+            BlockSpanCollector.CollectBlockSpans(
+                syntaxRoot, context.Options, _nodeProviderMap, _triviaProviderMap, ref spans.AsRef(), context.CancellationToken);
+
+            context.Spans.EnsureCapacity(context.Spans.Count + spans.Count);
+
+            // Sort descending, and keep track of the "last added line".
+            // Then, ignore if we found a span on the same line.
+            // The effect for this is if we have something like:
+            //
+            // M1(M2(
+            //     ...
+            //     ...
+            // )
+            //
+            // We only collapse the "inner" span which has larger start.
+            spans.Sort(static (x, y) => y.TextSpan.Start.CompareTo(x.TextSpan.Start));
+
+            var lastAddedLine = -1;
+            var text = context.SyntaxTree.GetText(context.CancellationToken);
+
+            foreach (var span in spans)
+            {
+                var line = text.Lines.GetLinePosition(span.TextSpan.Start).Line;
+                if (line == lastAddedLine)
+                    continue;
+
+                lastAddedLine = line;
+                context.Spans.Add(span);
+            }
         }
-
-        public override void ProvideBlockStructure(in BlockStructureContext context)
+        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
         {
-            try
-            {
-                var syntaxRoot = context.SyntaxTree.GetRoot(context.CancellationToken);
-                using var spans = TemporaryArray<BlockSpan>.Empty;
-                BlockSpanCollector.CollectBlockSpans(
-                    syntaxRoot, context.Options, _nodeProviderMap, _triviaProviderMap, ref spans.AsRef(), context.CancellationToken);
-
-                context.Spans.EnsureCapacity(context.Spans.Count + spans.Count);
-                foreach (var span in spans)
-                    context.Spans.Add(span);
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

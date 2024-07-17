@@ -16,67 +16,62 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.UseCoalesceExpression
+namespace Microsoft.CodeAnalysis.UseCoalesceExpression;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseCoalesceExpressionForIfNullStatementCheck), Shared]
+[ExtensionOrder(Before = PredefinedCodeFixProviderNames.AddBraces)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseCoalesceExpressionForIfNullStatementCheck), Shared]
-    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.AddBraces)]
-    internal class UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    public override ImmutableArray<string> FixableDiagnosticIds
+        => [IDEDiagnosticIds.UseCoalesceExpressionForIfNullCheckDiagnosticId];
+
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider()
+        RegisterCodeFix(context, AnalyzersResources.Use_coalesce_expression, nameof(AnalyzersResources.Use_coalesce_expression));
+        return Task.CompletedTask;
+    }
+
+    protected override Task FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor, CancellationToken cancellationToken)
+    {
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+        var generator = editor.Generator;
+
+        foreach (var diagnostic in diagnostics)
         {
+            var expressionToCoalesce = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var ifStatement = diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
+            var whenTrueStatement = diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
+
+            editor.RemoveNode(ifStatement);
+            editor.ReplaceNode(
+                expressionToCoalesce,
+                generator.CoalesceExpression(
+                    expressionToCoalesce.WithoutTrivia(),
+                    GetWhenNullExpression(whenTrueStatement).WithoutTrailingTrivia()).WithTriviaFrom(expressionToCoalesce));
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds
-            => ImmutableArray.Create(IDEDiagnosticIds.UseCoalesceExpressionForIfNullCheckDiagnosticId);
+        return Task.CompletedTask;
 
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        SyntaxNode GetWhenNullExpression(SyntaxNode whenTrueStatement)
         {
-            RegisterCodeFix(context, AnalyzersResources.Use_coalesce_expression, nameof(AnalyzersResources.Use_coalesce_expression));
-            return Task.CompletedTask;
-        }
-
-        protected override Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        {
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-            var generator = editor.Generator;
-
-            foreach (var diagnostic in diagnostics)
+            if (syntaxFacts.IsSimpleAssignmentStatement(whenTrueStatement))
             {
-                var expressionToCoalesce = diagnostic.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken);
-                var ifStatement = diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
-                var whenTrueStatement = diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
-
-                editor.RemoveNode(ifStatement);
-                editor.ReplaceNode(
-                    expressionToCoalesce,
-                    generator.CoalesceExpression(
-                        expressionToCoalesce.WithoutTrivia(),
-                        GetWhenNullExpression(whenTrueStatement).WithoutTrailingTrivia()).WithTriviaFrom(expressionToCoalesce));
+                syntaxFacts.GetPartsOfAssignmentStatement(whenTrueStatement, out _, out var right);
+                return right;
             }
-
-            return Task.CompletedTask;
-
-            SyntaxNode GetWhenNullExpression(SyntaxNode whenTrueStatement)
+            else if (syntaxFacts.IsThrowStatement(whenTrueStatement))
             {
-                if (syntaxFacts.IsSimpleAssignmentStatement(whenTrueStatement))
-                {
-                    syntaxFacts.GetPartsOfAssignmentStatement(whenTrueStatement, out _, out var right);
-                    return right;
-                }
-                else if (syntaxFacts.IsThrowStatement(whenTrueStatement))
-                {
-                    var expression = syntaxFacts.GetExpressionOfThrowStatement(whenTrueStatement);
-                    Contract.ThrowIfNull(expression); // checked in analyzer.
-                    return generator.ThrowExpression(expression);
-                }
-                else
-                {
-                    throw ExceptionUtilities.Unreachable();
-                }
+                var expression = syntaxFacts.GetExpressionOfThrowStatement(whenTrueStatement);
+                Contract.ThrowIfNull(expression); // checked in analyzer.
+                return generator.ThrowExpression(expression);
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable();
             }
         }
     }

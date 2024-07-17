@@ -16,75 +16,70 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
-namespace Microsoft.CodeAnalysis.UseSystemHashCode
+namespace Microsoft.CodeAnalysis.UseSystemHashCode;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseSystemHashCode), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal class UseSystemHashCodeCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseSystemHashCode), Shared]
-    internal class UseSystemHashCodeCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+    public override ImmutableArray<string> FixableDiagnosticIds { get; }
+        = [IDEDiagnosticIds.UseSystemHashCode];
+
+    public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public UseSystemHashCodeCodeFixProvider()
+        RegisterCodeFix(context, AnalyzersResources.Use_System_HashCode, nameof(AnalyzersResources.Use_System_HashCode));
+        return Task.CompletedTask;
+    }
+
+    protected override async Task FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor, CancellationToken cancellationToken)
+    {
+        var generator = SyntaxGenerator.GetGenerator(document);
+        var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+        var declarationService = document.GetLanguageService<ISymbolDeclarationService>();
+        if (declarationService == null)
         {
+            return;
         }
 
-        public override ImmutableArray<string> FixableDiagnosticIds { get; }
-            = ImmutableArray.Create(IDEDiagnosticIds.UseSystemHashCode);
-
-        public override Task RegisterCodeFixesAsync(CodeFixContext context)
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        if (!HashCodeAnalyzer.TryGetAnalyzer(semanticModel.Compilation, out var analyzer))
         {
-            RegisterCodeFix(context, AnalyzersResources.Use_System_HashCode, nameof(AnalyzersResources.Use_System_HashCode));
-            return Task.CompletedTask;
+            Debug.Fail("Could not get analyzer");
+            return;
         }
 
-        protected override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        foreach (var diagnostic in diagnostics)
         {
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
-            var declarationService = document.GetLanguageService<ISymbolDeclarationService>();
-            if (declarationService == null)
+            var operationLocation = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
+            var operation = semanticModel.GetOperation(operationLocation, cancellationToken);
+
+            var methodDecl = diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
+            var method = semanticModel.GetDeclaredSymbol(methodDecl, cancellationToken);
+            if (method == null)
+                continue;
+
+            var methodBlock = declarationService.GetDeclarations(method)[0].GetSyntax(cancellationToken);
+
+            var (accessesBase, members, _) = analyzer.GetHashedMembers(method, operation);
+            if (accessesBase || !members.IsDefaultOrEmpty)
             {
-                return;
-            }
+                // Produce the new statements for the GetHashCode method and replace the
+                // existing ones with them.
 
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            if (!HashCodeAnalyzer.TryGetAnalyzer(semanticModel.Compilation, out var analyzer))
-            {
-                Debug.Fail("Could not get analyzer");
-                return;
-            }
+                // Only if there was a base.GetHashCode() do we pass in the ContainingType
+                // so that we generate the same.
+                var containingType = accessesBase ? method!.ContainingType : null;
+                var components = generator.GetGetHashCodeComponents(
+                    generatorInternal, semanticModel.Compilation, containingType, members, justMemberReference: true);
 
-            foreach (var diagnostic in diagnostics)
-            {
-                var operationLocation = diagnostic.AdditionalLocations[0].FindNode(cancellationToken);
-                var operation = semanticModel.GetOperation(operationLocation, cancellationToken);
-
-                var methodDecl = diagnostic.AdditionalLocations[1].FindNode(cancellationToken);
-                var method = semanticModel.GetDeclaredSymbol(methodDecl, cancellationToken);
-                if (method == null)
-                    continue;
-
-                var methodBlock = declarationService.GetDeclarations(method)[0].GetSyntax(cancellationToken);
-
-                var (accessesBase, members, _) = analyzer.GetHashedMembers(method, operation);
-                if (accessesBase || !members.IsDefaultOrEmpty)
-                {
-                    // Produce the new statements for the GetHashCode method and replace the
-                    // existing ones with them.
-
-                    // Only if there was a base.GetHashCode() do we pass in the ContainingType
-                    // so that we generate the same.
-                    var containingType = accessesBase ? method!.ContainingType : null;
-                    var components = generator.GetGetHashCodeComponents(
-                        generatorInternal, semanticModel.Compilation, containingType, members, justMemberReference: true);
-
-                    var updatedDecl = generator.WithStatements(
-                        methodBlock,
-                        generator.CreateGetHashCodeStatementsUsingSystemHashCode(
-                            generatorInternal, analyzer.SystemHashCodeType, components));
-                    editor.ReplaceNode(methodBlock, updatedDecl);
-                }
+                var updatedDecl = generator.WithStatements(
+                    methodBlock,
+                    generator.CreateGetHashCodeStatementsUsingSystemHashCode(
+                        generatorInternal, analyzer.SystemHashCodeType, components));
+                editor.ReplaceNode(methodBlock, updatedDecl);
             }
         }
     }

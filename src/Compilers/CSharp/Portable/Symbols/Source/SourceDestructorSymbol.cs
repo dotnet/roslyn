@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Flags flags = MakeFlags(
                                     MethodKind.Destructor, RefKind.None, declarationModifiers, returnsVoid: true, returnsVoidIsSet: true,
                                     isExpressionBodied: syntax.IsExpressionBodied(), isExtensionMethod: false,
-                                    isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isExplicitInterfaceImplementation: false);
+                                    isVarArg: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled, isExplicitInterfaceImplementation: false, hasThisInitializer: false);
 
             return (declarationModifiers, flags);
         }
@@ -175,6 +175,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool GenerateDebugInfo
         {
             get { return true; }
+        }
+
+        internal sealed override int? TryGetOverloadResolutionPriority()
+        {
+            return null;
         }
     }
 }

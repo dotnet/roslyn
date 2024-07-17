@@ -11,44 +11,41 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal partial class TextDocumentState
 {
-    internal partial class TextDocumentState
+    public bool TryGetStateChecksums([NotNullWhen(returnValue: true)] out DocumentStateChecksums? stateChecksums)
+        => _lazyChecksums.TryGetValue(out stateChecksums);
+
+    public Task<DocumentStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
+        => _lazyChecksums.GetValueAsync(cancellationToken);
+
+    public Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
     {
-        public bool TryGetStateChecksums([NotNullWhen(returnValue: true)] out DocumentStateChecksums? stateChecksums)
-            => _lazyChecksums.TryGetValue(out stateChecksums);
+        return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
+            static (lazyChecksums, cancellationToken) => new ValueTask<DocumentStateChecksums>(lazyChecksums.GetValueAsync(cancellationToken)),
+            static (documentStateChecksums, _) => documentStateChecksums.Checksum,
+            _lazyChecksums,
+            cancellationToken).AsTask();
+    }
 
-        public Task<DocumentStateChecksums> GetStateChecksumsAsync(CancellationToken cancellationToken)
-            => _lazyChecksums.GetValueAsync(cancellationToken);
-
-        public Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
+    private async Task<DocumentStateChecksums> ComputeChecksumsAsync(CancellationToken cancellationToken)
+    {
+        try
         {
-            return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
-                static (lazyChecksums, cancellationToken) => new ValueTask<DocumentStateChecksums>(lazyChecksums.GetValueAsync(cancellationToken)),
-                static (documentStateChecksums, _) => documentStateChecksums.Checksum,
-                _lazyChecksums,
-                cancellationToken).AsTask();
+            using (Logger.LogBlock(FunctionId.DocumentState_ComputeChecksumsAsync, FilePath, cancellationToken))
+            {
+                var infoChecksum = this.Attributes.Checksum;
+                var serializableText = await SerializableSourceText.FromTextDocumentStateAsync(this, cancellationToken).ConfigureAwait(false);
+                var textChecksum = serializableText.ContentChecksum;
+
+                return new DocumentStateChecksums(this.Id, infoChecksum, textChecksum);
+            }
         }
-
-        private async Task<DocumentStateChecksums> ComputeChecksumsAsync(CancellationToken cancellationToken)
+        catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {
-            try
-            {
-                using (Logger.LogBlock(FunctionId.DocumentState_ComputeChecksumsAsync, FilePath, cancellationToken))
-                {
-                    var serializer = solutionServices.GetRequiredService<ISerializerService>();
-
-                    var infoChecksum = serializer.CreateChecksum(Attributes, cancellationToken);
-                    var serializableText = await SerializableSourceText.FromTextDocumentStateAsync(this, cancellationToken).ConfigureAwait(false);
-                    var textChecksum = serializer.CreateChecksum(serializableText, cancellationToken);
-
-                    return new DocumentStateChecksums(infoChecksum, textChecksum);
-                }
-            }
-            catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
-            {
-                throw ExceptionUtilities.Unreachable();
-            }
+            throw ExceptionUtilities.Unreachable();
         }
     }
 }

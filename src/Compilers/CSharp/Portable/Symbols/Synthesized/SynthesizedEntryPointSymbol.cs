@@ -314,6 +314,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override bool UseUpdatedEscapeRules => ContainingModule.UseUpdatedEscapeRules;
 
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
+
+        internal override int? TryGetOverloadResolutionPriority()
+        {
+            return null;
+        }
+
         /// <summary> A synthesized entrypoint that forwards all calls to an async Main Method </summary>
         internal sealed class AsyncForwardEntryPoint : SynthesizedEntryPointSymbol
         {

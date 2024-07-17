@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetAliasNameSet(model As SemanticModel, cancellationToken As CancellationToken) As ImmutableHashSet(Of String) Implements ISemanticFacts.GetAliasNameSet
-            Dim original = DirectCast(model.GetOriginalSemanticModel(), SemanticModel)
+            Dim original = model.GetOriginalSemanticModel()
 
             If Not original.SyntaxTree.HasCompilationUnitRoot Then
                 Return ImmutableHashSet.Create(Of String)()
@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ImmutableArray(Of IMethodSymbol).Empty
         End Function
 
-        Public Function IsPartial(typeSymbol As ITypeSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsPartial
+        Public Function IsPartial(typeSymbol As INamedTypeSymbol, cancellationToken As CancellationToken) As Boolean Implements ISemanticFacts.IsPartial
             Dim syntaxRefs = typeSymbol.DeclaringSyntaxReferences
             Return syntaxRefs.Any(
                 Function(n As SyntaxReference)
@@ -282,5 +282,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return semanticModel.GenerateNameForExpression(
                 DirectCast(expression, ExpressionSyntax), capitalize, cancellationToken)
         End Function
+
+#If Not CODE_STYLE Then
+
+        Public Function GetInterceptorSymbolAsync(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of ISymbol) Implements ISemanticFacts.GetInterceptorSymbolAsync
+            ' VB does not support interceptors
+            Return SpecializedTasks.Null(Of ISymbol)
+        End Function
+
+#End If
     End Class
 End Namespace

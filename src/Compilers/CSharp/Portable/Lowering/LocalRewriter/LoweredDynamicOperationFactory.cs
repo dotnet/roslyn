@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory.Literal((int)binderFlags),
 
                 // target type:
-                _factory.Typeof(resultType),
+                _factory.Typeof(resultType, _factory.WellKnownType(WellKnownType.System_Type)),
 
                 // context:
                 _factory.TypeofDynamicOperationContextType()
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression loweredReceiver,
             ImmutableArray<TypeWithAnnotations> typeArgumentsWithAnnotations,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds,
             bool hasImplicitReceiver,
             bool resultDiscarded)
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool receiverIsStaticType;
             if (loweredReceiver.Kind == BoundKind.TypeExpression)
             {
-                loweredReceiver = _factory.Typeof(((BoundTypeExpression)loweredReceiver).Type);
+                loweredReceiver = _factory.Typeof(((BoundTypeExpression)loweredReceiver).Type, _factory.WellKnownType(WellKnownType.System_Type));
                 receiverRefKind = RefKind.None;
                 receiverIsStaticType = true;
             }
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // type arguments:
                 typeArgumentsWithAnnotations.IsDefaultOrEmpty ?
                     _factory.Null(_factory.WellKnownArrayType(WellKnownType.System_Type)) :
-                    _factory.ArrayOrEmpty(_factory.WellKnownType(WellKnownType.System_Type), _factory.TypeOfs(typeArgumentsWithAnnotations)),
+                    _factory.ArrayOrEmpty(_factory.WellKnownType(WellKnownType.System_Type), _factory.TypeOfs(typeArgumentsWithAnnotations, _factory.WellKnownType(WellKnownType.System_Type))),
 
                 // context:
                 _factory.TypeofDynamicOperationContextType(),
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal LoweredDynamicOperation MakeDynamicInvocation(
             BoundExpression loweredReceiver,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds,
             bool resultDiscarded)
         {
@@ -333,12 +333,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode syntax,
             TypeSymbol type,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds)
         {
             _factory.Syntax = syntax;
 
-            var loweredReceiver = _factory.Typeof(type);
+            var loweredReceiver = _factory.Typeof(type, _factory.WellKnownType(WellKnownType.System_Type));
 
             MethodSymbol argumentInfoFactory = GetArgumentInfoFactory();
             var binderConstruction = ((object)argumentInfoFactory != null) ? MakeBinderConstruction(WellKnownMember.Microsoft_CSharp_RuntimeBinder_Binder__InvokeConstructor, new[]
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal LoweredDynamicOperation MakeDynamicGetIndex(
             BoundExpression loweredReceiver,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds)
         {
             _factory.Syntax = loweredReceiver.Syntax;
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal LoweredDynamicOperation MakeDynamicSetIndex(
             BoundExpression loweredReceiver,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames,
+            ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds,
             BoundExpression loweredRight,
             bool isCompoundAssignment = false,
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // however
         //     dynamic d = ...;
         //     GetS().M(d); // becomes Site(GetS(), d) without ref on the target obj arg
-        internal static RefKind GetReceiverRefKind(BoundExpression loweredReceiver)
+        internal RefKind GetReceiverRefKind(BoundExpression loweredReceiver)
         {
             Debug.Assert(loweredReceiver.Type is { });
             if (!loweredReceiver.Type.IsValueType)
@@ -547,33 +547,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return RefKind.None;
             }
 
-            switch (loweredReceiver.Kind)
-            {
-                case BoundKind.Parameter:
-                    Debug.Assert(!LocalRewriter.IsCapturedPrimaryConstructorParameter(loweredReceiver));
-                    goto case BoundKind.Local;
-
-                case BoundKind.Local:
-                case BoundKind.ArrayAccess:
-                case BoundKind.ThisReference:
-                case BoundKind.PointerIndirectionOperator:
-                case BoundKind.PointerElementAccess:
-                case BoundKind.RefValueOperator:
-                    return RefKind.Ref;
-
-                case BoundKind.BaseReference:
-                // base dynamic dispatch is not supported, an error has already been reported
-                case BoundKind.TypeExpression:
-                    throw ExceptionUtilities.UnexpectedValue(loweredReceiver.Kind);
-            }
-
-            return RefKind.None;
+            var hasHome = Binder.HasHome(loweredReceiver,
+                Binder.AddressKind.Writeable,
+                _factory.CurrentFunction,
+                peVerifyCompatEnabled: false,
+                stackLocalsOpt: null);
+            return hasHome ? RefKind.Ref : RefKind.None;
         }
 
         internal BoundExpression MakeCallSiteArgumentInfos(
             MethodSymbol argumentInfoFactory,
             ImmutableArray<BoundExpression> loweredArguments,
-            ImmutableArray<string> argumentNames = default(ImmutableArray<string>),
+            ImmutableArray<string?> argumentNames = default(ImmutableArray<string?>),
             ImmutableArray<RefKind> refKinds = default(ImmutableArray<RefKind>),
             BoundExpression? loweredReceiver = null,
             RefKind receiverRefKind = RefKind.None,

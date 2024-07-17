@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 // NOTE: This code is derived from an implementation originally in dotnet/runtime:
-// https://github.com/dotnet/runtime/blob/v5.0.2/src/libraries/System.Collections/tests/Generic/List/List.Generic.Tests.Find.cs
+// https://github.com/dotnet/runtime/blob/v8.0.3/src/libraries/System.Collections/tests/Generic/List/List.Generic.Tests.Find.cs
 //
 // See the commentary in https://github.com/dotnet/roslyn/pull/50156 for notes on incorporating changes made to the
 // reference implementation.
@@ -291,6 +291,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 foundItem = list.Find(EqualsDelegate);
                 Assert.Equal(expectedItem, foundItem); //"Err_4489ajodoi Verify with match that matches more then one item FAILED\n"
             }
+        }
+
+        [Fact]
+        public void Find_ListSizeCanBeChanged()
+        {
+            SegmentedList<int> expectedList = new SegmentedList<int>() { 1, 2, 3, 2, 3, 4, 3, 4, 4 };
+
+            SegmentedList<int> list = new SegmentedList<int>() { 1, 2, 3 };
+
+            int result = list.Find(i =>
+            {
+                if (i < 4)
+                {
+                    list.Add(i + 1);
+                }
+
+                return false;
+            });
+
+            Assert.Equal(0, result);
+            Assert.Equal(expectedList, list);
         }
 
         #endregion
@@ -984,6 +1005,26 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             //[] Verify FindAll returns an empty List if the match returns false on every item
             VerifyList(list.FindAll(_alwaysFalseDelegate), new SegmentedList<T>());
+        }
+
+        [Fact]
+        public void FindAll_ListSizeCanBeChanged()
+        {
+            SegmentedList<int> list = new SegmentedList<int>() { 1, 2, 3 };
+            SegmentedList<int> expectedList = new SegmentedList<int>() { 1, 2, 3, 2, 3, 4, 3, 4, 4 };
+
+            SegmentedList<int> result = list.FindAll(i =>
+            {
+                if (i < 4)
+                {
+                    list.Add(i + 1);
+                }
+
+                return true;
+            });
+
+            Assert.Equal(expectedList, result);
+            Assert.Equal(expectedList, list);
         }
 
         #endregion

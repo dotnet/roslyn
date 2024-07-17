@@ -2635,7 +2635,7 @@ End Module
             Await VerifyItemIsAbsentAsync(markup, "[Structure]")
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")> <Fact>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")>
         Public Async Function TestKeywordEscaping2() As Task
             Dim markup = <Text>
 Module [Structure]
@@ -2657,7 +2657,7 @@ End Module
             Await VerifyItemIsAbsentAsync(markup, "[rem]")
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")> <Fact>
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539450")>
         Public Async Function TestKeywordEscaping3() As Task
             Dim markup = <Text>
 Namespace Goo
@@ -7651,7 +7651,7 @@ End Namespace
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(input, composition:=GetComposition())
+            Using workspace = EditorTestWorkspace.Create(input, composition:=GetComposition())
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.DocumentWithCursor.Id)
                 Dim position = workspace.DocumentWithCursor.CursorPosition.Value
                 Await CheckResultsAsync(document, position, "InstanceMethod", expectedDescriptionOrNull:=Nothing, usePreviousCharAsTrigger:=False, checkForAbsence:=False,

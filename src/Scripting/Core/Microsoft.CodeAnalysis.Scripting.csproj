@@ -5,7 +5,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Scripting</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>$(SourceBuildTargetFrameworks);netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynSourceBuild);netstandard2.0</TargetFrameworks>
     <DefineConstants>$(DefineConstants);SCRIPTING</DefineConstants>
 
     <!-- NuGet -->
@@ -20,7 +20,7 @@
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Runtime.Loader" Version="$(SystemRuntimeLoaderVersion)" PrivateAssets="all" />
+    <PackageReference Include="System.Runtime.Loader" PrivateAssets="all" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\Compilers\Shared\CoreClrShim.cs" />
@@ -45,6 +45,9 @@
     <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\MonoGlobalAssemblyCache.cs">
       <Link>Hosting\Resolvers\MonoGlobalAssemblyCache.cs</Link>
     </Compile>
+    <Compile Include="..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\DotNetCoreGlobalAssemblyCache.cs">
+      <Link>Hosting\Resolvers\DotNetCoreGlobalAssemblyCache.cs</Link>
+    </Compile>
     <Compile Update="ScriptingResources.Designer.cs" GenerateSource="true" />
   </ItemGroup>
   <ItemGroup>
@@ -65,6 +68,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.Scripting.Desktop.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="ScriptingResources.resx" GenerateSource="true" />

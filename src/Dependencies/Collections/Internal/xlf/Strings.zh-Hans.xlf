@@ -67,9 +67,14 @@
         <target state="translated">计数必须为正，且计数必须引用 string/array/collection 内的位置。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ArgumentOutOfRange_Index">
+      <trans-unit id="ArgumentOutOfRange_IndexMustBeLess">
         <source>Index was out of range. Must be non-negative and less than the size of the collection.</source>
         <target state="translated">索引超出范围。必须为非负值并小于集合大小。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ArgumentOutOfRange_IndexMustBeLessOrEqual">
+        <source>Index was out of range. Must be non-negative and less than or equal to the size of the collection.</source>
+        <target state="translated">索引超出范围。必须为非负值且小于或等于集合的大小。</target>
         <note />
       </trans-unit>
       <trans-unit id="ArgumentOutOfRange_ListInsert">
@@ -92,7 +97,7 @@
         <target state="translated">已添加了具有相同键的项。键: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Argument_InvalidArrayType">
+      <trans-unit id="Argument_IncompatibleArrayType">
         <source>Target array type is not compatible with the type of items in the collection.</source>
         <target state="translated">目标数组类型与集合中的项类型不兼容。</target>
         <note />

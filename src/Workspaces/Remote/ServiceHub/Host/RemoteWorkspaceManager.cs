@@ -37,11 +37,11 @@ namespace Microsoft.CodeAnalysis.Remote
         /// allowing it to get too full.
         /// <para>
         /// Also note that the asset cache will not remove items associated with the <see
-        /// cref="Workspace.CurrentSolution"/> of the workspace it is created against.  This ensures that the assets
-        /// associated with the solution that most closely corresponds to what the user is working with will stay pinned
-        /// on the remote side and not get purged just because the user stopped interactive for a while.  This ensures
-        /// the next sync (which likely overlaps heavily with the current solution) will not force the same assets to be
-        /// resent.
+        /// cref="Workspace.CurrentSolution"/> of the workspace it is created against (as well as any recent in-flight
+        /// solutions).  This ensures that the assets associated with the solution that most closely corresponds to what
+        /// the user is working with will stay pinned on the remote side and not get purged just because the user
+        /// stopped interactive for a while.  This ensures the next sync (which likely overlaps heavily with the current
+        /// solution) will not force the same assets to be resent.
         /// </para>
         /// <list type="bullet">
         /// <item>CleanupInterval=30s gives what feels to be a reasonable non-aggressive amount of time to let the cache
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </list>
         /// </remarks>
         internal static readonly RemoteWorkspaceManager Default = new(
-            workspace => new SolutionAssetCache(workspace, cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1), gcAfter: TimeSpan.FromMinutes(1)));
+            workspace => new SolutionAssetCache(workspace, cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1)));
 
         private readonly RemoteWorkspace _workspace;
         internal readonly SolutionAssetCache SolutionAssetCache;
@@ -152,7 +152,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 var assemblyName = new AssemblyName(assemblyFullName);
                 if (!string.IsNullOrEmpty(codeBasePath))
                 {
+#pragma warning disable SYSLIB0044 // https://github.com/dotnet/roslyn/issues/71510
                     assemblyName.CodeBase = codeBasePath;
+#pragma warning restore SYSLIB0044
                 }
 
                 return LoadAssembly(assemblyName);

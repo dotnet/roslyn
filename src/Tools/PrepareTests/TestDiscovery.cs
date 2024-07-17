@@ -10,6 +10,7 @@ using System.Linq;
 using System.IO.Pipes;
 using System.Threading.Tasks;
 using System.Threading;
+using System.Text;
 
 namespace PrepareTests;
 internal class TestDiscovery
@@ -54,11 +55,19 @@ internal class TestDiscovery
         return success;
     }
 
+    static (string tfm, string configuration) GetTfmAndConfiguration()
+    {
+        var dir = Path.GetDirectoryName(typeof(TestDiscovery).Assembly.Location);
+        var tfm = Path.GetFileName(dir)!;
+        var configuration = Path.GetFileName(Path.GetDirectoryName(dir))!;
+        return (tfm, configuration);
+    }
+
     static (string dotnetCoreWorker, string dotnetFrameworkWorker) GetWorkers(string binDirectory)
     {
+        var (tfm, configuration) = GetTfmAndConfiguration();
         var testDiscoveryWorkerFolder = Path.Combine(binDirectory, "TestDiscoveryWorker");
-        var configuration = Directory.Exists(Path.Combine(testDiscoveryWorkerFolder, "Debug")) ? "Debug" : "Release";
-        return (Path.Combine(testDiscoveryWorkerFolder, configuration, "net8.0", "TestDiscoveryWorker.dll"),
+        return (Path.Combine(testDiscoveryWorkerFolder, configuration, tfm, "TestDiscoveryWorker.dll"),
                 Path.Combine(testDiscoveryWorkerFolder, configuration, "net472", "TestDiscoveryWorker.exe"));
     }
 
@@ -77,13 +86,21 @@ internal class TestDiscovery
             pipeClient.StartInfo.FileName = pathToWorker;
         }
 
+        var errorOutput = new StringBuilder();
+
         using (var pipeServer = new AnonymousPipeServerStream(PipeDirection.Out, HandleInheritability.Inheritable))
         {
             // Pass the client process a handle to the server.
             arguments.Add(pipeServer.GetClientHandleAsString());
             pipeClient.StartInfo.Arguments = string.Join(" ", arguments);
             pipeClient.StartInfo.UseShellExecute = false;
+
+            // Errors will be logged to stderr, redirect to us so we can capture it.
+            pipeClient.StartInfo.RedirectStandardError = true;
+            pipeClient.ErrorDataReceived += PipeClient_ErrorDataReceived;
             pipeClient.Start();
+
+            pipeClient.BeginErrorReadLine();
 
             pipeServer.DisposeLocalCopyOfClientHandle();
 
@@ -112,16 +129,23 @@ internal class TestDiscovery
 
         if (!success)
         {
-            Console.WriteLine($"Failed to discover tests in {pathToAssembly}");
+            Console.WriteLine($"Failed to discover tests in {pathToAssembly}:{Environment.NewLine}{errorOutput}");
         }
 
         return success;
+
+        void PipeClient_ErrorDataReceived(object sender, DataReceivedEventArgs e)
+        {
+            errorOutput.AppendLine(e.Data);
+        }
     }
 
     private static List<string> GetAssemblies(string binDirectory, bool isUnix)
     {
-        var unitTestAssemblies = Directory.GetFiles(binDirectory, "*.UnitTests.dll", SearchOption.AllDirectories).Where(ShouldInclude);
-        return unitTestAssemblies.ToList();
+        var unitTestAssemblies = Directory.GetFiles(binDirectory, "*UnitTests.dll", SearchOption.AllDirectories);
+        var integrationTestAssemblies = Directory.GetFiles(binDirectory, "*IntegrationTests.dll", SearchOption.AllDirectories);
+        var assemblies = unitTestAssemblies.Concat(integrationTestAssemblies).Where(ShouldInclude);
+        return assemblies.ToList();
 
         bool ShouldInclude(string path)
         {

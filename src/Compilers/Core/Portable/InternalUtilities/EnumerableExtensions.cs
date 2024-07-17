@@ -7,21 +7,30 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Threading;
-
-#if DEBUG
-using System.Diagnostics;
-#endif
 
 namespace Roslyn.Utilities
 {
     internal static partial class EnumerableExtensions
     {
+        public static int Count<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            var count = 0;
+            foreach (var v in source)
+            {
+                if (predicate(v, arg))
+                    count++;
+            }
+
+            return count;
+        }
+
         public static IEnumerable<T> Do<T>(this IEnumerable<T> source, Action<T> action)
         {
             if (source == null)
@@ -173,16 +182,6 @@ namespace Roslyn.Utilities
 
         public static T? FirstOrDefault<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
         {
-            if (source == null)
-            {
-                throw new ArgumentNullException(nameof(source));
-            }
-
-            if (predicate == null)
-            {
-                throw new ArgumentNullException(nameof(predicate));
-            }
-
             foreach (var item in source)
             {
                 if (predicate(item, arg))
@@ -190,6 +189,17 @@ namespace Roslyn.Utilities
             }
 
             return default;
+        }
+
+        public static bool Any<T, TArg>(this IEnumerable<T> source, Func<T, TArg, bool> predicate, TArg arg)
+        {
+            foreach (var item in source)
+            {
+                if (predicate(item, arg))
+                    return true;
+            }
+
+            return false;
         }
 
         public static T? FirstOrNull<T>(this IEnumerable<T> source)
@@ -382,14 +392,52 @@ namespace Roslyn.Utilities
             return builder.ToImmutableAndFree();
         }
 
-        public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IReadOnlyCollection<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)
+        public static ImmutableArray<TResult> SelectManyAsArray<TSource, TResult>(this IEnumerable<TSource>? source, Func<TSource, IEnumerable<TResult>> selector)
         {
             if (source == null)
                 return ImmutableArray<TResult>.Empty;
 
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in source)
+                builder.AddRange(selector(item));
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this IEnumerable<TItem>? source, Func<TItem, TArg, IEnumerable<TResult>> selector, TArg arg)
+        {
+            if (source == null)
+                return ImmutableArray<TResult>.Empty;
+
+            var builder = ArrayBuilder<TResult>.GetInstance();
+            foreach (var item in source)
+                builder.AddRange(selector(item, arg));
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TResult>(this IReadOnlyCollection<TItem>? source, Func<TItem, IEnumerable<TResult>> selector)
+        {
+            if (source == null)
+                return ImmutableArray<TResult>.Empty;
+
+            // Basic heuristic. Assume each element in the source adds one item to the result.
             var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
             foreach (var item in source)
                 builder.AddRange(selector(item));
+
+            return builder.ToImmutableAndFree();
+        }
+
+        public static ImmutableArray<TResult> SelectManyAsArray<TItem, TArg, TResult>(this IReadOnlyCollection<TItem>? source, Func<TItem, TArg, IEnumerable<TResult>> selector, TArg arg)
+        {
+            if (source == null)
+                return ImmutableArray<TResult>.Empty;
+
+            // Basic heuristic. Assume each element in the source adds one item to the result.
+            var builder = ArrayBuilder<TResult>.GetInstance(source.Count);
+            foreach (var item in source)
+                builder.AddRange(selector(item, arg));
 
             return builder.ToImmutableAndFree();
         }
@@ -561,7 +609,7 @@ namespace Roslyn.Utilities
         public static IOrderedEnumerable<T> Order<T>(this IEnumerable<T> source) where T : IComparable<T>
 #endif
         {
-            return source.OrderBy(Comparisons<T>.Comparer);
+            return source.OrderBy(Comparer<T>.Default);
         }
 
         public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source, IComparer<T>? comparer)
@@ -576,23 +624,18 @@ namespace Roslyn.Utilities
 
         public static IOrderedEnumerable<T> ThenBy<T>(this IOrderedEnumerable<T> source) where T : IComparable<T>
         {
-            return source.ThenBy(Comparisons<T>.Comparer);
+            return source.ThenBy(Comparer<T>.Default);
         }
 
-        private static class Comparisons<T> where T : IComparable<T>
-        {
-            public static readonly Comparison<T> CompareTo = (t1, t2) => t1.CompareTo(t2);
-
-            public static readonly IComparer<T> Comparer = Comparer<T>.Create(CompareTo);
-        }
-
-        public static bool IsSorted<T>(this IEnumerable<T> enumerable, IComparer<T> comparer)
+        public static bool IsSorted<T>(this IEnumerable<T> enumerable, IComparer<T>? comparer = null)
         {
             using var e = enumerable.GetEnumerator();
             if (!e.MoveNext())
             {
                 return true;
             }
+
+            comparer ??= Comparer<T>.Default;
 
             var previous = e.Current;
             while (e.MoveNext())
@@ -835,5 +878,99 @@ namespace System.Linq
                 return result;
             }
         }
+
+#if NETSTANDARD
+
+        // Copied from https://github.com/dotnet/runtime/blob/main/src/libraries/System.Linq/src/System/Linq/Chunk.cs
+        public static IEnumerable<TSource[]> Chunk<TSource>(this IEnumerable<TSource> source, int size)
+        {
+            if (source is null)
+                throw new ArgumentNullException(nameof(source));
+
+            if (size < 1)
+                throw new ArgumentOutOfRangeException(nameof(size));
+
+            if (source is TSource[] array)
+            {
+                // Special-case arrays, which have an immutable length. This enables us to not only do an
+                // empty check and avoid allocating an iterator object when empty, it enables us to have a
+                // much more efficient (and simpler) implementation for chunking up the array.
+                return array.Length != 0 ?
+                    ArrayChunkIterator(array, size) :
+                    [];
+            }
+
+            return EnumerableChunkIterator(source, size);
+        }
+
+        private static IEnumerable<TSource[]> ArrayChunkIterator<TSource>(TSource[] source, int size)
+        {
+            int index = 0;
+            while (index < source.Length)
+            {
+                TSource[] chunk = new ReadOnlySpan<TSource>(source, index, Math.Min(size, source.Length - index)).ToArray();
+                index += chunk.Length;
+                yield return chunk;
+            }
+        }
+
+        private static IEnumerable<TSource[]> EnumerableChunkIterator<TSource>(IEnumerable<TSource> source, int size)
+        {
+            using IEnumerator<TSource> e = source.GetEnumerator();
+
+            // Before allocating anything, make sure there's at least one element.
+            if (e.MoveNext())
+            {
+                // Now that we know we have at least one item, allocate an initial storage array. This is not
+                // the array we'll yield.  It starts out small in order to avoid significantly overallocating
+                // when the source has many fewer elements than the chunk size.
+                int arraySize = Math.Min(size, 4);
+                int i;
+                do
+                {
+                    var array = new TSource[arraySize];
+
+                    // Store the first item.
+                    array[0] = e.Current;
+                    i = 1;
+
+                    if (size != array.Length)
+                    {
+                        // This is the first chunk. As we fill the array, grow it as needed.
+                        for (; i < size && e.MoveNext(); i++)
+                        {
+                            if (i >= array.Length)
+                            {
+                                arraySize = (int)Math.Min((uint)size, 2 * (uint)array.Length);
+                                Array.Resize(ref array, arraySize);
+                            }
+
+                            array[i] = e.Current;
+                        }
+                    }
+                    else
+                    {
+                        // For all but the first chunk, the array will already be correctly sized.
+                        // We can just store into it until either it's full or MoveNext returns false.
+                        TSource[] local = array; // avoid bounds checks by using cached local (`array` is lifted to iterator object as a field)
+                        Debug.Assert(local.Length == size);
+                        for (; (uint)i < (uint)local.Length && e.MoveNext(); i++)
+                        {
+                            local[i] = e.Current;
+                        }
+                    }
+
+                    if (i != array.Length)
+                    {
+                        Array.Resize(ref array, i);
+                    }
+
+                    yield return array;
+                }
+                while (i >= size && e.MoveNext());
+            }
+        }
+
+#endif
     }
 }

@@ -65,15 +65,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return (displayText, "", insertionText)
         End Function
 
-        Protected Overrides Function GetProperties(symbol As INamedTypeSymbol, context As VisualBasicSyntaxContext) As ImmutableDictionary(Of String, String)
-            Return ImmutableDictionary(Of String, String).Empty.Add(
-                InsertionTextOnOpenParen, symbol.Name.EscapeIdentifier())
+        Protected Overrides Function GetProperties(symbol As INamedTypeSymbol, context As VisualBasicSyntaxContext) As ImmutableArray(Of KeyValuePair(Of String, String))
+            Return ImmutableArray.Create(
+                New KeyValuePair(Of String, String)(InsertionTextOnOpenParen, symbol.Name.EscapeIdentifier()))
         End Function
 
         Public Overrides Async Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
             If ch = "("c Then
                 Dim insertionText As String = Nothing
-                If selectedItem.Properties.TryGetValue(InsertionTextOnOpenParen, insertionText) Then
+                If selectedItem.TryGetProperty(InsertionTextOnOpenParen, insertionText) Then
                     Return New TextChange(selectedItem.Span, insertionText)
                 End If
             End If

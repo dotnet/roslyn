@@ -5,40 +5,38 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors
+namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors;
+
+internal abstract class AbstractGenerateDefaultConstructorCodeFixProvider : CodeFixProvider
 {
-    internal abstract class AbstractGenerateDefaultConstructorCodeFixProvider : CodeFixProvider
+    public override FixAllProvider? GetFixAllProvider() => null;
+
+    protected abstract SyntaxToken? TryGetTypeName(SyntaxNode typeDeclaration);
+
+    public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        public override FixAllProvider? GetFixAllProvider() => null;
+        var cancellationToken = context.CancellationToken;
+        var document = context.Document;
+        var diagnostic = context.Diagnostics.FirstOrDefault();
+        if (diagnostic == null)
+            return;
 
-        protected abstract SyntaxToken? TryGetTypeName(SyntaxNode typeDeclaration);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var headerFacts = document.GetRequiredLanguageService<IHeaderFactsService>();
+        if (!headerFacts.IsOnTypeHeader(root, diagnostic.Location.SourceSpan.Start, fullHeader: true, out var typeDecl))
+            return;
 
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            var cancellationToken = context.CancellationToken;
-            var document = context.Document;
-            var diagnostic = context.Diagnostics.FirstOrDefault();
-            if (diagnostic == null)
-                return;
+        var typeName = TryGetTypeName(typeDecl);
+        if (typeName == null)
+            return;
 
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var headerFacts = document.GetRequiredLanguageService<IHeaderFactsService>();
-            if (!headerFacts.IsOnTypeHeader(root, diagnostic.Location.SourceSpan.Start, fullHeader: true, out var typeDecl))
-                return;
-
-            var typeName = TryGetTypeName(typeDecl);
-            if (typeName == null)
-                return;
-
-            var service = document.GetRequiredLanguageService<IGenerateDefaultConstructorsService>();
-            var actions = await service.GenerateDefaultConstructorsAsync(
-                document, new TextSpan(typeName.Value.Span.Start, 0), context.Options, forRefactoring: false, cancellationToken).ConfigureAwait(false);
-            context.RegisterFixes(actions, diagnostic);
-        }
+        var service = document.GetRequiredLanguageService<IGenerateDefaultConstructorsService>();
+        var actions = await service.GenerateDefaultConstructorsAsync(
+            document, new TextSpan(typeName.Value.Span.Start, 0), forRefactoring: false, cancellationToken).ConfigureAwait(false);
+        context.RegisterFixes(actions, diagnostic);
     }
 }

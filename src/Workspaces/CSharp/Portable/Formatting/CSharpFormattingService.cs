@@ -7,15 +7,14 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.Formatting
+namespace Microsoft.CodeAnalysis.CSharp.Formatting;
+
+[ExportLanguageService(typeof(IFormattingService), LanguageNames.CSharp), Shared]
+internal class CSharpFormattingService : AbstractFormattingService
 {
-    [ExportLanguageService(typeof(IFormattingService), LanguageNames.CSharp), Shared]
-    internal class CSharpFormattingService : AbstractFormattingService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpFormattingService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpFormattingService()
-        {
-        }
     }
 }

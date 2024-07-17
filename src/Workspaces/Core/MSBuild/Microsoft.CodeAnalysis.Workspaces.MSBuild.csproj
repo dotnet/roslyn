@@ -3,12 +3,17 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis</RootNamespace>
+    <RootNamespace>Microsoft.CodeAnalysis.MSBuild</RootNamespace>
+    <TargetFrameworks>$(NetRoslynSourceBuild);net472</TargetFrameworks>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworks>$(SourceBuildTargetFrameworks);net472</TargetFrameworks>
-    <DefineConstants>$(DefineConstants);WORKSPACE_MSBUILD</DefineConstants>
     <!-- NuGet -->
     <IsPackable>true</IsPackable>
+    <IncludeContentInPack>true</IncludeContentInPack>
+
+    <!-- We are packing DLLs into the content directories of the NuGet package because that's what where the BuildHosts will go; NuGet warns we may not want that since they won't be referenced;
+         that is exactly what we do want here. -->
+    <NoWarn>$(NoWarn);NU5100</NoWarn>
+
     <PackageDescription>
       .NET Compiler Platform ("Roslyn") support for analyzing MSBuild projects and solutions. This should be used with at least one
       of the following packages to add the appropriate language support:
@@ -17,23 +22,38 @@
     </PackageDescription>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
-      <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Build" Version="$(RefOnlyMicrosoftBuildVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Framework" Version="$(RefOnlyMicrosoftBuildFrameworkVersion)" ExcludeAssets="Runtime" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" Version="$(RefOnlyMicrosoftBuildTasksCoreVersion)" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="System.Text.Json" Version="$(SystemTextJsonVersion)" />
+    <PackageReference Include="Microsoft.Build" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+    <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
     <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.Workspaces.csproj" />
+
+    <!-- For the following package we directly include the binary into this NuGet package because we don't want/need a separate NuGet package
+         for it. PrivateAssets="all" is needed to prevent this reference from becoming a package reference in the package, as a workaround for
+         https://github.com/NuGet/Home/issues/3891.
+         -->
+    <ProjectReference Include="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" PrivateAssets="all" ReferenceOutputAssembly="false">
+      <IncludeOutputInThisPackage>true</IncludeOutputInThisPackage>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" PrivateAssets="all">
+      <IncludeOutputInThisPackage>true</IncludeOutputInThisPackage>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
+      <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
+    </Compile>
+    <Compile Include="..\MSBuild.BuildHost\Rpc\Contracts\*.cs" Link="Rpc\Contracts\%(FileName).cs"/>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\MSBuild.BuildHost\Rpc\Readme.md" Link="Rpc\Readme.md" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="WorkspaceMSBuildResources.resx" GenerateSource="true" />
@@ -42,7 +62,61 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures2.UnitTests" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
+  <!--
+    Include certain project reference binaries into this package in lib/ regular library.
+    -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);GetAdditionalBinariesToPackage</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="GetAdditionalBinariesToPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferencePath)" Condition="'%(ReferencePath.IncludeOutputInThisPackage)' == 'true'" />
+    </ItemGroup>
+  </Target>
+
+  <!--
+    Deploy a net472 and $(NetRoslynBuildHostNetCoreVersion) version of the BuildHost process which will be used depending on the type of project. We will use the deployed version even if
+    it matches the runtime type of the caller of MSBuildWorkspace since we still need the separate process for dependency isolation and in the case of the .NET Core
+    side, ensuring we potential rollforward to a runtime that supports the SDK version.
+
+    The NuGet packaging targets will package Content files, but the outer "pack" build assumes that the content files are just found in the project file directly and
+    gives us no way to say we need to run a target to produce them. The BeforeTargets="_GetPackageFiles" forces it to run in that case; ideally there'd be a "pack content depends on"
+    property that we could hook but we can't in this case.
+  -->
+  <Target Name="DeployNetFrameworkBuildHost" BeforeTargets="_GetPackageFiles;AssignTargetPaths" Condition="'$(DesignTimeBuild)' != 'true'">
+    <!-- If we're not doing source build, we will include a net472 version for the broadest compatibility -->
+    <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
+      <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
+        <TargetFramework>net472</TargetFramework>
+        <ContentFolderName>BuildHost-net472</ContentFolderName>
+      </_NetFrameworkBuildHostProjectReference>
+    </ItemGroup>
+
+    <!-- We'll include a .NET Core version no matter what -->
+    <ItemGroup>
+      <_NetFrameworkBuildHostProjectReference Include="..\..\..\Workspaces\Core\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj">
+        <TargetFramework>$(NetRoslynBuildHostNetCoreVersion)</TargetFramework>
+        <ContentFolderName>BuildHost-netcore</ContentFolderName>
+      </_NetFrameworkBuildHostProjectReference>
+    </ItemGroup>
+
+    <!-- We include Build as a target we invoke to work around https://github.com/dotnet/msbuild/issues/5433  -->
+    <MSBuild Projects="@(_NetFrameworkBuildHostProjectReference)" Targets="Build;BuiltProjectOutputGroup;ReferenceCopyLocalPathsOutputGroup;GetProjectDepsJsonFile" Properties="TargetFramework=%(_NetFrameworkBuildHostProjectReference.TargetFramework)">
+      <Output TaskParameter="TargetOutputs" ItemName="NetFrameworkBuildHostAssets" />
+    </MSBuild>
+
+    <ItemGroup>
+      <!-- We're setting both TargetPath and PackagePath here, the former when this is used in a regular build to deploy and the latter for
+           when this called during pack. By putting the PackagePath in any/any, we only have to deploy this once rather than per TFM.
+           Similarly, we set CopyToOutputDirectory for the regular build and PackageCopyToPutput for the packaging process. -->
+      <Content Include="%(NetFrameworkBuildHostAssets.Identity)"
+               Condition="'%(NetFrameworkBuildHostAssets.TargetPath)' != '' and '%(NetFrameworkBuildHostAssets.Extension)' != '.xml'"
+               TargetPath="$([System.IO.Path]::Combine('%(NetFrameworkBuildHostAssets.ContentFolderName)', '%(NetFrameworkBuildHostAssets.TargetPath)'))"
+               PackagePath="$([System.IO.Path]::Combine('contentFiles', 'any', 'any', '%(NetFrameworkBuildHostAssets.ContentFolderName)', '%(NetFrameworkBuildHostAssets.TargetPath)'))"
+               CopyToOutputDirectory="PreserveNewest"
+               PackageCopyToOutput="true" />
+    </ItemGroup>
+  </Target>
 </Project>

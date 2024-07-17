@@ -77,6 +77,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Represents <c>..</c> token.</summary>
         DotDotToken = 8222,
 
+        // Values ranging from 8193 (TildeToken) to 8287 (GreaterThanGreaterThanGreaterThanEqualsToken) are reserved for punctuation kinds.
+        // This gap is included within that range. So if you add a value here make sure `SyntaxFacts.GetPunctuationKinds` includes it in the returned enumeration
+
         // additional xml tokens
         /// <summary>Represents <c>/&gt;</c> token.</summary>
         SlashGreaterThanToken = 8232, // xml empty element end
@@ -94,6 +97,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         XmlProcessingInstructionStartToken = 8238, // <?
         /// <summary>Represents <c>?&gt;</c> token.</summary>
         XmlProcessingInstructionEndToken = 8239, // ?>
+
+        // Values ranging from 8193 (TildeToken) to 8287 (GreaterThanGreaterThanGreaterThanEqualsToken) are reserved for punctuation kinds.
+        // This gap is included within that range. So if you add a value here make sure `SyntaxFacts.GetPunctuationKinds` includes it in the returned enumeration
 
         // compound punctuation
         /// <summary>Represents <c>||</c> token.</summary>
@@ -413,6 +419,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ScopedKeyword = 8448,
         /// <summary>Represents <see langword="file"/>.</summary>
         FileKeyword = 8449,
+        /// <summary>Represents <see langword="allows"/>.</summary>
+        AllowsKeyword = 8450,
 
         // when adding a contextual keyword following functions must be adapted:
         // <see cref="SyntaxFacts.GetContextualKeywordKinds()"/>
@@ -520,6 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         Utf8StringLiteralToken = 8520,
         Utf8SingleLineRawStringLiteralToken = 8521,
         Utf8MultiLineRawStringLiteralToken = 8522,
+        RazorContentToken = 8523,
 
         // trivia
         EndOfLineTrivia = 8539,
@@ -804,6 +813,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         OperatorDeclaration = 8876,
         ConversionOperatorDeclaration = 8877,
         ConstructorDeclaration = 8878,
+        AllowsConstraintClause = 8879,
+        RefStructConstraint = 8880,
 
         BaseConstructorInitializer = 8889,
         ThisConstructorInitializer = 8890,

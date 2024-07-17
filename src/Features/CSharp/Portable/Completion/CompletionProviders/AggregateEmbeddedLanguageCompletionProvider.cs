@@ -10,15 +10,14 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
+namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+
+[ExportCompletionProvider(nameof(AggregateEmbeddedLanguageCompletionProvider), LanguageNames.CSharp)]
+[ExtensionOrder(After = nameof(ExtensionMethodImportCompletionProvider))]
+[Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal class AggregateEmbeddedLanguageCompletionProvider([ImportMany] IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices) : AbstractAggregateEmbeddedLanguageCompletionProvider(languageServices, LanguageNames.CSharp)
 {
-    [ExportCompletionProvider(nameof(AggregateEmbeddedLanguageCompletionProvider), LanguageNames.CSharp)]
-    [ExtensionOrder(After = nameof(ExtensionMethodImportCompletionProvider))]
-    [Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal class AggregateEmbeddedLanguageCompletionProvider([ImportMany] IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> languageServices) : AbstractAggregateEmbeddedLanguageCompletionProvider(languageServices, LanguageNames.CSharp)
-    {
-        internal override string Language => LanguageNames.CSharp;
-    }
+    internal override string Language => LanguageNames.CSharp;
 }

@@ -22,6 +22,16 @@
         <target state="translated">한 줄 컨트롤 문에 필요한 중괄호 추가</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_0">
+        <source>Apply '{0}'</source>
+        <target state="translated">‘{0}’ 적용</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_Copilot_suggestion">
+        <source>Apply Copilot suggestion</source>
+        <target state="translated">Copilot 제안 적용</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">생성자 이니셜라이저에서 콜론 위에 빈 줄 적용 기본 설정(실험적)</target>
@@ -57,6 +67,11 @@
         <target state="translated">식/블록 본문 기본 설정 적용</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_fix_from">
+        <source>Apply fix from</source>
+        <target state="translated">다음에서 수정 사항 적용</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_inline_out_variable_preferences">
         <source>Apply inline 'out' variables preferences</source>
         <target state="translated">인라인 'out' 변수 기본 설정 적용</target>
@@ -80,11 +95,6 @@
       <trans-unit id="Apply_new_preferences">
         <source>Apply new() preferences</source>
         <target state="translated">new() 적용 기본 설정</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_parameter_null_preferences">
-        <source>Apply parameter null preferences</source>
-        <target state="translated">매개 변수 Null 적용 기본 설정</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
@@ -127,6 +137,11 @@
         <target state="translated">잠재적인 패턴 변수 선언으로 인해 자동 선택을 사용하지 않도록 설정했습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
+        <source>Cannot determine valid range of statements to extract</source>
+        <target state="translated">추출할 문의 유효한 범위를 결정할 수 없습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">'as' 식으로 변경</target>
@@ -150,6 +165,11 @@
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">원시 문자열로 변환</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_regular_constructor">
+        <source>Convert to regular constructor</source>
+        <target state="translated">일반 생성자로 변환</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -232,6 +252,11 @@
         <target state="translated">경고: 임시 변수를 인라인 처리하면 코드 의미가 변경될 수 있습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_colon_AI_suggestions_might_be_inaccurate">
+        <source>Warning: AI suggestions might be inaccurate.</source>
+        <target state="translated">경고: AI 제안은 정확하지 않을 수 있습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
         <source>asynchronous foreach statement</source>
         <target state="translated">비동기 foreach 문</target>
@@ -241,6 +266,11 @@
         <source>asynchronous using declaration</source>
         <target state="translated">비동기 using 선언</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="do_while_loop">
+        <source>do-while loop</source>
+        <target state="translated">do-while 루프</target>
+        <note>{Locked="do"}{Locked="while"} "do" and "while" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
@@ -310,11 +340,6 @@
       <trans-unit id="Remove_this_qualification">
         <source>Remove 'this' qualification</source>
         <target state="translated">this' 한정자 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
-        <source>Can't determine valid range of statements to extract</source>
-        <target state="translated">추출할 문의 유효한 범위를 결정할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
@@ -434,12 +459,12 @@
       </trans-unit>
       <trans-unit id="top_level_code">
         <source>top-level code</source>
-        <target state="new">top-level code</target>
+        <target state="translated">최상위 코드</target>
         <note />
       </trans-unit>
       <trans-unit id="top_level_statement">
         <source>top-level statement</source>
-        <target state="new">top-level statement</target>
+        <target state="translated">최상위 문</target>
         <note />
       </trans-unit>
       <trans-unit id="try_block">

@@ -4,13 +4,16 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Roslyn.Utilities
 {
-    internal static class ImmutableArrayExtensions
+    internal static partial class ImmutableArrayExtensions
     {
+        public static ImmutableArray<T> ToImmutableArray<T>(this HashSet<T> set)
+        {
+            return [.. set];
+        }
+
         public static bool Contains<T>(this ImmutableArray<T> items, T item, IEqualityComparer<T>? equalityComparer)
             => items.IndexOf(item, 0, equalityComparer) >= 0;
 
@@ -18,22 +21,32 @@ namespace Roslyn.Utilities
         {
             if (items == null)
             {
-                return ImmutableArray.Create<T>();
+                return [];
             }
 
             return ImmutableArray.Create<T>(items);
         }
 
-        public static ConcatImmutableArray<T> ConcatFast<T>(this ImmutableArray<T> first, ImmutableArray<T> second)
-            => new(first, second);
-
         public static ImmutableArray<T> TakeAsArray<T>(this ImmutableArray<T> array, int count)
         {
-            using var _ = ArrayBuilder<T>.GetInstance(count, out var result);
+            var result = new FixedSizeArrayBuilder<T>(count);
             for (var i = 0; i < count; i++)
                 result.Add(array[i]);
 
-            return result.ToImmutableAndClear();
+            return result.MoveToImmutable();
+        }
+
+        public static ImmutableArray<T> ToImmutableAndClear<T>(this ImmutableArray<T>.Builder builder)
+        {
+            if (builder.Count == 0)
+                return ImmutableArray<T>.Empty;
+
+            if (builder.Count == builder.Capacity)
+                return builder.MoveToImmutable();
+
+            var result = builder.ToImmutable();
+            builder.Clear();
+            return result;
         }
     }
 }

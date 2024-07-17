@@ -5,19 +5,18 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
-{
-    internal interface IVSTypeScriptNavigateToSearchResult
-    {
-        string AdditionalInformation { get; }
-        string Kind { get; }
-        VSTypeScriptNavigateToMatchKind MatchKind { get; }
-        bool IsCaseSensitive { get; }
-        string Name { get; }
-        ImmutableArray<TextSpan> NameMatchSpans { get; }
-        string SecondarySort { get; }
-        string Summary { get; }
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 
-        IVSTypeScriptNavigableItem NavigableItem { get; }
-    }
+internal interface IVSTypeScriptNavigateToSearchResult
+{
+    string AdditionalInformation { get; }
+    string Kind { get; }
+    VSTypeScriptNavigateToMatchKind MatchKind { get; }
+    bool IsCaseSensitive { get; }
+    string Name { get; }
+    ImmutableArray<TextSpan> NameMatchSpans { get; }
+    string SecondarySort { get; }
+    string Summary { get; }
+
+    IVSTypeScriptNavigableItem NavigableItem { get; }
 }

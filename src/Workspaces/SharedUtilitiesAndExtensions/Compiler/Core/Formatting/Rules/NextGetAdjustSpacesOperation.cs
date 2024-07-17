@@ -5,28 +5,27 @@
 using System.Collections.Immutable;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Formatting.Rules
-{
-    [NonDefaultable]
-    internal readonly struct NextGetAdjustSpacesOperation(
-        ImmutableArray<AbstractFormattingRule> formattingRules,
-        int index)
-    {
-        private NextGetAdjustSpacesOperation NextOperation
-            => new(formattingRules, index + 1);
+namespace Microsoft.CodeAnalysis.Formatting.Rules;
 
-        public AdjustSpacesOperation? Invoke(in SyntaxToken previousToken, in SyntaxToken currentToken)
+[NonDefaultable]
+internal readonly struct NextGetAdjustSpacesOperation(
+    ImmutableArray<AbstractFormattingRule> formattingRules,
+    int index)
+{
+    private NextGetAdjustSpacesOperation NextOperation
+        => new(formattingRules, index + 1);
+
+    public AdjustSpacesOperation? Invoke(in SyntaxToken previousToken, in SyntaxToken currentToken)
+    {
+        // If we have no remaining handlers to execute, then we'll execute our last handler
+        if (index >= formattingRules.Length)
         {
-            // If we have no remaining handlers to execute, then we'll execute our last handler
-            if (index >= formattingRules.Length)
-            {
-                return null;
-            }
-            else
-            {
-                // Call the handler at the index, passing a continuation that will come back to here with index + 1
-                return formattingRules[index].GetAdjustSpacesOperation(in previousToken, in currentToken, NextOperation);
-            }
+            return null;
+        }
+        else
+        {
+            // Call the handler at the index, passing a continuation that will come back to here with index + 1
+            return formattingRules[index].GetAdjustSpacesOperation(in previousToken, in currentToken, NextOperation);
         }
     }
 }

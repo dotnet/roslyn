@@ -40,11 +40,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">빼기는 문자 클래스의 마지막 요소여야 합니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
-      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application">
-        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</source>
-        <target state="translated">{1}에서 이전에 액세스하지 않은 캡처된 변수 '{0}'에 액세스하려면 애플리케이션을 다시 시작해야 합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">'DebuggerDisplay' 특성을 추가합니다.</target>
@@ -113,11 +108,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Adding_0_requires_restarting_the_application">
         <source>Adding {0} requires restarting the application.</source>
         <target state="translated">{0}을(를) 추가하려면 애플리케이션을 다시 시작해야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">다른 범위에서 선언된 캡처된 변수 '{1}' 및 '{2}'에 액세스하는 {0}을 추가하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_with_the_Handles_clause_requires_restarting_the_application">
@@ -316,8 +306,8 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
-        <source>Awaited task returns '{0}'</source>
-        <target state="translated">대기된 작업에서 '{0}'이(가) 반환됨</target>
+        <source>Awaited task returns {0}</source>
+        <target state="translated">대기된 작업에서 {0}이(가) 반환됨</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
@@ -328,6 +318,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
         <source>Base classes contain inaccessible unimplemented members</source>
         <target state="translated">기본 클래스에 구현되지 않아 액세스할 수 없는 멤버가 포함되어 있습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Built_in_Copilot_analysis">
+        <source>Built-in Copilot analysis</source>
+        <target state="translated">기본 제공 Copilot 분석</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
@@ -362,27 +357,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
         <source>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</source>
-        <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
-        <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
-        <target state="translated">이전에 캡처되지 않은 '{0}' 변수를 캡처하려면 응용 프로그램을 다시 시작해야 합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
-        <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
-        <target state="translated">{1}에서 캡처된 변수 '{0}'에 대한 액세스를 중지하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+        <target state="translated">캡처되지 않은 '{0}' 기본 생성자 매개 변수를 캡처하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
         <source>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</source>
-        <target state="new">Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
-        <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
-        <target state="new">Ceasing to capture variable '{0}' requires restarting the application.</target>
+        <target state="translated">'{0}'/‘{1}’ 기본 생성자 매개 변수를 캡처를 중지하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
@@ -425,6 +405,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">비동기에서 동기로 {0}을(를) 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_0_might_not_have_any_effect_until_the_application_is_restarted">
+        <source>Changing '{0}' might not have any effect until the application is restarted.</source>
+        <target state="translated">애플리케이션을 다시 시작할 때까지는 '{0}'을(를) 변경해도 아무것도 적용되지 않을 수 있습니다.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_0_to_1_requires_restarting_the_application_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' requires restarting the application because it changes the shape of the state machine.</source>
         <target state="translated">'{0}'을(를) '{1}'(으)로 변경하려면 상태 시스템의 모양을 변경하므로 애플리케이션을 다시 시작해야 합니다.</target>
@@ -437,12 +422,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Changing_attribute_0_requires_restarting_the_application">
         <source>Changing attribute '{0}' requires restarting the application.</source>
-        <target state="new">Changing attribute '{0}' requires restarting the application.</target>
+        <target state="translated">'{0}' 특성을 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
         <source>Changing constraints of {0} requires restarting the application.</source>
         <target state="translated">{0} 제약 조건을 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_name_or_signature_of_0_that_contains_an_active_statement_requires_restarting_the_application">
+        <source>Changing attribute '{0}' requires restarting the application.</source>
+        <target state="translated">'{0}' 특성을 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_parameter_types_of_0_requires_restarting_the_application">
@@ -475,9 +465,9 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">{0}의 반환 형식을 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_type_of_0_requires_restarting_the_application">
-        <source>Changing the type of {0} requires restarting the application.</source>
-        <target state="translated">{0} 유형을 변경하려면 응용 프로그램을 다시 시작해야 합니다.</target>
+      <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</source>
+        <target state="translated">런타임에서 지원하지 않기 때문에 {0} 서명을 변경하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
@@ -497,7 +487,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Chosen_version_0">
         <source>Chosen version: '{0}'</source>
-        <target state="new">Chosen version: '{0}'</target>
+        <target state="translated">선택한 버전: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_snippet_for_0">
@@ -547,7 +537,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Convert_number">
         <source>Convert number</source>
-        <target state="new">Convert number</target>
+        <target state="translated">숫자 변환</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -597,7 +587,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Could_not_find_by_name_0">
         <source>Could not find by name: '{0}'</source>
-        <target state="new">Could not find by name: '{0}'</target>
+        <target state="translated">'{0}' 이름으로 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Could_not_find_implementation_of_symbol_0">
@@ -627,17 +617,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Debug_All_Tests">
         <source>Debug All Tests</source>
-        <target state="new">Debug All Tests</target>
+        <target state="translated">모든 테스트 디버그</target>
         <note />
       </trans-unit>
       <trans-unit id="Debug_Test">
         <source>Debug Test</source>
-        <target state="new">Debug Test</target>
+        <target state="translated">테스트 디버그</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompilation_log">
         <source>Decompilation log</source>
-        <target state="new">Decompilation log</target>
+        <target state="translated">디컴파일 로그</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiled">
@@ -665,14 +655,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">런타임에서 지원하지 않기 때문에 {0}을(를) 삭제하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
-        <source>Deleting captured variable '{0}' requires restarting the application.</source>
-        <target state="translated">캡처된 변수 '{0}'을(를) 삭제하려면 응용 프로그램을 다시 시작해야 합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Directives_from_0">
         <source>Directives from '{0}'</source>
         <target state="translated">'{0}'의 지시문</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Dismiss">
+        <source>Dismiss</source>
+        <target state="translated">해제</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -780,6 +770,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">해당 기호에서 '모든 참조 찾기'가 호출되지 않음</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_All_0">
+        <source>Fix All: {0}</source>
+        <target state="translated">모두 수정: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">오타 '{0}' 수정</target>
@@ -797,7 +792,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
-        <target state="new">Found '{0}' assemblies for '{1}':</target>
+        <target state="translated">'{1}'의 어셈블리를 '{0}'개 찾았습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_PDB_file_at_0">
@@ -822,17 +817,17 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Found_exact_match_0">
         <source>Found exact match: '{0}'</source>
-        <target state="new">Found exact match: '{0}'</target>
+        <target state="translated">정확하게 일치하는 항목을 찾았습니다. '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_higher_version_match_0">
         <source>Found higher version match: '{0}'</source>
-        <target state="new">Found higher version match: '{0}'</target>
+        <target state="translated">일치하는 상위 버전을 찾았습니다. '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_single_assembly_0">
         <source>Found single assembly: '{0}'</source>
-        <target state="new">Found single assembly: '{0}'</target>
+        <target state="translated">단일 어셈블리를 찾았습니다. '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_method_0">
@@ -1112,7 +1107,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
-        <target state="new">Load from: '{0}'</target>
+        <target state="translated">로드 위치: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
@@ -1163,6 +1158,16 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="MethodMustReturnStreamThatSupportsReadAndSeek">
         <source>{0} must return a stream that supports read and seek operations.</source>
         <target state="translated">{0}은(는) 읽기 및 검색 작업을 지원하는 스트림을 반환해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method_0_must_be_static_and_non_generic">
+        <source>Method '{0}' must be static and non-generic</source>
+        <target state="translated">메서드 '{0}'은(는) 정적이어야 하며 제네릭이 아니어야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method_0_must_have_a_single_parameter_of_type_1_and_return_2">
+        <source>Method '{0}' must have a single parameter of type '{1}' and return '{2}'</source>
+        <target state="translated">메서드 '{0}'은(는) '{1}' 형식의 단일 매개 변수가 있어야 하며 '{2}'을(를) 반환해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
@@ -1247,7 +1252,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Module_not_found">
         <source>Module not found!</source>
-        <target state="new">Module not found!</target>
+        <target state="translated">모듈을 찾을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -1278,6 +1283,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Moving_0_requires_restarting_the_application">
         <source>Moving {0} requires restarting the application.</source>
         <target state="translated">{0}을(를) 이동하려면 애플리케이션을 다시 시작해야 합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NET_Code_Actions">
+        <source>.NET Code Actions</source>
+        <target state="new">.NET Code Actions</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_expected">
@@ -1394,6 +1404,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <source>Quantifier {x,y} following nothing</source>
         <target state="translated">수량자 {x,y} 앞에 아무 것도 없습니다.</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
+      </trans-unit>
+      <trans-unit id="Query">
+        <source>Query</source>
+        <target state="translated">쿼리</target>
+        <note />
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group">
         <source>reference to undefined group</source>
@@ -2530,14 +2545,14 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">지원되지 않는 문서 제거</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_Imports_or_usings">
-        <source>Remove unnecessary Imports or usings</source>
-        <target state="translated">불필요한 Import 또는 Using 제거</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">불필요한 캐스트 제거</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_imports_or_usings">
+        <source>Remove unnecessary imports or usings</source>
+        <target state="translated">불필요한 가져오기 또는 사용 제거</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameters">
@@ -2553,11 +2568,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Remove_unused_variables">
         <source>Remove unused variables</source>
         <target state="translated">사용하지 않는 변수 제거</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">다른 범위에서 선언된 캡처된 변수 '{1}' 및 '{2}'에 액세스한 {0}을(를) 제거하려면 애플리케이션을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_requires_restarting_the_application">
@@ -2602,17 +2612,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Resolve_0">
         <source>Resolve: '{0}'</source>
-        <target state="new">Resolve: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Resolve_conflict_markers">
-        <source>Resolve conflict markers</source>
-        <target state="translated">충돌 표식 확인</target>
+        <target state="translated">확인: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Resolve_module_0_of_1">
         <source>Resolve module: '{0}' of '{1}'</source>
-        <target state="new">Resolve module: '{0}' of '{1}'</target>
+        <target state="translated">모듈 확인: '{0}'/'{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="RudeEdit">
@@ -2622,12 +2627,12 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Run_All_Tests">
         <source>Run All Tests</source>
-        <target state="new">Run All Tests</target>
+        <target state="translated">모든 테스트 실행</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_Test">
         <source>Run Test</source>
-        <target state="new">Run Test</target>
+        <target state="translated">테스트 실행</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
@@ -2638,6 +2643,26 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Selection_not_contained_inside_a_type">
         <source>Selection not contained inside a type.</source>
         <target state="translated">선택 항목이 형식 내에 포함되어 있지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticSearch">
+        <source>Semantic Search</source>
+        <target state="translated">의미 체계 검색</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_only_supported_on_net_core">
+        <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
+        <target state="translated">의미 체계 검색은 코드 분석이 최신 .NET에서 별도의 프로세스에서 실행되는 경우에만 지원됩니다(도구 &gt; 옵션 &gt; 텍스트 편집기 &gt; C# &gt; 고급 참조).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_query_failed_to_compile">
+        <source>Semantic search query failed to compile</source>
+        <target state="translated">의미 체계 검색 쿼리를 컴파일하지 못함</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_query_terminated_with_exception">
+        <source>Semantic search query terminated with exception</source>
+        <target state="translated">의미 체계 검색 쿼리가 예외와 함께 종료됨</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2700,6 +2725,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">어셈블리 경로 '{0}'에서 기호를 찾음</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols">
+        <source>Symbols</source>
+        <target state="translated">기호</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Syntax_error">
         <source>Syntax error</source>
         <target state="translated">구문 오류</target>
@@ -2728,6 +2758,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
         <target state="translated">분석기 어셈블리 '{0}'은(는) 컴파일러의 '{1}' 버전을 참조하며, 이 버전은 현재 실행 중인 버전 '{2}'보다 최신 버전입니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_query_does_not_specify_0_method_or_top_level_function">
+        <source>The query does not specify '{0}' method or top-level function</source>
+        <target state="translated">쿼리가 '{0}' 메서드 또는 최상위 함수를 지정하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2775,6 +2810,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">후행 쉼표는 허용되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="new">Type members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
         <target state="translated">형식:</target>
@@ -2783,6 +2823,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">소스 파일 '{0}' 또는 포함하는 프로젝트에 대해 빌드된 PDB를 읽을 수 없습니다. 디버그하는 동안 이 파일의 변경된 모든 내용은 해당 콘텐츠가 빌드된 소스와 일치할 때까지 적용되지 않습니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_load_type_0_1">
+        <source>Unable to load type '{0}': '{1}'</source>
+        <target state="translated">형식 '{0}'을(를) 로드할 수 없음: '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">
@@ -2863,6 +2908,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
         <target state="translated">호출 체인 래핑 해제</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_collection">
+        <source>Unwrap collection</source>
+        <target state="translated">컬렉션 래핑 해제</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -3002,7 +3052,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="WARN_Version_mismatch_Expected_0_Got_1">
         <source>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</source>
-        <target state="new">WARN: Version mismatch. Expected: '{0}', Got: '{1}'</target>
+        <target state="translated">WARN: 버전이 일치하지 않습니다. 예상: '{0}', 실제: '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -3035,6 +3085,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">호출 체인 래핑</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_collection">
+        <source>Wrap collection</source>
+        <target state="translated">컬렉션 래핑</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
         <target state="translated">모든 인수 래핑</target>
@@ -3063,6 +3118,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">긴 호출 체인 래핑</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_collection">
+        <source>Wrap long collection</source>
+        <target state="translated">긴 컬렉션 래핑</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">
@@ -3187,7 +3247,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="_0_items_in_cache">
         <source>'{0}' items in cache</source>
-        <target state="new">'{0}' items in cache</target>
+        <target state="translated">캐시의 '{0}'개 항목</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_literal_not_allowed">
@@ -3468,7 +3528,7 @@ If the "H" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
         <source>class with explicit or sequential layout</source>
-        <target state="new">class with explicit or sequential layout</target>
+        <target state="translated">명시적 또는 순차적 레이아웃이 있는 클래스</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
@@ -3808,11 +3868,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface">
         <source>Could not extract interface: The type does not contain any member that can be extracted to an interface.</source>
         <target state="translated">인터페이스를 추출할 수 없습니다. 형식에 인터페이스로 추출할 수 있는 멤버가 포함되어 있지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="can_t_not_construct_final_tree">
-        <source>can't not construct final tree</source>
-        <target state="translated">최종 트리를 생성할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">

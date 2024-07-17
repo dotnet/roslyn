@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification.Simplifiers
             Dim memberAccessExpression = TryCast(expression, MemberAccessExpressionSyntax)
             If memberAccessExpression?.Expression?.Kind() = SyntaxKind.MeExpression Then
                 If Not MemberAccessExpressionSimplifier.Instance.ShouldSimplifyThisMemberAccessExpression(
-                    memberAccessExpression, semanticModel, options, thisExpression:=Nothing, severity:=Nothing, cancellationToken) Then
+                    memberAccessExpression, semanticModel, options, thisExpression:=Nothing, notificationOption:=Nothing, cancellationToken) Then
                     Return False
                 End If
 

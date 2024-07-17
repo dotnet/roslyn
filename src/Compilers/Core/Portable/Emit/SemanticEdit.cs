@@ -5,6 +5,8 @@
 using System;
 using System.Collections.Immutable;
 using System.ComponentModel;
+using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -45,10 +47,10 @@ namespace Microsoft.CodeAnalysis.Emit
         public Func<SyntaxNode, SyntaxNode?>? SyntaxMap { get; }
 
         /// <summary>
-        /// True if the edit is an update of the active method and local values
-        /// should be preserved; false otherwise.
+        /// Associates a syntax node in the later compilation to an error that should be
+        /// reported at runtime by the IL generated for the node, if any.
         /// </summary>
-        public bool PreserveLocalVariables { get; }
+        public Func<SyntaxNode, RuntimeRudeEdit?>? RuntimeRudeEdit { get; }
 
         /// <summary>
         /// Instrumentation update to be applied to a method.
@@ -58,11 +60,22 @@ namespace Microsoft.CodeAnalysis.Emit
         public MethodInstrumentation Instrumentation { get; }
 
         // 4.6 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        [Obsolete("Use other overload")]
         [EditorBrowsable(EditorBrowsableState.Never)]
         public SemanticEdit(SemanticEditKind kind, ISymbol? oldSymbol, ISymbol? newSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap, bool preserveLocalVariables)
             : this(kind, oldSymbol, newSymbol, syntaxMap, preserveLocalVariables, MethodInstrumentation.Empty)
         {
         }
+
+        // 4.8 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+#pragma warning disable IDE0060 // Remove unused parameter
+        [Obsolete("Use other overload")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public SemanticEdit(SemanticEditKind kind, ISymbol? oldSymbol, ISymbol? newSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap, bool preserveLocalVariables, MethodInstrumentation instrumentation)
+            : this(kind, oldSymbol, newSymbol, syntaxMap, runtimeRudeEdit: null, MethodInstrumentation.Empty)
+        {
+        }
+#pragma warning restore
 
         /// <summary>
         /// Initializes an instance of <see cref="SemanticEdit"/>.
@@ -72,15 +85,12 @@ namespace Microsoft.CodeAnalysis.Emit
         /// The symbol from the earlier compilation, or null if the edit represents an addition.
         /// </param>
         /// <param name="newSymbol">
-        /// The symbol from the later compilation, or null if the edit represents a deletion.
+        /// The symbol from the later compilation, or the symbol of the containing type
+        /// from the later compilation if <paramref name="kind"/> is <see cref="SemanticEditKind.Delete"/>.
         /// </param>
         /// <param name="syntaxMap">
-        /// A map from syntax node in the later compilation to syntax node in the previous compilation, 
-        /// or null if <paramref name="preserveLocalVariables"/> is false and the map is not needed or 
-        /// the source of the current method is the same as the source of the previous method.
-        /// </param>
-        /// <param name="preserveLocalVariables">
-        /// True if the edit is an update of an active method and local values should be preserved; false otherwise.
+        /// A map from syntax node in the later compilation to syntax node in the previous compilation,
+        /// or null if the method state (locals, closures, etc.) doesn't need to be preserved.
         /// </param>
         /// <param name="instrumentation">
         /// Instrumentation update to be applied to a method.
@@ -91,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <exception cref="ArgumentOutOfRangeException">
         /// <paramref name="kind"/> is not a valid kind.
         /// </exception>
-        public SemanticEdit(SemanticEditKind kind, ISymbol? oldSymbol, ISymbol? newSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap = null, bool preserveLocalVariables = false, MethodInstrumentation instrumentation = default)
+        public SemanticEdit(SemanticEditKind kind, ISymbol? oldSymbol, ISymbol? newSymbol, Func<SyntaxNode, SyntaxNode?>? syntaxMap = null, Func<SyntaxNode, RuntimeRudeEdit?>? runtimeRudeEdit = null, MethodInstrumentation instrumentation = default)
         {
             if (kind <= SemanticEditKind.None || kind > SemanticEditKind.Replace)
             {
@@ -103,9 +113,49 @@ namespace Microsoft.CodeAnalysis.Emit
                 throw new ArgumentNullException(nameof(oldSymbol));
             }
 
-            if (newSymbol == null && kind != SemanticEditKind.Delete)
+            if (newSymbol == null)
             {
                 throw new ArgumentNullException(nameof(newSymbol));
+            }
+
+            // runtime rude edits should only be specified for methods with a syntax map:
+            if (runtimeRudeEdit != null && syntaxMap == null)
+            {
+                throw new ArgumentNullException(nameof(syntaxMap));
+            }
+
+            if (syntaxMap != null)
+            {
+                if (kind != SemanticEditKind.Update)
+                {
+                    throw new ArgumentException("Syntax map can only be specified for updates", nameof(syntaxMap));
+                }
+
+                if (oldSymbol is not IMethodSymbol)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.MethodSymbolExpected, nameof(oldSymbol));
+                }
+
+                if (newSymbol is not IMethodSymbol)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.MethodSymbolExpected, nameof(newSymbol));
+                }
+            }
+
+            // https://github.com/dotnet/roslyn/issues/73772: should we also do this check for partial properties?
+            if (oldSymbol is IMethodSymbol { PartialImplementationPart: not null })
+            {
+                throw new ArgumentException("Partial method implementation required", nameof(oldSymbol));
+            }
+
+            if (newSymbol is IMethodSymbol { PartialImplementationPart: not null })
+            {
+                throw new ArgumentException("Partial method implementation required", nameof(newSymbol));
+            }
+
+            if (kind == SemanticEditKind.Delete && oldSymbol is not (IMethodSymbol or IPropertySymbol or IEventSymbol))
+            {
+                throw new ArgumentException("Deleted symbol must be a method, property or an event", nameof(oldSymbol));
             }
 
             if (instrumentation.IsDefault)
@@ -142,10 +192,16 @@ namespace Microsoft.CodeAnalysis.Emit
             Kind = kind;
             OldSymbol = oldSymbol;
             NewSymbol = newSymbol;
-            PreserveLocalVariables = preserveLocalVariables;
             SyntaxMap = syntaxMap;
             Instrumentation = instrumentation;
+            RuntimeRudeEdit = runtimeRudeEdit;
         }
+
+        /// <summary>
+        /// True if <see cref="SyntaxMap"/> is not null.
+        /// </summary>
+        [MemberNotNullWhen(returnValue: true, nameof(SyntaxMap))]
+        public bool PreserveLocalVariables => SyntaxMap != null;
 
         // for testing non-public instrumentation kinds
         internal SemanticEdit(IMethodSymbol oldSymbol, IMethodSymbol newSymbol, ImmutableArray<InstrumentationKind> instrumentationKinds)
@@ -157,8 +213,8 @@ namespace Microsoft.CodeAnalysis.Emit
         }
 
         // for testing:
-        internal static SemanticEdit Create(SemanticEditKind kind, ISymbolInternal oldSymbol, ISymbolInternal newSymbol, Func<SyntaxNode, SyntaxNode>? syntaxMap = null, bool preserveLocalVariables = false)
-            => new SemanticEdit(kind, oldSymbol?.GetISymbol(), newSymbol?.GetISymbol(), syntaxMap, preserveLocalVariables, instrumentation: default);
+        internal static SemanticEdit Create(SemanticEditKind kind, ISymbolInternal oldSymbol, ISymbolInternal newSymbol, Func<SyntaxNode, SyntaxNode>? syntaxMap = null)
+            => new SemanticEdit(kind, oldSymbol?.GetISymbol(), newSymbol?.GetISymbol(), syntaxMap, instrumentation: default);
 
         public override int GetHashCode()
             => Hash.Combine(OldSymbol, Hash.Combine(NewSymbol, (int)Kind));

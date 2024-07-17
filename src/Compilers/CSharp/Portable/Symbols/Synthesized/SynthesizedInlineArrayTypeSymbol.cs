@@ -88,11 +88,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override FileIdentifier? AssociatedFileIdentifier => null;
 
-        internal override bool MangleName => false;
+        internal override bool MangleName => true;
 
         internal override bool HasDeclaredRequiredMembers => false;
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
+
+        internal override bool GetGuidString(out string? guidString)
+        {
+            guidString = null;
+            return false;
+        }
 
         internal override bool IsInterpolatedStringHandlerType => false;
 
@@ -144,9 +150,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<NamedTypeSymbol> GetDeclaredInterfaces(ConsList<TypeSymbol> basesBeingResolved) => ImmutableArray<NamedTypeSymbol>.Empty;
 
-        internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers() => GetMembersUnordered();
+        internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers() => throw ExceptionUtilities.Unreachable();
 
-        internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name) => GetMembers(name);
+        internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name) => throw ExceptionUtilities.Unreachable();
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit() => _fields;
 
@@ -167,6 +173,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
+
         internal override bool HasPossibleWellKnownCloneMethod() => false;
 
         internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved = null) => ImmutableArray<NamedTypeSymbol>.Empty;
@@ -182,7 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             AddSynthesizedAttribute(
                 ref attributes,
-                new SynthesizedAttributeData(
+                SynthesizedAttributeData.Create(
+                    moduleBuilder.Compilation,
                     _inlineArrayAttributeConstructor,
                     arguments: ImmutableArray.Create(new TypedConstant(compilation.GetSpecialType(SpecialType.System_Int32), TypedConstantKind.Primitive, _arrayLength)),
                     namedArguments: ImmutableArray<KeyValuePair<string, TypedConstant>>.Empty));
@@ -212,6 +225,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override bool HasNotNullConstraint => false;
 
             public override bool HasValueTypeConstraint => false;
+
+            public override bool AllowsRefLikeType => false; // Span types do not support ref like type parameters for now
 
             public override bool IsValueTypeFromConstraintTypes => false;
 

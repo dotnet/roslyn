@@ -7,30 +7,29 @@ using Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+
+internal sealed class VSTypeScriptNavigableItemWrapper(IVSTypeScriptNavigableItem navigableItem) : INavigableItem
 {
-    internal sealed class VSTypeScriptNavigableItemWrapper(IVSTypeScriptNavigableItem navigableItem) : INavigableItem
-    {
-        private readonly IVSTypeScriptNavigableItem _navigableItem = navigableItem;
-        private readonly INavigableItem.NavigableDocument _navigableDocument = INavigableItem.NavigableDocument.FromDocument(navigableItem.Document);
+    private readonly IVSTypeScriptNavigableItem _navigableItem = navigableItem;
+    private readonly INavigableItem.NavigableDocument _navigableDocument = INavigableItem.NavigableDocument.FromDocument(navigableItem.Document);
 
-        public Glyph Glyph => _navigableItem.Glyph;
+    public Glyph Glyph => _navigableItem.Glyph;
 
-        public ImmutableArray<TaggedText> DisplayTaggedParts => _navigableItem.DisplayTaggedParts;
+    public ImmutableArray<TaggedText> DisplayTaggedParts => _navigableItem.DisplayTaggedParts;
 
-        public bool DisplayFileLocation => _navigableItem.DisplayFileLocation;
+    public bool DisplayFileLocation => _navigableItem.DisplayFileLocation;
 
-        public bool IsImplicitlyDeclared => _navigableItem.IsImplicitlyDeclared;
+    public bool IsImplicitlyDeclared => _navigableItem.IsImplicitlyDeclared;
 
-        public INavigableItem.NavigableDocument Document => _navigableDocument;
+    public INavigableItem.NavigableDocument Document => _navigableDocument;
 
-        public TextSpan SourceSpan => _navigableItem.SourceSpan;
+    public TextSpan SourceSpan => _navigableItem.SourceSpan;
 
-        public bool IsStale => false;
+    public bool IsStale => false;
 
-        public ImmutableArray<INavigableItem> ChildItems
-            => _navigableItem.ChildItems.IsDefault
-                ? default
-                : _navigableItem.ChildItems.SelectAsArray(i => (INavigableItem)new VSTypeScriptNavigableItemWrapper(i));
-    }
+    public ImmutableArray<INavigableItem> ChildItems
+        => _navigableItem.ChildItems.IsDefault
+            ? default
+            : _navigableItem.ChildItems.SelectAsArray(i => (INavigableItem)new VSTypeScriptNavigableItemWrapper(i));
 }

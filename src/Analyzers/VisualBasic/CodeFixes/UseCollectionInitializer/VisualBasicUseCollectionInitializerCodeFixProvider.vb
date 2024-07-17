@@ -10,7 +10,6 @@ Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UseCollectionInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
@@ -26,6 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             MemberAccessExpressionSyntax,
             InvocationExpressionSyntax,
             ExpressionStatementSyntax,
+            LocalDeclarationStatementSyntax,
             VariableDeclaratorSyntax,
             VisualBasicCollectionInitializerAnalyzer)
 
@@ -38,15 +38,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             Return VisualBasicCollectionInitializerAnalyzer.Allocate()
         End Function
 
-        Protected Overrides Function GetNewStatementAsync(
+        Protected Overrides Function GetReplacementNodesAsync(
                 document As Document,
-                options As CodeActionOptionsProvider,
-                statement As StatementSyntax,
                 objectCreation As ObjectCreationExpressionSyntax,
                 useCollectionExpression As Boolean,
                 matches As ImmutableArray(Of Match(Of StatementSyntax)),
-                cancellationToken As CancellationToken) As Task(Of StatementSyntax)
+                cancellationToken As CancellationToken) As Task(Of (SyntaxNode, SyntaxNode))
             Contract.ThrowIfTrue(useCollectionExpression, "VB does not support collection expressions")
+
+            Dim statement = objectCreation.FirstAncestorOrSelf(Of StatementSyntax)
             Dim newStatement = statement.ReplaceNode(
                 objectCreation,
                 GetNewObjectCreation(objectCreation, matches))
@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
             Next
 
             Dim result = newStatement.WithLeadingTrivia(totalTrivia).WithAdditionalAnnotations(Formatter.Annotation)
-            Return Task.FromResult(result)
+            Return Task.FromResult((DirectCast(statement, SyntaxNode), DirectCast(result, SyntaxNode)))
         End Function
 
         Private Shared Function GetNewObjectCreation(

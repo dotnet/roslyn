@@ -4,10 +4,7 @@
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.ExternalAccess.EditorConfig
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Options.EditorConfig
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 Imports Roslyn.Test.Utilities
@@ -37,6 +34,13 @@ tab_width = 4
 end_of_line = crlf
 insert_final_newline = false
 
+#### .NET Code Actions ####
+
+# Type members
+dotnet_hide_advanced_members = false
+dotnet_member_insertion_location = with_other_members_of_the_same_kind
+dotnet_property_generation_behavior = prefer_throwing_properties
+
 #### .NET Coding Conventions ####
 
 # Organize usings
@@ -64,6 +68,7 @@ dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity
 dotnet_style_require_accessibility_modifiers = for_non_interface_members
 
 # Expression-level preferences
+dotnet_prefer_system_hash_code = true
 dotnet_style_coalesce_expression = true
 dotnet_style_collection_initializer = true
 dotnet_style_explicit_tuple_names = true
@@ -72,7 +77,7 @@ dotnet_style_null_propagation = true
 dotnet_style_object_initializer = true
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
 dotnet_style_prefer_auto_properties = true
-dotnet_style_prefer_collection_expression = true
+dotnet_style_prefer_collection_expression = when_types_loosely_match
 dotnet_style_prefer_compound_assignment = true
 dotnet_style_prefer_conditional_expression_over_assignment = true
 dotnet_style_prefer_conditional_expression_over_return = true
@@ -125,6 +130,7 @@ csharp_style_prefer_switch_expression = true
 csharp_style_conditional_delegate_call = true
 
 # Modifier preferences
+csharp_prefer_static_anonymous_function = true
 csharp_prefer_static_local_function = true
 csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
 csharp_style_prefer_readonly_struct = true
@@ -133,6 +139,7 @@ csharp_style_prefer_readonly_struct_member = true
 # Code-block preferences
 csharp_prefer_braces = true
 csharp_prefer_simple_using_statement = true
+csharp_prefer_system_threading_lock = true
 csharp_style_namespace_declarations = block_scoped
 csharp_style_prefer_method_group_conversion = true
 csharp_style_prefer_primary_constructors = true
@@ -253,8 +260,9 @@ dotnet_naming_style.begins_with_i.word_separator =
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
                 ' Use the default options
-                Dim editorService = workspace.GetService(Of EditorConfigGeneratorWrapper)()
-                Dim actualText = editorService.Generate(LanguageNames.CSharp)
+                Dim options = New OptionStore(workspace.GlobalOptions)
+                Dim groupedOptions = workspace.GetService(Of EditorConfigOptionsEnumerator).GetOptions(LanguageNames.CSharp)
+                Dim actualText = EditorConfigFileGenerator.Generate(groupedOptions, Options, LanguageNames.CSharp)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
         End Sub
@@ -281,6 +289,13 @@ tab_width = 4
 # New line preferences
 end_of_line = crlf
 insert_final_newline = false
+
+#### .NET Code Actions ####
+
+# Type members
+dotnet_hide_advanced_members = false
+dotnet_member_insertion_location = with_other_members_of_the_same_kind
+dotnet_property_generation_behavior = prefer_throwing_properties
 
 #### .NET Coding Conventions ####
 
@@ -309,6 +324,7 @@ dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity
 dotnet_style_require_accessibility_modifiers = for_non_interface_members
 
 # Expression-level preferences
+dotnet_prefer_system_hash_code = true
 dotnet_style_coalesce_expression = true
 dotnet_style_collection_initializer = true
 dotnet_style_explicit_tuple_names = false:error
@@ -317,7 +333,7 @@ dotnet_style_null_propagation = true
 dotnet_style_object_initializer = true
 dotnet_style_operator_placement_when_wrapping = beginning_of_line
 dotnet_style_prefer_auto_properties = true
-dotnet_style_prefer_collection_expression = true
+dotnet_style_prefer_collection_expression = when_types_loosely_match
 dotnet_style_prefer_compound_assignment = true
 dotnet_style_prefer_conditional_expression_over_assignment = true
 dotnet_style_prefer_conditional_expression_over_return = true
@@ -370,6 +386,7 @@ csharp_style_prefer_switch_expression = true
 csharp_style_conditional_delegate_call = true
 
 # Modifier preferences
+csharp_prefer_static_anonymous_function = true
 csharp_prefer_static_local_function = true
 csharp_preferred_modifier_order = public,private,protected,internal,file,static,extern,new,virtual,abstract,sealed,override,readonly,unsafe,required,volatile,async
 csharp_style_prefer_readonly_struct = true
@@ -378,6 +395,7 @@ csharp_style_prefer_readonly_struct_member = true
 # Code-block preferences
 csharp_prefer_braces = true
 csharp_prefer_simple_using_statement = true
+csharp_prefer_system_threading_lock = true
 csharp_style_namespace_declarations = block_scoped
 csharp_style_prefer_method_group_conversion = true
 csharp_style_prefer_primary_constructors = true
@@ -497,8 +515,7 @@ dotnet_naming_style.begins_with_i.required_suffix =
 dotnet_naming_style.begins_with_i.word_separator = 
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
-                Dim editorService = workspace.GetService(Of EditorConfigOptionsGenerator)()
-                Dim groupedOptions = editorService.GetDefaultOptions(LanguageNames.CSharp)
+                Dim groupedOptions = workspace.GetService(Of EditorConfigOptionsEnumerator).GetOptions(LanguageNames.CSharp)
                 Dim actualText = EditorConfigFileGenerator.Generate(groupedOptions, options, LanguageNames.CSharp)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using

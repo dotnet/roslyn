@@ -11,20 +11,19 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.LanguageService.TypeInferenceService;
 
-namespace Microsoft.CodeAnalysis.CSharp
+namespace Microsoft.CodeAnalysis.CSharp;
+
+[ExportLanguageService(typeof(ITypeInferenceService), LanguageNames.CSharp), Shared]
+internal partial class CSharpTypeInferenceService : AbstractTypeInferenceService
 {
-    [ExportLanguageService(typeof(ITypeInferenceService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpTypeInferenceService : AbstractTypeInferenceService
+    public static readonly CSharpTypeInferenceService Instance = new();
+
+    [ImportingConstructor]
+    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
+    public CSharpTypeInferenceService()
     {
-        public static readonly CSharpTypeInferenceService Instance = new();
-
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")]
-        public CSharpTypeInferenceService()
-        {
-        }
-
-        protected override AbstractTypeInferrer CreateTypeInferrer(SemanticModel semanticModel, CancellationToken cancellationToken)
-            => new TypeInferrer(semanticModel, cancellationToken);
     }
+
+    protected override AbstractTypeInferrer CreateTypeInferrer(SemanticModel semanticModel, CancellationToken cancellationToken)
+        => new TypeInferrer(semanticModel, cancellationToken);
 }

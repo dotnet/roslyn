@@ -45,7 +45,7 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
             return;
 
         var styleOption = context.GetCSharpAnalyzerOptions().ImplicitObjectCreationWhenTypeIsApparent;
-        if (!styleOption.Value)
+        if (!styleOption.Value || ShouldSkipAnalysis(context, styleOption.Notification))
         {
             // Bail immediately if the user has disabled this feature.
             return;
@@ -58,7 +58,8 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
         context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             objectCreation.Type.GetLocation(),
-            styleOption.Notification.Severity,
+            styleOption.Notification,
+            context.Options,
             ImmutableArray.Create(objectCreation.GetLocation()),
             properties: null));
     }
@@ -106,7 +107,7 @@ internal class CSharpUseImplicitObjectCreationDiagnosticAnalyzer : AbstractBuilt
                 ConversionOperatorDeclarationSyntax conversion => conversion.Type,
                 OperatorDeclarationSyntax op => op.ReturnType,
                 BasePropertyDeclarationSyntax property => property.Type,
-                AccessorDeclarationSyntax(SyntaxKind.GetAccessorDeclaration) { Parent: AccessorListSyntax { Parent: BasePropertyDeclarationSyntax baseProperty } } accessor => baseProperty.Type,
+                AccessorDeclarationSyntax(SyntaxKind.GetAccessorDeclaration) { Parent: AccessorListSyntax { Parent: BasePropertyDeclarationSyntax baseProperty } } => baseProperty.Type,
                 _ => null,
             };
         }

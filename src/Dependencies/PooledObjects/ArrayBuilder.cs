@@ -15,8 +15,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 {
     [DebuggerDisplay("Count = {Count,nq}")]
     [DebuggerTypeProxy(typeof(ArrayBuilder<>.DebuggerProxy))]
-    internal sealed partial class ArrayBuilder<T> : IReadOnlyCollection<T>, IReadOnlyList<T>
+    internal sealed partial class ArrayBuilder<T> : IReadOnlyCollection<T>, IReadOnlyList<T>, ICollection<T>
     {
+        /// <summary>
+        /// See <see cref="Free()"/> for an explanation of this constant value.
+        /// </summary>
+        public const int PooledArrayLengthLimitExclusive = 128;
+
         #region DebuggerProxy
 
         private sealed class DebuggerProxy
@@ -108,6 +113,19 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             }
         }
 
+        public int Capacity
+        {
+            get
+            {
+                return _builder.Capacity;
+            }
+
+            set
+            {
+                _builder.Capacity = value;
+            }
+        }
+
         public T this[int index]
         {
             get
@@ -120,6 +138,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 _builder[index] = value;
             }
         }
+
+        public bool IsReadOnly
+            => false;
+
+        public bool IsEmpty
+            => Count == 0;
 
         /// <summary>
         /// Write <paramref name="value"/> to slot <paramref name="index"/>. 
@@ -235,9 +259,38 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             _builder.RemoveAt(index);
         }
 
+        public void RemoveRange(int index, int length)
+        {
+            _builder.RemoveRange(index, length);
+        }
+
         public void RemoveLast()
         {
             _builder.RemoveAt(_builder.Count - 1);
+        }
+
+        public void RemoveAll(Predicate<T> match)
+        {
+            _builder.RemoveAll(match);
+        }
+
+        public void RemoveAll<TArg>(Func<T, TArg, bool> match, TArg arg)
+        {
+            var i = 0;
+            for (var j = 0; j < _builder.Count; j++)
+            {
+                if (!match(_builder[j], arg))
+                {
+                    if (i != j)
+                    {
+                        _builder[i] = _builder[j];
+                    }
+
+                    i++;
+                }
+            }
+
+            Clip(i);
         }
 
         public void ReverseContents()
@@ -256,7 +309,12 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         }
 
         public void Sort(Comparison<T> compare)
-            => Sort(Comparer<T>.Create(compare));
+        {
+            if (this.Count <= 1)
+                return;
+
+            Sort(Comparer<T>.Create(compare));
+        }
 
         public void Sort(int startIndex, IComparer<T> comparer)
         {
@@ -379,7 +437,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
                 // while the chance that we will need their size is diminishingly small.
                 // It makes sense to constrain the size to some "not too small" number. 
                 // Overall perf does not seem to be very sensitive to this number, so I picked 128 as a limit.
-                if (_builder.Capacity < 128)
+                if (_builder.Capacity < PooledArrayLengthLimitExclusive)
                 {
                     if (this.Count != 0)
                     {
@@ -575,6 +633,13 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         {
             _builder.AddRange(items, length);
         }
+
+#if COMPILERCORE
+        public void AddRange(OneOrMany<T> items)
+        {
+            items.AddRangeTo(this);
+        }
+#endif
 
         public void Clip(int limit)
         {

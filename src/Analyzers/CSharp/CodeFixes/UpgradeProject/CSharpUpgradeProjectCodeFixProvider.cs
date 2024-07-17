@@ -10,113 +10,107 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.UpgradeProject;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject
+namespace Microsoft.CodeAnalysis.CSharp.UpgradeProject;
+
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UpgradeProject), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpUpgradeProjectCodeFixProvider() : AbstractUpgradeProjectCodeFixProvider
 {
-    [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UpgradeProject), Shared]
-    internal class CSharpUpgradeProjectCodeFixProvider : AbstractUpgradeProjectCodeFixProvider
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } =
+    [
+        "CS8022",
+        "CS8023",
+        "CS8024",
+        "CS8025",
+        "CS8026",
+        "CS8059",
+        "CS8107",
+        "CS8302",
+        "CS8306",
+        "CS8314",
+        "CS8320",
+        "CS1738",
+        "CS8370",
+        "CS8371",
+        "CS8400",
+        "CS8401",
+        "CS8511",
+        "CS8627",
+        "CS8652",
+        "CS8773",
+        "CS8703",
+        "CS8706",
+        "CS8904",
+        "CS8912",
+        "CS8704",
+        "CS8957",
+        "CS8967",
+        "CS0171",
+        "CS0188",
+        "CS0843",
+        "CS8880",
+        "CS8881",
+        "CS8885",
+        "CS8936",
+        "CS9058",
+        "CS9194",
+        "CS9202",
+        "CS9260",
+    ];
+
+    public override string UpgradeThisProjectResource => CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0;
+    public override string UpgradeAllProjectsResource => CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0;
+
+    public override string SuggestedVersion(ImmutableArray<Diagnostic> diagnostics)
+        => RequiredVersion(diagnostics).ToDisplayString();
+
+    private static LanguageVersion RequiredVersion(ImmutableArray<Diagnostic> diagnostics)
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public CSharpUpgradeProjectCodeFixProvider()
+        LanguageVersion max = 0;
+        foreach (var diagnostic in diagnostics)
         {
-        }
-
-        public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(
-            new[]
+            if (diagnostic.Properties.TryGetValue(DiagnosticPropertyConstants.RequiredLanguageVersion, out var requiredVersion) &&
+                LanguageVersionFacts.TryParse(requiredVersion, out var required))
             {
-                "CS8022", // error CS8022: Feature is not available in C# 1. Please use language version X or greater.
-                "CS8023", // error CS8023: Feature is not available in C# 2. Please use language version X or greater.
-                "CS8024", // error CS8024: Feature is not available in C# 3. Please use language version X or greater.
-                "CS8025", // error CS8025: Feature is not available in C# 4. Please use language version X or greater.
-                "CS8026", // error CS8026: Feature is not available in C# 5. Please use language version X or greater.
-                "CS8059", // error CS8059: Feature is not available in C# 6. Please use language version X or greater.
-                "CS8107", // error CS8059: Feature is not available in C# 7.0. Please use language version X or greater.
-                "CS8302", // error CS8302: Feature is not available in C# 7.1. Please use language version X or greater.
-                "CS8306", // error CS8306: ... Please use language version 7.1 or greater to access a un-named element by its inferred name.
-                "CS8314", // error CS8314: An expression of type '{0}' cannot be handled by a pattern of type '{1}' in C# {2}. Please use language version {3} or greater.
-                "CS8320", // error CS8320: Feature is not available in C# 7.2. Please use language version X or greater.
-                "CS1738", // error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
-                "CS8370", // error CS8370: Feature is not available in C# 7.3. Please use language version X or greater.
-                "CS8371", // warning CS8371: Field-targeted attributes on auto-properties are not supported in language version 7.2. Please use language version 7.3 or greater.
-                "CS8400", // error CS8400: Feature is not available in C# 8.0. Please use language version X or greater.
-                "CS8401", // error CS8401: To use '@$' instead of '$@" for a verbatim interpolated string, please use language version 8.0 or greater.
-                "CS8511", // error CS8511: An expression of type 'T' cannot be handled by a pattern of type '<null>'. Please use language version 'preview' or greater to match an open type with a constant pattern.
-                "CS8627", // error CS8627: A nullable type parameter must be known to be a value type or non-nullable reference type unless language version '{0}' or greater is used. Consider changing the language version or adding a 'class', 'struct', or type constraint.
-                "CS8652", // error CS8652: The feature '' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                "CS8773", // error CS8773: Feature is not available in C# 9.0. Please use language version X or greater.
-                "CS8703", // error CS8703: The modifier '{0}' is not valid for this item in C# {1}. Please use language version '{2}' or greater.
-                "CS8706", // error CS8706: '{0}' cannot implement interface member '{1}' in type '{2}' because feature '{3}' is not available in C# {4}. Please use language version '{5}' or greater. 
-                "CS8904", // error CS8904: Invalid variance: The type parameter 'T1' must be contravariantly valid on 'I2<T1, T2>.M1(T1)' unless language version 'preview' or greater is used. 'T1' is covariant.
-                "CS8912", // error CS8912: Inheriting from a record with a sealed 'Object.ToString' is not supported in C# {0}. Please use language version '{1}' or greater.
-                "CS8704", // error CS8704: 'Test1' does not implement interface member 'I1.M1()'. 'Test1.M1()' cannot implicitly implement a non-public member in C# 9.0. Please use language version 'preview' or greater.
-                "CS8957", // error CS8957: Conditional expression is not valid in language version '8.0' because a common type was not found between 'int' and '<null>'. To use a target-typed conversion, upgrade to language version '9.0' or greater.
-                "CS8967", // error CS8967: Newlines inside a non-verbatim interpolated string are not supported in C# 8.0. Please use language version preview or greater.
-
-                "CS0171", // error CS0171: Field 'S.Test1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
-                "CS0188", // error CS0188: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
-                "CS0843", // error CS0843: Auto-implemented property 'S.Test1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
-                "CS8880", // warning CS8880: Auto-implemented property 'S.Test1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the property.
-                "CS8881", // warning CS8881: Field 'S.Test1' must be fully assigned before control is returned to the caller. Consider updating to language version 'preview' to auto-default the field.
-                "CS8885", // warning CS8885: The 'this' object cannot be used before all of its fields have been assigned. Consider updating to language version 'preview' to auto-default the unassigned fields.
-                "CS8936", // error CS8936: Feature '{0}' is not available in C# 10.0. Please use language version {1} or greater.
-                "CS9058", // error CS9058: Feature '{0}' is not available in C# 11.0. Please use language version {1} or greater.
-                "CS9194", // error CS9194: Argument {0} may not be passed with the 'ref' keyword in language version {1}. To pass 'ref' arguments to 'in' parameters, upgrade to language version {2} or greater.
-                "CS9202", // error CS9202: Feature '{0}' is not available in C# 12.0. Please use language version {1} or greater.
-            });
-
-        public override string UpgradeThisProjectResource => CSharpCodeFixesResources.Upgrade_this_project_to_csharp_language_version_0;
-        public override string UpgradeAllProjectsResource => CSharpCodeFixesResources.Upgrade_all_csharp_projects_to_language_version_0;
-
-        public override string SuggestedVersion(ImmutableArray<Diagnostic> diagnostics)
-            => RequiredVersion(diagnostics).ToDisplayString();
-
-        private static LanguageVersion RequiredVersion(ImmutableArray<Diagnostic> diagnostics)
-        {
-            LanguageVersion max = 0;
-            foreach (var diagnostic in diagnostics)
-            {
-                if (diagnostic.Properties.TryGetValue(DiagnosticPropertyConstants.RequiredLanguageVersion, out var requiredVersion) &&
-                    LanguageVersionFacts.TryParse(requiredVersion, out var required))
-                {
-                    max = max > required ? max : required;
-                }
-                else if (diagnostic.Id == "CS8652")
-                {
-                    max = LanguageVersion.Preview;
-                    break;
-                }
+                max = max > required ? max : required;
             }
-
-            return max;
-        }
-
-        public override Solution UpgradeProject(Project project, string newVersion)
-        {
-            if (IsUpgrade(project, newVersion))
+            else if (diagnostic.Id == "CS8652")
             {
-                Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(newVersion, out var parsedNewVersion));
-                var parseOptions = (CSharpParseOptions)project.ParseOptions!;
-
-                return project.Solution.WithProjectParseOptions(project.Id, parseOptions.WithLanguageVersion(parsedNewVersion));
-            }
-            else
-            {
-                // when fixing all projects in a solution, don't downgrade those with newer language versions
-                return project.Solution;
+                max = LanguageVersion.Preview;
+                break;
             }
         }
 
-        public override bool IsUpgrade(Project project, string newVersion)
+        return max;
+    }
+
+    public override Solution UpgradeProject(Project project, string newVersion)
+    {
+        if (IsUpgrade(project, newVersion))
         {
             Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(newVersion, out var parsedNewVersion));
-
             var parseOptions = (CSharpParseOptions)project.ParseOptions!;
-            var mappedVersion = parsedNewVersion.MapSpecifiedToEffectiveVersion();
 
-            // treat equivalent versions (one generic and one specific) to be a valid upgrade
-            return mappedVersion >= parseOptions.LanguageVersion &&
-                parseOptions.SpecifiedLanguageVersion.ToDisplayString() != newVersion &&
-                project.CanApplyParseOptionChange(parseOptions, parseOptions.WithLanguageVersion(parsedNewVersion));
+            return project.Solution.WithProjectParseOptions(project.Id, parseOptions.WithLanguageVersion(parsedNewVersion));
         }
+        else
+        {
+            // when fixing all projects in a solution, don't downgrade those with newer language versions
+            return project.Solution;
+        }
+    }
+
+    public override bool IsUpgrade(Project project, string newVersion)
+    {
+        Contract.ThrowIfFalse(LanguageVersionFacts.TryParse(newVersion, out var parsedNewVersion));
+
+        var parseOptions = (CSharpParseOptions)project.ParseOptions!;
+        var mappedVersion = parsedNewVersion.MapSpecifiedToEffectiveVersion();
+
+        // treat equivalent versions (one generic and one specific) to be a valid upgrade
+        return mappedVersion >= parseOptions.LanguageVersion &&
+            parseOptions.SpecifiedLanguageVersion.ToDisplayString() != newVersion &&
+            project.CanApplyParseOptionChange(parseOptions, parseOptions.WithLanguageVersion(parsedNewVersion));
     }
 }

@@ -231,6 +231,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static SingleNamespaceOrTypeDeclaration CreateSimpleProgram(GlobalStatementSyntax firstGlobalStatement, bool hasAwaitExpressions, bool isIterator, bool hasReturnWithExpression, ImmutableArray<Diagnostic> diagnostics)
         {
+            var nameLocation = new SourceLocation(firstGlobalStatement.GetFirstToken());
+
+            if (nameLocation.SourceTree is null)
+            {
+                nameLocation = new SourceLocation(firstGlobalStatement.GetFirstToken(includeSkipped: true));
+            }
+
+            Debug.Assert(nameLocation.SourceTree is not null);
+
             return new SingleTypeDeclaration(
                 kind: DeclarationKind.Class,
                 name: WellKnownMemberNames.TopLevelStatementsEntryPointTypeName,
@@ -241,7 +250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                            (hasReturnWithExpression ? SingleTypeDeclaration.TypeDeclarationFlags.HasReturnWithExpression : SingleTypeDeclaration.TypeDeclarationFlags.None) |
                            SingleTypeDeclaration.TypeDeclarationFlags.IsSimpleProgram,
                 syntaxReference: firstGlobalStatement.SyntaxTree.GetReference(firstGlobalStatement.Parent),
-                nameLocation: new SourceLocation(firstGlobalStatement.GetFirstToken()),
+                nameLocation: nameLocation,
                 memberNames: s_emptyMemberNames,
                 children: ImmutableArray<SingleTypeDeclaration>.Empty,
                 diagnostics: diagnostics,

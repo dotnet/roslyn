@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -16,42 +15,41 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.SimplifyThisOrMe
+namespace Microsoft.CodeAnalysis.SimplifyThisOrMe;
+
+internal abstract partial class AbstractSimplifyThisOrMeCodeFixProvider<TMemberAccessExpressionSyntax>
+    : SyntaxEditorBasedCodeFixProvider
+    where TMemberAccessExpressionSyntax : SyntaxNode
 {
-    internal abstract partial class AbstractSimplifyThisOrMeCodeFixProvider<TMemberAccessExpressionSyntax>
-        : SyntaxEditorBasedCodeFixProvider
-        where TMemberAccessExpressionSyntax : SyntaxNode
+    protected abstract string GetTitle();
+    protected abstract SyntaxNode Rewrite(SyntaxNode root, ISet<TMemberAccessExpressionSyntax> memberAccessNodes);
+
+    public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
+        [IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId];
+
+    public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        protected abstract string GetTitle();
-        protected abstract SyntaxNode Rewrite(SyntaxNode root, ISet<TMemberAccessExpressionSyntax> memberAccessNodes);
+        context.RegisterCodeFix(
+            CodeAction.Create(
+                GetTitle(),
+                GetDocumentUpdater(context),
+                IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId),
+            context.Diagnostics);
 
-        public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
-            ImmutableArray.Create(IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId);
+        return Task.CompletedTask;
+    }
 
-        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
-        {
-            context.RegisterCodeFix(
-                CodeAction.Create(
-                    GetTitle(),
-                    GetDocumentUpdater(context),
-                    IDEDiagnosticIds.RemoveThisOrMeQualificationDiagnosticId),
-                context.Diagnostics);
+    protected sealed override async Task FixAllAsync(
+        Document document, ImmutableArray<Diagnostic> diagnostics,
+        SyntaxEditor editor, CancellationToken cancellationToken)
+    {
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-            return Task.CompletedTask;
-        }
+        var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+        var memberAccessNodes = diagnostics.Select(
+            d => (TMemberAccessExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken)).ToSet();
 
-        protected sealed override async Task FixAllAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
-            SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
-        {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
-            var memberAccessNodes = diagnostics.Select(
-                d => (TMemberAccessExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken)).ToSet();
-
-            var newRoot = Rewrite(root, memberAccessNodes);
-            editor.ReplaceNode(root, newRoot);
-        }
+        var newRoot = Rewrite(root, memberAccessNodes);
+        editor.ReplaceNode(root, newRoot);
     }
 }

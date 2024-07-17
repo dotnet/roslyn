@@ -3,105 +3,129 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
+using System.Diagnostics.CodeAnalysis;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.DataProvider;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings;
+
+internal partial class SettingsAggregator : ISettingsAggregator
 {
-    internal partial class SettingsAggregator : ISettingsAggregator
+    private readonly Workspace _workspace;
+    private readonly ISettingsProviderFactory<AnalyzerSetting> _analyzerProvider;
+    private readonly AsyncBatchingWorkQueue _workQueue;
+
+    private ISettingsProviderFactory<Setting> _whitespaceProvider;
+    private ISettingsProviderFactory<NamingStyleSetting> _namingStyleProvider;
+    private ISettingsProviderFactory<CodeStyleSetting> _codeStyleProvider;
+
+    public SettingsAggregator(
+        Workspace workspace,
+        IThreadingContext threadingContext,
+        IAsynchronousOperationListener listener)
     {
-        private readonly Workspace _workspace;
-        private readonly ISettingsProviderFactory<AnalyzerSetting> _analyzerProvider;
-        private ISettingsProviderFactory<Setting> _whitespaceProvider;
-        private ISettingsProviderFactory<NamingStyleSetting> _namingStyleProvider;
-        private ISettingsProviderFactory<CodeStyleSetting> _codeStyleProvider;
+        _workspace = workspace;
+        _workspace.WorkspaceChanged += UpdateProviders;
 
-        public SettingsAggregator(Workspace workspace)
+        var currentSolution = _workspace.CurrentSolution.SolutionState;
+        UpdateProviders(currentSolution);
+
+        // TODO(cyrusn): Why do we not update this as well inside UpdateProviders when we hear about a workspace event?
+        _analyzerProvider = GetOptionsProviderFactory<AnalyzerSetting>(currentSolution);
+
+        // Batch these up so that we don't do a lot of expensive work when hearing a flurry of workspace events.
+        _workQueue = new AsyncBatchingWorkQueue(
+            TimeSpan.FromSeconds(1),
+            UpdateProvidersAsync,
+            listener,
+            threadingContext.DisposalToken);
+    }
+
+    private void UpdateProviders(object? sender, WorkspaceChangeEventArgs e)
+    {
+        switch (e.Kind)
         {
-            _workspace = workspace;
-            _workspace.WorkspaceChanged += UpdateProviders;
-            _whitespaceProvider = GetOptionsProviderFactory<Setting>(_workspace);
-            _codeStyleProvider = GetOptionsProviderFactory<CodeStyleSetting>(_workspace);
-            _namingStyleProvider = GetOptionsProviderFactory<NamingStyleSetting>(_workspace);
-            _analyzerProvider = GetOptionsProviderFactory<AnalyzerSetting>(_workspace);
+            case WorkspaceChangeKind.SolutionChanged:
+            case WorkspaceChangeKind.SolutionAdded:
+            case WorkspaceChangeKind.SolutionRemoved:
+            case WorkspaceChangeKind.SolutionCleared:
+            case WorkspaceChangeKind.SolutionReloaded:
+            case WorkspaceChangeKind.ProjectAdded:
+            case WorkspaceChangeKind.ProjectRemoved:
+            case WorkspaceChangeKind.ProjectChanged:
+                _workQueue.AddWork();
+                break;
+        }
+    }
+
+    public ISettingsProvider<TData>? GetSettingsProvider<TData>(string fileName)
+    {
+        if (typeof(TData) == typeof(AnalyzerSetting))
+        {
+            return (ISettingsProvider<TData>)_analyzerProvider.GetForFile(fileName);
         }
 
-        private void UpdateProviders(object? sender, WorkspaceChangeEventArgs e)
+        if (typeof(TData) == typeof(Setting))
         {
-            switch (e.Kind)
-            {
-                case WorkspaceChangeKind.SolutionChanged:
-                case WorkspaceChangeKind.SolutionAdded:
-                case WorkspaceChangeKind.SolutionRemoved:
-                case WorkspaceChangeKind.SolutionCleared:
-                case WorkspaceChangeKind.SolutionReloaded:
-                case WorkspaceChangeKind.ProjectAdded:
-                case WorkspaceChangeKind.ProjectRemoved:
-                case WorkspaceChangeKind.ProjectChanged:
-                    _whitespaceProvider = GetOptionsProviderFactory<Setting>(_workspace);
-                    _codeStyleProvider = GetOptionsProviderFactory<CodeStyleSetting>(_workspace);
-                    _namingStyleProvider = GetOptionsProviderFactory<NamingStyleSetting>(_workspace);
-                    break;
-                default:
-                    break;
-            }
+            return (ISettingsProvider<TData>)_whitespaceProvider.GetForFile(fileName);
         }
 
-        public ISettingsProvider<TData>? GetSettingsProvider<TData>(string fileName)
+        if (typeof(TData) == typeof(NamingStyleSetting))
         {
-            if (typeof(TData) == typeof(AnalyzerSetting))
-            {
-                return (ISettingsProvider<TData>)_analyzerProvider.GetForFile(fileName);
-            }
-
-            if (typeof(TData) == typeof(Setting))
-            {
-                return (ISettingsProvider<TData>)_whitespaceProvider.GetForFile(fileName);
-            }
-
-            if (typeof(TData) == typeof(NamingStyleSetting))
-            {
-                return (ISettingsProvider<TData>)_namingStyleProvider.GetForFile(fileName);
-            }
-
-            if (typeof(TData) == typeof(CodeStyleSetting))
-            {
-                return (ISettingsProvider<TData>)_codeStyleProvider.GetForFile(fileName);
-            }
-
-            return null;
+            return (ISettingsProvider<TData>)_namingStyleProvider.GetForFile(fileName);
         }
 
-        private static ISettingsProviderFactory<T> GetOptionsProviderFactory<T>(Workspace workspace)
+        if (typeof(TData) == typeof(CodeStyleSetting))
         {
-            var providers = new List<ISettingsProviderFactory<T>>();
-            var commonProvider = workspace.Services.GetRequiredService<IWorkspaceSettingsProviderFactory<T>>();
-            providers.Add(commonProvider);
-            var solution = workspace.CurrentSolution;
-            var supportsCSharp = solution.Projects.Any(p => p.Language.Equals(LanguageNames.CSharp, StringComparison.OrdinalIgnoreCase));
-            var supportsVisualBasic = solution.Projects.Any(p => p.Language.Equals(LanguageNames.VisualBasic, StringComparison.OrdinalIgnoreCase));
-            if (supportsCSharp)
-            {
-                TryAddProviderForLanguage(LanguageNames.CSharp, workspace, providers);
-            }
+            return (ISettingsProvider<TData>)_codeStyleProvider.GetForFile(fileName);
+        }
 
-            if (supportsVisualBasic)
-            {
-                TryAddProviderForLanguage(LanguageNames.VisualBasic, workspace, providers);
-            }
+        return null;
+    }
 
-            return new CombinedOptionsProviderFactory<T>(providers.ToImmutableArray());
+    private ValueTask UpdateProvidersAsync(CancellationToken cancellationToken)
+    {
+        UpdateProviders(_workspace.CurrentSolution.SolutionState);
+        return ValueTaskFactory.CompletedTask;
+    }
 
-            static void TryAddProviderForLanguage(string language, Workspace workspace, List<ISettingsProviderFactory<T>> providers)
+    [MemberNotNull(nameof(_whitespaceProvider))]
+    [MemberNotNull(nameof(_codeStyleProvider))]
+    [MemberNotNull(nameof(_namingStyleProvider))]
+    private void UpdateProviders(SolutionState solution)
+    {
+        _whitespaceProvider = GetOptionsProviderFactory<Setting>(solution);
+        _codeStyleProvider = GetOptionsProviderFactory<CodeStyleSetting>(solution);
+        _namingStyleProvider = GetOptionsProviderFactory<NamingStyleSetting>(solution);
+    }
+
+    private static ISettingsProviderFactory<T> GetOptionsProviderFactory<T>(SolutionState solution)
+    {
+        using var providers = TemporaryArray<ISettingsProviderFactory<T>>.Empty;
+
+        var commonProvider = solution.Services.GetRequiredService<IWorkspaceSettingsProviderFactory<T>>();
+        providers.Add(commonProvider);
+
+        var projectCountByLanguage = solution.ProjectCountByLanguage;
+
+        TryAddProviderForLanguage(LanguageNames.CSharp);
+        TryAddProviderForLanguage(LanguageNames.VisualBasic);
+
+        return new CombinedOptionsProviderFactory<T>(providers.ToImmutableAndClear());
+
+        void TryAddProviderForLanguage(string language)
+        {
+            if (projectCountByLanguage.ContainsKey(language))
             {
-                var provider = workspace.Services.GetLanguageServices(language).GetService<ILanguageSettingsProviderFactory<T>>();
-                if (provider is not null)
-                {
+                var provider = solution.Services.GetLanguageServices(language).GetService<ILanguageSettingsProviderFactory<T>>();
+                if (provider != null)
                     providers.Add(provider);
-                }
             }
         }
     }

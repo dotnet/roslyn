@@ -1177,7 +1177,7 @@ End Module
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
 
-            commonSymbolInfo = DirectCast(semanticModel, SemanticModel).GetSymbolInfo(DirectCast(node11, SyntaxNode))
+            commonSymbolInfo = semanticModel.GetSymbolInfo(DirectCast(node11, SyntaxNode))
 
             Assert.Same(symbolInfo.Symbol, commonSymbolInfo.Symbol)
             Assert.Equal(CandidateReason.None, commonSymbolInfo.CandidateReason)
@@ -1429,7 +1429,7 @@ End Module
                 Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
                 Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
 
-                Dim commonSymbolInfo As SymbolInfo = DirectCast(semanticModel, SemanticModel).GetSymbolInfo(ordering)
+                Dim commonSymbolInfo As SymbolInfo = semanticModel.GetSymbolInfo(ordering)
                 Assert.Null(commonSymbolInfo.Symbol)
                 Assert.Equal(CandidateReason.None, commonSymbolInfo.CandidateReason)
                 Assert.Equal(0, commonSymbolInfo.CandidateSymbols.Length)
@@ -1480,7 +1480,7 @@ End Module
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
 
-            Dim commonSymbolInfo As SymbolInfo = DirectCast(semanticModel, SemanticModel).GetSymbolInfo(node1)
+            Dim commonSymbolInfo As SymbolInfo = semanticModel.GetSymbolInfo(node1)
             Assert.Same(symbolInfo.Symbol, commonSymbolInfo.Symbol)
             Assert.Equal(symbolInfo.CandidateReason, commonSymbolInfo.CandidateReason)
             Assert.Equal(0, commonSymbolInfo.CandidateSymbols.Length)
@@ -1492,7 +1492,7 @@ End Module
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
 
-            commonSymbolInfo = DirectCast(semanticModel, SemanticModel).GetSymbolInfo(node2)
+            commonSymbolInfo = semanticModel.GetSymbolInfo(node2)
             Assert.Same(symbolInfo.Symbol, commonSymbolInfo.Symbol)
             Assert.Equal(symbolInfo.CandidateReason, commonSymbolInfo.CandidateReason)
             Assert.Equal(0, commonSymbolInfo.CandidateSymbols.Length)
@@ -1707,7 +1707,7 @@ End Module
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
 
-            Dim commonSymbolInfo As SymbolInfo = DirectCast(semanticModel, SemanticModel).GetSymbolInfo(node6)
+            Dim commonSymbolInfo As SymbolInfo = semanticModel.GetSymbolInfo(node6)
             Assert.Null(commonSymbolInfo.Symbol)
             Assert.Equal(CandidateReason.None, commonSymbolInfo.CandidateReason)
             Assert.Equal(0, commonSymbolInfo.CandidateSymbols.Length)
@@ -1726,7 +1726,7 @@ End Module
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason)
             Assert.Equal(0, symbolInfo.CandidateSymbols.Length)
 
-            commonSymbolInfo = DirectCast(semanticModel, SemanticModel).GetSymbolInfo(node8)
+            commonSymbolInfo = semanticModel.GetSymbolInfo(node8)
             Assert.Same(symbolInfo.Symbol, commonSymbolInfo.Symbol)
             Assert.Equal(symbolInfo.CandidateReason, commonSymbolInfo.CandidateReason)
             Assert.Equal(0, commonSymbolInfo.CandidateSymbols.Length)
@@ -3385,7 +3385,7 @@ End Module
             Assert.Same(symbolInfo1.Symbol, symbolInfo2.Symbol)
             Assert.Equal(0, symbolInfo2.CandidateSymbols.Length)
 
-            Dim commonSymbolInfo = DirectCast(semanticModel, SemanticModel).GetSymbolInfo(DirectCast(node9, SyntaxNode))
+            Dim commonSymbolInfo = semanticModel.GetSymbolInfo(DirectCast(node9, SyntaxNode))
             Assert.Equal(symbolInfo1.CandidateReason, commonSymbolInfo.CandidateReason)
             Assert.Same(symbolInfo1.Symbol, commonSymbolInfo.Symbol)
             Assert.Equal(0, commonSymbolInfo.CandidateSymbols.Length)
@@ -3917,7 +3917,7 @@ End Module
             Dim semanticModel = compilation.GetSemanticModel(tree)
             Dim node = tree.GetCompilationUnitRoot().FindToken(tree.GetCompilationUnitRoot().ToString().IndexOf("By", StringComparison.Ordinal)).Parent.Parent.DescendantNodes().OfType(Of IdentifierNameSyntax)().First()
 
-            Dim containingSymbol = DirectCast(semanticModel, SemanticModel).GetEnclosingSymbol(node.SpanStart)
+            Dim containingSymbol = semanticModel.GetEnclosingSymbol(node.SpanStart)
 
             Assert.Equal("Function (z As System.Int32) As <anonymous type: Key z As System.Int32, Key Group As ?>", DirectCast(containingSymbol, Symbol).ToTestDisplayString())
         End Sub

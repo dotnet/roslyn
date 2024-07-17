@@ -6,24 +6,35 @@ using System;
 using System.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis.Host.Mef;
+using System.Collections.Immutable;
+using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+[ExportWorkspaceServiceFactory(typeof(IAnalyzerAssemblyLoaderProvider)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory([ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers) : IWorkspaceServiceFactory
 {
-    [Shared]
-    [ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider))]
-    internal sealed class DefaultAnalyzerAssemblyLoaderService : IAnalyzerAssemblyLoaderProvider
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new DefaultAnalyzerAssemblyLoaderProvider(workspaceServices.Workspace.Kind ?? "default", [.. externalResolvers]);
+
+    private sealed class DefaultAnalyzerAssemblyLoaderProvider(string workspaceKind, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers) : IAnalyzerAssemblyLoaderProvider
     {
-        private readonly IAnalyzerAssemblyLoader _loader = new DefaultAnalyzerAssemblyLoader();
+        private readonly DefaultAnalyzerAssemblyLoader _loader = new(externalResolvers);
+
+        /// <summary>
+        /// We include the <see cref="WorkspaceKind"/> of the workspace in the path we produce.  That way we don't
+        /// collide in the common case of a normal host workspace and OOP workspace running together.  This avoids an
+        /// annoying exception as each will try to clean up this directory, throwing exceptions because the other is
+        /// locking it.  The exception is fine, since the cleanup is just hygienic and isn't intended to be needed for
+        /// correctness.  But it is annoying and does cause noise in our perf test harness.
+        /// </summary>
         private readonly IAnalyzerAssemblyLoader _shadowCopyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
-            Path.Combine(Path.GetTempPath(), "CodeAnalysis", "WorkspacesAnalyzerShadowCopies"));
+            Path.Combine(Path.GetTempPath(), "CodeAnalysis", "WorkspacesAnalyzerShadowCopies", workspaceKind),
+            externalResolvers: externalResolvers);
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public DefaultAnalyzerAssemblyLoaderService()
-        {
-        }
-
-        public IAnalyzerAssemblyLoader GetLoader(in AnalyzerAssemblyLoaderOptions options)
-            => options.ShadowCopy ? _shadowCopyLoader : _loader;
+        public IAnalyzerAssemblyLoader GetLoader(bool shadowCopy)
+            => shadowCopy ? _shadowCopyLoader : _loader;
     }
 }

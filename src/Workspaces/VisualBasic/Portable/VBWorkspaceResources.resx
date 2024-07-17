@@ -243,15 +243,6 @@
   <data name="Introduces_a_type_conversion_operation_that_does_not_throw_an_exception_If_an_attempted_conversion_fails_TryCast_returns_Nothing_which_your_program_can_test_for" xml:space="preserve">
     <value>Introduces a type conversion operation that does not throw an exception. If an attempted conversion fails, TryCast returns Nothing, which your program can test for.</value>
   </data>
-  <data name="Node_does_not_descend_from_root" xml:space="preserve">
-    <value>Node does not descend from root.</value>
-  </data>
-  <data name="Node_not_in_parent_s_child_list" xml:space="preserve">
-    <value>Node not in parent's child list</value>
-  </data>
-  <data name="Trivia_is_not_associated_with_token" xml:space="preserve">
-    <value>Trivia is not associated with token</value>
-  </data>
   <data name="typeOrMember" xml:space="preserve">
     <value>&lt;typeOrMember&gt;</value>
   </data>

@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal readonly struct RunRequest
     {
-        public Guid RequestId { get; }
+        public string RequestId { get; }
         public string Language { get; }
         public string? WorkingDirectory { get; }
         public string? TempDirectory { get; }
         public string? LibDirectory { get; }
         public string[] Arguments { get; }
 
-        public RunRequest(Guid requestId, string language, string? workingDirectory, string? tempDirectory, string? libDirectory, string[] arguments)
+        public RunRequest(string requestId, string language, string? workingDirectory, string? tempDirectory, string? libDirectory, string[] arguments)
         {
             RequestId = requestId;
             Language = language;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
     internal sealed class CompilerServerHost : ICompilerServerHost
     {
-        public IAnalyzerAssemblyLoader AnalyzerAssemblyLoader { get; }
+        public IAnalyzerAssemblyLoaderInternal AnalyzerAssemblyLoader { get; }
 
         public static Func<string, MetadataReferenceProperties, PortableExecutableReference> SharedAssemblyReferenceProvider { get; } = (path, properties) => new CachingMetadataReference(path, properties);
 
@@ -137,17 +137,16 @@ Run Compilation for {request.RequestId}
                 return new RejectedBuildResponse(message);
             }
 
-#if NETFRAMEWORK
-            if (!AnalyzerConsistencyChecker.Check(request.WorkingDirectory, compiler.Arguments.AnalyzerReferences, AnalyzerAssemblyLoader, Logger, out List<string?> errorMessages))
+            if (!AnalyzerConsistencyChecker.Check(request.WorkingDirectory, compiler.Arguments.AnalyzerReferences, AnalyzerAssemblyLoader, Logger, out List<string>? errorMessages))
             {
                 Logger.Log($"Rejected: {request.RequestId}: for analyzer load issues {string.Join(";", errorMessages)}");
                 return new AnalyzerInconsistencyBuildResponse(new ReadOnlyCollection<string>(errorMessages));
             }
-#endif
 
             Logger.Log($"Begin {request.RequestId} {request.Language} compiler run");
             try
             {
+                CodeAnalysisEventSource.Log.StartServerCompilation(request.RequestId);
                 bool utf8output = compiler.Arguments.Utf8Output;
                 TextWriter output = new StringWriter(CultureInfo.InvariantCulture);
                 int returnCode = compiler.Run(output, cancellationToken);
@@ -162,6 +161,10 @@ Output:
             {
                 Logger.LogException(ex, $"Running compilation for {request.RequestId}");
                 throw;
+            }
+            finally
+            {
+                CodeAnalysisEventSource.Log.StopServerCompilation(request.RequestId);
             }
         }
     }

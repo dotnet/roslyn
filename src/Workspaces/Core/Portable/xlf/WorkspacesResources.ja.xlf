@@ -17,6 +17,11 @@
         <target state="translated">指定した構成ファイルの読み取り中にエラーが発生しました: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Applying_changes_to_0">
+        <source>Applying changes to {0}</source>
+        <target state="translated">{0} への変更を適用しています</target>
+        <note />
+      </trans-unit>
       <trans-unit id="CSharp_files">
         <source>C# files</source>
         <target state="translated">C# ファイル</target>
@@ -37,7 +42,7 @@
         <target state="translated">ドキュメント '{0}' の変更はサポートされていません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="CodeAction_{0}_did_not_produce_a_changed_solution">
+      <trans-unit id="CodeAction_0_did_not_produce_a_changed_solution">
         <source>CodeAction '{0}' did not produce a changed solution</source>
         <target state="translated">CodeAction '{0}' は変更されたソリューションを生成しませんでした</target>
         <note>"CodeAction" is a specific type, and {0} represents the title shown by the action.</note>
@@ -127,6 +132,11 @@
         <target state="translated">'{0}' を '{1}' に名前変更</target>
         <note />
       </trans-unit>
+      <trans-unit id="Running_code_cleanup_on_fixed_documents">
+        <source>Running code cleanup on fixed documents</source>
+        <target state="translated">固定ドキュメントでコード クリーンアップを実行しています</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Solution_does_not_contain_specified_reference">
         <source>Solution does not contain specified reference</source>
         <target state="translated">指定された参照がソリューションに含まれていません</target>
@@ -137,19 +147,9 @@
         <target state="translated">シンボル "{0}" は、ソースからではありません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Documentation_comment_id_must_start_with_E_F_M_N_P_or_T">
-        <source>Documentation comment id must start with E, F, M, N, P or T</source>
-        <target state="translated">ドキュメント コメントの ID は、E、F、M、N、P、または T で始まらなければなりません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Cycle_detected_in_extensions">
         <source>Cycle detected in extensions</source>
         <target state="translated">拡張機能で循環が検出されました</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_is_of_the_wrong_type">
-        <source>Node is of the wrong type.</source>
-        <target state="translated">ノードの種類が正しくありません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Duplicate_source_file_0_in_project_1">
@@ -302,11 +302,6 @@
         <target state="translated">プロジェクトは、既に対象のプロジェクトを参照します。</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_solution_already_contains_the_specified_document">
-        <source>The solution already contains the specified document.</source>
-        <target state="translated">ソリューションには、指定されたドキュメントが既に含まれています。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Temporary_storage_cannot_be_written_more_than_once">
         <source>Temporary storage cannot be written more than once.</source>
         <target state="translated">一時的な記憶域は、2 回以上書き込みできません。</target>
@@ -347,21 +342,6 @@
         <target state="translated">アナライザーの参照を解決できません: '{0}'。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_Project">
-        <source>Invalid project block, expected "=" after Project.</source>
-        <target state="translated">プロジェクト ブロックが正しくありません。プロジェクトの後に "=" が必要です。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_project_name">
-        <source>Invalid project block, expected "," after project name.</source>
-        <target state="translated">プロジェクト ブロックが正しくありません。プロジェクト名の後に "," が必要です。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Invalid_project_block_expected_after_project_path">
-        <source>Invalid project block, expected "," after project path.</source>
-        <target state="translated">プロジェクト ブロックが正しくありません。プロジェクト パスの後に "," が必要です。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Expected_0">
         <source>Expected {0}.</source>
         <target state="translated">{0} が必要です。</target>
@@ -370,21 +350,6 @@
       <trans-unit id="_0_must_be_a_non_null_and_non_empty_string">
         <source>"{0}" must be a non-null and non-empty string.</source>
         <target state="translated">"{0}" は、Null 以外の空でない文字列にする必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_header_colon_0">
-        <source>Expected header: "{0}".</source>
-        <target state="translated">ヘッダーが必要です: "{0}"。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_end_of_file">
-        <source>Expected end-of-file.</source>
-        <target state="translated">EOF が必要です。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Expected_0_line">
-        <source>Expected {0} line.</source>
-        <target state="translated">{0} 行が必要です。</target>
         <note />
       </trans-unit>
       <trans-unit id="This_submission_already_references_another_submission_project">
@@ -402,24 +367,9 @@
         <target state="translated">{0} が開いたままです。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Arrays_with_more_than_one_dimension_cannot_be_serialized">
-        <source>Arrays with more than one dimension cannot be serialized.</source>
-        <target state="translated">複数の次元を持つ配列はシリアル化できません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Value_too_large_to_be_represented_as_a_30_bit_unsigned_integer">
         <source>Value too large to be represented as a 30 bit unsigned integer.</source>
         <target state="translated">値が大きすぎるため、30 ビットの符号なし整数として表すことができません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Specified_path_must_be_absolute">
-        <source>Specified path must be absolute.</source>
-        <target state="translated">絶対パスを指定する必要があります。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unknown_identifier">
-        <source>Unknown identifier.</source>
-        <target state="translated">不明な識別子です。</target>
         <note />
       </trans-unit>
       <trans-unit id="Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language">
@@ -477,11 +427,6 @@
         <target state="translated">削除済み:</target>
         <note />
       </trans-unit>
-      <trans-unit id="Invalid_CodePage_value_colon_0">
-        <source>Invalid CodePage value: {0}</source>
-        <target state="translated">無効なコードページの値: {0}</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Adding_additional_documents_is_not_supported">
         <source>Adding additional documents is not supported.</source>
         <target state="translated">追加ドキュメントの追加はサポートされていません。</target>
@@ -495,11 +440,6 @@
       <trans-unit id="Adding_documents_is_not_supported">
         <source>Adding documents is not supported.</source>
         <target state="translated">ドキュメントの追加はサポートされていません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_metadata_references_is_not_supported">
-        <source>Adding metadata references is not supported.</source>
-        <target state="translated">メタデータ参照の追加はサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_project_references_is_not_supported">
@@ -517,11 +457,6 @@
         <target state="translated">ドキュメントの変更はサポートされていません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_project_properties_is_not_supported">
-        <source>Changing project properties is not supported.</source>
-        <target state="translated">プロジェクトのプロパティの変更はサポートされていません。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Removing_additional_documents_is_not_supported">
         <source>Removing additional documents is not supported.</source>
         <target state="translated">追加ドキュメントの削除はサポートされていません。</target>
@@ -535,11 +470,6 @@
       <trans-unit id="Removing_documents_is_not_supported">
         <source>Removing documents is not supported.</source>
         <target state="translated">ドキュメントの削除はサポートされていません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_metadata_references_is_not_supported">
-        <source>Removing metadata references is not supported.</source>
-        <target state="translated">メタデータ参照の削除はサポートされていません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_project_references_is_not_supported">
@@ -560,21 +490,6 @@
       <trans-unit id="Diagnostic_must_have_span_0">
         <source>Diagnostic must have span '{0}'</source>
         <target state="translated">診断の範囲は '{0}' でなければなりません</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_deserialize_type_0">
-        <source>Cannot deserialize type '{0}'.</source>
-        <target state="translated">型 '{0}' を逆シリアル化できません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_serialize_type_0">
-        <source>Cannot serialize type '{0}'.</source>
-        <target state="translated">型 '{0}' をシリアル化できません。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_type_0_is_not_understood_by_the_serialization_binder">
-        <source>The type '{0}' is not understood by the serialization binder.</source>
-        <target state="translated">型 '{0}' がシリアル化バインダーで認識されません。</target>
         <note />
       </trans-unit>
       <trans-unit id="Label_for_node_0_is_invalid_it_must_be_within_bracket_0_1">
@@ -675,11 +590,6 @@
       <trans-unit id="Stream_is_too_long">
         <source>Stream is too long.</source>
         <target state="translated">ストリームが長すぎます。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Deserialization_reader_for_0_read_incorrect_number_of_values">
-        <source>Deserialization reader for '{0}' read incorrect number of values.</source>
-        <target state="translated">'{0}' の逆シリアル化のリーダーが、正しくない数の値を読み取りました。</target>
         <note />
       </trans-unit>
       <trans-unit id="Async_Method">

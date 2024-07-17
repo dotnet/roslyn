@@ -4,7 +4,7 @@
 
 > **Warning**: Source generators implementing `ISourceGenerator` have been deprecated
 > in favor of [incremental generators](incremental-generators.md).
-> This document has not been fully updated to reflect that.
+> The incremental version of this document is [here](incremental-generators.cookbook.md).
 > You should implement `IIncrementalGenerator` instead of `ISourceGenerator`.
 
 This document aims to be a guide to help the creation of source generators by providing a series of guidelines for common patterns.
@@ -835,39 +835,9 @@ Note: the above example uses MSTest, but the contents of the test are easily ada
 
 ### Participate in the IDE experience
 
-**Implementation Status**: Not Implemented.
-
 **User scenario:** As a generator author I want to be able to interactively regenerate code as the user is editing files.
 
-**Solution:** We expect there to be an opt-in set of interactive callbacks that can be implemented to allow for progressively more complex generation strategies.
-It is anticipated there will be a mechanism for providing symbol mapping for lighting up features such as 'Find all references'.
-
-```csharp
-[Generator]
-public class InteractiveGenerator : ISourceGenerator
-{
-    public void Initialize(GeneratorInitializationContext context)
-    {
-        // Register for additional file callbacks
-        context.RegisterForAdditionalFileChanges(OnAdditionalFilesChanged);
-    }
-
-    public void Execute(GeneratorExecutionContext context)
-    {
-        // generators must always support a total generation pass
-    }
-
-    public void OnAdditionalFilesChanged(AdditionalFilesChangedContext context)
-    {
-        // determine which file changed, and if it affects this generator
-        // regenerate only the parts that are affected by this change.
-    }
-}
-```
-
-*Note*: Until these interfaces are made available, generator authors should not try and emulate 'incrementality' with caching to disk and custom up-to-date checks.
-The compiler currently provides no reliable way for a generator to detect if it is suitable to use a previous run, and any attempt to do so will
-likely lead to hard to diagnose bugs for consumers. Generator authors should always assume this is a 'full' generation, happening for the first time.
+**Solution:** See [incremental generators](incremental-generators.md).
 
 ### Serialization
 

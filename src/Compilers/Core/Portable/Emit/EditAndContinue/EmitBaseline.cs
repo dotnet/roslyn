@@ -5,12 +5,14 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -62,104 +64,40 @@ namespace Microsoft.CodeAnalysis.Emit
     {
         private static readonly ImmutableArray<int> s_emptyTableSizes = ImmutableArray.Create(new int[MetadataTokens.TableCount]);
 
-        internal sealed class MetadataSymbols
+        internal sealed class MetadataSymbols(
+            SynthesizedTypeMaps synthesizedTypes,
+            object metadataDecoder,
+            ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityMap)
         {
-            /// <summary>
-            /// In C#, this is the set of anonymous types only; in VB, this is the set of anonymous types and delegates.
-            /// </summary>
-            public readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypes;
-
-            /// <summary>
-            /// In C#, the set of anonymous delegates with name fully determined by signature;
-            /// in VB, this set is unused and empty.
-            /// </summary>
-            public readonly IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> AnonymousDelegates;
-
-            /// <summary>
-            /// In C#, the set of anonymous delegates with name indexed by source order;
-            /// in VB, this set is unused and empty.
-            /// </summary>
-            public readonly IReadOnlyDictionary<string, AnonymousTypeValue> AnonymousDelegatesWithIndexedNames;
+            public readonly SynthesizedTypeMaps SynthesizedTypes = synthesizedTypes;
+            public readonly object MetadataDecoder = metadataDecoder;
 
             /// <summary>
             /// A map of the assembly identities of the baseline compilation to the identities of the original metadata AssemblyRefs.
             /// Only includes identities that differ between these two.
             /// </summary>
-            public readonly ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> AssemblyReferenceIdentityMap;
-
-            public readonly object MetadataDecoder;
-
-            public MetadataSymbols(
-                IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypes,
-                IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates,
-                IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegatesWithIndexedNames,
-                object metadataDecoder,
-                ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityMap)
-            {
-                Debug.Assert(anonymousTypes != null);
-                Debug.Assert(anonymousDelegates != null);
-                Debug.Assert(anonymousDelegatesWithIndexedNames != null);
-                Debug.Assert(metadataDecoder != null);
-                Debug.Assert(assemblyReferenceIdentityMap != null);
-
-                this.AnonymousTypes = anonymousTypes;
-                this.AnonymousDelegates = anonymousDelegates;
-                this.AnonymousDelegatesWithIndexedNames = anonymousDelegatesWithIndexedNames;
-                this.MetadataDecoder = metadataDecoder;
-                this.AssemblyReferenceIdentityMap = assemblyReferenceIdentityMap;
-            }
+            public readonly ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> AssemblyReferenceIdentityMap = assemblyReferenceIdentityMap;
         }
 
-        /// <summary>
-        /// Creates an <see cref="EmitBaseline"/> from the metadata of the module before editing
-        /// and from a function that maps from a method to an array of local names. 
-        /// </summary>
-        /// <param name="module">The metadata of the module before editing.</param>
-        /// <param name="debugInformationProvider">
-        /// A function that for a method handle returns Edit and Continue debug information emitted by the compiler into the PDB.
-        /// The function shall throw <see cref="InvalidDataException"/> if the debug information can't be read for the specified method.
-        /// This exception and <see cref="IOException"/> are caught and converted to an emit diagnostic. Other exceptions are passed through.
-        /// </param>
-        /// <returns>An <see cref="EmitBaseline"/> for the module.</returns>
-        /// <exception cref="ArgumentException"><paramref name="module"/> is not a PE image.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="module"/> is null.</exception>
-        /// <exception cref="ArgumentNullException"><paramref name="debugInformationProvider"/> is null.</exception>
-        /// <exception cref="IOException">Error reading module metadata.</exception>
-        /// <exception cref="BadImageFormatException">Module metadata is invalid.</exception>
-        /// <exception cref="ObjectDisposedException">Module has been disposed.</exception>
+        [Obsolete("This overload is no longer supported", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
         public static EmitBaseline CreateInitialBaseline(ModuleMetadata module, Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider)
-        {
-            if (module == null)
-            {
-                throw new ArgumentNullException(nameof(module));
-            }
+            => throw new NotSupportedException();
 
-            if (!module.Module.HasIL)
-            {
-                throw new ArgumentException(CodeAnalysisResources.PEImageNotAvailable, nameof(module));
-            }
-
-            var hasPortablePdb = module.Module.PEReaderOpt.ReadDebugDirectory().Any(static entry => entry.IsPortableCodeView);
-
-            var localSigProvider = new Func<MethodDefinitionHandle, StandaloneSignatureHandle>(methodHandle =>
-            {
-                try
-                {
-                    return module.Module.GetMethodBodyOrThrow(methodHandle)?.LocalSignature ?? default;
-                }
-                catch (Exception e) when (e is BadImageFormatException || e is IOException)
-                {
-                    throw new InvalidDataException(e.Message, e);
-                }
-            });
-
-            return CreateInitialBaseline(module, debugInformationProvider, localSigProvider, hasPortablePdb);
-        }
+        [Obsolete("This overload is no longer supported", error: true)]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public static EmitBaseline CreateInitialBaseline(
+            ModuleMetadata module,
+            Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
+            Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider,
+            bool hasPortableDebugInformation)
+            => throw new NotSupportedException();
 
         /// <summary>
         /// Creates an <see cref="EmitBaseline"/> from the metadata of the module before editing
         /// and from a function that maps from a method to an array of local names. 
         /// </summary>
+        /// <param name="compilation">Initial <see cref="Compilation"/>.</param>
         /// <param name="module">The metadata of the module before editing.</param>
         /// <param name="debugInformationProvider">
         /// A function that for a method handle returns Edit and Continue debug information emitted by the compiler into the PDB.
@@ -198,11 +136,17 @@ namespace Microsoft.CodeAnalysis.Emit
         /// <exception cref="BadImageFormatException">Module metadata is invalid.</exception>
         /// <exception cref="ObjectDisposedException">Module has been disposed.</exception>
         public static EmitBaseline CreateInitialBaseline(
+            Compilation compilation,
             ModuleMetadata module,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider,
             bool hasPortableDebugInformation)
         {
+            if (compilation == null)
+            {
+                throw new ArgumentNullException(nameof(compilation));
+            }
+
             if (module == null)
             {
                 throw new ArgumentNullException(nameof(module));
@@ -223,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return new EmitBaseline(
                 null,
                 module,
-                compilation: null,
+                compilation,
                 moduleBuilder: null,
                 moduleVersionId: module.GetModuleVersionId(),
                 ordinal: 0,
@@ -245,11 +189,9 @@ namespace Microsoft.CodeAnalysis.Emit
                 stringStreamLengthAdded: 0,
                 userStringStreamLengthAdded: 0,
                 guidStreamLengthAdded: 0,
-                anonymousTypeMap: null, // Unset for initial metadata
-                anonymousDelegates: null, // Unset for initial metadata
-                anonymousDelegatesWithIndexedNames: null, // Unset for initial metadata
-                synthesizedMembers: ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>.Empty,
-                deletedMembers: ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>.Empty,
+                synthesizedTypes: SynthesizedTypeMaps.Empty,
+                synthesizedMembers: ImmutableSegmentedDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>.Empty,
+                deletedMembers: ImmutableSegmentedDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>>.Empty,
                 methodsAddedOrChanged: new Dictionary<int, AddedOrChangedMethodInfo>(),
                 debugInformationProvider: debugInformationProvider,
                 localSignatureProvider: localSignatureProvider,
@@ -268,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Emit
         // Symbols hydrated from the original metadata. Lazy since we don't know the language at the time the baseline is constructed.
         internal MetadataSymbols? LazyMetadataSymbols;
 
-        internal readonly Compilation? Compilation;
+        internal readonly Compilation Compilation;
         internal readonly CommonPEModuleBuilder? PEModuleBuilder;
         internal readonly Guid ModuleVersionId;
         internal readonly bool HasPortablePdb;
@@ -299,6 +241,10 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IReadOnlyDictionary<int, int> EventMapAdded;
         internal readonly IReadOnlyDictionary<int, int> PropertyMapAdded;
         internal readonly IReadOnlyDictionary<MethodImplKey, int> MethodImplsAdded;
+
+        /// <summary>
+        /// Maps a parent handle to a non-empty ordered array of row ids of custom attributes added since the initial baseline.
+        /// </summary>
         internal readonly IReadOnlyDictionary<EntityHandle, ImmutableArray<int>> CustomAttributesAdded;
 
         internal readonly ImmutableArray<int> TableEntriesAdded;
@@ -335,16 +281,14 @@ namespace Microsoft.CodeAnalysis.Emit
         internal readonly IReadOnlyDictionary<int, int> TypeToEventMap;
         internal readonly IReadOnlyDictionary<int, int> TypeToPropertyMap;
         internal readonly IReadOnlyDictionary<MethodImplKey, int> MethodImpls;
-        private readonly IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue>? _anonymousTypeMap;
-        private readonly IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>? _anonymousDelegates;
-        private readonly IReadOnlyDictionary<string, AnonymousTypeValue>? _anonymousDelegatesWithIndexedNames;
-        internal readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> SynthesizedMembers;
-        internal readonly ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> DeletedMembers;
+        private readonly SynthesizedTypeMaps _synthesizedTypes;
+        internal readonly IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> SynthesizedMembers;
+        internal readonly IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> DeletedMembers;
 
         private EmitBaseline(
             EmitBaseline? initialBaseline,
             ModuleMetadata module,
-            Compilation? compilation,
+            Compilation compilation,
             CommonPEModuleBuilder? moduleBuilder,
             Guid moduleVersionId,
             int ordinal,
@@ -366,11 +310,9 @@ namespace Microsoft.CodeAnalysis.Emit
             int stringStreamLengthAdded,
             int userStringStreamLengthAdded,
             int guidStreamLengthAdded,
-            IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue>? anonymousTypeMap,
-            IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue>? anonymousDelegates,
-            IReadOnlyDictionary<string, AnonymousTypeValue>? anonymousDelegatesWithIndexedNames,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> deletedMembers,
+            SynthesizedTypeMaps synthesizedTypes,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> deletedMembers,
             IReadOnlyDictionary<int, AddedOrChangedMethodInfo> methodsAddedOrChanged,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider,
@@ -379,11 +321,9 @@ namespace Microsoft.CodeAnalysis.Emit
             IReadOnlyDictionary<MethodImplKey, int> methodImpls)
         {
             Debug.Assert(module != null);
-            Debug.Assert((ordinal == 0) == (encId == default));
-            Debug.Assert((ordinal == 0) == (initialBaseline == null));
-            Debug.Assert((ordinal == 0) == (anonymousTypeMap == null));
-            Debug.Assert((ordinal == 0) == (anonymousDelegates == null));
-            Debug.Assert((ordinal == 0) == (anonymousDelegatesWithIndexedNames == null));
+            Debug.Assert(ordinal is 0 == (encId == default));
+            Debug.Assert(ordinal is 0 == initialBaseline is null);
+            Debug.Assert(synthesizedTypes.IsEmpty || ordinal > 0);
             Debug.Assert(encId != module.GetModuleVersionId());
             Debug.Assert(debugInformationProvider != null);
             Debug.Assert(localSignatureProvider != null);
@@ -435,9 +375,7 @@ namespace Microsoft.CodeAnalysis.Emit
             StringStreamLengthAdded = stringStreamLengthAdded;
             UserStringStreamLengthAdded = userStringStreamLengthAdded;
             GuidStreamLengthAdded = guidStreamLengthAdded;
-            _anonymousTypeMap = anonymousTypeMap;
-            _anonymousDelegates = anonymousDelegates;
-            _anonymousDelegatesWithIndexedNames = anonymousDelegatesWithIndexedNames;
+            _synthesizedTypes = synthesizedTypes;
             SynthesizedMembers = synthesizedMembers;
             DeletedMembers = deletedMembers;
             AddedOrChangedMethods = methodsAddedOrChanged;
@@ -471,23 +409,17 @@ namespace Microsoft.CodeAnalysis.Emit
             int stringStreamLengthAdded,
             int userStringStreamLengthAdded,
             int guidStreamLengthAdded,
-            IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypeMap,
-            IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> anonymousDelegates,
-            IReadOnlyDictionary<string, AnonymousTypeValue> anonymousDelegatesWithIndexedNames,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
-            ImmutableDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> deletedMembers,
+            SynthesizedTypeMaps synthesizedTypes,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> synthesizedMembers,
+            IReadOnlyDictionary<ISymbolInternal, ImmutableArray<ISymbolInternal>> deletedMembers,
             IReadOnlyDictionary<int, AddedOrChangedMethodInfo> addedOrChangedMethods,
             Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation> debugInformationProvider,
             Func<MethodDefinitionHandle, StandaloneSignatureHandle> localSignatureProvider)
         {
-            Debug.Assert(_anonymousTypeMap == null || anonymousTypeMap != null);
-            Debug.Assert(_anonymousTypeMap == null || anonymousTypeMap.Count >= _anonymousTypeMap.Count);
-
-            Debug.Assert(_anonymousDelegates == null || anonymousDelegates != null);
-            Debug.Assert(_anonymousDelegates == null || anonymousDelegates.Count >= _anonymousDelegates.Count);
-
-            Debug.Assert(_anonymousDelegatesWithIndexedNames == null || anonymousDelegatesWithIndexedNames != null);
-            Debug.Assert(_anonymousDelegatesWithIndexedNames == null || anonymousDelegatesWithIndexedNames.Count >= _anonymousDelegatesWithIndexedNames.Count);
+            Debug.Assert(synthesizedTypes.AnonymousTypes.Count >= _synthesizedTypes.AnonymousTypes.Count);
+            Debug.Assert(synthesizedTypes.AnonymousDelegates.Count >= _synthesizedTypes.AnonymousDelegates.Count);
+            Debug.Assert(synthesizedTypes.AnonymousDelegatesWithIndexedNames.Count >= _synthesizedTypes.AnonymousDelegatesWithIndexedNames.Count);
+            Debug.Assert(customAttributesAdded.All(entry => !entry.Value.IsDefaultOrEmpty && entry.Value.IsSorted()));
 
             return new EmitBaseline(
                 InitialBaseline,
@@ -514,9 +446,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 stringStreamLengthAdded: stringStreamLengthAdded,
                 userStringStreamLengthAdded: userStringStreamLengthAdded,
                 guidStreamLengthAdded: guidStreamLengthAdded,
-                anonymousTypeMap: anonymousTypeMap,
-                anonymousDelegates: anonymousDelegates,
-                anonymousDelegatesWithIndexedNames: anonymousDelegatesWithIndexedNames,
+                synthesizedTypes: synthesizedTypes,
                 synthesizedMembers: synthesizedMembers,
                 deletedMembers: deletedMembers,
                 methodsAddedOrChanged: addedOrChangedMethods,
@@ -527,75 +457,34 @@ namespace Microsoft.CodeAnalysis.Emit
                 methodImpls: MethodImpls);
         }
 
-        internal IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> AnonymousTypeMap
+        internal SynthesizedTypeMaps SynthesizedTypes
         {
             get
             {
                 if (Ordinal > 0)
                 {
-                    Debug.Assert(_anonymousTypeMap is object);
-                    return _anonymousTypeMap;
+                    return _synthesizedTypes;
                 }
 
                 Debug.Assert(LazyMetadataSymbols is object);
-                return LazyMetadataSymbols.AnonymousTypes;
-            }
-        }
-
-        internal IReadOnlyDictionary<SynthesizedDelegateKey, SynthesizedDelegateValue> AnonymousDelegates
-        {
-            get
-            {
-                if (Ordinal > 0)
-                {
-                    Debug.Assert(_anonymousDelegates is object);
-                    return _anonymousDelegates;
-                }
-
-                Debug.Assert(LazyMetadataSymbols is object);
-                return LazyMetadataSymbols.AnonymousDelegates;
-            }
-        }
-
-        internal IReadOnlyDictionary<string, AnonymousTypeValue> AnonymousDelegatesWithIndexedNames
-        {
-            get
-            {
-                if (Ordinal > 0)
-                {
-                    Debug.Assert(_anonymousDelegatesWithIndexedNames is object);
-                    return _anonymousDelegatesWithIndexedNames;
-                }
-
-                Debug.Assert(LazyMetadataSymbols is object);
-                return LazyMetadataSymbols.AnonymousDelegatesWithIndexedNames;
+                return LazyMetadataSymbols.SynthesizedTypes;
             }
         }
 
         internal MetadataReader MetadataReader
-        {
-            get { return this.OriginalMetadata.MetadataReader; }
-        }
+            => OriginalMetadata.MetadataReader;
 
         internal int BlobStreamLength
-        {
-            get { return this.BlobStreamLengthAdded + this.MetadataReader.GetHeapSize(HeapIndex.Blob); }
-        }
+            => BlobStreamLengthAdded + MetadataReader.GetHeapSize(HeapIndex.Blob);
 
         internal int StringStreamLength
-        {
-            get { return this.StringStreamLengthAdded + this.MetadataReader.GetHeapSize(HeapIndex.String); }
-        }
+            => StringStreamLengthAdded + MetadataReader.GetHeapSize(HeapIndex.String);
 
         internal int UserStringStreamLength
-        {
-            get { return this.UserStringStreamLengthAdded + this.MetadataReader.GetHeapSize(HeapIndex.UserString); }
-        }
+            => UserStringStreamLengthAdded + MetadataReader.GetHeapSize(HeapIndex.UserString);
 
         internal int GuidStreamLength
-        {
-            get { return this.GuidStreamLengthAdded + this.MetadataReader.GetHeapSize(HeapIndex.Guid); }
-        }
+            => GuidStreamLengthAdded + MetadataReader.GetHeapSize(HeapIndex.Guid);
 
         private static ImmutableArray<int> CalculateTableSizes(MetadataReader reader, ImmutableArray<int> delta)
         {
@@ -670,16 +559,34 @@ namespace Microsoft.CodeAnalysis.Emit
         internal int GetNextAnonymousTypeIndex(bool fromDelegates = false)
         {
             int nextIndex = 0;
-            foreach (var pair in this.AnonymousTypeMap)
+            foreach (var (typeKey, typeValue) in SynthesizedTypes.AnonymousTypes)
             {
-                if (fromDelegates != pair.Key.IsDelegate)
+                if (fromDelegates != typeKey.IsDelegate)
                 {
                     continue;
                 }
-                int index = pair.Value.UniqueIndex;
+                int index = typeValue.UniqueIndex;
                 if (index >= nextIndex)
                 {
                     nextIndex = index + 1;
+                }
+            }
+
+            return nextIndex;
+        }
+
+        internal int GetNextAnonymousDelegateIndex()
+        {
+            int nextIndex = 0;
+            foreach (var (typeKey, typeValues) in SynthesizedTypes.AnonymousDelegatesWithIndexedNames)
+            {
+                foreach (var typeValue in typeValues)
+                {
+                    int index = typeValue.UniqueIndex;
+                    if (index >= nextIndex)
+                    {
+                        nextIndex = index + 1;
+                    }
                 }
             }
 

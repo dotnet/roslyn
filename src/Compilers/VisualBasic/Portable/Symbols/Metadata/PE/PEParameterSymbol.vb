@@ -445,7 +445,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property IsParamArray As Boolean
             Get
                 If Not _lazyIsParamArray.HasValue() Then
-                    _lazyIsParamArray = Me.PEModule.HasParamsAttribute(_handle).ToThreeState()
+                    _lazyIsParamArray = Me.PEModule.HasParamArrayAttribute(_handle).ToThreeState()
                 End If
                 Return _lazyIsParamArray.Value()
             End Get

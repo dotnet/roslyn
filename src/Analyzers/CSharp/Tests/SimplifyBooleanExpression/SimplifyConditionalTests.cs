@@ -13,357 +13,356 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyBooleanExpression
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SimplifyBooleanExpression;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
+public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyConditional)]
-    public partial class SimplifyConditionalTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public SimplifyConditionalTests(ITestOutputHelper logger)
+      : base(logger)
     {
-        public SimplifyConditionalTests(ITestOutputHelper logger)
-          : base(logger)
-        {
-        }
+    }
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (new CSharpSimplifyConditionalDiagnosticAnalyzer(), new SimplifyConditionalCodeFixProvider());
+    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (new CSharpSimplifyConditionalDiagnosticAnalyzer(), new SimplifyConditionalCodeFixProvider());
 
-        [Fact]
-        public async Task TestSimpleCase()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
+    [Fact]
+    public async Task TestSimpleCase()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
 
-                class C
+            class C
+            {
+                bool M()
                 {
-                    bool M()
-                    {
-                        return [|X() && Y() ? true : false|];
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return [|X() && Y() ? true : false|];
                 }
-                """,
-                """
-                using System;
 
-                class C
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                bool M()
                 {
-                    bool M()
-                    {
-                        return X() && Y();
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return X() && Y();
                 }
-                """);
-        }
 
-        [Fact]
-        public async Task TestSimpleNegatedCase()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """);
+    }
 
-                class C
+    [Fact]
+    public async Task TestSimpleNegatedCase()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                bool M()
                 {
-                    bool M()
-                    {
-                        return [|X() && Y() ? false : true|];
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return [|X() && Y() ? false : true|];
                 }
-                """,
-                """
-                using System;
 
-                class C
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                bool M()
                 {
-                    bool M()
-                    {
-                        return !X() || !Y();
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return !X() || !Y();
                 }
-                """);
-        }
 
-        [Fact]
-        public async Task TestMustBeBool1()
-        {
-            await TestMissingInRegularAndScriptAsync(
-                """
-                using System;
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """);
+    }
 
-                class C
+    [Fact]
+    public async Task TestMustBeBool1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                string M()
                 {
-                    string M()
-                    {
-                        return [|X() && Y() ? "" : null|];
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return [|X() && Y() ? "" : null|];
                 }
-                """);
-        }
 
-        [Fact]
-        public async Task TestMustBeBool2()
-        {
-            await TestMissingAsync(
-                """
-                using System;
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """);
+    }
 
-                class C
+    [Fact]
+    public async Task TestMustBeBool2()
+    {
+        await TestMissingAsync(
+            """
+            using System;
+
+            class C
+            {
+                string M()
                 {
-                    string M()
-                    {
-                        return [|X() && Y() ? null : ""|];
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return [|X() && Y() ? null : ""|];
                 }
-                """);
-        }
 
-        [Fact]
-        public async Task TestWithTrueTrue()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """);
+    }
 
-                class C
+    [Fact]
+    public async Task TestWithTrueTrue()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                bool M()
                 {
-                    bool M()
-                    {
-                        return [|X() && Y() ? true : true|];
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return [|X() && Y() ? true : true|];
                 }
-                """,
-                """
-                using System;
 
-                class C
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                bool M()
                 {
-                    bool M()
-                    {
-                        return X() && Y() || true;
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return X() && Y() || true;
                 }
-                """);
-        }
 
-        [Fact]
-        public async Task TestWithFalseFalse()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """);
+    }
 
-                class C
+    [Fact]
+    public async Task TestWithFalseFalse()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                bool M()
                 {
-                    bool M()
-                    {
-                        return [|X() && Y() ? false : false|];
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return [|X() && Y() ? false : false|];
                 }
-                """,
-                """
-                using System;
 
-                class C
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                bool M()
                 {
-                    bool M()
-                    {
-                        return X() && Y() && false;
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return X() && Y() && false;
                 }
-                """);
-        }
 
-        [Fact]
-        public async Task TestWhenTrueIsTrueAndWhenFalseIsUnknown()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """);
+    }
 
-                class C
+    [Fact]
+    public async Task TestWhenTrueIsTrueAndWhenFalseIsUnknown()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                string M()
                 {
-                    string M()
-                    {
-                        return [|X() ? true : Y()|];
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return [|X() ? true : Y()|];
                 }
-                """,
-                """
-                using System;
 
-                class C
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                string M()
                 {
-                    string M()
-                    {
-                        return X() || Y();
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return X() || Y();
                 }
-                """);
-        }
 
-        [Fact]
-        public async Task TestWhenTrueIsFalseAndWhenFalseIsUnknown()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """);
+    }
 
-                class C
+    [Fact]
+    public async Task TestWhenTrueIsFalseAndWhenFalseIsUnknown()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                string M()
                 {
-                    string M()
-                    {
-                        return [|X() ? false : Y()|];
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return [|X() ? false : Y()|];
                 }
-                """,
-                """
-                using System;
 
-                class C
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                string M()
                 {
-                    string M()
-                    {
-                        return !X() && Y();
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return !X() && Y();
                 }
-                """);
-        }
 
-        [Fact]
-        public async Task TestWhenTrueIsUnknownAndWhenFalseIsTrue()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """);
+    }
 
-                class C
+    [Fact]
+    public async Task TestWhenTrueIsUnknownAndWhenFalseIsTrue()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                string M()
                 {
-                    string M()
-                    {
-                        return [|X() ? Y() : true|];
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return [|X() ? Y() : true|];
                 }
-                """,
-                """
-                using System;
 
-                class C
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                string M()
                 {
-                    string M()
-                    {
-                        return !X() || Y();
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return !X() || Y();
                 }
-                """);
-        }
 
-        [Fact]
-        public async Task TestWhenTrueIsUnknownAndWhenFalseIsFalse()
-        {
-            await TestInRegularAndScript1Async(
-                """
-                using System;
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """);
+    }
 
-                class C
+    [Fact]
+    public async Task TestWhenTrueIsUnknownAndWhenFalseIsFalse()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            using System;
+
+            class C
+            {
+                string M()
                 {
-                    string M()
-                    {
-                        return [|X() ? Y() : false|];
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return [|X() ? Y() : false|];
                 }
-                """,
-                """
-                using System;
 
-                class C
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """,
+            """
+            using System;
+
+            class C
+            {
+                string M()
                 {
-                    string M()
-                    {
-                        return X() && Y();
-                    }
-
-                    private bool X() => throw new NotImplementedException();
-                    private bool Y() => throw new NotImplementedException();
+                    return X() && Y();
                 }
-                """);
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62827")]
-        public async Task TestFixAll()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+                private bool X() => throw new NotImplementedException();
+                private bool Y() => throw new NotImplementedException();
+            }
+            """);
+    }
 
-                class C
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62827")]
+    public async Task TestFixAll()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            class C
+            {
+                public bool M(object x, object y, Func<object, object, bool> isEqual)
                 {
-                    public bool M(object x, object y, Func<object, object, bool> isEqual)
-                    {
-                        return {|FixAllInDocument:x == null ? false : y == null ? false : isEqual == null ? x.Equals(y) : isEqual(x, y)|};
-                    }
+                    return {|FixAllInDocument:x == null ? false : y == null ? false : isEqual == null ? x.Equals(y) : isEqual(x, y)|};
                 }
-                """,
-                """
-                using System;
+            }
+            """,
+            """
+            using System;
 
-                class C
+            class C
+            {
+                public bool M(object x, object y, Func<object, object, bool> isEqual)
                 {
-                    public bool M(object x, object y, Func<object, object, bool> isEqual)
-                    {
-                        return x != null && y != null && (isEqual == null ? x.Equals(y) : isEqual(x, y));
-                    }
+                    return x != null && y != null && (isEqual == null ? x.Equals(y) : isEqual(x, y));
                 }
-                """);
-        }
+            }
+            """);
     }
 }

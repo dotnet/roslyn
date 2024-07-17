@@ -27,11 +27,6 @@
         <target state="translated">Operacja programu MSBuild nie powiodła się podczas przetwarzania pliku „{0}”, komunikat: {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Parameter_cannot_be_null_empty_or_contain_whitespace">
-        <source>Parameter cannot be null, empty, or contain whitespace.</source>
-        <target state="translated">Parametr nie może mieć wartości null, być pusty ani zawierać białych znaków.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Path_for_additional_document_0_was_null">
         <source>Path for additional document '{0}' was null}</source>
         <target state="translated">Ścieżka dla dodatkowego dokumentu "{0}" miała wartość null}</target>
@@ -45,11 +40,6 @@
       <trans-unit id="Project_already_added">
         <source>Project already added.</source>
         <target state="translated">Projekt już został dodany.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Project_does_not_contain_0_target">
-        <source>Project does not contain '{0}' target.</source>
-        <target state="translated">Projekt nie zawiera celu „{0}”.</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_project_with_the_same_file_path_and_output_path_as_another_project_0">
@@ -70,6 +60,11 @@
       <trans-unit id="Project_path_for_0_was_null">
         <source>Project path for '{0}' was null</source>
         <target state="translated">Ścieżka projektu dla pliku "{0}" miała wartość null</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_build_host_could_not_be_found_at_0">
+        <source>The build host could not be found at '{0}'</source>
+        <target state="translated">Nie można odnaleźć hosta kompilacji w lokalizacji „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_add_metadata_reference_0">

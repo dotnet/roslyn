@@ -4,10 +4,9 @@
 
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript;
+
+internal static class VSTypeScriptWellKnownDiagnosticCustomTags
 {
-    internal static class VSTypeScriptWellKnownDiagnosticCustomTags
-    {
-        public const string DoesNotSupportF1Help = WellKnownDiagnosticCustomTags.DoesNotSupportF1Help;
-    }
+    public const string DoesNotSupportF1Help = WellKnownDiagnosticCustomTags.DoesNotSupportF1Help;
 }

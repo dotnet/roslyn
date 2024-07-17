@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((compareKind & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) != 0)
             {
                 if (CallingConvention.IsCallingConvention(CallingConvention.Unmanaged)
-                    && !GetCallingConventionModifiers().SetEquals(other.GetCallingConventionModifiers()))
+                    && !GetCallingConventionModifiers().SetEqualsWithoutIntermediateHashSet(other.GetCallingConventionModifiers()))
                 {
                     return false;
                 }
@@ -859,5 +859,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool IsNullableAnalysisEnabled() => throw ExceptionUtilities.Unreachable();
         protected sealed override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
         internal sealed override bool HasUnscopedRefAttribute => false;
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
+
+        internal sealed override int? TryGetOverloadResolutionPriority()
+        {
+            return null;
+        }
     }
 }

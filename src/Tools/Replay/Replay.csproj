@@ -1,0 +1,36 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
+    <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
+    <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\Compilers\Core\CommandLine\BuildProtocol.cs" />
+    <Compile Include="..\..\Compilers\Core\CommandLine\CompilerServerLogger.cs" />
+    <Compile Include="..\..\Compilers\Core\CommandLine\NativeMethods.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\CommitHashAttribute.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\PlatformInformation.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Debug.cs" />
+    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\NullableAttributes.cs" />
+    <Compile Include="..\..\Compilers\Shared\BuildServerConnection.cs" />
+    <Compile Include="..\..\Compilers\Shared\NamedPipeUtil.cs" />
+    <Compile Include="..\..\Compilers\Shared\RuntimeHostInfo.cs" />
+
+    <ProjectReference Include="..\..\Compilers\CSharp\csc\AnyCpu\csc.csproj">
+      <Aliases>csc</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\VisualBasic\vbc\AnyCpu\vbc.csproj">
+      <Aliases>vbc</Aliases>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Compilers\Server\VBCSCompiler\AnyCpu\VBCSCompiler.csproj">
+      <Aliases>vbcscompiler</Aliases>
+    </ProjectReference>
+
+    <PackageReference Include="Mono.Options" />
+    <PackageReference Include="MSBuild.StructuredLogger" />
+    <PackageReference Include="Basic.CompilerLog.Util" />
+    <PackageReference Include="Microsoft.Bcl.AsyncInterfaces" Condition="'$(TargetFramework)' == 'net472'" />
+  </ItemGroup>
+</Project>

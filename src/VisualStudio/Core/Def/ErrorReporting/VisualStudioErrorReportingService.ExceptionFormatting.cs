@@ -13,162 +13,161 @@ using System.Text;
 using Microsoft.VisualStudio.LanguageServices;
 using StreamJsonRpc;
 
-namespace Microsoft.CodeAnalysis.ErrorReporting
+namespace Microsoft.CodeAnalysis.ErrorReporting;
+
+internal partial class VisualStudioErrorReportingService
 {
-    internal partial class VisualStudioErrorReportingService
+    private static string GetFormattedExceptionStack(Exception exception)
     {
-        private static string GetFormattedExceptionStack(Exception exception)
+        if (exception is AggregateException aggregate)
         {
-            if (exception is AggregateException aggregate)
-            {
-                return GetStackForAggregateException(exception, aggregate);
-            }
-
-            if (exception is RemoteInvocationException)
-            {
-                return exception.ToString();
-            }
-
-            return GetStackForException(exception, includeMessageOnly: false);
+            return GetStackForAggregateException(exception, aggregate);
         }
 
-        private static string GetStackForAggregateException(Exception exception, AggregateException aggregate)
+        if (exception is RemoteInvocationException)
         {
-            var text = GetStackForException(exception, includeMessageOnly: true);
-            for (var i = 0; i < aggregate.InnerExceptions.Count; i++)
-            {
-                text = $"{text}{Environment.NewLine}---> (Inner Exception #{i}) {GetFormattedExceptionStack(aggregate.InnerExceptions[i])} <--- {Environment.NewLine}";
-            }
-
-            return text;
+            return exception.ToString();
         }
 
-        private static string GetStackForException(Exception exception, bool includeMessageOnly)
+        return GetStackForException(exception, includeMessageOnly: false);
+    }
+
+    private static string GetStackForAggregateException(Exception exception, AggregateException aggregate)
+    {
+        var text = GetStackForException(exception, includeMessageOnly: true);
+        for (var i = 0; i < aggregate.InnerExceptions.Count; i++)
         {
-            var message = exception.Message;
-            var className = exception.GetType().ToString();
-            var stackText = message.Length <= 0
-                ? className
-                : className + " : " + message;
-            var innerException = exception.InnerException;
-            if (innerException != null)
+            text = $"{text}{Environment.NewLine}---> (Inner Exception #{i}) {GetFormattedExceptionStack(aggregate.InnerExceptions[i])} <--- {Environment.NewLine}";
+        }
+
+        return text;
+    }
+
+    private static string GetStackForException(Exception exception, bool includeMessageOnly)
+    {
+        var message = exception.Message;
+        var className = exception.GetType().ToString();
+        var stackText = message.Length <= 0
+            ? className
+            : className + " : " + message;
+        var innerException = exception.InnerException;
+        if (innerException != null)
+        {
+            if (includeMessageOnly)
             {
-                if (includeMessageOnly)
+                do
                 {
-                    do
-                    {
-                        stackText += " ---> " + innerException.Message;
-                        innerException = innerException.InnerException;
-                    } while (innerException != null);
-                }
-                else
-                {
-                    stackText += " ---> " + GetFormattedExceptionStack(innerException) + Environment.NewLine +
-                                 "   " + ServicesVSResources.End_of_inner_exception_stack;
-                }
-            }
-
-            return stackText + Environment.NewLine + GetAsyncStackTrace(exception);
-        }
-
-        private static string GetAsyncStackTrace(Exception exception)
-        {
-            var stackTrace = new StackTrace(exception);
-            var stackFrames = stackTrace.GetFrames();
-            if (stackFrames == null)
-            {
-                return string.Empty;
-            }
-
-            var stackFrameLines = from frame in stackFrames
-                                  let method = frame.GetMethod()
-                                  let declaringType = method?.DeclaringType
-                                  where ShouldShowFrame(declaringType)
-                                  select FormatFrame(method, declaringType);
-            var stringBuilder = new StringBuilder();
-            return string.Join(Environment.NewLine, stackFrameLines);
-        }
-
-        private static bool ShouldShowFrame(Type declaringType)
-            => !(declaringType != null && typeof(INotifyCompletion).IsAssignableFrom(declaringType));
-
-        private static string FormatFrame(MethodBase method, Type declaringType)
-        {
-            var stringBuilder = new StringBuilder();
-            stringBuilder.Append("   at ");
-            var isAsync = FormatMethodName(stringBuilder, declaringType);
-            if (!isAsync)
-            {
-                stringBuilder.Append(method?.Name);
-                var methodInfo = method as MethodInfo;
-                if (methodInfo?.IsGenericMethod == true)
-                {
-                    FormatGenericArguments(stringBuilder, methodInfo.GetGenericArguments());
-                }
-            }
-            else if (declaringType?.IsGenericType == true)
-            {
-                FormatGenericArguments(stringBuilder, declaringType.GetGenericArguments());
-            }
-
-            stringBuilder.Append('(');
-            if (isAsync)
-            {
-                stringBuilder.Append(ServicesVSResources.Unknown_parameters);
+                    stackText += " ---> " + innerException.Message;
+                    innerException = innerException.InnerException;
+                } while (innerException != null);
             }
             else
             {
-                FormatParameters(stringBuilder, method);
+                stackText += " ---> " + GetFormattedExceptionStack(innerException) + Environment.NewLine +
+                             "   " + ServicesVSResources.End_of_inner_exception_stack;
             }
-
-            stringBuilder.Append(')');
-
-            return stringBuilder.ToString();
         }
 
-        private static bool FormatMethodName(StringBuilder stringBuilder, Type declaringType)
+        return stackText + Environment.NewLine + GetAsyncStackTrace(exception);
+    }
+
+    private static string GetAsyncStackTrace(Exception exception)
+    {
+        var stackTrace = new StackTrace(exception);
+        var stackFrames = stackTrace.GetFrames();
+        if (stackFrames == null)
         {
-            if (declaringType == null)
+            return string.Empty;
+        }
+
+        var stackFrameLines = from frame in stackFrames
+                              let method = frame.GetMethod()
+                              let declaringType = method?.DeclaringType
+                              where ShouldShowFrame(declaringType)
+                              select FormatFrame(method, declaringType);
+        var stringBuilder = new StringBuilder();
+        return string.Join(Environment.NewLine, stackFrameLines);
+    }
+
+    private static bool ShouldShowFrame(Type declaringType)
+        => !(declaringType != null && typeof(INotifyCompletion).IsAssignableFrom(declaringType));
+
+    private static string FormatFrame(MethodBase method, Type declaringType)
+    {
+        var stringBuilder = new StringBuilder();
+        stringBuilder.Append("   at ");
+        var isAsync = FormatMethodName(stringBuilder, declaringType);
+        if (!isAsync)
+        {
+            stringBuilder.Append(method?.Name);
+            var methodInfo = method as MethodInfo;
+            if (methodInfo?.IsGenericMethod == true)
             {
-                return false;
+                FormatGenericArguments(stringBuilder, methodInfo.GetGenericArguments());
             }
+        }
+        else if (declaringType?.IsGenericType == true)
+        {
+            FormatGenericArguments(stringBuilder, declaringType.GetGenericArguments());
+        }
 
-            var fullName = declaringType.FullName.Replace('+', '.');
-            if (typeof(IAsyncStateMachine).GetTypeInfo().IsAssignableFrom(declaringType))
+        stringBuilder.Append('(');
+        if (isAsync)
+        {
+            stringBuilder.Append(ServicesVSResources.Unknown_parameters);
+        }
+        else
+        {
+            FormatParameters(stringBuilder, method);
+        }
+
+        stringBuilder.Append(')');
+
+        return stringBuilder.ToString();
+    }
+
+    private static bool FormatMethodName(StringBuilder stringBuilder, Type declaringType)
+    {
+        if (declaringType == null)
+        {
+            return false;
+        }
+
+        var fullName = declaringType.FullName.Replace('+', '.');
+        if (typeof(IAsyncStateMachine).GetTypeInfo().IsAssignableFrom(declaringType))
+        {
+            stringBuilder.Append("async ");
+            var start = fullName.LastIndexOf('<');
+            var end = fullName.LastIndexOf('>');
+            if (start >= 0 && end >= 0)
             {
-                stringBuilder.Append("async ");
-                var start = fullName.LastIndexOf('<');
-                var end = fullName.LastIndexOf('>');
-                if (start >= 0 && end >= 0)
-                {
-                    stringBuilder.Append(fullName.Remove(start, 1)[..(end - 1)]);
-                }
-                else
-                {
-                    stringBuilder.Append(fullName);
-                }
-
-                return true;
+                stringBuilder.Append(fullName.Remove(start, 1)[..(end - 1)]);
             }
             else
             {
                 stringBuilder.Append(fullName);
-                stringBuilder.Append(".");
-                return false;
             }
-        }
 
-        private static void FormatGenericArguments(StringBuilder stringBuilder, Type[] genericTypeArguments)
+            return true;
+        }
+        else
         {
-            if (genericTypeArguments.Length <= 0)
-            {
-                return;
-            }
+            stringBuilder.Append(fullName);
+            stringBuilder.Append('.');
+            return false;
+        }
+    }
 
-            stringBuilder.Append("[" + string.Join(",", genericTypeArguments.Select(args => args.Name)) + "]");
+    private static void FormatGenericArguments(StringBuilder stringBuilder, Type[] genericTypeArguments)
+    {
+        if (genericTypeArguments.Length <= 0)
+        {
+            return;
         }
 
-        private static void FormatParameters(StringBuilder stringBuilder, MethodBase method)
-            => stringBuilder.Append(string.Join(",", method?.GetParameters().Select(t => (t.ParameterType?.Name ?? "<UnknownType>") + " " + t.Name) ?? Array.Empty<string>()));
+        stringBuilder.Append("[" + string.Join(",", genericTypeArguments.Select(args => args.Name)) + "]");
     }
+
+    private static void FormatParameters(StringBuilder stringBuilder, MethodBase method)
+        => stringBuilder.Append(string.Join(",", method?.GetParameters().Select(t => (t.ParameterType?.Name ?? "<UnknownType>") + " " + t.Name) ?? Array.Empty<string>()));
 }

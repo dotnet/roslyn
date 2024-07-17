@@ -5,7 +5,6 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 
@@ -15,11 +14,13 @@ internal sealed class CSharpUpdateExpressionSyntaxHelper : IUpdateExpressionSynt
 
     public void GetPartsOfForeachStatement(
         StatementSyntax statement,
+        out SyntaxToken awaitKeyword,
         out SyntaxToken identifier,
         out ExpressionSyntax expression,
         out IEnumerable<StatementSyntax> statements)
     {
         var foreachStatement = (ForEachStatementSyntax)statement;
+        awaitKeyword = foreachStatement.AwaitKeyword;
         identifier = foreachStatement.Identifier;
         expression = foreachStatement.Expression;
         statements = ExtractEmbeddedStatements(foreachStatement.Statement);
@@ -38,5 +39,5 @@ internal sealed class CSharpUpdateExpressionSyntaxHelper : IUpdateExpressionSynt
     }
 
     private static IEnumerable<StatementSyntax> ExtractEmbeddedStatements(StatementSyntax embeddedStatement)
-        => embeddedStatement is BlockSyntax block ? block.Statements : SpecializedCollections.SingletonEnumerable(embeddedStatement);
+        => embeddedStatement is BlockSyntax block ? [.. block.Statements] : [embeddedStatement];
 }

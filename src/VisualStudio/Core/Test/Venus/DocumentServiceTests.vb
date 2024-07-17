@@ -24,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
     Public Class DocumentServiceTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestSpanMappingService() As Task
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>class outter { {|Document:class C { $$ }|} }</Document>
@@ -48,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestSpanMappingService_InvalidPosition() As Task
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>class outter { {|Document:class C$$ { }|} }</Document>
@@ -80,7 +80,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TestDocumentOperation()
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>class outter { {|Document:class C$$ { }|} }</Document>
@@ -103,7 +103,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
         <Fact, Trait(Traits.Feature, Traits.Features.Workspace)>
         Public Async Function TestSourceGeneratedDocumentOperation() As Task
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <DocumentFromSourceGenerator>class C { }</DocumentFromSourceGenerator>
@@ -124,7 +124,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestExcerptService_SingleLine() As Task
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>class outter { {|Document:class C { }|} }</Document>
@@ -162,7 +162,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestExcerptService_Tooltip_Singleline() As Task
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>class outter { {|Document:class C { }|} }</Document>
@@ -201,7 +201,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestExcerptService_Tooltip_MultiLines() As Task
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>class outter { {|Document:class C { }|} }</Document>
@@ -258,7 +258,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
         <Fact, Trait(Traits.Feature, Traits.Features.Venus)>
         Public Async Function TestExcerptService_LeadingWhiteSpace() As Task
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Project Language="C#" CommonReferences="true">
                         <Document>class outter { {|Document:            class C { }         |} }</Document>

@@ -14,82 +14,81 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember
+namespace Microsoft.CodeAnalysis.CodeFixes.GenerateMember;
+
+internal abstract class AbstractGenerateMemberCodeFixProvider : CodeFixProvider
 {
-    internal abstract class AbstractGenerateMemberCodeFixProvider : CodeFixProvider
+    public override FixAllProvider? GetFixAllProvider()
     {
-        public override FixAllProvider? GetFixAllProvider()
+        // Fix All is not supported by this code fix
+        return null;
+    }
+
+    protected abstract Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CancellationToken cancellationToken);
+    protected abstract bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic);
+
+    public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+    {
+        // TODO: https://github.com/dotnet/roslyn/issues/5777
+        // Not supported in REPL for now.
+        if (context.Document.Project.IsSubmission)
         {
-            // Fix All is not supported by this code fix
-            return null;
+            return;
         }
 
-        protected abstract Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
-        protected abstract bool IsCandidate(SyntaxNode node, SyntaxToken token, Diagnostic diagnostic);
+        var diagnostic = context.Diagnostics.First();
+        var document = context.Document;
+        var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        var root = await document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+        var names = GetTargetNodes(syntaxFacts, root, context.Span, diagnostic);
+        foreach (var name in names)
         {
-            // TODO: https://github.com/dotnet/roslyn/issues/5777
-            // Not supported in REPL for now.
-            if (context.Document.Project.IsSubmission)
+            var codeActions = await GetCodeActionsAsync(context.Document, name, context.CancellationToken).ConfigureAwait(false);
+            if (codeActions.IsDefaultOrEmpty)
             {
-                return;
+                continue;
             }
 
-            var diagnostic = context.Diagnostics.First();
-            var document = context.Document;
-            var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+            context.RegisterFixes(codeActions, context.Diagnostics);
+            return;
+        }
+    }
 
-            var root = await document.GetRequiredSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
-            var names = GetTargetNodes(syntaxFacts, root, context.Span, diagnostic);
-            foreach (var name in names)
+    protected virtual SyntaxNode? GetTargetNode(SyntaxNode node)
+        => node;
+
+    private IEnumerable<SyntaxNode> GetTargetNodes(
+        ISyntaxFactsService syntaxFacts, SyntaxNode root,
+        TextSpan span, Diagnostic diagnostic)
+    {
+        var token = root.FindToken(span.Start);
+        if (token.Span.IntersectsWith(span))
+        {
+            var first = true;
+            foreach (var ancestor in token.GetAncestors<SyntaxNode>())
             {
-                var codeActions = await GetCodeActionsAsync(context.Document, name, context.Options, context.CancellationToken).ConfigureAwait(false);
-                if (codeActions.IsDefaultOrEmpty)
+                // If we're crossing a local function/lambda point then stop looking higher. We've clearly gone past
+                // the point of the original diagnostic and should not consider this node as something to consider.
+                //
+                // Note: it's ok if we are on a lambda that was the direct node with the diagnostic (i.e. if the
+                // compiler was reporting a diagnostic on a lambda itself).  However, once we start walking upwards,
+                // we don't want to cross a lambda.
+                if (!first &&
+                    syntaxFacts.IsAnonymousOrLocalFunction(ancestor) &&
+                    ancestor.SpanStart < token.SpanStart)
                 {
+                    break;
+                }
+
+                first = false;
+                if (!IsCandidate(ancestor, token, diagnostic))
                     continue;
-                }
 
-                context.RegisterFixes(codeActions, context.Diagnostics);
-                return;
-            }
-        }
+                var name = GetTargetNode(ancestor);
 
-        protected virtual SyntaxNode? GetTargetNode(SyntaxNode node)
-            => node;
-
-        private IEnumerable<SyntaxNode> GetTargetNodes(
-            ISyntaxFactsService syntaxFacts, SyntaxNode root,
-            TextSpan span, Diagnostic diagnostic)
-        {
-            var token = root.FindToken(span.Start);
-            if (token.Span.IntersectsWith(span))
-            {
-                var first = true;
-                foreach (var ancestor in token.GetAncestors<SyntaxNode>())
-                {
-                    // If we're crossing a local function/lambda point then stop looking higher. We've clearly gone past
-                    // the point of the original diagnostic and should not consider this node as something to consider.
-                    //
-                    // Note: it's ok if we are on a lambda that was the direct node with the diagnostic (i.e. if the
-                    // compiler was reporting a diagnostic on a lambda itself).  However, once we start walking upwards,
-                    // we don't want to cross a lambda.
-                    if (!first &&
-                        syntaxFacts.IsAnonymousOrLocalFunction(ancestor) &&
-                        ancestor.SpanStart < token.SpanStart)
-                    {
-                        break;
-                    }
-
-                    first = false;
-                    if (!IsCandidate(ancestor, token, diagnostic))
-                        continue;
-
-                    var name = GetTargetNode(ancestor);
-
-                    if (name != null)
-                        yield return name;
-                }
+                if (name != null)
+                    yield return name;
             }
         }
     }

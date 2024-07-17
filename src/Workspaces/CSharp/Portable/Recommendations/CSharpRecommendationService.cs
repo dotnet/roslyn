@@ -10,18 +10,17 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Recommendations;
 
-namespace Microsoft.CodeAnalysis.CSharp.Recommendations
-{
-    [ExportLanguageService(typeof(IRecommendationService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpRecommendationService : AbstractRecommendationService<CSharpSyntaxContext, AnonymousFunctionExpressionSyntax>
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpRecommendationService()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Recommendations;
 
-        protected override AbstractRecommendationServiceRunner CreateRunner(CSharpSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken)
-            => new CSharpRecommendationServiceRunner(context, filterOutOfScopeLocals, cancellationToken);
+[ExportLanguageService(typeof(IRecommendationService), LanguageNames.CSharp), Shared]
+internal partial class CSharpRecommendationService : AbstractRecommendationService<CSharpSyntaxContext, AnonymousFunctionExpressionSyntax>
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpRecommendationService()
+    {
     }
+
+    protected override AbstractRecommendationServiceRunner CreateRunner(CSharpSyntaxContext context, bool filterOutOfScopeLocals, CancellationToken cancellationToken)
+        => new CSharpRecommendationServiceRunner(context, filterOutOfScopeLocals, cancellationToken);
 }

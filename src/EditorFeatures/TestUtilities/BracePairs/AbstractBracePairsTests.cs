@@ -9,7 +9,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BracePairs;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -22,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities.BracePairs
     [UseExportProvider]
     public abstract class AbstractBracePairsTests
     {
-        protected abstract TestWorkspace CreateWorkspace(string input);
+        protected abstract EditorTestWorkspace CreateWorkspace(string input);
 
         public async Task Test(string test)
         {

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -14,13 +13,11 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.BraceMatching;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.DocumentationComments;
+using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Formatting;
@@ -44,7 +41,7 @@ public class GlobalOptionsTests
     [Export(typeof(IGlobalOptionService)), Shared, PartNotDiscoverable]
     internal class TestGlobalOptions : IGlobalOptionService
     {
-        public readonly List<OptionKey2> AccessedOptionKeys = new();
+        public readonly List<OptionKey2> AccessedOptionKeys = [];
 
         [ImportingConstructor]
         [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
@@ -95,10 +92,13 @@ public class GlobalOptionsTests
         public bool SetGlobalOptions(ImmutableArray<KeyValuePair<OptionKey2, object?>> options)
             => throw new NotImplementedException();
 
-        public void AddOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+        public void AddOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler)
             => throw new NotImplementedException();
 
-        public void RemoveOptionChangedHandler(object target, EventHandler<OptionChangedEventArgs> handler)
+        public void RemoveOptionChangedHandler(object target, WeakEventHandler<OptionChangedEventArgs> handler)
+            => throw new NotImplementedException();
+
+        public StructuredAnalyzerConfigOptions GetAnalyzerConfigOptions(string language)
             => throw new NotImplementedException();
 
         #endregion
@@ -134,9 +134,9 @@ public class GlobalOptionsTests
 
                         if (propertyType != property.PropertyType)
                         {
-                            var getValueOrDefault = property.PropertyType.GetMethod("GetValueOrDefault", Array.Empty<Type>());
-                            value = getValueOrDefault.Invoke(value, Array.Empty<object>());
-                            defaultValue = getValueOrDefault.Invoke(defaultValue, Array.Empty<object>());
+                            var getValueOrDefault = property.PropertyType.GetMethod("GetValueOrDefault", []);
+                            value = getValueOrDefault.Invoke(value, []);
+                            defaultValue = getValueOrDefault.Invoke(defaultValue, []);
                         }
 
                         Recurse(propertyType, value, defaultValue, language);
@@ -165,7 +165,8 @@ public class GlobalOptionsTests
              property.DeclaringType == typeof(AddImportPlacementOptions) && property.Name == nameof(AddImportPlacementOptions.UsingDirectivePlacement) && language == LanguageNames.VisualBasic ||
              property.DeclaringType == typeof(DocumentFormattingOptions) && property.Name == nameof(DocumentFormattingOptions.FileHeaderTemplate) ||
              property.DeclaringType == typeof(DocumentFormattingOptions) && property.Name == nameof(DocumentFormattingOptions.InsertFinalNewLine) ||
-             property.DeclaringType == typeof(ClassificationOptions) && property.Name == nameof(ClassificationOptions.ForceFrozenPartialSemanticsForCrossProcessOperations) ||
+             property.DeclaringType == typeof(ClassificationOptions) && property.Name == nameof(ClassificationOptions.FrozenPartialSemantics) ||
+             property.DeclaringType == typeof(HighlightingOptions) && property.Name == nameof(HighlightingOptions.FrozenPartialSemantics) ||
              property.DeclaringType == typeof(BlockStructureOptions) && property.Name == nameof(BlockStructureOptions.IsMetadataAsSource));
 
     /// <summary>
@@ -182,18 +183,16 @@ public class GlobalOptionsTests
         using var workspace = CreateWorkspace(out var globalOptions);
         var languageServices = workspace.Services.SolutionServices.GetLanguageServices(language);
 
-        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetIdeAnalyzerOptions(languageServices), IdeAnalyzerOptions.GetDefault(languageServices), language);
-        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetCodeActionOptions(languageServices), CodeActionOptions.GetDefault(languageServices), language);
+        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetCodeActionOptions(languageServices), CodeActionOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetBraceMatchingOptions(language), BraceMatchingOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetFindUsagesOptions(language), FindUsagesOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetInlineHintsOptions(language), InlineHintsOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetAutoFormattingOptions(language), AutoFormattingOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetBlockStructureOptions(language, isMetadataAsSource: false), BlockStructureOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetDocumentationCommentOptions(globalOptions.GetLineFormattingOptions(language), language), DocumentationCommentOptions.Default, language);
-        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetExtractMethodOptions(language), ExtractMethodOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetImplementTypeOptions(language), ImplementTypeOptions.Default, language);
-        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetMetadataAsSourceOptions(languageServices), MetadataAsSourceOptions.GetDefault(languageServices), language);
-        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetSignatureHelpOptions(language), SignatureHelpOptions.Default, language);
+        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetMetadataAsSourceOptions(), MetadataAsSourceOptions.Default, language);
+        VerifyDataMembersHaveNonDefaultValues(globalOptions.GetMemberDisplayOptions(language), MemberDisplayOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetSymbolSearchOptions(language), SymbolSearchOptions.Default, language);
         VerifyDataMembersHaveNonDefaultValues(globalOptions.GetWorkspaceConfigurationOptions(), WorkspaceConfigurationOptions.Default);
     }

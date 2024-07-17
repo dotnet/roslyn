@@ -201,9 +201,6 @@
   <data name="XML_Doc_Comments_Attribute_Value" xml:space="preserve">
     <value>XML Doc Comments - Attribute Value</value>
   </data>
-  <data name="Unnecessary_Code" xml:space="preserve">
-    <value>Unnecessary Code</value>
-  </data>
   <data name="Rude_Edit" xml:space="preserve">
     <value>Rude Edit</value>
   </data>
@@ -221,9 +218,6 @@
   </data>
   <data name="_0_unresolvable_conflict_s" xml:space="preserve">
     <value>{0} unresolvable conflict(s)</value>
-  </data>
-  <data name="Applying_0" xml:space="preserve">
-    <value>Applying "{0}"...</value>
   </data>
   <data name="Adding_0_to_1_with_content_colon" xml:space="preserve">
     <value>Adding '{0}' to '{1}' with content:</value>
@@ -258,9 +252,6 @@
   <data name="Encapsulate_Field" xml:space="preserve">
     <value>Encapsulate Field</value>
   </data>
-  <data name="Applying_Encapsulate_Field_refactoring" xml:space="preserve">
-    <value>Applying "Encapsulate Field" refactoring...</value>
-  </data>
   <data name="Please_select_the_definition_of_the_field_to_encapsulate" xml:space="preserve">
     <value>Please select the definition of the field to encapsulate.</value>
   </data>
@@ -276,9 +267,6 @@
   <data name="No_information_found" xml:space="preserve">
     <value>No information found.</value>
   </data>
-  <data name="No_usages_found" xml:space="preserve">
-    <value>No usages found.</value>
-  </data>
   <data name="Implements_" xml:space="preserve">
     <value>Implements</value>
   </data>
@@ -291,53 +279,11 @@
   <data name="Overridden_By" xml:space="preserve">
     <value>Overridden By</value>
   </data>
-  <data name="Directly_Called_In" xml:space="preserve">
-    <value>Directly Called In</value>
-  </data>
-  <data name="Indirectly_Called_In" xml:space="preserve">
-    <value>Indirectly Called In</value>
-  </data>
-  <data name="Called_In" xml:space="preserve">
-    <value>Called In</value>
-  </data>
-  <data name="Referenced_In" xml:space="preserve">
-    <value>Referenced In</value>
-  </data>
   <data name="No_references_found" xml:space="preserve">
     <value>No references found.</value>
   </data>
-  <data name="No_derived_types_found" xml:space="preserve">
-    <value>No derived types found.</value>
-  </data>
-  <data name="No_implementations_found" xml:space="preserve">
-    <value>No implementations found.</value>
-  </data>
-  <data name="_0_Line_1" xml:space="preserve">
-    <value>{0} - (Line {1})</value>
-  </data>
-  <data name="Class_Parts" xml:space="preserve">
-    <value>Class Parts</value>
-  </data>
-  <data name="Struct_Parts" xml:space="preserve">
-    <value>Struct Parts</value>
-  </data>
-  <data name="Interface_Parts" xml:space="preserve">
-    <value>Interface Parts</value>
-  </data>
-  <data name="Type_Parts" xml:space="preserve">
-    <value>Type Parts</value>
-  </data>
   <data name="Inherits_" xml:space="preserve">
     <value>Inherits</value>
-  </data>
-  <data name="Inherited_By" xml:space="preserve">
-    <value>Inherited By</value>
-  </data>
-  <data name="Already_tracking_document_with_identical_key" xml:space="preserve">
-    <value>Already tracking document with identical key</value>
-  </data>
-  <data name="document_is_not_currently_being_tracked" xml:space="preserve">
-    <value>document is not currently being tracked</value>
   </data>
   <data name="Computing_Rename_information" xml:space="preserve">
     <value>Computing Rename information...</value>
@@ -369,17 +315,8 @@
   <data name="Automatically_completing" xml:space="preserve">
     <value>Automatically completing...</value>
   </data>
-  <data name="Automatic_Pair_Completion" xml:space="preserve">
-    <value>Automatic Pair Completion</value>
-  </data>
   <data name="An_active_inline_rename_session_is_still_active_Complete_it_before_starting_a_new_one" xml:space="preserve">
     <value>An active inline rename session is still active. Complete it before starting a new one.</value>
-  </data>
-  <data name="The_buffer_is_not_part_of_a_workspace" xml:space="preserve">
-    <value>The buffer is not part of a workspace.</value>
-  </data>
-  <data name="The_token_is_not_contained_in_the_workspace" xml:space="preserve">
-    <value>The token is not contained in the workspace.</value>
   </data>
   <data name="You_cannot_rename_this_element_because_it_is_contained_in_a_read_only_file" xml:space="preserve">
     <value>You cannot rename this element because it is contained in a read-only file.</value>
@@ -393,17 +330,8 @@
   <data name="Refreshing_navigation_bars" xml:space="preserve">
     <value>Refreshing navigation bars...</value>
   </data>
-  <data name="Format_Token" xml:space="preserve">
-    <value>Format Token</value>
-  </data>
   <data name="Find_References" xml:space="preserve">
     <value>Find References</value>
-  </data>
-  <data name="Finding_references" xml:space="preserve">
-    <value>Finding references...</value>
-  </data>
-  <data name="Finding_references_of_0" xml:space="preserve">
-    <value>Finding references of "{0}"...</value>
   </data>
   <data name="Comment_Selection" xml:space="preserve">
     <value>Comment Selection</value>
@@ -432,17 +360,11 @@
   <data name="Applying_Extract_Method_refactoring" xml:space="preserve">
     <value>Applying "Extract Method" refactoring...</value>
   </data>
-  <data name="Format_Document" xml:space="preserve">
-    <value>Format Document</value>
-  </data>
   <data name="Formatting_document" xml:space="preserve">
     <value>Formatting document...</value>
   </data>
   <data name="Formatting" xml:space="preserve">
     <value>Formatting</value>
-  </data>
-  <data name="Format_Selection" xml:space="preserve">
-    <value>Format Selection</value>
   </data>
   <data name="Formatting_currently_selected_text" xml:space="preserve">
     <value>Formatting currently selected text...</value>
@@ -471,9 +393,6 @@
   <data name="Inline_Rename_Fixup" xml:space="preserve">
     <value>Inline Rename Fixup</value>
   </data>
-  <data name="Inline_Rename_Resolved_Conflict" xml:space="preserve">
-    <value>Inline Rename Resolved Conflict</value>
-  </data>
   <data name="Inline_Rename" xml:space="preserve">
     <value>Inline Rename</value>
   </data>
@@ -482,9 +401,6 @@
   </data>
   <data name="Start_Rename" xml:space="preserve">
     <value>Start Rename</value>
-  </data>
-  <data name="Display_conflict_resolutions" xml:space="preserve">
-    <value>Display conflict resolutions</value>
   </data>
   <data name="Finding_token_to_rename" xml:space="preserve">
     <value>Finding token to rename...</value>
@@ -510,20 +426,8 @@
   <data name="Rename_colon_0" xml:space="preserve">
     <value>Rename: {0}</value>
   </data>
-  <data name="Light_bulb_session_is_already_dismissed" xml:space="preserve">
-    <value>Light bulb session is already dismissed.</value>
-  </data>
-  <data name="Automatic_Pair_Completion_End_Point_Marker_Color" xml:space="preserve">
-    <value>Automatic Pair Completion End Point Marker Color</value>
-  </data>
   <data name="Engine_must_be_attached_to_an_Interactive_Window" xml:space="preserve">
     <value>Engine must be attached to an Interactive Window.</value>
-  </data>
-  <data name="Changes_the_current_prompt_settings" xml:space="preserve">
-    <value>Changes the current prompt settings.</value>
-  </data>
-  <data name="Unexpected_text_colon_0" xml:space="preserve">
-    <value>Unexpected text: '{0}'</value>
   </data>
   <data name="The_triggerSpan_is_not_included_in_the_given_workspace" xml:space="preserve">
     <value>The triggerSpan is not included in the given workspace.</value>
@@ -533,9 +437,6 @@
   </data>
   <data name="The_transaction_is_already_complete" xml:space="preserve">
     <value>The transaction is already complete.</value>
-  </data>
-  <data name="Not_a_source_error_line_column_unavailable" xml:space="preserve">
-    <value>Not a source error, line/column unavailable</value>
   </data>
   <data name="Can_t_compare_positions_from_different_text_snapshots" xml:space="preserve">
     <value>Can't compare positions from different text snapshots</value>
@@ -585,9 +486,6 @@
   <data name="Preview_Changes" xml:space="preserve">
     <value>Preview Changes</value>
   </data>
-  <data name="Format_Paste" xml:space="preserve">
-    <value>Format Paste</value>
-  </data>
   <data name="Formatting_pasted_text" xml:space="preserve">
     <value>Formatting pasted text...</value>
   </data>
@@ -628,9 +526,6 @@ Do you want to proceed?</value>
   <data name="Calls_To_Interface_Implementation_0" xml:space="preserve">
     <value>Calls To Interface Implementation '{0}'</value>
   </data>
-  <data name="Computing_Call_Hierarchy_Information" xml:space="preserve">
-    <value>Computing Call Hierarchy Information</value>
-  </data>
   <data name="Implements_0" xml:space="preserve">
     <value>Implements '{0}'</value>
   </data>
@@ -652,26 +547,26 @@ Do you want to proceed?</value>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
+  <data name="Run" xml:space="preserve">
+    <value>Run</value>
+  </data>
   <data name="Changes" xml:space="preserve">
     <value>Changes</value>
   </data>
   <data name="Preview_changes2" xml:space="preserve">
     <value>Preview changes</value>
   </data>
+  <data name="Refine_using_Copilot" xml:space="preserve">
+    <value>Refine using Copilot</value>
+  </data>
   <data name="IntelliSense" xml:space="preserve">
     <value>IntelliSense</value>
-  </data>
-  <data name="IntelliSense_Commit_Formatting" xml:space="preserve">
-    <value>IntelliSense Commit Formatting</value>
   </data>
   <data name="Rename_Tracking" xml:space="preserve">
     <value>Rename Tracking</value>
   </data>
   <data name="Removing_0_from_1_with_content_colon" xml:space="preserve">
     <value>Removing '{0}' from '{1}' with content:</value>
-  </data>
-  <data name="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation" xml:space="preserve">
-    <value>'{0}' does not support the '{1}' operation. However, it may contain nested '{2}'s (see '{2}.{3}') that support this operation.</value>
   </data>
   <data name="Brace_Completion" xml:space="preserve">
     <value>Brace Completion</value>
@@ -715,11 +610,14 @@ Do you want to proceed?</value>
   <data name="Navigating" xml:space="preserve">
     <value>Navigating...</value>
   </data>
-  <data name="Suggestion_ellipses" xml:space="preserve">
-    <value>Suggestion ellipses (…)</value>
-  </data>
   <data name="_0_declarations" xml:space="preserve">
     <value>'{0}' declarations</value>
+  </data>
+  <data name="_0_declarations_and_interceptors" xml:space="preserve">
+    <value>'{0}' declarations and interceptors</value>
+  </data>
+  <data name="_0_intercepted_locations" xml:space="preserve">
+    <value>'{0}' intercepted locations</value>
   </data>
   <data name="An_inline_rename_session_is_active_for_identifier_0" xml:space="preserve">
     <value>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</value>
@@ -739,9 +637,6 @@ Do you want to proceed?</value>
   </data>
   <data name="Comment_Uncomment_Selection" xml:space="preserve">
     <value>Comment/Uncomment Selection</value>
-  </data>
-  <data name="Code_Completion" xml:space="preserve">
-    <value>Code Completion</value>
   </data>
   <data name="Execute_In_Interactive" xml:space="preserve">
     <value>Execute In Interactive</value>
@@ -770,29 +665,11 @@ Do you want to proceed?</value>
   <data name="Signature_Help" xml:space="preserve">
     <value>Signature Help</value>
   </data>
-  <data name="Smart_Token_Formatter" xml:space="preserve">
-    <value>Smart Token Formatter</value>
-  </data>
-  <data name="Code_cleanup_is_not_configured" xml:space="preserve">
-    <value>Code cleanup is not configured</value>
-  </data>
-  <data name="Format_document_performed_additional_cleanup" xml:space="preserve">
-    <value>Format Document performed additional cleanup</value>
-  </data>
-  <data name="Configure_it_now" xml:space="preserve">
-    <value>Configure it now</value>
-  </data>
-  <data name="Do_not_show_this_message_again" xml:space="preserve">
-    <value>Do not show this message again</value>
-  </data>
   <data name="Applying_changes" xml:space="preserve">
     <value>Applying changes</value>
   </data>
   <data name="String_Escape_Character" xml:space="preserve">
     <value>String - Escape Character</value>
-  </data>
-  <data name="Change_configuration" xml:space="preserve">
-    <value>Change configuration</value>
   </data>
   <data name="Paste_Tracking" xml:space="preserve">
     <value>Paste Tracking</value>
@@ -905,12 +782,6 @@ Do you want to proceed?</value>
   </data>
   <data name="Get_help_for_0" xml:space="preserve">
     <value>Get help for '{0}'</value>
-  </data>
-  <data name="Gathering_Suggestions_0" xml:space="preserve">
-    <value>Gathering Suggestions - '{0}'</value>
-  </data>
-  <data name="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load" xml:space="preserve">
-    <value>Gathering Suggestions - Waiting for the solution to fully load</value>
   </data>
   <data name="Reassigned_variable" xml:space="preserve">
     <value>Reassigned variable</value>
@@ -1054,5 +925,32 @@ Do you want to proceed?</value>
   </data>
   <data name="Rename_operation_could_not_complete_due_to_external_change_to_workspace" xml:space="preserve">
     <value>Rename operation could not complete due to external change to workspace</value>
+  </data>
+  <data name="Roslyn_Test_Code" xml:space="preserve">
+    <value>Roslyn Test Code</value>
+  </data>
+  <data name="Roslyn_Test_Code_Markup" xml:space="preserve">
+    <value>Roslyn Test Code Markup</value>
+  </data>
+  <data name="Obsolete_symbol" xml:space="preserve">
+    <value>Obsolete symbol</value>
+  </data>
+  <data name="Copilot" xml:space="preserve">
+    <value>Copilot</value>
+  </data>
+  <data name="Copilot_thinking" xml:space="preserve">
+    <value>Copilot thinking...</value>
+  </data>
+  <data name="Generate_summary_with_Copilot" xml:space="preserve">
+    <value>Generate summary with Copilot (might be inaccurate)</value>
+  </data>
+  <data name="Describe_with_Copilot" xml:space="preserve">
+    <value>Describe with Copilot</value>
+  </data>
+  <data name="On_the_fly_documentation" xml:space="preserve">
+    <value>On-the-fly documentation</value>
+  </data>
+  <data name="An_error_occurred_while_generating_documentation_for_this_code" xml:space="preserve">
+    <value>An error occurred while generating documentation for this code.</value>
   </data>
 </root>

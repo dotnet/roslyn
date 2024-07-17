@@ -442,6 +442,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _underlyingType.HasCollectionBuilderAttribute(out builderType, out methodName);
         }
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            return _underlyingType.HasAsyncMethodBuilderAttribute(out builderArgument);
+        }
 #nullable disable
 
         internal override IEnumerable<MethodSymbol> GetMethodsToEmit()
@@ -465,7 +470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override bool IsFileLocal => _underlyingType.IsFileLocal;
-        internal sealed override FileIdentifier? AssociatedFileIdentifier => _underlyingType.AssociatedFileIdentifier;
+        internal sealed override FileIdentifier AssociatedFileIdentifier => _underlyingType.AssociatedFileIdentifier;
 
         internal sealed override NamedTypeSymbol AsNativeInteger() => throw ExceptionUtilities.Unreachable();
 

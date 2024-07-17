@@ -3,15 +3,19 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.IO.Hashing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -27,12 +31,19 @@ namespace Microsoft.CodeAnalysis.Text
         internal const int LargeObjectHeapLimitInChars = 40 * 1024; // 40KB
 
         private static readonly ObjectPool<char[]> s_charArrayPool = new ObjectPool<char[]>(() => new char[CharBufferSize], CharBufferCount);
+        private static readonly ObjectPool<XxHash128> s_contentHashPool = new ObjectPool<XxHash128>(() => new XxHash128());
 
         private readonly SourceHashAlgorithm _checksumAlgorithm;
         private SourceTextContainer? _lazyContainer;
         private TextLineCollection? _lazyLineInfo;
+
+        /// <summary>
+        /// Backing store of <see cref="GetChecksum"/>
+        /// </summary>
         private ImmutableArray<byte> _lazyChecksum;
         private readonly ImmutableArray<byte> _precomputedEmbeddedTextBlob;
+
+        private ImmutableArray<byte> _lazyContentHash;
 
         private static readonly Encoding s_utf8EncodingWithNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: false);
 
@@ -190,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Text
             if (stream.CanSeek)
             {
                 // If the resulting string would end up on the large object heap, then use LargeEncodedText.
-                if (encoding.GetMaxCharCountOrThrowIfHuge(stream) >= LargeObjectHeapLimitInChars)
+                if (GetMaxCharCountOrThrowIfHuge(encoding, stream) >= LargeObjectHeapLimitInChars)
                 {
                     return LargeText.Decode(stream, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded);
                 }
@@ -560,6 +571,27 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
+        /// <summary>
+        /// Cryptographic checksum determined by <see cref="ChecksumAlgorithm"/>.  Computed using the original bytes
+        /// that were used to produce this <see cref="SourceText"/> (if any of the <c>From</c> methods were used that
+        /// take a <c>byte[]</c> or <see cref="Stream"/>).  Otherwise, computed by writing this <see cref="SourceText"/>
+        /// back to a <see cref="Stream"/> (using the provided <see cref="Encoding"/>), and computing the hash off of
+        /// that.
+        /// </summary>
+        /// <remarks>
+        /// Two different <see cref="SourceText"/> instances with the same content (see <see cref="ContentEquals"/>) may
+        /// have different results for this method.  This is because different originating bytes may end up with the
+        /// same final content.  For example, a utf8 stream with a byte-order-mark will produce the same contents as a
+        /// utf8 stream without one.  However, these preamble bytes will be part of the checksum, leading to different
+        /// results.
+        /// <para/>
+        /// Similarly, two different <see cref="SourceText"/> instances with <em>different</em> contents can have the
+        /// same checksum in <em>normal</em> scenarios.  This is because the use of the <see cref="Encoding"/> can lead
+        /// to different characters being mapped to the same sequence of <em>encoded</em> bytes.
+        /// <para/>
+        /// As such, this function should only be used by clients who need to know the exact SHA hash from the original
+        /// content bytes, and for no other purposes. 
+        /// </remarks>
         public ImmutableArray<byte> GetChecksum()
         {
             if (_lazyChecksum.IsDefault)
@@ -571,6 +603,62 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             return _lazyChecksum;
+        }
+
+        /// <summary>
+        /// Produces a hash of this <see cref="SourceText"/> based solely on the contents it contains.  Two different
+        /// <see cref="SourceText"/> instances that are <see cref="ContentEquals"/> will have the same content hash. Two
+        /// instances of <see cref="SourceText"/> with different content are virtually certain to not have the same
+        /// hash.  This hash can be used for fingerprinting of text instances, but does not provide cryptographic
+        /// guarantees.
+        /// </summary>
+        /// <remarks>
+        /// This hash is safe to use across platforms and across processes, as long as the same version of Roslyn is
+        /// used in all those locations.  As such, it is safe to use as a fast proxy for comparing text instances in
+        /// different memory spaces.  Different versions of Roslyn may produce different content hashes.
+        /// </remarks>
+        public ImmutableArray<byte> GetContentHash()
+        {
+            if (_lazyContentHash.IsDefault)
+            {
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyContentHash, computeContentHash());
+            }
+
+            return _lazyContentHash;
+
+            ImmutableArray<byte> computeContentHash()
+            {
+                var hash = s_contentHashPool.Allocate();
+                var charBuffer = s_charArrayPool.Allocate();
+                Debug.Assert(charBuffer.Length == CharBufferSize);
+                try
+                {
+                    // Grab chunks of this SourceText, copying into 'charBuffer'.  Then reinterpret that buffer as a
+                    // Span<byte> and append into the running hash.
+                    for (int index = 0, length = this.Length; index < length; index += CharBufferSize)
+                    {
+                        var charsToCopy = Math.Min(CharBufferSize, length - index);
+                        this.CopyTo(
+                            sourceIndex: index, destination: charBuffer,
+                            destinationIndex: 0, count: charsToCopy);
+
+                        hash.Append(MemoryMarshal.AsBytes(charBuffer.AsSpan(0, charsToCopy)));
+                    }
+
+                    // Switch this to ImmutableCollectionsMarshal.AsImmutableArray(hash.GetHashAndReset()) when we move to S.C.I v8.
+                    Span<byte> destination = stackalloc byte[128 / 8];
+                    hash.GetHashAndReset(destination);
+                    return destination.ToImmutableArray();
+                }
+                finally
+                {
+                    s_charArrayPool.Free(charBuffer);
+
+                    // Technically not needed.  But adding this reset out of an abundance of paranoia.
+                    hash.Reset();
+                    s_contentHashPool.Free(hash);
+                }
+            }
         }
 
         internal static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
@@ -855,28 +943,28 @@ namespace Microsoft.CodeAnalysis.Text
         internal sealed class LineInfo : TextLineCollection
         {
             private readonly SourceText _text;
-            private readonly int[] _lineStarts;
+            private readonly SegmentedList<int> _lineStarts;
             private int _lastLineNumber;
 
-            public LineInfo(SourceText text, int[] lineStarts)
+            public LineInfo(SourceText text, SegmentedList<int> lineStarts)
             {
                 _text = text;
                 _lineStarts = lineStarts;
             }
 
-            public override int Count => _lineStarts.Length;
+            public override int Count => _lineStarts.Count;
 
             public override TextLine this[int index]
             {
                 get
                 {
-                    if (index < 0 || index >= _lineStarts.Length)
+                    if (index < 0 || index >= _lineStarts.Count)
                     {
                         throw new ArgumentOutOfRangeException(nameof(index));
                     }
 
                     int start = _lineStarts[index];
-                    if (index == _lineStarts.Length - 1)
+                    if (index == _lineStarts.Count - 1)
                     {
                         return TextLine.FromSpan(_text, TextSpan.FromBounds(start, _text.Length));
                     }
@@ -902,7 +990,7 @@ namespace Microsoft.CodeAnalysis.Text
                 var lastLineNumber = _lastLineNumber;
                 if (position >= _lineStarts[lastLineNumber])
                 {
-                    var limit = Math.Min(_lineStarts.Length, lastLineNumber + 4);
+                    var limit = Math.Min(_lineStarts.Count, lastLineNumber + 4);
                     for (int i = lastLineNumber; i < limit; i++)
                     {
                         if (position < _lineStarts[i])
@@ -953,16 +1041,20 @@ namespace Microsoft.CodeAnalysis.Text
             s_charArrayPool.Free(buffer);
         }
 
-        private int[] ParseLineStarts()
+        private SegmentedList<int> ParseLineStarts()
         {
             // Corner case check
             if (0 == this.Length)
             {
-                return new[] { 0 };
+                return [0];
             }
 
-            var lineStarts = ArrayBuilder<int>.GetInstance();
-            lineStarts.Add(0); // there is always the first line
+            // Initial line capacity estimated at 64 chars / line. This value was obtained by
+            // looking at ratios in large files in the roslyn repo.
+            var lineStarts = new SegmentedList<int>(Length / 64)
+            {
+                0 // there is always the first line
+            };
 
             var lastWasCR = false;
 
@@ -1020,7 +1112,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             });
 
-            return lineStarts.ToArrayAndFree();
+            return lineStarts;
         }
         #endregion
 
@@ -1034,13 +1126,19 @@ namespace Microsoft.CodeAnalysis.Text
                 return true;
             }
 
-            // Checksum may be provided by a subclass, which is thus responsible for passing us a true hash.
-            ImmutableArray<byte> leftChecksum = _lazyChecksum;
-            ImmutableArray<byte> rightChecksum = other._lazyChecksum;
-            if (!leftChecksum.IsDefault && !rightChecksum.IsDefault && this.Encoding == other.Encoding && this.ChecksumAlgorithm == other.ChecksumAlgorithm)
-            {
-                return leftChecksum.SequenceEqual(rightChecksum);
-            }
+            // Content hashing provides strong enough guarantees (see
+            // https://github.com/Cyan4973/xxHash/wiki/Collision-ratio-comparison#testing-128-bit-hashes-) to be certain
+            // about content equality based solely on hash equality.
+            //
+            // DO NOT examine '_lazyChecksum' in this method.  Checksums (as opposed to hashes) do not provide the same
+            // guarantee.  Indeed, due to the user of lossy encodings, it's easily possible to have source texts with
+            // different contents that produce the same checksums.  As an example, the Encoding.ASCII encoding maps many
+            // System.Char values down to the ascii `?` character, leading to easy collisions at the checksum level.
+
+            var leftContentHash = _lazyContentHash;
+            var rightContentHash = other._lazyContentHash;
+            if (!leftContentHash.IsDefault && !rightContentHash.IsDefault)
+                return leftContentHash.SequenceEqual(rightContentHash);
 
             return ContentEqualsImpl(other);
         }
@@ -1067,24 +1165,19 @@ namespace Microsoft.CodeAnalysis.Text
 
             var buffer1 = s_charArrayPool.Allocate();
             var buffer2 = s_charArrayPool.Allocate();
+            Debug.Assert(buffer1.Length == buffer2.Length);
+            Debug.Assert(buffer1.Length == CharBufferSize);
+
             try
             {
-                int position = 0;
-                while (position < this.Length)
+                for (int position = 0, length = this.Length; position < length; position += CharBufferSize)
                 {
-                    int n = Math.Min(this.Length - position, buffer1.Length);
-                    this.CopyTo(position, buffer1, 0, n);
-                    other.CopyTo(position, buffer2, 0, n);
+                    var count = Math.Min(this.Length - position, CharBufferSize);
+                    this.CopyTo(sourceIndex: position, buffer1, destinationIndex: 0, count);
+                    other.CopyTo(sourceIndex: position, buffer2, destinationIndex: 0, count);
 
-                    for (int i = 0; i < n; i++)
-                    {
-                        if (buffer1[i] != buffer2[i])
-                        {
-                            return false;
-                        }
-                    }
-
-                    position += n;
+                    if (!buffer1.AsSpan(0, count).SequenceEqual(buffer2.AsSpan(0, count)))
+                        return false;
                 }
 
                 return true;
@@ -1168,6 +1261,22 @@ namespace Microsoft.CodeAnalysis.Text
                     // do nothing
                 }
             }
+        }
+
+        /// <summary>
+        /// Get maximum char count needed to decode the entire stream.
+        /// </summary>
+        /// <exception cref="IOException">Stream is so big that max char count can't fit in <see cref="int"/>.</exception> 
+        internal static int GetMaxCharCountOrThrowIfHuge(Encoding encoding, Stream stream)
+        {
+            Debug.Assert(stream.CanSeek);
+
+            if (encoding.TryGetMaxCharCount(stream.Length, out int maxCharCount))
+            {
+                return maxCharCount;
+            }
+
+            throw new IOException(CodeAnalysisResources.StreamIsTooLong);
         }
     }
 }

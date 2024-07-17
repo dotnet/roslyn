@@ -6,18 +6,17 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
 
-namespace Microsoft.CodeAnalysis.DocumentHighlighting
+namespace Microsoft.CodeAnalysis.DocumentHighlighting;
+
+/// <inheritdoc cref="IDocumentHighlightsService"/>
+internal interface IEmbeddedLanguageDocumentHighlighter : IEmbeddedLanguageFeatureService
 {
-    /// <inheritdoc cref="IDocumentHighlightsService"/>
-    internal interface IEmbeddedLanguageDocumentHighlighter : IEmbeddedLanguageFeatureService
-    {
-        /// <inheritdoc cref="IDocumentHighlightsService.GetDocumentHighlightsAsync"/>
-        ImmutableArray<DocumentHighlights> GetDocumentHighlights(
-            Document document,
-            SemanticModel semanticModel,
-            SyntaxToken token,
-            int position,
-            HighlightingOptions options,
-            CancellationToken cancellationToken);
-    }
+    /// <inheritdoc cref="IDocumentHighlightsService.GetDocumentHighlightsAsync"/>
+    ImmutableArray<DocumentHighlights> GetDocumentHighlights(
+        Document document,
+        SemanticModel semanticModel,
+        SyntaxToken token,
+        int position,
+        HighlightingOptions options,
+        CancellationToken cancellationToken);
 }

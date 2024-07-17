@@ -226,6 +226,7 @@ public class VisualStudioOptionStorageTests
             "dotnet_style_operator_placement_when_wrapping",                                // Doesn't have VS UI. TODO: https://github.com/dotnet/roslyn/issues/66062
             "dotnet_style_prefer_foreach_explicit_cast_in_source",                          // For a small customer segment, doesn't warrant VS UI.
             "dotnet_binary_log_path",                                                       // VSCode only option for the VS Code project system; does not apply to VS
+            "dotnet_enable_automatic_restore",                                              // VSCode only option for the VS Code project system; does not apply to VS
             "dotnet_lsp_using_devkit",                                                      // VSCode internal only option.  Does not need any UI.
             "dotnet_enable_references_code_lens",                                           // VSCode only option.  Does not apply to VS.
             "dotnet_enable_tests_code_lens",                                                // VSCode only option.  Does not apply to VS.
@@ -234,10 +235,8 @@ public class VisualStudioOptionStorageTests
             "FeatureOnOffOptions_RefactoringVerification",                                  // TODO: remove? https://github.com/dotnet/roslyn/issues/66063 
             "FeatureOnOffOptions_RenameTracking",                                           // TODO: remove? https://github.com/dotnet/roslyn/issues/66063
             "file_header_template",                                                         // repository specific
-            "FormattingOptions_WrappingColumn",                                             // TODO: https://github.com/dotnet/roslyn/issues/66062
+            "dotnet_unsupported_wrapping_column",                                           // TODO: https://github.com/dotnet/roslyn/issues/66062
             "insert_final_newline",                                                         // TODO: https://github.com/dotnet/roslyn/issues/66062
-            "InternalDiagnosticsOptions_LiveShareDiagnosticMode",                           // TODO: remove once switched to LSP diagnostics
-            "InternalDiagnosticsOptions_RazorDiagnosticMode",                               // TODO: remove once switched to LSP diagnostics
             "RazorDesignTimeDocumentFormattingOptions_TabSize",                             // TODO: remove once Razor removes design-time documents
             "RazorDesignTimeDocumentFormattingOptions_UseTabs",                             // TODO: remove once Razor removes design-time documents
             "RecommendationOptions_FilterOutOfScopeLocals",                                 // public option not stored in VS storage

@@ -3,14 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.AutomaticCompletion
+namespace Microsoft.CodeAnalysis.AutomaticCompletion;
+
+internal interface IBraceCompletionServiceFactory : ILanguageService
 {
-    internal interface IBraceCompletionServiceFactory : ILanguageService
-    {
-        IBraceCompletionService? TryGetService(ParsedDocument document, int openingPosition, char openingBrace, CancellationToken cancellationToken);
-    }
+    IBraceCompletionService? TryGetService(ParsedDocument document, int openingPosition, char openingBrace, CancellationToken cancellationToken);
 }

@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -18,6 +16,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.UseCollectionExpression;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
@@ -25,23 +24,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 using static UseCollectionExpressionHelpers;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForArray), Shared]
-internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider
-    : ForkingSyntaxEditorBasedCodeFixProvider<ExpressionSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider()
+    : AbstractUseCollectionExpressionCodeFixProvider<ExpressionSyntax>(
+        CSharpCodeFixesResources.Use_collection_expression,
+        IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId)
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpUseCollectionExpressionForArrayCodeFixProvider()
-        : base(CSharpCodeFixesResources.Use_collection_expression,
-               IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId)
-    {
-    }
-
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseCollectionExpressionForArrayDiagnosticId];
 
     protected sealed override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         ExpressionSyntax arrayCreationExpression,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
@@ -70,13 +64,13 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider
         else
         {
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var matches = GetMatches(semanticModel, arrayCreationExpression);
+            var expressionType = semanticModel.Compilation.ExpressionOfTType();
+            var matches = GetMatches(semanticModel, arrayCreationExpression, expressionType);
             if (matches.IsDefault)
                 return;
 
             var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
                 document,
-                fallbackOptions,
                 arrayCreationExpression,
                 matches,
                 static e => e switch
@@ -103,18 +97,17 @@ internal partial class CSharpUseCollectionExpressionForArrayCodeFixProvider
         static bool IsOnSingleLine(SourceText sourceText, SyntaxNode node)
             => sourceText.AreOnSameLine(node.GetFirstToken(), node.GetLastToken());
 
-        ImmutableArray<CollectionExpressionMatch<StatementSyntax>> GetMatches(SemanticModel semanticModel, ExpressionSyntax expression)
+        ImmutableArray<CollectionExpressionMatch<StatementSyntax>> GetMatches(
+            SemanticModel semanticModel, ExpressionSyntax expression, INamedTypeSymbol? expressionType)
             => expression switch
             {
-                // if we have `new[] { ... }` we have no subsequent matches to add to the collection. All values come
-                // from within the initializer.
-                ImplicitArrayCreationExpressionSyntax
-                    => ImmutableArray<CollectionExpressionMatch<StatementSyntax>>.Empty,
+                ImplicitArrayCreationExpressionSyntax arrayCreation
+                    => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(
+                        semanticModel, arrayCreation, expressionType, allowSemanticsChange: true, cancellationToken, out _),
 
-                // we have `stackalloc T[...] ...;` defer to analyzer to find the items that follow that may need to
-                // be added to the collection expression.
                 ArrayCreationExpressionSyntax arrayCreation
-                    => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(semanticModel, arrayCreation, cancellationToken),
+                    => CSharpUseCollectionExpressionForArrayDiagnosticAnalyzer.TryGetMatches(
+                        semanticModel, arrayCreation, expressionType, allowSemanticsChange: true, cancellationToken, out _),
 
                 // We validated this is unreachable in the caller.
                 _ => throw ExceptionUtilities.Unreachable(),

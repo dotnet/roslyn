@@ -11,6 +11,12 @@ schedules:
     - main
     - main-vs-deps
 
+variables:
+- name: Codeql.Enabled
+  value: false
+- name: Codeql.SkipTaskAutoInjection
+  value: true
+
 parameters:
 - name: poolName
   displayName: Pool Name
@@ -34,62 +40,30 @@ parameters:
   default: 150
 
 stages:
-- stage: Debug_Integration
-  dependsOn: []
-  variables:
-  - name: XUNIT_LOGS
-    value: $(Build.SourcesDirectory)\artifacts\log\Debug
-  jobs:
-  - job: VS_Integration_Debug_32
-    pool:
-      name: ${{ parameters.poolName }}
-      demands: ImageOverride -equals ${{ parameters.queueName }}
-    timeoutInMinutes: ${{ parameters.timeout }}
-    steps:
-      - template: eng/pipelines/test-integration-job.yml
-        parameters:
-          configuration: Debug
-          oop64bit: false
-          lspEditor: false
+- template: eng/pipelines/test-integration-helix.yml
+  parameters:
+    poolName: ${{ parameters.poolName }}
+    queueName: ${{ parameters.queueName }}
+    timeout: ${{ parameters.timeout }}
+    configuration: Debug
+    testRuns:
+      - oop64bit: false
+        lspEditor: false
+        runName: VS_Integration_Debug_32
+      - oop64bit: true
+        lspEditor: false
+        runName: VS_Integration_Debug_64
 
-  - job: VS_Integration_Debug_64
-    pool:
-      name: ${{ parameters.poolName }}
-      demands: ImageOverride -equals ${{ parameters.queueName }}
-    timeoutInMinutes: ${{ parameters.timeout }}
-    steps:
-      - template: eng/pipelines/test-integration-job.yml
-        parameters:
-          configuration: Debug
-          oop64bit: true
-          lspEditor: false
-
-- stage: Release_Integration
-  dependsOn: []
-  variables:
-  - name: XUNIT_LOGS
-    value: $(Build.SourcesDirectory)\artifacts\log\Release
-  jobs:
-  - job: VS_Integration_Release_32
-    pool:
-      name: ${{ parameters.poolName }}
-      demands: ImageOverride -equals ${{ parameters.queueName }}
-    timeoutInMinutes: ${{ parameters.timeout }}
-    steps:
-      - template: eng/pipelines/test-integration-job.yml
-        parameters:
-          configuration: Release
-          oop64bit: false
-          lspEditor: false
-
-  - job: VS_Integration_Release_64
-    pool:
-      name: ${{ parameters.poolName }}
-      demands: ImageOverride -equals ${{ parameters.queueName }}
-    timeoutInMinutes: ${{ parameters.timeout }}
-    steps:
-      - template: eng/pipelines/test-integration-job.yml
-        parameters:
-          configuration: Release
-          oop64bit: true
-          lspEditor: false
+- template: eng/pipelines/test-integration-helix.yml
+  parameters:
+    poolName: ${{ parameters.poolName }}
+    queueName: ${{ parameters.queueName }}
+    timeout: ${{ parameters.timeout }}
+    configuration: Release
+    testRuns:
+      - oop64bit: false
+        lspEditor: false
+        runName: VS_Integration_Release_32
+      - oop64bit: true
+        lspEditor: false
+        runName: VS_Integration_Release_64

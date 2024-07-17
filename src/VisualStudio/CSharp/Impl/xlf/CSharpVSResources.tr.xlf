@@ -32,11 +32,6 @@
         <target state="translated">Aynı satırda katıştırılmış ifadelere izin ver</target>
         <note />
       </trans-unit>
-      <trans-unit id="Apply_all_csharp_formatting_rules_indentation_wrapping_spacing">
-        <source>Apply all C# formatting rules (indentation, wrapping, spacing)</source>
-        <target state="translated">Tüm C# biçimlendirme kurallarını (girinti, kaydırma, boşluklar) uygula</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Automatically_complete_statement_on_semicolon">
         <source>Automatically complete statement on semicolon</source>
         <target state="translated">Deyimi noktalı virgülle otomatik olarak tamamla</target>
@@ -59,7 +54,17 @@
       </trans-unit>
       <trans-unit id="CSharp_Interactive">
         <source>C# Interactive</source>
-        <target state="new">C# Interactive</target>
+        <target state="translated">C# Etkileşimli</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CancelQuery">
+        <source>Cancel Query</source>
+        <target state="translated">Sorguyu İptal Et</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CancelQueryCommandToolTip">
+        <source>Cancel (Escape)</source>
+        <target state="translated">İptal (Escape)</target>
         <note />
       </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
@@ -85,11 +90,6 @@
       <trans-unit id="File_scoped">
         <source>File scoped</source>
         <target state="translated">Dosya kapsama alındı</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_document_settings">
-        <source>Format Document Settings (Experiment) </source>
-        <target state="translated">Belge Biçimlendirme Ayarları (Deneme)</target>
         <note />
       </trans-unit>
       <trans-unit id="General">
@@ -130,11 +130,6 @@
       <trans-unit id="Pattern_matching_preferences_colon">
         <source>Pattern matching preferences:</source>
         <target state="translated">Desen eşleştirme tercihleri:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Perform_additional_code_cleanup_during_formatting">
-        <source>Perform additional code cleanup during formatting</source>
-        <target state="translated">Biçimlendirme sırasında ek kod temizleme gerçekleştir</target>
         <note />
       </trans-unit>
       <trans-unit id="Place_open_brace_on_new_line_for_object_collection_array_and_with_initializers">
@@ -187,6 +182,21 @@
         <target state="translated">Gereksiz Kullanımları Kaldır</target>
         <note />
       </trans-unit>
+      <trans-unit id="RunQuery">
+        <source>Run Query</source>
+        <target state="translated">Sorguyu Çalıştır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RunQueryCommandToolTip">
+        <source>Run (Ctrl+Enter)</source>
+        <target state="translated">Çalıştır (Ctrl+Enter)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticSearch">
+        <source>Semantic Search</source>
+        <target state="translated">Anlamsal Arama</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">
         <source>Show hints for 'new' expressions</source>
         <target state="translated">'new' ifadeleri için ipuçlarını göster</target>
@@ -205,11 +215,6 @@
       <trans-unit id="Show_remarks_in_Quick_Info">
         <source>Show remarks in Quick Info</source>
         <target state="translated">Hızlı Bilgi notlarını göster</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Sort_usings">
-        <source>Sort usings</source>
-        <target state="translated">Using’leri sırala</target>
         <note />
       </trans-unit>
       <trans-unit id="Suggest_usings_for_types_in_dotnet_framework_assemblies">
@@ -522,11 +527,6 @@
         <target state="translated">Kullanılmayan yerel</target>
         <note />
       </trans-unit>
-      <trans-unit id="Use_var_when_generating_locals">
-        <source>Use 'var' when generating locals</source>
-        <target state="translated">Yerelleri üretirken 'var' kullan</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Show_procedure_line_separators">
         <source>_Show procedure line separators</source>
         <target state="translated">Yordam satır ayıraçlarını _göster</target>
@@ -650,11 +650,6 @@
       <trans-unit id="Suggest_usings_for_types_in_NuGet_packages">
         <source>Suggest usings for types in _NuGet packages</source>
         <target state="translated">_NuGet paketlerinde türler için using öner</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Inference_preferences_colon">
-        <source>Type Inference preferences:</source>
-        <target state="translated">Tür Çıkarımı tercihleri:</target>
         <note />
       </trans-unit>
       <trans-unit id="For_built_in_types">
@@ -820,16 +815,6 @@
       <trans-unit id="Prefer_pattern_matching_over_as_with_null_check">
         <source>Prefer pattern matching over 'as' with 'null' check</source>
         <target state="translated">'null' ile 'as' denetimi yerine desen eşleştirme kullan</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_block_body">
-        <source>Prefer block body</source>
-        <target state="translated">Blok gövdesini tercih et</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Prefer_expression_body">
-        <source>Prefer expression body</source>
-        <target state="translated">İfade gövdesini tercih et</target>
         <note />
       </trans-unit>
       <trans-unit id="Automatically_format_on_return">

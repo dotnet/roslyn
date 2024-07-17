@@ -2,8 +2,8 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Interop
 
@@ -11,14 +11,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
     Friend Class CodeModelTestState
         Implements IDisposable
 
-        Public ReadOnly Workspace As TestWorkspace
+        Public ReadOnly Workspace As EditorTestWorkspace
         Private ReadOnly _visualStudioWorkspace As VisualStudioWorkspace
         Private ReadOnly _rootCodeModel As ComHandle(Of EnvDTE.CodeModel, RootCodeModel)
         Private ReadOnly _fileCodeModel As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel)?
         Private ReadOnly _codeModelService As ICodeModelService
 
         Public Sub New(
-            workspace As TestWorkspace,
+            workspace As EditorTestWorkspace,
             visualStudioWorkspace As VisualStudioWorkspace,
             rootCodeModel As ComHandle(Of EnvDTE.CodeModel, RootCodeModel),
             fileCodeModel As ComHandle(Of EnvDTE80.FileCodeModel2, FileCodeModel)?,

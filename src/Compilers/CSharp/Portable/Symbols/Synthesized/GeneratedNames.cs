@@ -2,20 +2,17 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal static class GeneratedNames
     {
-        private const char IdSeparator = '_';
-        private const char GenerationSeparator = '#';
-
         internal static bool IsGeneratedMemberName(string memberName)
         {
             return memberName.Length > 0 && memberName[0] == '<';
@@ -137,6 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(entityOrdinal >= -1);
             Debug.Assert(entityGeneration >= 0 || entityGeneration == -1 && entityOrdinal == -1);
             Debug.Assert(entityGeneration == -1 || entityGeneration >= methodGeneration);
+            Debug.Assert(suffixTerminator != GeneratedNameConstants.IdSeparator);
 
             var result = PooledStringBuilder.GetInstance();
             var builder = result.Builder;
@@ -182,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     if (methodOrdinal >= 0)
                     {
-                        builder.Append(IdSeparator);
+                        builder.Append(GeneratedNameConstants.IdSeparator);
                     }
 
                     builder.Append(entityOrdinal);
@@ -197,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (generation > 0)
             {
-                builder.Append(GenerationSeparator);
+                builder.Append(GeneratedNameConstants.GenerationSeparator);
                 builder.Append(generation);
             }
         }
@@ -352,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return MakeMethodScopedSynthesizedName(GeneratedNameKind.DynamicCallSiteContainerType, methodOrdinal, generation,
                                                    suffix: localFunctionOrdinal != -1 ? localFunctionOrdinal.ToString() : null,
-                                                   suffixTerminator: localFunctionOrdinal != -1 ? '_' : default);
+                                                   suffixTerminator: localFunctionOrdinal != -1 ? '|' : default);
         }
 
         internal static string MakeDynamicCallSiteFieldName(int uniqueId)
@@ -361,6 +359,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "<>p__" + StringExtensions.GetNumeral(uniqueId);
         }
 
+        internal const string AnonymousTypeNameWithoutModulePrefix = "<>f__AnonymousType";
+        internal const string AnonymousDelegateNameWithoutModulePrefix = "<>f__AnonymousDelegate";
         internal const string ActionDelegateNamePrefix = "<>A";
         internal const string FuncDelegateNamePrefix = "<>F";
         private const int DelegateNamePrefixLength = 3;
@@ -441,7 +441,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (nameEndIndex < name.Length - 1)
             {
                 // Format is a '#' followed by the generation number
-                if (name[nameEndIndex + 1] != '#')
+                if (name[nameEndIndex + 1] != GeneratedNameConstants.GenerationSeparator)
                 {
                     return false;
                 }
@@ -462,7 +462,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var name = "<>y__InlineArray" + arrayLength;
 
             // Synthesized inline arrays need to have unique name across generations because they are not reused.
-            return (generation > 0) ? name + GenerationSeparator + generation : name;
+            return (generation > 0) ? name + GeneratedNameConstants.GenerationSeparator + generation : name;
+        }
+
+        internal static string MakeSynthesizedReadOnlyListName(SynthesizedReadOnlyListKind kind, int generation)
+        {
+            Debug.Assert((char)GeneratedNameKind.ReadOnlyListType == 'z');
+            string name = kind switch
+            {
+                SynthesizedReadOnlyListKind.Array => "<>z__ReadOnlyArray",
+                SynthesizedReadOnlyListKind.List => "<>z__ReadOnlyList",
+                SynthesizedReadOnlyListKind.SingleElement => "<>z__ReadOnlySingleElementList",
+                var v => throw ExceptionUtilities.UnexpectedValue(v)
+            };
+
+            // Synthesized list types need to have unique name across generations because they are not reused.
+            return (generation > 0) ? name + CommonGeneratedNames.GenerationSeparator + generation : name;
         }
 
         internal static string AsyncBuilderFieldName()
@@ -488,7 +503,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (ownerUniqueId > -1)
             {
-                builder.Append(IdSeparator).Append(ownerUniqueId);
+                builder.Append(GeneratedNameConstants.IdSeparator).Append(ownerUniqueId);
             }
 
             AppendOptionalGeneration(builder, generation);

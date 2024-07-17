@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// called if it is know that this is the Cor Library (mscorlib).
         /// </summary>
         /// <param name="type"></param>
-        internal override NamedTypeSymbol GetDeclaredSpecialType(SpecialType type)
+        internal override NamedTypeSymbol GetDeclaredSpecialType(ExtendedSpecialType type)
         {
 #if DEBUG
             foreach (var module in this.Modules)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_lazySpecialTypes == null)
             {
                 Interlocked.CompareExchange(ref _lazySpecialTypes,
-                    new NamedTypeSymbol[(int)SpecialType.Count + 1], null);
+                    new NamedTypeSymbol[(int)InternalSpecialType.NextAvailable], null);
             }
 
             if ((object)_lazySpecialTypes[(int)type] == null)

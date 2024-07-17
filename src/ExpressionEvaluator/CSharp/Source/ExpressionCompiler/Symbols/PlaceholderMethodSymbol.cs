@@ -279,6 +279,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         protected override bool HasSetsRequiredMembersImpl => throw ExceptionUtilities.Unreachable();
 
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
+
+        internal override int? TryGetOverloadResolutionPriority() => null;
+
 #if DEBUG
         protected override MethodSymbolAdapter CreateCciAdapter()
         {

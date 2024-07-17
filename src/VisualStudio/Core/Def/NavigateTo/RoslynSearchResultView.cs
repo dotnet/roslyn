@@ -2,16 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.NavigateTo;
-using Microsoft.CodeAnalysis.Navigation;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Core.Imaging;
 using Microsoft.VisualStudio.Search.Data;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
@@ -35,7 +29,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
 
             var filePath = _searchResult.NavigableItem.Document.FilePath;
             if (filePath != null)
-                this.FileLocation = new HighlightedText(filePath, Array.Empty<VisualStudio.Text.Span>());
+                this.FileLocation = new HighlightedText(filePath, []);
         }
 
         public override void Invoke(CancellationToken cancellationToken)

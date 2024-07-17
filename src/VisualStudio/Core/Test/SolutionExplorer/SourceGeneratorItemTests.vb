@@ -5,7 +5,8 @@
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Editor.UnitTests
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -25,7 +26,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim projectId = workspace.Projects.Single().Id
 
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
@@ -45,7 +46,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
@@ -70,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
@@ -104,7 +105,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
@@ -122,8 +123,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Function
 
-        <WpfFact>
-        Public Async Function ChangeToRemoveAllGeneratedDocumentsUpdatesListCorrectly() As Task
+        <WpfTheory, CombinatorialData>
+        Friend Async Function ChangeToRemoveAllGeneratedDocumentsUpdatesListCorrectly(
+                preference As SourceGeneratorExecutionPreference) As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
@@ -131,7 +133,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(
+                    workspaceXml,
+                    composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(TestWorkspaceConfigurationService)))
+
+                Dim configService = workspace.ExportProvider.GetExportedValue(Of TestWorkspaceConfigurationService)
+                configService.Options = New WorkspaceConfigurationOptions(SourceGeneratorExecution:=preference)
+
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
@@ -147,19 +155,31 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Await WaitForGeneratorsAndItemSourcesAsync(workspace)
 
-                Assert.IsType(Of NoSourceGeneratedFilesPlaceholderItem)(Assert.Single(generatorFilesItemSource.Items))
+                ' In balanced-mode the SG file won't go away until a save/build happens.
+                If preference = SourceGeneratorExecutionPreference.Automatic Then
+                    Assert.IsType(Of NoSourceGeneratedFilesPlaceholderItem)(Assert.Single(generatorFilesItemSource.Items))
+                Else
+                    Assert.IsType(Of SourceGeneratedFileItem)(Assert.Single(generatorFilesItemSource.Items))
+                End If
             End Using
         End Function
 
-        <WpfFact>
-        Public Async Function AddingAGeneratedDocumentUpdatesListCorrectly() As Task
+        <WpfTheory, CombinatorialData>
+        Friend Async Function AddingAGeneratedDocumentUpdatesListCorrectly(
+                preference As SourceGeneratorExecutionPreference) As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(
+                    workspaceXml,
+                    composition:=EditorTestCompositions.EditorFeatures.AddParts(GetType(TestWorkspaceConfigurationService)))
+
+                Dim configService = workspace.ExportProvider.GetExportedValue(Of TestWorkspaceConfigurationService)
+                configService.Options = New WorkspaceConfigurationOptions(SourceGeneratorExecution:=preference)
+
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
@@ -179,7 +199,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Await WaitForGeneratorsAndItemSourcesAsync(workspace)
 
-                Assert.IsType(Of SourceGeneratedFileItem)(Assert.Single(generatorFilesItemSource.Items))
+                ' In balanced-mode the SG file won't be created until a save/build happens.
+                If preference = SourceGeneratorExecutionPreference.Automatic Then
+                    Assert.IsType(Of SourceGeneratedFileItem)(Assert.Single(generatorFilesItemSource.Items))
+                Else
+                    Assert.IsType(Of NoSourceGeneratedFilesPlaceholderItem)(Assert.Single(generatorFilesItemSource.Items))
+                End If
 
                 ' Add a second item and see if it updates correctly again
                 workspace.OnAdditionalDocumentAdded(
@@ -188,7 +213,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                         "Test2.txt"))
 
                 Await WaitForGeneratorsAndItemSourcesAsync(workspace)
-                Assert.Equal(2, generatorFilesItemSource.Items.Cast(Of SourceGeneratedFileItem)().Count())
+
+                If preference = SourceGeneratorExecutionPreference.Automatic Then
+                    Assert.Equal(2, generatorFilesItemSource.Items.Cast(Of SourceGeneratedFileItem)().Count())
+                Else
+                    Assert.Equal(1, generatorFilesItemSource.Items.Cast(Of NoSourceGeneratedFilesPlaceholderItem)().Count())
+                End If
             End Using
         End Function
 
@@ -201,7 +231,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceXml)
+            Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
@@ -226,7 +256,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             End Using
         End Function
 
-        Private Shared Function CreateItemSourceForAnalyzerReference(workspace As TestWorkspace, projectId As ProjectId) As BaseDiagnosticAndGeneratorItemSource
+        Private Shared Function CreateItemSourceForAnalyzerReference(workspace As EditorTestWorkspace, projectId As ProjectId) As BaseDiagnosticAndGeneratorItemSource
             Dim analyzerReference = New TestGeneratorReference(New GenerateFileForEachAdditionalFileWithContentsCommented())
             workspace.OnAnalyzerReferenceAdded(projectId, analyzerReference)
 
@@ -236,13 +266,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 workspace.GetService(Of IDiagnosticAnalyzerService))
         End Function
 
-        Private Shared Function CreateSourceGeneratedFilesItemSource(workspace As TestWorkspace, generatorItem As SourceGeneratorItem) As Shell.IAttachedCollectionSource
+        Private Shared Function CreateSourceGeneratedFilesItemSource(workspace As EditorTestWorkspace, generatorItem As SourceGeneratorItem) As Shell.IAttachedCollectionSource
             Dim asyncListener = workspace.GetService(Of IAsynchronousOperationListenerProvider).GetListener(FeatureAttribute.SourceGenerators)
 
             Return New SourceGeneratedFileItemSource(generatorItem, workspace, asyncListener, workspace.GetService(Of IThreadingContext)())
         End Function
 
-        Private Shared Function WaitForGeneratorsAndItemSourcesAsync(workspace As TestWorkspace) As Task
+        Private Shared Function WaitForGeneratorsAndItemSourcesAsync(workspace As EditorTestWorkspace) As Task
             Dim service = workspace.GetService(Of AsynchronousOperationListenerProvider)
 
             ' We wait for the Workspace to ensure that any WorkspaceChanged events have been raised; we wait for SourceGenerators

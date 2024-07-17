@@ -2,10 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 {
-    internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
-    {
-        IAnalyzerAssemblyLoader GetLoader(in AnalyzerAssemblyLoaderOptions options);
-    }
+    IAnalyzerAssemblyLoader GetLoader(bool shadowCopy);
 }

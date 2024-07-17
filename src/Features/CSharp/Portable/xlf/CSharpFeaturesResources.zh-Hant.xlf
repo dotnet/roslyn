@@ -22,6 +22,16 @@
         <target state="translated">新增單行控制項陳述式所需的大括弧</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_0">
+        <source>Apply '{0}'</source>
+        <target state="translated">套用 '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_Copilot_suggestion">
+        <source>Apply Copilot suggestion</source>
+        <target state="translated">套用 Copilot 建議</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">套用在建構函式初始設定式中的冒號後面加上空白行喜好設定 (實驗性)</target>
@@ -57,6 +67,11 @@
         <target state="translated">套用延伸模組/區塊主體喜好設定</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_fix_from">
+        <source>Apply fix from</source>
+        <target state="translated">套用修正來源</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_inline_out_variable_preferences">
         <source>Apply inline 'out' variables preferences</source>
         <target state="translated">套用內嵌 'out' 變數喜好設定</target>
@@ -80,11 +95,6 @@
       <trans-unit id="Apply_new_preferences">
         <source>Apply new() preferences</source>
         <target state="translated">套用新增() 喜好設定</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_parameter_null_preferences">
-        <source>Apply parameter null preferences</source>
-        <target state="translated">套用參數 Null 喜好設定</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
@@ -127,6 +137,11 @@
         <target state="translated">因為潛在的範圍變數宣告，所以停用了自動選取。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
+        <source>Cannot determine valid range of statements to extract</source>
+        <target state="translated">無法判斷要擷取的有效陳述式範圍</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">變更為 'as' 運算式</target>
@@ -150,6 +165,11 @@
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">轉換成原始字串</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_regular_constructor">
+        <source>Convert to regular constructor</source>
+        <target state="translated">轉換為一般建構函式</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -232,6 +252,11 @@
         <target state="translated">警告: 內嵌臨時變數可能會變更程式碼含義。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_colon_AI_suggestions_might_be_inaccurate">
+        <source>Warning: AI suggestions might be inaccurate.</source>
+        <target state="translated">警告: AI 建議可能不正確。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
         <source>asynchronous foreach statement</source>
         <target state="translated">非同步 foreach 陳述式</target>
@@ -241,6 +266,11 @@
         <source>asynchronous using declaration</source>
         <target state="translated">非同步 using 宣告</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="do_while_loop">
+        <source>do-while loop</source>
+        <target state="translated">do-while 迴圈</target>
+        <note>{Locked="do"}{Locked="while"} "do" and "while" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
@@ -310,11 +340,6 @@
       <trans-unit id="Remove_this_qualification">
         <source>Remove 'this' qualification</source>
         <target state="translated">移除 'this' 限定性條件</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
-        <source>Can't determine valid range of statements to extract</source>
-        <target state="translated">無法判斷要擷取的有效陳述式範圍</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
@@ -434,12 +459,12 @@
       </trans-unit>
       <trans-unit id="top_level_code">
         <source>top-level code</source>
-        <target state="new">top-level code</target>
+        <target state="translated">最上層代碼</target>
         <note />
       </trans-unit>
       <trans-unit id="top_level_statement">
         <source>top-level statement</source>
-        <target state="new">top-level statement</target>
+        <target state="translated">最上層陳述式</target>
         <note />
       </trans-unit>
       <trans-unit id="try_block">

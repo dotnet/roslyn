@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public abstract MethodSymbol? Constructor { get; }
         public abstract ImmutableArray<BoundExpression> Arguments { get; }
-        public abstract ImmutableArray<string> ArgumentNamesOpt { get; }
+        public abstract ImmutableArray<string?> ArgumentNamesOpt { get; }
         public abstract ImmutableArray<RefKind> ArgumentRefKindsOpt { get; }
         public abstract bool Expanded { get; }
         public abstract ImmutableArray<int> ArgsToParamsOpt { get; }

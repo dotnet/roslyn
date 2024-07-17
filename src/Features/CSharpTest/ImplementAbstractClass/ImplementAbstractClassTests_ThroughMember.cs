@@ -16,1013 +16,1012 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ImplementAbstractClass;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
+public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)]
-    public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+    public ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHelper logger)
+      : base(logger)
     {
-        public ImplementAbstractClassTests_ThroughMemberTests(ITestOutputHelper logger)
-          : base(logger)
+    }
+
+    internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
+        => (null, new CSharpImplementAbstractClassCodeFixProvider());
+
+    private OptionsCollection AllOptionsOff
+        => new OptionsCollection(GetLanguage())
         {
-        }
+             { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+             { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+             { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+             { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+             { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+             { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+        };
 
-        internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
-            => (null, new CSharpImplementAbstractClassCodeFixProvider());
+    internal Task TestAllOptionsOffAsync(
+        string initialMarkup,
+        string expectedMarkup,
+        OptionsCollection options = null,
+        ParseOptions parseOptions = null)
+    {
+        options ??= new OptionsCollection(GetLanguage());
+        options.AddRange(AllOptionsOff);
 
-        private OptionsCollection AllOptionsOff
-            => new OptionsCollection(GetLanguage())
+        return TestInRegularAndScriptAsync(
+            initialMarkup,
+            expectedMarkup,
+            index: 1,
+            options: options,
+            parseOptions: parseOptions);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task FieldInBaseClassIsNotSuggested()
+    {
+        await TestExactActionSetOfferedAsync(
+            """
+            abstract class Base
             {
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedConstructors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedOperators, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-                 { CSharpCodeStyleOptions.PreferExpressionBodiedIndexers, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-            };
+                public Base Inner;
 
-        internal Task TestAllOptionsOffAsync(
-            string initialMarkup,
-            string expectedMarkup,
-            OptionsCollection options = null,
-            ParseOptions parseOptions = null)
-        {
-            options ??= new OptionsCollection(GetLanguage());
-            options.AddRange(AllOptionsOff);
+                public abstract void Method();
+            }
 
-            return TestInRegularAndScriptAsync(
-                initialMarkup,
-                expectedMarkup,
-                index: 1,
-                options: options,
-                parseOptions: parseOptions);
-        }
+            class [|Derived|] : Base
+            {
+            }
+            """, [FeaturesResources.Implement_abstract_class]);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task FieldInBaseClassIsNotSuggested()
-        {
-            await TestExactActionSetOfferedAsync(
-                """
-                abstract class Base
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task FieldInMiddleClassIsNotSuggested()
+    {
+        await TestExactActionSetOfferedAsync(
+            """
+            abstract class Base
+            {
+                public abstract void Method();
+            }
+
+            abstract class Middle : Base
+            {
+                public Base Inner;
+            }
+
+            class [|Derived|] : Base
+            {
+            }
+            """, [FeaturesResources.Implement_abstract_class]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task FieldOfSameDerivedTypeIsSuggested()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                public abstract void Method();
+            }
+
+            class [|Derived|] : Base
+            {
+                Derived inner;
+            }
+            """,
+            """
+            abstract class Base
+            {
+                public abstract void Method();
+            }
+
+            class Derived : Base
+            {
+                Derived inner;
+
+                public override void Method()
                 {
-                    public Base Inner;
-
-                    public abstract void Method();
+                    inner.Method();
                 }
+            }
+            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+    }
 
-                class [|Derived|] : Base
+    [Fact]
+    public async Task RefParameters_Method()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                public abstract void Method(int a, ref int b, in int c, ref readonly int d, out int e);
+            }
+
+            class [|Derived|] : Base
+            {
+                Derived inner;
+            }
+            """,
+            """
+            abstract class Base
+            {
+                public abstract void Method(int a, ref int b, in int c, ref readonly int d, out int e);
+            }
+
+            class Derived : Base
+            {
+                Derived inner;
+
+                public override void Method(int a, ref int b, in int c, ref readonly int d, out int e)
                 {
+                    inner.Method(a, ref b, c, in d, out e);
                 }
-                """, new[] { FeaturesResources.Implement_abstract_class });
-        }
+            }
+            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task FieldInMiddleClassIsNotSuggested()
-        {
-            await TestExactActionSetOfferedAsync(
-                """
-                abstract class Base
+    [Fact]
+    public async Task RefParameters_Indexer()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                public abstract int this[int a, in int b, ref readonly int c, out int d] { get; }
+            }
+
+            class [|Derived|] : Base
+            {
+                Derived inner;
+            }
+            """,
+            """
+            abstract class Base
+            {
+                public abstract int this[int a, in int b, ref readonly int c, out int d] { get; }
+            }
+
+            class Derived : Base
+            {
+                Derived inner;
+
+                public override int this[int a, in int b, ref readonly int c, out int d] => inner[a, b, in c, out d];
+            }
+            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task SkipInaccessibleMember()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                public abstract void Method1();
+                protected abstract void Method2();
+            }
+
+            class [|Derived|] : Base
+            {
+                Base inner;
+            }
+            """,
+            """
+            abstract class Base
+            {
+                public abstract void Method1();
+                protected abstract void Method2();
+            }
+
+            class {|Conflict:Derived|} : Base
+            {
+                Base inner;
+
+                public override void Method1()
                 {
-                    public abstract void Method();
+                    inner.Method1();
                 }
+            }
+            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+    }
 
-                abstract class Middle : Base
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task TestNotOfferedWhenOnlyUnimplementedMemberIsInaccessible()
+    {
+        await TestExactActionSetOfferedAsync(
+            """
+            abstract class Base
+            {
+                public abstract void Method1();
+                protected abstract void Method2();
+            }
+
+            class [|Derived|] : Base
+            {
+                Base inner;
+
+                public override void Method1()
                 {
-                    public Base Inner;
+                    inner.Method1();
                 }
+            }
+            """, new string[] { FeaturesResources.Implement_abstract_class });
+    }
 
-                class [|Derived|] : Base
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task FieldOfMoreSpecificTypeIsSuggested()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                public abstract void Method();
+            }
+
+            class [|Derived|] : Base
+            {
+                DerivedAgain inner;
+            }
+
+            class DerivedAgain : Derived
+            {
+            }
+            """,
+            """
+            abstract class Base
+            {
+                public abstract void Method();
+            }
+
+            class Derived : Base
+            {
+                DerivedAgain inner;
+
+                public override void Method()
                 {
+                    inner.Method();
                 }
-                """, new[] { FeaturesResources.Implement_abstract_class });
-        }
+            }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task FieldOfSameDerivedTypeIsSuggested()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
+            class DerivedAgain : Derived
+            {
+            }
+            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task FieldOfConstrainedGenericTypeIsSuggested()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                public abstract void Method();
+            }
+
+            class [|Derived|]<T> : Base where T : Base
+            {
+                T inner;
+            }
+            """,
+            """
+            abstract class Base
+            {
+                public abstract void Method();
+            }
+
+            class Derived<T> : Base where T : Base
+            {
+                T inner;
+
+                public override void Method()
                 {
-                    public abstract void Method();
+                    inner.Method();
                 }
+            }
+            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+    }
 
-                class [|Derived|] : Base
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task DistinguishableOptionsAreShownForExplicitPropertyWithSameName()
+    {
+        await TestExactActionSetOfferedAsync(
+            """
+            abstract class Base
+            {
+                public abstract void Method();
+            }
+
+            interface IInterface
+            {
+                Inner { get; }
+            }
+
+            class [|Derived|] : Base, IInterface
+            {
+                Base Inner { get; }
+
+                Base IInterface.Inner { get; }
+            }
+            """,
+            [
+                FeaturesResources.Implement_abstract_class,
+                string.Format(FeaturesResources.Implement_through_0, "Inner"),
+                string.Format(FeaturesResources.Implement_through_0, "IInterface.Inner"),
+            ]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task NotOfferedForDynamicFields()
+    {
+        await TestExactActionSetOfferedAsync(
+            """
+            abstract class Base
+            {
+                public abstract void Method();
+            }
+
+            class [|Derived|] : Base
+            {
+                dynamic inner;
+            }
+            """, [FeaturesResources.Implement_abstract_class]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task OfferedForStaticFields()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                public abstract void Method();
+            }
+
+            class [|Derived|] : Base
+            {
+                static Base inner;
+            }
+            """,
+            """
+            abstract class Base
+            {
+                public abstract void Method();
+            }
+
+            class Derived : Base
+            {
+                static Base inner;
+
+                public override void Method()
                 {
-                    Derived inner;
+                    inner.Method();
                 }
-                """,
-                """
-                abstract class Base
-                {
-                    public abstract void Method();
-                }
+            }
+            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+    }
 
-                class Derived : Base
-                {
-                    Derived inner;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task PropertyIsDelegated()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                public abstract int Property { get; set; }
+            }
 
-                    public override void Method()
+            class [|Derived|] : Base
+            {
+                Base inner;
+            }
+            """,
+            """
+            abstract class Base
+            {
+                public abstract int Property { get; set; }
+            }
+
+            class Derived : Base
+            {
+                Base inner;
+
+                public override int Property { get => inner.Property; set => inner.Property = value; }
+            }
+            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task PropertyIsDelegated_AllOptionsOff()
+    {
+        await TestAllOptionsOffAsync(
+            """
+            abstract class Base
+            {
+                public abstract int Property { get; set; }
+            }
+
+            class [|Derived|] : Base
+            {
+                Base inner;
+            }
+            """,
+            """
+            abstract class Base
+            {
+                public abstract int Property { get; set; }
+            }
+
+            class Derived : Base
+            {
+                Base inner;
+
+                public override int Property
+                {
+                    get
                     {
-                        inner.Method();
-                    }
-                }
-                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
-        }
-
-        [Fact]
-        public async Task RefParameters_Method()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
-                {
-                    public abstract void Method(int a, ref int b, in int c, ref readonly int d, out int e);
-                }
-
-                class [|Derived|] : Base
-                {
-                    Derived inner;
-                }
-                """,
-                """
-                abstract class Base
-                {
-                    public abstract void Method(int a, ref int b, in int c, ref readonly int d, out int e);
-                }
-
-                class Derived : Base
-                {
-                    Derived inner;
-
-                    public override void Method(int a, ref int b, in int c, ref readonly int d, out int e)
-                    {
-                        inner.Method(a, ref b, c, in d, out e);
-                    }
-                }
-                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
-        }
-
-        [Fact]
-        public async Task RefParameters_Indexer()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
-                {
-                    public abstract int this[int a, in int b, ref readonly int c, out int d] { get; }
-                }
-
-                class [|Derived|] : Base
-                {
-                    Derived inner;
-                }
-                """,
-                """
-                abstract class Base
-                {
-                    public abstract int this[int a, in int b, ref readonly int c, out int d] { get; }
-                }
-
-                class Derived : Base
-                {
-                    Derived inner;
-
-                    public override int this[int a, in int b, ref readonly int c, out int d] => inner[a, b, in c, out d];
-                }
-                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task SkipInaccessibleMember()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
-                {
-                    public abstract void Method1();
-                    protected abstract void Method2();
-                }
-
-                class [|Derived|] : Base
-                {
-                    Base inner;
-                }
-                """,
-                """
-                abstract class Base
-                {
-                    public abstract void Method1();
-                    protected abstract void Method2();
-                }
-
-                class {|Conflict:Derived|} : Base
-                {
-                    Base inner;
-
-                    public override void Method1()
-                    {
-                        inner.Method1();
-                    }
-                }
-                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task TestNotOfferedWhenOnlyUnimplementedMemberIsInaccessible()
-        {
-            await TestExactActionSetOfferedAsync(
-                """
-                abstract class Base
-                {
-                    public abstract void Method1();
-                    protected abstract void Method2();
-                }
-
-                class [|Derived|] : Base
-                {
-                    Base inner;
-
-                    public override void Method1()
-                    {
-                        inner.Method1();
-                    }
-                }
-                """, new string[] { FeaturesResources.Implement_abstract_class });
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task FieldOfMoreSpecificTypeIsSuggested()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
-                {
-                    public abstract void Method();
-                }
-
-                class [|Derived|] : Base
-                {
-                    DerivedAgain inner;
-                }
-
-                class DerivedAgain : Derived
-                {
-                }
-                """,
-                """
-                abstract class Base
-                {
-                    public abstract void Method();
-                }
-
-                class Derived : Base
-                {
-                    DerivedAgain inner;
-
-                    public override void Method()
-                    {
-                        inner.Method();
-                    }
-                }
-
-                class DerivedAgain : Derived
-                {
-                }
-                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task FieldOfConstrainedGenericTypeIsSuggested()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
-                {
-                    public abstract void Method();
-                }
-
-                class [|Derived|]<T> : Base where T : Base
-                {
-                    T inner;
-                }
-                """,
-                """
-                abstract class Base
-                {
-                    public abstract void Method();
-                }
-
-                class Derived<T> : Base where T : Base
-                {
-                    T inner;
-
-                    public override void Method()
-                    {
-                        inner.Method();
-                    }
-                }
-                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task DistinguishableOptionsAreShownForExplicitPropertyWithSameName()
-        {
-            await TestExactActionSetOfferedAsync(
-                """
-                abstract class Base
-                {
-                    public abstract void Method();
-                }
-
-                interface IInterface
-                {
-                    Inner { get; }
-                }
-
-                class [|Derived|] : Base, IInterface
-                {
-                    Base Inner { get; }
-
-                    Base IInterface.Inner { get; }
-                }
-                """, new[]
-{
-    FeaturesResources.Implement_abstract_class,
-    string.Format(FeaturesResources.Implement_through_0, "Inner"),
-    string.Format(FeaturesResources.Implement_through_0, "IInterface.Inner"),
-});
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task NotOfferedForDynamicFields()
-        {
-            await TestExactActionSetOfferedAsync(
-                """
-                abstract class Base
-                {
-                    public abstract void Method();
-                }
-
-                class [|Derived|] : Base
-                {
-                    dynamic inner;
-                }
-                """, new[] { FeaturesResources.Implement_abstract_class });
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task OfferedForStaticFields()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
-                {
-                    public abstract void Method();
-                }
-
-                class [|Derived|] : Base
-                {
-                    static Base inner;
-                }
-                """,
-                """
-                abstract class Base
-                {
-                    public abstract void Method();
-                }
-
-                class Derived : Base
-                {
-                    static Base inner;
-
-                    public override void Method()
-                    {
-                        inner.Method();
-                    }
-                }
-                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task PropertyIsDelegated()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
-                {
-                    public abstract int Property { get; set; }
-                }
-
-                class [|Derived|] : Base
-                {
-                    Base inner;
-                }
-                """,
-                """
-                abstract class Base
-                {
-                    public abstract int Property { get; set; }
-                }
-
-                class Derived : Base
-                {
-                    Base inner;
-
-                    public override int Property { get => inner.Property; set => inner.Property = value; }
-                }
-                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task PropertyIsDelegated_AllOptionsOff()
-        {
-            await TestAllOptionsOffAsync(
-                """
-                abstract class Base
-                {
-                    public abstract int Property { get; set; }
-                }
-
-                class [|Derived|] : Base
-                {
-                    Base inner;
-                }
-                """,
-                """
-                abstract class Base
-                {
-                    public abstract int Property { get; set; }
-                }
-
-                class Derived : Base
-                {
-                    Base inner;
-
-                    public override int Property
-                    {
-                        get
-                        {
-                            return inner.Property;
-                        }
-
-                        set
-                        {
-                            inner.Property = value;
-                        }
-                    }
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task PropertyWithSingleAccessorIsDelegated()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
-                {
-                    public abstract int GetOnly { get; }
-                    public abstract int SetOnly { set; }
-                }
-
-                class [|Derived|] : Base
-                {
-                    Base inner;
-                }
-                """,
-                """
-                abstract class Base
-                {
-                    public abstract int GetOnly { get; }
-                    public abstract int SetOnly { set; }
-                }
-
-                class Derived : Base
-                {
-                    Base inner;
-
-                    public override int GetOnly => inner.GetOnly;
-
-                    public override int SetOnly { set => inner.SetOnly = value; }
-                }
-                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task PropertyWithSingleAccessorIsDelegated_AllOptionsOff()
-        {
-            await TestAllOptionsOffAsync(
-                """
-                abstract class Base
-                {
-                    public abstract int GetOnly { get; }
-                    public abstract int SetOnly { set; }
-                }
-
-                class [|Derived|] : Base
-                {
-                    Base inner;
-                }
-                """,
-                """
-                abstract class Base
-                {
-                    public abstract int GetOnly { get; }
-                    public abstract int SetOnly { set; }
-                }
-
-                class Derived : Base
-                {
-                    Base inner;
-
-                    public override int GetOnly
-                    {
-                        get
-                        {
-                            return inner.GetOnly;
-                        }
+                        return inner.Property;
                     }
 
-                    public override int SetOnly
+                    set
                     {
-                        set
-                        {
-                            inner.SetOnly = value;
-                        }
+                        inner.Property = value;
                     }
                 }
-                """);
-        }
+            }
+            """);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task EventIsDelegated()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                using System;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task PropertyWithSingleAccessorIsDelegated()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                public abstract int GetOnly { get; }
+                public abstract int SetOnly { set; }
+            }
 
-                abstract class Base
+            class [|Derived|] : Base
+            {
+                Base inner;
+            }
+            """,
+            """
+            abstract class Base
+            {
+                public abstract int GetOnly { get; }
+                public abstract int SetOnly { set; }
+            }
+
+            class Derived : Base
+            {
+                Base inner;
+
+                public override int GetOnly => inner.GetOnly;
+
+                public override int SetOnly { set => inner.SetOnly = value; }
+            }
+            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task PropertyWithSingleAccessorIsDelegated_AllOptionsOff()
+    {
+        await TestAllOptionsOffAsync(
+            """
+            abstract class Base
+            {
+                public abstract int GetOnly { get; }
+                public abstract int SetOnly { set; }
+            }
+
+            class [|Derived|] : Base
+            {
+                Base inner;
+            }
+            """,
+            """
+            abstract class Base
+            {
+                public abstract int GetOnly { get; }
+                public abstract int SetOnly { set; }
+            }
+
+            class Derived : Base
+            {
+                Base inner;
+
+                public override int GetOnly
                 {
-                    public abstract event Action Event;
-                }
-
-                class [|Derived|] : Base
-                {
-                    Base inner;
-                }
-                """,
-                """
-                using System;
-
-                abstract class Base
-                {
-                    public abstract event Action Event;
-                }
-
-                class Derived : Base
-                {
-                    Base inner;
-
-                    public override event Action Event
+                    get
                     {
-                        add
-                        {
-                            inner.Event += value;
-                        }
-
-                        remove
-                        {
-                            inner.Event -= value;
-                        }
+                        return inner.GetOnly;
                     }
                 }
-                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
-        }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task OnlyOverridableMethodsAreOverridden()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
+                public override int SetOnly
                 {
-                    public abstract void Method();
-
-                    public void NonVirtualMethod();
-                }
-
-                class [|Derived|] : Base
-                {
-                    Base inner;
-                }
-                """,
-                """
-                abstract class Base
-                {
-                    public abstract void Method();
-
-                    public void NonVirtualMethod();
-                }
-
-                class Derived : Base
-                {
-                    Base inner;
-
-                    public override void Method()
+                    set
                     {
-                        inner.Method();
+                        inner.SetOnly = value;
                     }
                 }
-                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
-        }
+            }
+            """);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task ProtectedMethodsCannotBeDelegatedThroughBaseType()
-        {
-            await TestExactActionSetOfferedAsync(
-                """
-                abstract class Base
-                {
-                    protected abstract void Method();
-                }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task EventIsDelegated()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
 
-                class [|Derived|] : Base
-                {
-                    Base inner;
-                }
-                """, new[] { FeaturesResources.Implement_abstract_class });
-        }
+            abstract class Base
+            {
+                public abstract event Action Event;
+            }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task ProtectedMethodsCanBeDelegatedThroughSameType()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
-                {
-                    protected abstract void Method();
-                }
+            class [|Derived|] : Base
+            {
+                Base inner;
+            }
+            """,
+            """
+            using System;
 
-                class [|Derived|] : Base
-                {
-                    Derived inner;
-                }
-                """,
-                """
-                abstract class Base
-                {
-                    protected abstract void Method();
-                }
+            abstract class Base
+            {
+                public abstract event Action Event;
+            }
 
-                class Derived : Base
-                {
-                    Derived inner;
+            class Derived : Base
+            {
+                Base inner;
 
-                    protected override void Method()
+                public override event Action Event
+                {
+                    add
                     {
-                        inner.Method();
+                        inner.Event += value;
+                    }
+
+                    remove
+                    {
+                        inner.Event -= value;
                     }
                 }
-                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
-        }
+            }
+            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task ProtectedInternalMethodsAreOverridden()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
-                {
-                    protected internal abstract void Method();
-                }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task OnlyOverridableMethodsAreOverridden()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                public abstract void Method();
 
-                class [|Derived|] : Base
-                {
-                    Base inner;
-                }
-                """,
-                """
-                abstract class Base
-                {
-                    protected internal abstract void Method();
-                }
+                public void NonVirtualMethod();
+            }
 
-                class Derived : Base
-                {
-                    Base inner;
+            class [|Derived|] : Base
+            {
+                Base inner;
+            }
+            """,
+            """
+            abstract class Base
+            {
+                public abstract void Method();
 
-                    protected internal override void Method()
-                    {
-                        inner.Method();
-                    }
-                }
-                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
-        }
+                public void NonVirtualMethod();
+            }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task InternalMethodsAreOverridden()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
-                {
-                    internal abstract void Method();
-                }
+            class Derived : Base
+            {
+                Base inner;
 
-                class [|Derived|] : Base
+                public override void Method()
                 {
-                    Base inner;
+                    inner.Method();
                 }
-                """,
-                """
-                abstract class Base
-                {
-                    internal abstract void Method();
-                }
+            }
+            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+    }
 
-                class Derived : Base
-                {
-                    Base inner;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task ProtectedMethodsCannotBeDelegatedThroughBaseType()
+    {
+        await TestExactActionSetOfferedAsync(
+            """
+            abstract class Base
+            {
+                protected abstract void Method();
+            }
 
-                    internal override void Method()
-                    {
-                        inner.Method();
-                    }
-                }
-                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
-        }
+            class [|Derived|] : Base
+            {
+                Base inner;
+            }
+            """, [FeaturesResources.Implement_abstract_class]);
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task PrivateProtectedMethodsCannotBeDelegatedThroughBaseType()
-        {
-            await TestExactActionSetOfferedAsync(
-                """
-                abstract class Base
-                {
-                    private protected abstract void Method();
-                }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task ProtectedMethodsCanBeDelegatedThroughSameType()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                protected abstract void Method();
+            }
 
-                class [|Derived|] : Base
-                {
-                    Base inner;
-                }
-                """, new[] { FeaturesResources.Implement_abstract_class });
-        }
+            class [|Derived|] : Base
+            {
+                Derived inner;
+            }
+            """,
+            """
+            abstract class Base
+            {
+                protected abstract void Method();
+            }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task PrivateProtectedMethodsCanBeDelegatedThroughSameType()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
-                {
-                    private protected abstract void Method();
-                }
+            class Derived : Base
+            {
+                Derived inner;
 
-                class [|Derived|] : Base
+                protected override void Method()
                 {
-                    Derived inner;
+                    inner.Method();
                 }
-                """,
-                """
-                abstract class Base
-                {
-                    private protected abstract void Method();
-                }
+            }
+            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+    }
 
-                class Derived : Base
-                {
-                    Derived inner;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task ProtectedInternalMethodsAreOverridden()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                protected internal abstract void Method();
+            }
 
-                    private protected override void Method()
-                    {
-                        inner.Method();
-                    }
-                }
-                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
-        }
+            class [|Derived|] : Base
+            {
+                Base inner;
+            }
+            """,
+            """
+            abstract class Base
+            {
+                protected internal abstract void Method();
+            }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
-        public async Task AccessorsWithDifferingVisibilityAreGeneratedCorrectly()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
-                {
-                    public abstract int InternalGet { internal get; set; }
-                    public abstract int InternalSet { get; internal set; }
-                }
+            class Derived : Base
+            {
+                Base inner;
 
-                class [|Derived|] : Base
+                protected internal override void Method()
                 {
-                    Base inner;
+                    inner.Method();
                 }
-                """,
-                """
-                abstract class Base
-                {
-                    public abstract int InternalGet { internal get; set; }
-                    public abstract int InternalSet { get; internal set; }
-                }
+            }
+            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+    }
 
-                class Derived : Base
-                {
-                    Base inner;
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task InternalMethodsAreOverridden()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                internal abstract void Method();
+            }
 
-                    public override int InternalGet { internal get => inner.InternalGet; set => inner.InternalGet = value; }
-                    public override int InternalSet { get => inner.InternalSet; internal set => inner.InternalSet = value; }
-                }
-                """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
-        }
+            class [|Derived|] : Base
+            {
+                Base inner;
+            }
+            """,
+            """
+            abstract class Base
+            {
+                internal abstract void Method();
+            }
 
-        [Fact]
-        public async Task TestCrossProjectWithInaccessibleMemberInCase()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document>
-                public abstract class Base
-                {
-                    public abstract void Method1();
-                    internal abstract void Method2();
-                }
-                        </Document>
-                    </Project>
-                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
-                        <ProjectReference>Assembly1</ProjectReference>
-                        <Document>
-                class [|Derived|] : Base
-                {
-                    Base inner;
-                }
-                        </Document>
-                    </Project>
-                </Workspace>
-                """,
-                """
-                <Workspace>
-                    <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
-                        <Document>
-                public abstract class Base
-                {
-                    public abstract void Method1();
-                    internal abstract void Method2();
-                }
-                        </Document>
-                    </Project>
-                    <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
-                        <ProjectReference>Assembly1</ProjectReference>
-                        <Document>
-                class {|Conflict:Derived|} : Base
-                {
-                    Base inner;
+            class Derived : Base
+            {
+                Base inner;
 
-                    public override void Method1()
-                    {
-                        inner.Method1();
-                    }
+                internal override void Method()
+                {
+                    inner.Method();
                 }
-                        </Document>
-                    </Project>
-                </Workspace>
-                """, index: 1);
-        }
+            }
+            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+    }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
-        public async Task TestImplementThroughPrimaryConstructorParam1()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
-                {
-                    public abstract int Method();
-                }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task PrivateProtectedMethodsCannotBeDelegatedThroughBaseType()
+    {
+        await TestExactActionSetOfferedAsync(
+            """
+            abstract class Base
+            {
+                private protected abstract void Method();
+            }
 
-                class [|Program|](Base base1) : Base
-                {
-                }
-                """,
-                """
-                abstract class Base
-                {
-                    public abstract int Method();
-                }
+            class [|Derived|] : Base
+            {
+                Base inner;
+            }
+            """, [FeaturesResources.Implement_abstract_class]);
+    }
 
-                class Program(Base base1) : Base
-                {
-                    public override int Method()
-                    {
-                        return base1.Method();
-                    }
-                }
-                """, index: 1);
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task PrivateProtectedMethodsCanBeDelegatedThroughSameType()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                private protected abstract void Method();
+            }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
-        public async Task TestImplementThroughPrimaryConstructorParam2()
-        {
-            // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
-            await TestExactActionSetOfferedAsync(
-                """
-                abstract class Base
-                {
-                    public abstract int Method();
-                }
+            class [|Derived|] : Base
+            {
+                Derived inner;
+            }
+            """,
+            """
+            abstract class Base
+            {
+                private protected abstract void Method();
+            }
 
-                class [|Program|](Base base1) : Base
-                {
-                    private Base _base = base1;
-                }
-                """, new[] { FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "_base") });
-        }
+            class Derived : Base
+            {
+                Derived inner;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
-        public async Task TestImplementThroughPrimaryConstructorParam2_B()
-        {
-            // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
-            await TestExactActionSetOfferedAsync(
-                """
-                abstract class Base
+                private protected override void Method()
                 {
-                    public abstract int Method();
+                    inner.Method();
                 }
+            }
+            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+    }
 
-                class [|Program|](Base base1) : Base
-                {
-                    private Base _base = (base1);
-                }
-                """, new[] { FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "_base") });
-        }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
+    public async Task AccessorsWithDifferingVisibilityAreGeneratedCorrectly()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                public abstract int InternalGet { internal get; set; }
+                public abstract int InternalSet { get; internal set; }
+            }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
-        public async Task TestImplementThroughPrimaryConstructorParam3()
-        {
-            // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
-            await TestExactActionSetOfferedAsync(
-                """
-                abstract class Base
-                {
-                    public abstract int Method();
-                }
+            class [|Derived|] : Base
+            {
+                Base inner;
+            }
+            """,
+            """
+            abstract class Base
+            {
+                public abstract int InternalGet { internal get; set; }
+                public abstract int InternalSet { get; internal set; }
+            }
 
-                class [|Program|](Base base1) : Base
-                {
-                    private Base B { get; } = base1;
-                }
-                """, new[] { FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "B") });
-        }
+            class Derived : Base
+            {
+                Base inner;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
-        public async Task TestImplementThroughPrimaryConstructorParam3_B()
-        {
-            // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
-            await TestExactActionSetOfferedAsync(
-                """
-                abstract class Base
-                {
-                    public abstract int Method();
-                }
+                public override int InternalGet { internal get => inner.InternalGet; set => inner.InternalGet = value; }
+                public override int InternalSet { get => inner.InternalSet; internal set => inner.InternalSet = value; }
+            }
+            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+    }
 
-                class [|Program|](Base base1) : Base
-                {
-                    private Base B { get; } = (base1);
-                }
-                """, new[] { FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "B") });
-        }
+    [Fact]
+    public async Task TestCrossProjectWithInaccessibleMemberInCase()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            public abstract class Base
+            {
+                public abstract void Method1();
+                internal abstract void Method2();
+            }
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <ProjectReference>Assembly1</ProjectReference>
+                    <Document>
+            class [|Derived|] : Base
+            {
+                Base inner;
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """,
+            """
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>
+            public abstract class Base
+            {
+                public abstract void Method1();
+                internal abstract void Method2();
+            }
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <ProjectReference>Assembly1</ProjectReference>
+                    <Document>
+            class {|Conflict:Derived|} : Base
+            {
+                Base inner;
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
-        public async Task TestImplementThroughPrimaryConstructorParam4()
-        {
-            await TestInRegularAndScriptAsync(
-                """
-                abstract class Base
+                public override void Method1()
                 {
-                    public abstract int Method();
+                    inner.Method1();
                 }
+            }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, index: 1);
+    }
 
-                class [|Program|](Base base1) : Base
-                {
-                    private readonly int base1Hash = base1.GetHashCode();
-                }
-                """,
-                """
-                abstract class Base
-                {
-                    public abstract int Method();
-                }
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+    public async Task TestImplementThroughPrimaryConstructorParam1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                public abstract int Method();
+            }
 
-                class Program(Base base1) : Base
-                {
-                    private readonly int base1Hash = base1.GetHashCode();
+            class [|Program|](Base base1) : Base
+            {
+            }
+            """,
+            """
+            abstract class Base
+            {
+                public abstract int Method();
+            }
 
-                    public override int Method()
-                    {
-                        return base1.Method();
-                    }
+            class Program(Base base1) : Base
+            {
+                public override int Method()
+                {
+                    return base1.Method();
                 }
-                """, index: 1);
-        }
+            }
+            """, index: 1);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+    public async Task TestImplementThroughPrimaryConstructorParam2()
+    {
+        // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
+        await TestExactActionSetOfferedAsync(
+            """
+            abstract class Base
+            {
+                public abstract int Method();
+            }
+
+            class [|Program|](Base base1) : Base
+            {
+                private Base _base = base1;
+            }
+            """, [FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "_base")]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+    public async Task TestImplementThroughPrimaryConstructorParam2_B()
+    {
+        // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
+        await TestExactActionSetOfferedAsync(
+            """
+            abstract class Base
+            {
+                public abstract int Method();
+            }
+
+            class [|Program|](Base base1) : Base
+            {
+                private Base _base = (base1);
+            }
+            """, [FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "_base")]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+    public async Task TestImplementThroughPrimaryConstructorParam3()
+    {
+        // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
+        await TestExactActionSetOfferedAsync(
+            """
+            abstract class Base
+            {
+                public abstract int Method();
+            }
+
+            class [|Program|](Base base1) : Base
+            {
+                private Base B { get; } = base1;
+            }
+            """, [FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "B")]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+    public async Task TestImplementThroughPrimaryConstructorParam3_B()
+    {
+        // Don't offer "implement through 'base1'" since this PC parameter is captured as a field.
+        await TestExactActionSetOfferedAsync(
+            """
+            abstract class Base
+            {
+                public abstract int Method();
+            }
+
+            class [|Program|](Base base1) : Base
+            {
+                private Base B { get; } = (base1);
+            }
+            """, [FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "B")]);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
+    public async Task TestImplementThroughPrimaryConstructorParam4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            abstract class Base
+            {
+                public abstract int Method();
+            }
+
+            class [|Program|](Base base1) : Base
+            {
+                private readonly int base1Hash = base1.GetHashCode();
+            }
+            """,
+            """
+            abstract class Base
+            {
+                public abstract int Method();
+            }
+
+            class Program(Base base1) : Base
+            {
+                private readonly int base1Hash = base1.GetHashCode();
+
+                public override int Method()
+                {
+                    return base1.Method();
+                }
+            }
+            """, index: 1);
     }
 }

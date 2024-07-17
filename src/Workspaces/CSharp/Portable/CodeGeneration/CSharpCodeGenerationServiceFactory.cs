@@ -8,18 +8,17 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
-{
-    [ExportLanguageServiceFactory(typeof(ICodeGenerationService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpCodeGenerationServiceFactory : ILanguageServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpCodeGenerationServiceFactory()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 
-        public ILanguageService CreateLanguageService(HostLanguageServices provider)
-            => new CSharpCodeGenerationService(provider.LanguageServices);
+[ExportLanguageServiceFactory(typeof(ICodeGenerationService), LanguageNames.CSharp), Shared]
+internal partial class CSharpCodeGenerationServiceFactory : ILanguageServiceFactory
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpCodeGenerationServiceFactory()
+    {
     }
+
+    public ILanguageService CreateLanguageService(HostLanguageServices provider)
+        => new CSharpCodeGenerationService(provider.LanguageServices);
 }

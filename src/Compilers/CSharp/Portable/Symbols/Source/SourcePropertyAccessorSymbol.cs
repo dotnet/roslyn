@@ -145,7 +145,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isNullableAnalysisEnabled,
             BindingDiagnosticBag diagnostics) :
             base(containingType, syntax.GetReference(), location, isIterator: false,
-                 MakeModifiersAndFlags(property, propertyModifiers, isNullableAnalysisEnabled))
+                MakeModifiersAndFlags(
+                    containingType,
+                    property,
+                    propertyModifiers,
+                    location,
+                    hasBlockBody: false,
+                    hasExpressionBody: true,
+                    modifiers: [],
+                    methodKind: MethodKind.PropertyGet,
+                    isNullableAnalysisEnabled,
+                    diagnostics,
+                    out var modifierErrors))
         {
             _property = property;
             _isAutoPropertyAccessor = false;
@@ -156,21 +167,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ModifierUtils.CheckAccessibility(this.DeclarationModifiers, this, property.IsExplicitInterfaceImplementation, diagnostics, location);
 
             this.CheckModifiers(location, hasBody: true, isAutoPropertyOrExpressionBodied: true, diagnostics: diagnostics);
-        }
-
-        private static (DeclarationModifiers, Flags) MakeModifiersAndFlags(SourcePropertySymbol property, DeclarationModifiers propertyModifiers, bool isNullableAnalysisEnabled)
-        {
-            // The modifiers for the accessor are the same as the modifiers for the property,
-            // minus the indexer and readonly bit
-            var declarationModifiers = GetAccessorModifiers(propertyModifiers);
-
-            // ReturnsVoid property is overridden in this class so
-            // returnsVoid argument to MakeFlags is ignored.
-            Flags flags = MakeFlags(MethodKind.PropertyGet, property.RefKind, declarationModifiers, returnsVoid: false, returnsVoidIsSet: false,
-                                    isExpressionBodied: true, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                                    isVarArg: false, isExplicitInterfaceImplementation: property.IsExplicitInterfaceImplementation);
-
-            return (declarationModifiers, flags);
         }
 
 #nullable enable
@@ -246,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // returnsVoid argument to MakeFlags is ignored.
             Flags flags = MakeFlags(methodKind, property.RefKind, declarationModifiers, returnsVoid: false, returnsVoidIsSet: false,
                                     isExpressionBodied: isExpressionBodied, isExtensionMethod: false, isNullableAnalysisEnabled: isNullableAnalysisEnabled,
-                                    isVarArg: false, isExplicitInterfaceImplementation: isExplicitInterfaceImplementation);
+                                    isVarArg: false, isExplicitInterfaceImplementation: isExplicitInterfaceImplementation, hasThisInitializer: false);
 
             return (declarationModifiers, flags);
         }
@@ -538,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // '{0}' is a new virtual member in sealed type '{1}'
                 diagnostics.Add(ErrorCode.ERR_NewVirtualInSealed, location, this, ContainingType);
             }
-            else if (!hasBody && !IsExtern && !IsAbstract && !isAutoPropertyOrExpressionBodied)
+            else if (!hasBody && !IsExtern && !IsAbstract && !isAutoPropertyOrExpressionBodied && !IsPartialDefinition)
             {
                 diagnostics.Add(ErrorCode.ERR_ConcreteMissingBody, location, this);
             }
@@ -635,16 +631,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            var syntax = this.GetSyntax();
-            switch (syntax.Kind())
+            if (PartialImplementationPart is { } implementation)
             {
-                case SyntaxKind.GetAccessorDeclaration:
-                case SyntaxKind.SetAccessorDeclaration:
-                case SyntaxKind.InitAccessorDeclaration:
-                    return OneOrMany.Create(((AccessorDeclarationSyntax)syntax).AttributeLists);
+                return OneOrMany.Create(AttributeDeclarationList, ((SourcePropertyAccessorSymbol)implementation).AttributeDeclarationList);
             }
 
-            return base.GetAttributeDeclarations();
+            // If we are asking this question on a partial implementation symbol,
+            // it must be from a context which prefers to order implementation attributes before definition attributes.
+            // For example, the 'value' parameter of a set accessor.
+            if (PartialDefinitionPart is { } definition)
+            {
+                Debug.Assert(MethodKind == MethodKind.PropertySet);
+                return OneOrMany.Create(AttributeDeclarationList, ((SourcePropertyAccessorSymbol)definition).AttributeDeclarationList);
+            }
+
+            return OneOrMany.Create(AttributeDeclarationList);
+        }
+
+        private SyntaxList<AttributeListSyntax> AttributeDeclarationList
+        {
+            get
+            {
+                var syntax = this.GetSyntax();
+                switch (syntax.Kind())
+                {
+                    case SyntaxKind.GetAccessorDeclaration:
+                    case SyntaxKind.SetAccessorDeclaration:
+                    case SyntaxKind.InitAccessorDeclaration:
+                        return ((AccessorDeclarationSyntax)syntax).AttributeLists;
+                }
+
+                return default;
+            }
         }
 
 #nullable enable
@@ -760,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (!isGetMethod)
             {
-                parameters.Add(new SynthesizedAccessorValueParameterSymbol(this, _property.TypeWithAnnotations, parameters.Count));
+                parameters.Add(new SynthesizedPropertyAccessorValueParameterSymbol(this, parameters.Count));
             }
 
             return parameters.ToImmutableAndFree();
@@ -773,11 +791,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var annotations = ReturnTypeFlowAnalysisAnnotations;
             if ((annotations & FlowAnalysisAnnotations.MaybeNull) != 0)
             {
-                AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(_property.MaybeNullAttributeIfExists));
+                AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(_property.MaybeNullAttributeIfExists));
             }
             if ((annotations & FlowAnalysisAnnotations.NotNull) != 0)
             {
-                AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(_property.NotNullAttributeIfExists));
+                AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(_property.NotNullAttributeIfExists));
             }
         }
 
@@ -795,7 +813,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var attributeData in _property.MemberNotNullAttributeIfExists)
                 {
-                    AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(attributeData));
+                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(attributeData));
                 }
             }
 
@@ -803,8 +821,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 foreach (var attributeData in _property.MemberNotNullWhenAttributeIfExists)
                 {
-                    AddSynthesizedAttribute(ref attributes, new SynthesizedAttributeData(attributeData));
+                    AddSynthesizedAttribute(ref attributes, SynthesizedAttributeData.Create(attributeData));
                 }
+            }
+        }
+
+#nullable enable
+        protected sealed override SourceMemberMethodSymbol? BoundAttributesSource => (SourceMemberMethodSymbol?)PartialDefinitionPart;
+
+        public sealed override MethodSymbol? PartialImplementationPart => _property is SourcePropertySymbol { IsPartialDefinition: true, OtherPartOfPartial: { } other }
+            ? (MethodKind == MethodKind.PropertyGet ? other.GetMethod : other.SetMethod)
+            : null;
+
+        public sealed override MethodSymbol? PartialDefinitionPart => _property is SourcePropertySymbol { IsPartialImplementation: true, OtherPartOfPartial: { } other }
+            ? (MethodKind == MethodKind.PropertyGet ? other.GetMethod : other.SetMethod)
+            : null;
+
+        internal bool IsPartialDefinition => _property is SourcePropertySymbol { IsPartialDefinition: true };
+        internal bool IsPartialImplementation => _property is SourcePropertySymbol { IsPartialImplementation: true };
+
+        public sealed override bool IsExtern => PartialImplementationPart is { } implementation ? implementation.IsExtern : base.IsExtern;
+
+        internal void PartialAccessorChecks(SourcePropertyAccessorSymbol implementationAccessor, BindingDiagnosticBag diagnostics)
+        {
+            Debug.Assert(IsPartialDefinition);
+
+            if (LocalAccessibility != implementationAccessor.LocalAccessibility)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberAccessibilityDifference, implementationAccessor.GetFirstLocation());
+            }
+
+            if (LocalDeclaredReadOnly != implementationAccessor.LocalDeclaredReadOnly)
+            {
+                diagnostics.Add(ErrorCode.ERR_PartialMemberReadOnlyDifference, implementationAccessor.GetFirstLocation());
+            }
+
+            if (_usesInit != implementationAccessor._usesInit)
+            {
+                var accessorName = _usesInit ? "init" : "set";
+                diagnostics.Add(ErrorCode.ERR_PartialPropertyInitMismatch, implementationAccessor.GetFirstLocation(), implementationAccessor, accessorName);
             }
         }
     }

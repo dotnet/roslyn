@@ -22,6 +22,16 @@
         <target state="translated">Aggiungi/Rimuovi parentesi graffe necessarie per le istruzioni di controllo a riga singola</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_0">
+        <source>Apply '{0}'</source>
+        <target state="translated">Applicare '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_Copilot_suggestion">
+        <source>Apply Copilot suggestion</source>
+        <target state="translated">Applicare suggerimento di Copilot</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Applica preferenze una riga vuota dopo i due punti nell'inizializzatore del costruttore (sperimentale)</target>
@@ -57,6 +67,11 @@
         <target state="translated">Applica le preferenze relative al corpo dell'espressione o del blocco</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_fix_from">
+        <source>Apply fix from</source>
+        <target state="translated">Applicare correzione da</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_inline_out_variable_preferences">
         <source>Apply inline 'out' variables preferences</source>
         <target state="translated">Applica le preferenze relative alle variabili 'out' inline</target>
@@ -80,11 +95,6 @@
       <trans-unit id="Apply_new_preferences">
         <source>Apply new() preferences</source>
         <target state="translated">Applica le preferenze di new()</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_parameter_null_preferences">
-        <source>Apply parameter null preferences</source>
-        <target state="translated">Applica preferenze parametro Null</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
@@ -127,6 +137,11 @@
         <target state="translated">La selezione automatica è disabilitata a causa di una potenziale dichiarazione della variabile di criterio.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
+        <source>Cannot determine valid range of statements to extract</source>
+        <target state="translated">Non è possibile determinare l'intervallo valido di istruzioni da estrarre</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Change_to_as_expression">
         <source>Change to 'as' expression</source>
         <target state="translated">Cambia in espressione 'as'</target>
@@ -150,6 +165,11 @@
       <trans-unit id="Convert_to_raw_string">
         <source>Convert to raw string</source>
         <target state="translated">Converti in stringa non elaborata</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Convert_to_regular_constructor">
+        <source>Convert to regular constructor</source>
+        <target state="translated">Converti in costruttore normale</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -232,6 +252,11 @@
         <target state="translated">Avviso: l'espansione inline della variabile temporanea potrebbe modificare il significato del codice.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_colon_AI_suggestions_might_be_inaccurate">
+        <source>Warning: AI suggestions might be inaccurate.</source>
+        <target state="translated">Avviso: i suggerimenti dell'intelligenza artificiale potrebbero non essere accurati.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
         <source>asynchronous foreach statement</source>
         <target state="translated">istruzione foreach asincrona</target>
@@ -241,6 +266,11 @@
         <source>asynchronous using declaration</source>
         <target state="translated">dichiarazione using asincrona</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="do_while_loop">
+        <source>do-while loop</source>
+        <target state="translated">ciclo do-while</target>
+        <note>{Locked="do"}{Locked="while"} "do" and "while" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
@@ -310,11 +340,6 @@
       <trans-unit id="Remove_this_qualification">
         <source>Remove 'this' qualification</source>
         <target state="translated">Rimuove la qualificazione 'this'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Can_t_determine_valid_range_of_statements_to_extract">
-        <source>Can't determine valid range of statements to extract</source>
-        <target state="translated">Non è possibile determinare l'intervallo valido di istruzioni da estrarre</target>
         <note />
       </trans-unit>
       <trans-unit id="Not_all_code_paths_return">
@@ -434,12 +459,12 @@
       </trans-unit>
       <trans-unit id="top_level_code">
         <source>top-level code</source>
-        <target state="new">top-level code</target>
+        <target state="translated">codice di primo livello</target>
         <note />
       </trans-unit>
       <trans-unit id="top_level_statement">
         <source>top-level statement</source>
-        <target state="new">top-level statement</target>
+        <target state="translated">istruzione di primo livello</target>
         <note />
       </trans-unit>
       <trans-unit id="try_block">

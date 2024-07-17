@@ -20,146 +20,146 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
+namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod;
+
+internal abstract class CSharpGenerateParameterizedMemberService<TService> : AbstractGenerateParameterizedMemberService<TService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
+    where TService : AbstractGenerateParameterizedMemberService<TService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
 {
-    internal abstract class CSharpGenerateParameterizedMemberService<TService> : AbstractGenerateParameterizedMemberService<TService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
-        where TService : AbstractGenerateParameterizedMemberService<TService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
+    internal sealed class InvocationExpressionInfo(SemanticDocument document, State state) : AbstractInvocationInfo(document, state)
     {
-        internal sealed class InvocationExpressionInfo(SemanticDocument document, State state) : AbstractInvocationInfo(document, state)
+        private readonly InvocationExpressionSyntax _invocationExpression = state.InvocationExpressionOpt;
+
+        protected override ImmutableArray<ParameterName> DetermineParameterNames(CancellationToken cancellationToken)
         {
-            private readonly InvocationExpressionSyntax _invocationExpression = state.InvocationExpressionOpt;
+            return Document.SemanticModel.GenerateParameterNames(
+                _invocationExpression.ArgumentList, cancellationToken);
+        }
 
-            protected override ImmutableArray<ParameterName> DetermineParameterNames(CancellationToken cancellationToken)
+        protected override RefKind DetermineRefKind(CancellationToken cancellationToken)
+            => _invocationExpression.IsParentKind(SyntaxKind.RefExpression) ? RefKind.Ref : RefKind.None;
+
+        protected override ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken)
+        {
+            // Defer to the type inferrer to figure out what the return type of this new method
+            // should be.
+            var typeInference = Document.Document.GetLanguageService<ITypeInferenceService>();
+            var inferredType = typeInference.InferType(
+                Document.SemanticModel, _invocationExpression, objectAsDefault: true,
+                name: State.IdentifierToken.ValueText, cancellationToken);
+            return inferredType;
+        }
+
+        protected override ImmutableArray<ITypeParameterSymbol> GetCapturedTypeParameters(CancellationToken cancellationToken)
+        {
+            var result = new List<ITypeParameterSymbol>();
+            var semanticModel = Document.SemanticModel;
+            foreach (var argument in _invocationExpression.ArgumentList.Arguments)
             {
-                return Document.SemanticModel.GenerateParameterNames(
-                    _invocationExpression.ArgumentList, cancellationToken);
+                var type = argument.DetermineParameterType(semanticModel, cancellationToken);
+                type.GetReferencedTypeParameters(result);
             }
 
-            protected override RefKind DetermineRefKind(CancellationToken cancellationToken)
-                => _invocationExpression.IsParentKind(SyntaxKind.RefExpression) ? RefKind.Ref : RefKind.None;
+            return [.. result];
+        }
 
-            protected override ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken)
+        protected override ImmutableArray<ITypeParameterSymbol> GenerateTypeParameters(CancellationToken cancellationToken)
+        {
+            // Generate dummy type parameter names for a generic method.  If the user is inside a
+            // generic method, and calls a generic method with type arguments from the outer
+            // method, then use those same names for the generated type parameters.
+            //
+            // TODO(cyrusn): If we do capture method type variables, then we should probably
+            // capture their constraints as well.
+            var genericName = (GenericNameSyntax)State.SimpleNameOpt;
+            var semanticModel = Document.SemanticModel;
+
+            if (genericName.TypeArgumentList.Arguments.Count == 1)
             {
-                // Defer to the type inferrer to figure out what the return type of this new method
-                // should be.
-                var typeInference = Document.Document.GetLanguageService<ITypeInferenceService>();
-                var inferredType = typeInference.InferType(
-                    Document.SemanticModel, _invocationExpression, objectAsDefault: true,
-                    name: State.IdentifierToken.ValueText, cancellationToken);
-                return inferredType;
+                var typeParameter = GetUniqueTypeParameter(
+                    genericName.TypeArgumentList.Arguments.First(),
+                    s => !State.TypeToGenerateIn.GetAllTypeParameters().Any(static (t, s) => t.Name == s, s),
+                    cancellationToken);
+
+                return [typeParameter];
             }
-
-            protected override ImmutableArray<ITypeParameterSymbol> GetCapturedTypeParameters(CancellationToken cancellationToken)
+            else
             {
-                var result = new List<ITypeParameterSymbol>();
-                var semanticModel = Document.SemanticModel;
-                foreach (var argument in _invocationExpression.ArgumentList.Arguments)
-                {
-                    var type = argument.DetermineParameterType(semanticModel, cancellationToken);
-                    type.GetReferencedTypeParameters(result);
-                }
+                var list = new FixedSizeArrayBuilder<ITypeParameterSymbol>(genericName.TypeArgumentList.Arguments.Count);
 
-                return result.ToImmutableArray();
-            }
-
-            protected override ImmutableArray<ITypeParameterSymbol> GenerateTypeParameters(CancellationToken cancellationToken)
-            {
-                // Generate dummy type parameter names for a generic method.  If the user is inside a
-                // generic method, and calls a generic method with type arguments from the outer
-                // method, then use those same names for the generated type parameters.
-                //
-                // TODO(cyrusn): If we do capture method type variables, then we should probably
-                // capture their constraints as well.
-                var genericName = (GenericNameSyntax)State.SimpleNameOpt;
-                var semanticModel = Document.SemanticModel;
-
-                if (genericName.TypeArgumentList.Arguments.Count == 1)
+                using var _ = PooledHashSet<string>.GetInstance(out var usedIdentifiers);
+                usedIdentifiers.Add("T");
+                foreach (var type in genericName.TypeArgumentList.Arguments)
                 {
                     var typeParameter = GetUniqueTypeParameter(
-                        genericName.TypeArgumentList.Arguments.First(),
-                        s => !State.TypeToGenerateIn.GetAllTypeParameters().Any(static (t, s) => t.Name == s, s),
+                        type,
+                        s => !usedIdentifiers.Contains(s) && !State.TypeToGenerateIn.GetAllTypeParameters().Any(static (t, s) => t.Name == s, s),
                         cancellationToken);
 
-                    return ImmutableArray.Create(typeParameter);
-                }
-                else
-                {
-                    using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var list);
+                    usedIdentifiers.Add(typeParameter.Name);
 
-                    var usedIdentifiers = new HashSet<string> { "T" };
-                    foreach (var type in genericName.TypeArgumentList.Arguments)
-                    {
-                        var typeParameter = GetUniqueTypeParameter(
-                            type,
-                            s => !usedIdentifiers.Contains(s) && !State.TypeToGenerateIn.GetAllTypeParameters().Any(static (t, s) => t.Name == s, s),
-                            cancellationToken);
-
-                        usedIdentifiers.Add(typeParameter.Name);
-
-                        list.Add(typeParameter);
-                    }
-
-                    return list.ToImmutable();
-                }
-            }
-
-            private ITypeParameterSymbol GetUniqueTypeParameter(
-                TypeSyntax type,
-                Func<string, bool> isUnique,
-                CancellationToken cancellationToken)
-            {
-                var methodTypeParameter = GetMethodTypeParameter(type, cancellationToken);
-                return methodTypeParameter ?? CodeGenerationSymbolFactory.CreateTypeParameterSymbol(NameGenerator.GenerateUniqueName("T", isUnique));
-            }
-
-            private ITypeParameterSymbol GetMethodTypeParameter(TypeSyntax type, CancellationToken cancellationToken)
-            {
-                if (type is IdentifierNameSyntax)
-                {
-                    var info = Document.SemanticModel.GetTypeInfo(type, cancellationToken);
-                    if (info.Type is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method } typeParameter)
-                        return typeParameter;
+                    list.Add(typeParameter);
                 }
 
-                return null;
+                return list.MoveToImmutable();
             }
+        }
 
-            protected override ImmutableArray<RefKind> DetermineParameterModifiers(CancellationToken cancellationToken)
-                => _invocationExpression.ArgumentList.Arguments.Select(a => a.GetRefKind()).ToImmutableArray();
+        private ITypeParameterSymbol GetUniqueTypeParameter(
+            TypeSyntax type,
+            Func<string, bool> isUnique,
+            CancellationToken cancellationToken)
+        {
+            var methodTypeParameter = GetMethodTypeParameter(type, cancellationToken);
+            return methodTypeParameter ?? CodeGenerationSymbolFactory.CreateTypeParameterSymbol(NameGenerator.GenerateUniqueName("T", isUnique));
+        }
 
-            protected override ImmutableArray<ITypeSymbol> DetermineParameterTypes(CancellationToken cancellationToken)
-                => _invocationExpression.ArgumentList.Arguments.Select(a => DetermineParameterType(a, cancellationToken)).ToImmutableArray();
-
-            private ITypeSymbol DetermineParameterType(ArgumentSyntax argument, CancellationToken cancellationToken)
-                => argument.DetermineParameterType(Document.SemanticModel, cancellationToken);
-
-            protected override ImmutableArray<bool> DetermineParameterOptionality(CancellationToken cancellationToken)
-                => _invocationExpression.ArgumentList.Arguments.Select(a => false).ToImmutableArray();
-
-            protected override bool IsIdentifierName()
-                => State.SimpleNameOpt.Kind() == SyntaxKind.IdentifierName;
-
-            protected override bool IsImplicitReferenceConversion(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
+        private ITypeParameterSymbol GetMethodTypeParameter(TypeSyntax type, CancellationToken cancellationToken)
+        {
+            if (type is IdentifierNameSyntax)
             {
-                var conversion = compilation.ClassifyConversion(sourceType, targetType);
-                return conversion.IsImplicit && conversion.IsReference;
+                var info = Document.SemanticModel.GetTypeInfo(type, cancellationToken);
+                if (info.Type is ITypeParameterSymbol { TypeParameterKind: TypeParameterKind.Method } typeParameter)
+                    return typeParameter;
             }
 
-            protected override ImmutableArray<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken)
+            return null;
+        }
+
+        protected override ImmutableArray<RefKind> DetermineParameterModifiers(CancellationToken cancellationToken)
+            => _invocationExpression.ArgumentList.Arguments.Select(a => a.GetRefKind()).ToImmutableArray();
+
+        protected override ImmutableArray<ITypeSymbol> DetermineParameterTypes(CancellationToken cancellationToken)
+            => _invocationExpression.ArgumentList.Arguments.Select(a => DetermineParameterType(a, cancellationToken)).ToImmutableArray();
+
+        private ITypeSymbol DetermineParameterType(ArgumentSyntax argument, CancellationToken cancellationToken)
+            => argument.DetermineParameterType(Document.SemanticModel, cancellationToken);
+
+        protected override ImmutableArray<bool> DetermineParameterOptionality(CancellationToken cancellationToken)
+            => _invocationExpression.ArgumentList.Arguments.Select(a => false).ToImmutableArray();
+
+        protected override bool IsIdentifierName()
+            => State.SimpleNameOpt.Kind() == SyntaxKind.IdentifierName;
+
+        protected override bool IsImplicitReferenceConversion(Compilation compilation, ITypeSymbol sourceType, ITypeSymbol targetType)
+        {
+            var conversion = compilation.ClassifyConversion(sourceType, targetType);
+            return conversion.IsImplicit && conversion.IsReference;
+        }
+
+        protected override ImmutableArray<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken)
+        {
+
+            if (State.SimpleNameOpt is not GenericNameSyntax genericName)
+                return [];
+
+            var result = new FixedSizeArrayBuilder<ITypeSymbol>(genericName.TypeArgumentList.Arguments.Count);
+            foreach (var typeArgument in genericName.TypeArgumentList.Arguments)
             {
-                using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var result);
-
-                if (State.SimpleNameOpt is GenericNameSyntax genericName)
-                {
-                    foreach (var typeArgument in genericName.TypeArgumentList.Arguments)
-                    {
-                        var typeInfo = Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken);
-                        result.Add(typeInfo.Type);
-                    }
-                }
-
-                return result.ToImmutable();
+                var typeInfo = Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken);
+                result.Add(typeInfo.Type);
             }
+
+            return result.MoveToImmutable();
         }
     }
 }

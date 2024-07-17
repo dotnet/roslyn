@@ -7,10 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.NavigationBar
+namespace Microsoft.CodeAnalysis.NavigationBar;
+
+internal interface INavigationBarItemService : ILanguageService
 {
-    internal interface INavigationBarItemService : ILanguageService
-    {
-        Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsAsync(Document document, bool supportsCodeGeneration, bool forceFrozenPartialSemanticsForCrossProcessOperations, CancellationToken cancellationToken);
-    }
+    Task<ImmutableArray<RoslynNavigationBarItem>> GetItemsAsync(Document document, bool supportsCodeGeneration, bool frozenPartialSemantics, CancellationToken cancellationToken);
 }

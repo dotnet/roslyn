@@ -42,6 +42,21 @@
         <target state="translated">'System.Runtime.CompilerServices.RequiredMemberAttribute' は、コンパイラでのみ使用するために予約されています。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_InvalidExperimentalDiagID">
+        <source>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</source>
+        <target state="translated">'Experimental' 属性への diagnosticId 引数は有効な識別子である必要があります</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidVersionFormatDeterministic">
+        <source>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</source>
+        <target state="new">The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_LockTypeUnsupported">
+        <source>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</source>
+        <target state="translated">型 'System.Threading.Lock' の値は SyncLock ではサポートされていません。代わりに Try/Finally ブロック内で 'Enter' メソッドと 'Exit' メソッドを手動で呼び出すことを検討してください。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_MultipleAnalyzerConfigsInSameDir">
         <source>Multiple analyzer config files cannot be in the same directory ('{0}').</source>
         <target state="translated">複数のアナライザー構成ファイルを同じディレクトリに入れることはできません ('{0}')。</target>
@@ -605,6 +620,16 @@
         <target state="translated">パラメーターに適用された CallerArgumentExpressionAttribute は自己参照であるため、無効となります。</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_ConvertingLock">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">型 'System.Threading.Lock' の値が別の型に変換されると、SyncLock ステートメントで意図しない可能性の高いモニターベースのロックが使用されます。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingLock_Title">
+        <source>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</source>
+        <target state="translated">型 'System.Threading.Lock' の値が別の型に変換されると、SyncLock ステートメントで意図しない可能性の高いモニターベースのロックが使用されます。</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_DuplicateAnalyzerReference">
         <source>Analyzer reference '{0}' specified multiple times</source>
         <target state="translated">複数回指定されたアナライザー参照 '{0}'</target>
@@ -616,16 +641,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration">
-        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">ジェネレーター '{0}' でソースを生成できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。例外の型: '{1}'。メッセージ: '{2}'</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringGeneration_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">ジェネレーターで次の例外がスローされました:
-'{0}'。</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">ジェネレーター '{0}' でソースを生成できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。例外の型: '{1}'。メッセージ: '{2}'。
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringGeneration_Title">
         <source>Generator failed to generate source.</source>
@@ -633,16 +656,14 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization">
-        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</source>
-        <target state="translated">ジェネレーター '{0}' を初期化できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。例外の型: '{1}'。メッセージ: '{2}'</target>
-        <note>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</note>
-      </trans-unit>
-      <trans-unit id="WRN_GeneratorFailedDuringInitialization_Description">
-        <source>Generator threw the following exception:
-'{0}'.</source>
-        <target state="translated">ジェネレーターで次の例外がスローされました:
-'{0}'。</target>
-        <note>{0} is the string representation of the exception that was thrown.</note>
+        <source>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</source>
+        <target state="translated">ジェネレーター '{0}' を初期化できませんでした。出力には寄与しません。結果として、コンパイル エラーが発生する可能性があります。例外の型: '{1}'。メッセージ: '{2}'。
+{3}</target>
+        <note>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</note>
       </trans-unit>
       <trans-unit id="WRN_GeneratorFailedDuringInitialization_Title">
         <source>Generator failed to initialize.</source>
@@ -7678,8 +7699,8 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidVersionFormat2">
-        <source>The specified version string does not conform to the recommended format - major.minor.build.revision</source>
-        <target state="translated">指定したバージョン文字列は、推奨される形式 (major.minor.build.revision) に従っていません</target>
+        <source>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</source>
+        <target state="needs-review-translation">指定したバージョン文字列は、推奨される形式 (major.minor.build.revision) に従っていません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InvalidAssemblyCultureForExe">

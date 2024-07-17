@@ -12,149 +12,148 @@ using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirective
+namespace Microsoft.CodeAnalysis.CSharp.Analyzers.RemoveUnnecessaryNullableDirective;
+
+internal sealed class NullableImpactingSpanWalker(
+    SemanticModel semanticModel,
+    int positionOfFirstReducingNullableDirective,
+    TextSpanMutableIntervalTree? ignoredSpans,
+    CancellationToken cancellationToken) : CSharpSyntaxWalker(SyntaxWalkerDepth.StructuredTrivia), IDisposable
 {
-    internal sealed class NullableImpactingSpanWalker(
-        SemanticModel semanticModel,
-        int positionOfFirstReducingNullableDirective,
-        SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? ignoredSpans,
-        CancellationToken cancellationToken) : CSharpSyntaxWalker(SyntaxWalkerDepth.StructuredTrivia), IDisposable
+    private readonly SemanticModel _semanticModel = semanticModel;
+    private readonly int _positionOfFirstReducingNullableDirective = positionOfFirstReducingNullableDirective;
+    private readonly TextSpanMutableIntervalTree? _ignoredSpans = ignoredSpans;
+    private readonly CancellationToken _cancellationToken = cancellationToken;
+
+    private ImmutableArray<TextSpan>.Builder? _spans;
+
+    public bool HasSpans => _spans?.Count > 0;
+
+    public ImmutableArray<TextSpan> Spans => _spans?.ToImmutable() ?? [];
+
+    public ImmutableArray<TextSpan>.Builder SpansBuilder
     {
-        private readonly SemanticModel _semanticModel = semanticModel;
-        private readonly int _positionOfFirstReducingNullableDirective = positionOfFirstReducingNullableDirective;
-        private readonly SimpleIntervalTree<TextSpan, TextSpanIntervalIntrospector>? _ignoredSpans = ignoredSpans;
-        private readonly CancellationToken _cancellationToken = cancellationToken;
-
-        private ImmutableArray<TextSpan>.Builder? _spans;
-
-        public bool HasSpans => _spans?.Count > 0;
-
-        public ImmutableArray<TextSpan> Spans => _spans?.ToImmutable() ?? ImmutableArray<TextSpan>.Empty;
-
-        public ImmutableArray<TextSpan>.Builder SpansBuilder
+        get
         {
-            get
-            {
-                if (_spans is null)
-                    Interlocked.CompareExchange(ref _spans, ImmutableArray.CreateBuilder<TextSpan>(), null);
+            if (_spans is null)
+                Interlocked.CompareExchange(ref _spans, ImmutableArray.CreateBuilder<TextSpan>(), null);
 
-                return _spans;
+            return _spans;
+        }
+    }
+
+    private bool IsIgnored(SyntaxNode node)
+    {
+        if (node.Span.End < _positionOfFirstReducingNullableDirective)
+            return true;
+
+        if (_ignoredSpans is not null)
+        {
+            if (_ignoredSpans.HasIntervalThatContains(node.SpanStart, node.Span.Length))
+            {
+                return true;
             }
         }
 
-        private bool IsIgnored(SyntaxNode node)
+        return false;
+    }
+
+    private static bool IsLanguageRestrictedToNonNullForm(TypeSyntax node)
+    {
+        // Simplify syntax checks by walking up qualified names to an equivalent parent node.
+        node = WalkUpCurrentQualifiedName(node);
+
+        if (node?.Parent is QualifiedNameSyntax qualifiedName
+            && qualifiedName.Left == node)
         {
-            if (node.Span.End < _positionOfFirstReducingNullableDirective)
-                return true;
-
-            if (_ignoredSpans is not null)
-            {
-                if (_ignoredSpans.HasIntervalThatContains(node.SpanStart, node.Span.Length))
-                {
-                    return true;
-                }
-            }
-
-            return false;
+            // Cannot dot off a nullable reference type
+            return true;
         }
 
-        private static bool IsLanguageRestrictedToNonNullForm(TypeSyntax node)
+        if (node.IsParentKind(SyntaxKind.UsingDirective))
         {
-            // Simplify syntax checks by walking up qualified names to an equivalent parent node.
-            node = WalkUpCurrentQualifiedName(node);
-
-            if (node?.Parent is QualifiedNameSyntax qualifiedName
-                && qualifiedName.Left == node)
-            {
-                // Cannot dot off a nullable reference type
-                return true;
-            }
-
-            if (node.IsParentKind(SyntaxKind.UsingDirective))
-            {
-                // Using directives cannot directly reference a nullable reference type
-                return true;
-            }
-
-            if (node.IsParentKind(SyntaxKind.SimpleBaseType))
-            {
-                // Cannot derive directly from a nullable reference type
-                return true;
-            }
-
-            if (node?.Parent is BaseNamespaceDeclarationSyntax)
-            {
-                // Namespace names cannot be nullable reference types
-                return true;
-            }
-
-            if (node.IsParentKind(SyntaxKind.NameEquals) && node.Parent.IsParentKind(SyntaxKind.UsingDirective))
-            {
-                // This is the alias or the target type of a using alias directive, neither of which can be nullable
-                //
-                //   using CustomException = System.Exception;
-                //         ^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^
-                return true;
-            }
-
-            return false;
-
-            // If this is Y in X.Y, walk up to X.Y
-            static TypeSyntax WalkUpCurrentQualifiedName(TypeSyntax node)
-            {
-                while (node.Parent is QualifiedNameSyntax qualifiedName
-                    && qualifiedName.Right == node)
-                {
-                    node = qualifiedName;
-                }
-
-                return node;
-            }
+            // Using directives cannot directly reference a nullable reference type
+            return true;
         }
 
-        public void Dispose()
+        if (node.IsParentKind(SyntaxKind.SimpleBaseType))
         {
+            // Cannot derive directly from a nullable reference type
+            return true;
         }
 
-        public override void DefaultVisit(SyntaxNode node)
+        if (node?.Parent is BaseNamespaceDeclarationSyntax)
         {
-            if (IsIgnored(node))
+            // Namespace names cannot be nullable reference types
+            return true;
+        }
+
+        if (node.IsParentKind(SyntaxKind.NameEquals) && node.Parent.IsParentKind(SyntaxKind.UsingDirective))
+        {
+            // This is the alias or the target type of a using alias directive, neither of which can be nullable
+            //
+            //   using CustomException = System.Exception;
+            //         ^^^^^^^^^^^^^^^   ^^^^^^^^^^^^^^^^
+            return true;
+        }
+
+        return false;
+
+        // If this is Y in X.Y, walk up to X.Y
+        static TypeSyntax WalkUpCurrentQualifiedName(TypeSyntax node)
+        {
+            while (node.Parent is QualifiedNameSyntax qualifiedName
+                && qualifiedName.Right == node)
+            {
+                node = qualifiedName;
+            }
+
+            return node;
+        }
+    }
+
+    public void Dispose()
+    {
+    }
+
+    public override void DefaultVisit(SyntaxNode node)
+    {
+        if (IsIgnored(node))
+            return;
+
+        if (node is TypeSyntax typeSyntax
+            && !IsLanguageRestrictedToNonNullForm(typeSyntax))
+        {
+            if (typeSyntax.IsVar)
                 return;
 
-            if (node is TypeSyntax typeSyntax
-                && !IsLanguageRestrictedToNonNullForm(typeSyntax))
+            if (typeSyntax is PredefinedTypeSyntax predefinedType
+                && CSharpSyntaxFacts.Instance.TryGetPredefinedType(predefinedType.Keyword, out var type))
             {
-                if (typeSyntax.IsVar)
-                    return;
-
-                if (typeSyntax is PredefinedTypeSyntax predefinedType
-                    && CSharpSyntaxFacts.Instance.TryGetPredefinedType(predefinedType.Keyword, out var type))
+                if (type is CodeAnalysis.LanguageService.PredefinedType.Object or CodeAnalysis.LanguageService.PredefinedType.String)
                 {
-                    if (type is CodeAnalysis.LanguageService.PredefinedType.Object or CodeAnalysis.LanguageService.PredefinedType.String)
-                    {
-                        SpansBuilder.Add(predefinedType.Span);
-                    }
-
-                    // All other predefined types are value types
-                    return;
+                    SpansBuilder.Add(predefinedType.Span);
                 }
 
-                var symbolInfo = _semanticModel.GetSymbolInfo(typeSyntax, _cancellationToken);
-                if (symbolInfo.Symbol.IsKind(SymbolKind.Namespace))
-                {
-                    // Namespaces cannot be nullable
-                    return;
-                }
-                else if (symbolInfo.Symbol is INamedTypeSymbol { IsValueType: true, IsGenericType: false })
-                {
-                    return;
-                }
-
-                SpansBuilder.Add(node.Span);
+                // All other predefined types are value types
                 return;
             }
 
-            base.DefaultVisit(node);
+            var symbolInfo = _semanticModel.GetSymbolInfo(typeSyntax, _cancellationToken);
+            if (symbolInfo.Symbol.IsKind(SymbolKind.Namespace))
+            {
+                // Namespaces cannot be nullable
+                return;
+            }
+            else if (symbolInfo.Symbol is INamedTypeSymbol { IsValueType: true, IsGenericType: false })
+            {
+                return;
+            }
+
+            SpansBuilder.Add(node.Span);
+            return;
         }
+
+        base.DefaultVisit(node);
     }
 }

@@ -46,6 +46,9 @@ namespace Microsoft.CodeAnalysis
 
         private ImmutableArray<AssemblyIdentity> _lazyAssemblyReferences;
 
+        private static readonly Dictionary<string, (int FirstIndex, int SecondIndex)> s_sharedEmptyForwardedTypes = new Dictionary<string, (int FirstIndex, int SecondIndex)>();
+        private static readonly Dictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)> s_sharedEmptyCaseInsensitiveForwardedTypes = new Dictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)>();
+
         /// <summary>
         /// This is a tuple for optimization purposes. In valid cases, we need to store
         /// only one assembly index per type. However, if we found more than one, we
@@ -53,6 +56,13 @@ namespace Microsoft.CodeAnalysis
         /// We use -1 in case there was no forward.
         /// </summary>
         private Dictionary<string, (int FirstIndex, int SecondIndex)> _lazyForwardedTypesToAssemblyIndexMap;
+
+        /// <summary>
+        /// Case-insensitive version of <see cref="_lazyForwardedTypesToAssemblyIndexMap"/>, only populated if case-insensitive search is
+        /// requested. We only keep the first instance of a type name, regardless of case, as this is only used for error recovery purposes
+        /// in VB.
+        /// </summary>
+        private Dictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)> _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap;
 
         private readonly Lazy<IdentifierCollection> _lazyTypeNameCollection;
         private readonly Lazy<IdentifierCollection> _lazyNamespaceNameCollection;
@@ -87,6 +97,7 @@ namespace Microsoft.CodeAnalysis
 #nullable enable
         private delegate bool AttributeValueExtractor<T>(out T value, ref BlobReader sigReader);
         private static readonly AttributeValueExtractor<string?> s_attributeStringValueExtractor = CrackStringInAttributeValue;
+        private static readonly AttributeValueExtractor<(int, int)> s_attributeIntAndIntValueExtractor = CrackIntAndIntInAttributeValue;
         private static readonly AttributeValueExtractor<StringAndInt> s_attributeStringAndIntValueExtractor = CrackStringAndIntInAttributeValue;
         private static readonly AttributeValueExtractor<(string?, string?)> s_attributeStringAndStringValueExtractor = CrackStringAndStringInAttributeValue;
         private static readonly AttributeValueExtractor<bool> s_attributeBooleanValueExtractor = CrackBooleanInAttributeValue;
@@ -971,9 +982,14 @@ namespace Microsoft.CodeAnalysis
             return IsNoPiaLocalType(typeDef, out attributeInfo);
         }
 
-        internal bool HasParamsAttribute(EntityHandle token)
+        internal bool HasParamArrayAttribute(EntityHandle token)
         {
             return FindTargetAttribute(token, AttributeDescription.ParamArrayAttribute).HasValue;
+        }
+
+        internal bool HasParamCollectionAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.ParamCollectionAttribute).HasValue;
         }
 
         internal bool HasIsReadOnlyAttribute(EntityHandle token)
@@ -1019,6 +1035,16 @@ namespace Microsoft.CodeAnalysis
         internal bool HasGuidAttribute(EntityHandle token, out string guidValue)
         {
             return HasStringValuedAttribute(token, AttributeDescription.GuidAttribute, out guidValue);
+        }
+
+        internal bool HasImportedFromTypeLibAttribute(EntityHandle token, out string libValue)
+        {
+            return HasStringValuedAttribute(token, AttributeDescription.ImportedFromTypeLibAttribute, out libValue);
+        }
+
+        internal bool HasPrimaryInteropAssemblyAttribute(EntityHandle token, out int majorValue, out int minorValue)
+        {
+            return HasIntAndIntValuedAttribute(token, AttributeDescription.PrimaryInteropAssemblyAttribute, out majorValue, out minorValue);
         }
 
         internal bool HasFixedBufferAttribute(EntityHandle token, out string elementTypeName, out int bufferSize)
@@ -1171,6 +1197,7 @@ namespace Microsoft.CodeAnalysis
         internal const string ByRefLikeMarker = "Types with embedded references are not supported in this version of your compiler.";
         internal const string RequiredMembersMarker = "Constructors of types with required members are not supported in this version of your compiler.";
 
+        /// <remarks>Should be kept in sync with <see cref="IsMoreImportantObsoleteKind(ObsoleteAttributeKind, ObsoleteAttributeKind)"/></remarks>
         internal ObsoleteAttributeData TryGetDeprecatedOrExperimentalOrObsoleteAttribute(
             EntityHandle token,
             IAttributeNamedArgumentDecoder decoder,
@@ -1217,6 +1244,32 @@ namespace Microsoft.CodeAnalysis
         }
 
 #nullable enable
+        /// <summary>
+        /// Indicates whether the first attribute should be prioritized over the second one.
+        /// Same order of priority as
+        ///   <see cref="TryGetDeprecatedOrExperimentalOrObsoleteAttribute(EntityHandle, IAttributeNamedArgumentDecoder, bool, bool)"/>
+        /// </summary>
+        internal static bool IsMoreImportantObsoleteKind(ObsoleteAttributeKind firstKind, ObsoleteAttributeKind secondKind)
+        {
+            return getPriority(firstKind) <= getPriority(secondKind);
+
+            static int getPriority(ObsoleteAttributeKind kind) => kind switch
+            {
+                ObsoleteAttributeKind.Deprecated => 0,
+                ObsoleteAttributeKind.Obsolete => 1,
+                ObsoleteAttributeKind.WindowsExperimental => 2,
+                ObsoleteAttributeKind.Experimental => 3,
+                ObsoleteAttributeKind.Uninitialized => 4,
+                _ => throw ExceptionUtilities.UnexpectedValue(kind)
+            };
+        }
+
+        internal ObsoleteAttributeData? TryDecodeExperimentalAttributeData(EntityHandle handle, IAttributeNamedArgumentDecoder decoder)
+        {
+            var info = FindTargetAttribute(handle, AttributeDescription.ExperimentalAttribute);
+            return info.HasValue ? TryExtractExperimentalDataFromAttribute(info, decoder) : null;
+        }
+
         private ObsoleteAttributeData? TryExtractExperimentalDataFromAttribute(AttributeInfo attributeInfo, IAttributeNamedArgumentDecoder decoder)
         {
             Debug.Assert(attributeInfo.HasValue);
@@ -1442,11 +1495,52 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        internal CustomAttributeHandle GetAttributeUsageAttributeHandle(EntityHandle token)
+        internal bool HasAttributeUsageAttribute(EntityHandle token, IAttributeNamedArgumentDecoder attributeNamedArgumentDecoder, out AttributeUsageInfo usageInfo)
         {
             AttributeInfo info = FindTargetAttribute(token, AttributeDescription.AttributeUsageAttribute);
-            Debug.Assert(info.SignatureIndex == 0);
-            return info.Handle;
+
+            if (info.HasValue)
+            {
+                Debug.Assert(info.SignatureIndex == 0);
+                if (TryGetAttributeReader(info.Handle, out BlobReader sigReader) && CrackIntInAttributeValue(out int validOn, ref sigReader))
+                {
+                    bool allowMultiple = false;
+                    bool inherited = true;
+
+                    if (sigReader.RemainingBytes >= 2)
+                    {
+                        try
+                        {
+                            var numNamedArgs = sigReader.ReadUInt16();
+                            for (uint i = 0; i < numNamedArgs; i++)
+                            {
+                                (KeyValuePair<string, TypedConstant> nameValuePair, bool isProperty, SerializationTypeCode typeCode, SerializationTypeCode elementTypeCode) namedArgValues =
+                                    attributeNamedArgumentDecoder.DecodeCustomAttributeNamedArgumentOrThrow(ref sigReader);
+
+                                if (namedArgValues is (_, isProperty: true, typeCode: SerializationTypeCode.Boolean, _))
+                                {
+                                    switch (namedArgValues.nameValuePair.Key)
+                                    {
+                                        case "AllowMultiple":
+                                            allowMultiple = (bool)namedArgValues.nameValuePair.Value.ValueInternal!;
+                                            break;
+                                        case "Inherited":
+                                            inherited = (bool)namedArgValues.nameValuePair.Value.ValueInternal!;
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+                        catch (Exception e) when (e is UnsupportedSignatureContent or BadImageFormatException) { }
+                    }
+
+                    usageInfo = new AttributeUsageInfo((AttributeTargets)validOn, allowMultiple, inherited);
+                    return true;
+                }
+            }
+
+            usageInfo = default;
+            return false;
         }
 
         internal bool HasInterfaceTypeAttribute(EntityHandle token, out ComInterfaceType interfaceType)
@@ -1848,6 +1942,13 @@ namespace Microsoft.CodeAnalysis
             return TryExtractValueFromAttribute(handle, out value, s_decimalValueInDecimalConstantAttributeExtractor);
         }
 
+        private bool TryExtractIntAndIntValueFromAttribute(CustomAttributeHandle handle, out int value1, out int value2)
+        {
+            bool result = TryExtractValueFromAttribute(handle, out (int, int) data, s_attributeIntAndIntValueExtractor);
+            (value1, value2) = data;
+            return result;
+        }
+
         private struct StringAndInt
         {
             public string? StringValue;
@@ -1932,6 +2033,19 @@ namespace Microsoft.CodeAnalysis
             }
 
             value = null;
+            return false;
+        }
+
+        private bool HasIntAndIntValuedAttribute(EntityHandle token, AttributeDescription description, out int value1, out int value2)
+        {
+            AttributeInfo info = FindTargetAttribute(token, description);
+            if (info.HasValue)
+            {
+                return TryExtractIntAndIntValueFromAttribute(info.Handle, out value1, out value2);
+            }
+
+            value1 = 0;
+            value2 = 0;
             return false;
         }
 
@@ -2061,6 +2175,19 @@ namespace Microsoft.CodeAnalysis
             }
 
             value = null;
+            return false;
+        }
+
+        private static bool CrackIntAndIntInAttributeValue(out (int, int) value, ref BlobReader sig)
+        {
+            if (CrackIntInAttributeValue(out int value1, ref sig) &&
+                CrackIntInAttributeValue(out int value2, ref sig))
+            {
+                value = (value1, value2);
+                return true;
+            }
+
+            value = default;
             return false;
         }
 
@@ -3102,6 +3229,20 @@ namespace Microsoft.CodeAnalysis
             return TryExtractByteArrayValueFromAttribute(info.Handle, out nullableTransforms);
         }
 
+        internal bool TryGetOverloadResolutionPriorityValue(EntityHandle token, out int decodedPriority)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.OverloadResolutionPriorityAttribute);
+            Debug.Assert(!info.HasValue || info.SignatureIndex == 0);
+
+            if (!info.HasValue)
+            {
+                decodedPriority = 0;
+                return false;
+            }
+
+            return TryExtractValueFromAttribute(info.Handle, out decodedPriority, s_attributeIntValueExtractor);
+        }
+
         #endregion
 
         #region TypeSpec helpers
@@ -3613,23 +3754,20 @@ namespace Microsoft.CodeAnalysis
 
             if (ignoreCase)
             {
-                // This linear search is not the optimal way to use a hashmap, but we should only use
-                // this functionality when computing diagnostics.  Note
-                // that we can't store the map case-insensitively, since real metadata name
-                // lookup has to remain case sensitive.
-                foreach (var pair in _lazyForwardedTypesToAssemblyIndexMap)
+                // We should only use this functionality when computing diagnostics, so we lazily construct
+                // a case-insensitive map when necessary. Note that we can't store the original map
+                // case-insensitively, since real metadata name lookup has to remain case sensitive.
+                ensureCaseInsensitiveDictionary();
+
+                if (_lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap.TryGetValue(fullName, out var value))
                 {
-                    if (string.Equals(pair.Key, fullName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        matchedName = pair.Key;
-                        return pair.Value;
-                    }
+                    matchedName = value.OriginalName;
+                    return (value.FirstIndex, value.SecondIndex);
                 }
             }
             else
             {
-                (int FirstIndex, int SecondIndex) assemblyIndices;
-                if (_lazyForwardedTypesToAssemblyIndexMap.TryGetValue(fullName, out assemblyIndices))
+                if (_lazyForwardedTypesToAssemblyIndexMap.TryGetValue(fullName, out (int FirstIndex, int SecondIndex) assemblyIndices))
                 {
                     matchedName = fullName;
                     return assemblyIndices;
@@ -3638,6 +3776,29 @@ namespace Microsoft.CodeAnalysis
 
             matchedName = null;
             return (FirstIndex: -1, SecondIndex: -1);
+
+            void ensureCaseInsensitiveDictionary()
+            {
+                if (_lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap != null)
+                {
+                    return;
+                }
+
+                if (_lazyForwardedTypesToAssemblyIndexMap.Count == 0)
+                {
+                    _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap = s_sharedEmptyCaseInsensitiveForwardedTypes;
+                    return;
+                }
+
+                var caseInsensitiveMap = new Dictionary<string, (string OriginalName, int FirstIndex, int SecondIndex)>(StringComparer.OrdinalIgnoreCase);
+
+                foreach (var (key, (firstIndex, secondIndex)) in _lazyForwardedTypesToAssemblyIndexMap)
+                {
+                    _ = caseInsensitiveMap.TryAdd(key, (key, firstIndex, secondIndex));
+                }
+
+                _lazyCaseInsensitiveForwardedTypesToAssemblyIndexMap = caseInsensitiveMap;
+            }
         }
 
         internal IEnumerable<KeyValuePair<string, (int FirstIndex, int SecondIndex)>> GetForwardedTypes()
@@ -3646,11 +3807,13 @@ namespace Microsoft.CodeAnalysis
             return _lazyForwardedTypesToAssemblyIndexMap;
         }
 
+#nullable enable
+        [MemberNotNull(nameof(_lazyForwardedTypesToAssemblyIndexMap))]
         private void EnsureForwardTypeToAssemblyMap()
         {
             if (_lazyForwardedTypesToAssemblyIndexMap == null)
             {
-                var typesToAssemblyIndexMap = new Dictionary<string, (int FirstIndex, int SecondIndex)>();
+                Dictionary<string, (int FirstIndex, int SecondIndex)>? typesToAssemblyIndexMap = null;
 
                 try
                 {
@@ -3695,6 +3858,8 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
 
+                        typesToAssemblyIndexMap ??= new Dictionary<string, (int FirstIndex, int SecondIndex)>();
+
                         (int FirstIndex, int SecondIndex) indices;
 
                         if (typesToAssemblyIndexMap.TryGetValue(name, out indices))
@@ -3717,9 +3882,17 @@ namespace Microsoft.CodeAnalysis
                 catch (BadImageFormatException)
                 { }
 
-                _lazyForwardedTypesToAssemblyIndexMap = typesToAssemblyIndexMap;
+                if (typesToAssemblyIndexMap == null)
+                {
+                    _lazyForwardedTypesToAssemblyIndexMap = s_sharedEmptyForwardedTypes;
+                }
+                else
+                {
+                    _lazyForwardedTypesToAssemblyIndexMap = typesToAssemblyIndexMap;
+                }
             }
         }
+#nullable disable
 
         internal IdentifierCollection TypeNames
         {

@@ -77,14 +77,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 sb.Append(" Path='");
                 sb.Append(_fullPath);
-                sb.Append("'");
+                sb.Append('\'');
             }
 
             if (_display != null)
             {
                 sb.Append(" Display='");
                 sb.Append(_display);
-                sb.Append("'");
+                sb.Append('\'');
             }
 
             return sb.ToString();

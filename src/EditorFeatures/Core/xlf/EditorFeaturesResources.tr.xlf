@@ -2,6 +2,11 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="tr" original="../EditorFeaturesResources.resx">
     <body>
+      <trans-unit id="An_error_occurred_while_generating_documentation_for_this_code">
+        <source>An error occurred while generating documentation for this code.</source>
+        <target state="translated">Bu kod için belgeler oluşturulurken bir hata oluştu.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="An_inline_rename_session_is_active_for_identifier_0">
         <source>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</source>
         <target state="translated">'{0}' tanımlayıcısı için bir satır içi yeniden adlandırma oturumu etkin. Ek seçeneklere erişmek için satır içi yeniden adlandırmayı tekrar çağırın. İstediğiniz zaman yeniden adlandırılan tanımlayıcıyı düzenlemeye devam edebilirsiniz.</target>
@@ -17,34 +22,29 @@
         <target state="translated">Giriş işareti altında sembole gidilemiyor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Change_configuration">
-        <source>Change configuration</source>
-        <target state="translated">Değiştir yapılandırma</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_cleanup_is_not_configured">
-        <source>Code cleanup is not configured</source>
-        <target state="translated">Kod temizleme yapılandırılmadı</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_Encapsulate_Field_information">
         <source>Computing 'Encapsulate Field' information</source>
         <target state="translated">'Alanı Kapsülle' bilgileri hesaplanıyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Configure_it_now">
-        <source>Configure it now</source>
-        <target state="translated">Hemen yapılandırın</target>
+      <trans-unit id="Copilot">
+        <source>Copilot</source>
+        <target state="translated">Copilot</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Copilot_thinking">
+        <source>Copilot thinking...</source>
+        <target state="translated">Copilot düşünüyor...</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Describe_with_Copilot">
+        <source>Describe with Copilot</source>
+        <target state="translated">Copilot ile açıkla</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_prefer_this_or_Me">
         <source>Do not prefer 'this.' or 'Me.'</source>
         <target state="translated">'this.' veya 'Me.' tercih etme</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Do_not_show_this_message_again">
-        <source>Do not show this message again</source>
-        <target state="translated">Bu iletiyi bir daha gösterme</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_you_still_want_to_proceed_This_may_produce_broken_code">
@@ -77,24 +77,14 @@
         <target state="translated">Filtre</target>
         <note>Caption/tooltip for "Filter" image element displayed in completion popup.</note>
       </trans-unit>
-      <trans-unit id="Format_document_performed_additional_cleanup">
-        <source>Format Document performed additional cleanup</source>
-        <target state="translated">Biçimi belge ek temizleme işlemi</target>
+      <trans-unit id="Generate_summary_with_Copilot">
+        <source>Generate summary with Copilot (might be inaccurate)</source>
+        <target state="translated">Copilot ile özet oluştur (yanlış olabilir)</target>
         <note />
       </trans-unit>
       <trans-unit id="Get_help_for_0">
         <source>Get help for '{0}'</source>
         <target state="translated">'{0}' için yardım alın</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Gathering_Suggestions_0">
-        <source>Gathering Suggestions - '{0}'</source>
-        <target state="translated">Öneriler Toplanıyor - '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Gathering_Suggestions_Waiting_for_the_solution_to_fully_load">
-        <source>Gathering Suggestions - Waiting for the solution to fully load</source>
-        <target state="translated">Öneriler Toplanıyor - Çözümün tam olarak yüklenmesi bekleniyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Go_To_Base">
@@ -237,6 +227,16 @@
         <target state="translated">Hayır</target>
         <note />
       </trans-unit>
+      <trans-unit id="Obsolete_symbol">
+        <source>Obsolete symbol</source>
+        <target state="translated">Kullanımdan kaldırıldı sembolü</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="On_the_fly_documentation">
+        <source>On-the-fly documentation</source>
+        <target state="translated">Çalışma anı belgeleri</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Operator_Overloaded">
         <source>Operator - Overloaded</source>
         <target state="translated">İşleç - Aşırı Yüklenmiş</target>
@@ -292,6 +292,11 @@
         <target state="translated">Yeniden atanan değişken</target>
         <note />
       </trans-unit>
+      <trans-unit id="Refine_using_Copilot">
+        <source>Refine using Copilot</source>
+        <target state="translated">Copilot kullanarak geliştir</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Rename_file_name_doesnt_match">
         <source>Rename _file (type does not match file name)</source>
         <target state="translated">_Dosyayı yeniden adlandır (tür, dosya adıyla eşleşmiyor)</target>
@@ -311,6 +316,21 @@
         <source>Rename symbol's _file</source>
         <target state="translated">Sembolün _dosyasını yeniden adlandır</target>
         <note>Indicates that the file a symbol is defined in will also be renamed</note>
+      </trans-unit>
+      <trans-unit id="Roslyn_Test_Code">
+        <source>Roslyn Test Code</source>
+        <target state="translated">Roslyn Test Kodu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Roslyn_Test_Code_Markup">
+        <source>Roslyn Test Code Markup</source>
+        <target state="translated">Roslyn Test Kodu İşaretlemesi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Run">
+        <source>Run</source>
+        <target state="translated">Çalıştır</target>
+        <note />
       </trans-unit>
       <trans-unit id="Split_comment">
         <source>Split comment</source>
@@ -567,11 +587,6 @@
         <target state="translated">XML Belge Açıklamaları - Öznitelik Değeri</target>
         <note />
       </trans-unit>
-      <trans-unit id="Unnecessary_Code">
-        <source>Unnecessary Code</source>
-        <target state="translated">Gereksiz Kod</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rude_Edit">
         <source>Rude Edit</source>
         <target state="translated">İşlenmemiş Düzenleme</target>
@@ -617,19 +632,24 @@
         <target state="translated">{0} çakışmaları çözümlenecek</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_declarations_and_interceptors">
+        <source>'{0}' declarations and interceptors</source>
+        <target state="new">'{0}' declarations and interceptors</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_implemented_members">
         <source>'{0}' implemented members</source>
         <target state="translated">'{0}' uygulanan üye</target>
         <note />
       </trans-unit>
+      <trans-unit id="_0_intercepted_locations">
+        <source>'{0}' intercepted locations</source>
+        <target state="translated">'{0}' engellenen konumları</target>
+        <note />
+      </trans-unit>
       <trans-unit id="_0_unresolvable_conflict_s">
         <source>{0} unresolvable conflict(s)</source>
         <target state="translated">{0} çözümlenemeyen çakışma</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Applying_0">
-        <source>Applying "{0}"...</source>
-        <target state="translated">"{0}" uygulanıyor...</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_to_1_with_content_colon">
@@ -687,11 +707,6 @@
         <target state="translated">Alanı Kapsülle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Applying_Encapsulate_Field_refactoring">
-        <source>Applying "Encapsulate Field" refactoring...</source>
-        <target state="translated">"Alanı Yalıtma" yeniden düzenlemesi uygulanıyor...</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Please_select_the_definition_of_the_field_to_encapsulate">
         <source>Please select the definition of the field to encapsulate.</source>
         <target state="translated">Lütfen yalıtılacak alanın tanımını seçin.</target>
@@ -717,11 +732,6 @@
         <target state="translated">Bilgi bulunamadı.</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_usages_found">
-        <source>No usages found.</source>
-        <target state="translated">Kullanım bulunamadı.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implements_">
         <source>Implements</source>
         <target state="translated">Uygulanan</target>
@@ -742,84 +752,14 @@
         <target state="translated">Geçersiz Kılınan</target>
         <note />
       </trans-unit>
-      <trans-unit id="Directly_Called_In">
-        <source>Directly Called In</source>
-        <target state="translated">Doğrudan Çağrılma Yeri</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Indirectly_Called_In">
-        <source>Indirectly Called In</source>
-        <target state="translated">Dolaylı Olarak Çağrılma Yeri</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Called_In">
-        <source>Called In</source>
-        <target state="translated">Çağrılma Yeri</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Referenced_In">
-        <source>Referenced In</source>
-        <target state="translated">Başvuru Yeri</target>
-        <note />
-      </trans-unit>
       <trans-unit id="No_references_found">
         <source>No references found.</source>
         <target state="translated">Başvuru bulunamadı.</target>
         <note />
       </trans-unit>
-      <trans-unit id="No_derived_types_found">
-        <source>No derived types found.</source>
-        <target state="translated">Türetilmiş tür bulunamadı.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="No_implementations_found">
-        <source>No implementations found.</source>
-        <target state="translated">Uygulama bulunamadı.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_Line_1">
-        <source>{0} - (Line {1})</source>
-        <target state="translated">{0} - (Satır {1})</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Class_Parts">
-        <source>Class Parts</source>
-        <target state="translated">Sınıf Parçaları</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Struct_Parts">
-        <source>Struct Parts</source>
-        <target state="translated">Yapı Parçaları</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interface_Parts">
-        <source>Interface Parts</source>
-        <target state="translated">Arabirim Parçaları</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_Parts">
-        <source>Type Parts</source>
-        <target state="translated">Tür Parçaları</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inherits_">
         <source>Inherits</source>
         <target state="translated">Devralınan</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inherited_By">
-        <source>Inherited By</source>
-        <target state="translated">Devralan</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Already_tracking_document_with_identical_key">
-        <source>Already tracking document with identical key</source>
-        <target state="translated">Belge zaten özdeş anahtar ile izleniyor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="document_is_not_currently_being_tracked">
-        <source>document is not currently being tracked</source>
-        <target state="translated">Belge şu anda izlenmiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_Rename_information">
@@ -877,24 +817,9 @@
         <target state="translated">Otomatik olarak tamamlanıyor...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatic_Pair_Completion">
-        <source>Automatic Pair Completion</source>
-        <target state="translated">Otomatik Çift Tamamlaması</target>
-        <note />
-      </trans-unit>
       <trans-unit id="An_active_inline_rename_session_is_still_active_Complete_it_before_starting_a_new_one">
         <source>An active inline rename session is still active. Complete it before starting a new one.</source>
         <target state="translated">Etkin bir satır içi yeniden adlandırma oturumu hala etkin. Yenisini başlatmadan önce bunu tamamlayın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_buffer_is_not_part_of_a_workspace">
-        <source>The buffer is not part of a workspace.</source>
-        <target state="translated">Arabellek bir çalışma alanının parçası değil.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="The_token_is_not_contained_in_the_workspace">
-        <source>The token is not contained in the workspace.</source>
-        <target state="translated">Belirteç çalışma alanında yer almaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="Navigation_Bars">
@@ -907,24 +832,9 @@
         <target state="translated">Gezinti çubukları yenileniyor...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Token">
-        <source>Format Token</source>
-        <target state="translated">Belirteci Biçimlendir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Find_References">
         <source>Find References</source>
         <target state="translated">Başvuruları Bul</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Finding_references">
-        <source>Finding references...</source>
-        <target state="translated">Başvurular bulunuyor...</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Finding_references_of_0">
-        <source>Finding references of "{0}"...</source>
-        <target state="translated">"{0}" başvuruları bulunuyor...</target>
         <note />
       </trans-unit>
       <trans-unit id="Comment_Selection">
@@ -972,11 +882,6 @@
         <target state="translated">"Yöntemi Ayıklama" yeniden düzenlemesi uygulanıyor...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Document">
-        <source>Format Document</source>
-        <target state="translated">Belgeyi Biçimlendir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_document">
         <source>Formatting document...</source>
         <target state="translated">Belge biçimlendiriliyor...</target>
@@ -985,11 +890,6 @@
       <trans-unit id="Formatting">
         <source>Formatting</source>
         <target state="translated">Biçimlendirme</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Format_Selection">
-        <source>Format Selection</source>
-        <target state="translated">Biçim Seçimi</target>
         <note />
       </trans-unit>
       <trans-unit id="Formatting_currently_selected_text">
@@ -1032,11 +932,6 @@
         <target state="translated">Satır İçi Yeniden Adlandırma Düzeltmesi</target>
         <note />
       </trans-unit>
-      <trans-unit id="Inline_Rename_Resolved_Conflict">
-        <source>Inline Rename Resolved Conflict</source>
-        <target state="translated">Satır İçi Yeniden Adlandırma Çözümlenen Çakışması</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Inline_Rename">
         <source>Inline Rename</source>
         <target state="translated">Satır İçi Yeniden Adlandırma</target>
@@ -1050,11 +945,6 @@
       <trans-unit id="Start_Rename">
         <source>Start Rename</source>
         <target state="translated">Yeniden Adlandırmayı Başlat</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Display_conflict_resolutions">
-        <source>Display conflict resolutions</source>
-        <target state="translated">Çakışma çözümlemelerini görüntüle</target>
         <note />
       </trans-unit>
       <trans-unit id="Finding_token_to_rename">
@@ -1097,29 +987,9 @@
         <target state="translated">Yeniden adlandırma: {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Light_bulb_session_is_already_dismissed">
-        <source>Light bulb session is already dismissed.</source>
-        <target state="translated">Ampul oturumu zaten kapatıldı.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Automatic_Pair_Completion_End_Point_Marker_Color">
-        <source>Automatic Pair Completion End Point Marker Color</source>
-        <target state="translated">Otomatik Çift Tamamlaması Bitiş Noktası İşaret Rengi</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Engine_must_be_attached_to_an_Interactive_Window">
         <source>Engine must be attached to an Interactive Window.</source>
         <target state="translated">Altyapı, Etkileşimli Pencere'ye iliştirilmelidir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Changes_the_current_prompt_settings">
-        <source>Changes the current prompt settings.</source>
-        <target state="translated">Geçerli istem ayarlarını değiştirir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Unexpected_text_colon_0">
-        <source>Unexpected text: '{0}'</source>
-        <target state="translated">Beklenmeyen metin: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="The_triggerSpan_is_not_included_in_the_given_workspace">
@@ -1135,11 +1005,6 @@
       <trans-unit id="The_transaction_is_already_complete">
         <source>The transaction is already complete.</source>
         <target state="translated">İşlem zaten tamamlandı.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Not_a_source_error_line_column_unavailable">
-        <source>Not a source error, line/column unavailable</source>
-        <target state="translated">Kaynak hatası değil, satır/sütun kullanılamıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Can_t_compare_positions_from_different_text_snapshots">
@@ -1222,11 +1087,6 @@
         <target state="translated">Değişiklikleri Önizle</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Paste">
-        <source>Format Paste</source>
-        <target state="translated">Yapıştırmayı Biçimlendir</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Formatting_pasted_text">
         <source>Formatting pasted text...</source>
         <target state="translated">Yapıştırılan metin biçimlendiriliyor...</target>
@@ -1284,11 +1144,6 @@ Devam etmek istiyor musunuz?</target>
         <target state="translated">'{0}' Arayüz Uygulama Çağrıları</target>
         <note />
       </trans-unit>
-      <trans-unit id="Computing_Call_Hierarchy_Information">
-        <source>Computing Call Hierarchy Information</source>
-        <target state="translated">Çağrı Hiyerarşisi Bilgileri Hesaplanıyor</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implements_0">
         <source>Implements '{0}'</source>
         <target state="translated">'{0}' öğesini uygular</target>
@@ -1339,11 +1194,6 @@ Devam etmek istiyor musunuz?</target>
         <target state="translated">IntelliSense</target>
         <note />
       </trans-unit>
-      <trans-unit id="IntelliSense_Commit_Formatting">
-        <source>IntelliSense Commit Formatting</source>
-        <target state="translated">IntelliSense Biçimlendirmeyi İşle</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Rename_Tracking">
         <source>Rename Tracking</source>
         <target state="translated">İzlemeyi Yeniden Adlandır</target>
@@ -1352,11 +1202,6 @@ Devam etmek istiyor musunuz?</target>
       <trans-unit id="Removing_0_from_1_with_content_colon">
         <source>Removing '{0}' from '{1}' with content:</source>
         <target state="translated">'{0}' öğesi, içeriği şu olan '{1}' öğesinden kaldırılıyor:</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="_0_does_not_support_the_1_operation_However_it_may_contain_nested_2_s_see_2_3_that_support_this_operation">
-        <source>'{0}' does not support the '{1}' operation. However, it may contain nested '{2}'s (see '{2}.{3}') that support this operation.</source>
-        <target state="translated">'{0}', '{1}' işlemini desteklemiyor. Ancak bu işlemi destekleyen iç içe '{2}' (bkz. '{2}.{3}') içerebilir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Brace_Completion">
@@ -1419,11 +1264,6 @@ Devam etmek istiyor musunuz?</target>
         <target state="translated">Gidiliyor...</target>
         <note />
       </trans-unit>
-      <trans-unit id="Suggestion_ellipses">
-        <source>Suggestion ellipses (…)</source>
-        <target state="translated">Öneri üç noktası (…)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="_0_declarations">
         <source>'{0}' declarations</source>
         <target state="translated">'{0}' bildirimleri</target>
@@ -1452,11 +1292,6 @@ Devam etmek istiyor musunuz?</target>
       <trans-unit id="Comment_Uncomment_Selection">
         <source>Comment/Uncomment Selection</source>
         <target state="translated">Seçimi Açıklama Satırı Yap/Seçimin Açıklamasını Kaldır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Code_Completion">
-        <source>Code Completion</source>
-        <target state="translated">Kod Tamamlama</target>
         <note />
       </trans-unit>
       <trans-unit id="Execute_In_Interactive">
@@ -1547,11 +1382,6 @@ Devam etmek istiyor musunuz?</target>
       <trans-unit id="Signature_Help">
         <source>Signature Help</source>
         <target state="translated">İmza Yardımı</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Token_Formatter">
-        <source>Smart Token Formatter</source>
-        <target state="translated">Akıllı Belirteç Biçimlendirici</target>
         <note />
       </trans-unit>
     </body>

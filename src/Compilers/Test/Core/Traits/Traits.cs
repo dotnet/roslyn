@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsConvertLocalFunctionToMethod = "CodeActions.ConvertLocalFunctionToMethod";
             public const string CodeActionsConvertNumericLiteral = "CodeActions.ConvertNumericLiteral";
             public const string CodeActionsConvertQueryToForEach = "CodeActions.ConvertQueryToForEach";
-            public const string CodeActionsConvertRegularToRawString = "CodeActions.CodeActionsConvertRegularToRawString";
+            public const string CodeActionsConvertToRawString = "CodeActions.CodeActionsConvertToRawString";
             public const string CodeActionsConvertSwitchStatementToExpression = "CodeActions.ConvertSwitchStatementToExpression";
             public const string CodeActionsConvertToInterpolatedString = "CodeActions.ConvertToInterpolatedString";
             public const string CodeActionsConvertToIterator = "CodeActions.ConvertToIterator";
@@ -125,6 +125,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsMakeTypePartial = "CodeActions.MakeTypePartial";
             public const string CodeActionsMakeFieldReadonly = "CodeActions.MakeFieldReadonly";
             public const string CodeActionsMakeLocalFunctionStatic = "CodeActions.MakeLocalFunctionStatic";
+            public const string CodeActionsMakeAnonymousFunctionStatic = "CodeActions.MakeAnonymousFunctionStatic";
             public const string CodeActionsMakeMemberRequired = "CodeActions.MakeMemberRequired";
             public const string CodeActionsMakeMethodAsynchronous = "CodeActions.MakeMethodAsynchronous";
             public const string CodeActionsMakeMethodSynchronous = "CodeActions.MakeMethodSynchronous";
@@ -215,6 +216,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string CodeActionsUseRangeOperator = "CodeActions.UseRangeOperator";
             public const string CodeActionsUseSimpleUsingStatement = "CodeActions.UseSimpleUsingStatement";
             public const string CodeActionsUseSystemHashCode = "CodeActions.UseSystemHashCode";
+            public const string CodeActionsUseSystemThreadingLock = "CodeActions.UseSystemThreadingLock";
             public const string CodeActionsUseThrowExpression = "CodeActions.UseThrowExpression";
             public const string CodeActionsUseUtf8StringLiteral = "CodeActions.CodeActionsUseUtf8StringLiteral";
             public const string CodeActionsWrapping = "CodeActions.Wrapping";

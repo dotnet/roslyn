@@ -19,11 +19,11 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.LanguageServer.Protocol;
+using Roslyn.LanguageServer.Protocol;
 using Microsoft.VisualStudio.LanguageServices.Xaml.Features.Definitions;
 using Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer;
 using Roslyn.Utilities;
-using LSP = Microsoft.VisualStudio.LanguageServer.Protocol;
+using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageServer.Handler.Definitions
 {
@@ -55,13 +55,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             var document = context.Document;
             if (document == null)
             {
-                return locations.ToArray();
+                return [.. locations];
             }
 
             var xamlGoToDefinitionService = document.Project.Services.GetService<IXamlGoToDefinitionService>();
             if (xamlGoToDefinitionService == null)
             {
-                return locations.ToArray();
+                return [.. locations];
             }
 
             var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
@@ -83,7 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
 
             await Task.WhenAll(tasks).ConfigureAwait(false);
 
-            return locations.ToArray();
+            return [.. locations];
         }
 
         private async Task<LSP.Location[]> GetLocationsAsync(XamlDefinition definition, RequestContext context, CancellationToken cancellationToken)
@@ -176,8 +176,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
                     var project = context.Document?.GetCodeProject();
                     if (workspace != null && project != null)
                     {
-                        var options = globalOptions.GetMetadataAsSourceOptions(project.Services);
-                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: true, options, cancellationToken).ConfigureAwait(false);
+                        var options = globalOptions.GetMetadataAsSourceOptions();
+                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(workspace, project, symbol, signaturesOnly: true, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location
                         {

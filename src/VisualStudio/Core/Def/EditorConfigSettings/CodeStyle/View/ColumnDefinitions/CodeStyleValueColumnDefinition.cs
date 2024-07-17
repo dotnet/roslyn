@@ -12,37 +12,36 @@ using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Utilities;
 using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.CodeStyle;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View.ColumnDefinitions
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.CodeStyle.View.ColumnDefinitions;
+
+[Export(typeof(ITableColumnDefinition))]
+[Name(Value)]
+internal class CodeStyleValueColumnDefinition : TableColumnDefinitionBase
 {
-    [Export(typeof(ITableColumnDefinition))]
-    [Name(Value)]
-    internal class CodeStyleValueColumnDefinition : TableColumnDefinitionBase
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CodeStyleValueColumnDefinition()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CodeStyleValueColumnDefinition()
+    }
+
+    public override string Name => Value;
+    public override string DisplayName => ServicesVSResources.Value;
+    public override double MinWidth => 160;
+    public override bool DefaultVisible => false;
+    public override bool IsFilterable => false;
+    public override bool IsSortable => false;
+
+    public override bool TryCreateColumnContent(ITableEntryHandle entry, bool singleColumnView, out FrameworkElement? content)
+    {
+        if (!entry.TryGetValue(Value, out CodeStyleSetting severity))
         {
+            content = null;
+            return false;
         }
 
-        public override string Name => Value;
-        public override string DisplayName => ServicesVSResources.Value;
-        public override double MinWidth => 160;
-        public override bool DefaultVisible => false;
-        public override bool IsFilterable => false;
-        public override bool IsSortable => false;
-
-        public override bool TryCreateColumnContent(ITableEntryHandle entry, bool singleColumnView, out FrameworkElement? content)
-        {
-            if (!entry.TryGetValue(Value, out CodeStyleSetting severity))
-            {
-                content = null;
-                return false;
-            }
-
-            var viewModel = new CodeStyleValueViewModel(severity);
-            var control = new CodeStyleValueControl(viewModel);
-            content = control;
-            return true;
-        }
+        var viewModel = new CodeStyleValueViewModel(severity);
+        var control = new CodeStyleValueControl(viewModel);
+        content = control;
+        return true;
     }
 }

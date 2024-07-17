@@ -685,10 +685,7 @@ namespace System.Runtime.CompilerServices
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
             var compilation = CreateCompilationWithMscorlib45(source, assemblyName: "comp");
-            compilation.VerifyDiagnostics(
-                // (10,12): error CS8128: Member 'Rest' was not found on type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>' from assembly comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
-                //     static (MyTask, char, byte, short, ushort, int, uint, long, ulong, char, byte, short, ushort, int, uint, long, MyTask<T>) F3;
-                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(MyTask, char, byte, short, ushort, int, uint, long, ulong, char, byte, short, ushort, int, uint, long, MyTask<T>)").WithArguments("Rest", "System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, T8>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(10, 12));
+            compilation.VerifyEmitDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             var normalized = type.NormalizeTaskTypes(compilation);
@@ -7610,10 +7607,18 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-    // (8,44): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<T>(System.Func<bool, T>)' and 'C.M<T>(System.Func<byte, T>)'
-    //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
-    Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<T>(System.Func<bool, T>)", "C.M<T>(System.Func<byte, T>)").WithLocation(8, 44)
-                );
+                // (8,34): info CS9236: Compiling requires binding the lambda expression at least 200 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
+                //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
+                Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("200").WithLocation(8, 34),
+                // (8,41): info CS9236: Compiling requires binding the lambda expression at least 1000 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
+                //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
+                Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("1000").WithLocation(8, 41),
+                // (8,44): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<T>(Func<bool, T>)' and 'C.M<T>(Func<byte, T>)'
+                //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<T>(System.Func<bool, T>)", "C.M<T>(System.Func<byte, T>)").WithLocation(8, 44),
+                // (8,48): info CS9236: Compiling requires binding the lambda expression at least 4000 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
+                //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
+                Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("4000").WithLocation(8, 48));
         }
 
         [Fact, WorkItem(30, "https://roslyn.codeplex.com/workitem/30")]
@@ -8319,15 +8324,15 @@ public class C : CodeAccessSecurityAttribute
                 // (21,14): error CS0534: 'B' does not implement inherited abstract member 'SecurityAttribute.CreatePermission()'
                 // public class B : CodeAccessSecurityAttribute
                 Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B").WithArguments("B", "System.Security.Permissions.SecurityAttribute.CreatePermission()").WithLocation(21, 14),
-                // (16,14): error CS0225: The params parameter must be a single dimensional array
+                // (16,14): error CS0225: The params parameter must have a valid collection type
                 //     public A(params SecurityAction)
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(16, 14),
-                // (23,22): error CS0225: The params parameter must be a single dimensional array
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(16, 14),
+                // (23,22): error CS0225: The params parameter must have a valid collection type
                 //     public B(int p1, params SecurityAction p2)
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(23, 22),
-                // (30,22): error CS0225: The params parameter must be a single dimensional array
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(23, 22),
+                // (30,22): error CS0225: The params parameter must have a valid collection type
                 //     public C(int p1, params SecurityAction p2, string p3)
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(30, 22),
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(30, 22),
                 // (7,6): error CS7048: First argument to a security attribute must be a valid SecurityAction
                 //     [B(p2: SecurityAction.Assert, p1: 0)]
                 Diagnostic(ErrorCode.ERR_SecurityAttributeMissingAction, "B").WithLocation(7, 6),
@@ -9025,8 +9030,7 @@ public static class Class
     }
 }";
             var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput:
+            CompileAndVerify(compilation, expectedOutput:
 @"RemoveDetail
 RemoveDetail
 RemoveDetail
@@ -11301,12 +11305,12 @@ class Program
                 // (17,9): error CS0411: The type arguments for method 'Program.M1<T>(in T, in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M1(new object(), default(RefLike));
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(in T, in T)").WithLocation(17, 9),
-                // (19,9): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                // (19,9): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Program.M1<T>(in T, in T)'
                 //         M1(rl, rl);
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M1").WithArguments("Program.RefLike").WithLocation(19, 9),
-                // (20,9): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M1").WithArguments("Program.M1<T>(in T, in T)", "T", "Program.RefLike").WithLocation(19, 9),
+                // (20,9): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Program.M1<T>(in T, in T)'
                 //         M1(in rl, in rl);
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M1").WithArguments("Program.RefLike").WithLocation(20, 9),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M1").WithArguments("Program.M1<T>(in T, in T)", "T", "Program.RefLike").WithLocation(20, 9),
                 // (22,9): error CS0411: The type arguments for method 'Program.M1<T>(in T, in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M1(in y, in x);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(in T, in T)").WithLocation(22, 9),
@@ -11393,27 +11397,27 @@ class Program
                 // (16,16): error CS1503: Argument 1: cannot convert from '(<null>, int)' to 'in (int arg1, int arg2)'
                 //         Method((null, 1));
                 Diagnostic(ErrorCode.ERR_BadArgType, "(null, 1)").WithArguments("1", "(<null>, int)", "in (int arg1, int arg2)").WithLocation(16, 16),
-                // (17,31): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                // (17,31): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         Method((new object(), default(RefLike)));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "default(RefLike)").WithArguments("Program.RefLike").WithLocation(17, 31),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "default(RefLike)").WithArguments("(T1, T2)", "T2", "Program.RefLike").WithLocation(17, 31),
                 // (17,9): error CS0411: The type arguments for method 'Program.Method<T>(in (T arg1, T arg2))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Method((new object(), default(RefLike)));
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in (T arg1, T arg2))").WithLocation(17, 9),
-                // (19,17): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                // (19,17): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         Method((rl, rl));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(19, 17),
-                // (19,21): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "rl").WithArguments("(T1, T2)", "T1", "Program.RefLike").WithLocation(19, 17),
+                // (19,21): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         Method((rl, rl));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(19, 21),
-                // (19,9): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "rl").WithArguments("(T1, T2)", "T2", "Program.RefLike").WithLocation(19, 21),
+                // (19,9): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Program.Method<T>(in (T arg1, T arg2))'
                 //         Method((rl, rl));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "Method").WithArguments("Program.RefLike").WithLocation(19, 9),
-                // (20,20): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Method").WithArguments("Program.Method<T>(in (T arg1, T arg2))", "T", "Program.RefLike").WithLocation(19, 9),
+                // (20,20): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         Method(in (rl, rl));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(20, 20),
-                // (20,24): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "rl").WithArguments("(T1, T2)", "T1", "Program.RefLike").WithLocation(20, 20),
+                // (20,24): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         Method(in (rl, rl));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(20, 24),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "rl").WithArguments("(T1, T2)", "T2", "Program.RefLike").WithLocation(20, 24),
                 // (20,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         Method(in (rl, rl));
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "(rl, rl)").WithLocation(20, 19),
@@ -11712,8 +11716,7 @@ public static class Extensions
         throw new NotImplementedException();
 }";
 
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(code, verify: Verification.FailsILVerify, expectedOutput: @"2");
+            CompileAndVerify(code, expectedOutput: @"2");
         }
 
         [Fact]
@@ -11917,6 +11920,32 @@ class B : A
                 //         F<object>(default);
                 Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<object>").WithArguments("B.F<T>(T)", "T", "object").WithLocation(11, 9)
                 );
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/70659")]
+        public void IsStandardImplicitConversion_NullLiteral()
+        {
+            var source = """
+                class C
+                {
+                    void M(S? s)
+                    {
+                        if (s == null)
+                        {
+                        }
+                    }
+                }
+
+                readonly struct S
+                {
+                    public static implicit operator S(bool? x) => default;
+                    public static bool operator ==(S left, S right) => false;
+                    public static bool operator !=(S left, S right) => true;
+                    public override bool Equals(object obj) => false;
+                    public override int GetHashCode() => 0;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
         }
     }
 }

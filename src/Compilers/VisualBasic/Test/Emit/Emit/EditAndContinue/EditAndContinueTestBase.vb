@@ -36,6 +36,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Return result.ToString()
         End Function
 
+        Public Shared Function CreateInitialBaseline(compilation As Compilation, [module] As ModuleMetadata, debugInformationProvider As Func(Of MethodDefinitionHandle, EditAndContinueMethodDebugInformation)) As EmitBaseline
+            Return EditAndContinueTestUtilities.CreateInitialBaseline(compilation, [module], debugInformationProvider)
+        End Function
+
         Friend Shared Function MarkedSource(source As XElement, Optional fileName As String = "", Optional options As VisualBasicParseOptions = Nothing) As SourceWithMarkedNodes
             Return New SourceWithMarkedNodes(WithWindowsLineBreaks(source.Value), Function(s) Parse(s, fileName, options), Function(s) CInt(GetType(SyntaxKind).GetField(s).GetValue(Nothing)))
         End Function
@@ -52,8 +56,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             kind As SemanticEditKind,
             symbolProvider As Func(Of Compilation, ISymbol),
             Optional newSymbolProvider As Func(Of Compilation, ISymbol) = Nothing,
+            Optional rudeEdits As Func(Of SyntaxNode, RuntimeRudeEdit?) = Nothing,
             Optional preserveLocalVariables As Boolean = False) As SemanticEditDescription
-            Return New SemanticEditDescription(kind, symbolProvider, newSymbolProvider, preserveLocalVariables)
+            Return New SemanticEditDescription(kind, symbolProvider, newSymbolProvider, rudeEdits, preserveLocalVariables)
         End Function
 
         Friend Function ToLocalInfo(local As Cci.ILocalDefinition) As ILVisualizer.LocalInfo
@@ -303,13 +308,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Friend Shared Function CreateMatcher(fromCompilation As VisualBasicCompilation, toCompilation As VisualBasicCompilation) As VisualBasicSymbolMatcher
             Return New VisualBasicSymbolMatcher(
-                Nothing,
                 fromCompilation.SourceAssembly,
-                Nothing,
                 toCompilation.SourceAssembly,
-                Nothing,
-                Nothing,
-                Nothing)
+                synthesizedTypes:=SynthesizedTypeMaps.Empty,
+                otherSynthesizedMembersOpt:=Nothing,
+                otherDeletedMembersOpt:=Nothing)
         End Function
     End Class
 

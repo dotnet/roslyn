@@ -165,20 +165,11 @@
   <data name="Inherits_" xml:space="preserve">
     <value>Inherits</value>
   </data>
-  <data name="Inherited_By" xml:space="preserve">
-    <value>Inherited By</value>
-  </data>
   <data name="Implements_" xml:space="preserve">
     <value>Implements</value>
   </data>
   <data name="Implemented_By" xml:space="preserve">
     <value>Implemented By</value>
-  </data>
-  <data name="Maximum_number_of_documents_are_open" xml:space="preserve">
-    <value>Maximum number of documents are open.</value>
-  </data>
-  <data name="Failed_to_create_document_in_miscellaneous_files_project" xml:space="preserve">
-    <value>Failed to create document in miscellaneous files project.</value>
   </data>
   <data name="Invalid_access" xml:space="preserve">
     <value>Invalid access.</value>
@@ -294,12 +285,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="The_analyzer_assembly_0_has_changed_Diagnostics_may_be_incorrect_until_Visual_Studio_is_restarted" xml:space="preserve">
     <value>The analyzer assembly '{0}' has changed. Diagnostics may be incorrect until Visual Studio is restarted.</value>
   </data>
-  <data name="CSharp_VB_Diagnostics_Table_Data_Source" xml:space="preserve">
-    <value>C#/VB Diagnostics Table Data Source</value>
-  </data>
-  <data name="CSharp_VB_Todo_List_Table_Data_Source" xml:space="preserve">
-    <value>C#/VB Todo List Table Data Source</value>
-  </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>
@@ -396,9 +381,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="More_about_0" xml:space="preserve">
     <value>More about {0}</value>
   </data>
-  <data name="Navigation_must_be_performed_on_the_foreground_thread" xml:space="preserve">
-    <value>Navigation must be performed on the foreground thread.</value>
-  </data>
   <data name="bracket_plus_bracket" xml:space="preserve">
     <value>[+] </value>
   </data>
@@ -419,9 +401,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="AnalyzerDependencyConflict" xml:space="preserve">
     <value>AnalyzerDependencyConflict</value>
-  </data>
-  <data name="Analyzer_assemblies_0_and_1_both_have_identity_2_but_different_contents_Only_one_will_be_loaded_and_analyzers_using_these_assemblies_may_not_run_correctly" xml:space="preserve">
-    <value>Analyzer assemblies '{0}' and '{1}' both have identity '{2}' but different contents. Only one will be loaded and analyzers using these assemblies may not run correctly.</value>
   </data>
   <data name="_0_references" xml:space="preserve">
     <value>{0} references</value>
@@ -450,14 +429,8 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="IntelliSense" xml:space="preserve">
     <value>IntelliSense</value>
   </data>
-  <data name="CSharp_VB_Build_Table_Data_Source" xml:space="preserve">
-    <value>C#/VB Build Table Data Source</value>
-  </data>
   <data name="MissingAnalyzerReference" xml:space="preserve">
     <value>MissingAnalyzerReference</value>
-  </data>
-  <data name="Analyzer_assembly_0_depends_on_1_but_it_was_not_found_Analyzers_may_not_run_correctly_unless_the_missing_assembly_is_added_as_an_analyzer_reference_as_well" xml:space="preserve">
-    <value>Analyzer assembly '{0}' depends on '{1}' but it was not found. Analyzers may not run correctly unless the missing assembly is added as an analyzer reference as well.</value>
   </data>
   <data name="Suppress_diagnostics" xml:space="preserve">
     <value>Suppress diagnostics</value>
@@ -486,9 +459,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="This_workspace_does_not_support_updating_Visual_Basic_parse_options" xml:space="preserve">
     <value>This workspace does not support updating Visual Basic parse options.</value>
   </data>
-  <data name="Synchronize_0" xml:space="preserve">
-    <value>Synchronize {0}</value>
-  </data>
   <data name="Synchronizing_with_0" xml:space="preserve">
     <value>Synchronizing with {0}...</value>
   </data>
@@ -513,17 +483,8 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Yes" xml:space="preserve">
     <value>Yes</value>
   </data>
-  <data name="Choose_a_Symbol_Specification_and_a_Naming_Style" xml:space="preserve">
-    <value>Choose a Symbol Specification and a Naming Style.</value>
-  </data>
-  <data name="Enter_a_title_for_this_Naming_Rule" xml:space="preserve">
-    <value>Enter a title for this Naming Rule.</value>
-  </data>
   <data name="Enter_a_title_for_this_Naming_Style" xml:space="preserve">
     <value>Enter a title for this Naming Style.</value>
-  </data>
-  <data name="Enter_a_title_for_this_Symbol_Specification" xml:space="preserve">
-    <value>Enter a title for this Symbol Specification.</value>
   </data>
   <data name="Accessibilities_can_match_any" xml:space="preserve">
     <value>Accessibilities (can match any)</value>
@@ -546,14 +507,8 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Pascal_Case_Name" xml:space="preserve">
     <value>Pascal Case Name</value>
   </data>
-  <data name="Severity_colon" xml:space="preserve">
-    <value>Severity:</value>
-  </data>
   <data name="Modifiers_must_match_all" xml:space="preserve">
     <value>Modifiers (must match all)</value>
-  </data>
-  <data name="Name_colon2" xml:space="preserve">
-    <value>Name:</value>
   </data>
   <data name="Naming_Rule" xml:space="preserve">
     <value>Naming Rule</value>
@@ -561,20 +516,8 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   <data name="Naming_Style" xml:space="preserve">
     <value>Naming Style</value>
   </data>
-  <data name="Naming_Style_colon" xml:space="preserve">
-    <value>Naming Style:</value>
-  </data>
-  <data name="Naming_Rules_allow_you_to_define_how_particular_sets_of_symbols_should_be_named_and_how_incorrectly_named_symbols_should_be_handled" xml:space="preserve">
-    <value>Naming Rules allow you to define how particular sets of symbols should be named and how incorrectly-named symbols should be handled.</value>
-  </data>
-  <data name="The_first_matching_top_level_Naming_Rule_is_used_by_default_when_naming_a_symbol_while_any_special_cases_are_handled_by_a_matching_child_rule" xml:space="preserve">
-    <value>The first matching top-level Naming Rule is used by default when naming a symbol, while any special cases are handled by a matching child rule.</value>
-  </data>
   <data name="Naming_Style_Title_colon" xml:space="preserve">
     <value>Naming Style Title:</value>
-  </data>
-  <data name="Parent_Rule_colon" xml:space="preserve">
-    <value>Parent Rule:</value>
   </data>
   <data name="Required_Prefix_colon" xml:space="preserve">
     <value>Required Prefix:</value>
@@ -590,9 +533,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="Symbol_Specification" xml:space="preserve">
     <value>Symbol Specification</value>
-  </data>
-  <data name="Symbol_Specification_colon" xml:space="preserve">
-    <value>Symbol Specification:</value>
   </data>
   <data name="Symbol_Specification_Title_colon" xml:space="preserve">
     <value>Symbol Specification Title:</value>
@@ -622,23 +562,6 @@ Use the dropdown to view and switch to other projects this file may belong to.</
   </data>
   <data name="Package_uninstall_failed_colon_0" xml:space="preserve">
     <value>Package uninstall failed: {0}</value>
-  </data>
-  <data name="Error_encountered_while_loading_the_project_Some_project_features_such_as_full_solution_analysis_for_the_failed_project_and_projects_that_depend_on_it_have_been_disabled" xml:space="preserve">
-    <value>Error encountered while loading the project. Some project features, such as full solution analysis for the failed project and projects that depend on it, have been disabled.</value>
-  </data>
-  <data name="Project_loading_failed" xml:space="preserve">
-    <value>Project loading failed.</value>
-  </data>
-  <data name="To_see_what_caused_the_issue_please_try_below_1_Close_Visual_Studio_long_paragraph_follows" xml:space="preserve">
-    <value>To see what caused the issue, please try below.
-
-1. Close Visual Studio
-2. Open a Visual Studio Developer Command Prompt
-3. Set environment variable “TraceDesignTime” to true (set TraceDesignTime=true)
-4. Delete .vs directory/.suo file
-5. Restart VS from the command prompt you set the environment variable (devenv)
-6. Open the solution
-7. Check '{0}' and look for the failed tasks (FAILED)</value>
   </data>
   <data name="Additional_information_colon" xml:space="preserve">
     <value>Additional information:</value>
@@ -674,12 +597,6 @@ Additional information: {1}</value>
   </data>
   <data name="Learn_more" xml:space="preserve">
     <value>Learn more</value>
-  </data>
-  <data name="Build_plus_live_analysis_NuGet_package" xml:space="preserve">
-    <value>Build + live analysis (NuGet package)</value>
-  </data>
-  <data name="Live_analysis_VSIX_extension" xml:space="preserve">
-    <value>Live analysis (VSIX extension)</value>
   </data>
   <data name="Prefer_framework_type" xml:space="preserve">
     <value>Prefer framework type</value>
@@ -719,9 +636,6 @@ Additional information: {1}</value>
   </data>
   <data name="Show_guides_for_code_level_constructs" xml:space="preserve">
     <value>Show guides for code level constructs</value>
-  </data>
-  <data name="Show_guides_for_comments_and_preprocessor_regions" xml:space="preserve">
-    <value>Show guides for comments and preprocessor regions</value>
   </data>
   <data name="Show_guides_for_declaration_level_constructs" xml:space="preserve">
     <value>Show guides for declaration level constructs</value>
@@ -861,12 +775,6 @@ Additional information: {1}</value>
   <data name="analyzer_Prefer_auto_properties" xml:space="preserve">
     <value>Prefer auto properties</value>
   </data>
-  <data name="Add_a_symbol_specification" xml:space="preserve">
-    <value>Add a symbol specification</value>
-  </data>
-  <data name="Remove_symbol_specification" xml:space="preserve">
-    <value>Remove symbol specification</value>
-  </data>
   <data name="Add_item" xml:space="preserve">
     <value>Add item</value>
   </data>
@@ -896,9 +804,6 @@ Additional information: {1}</value>
   </data>
   <data name="Options" xml:space="preserve">
     <value>Options</value>
-  </data>
-  <data name="Install_Microsoft_recommended_Roslyn_analyzers_which_provide_additional_diagnostics_and_fixes_for_common_API_design_security_performance_and_reliability_issues" xml:space="preserve">
-    <value>Install Microsoft-recommended Roslyn analyzers, which provide additional diagnostics and fixes for common API design, security, performance, and reliability issues</value>
   </data>
   <data name="Never_show_this_again" xml:space="preserve">
     <value>Never show this again</value>
@@ -942,9 +847,6 @@ Additional information: {1}</value>
   <data name="Parentheses_preferences_colon" xml:space="preserve">
     <value>Parentheses preferences:</value>
   </data>
-  <data name="ModuleHasBeenUnloaded" xml:space="preserve">
-    <value>Module has been unloaded.</value>
-  </data>
   <data name="Prefer_deconstructed_variable_declaration" xml:space="preserve">
     <value>Prefer deconstructed variable declaration</value>
   </data>
@@ -956,6 +858,12 @@ Additional information: {1}</value>
   </data>
   <data name="Search_found_no_results" xml:space="preserve">
     <value>Search found no results</value>
+  </data>
+  <data name="Search_found_no_results_no_csharp_or_vb_projects_opened" xml:space="preserve">
+    <value>Search found no results: no C# or Visual Basic projects are opened</value>
+  </data>
+  <data name="Search_cancelled" xml:space="preserve">
+    <value>Search canceled</value>
   </data>
   <data name="Sync_Class_View" xml:space="preserve">
     <value>Sync Class View</value>
@@ -995,9 +903,6 @@ Additional information: {1}</value>
   </data>
   <data name="Prefer_readonly_fields" xml:space="preserve">
     <value>Prefer readonly fields</value>
-  </data>
-  <data name="Analyzing_0" xml:space="preserve">
-    <value>Analyzing '{0}'</value>
   </data>
   <data name="Prefer_conditional_expression_over_if_with_assignments" xml:space="preserve">
     <value>Prefer conditional expression over 'if' with assignments</value>
@@ -1282,15 +1187,6 @@ Additional information: {1}</value>
   <data name="Containing_type" xml:space="preserve">
     <value>Containing Type</value>
   </data>
-  <data name="Running_low_priority_background_processes" xml:space="preserve">
-    <value>Running low priority background processes</value>
-  </data>
-  <data name="Evaluating_0_tasks_in_queue" xml:space="preserve">
-    <value>Evaluating ({0} tasks in queue)</value>
-  </data>
-  <data name="Paused_0_tasks_in_queue" xml:space="preserve">
-    <value>Paused ({0} tasks in queue)</value>
-  </data>
   <data name="Naming_rules" xml:space="preserve">
     <value>Naming rules</value>
   </data>
@@ -1341,13 +1237,6 @@ Additional information: {1}</value>
   </data>
   <data name="Edit" xml:space="preserve">
     <value>_Edit</value>
-  </data>
-  <data name="Edit_0" xml:space="preserve">
-    <value>Edit {0}</value>
-    <comment>{0} is a parameter description</comment>
-  </data>
-  <data name="Parameter_Details" xml:space="preserve">
-    <value>Parameter Details</value>
   </data>
   <data name="Add" xml:space="preserve">
     <value>_Add</value>
@@ -1432,15 +1321,6 @@ Additional information: {1}</value>
   <data name="Entire_repository" xml:space="preserve">
     <value>Entire repository</value>
   </data>
-  <data name="Indexed_in_organization" xml:space="preserve">
-    <value>Indexed in organization</value>
-  </data>
-  <data name="Indexed_in_repo" xml:space="preserve">
-    <value>Indexed in repo</value>
-  </data>
-  <data name="Item_origin" xml:space="preserve">
-    <value>Item origin</value>
-  </data>
   <data name="Loaded_items" xml:space="preserve">
     <value>Loaded items</value>
   </data>
@@ -1449,9 +1329,6 @@ Additional information: {1}</value>
   </data>
   <data name="Local" xml:space="preserve">
     <value>Local</value>
-  </data>
-  <data name="Local_metadata" xml:space="preserve">
-    <value>Local metadata</value>
   </data>
   <data name="Other" xml:space="preserve">
     <value>Others</value>
@@ -1511,8 +1388,8 @@ Additional information: {1}</value>
   <data name="Extract_Base_Class" xml:space="preserve">
     <value>Extract Base Class</value>
   </data>
-  <data name="This_file_is_autogenerated_by_0_and_cannot_be_edited" xml:space="preserve">
-    <value>This file is auto-generated by the generator '{0}' and cannot be edited.</value>
+  <data name="This_file_was_generated_by_0_at_1_and_cannot_be_edited" xml:space="preserve">
+    <value>This file was generated by '{0}' at {1} and cannot be edited.</value>
   </data>
   <data name="generated_by_0_suffix" xml:space="preserve">
     <value>[generated by {0}]</value>
@@ -1563,15 +1440,6 @@ Additional information: {1}</value>
   <data name="Display_all_hints_while_pressing_Alt_F1" xml:space="preserve">
     <value>Display all hints while pressing Alt+F1</value>
   </data>
-  <data name="Enable_pull_diagnostics_experimental_requires_restart" xml:space="preserve">
-    <value>Enable 'pull' diagnostics (experimental, requires restart)</value>
-  </data>
-  <data name="Enable_Razor_pull_diagnostics_experimental_requires_restart" xml:space="preserve">
-    <value>Enable Razor 'pull' diagnostics (experimental, requires restart)</value>
-  </data>
-  <data name="CSharp_Visual_Basic_Diagnostics_Language_Client" xml:space="preserve">
-    <value>C#/Visual Basic Diagnostics Language Client</value>
-  </data>
   <data name="New_Type_Name_colon" xml:space="preserve">
     <value>New Type Name:</value>
   </data>
@@ -1599,9 +1467,6 @@ Additional information: {1}</value>
   <data name="Apply" xml:space="preserve">
     <value>Apply</value>
   </data>
-  <data name="Remove_All" xml:space="preserve">
-    <value>Remove All</value>
-  </data>
   <data name="Action" xml:space="preserve">
     <value>Action</value>
     <comment>Action to perform on an unused reference, such as remove or keep</comment>
@@ -1623,9 +1488,6 @@ Additional information: {1}</value>
   </data>
   <data name="Reference" xml:space="preserve">
     <value>Reference</value>
-  </data>
-  <data name="Enable_all_features_in_opened_files_from_source_generators_experimental" xml:space="preserve">
-    <value>Enable all features in opened files from source generators (experimental)</value>
   </data>
   <data name="Remove_Unused_References" xml:space="preserve">
     <value>Remove Unused References</value>
@@ -1713,9 +1575,6 @@ Additional information: {1}</value>
   </data>
   <data name="This_rule_is_not_configurable" xml:space="preserve">
     <value>This rule is not configurable</value>
-  </data>
-  <data name="Inline_Diagnostics_experimental" xml:space="preserve">
-    <value>Inline Diagnostics (experimental)</value>
   </data>
   <data name="Display_diagnostics_inline_experimental" xml:space="preserve">
     <value>Display diagnostics inline (experimental)</value>
@@ -1816,9 +1675,6 @@ Additional information: {1}</value>
   <data name="Run_code_analysis_in_separate_process_requires_restart" xml:space="preserve">
     <value>Run code analysis in separate process (requires restart)</value>
   </data>
-  <data name="Run_code_analysis_on_latest_dotnet_requires_restart" xml:space="preserve">
-    <value>Run code analysis on latest .NET (requires restart)</value>
-  </data>
   <data name="Quick_Actions" xml:space="preserve">
     <value>Quick Actions</value>
   </data>
@@ -1907,9 +1763,6 @@ Additional information: {1}</value>
   </data>
   <data name="Remove_unnecessary_usings" xml:space="preserve">
     <value>Remove unnecessary usings</value>
-  </data>
-  <data name="Sort_usings" xml:space="preserve">
-    <value>Sort usings</value>
   </data>
   <data name="Navigate_to_external_sources" xml:space="preserve">
     <value>Navigate to External Sources</value>
@@ -2025,11 +1878,69 @@ Additional information: {1}</value>
   <data name="Prefer_primary_constructors" xml:space="preserve">
     <value>Prefer primary constructors</value>
   </data>
+  <data name="Prefer_System_Threading_Lock" xml:space="preserve">
+    <value>Prefer 'System.Threading.Lock'</value>
+    <comment>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</comment>
+  </data>
   <data name="Prefer_collection_expression" xml:space="preserve">
     <value>Prefer collection expression</value>
   </data>
   <data name="SystemVoid_is_not_a_valid_type_for_a_parameter" xml:space="preserve">
     <value>'System.Void' is not a valid type for a parameter</value>
     <comment>{Locked="System.Void"} "System.Void" represents CLR's type and should not be localized</comment>
+  </data>
+  <data name="Not_applicable" xml:space="preserve">
+    <value>Not applicable</value>
+  </data>
+  <data name="When_types_exactly_match" xml:space="preserve">
+    <value>When types exactly match</value>
+  </data>
+  <data name="When_types_loosely_match" xml:space="preserve">
+    <value>When types loosely match</value>
+  </data>
+  <data name="Strike_out_obsolete_symbols" xml:space="preserve">
+    <value>Strike out obsolete symbols</value>
+  </data>
+  <data name="AssemblyNameAndVersionDisplay" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="Automatic_Run_generators_after_any_change" xml:space="preserve">
+    <value>Automatic. Run generators after any change</value>
+  </data>
+  <data name="Source_generator_execution_requires_restart" xml:space="preserve">
+    <value>Source generator execution (requires restart):</value>
+  </data>
+  <data name="Source_Generators" xml:space="preserve">
+    <value>Source Generators</value>
+  </data>
+  <data name="Balanced_Run_generators_after_saving_or_building" xml:space="preserve">
+    <value>Balanced. Run generators after saving or building</value>
+  </data>
+  <data name="Roslyn_save_command_handler" xml:space="preserve">
+    <value>Roslyn save command handler</value>
+  </data>
+  <data name="Generator_running" xml:space="preserve">
+    <value>Generator running...</value>
+  </data>
+  <data name="Rerun_generator" xml:space="preserve">
+    <value>Rerun generator</value>
+  </data>
+  <data name="The_project_no_longer_exists" xml:space="preserve">
+    <value>The project no longer exists</value>
+  </data>
+  <data name="Show_guides_for_comments_and_preprocessor_regions" xml:space="preserve">
+    <value>Show guides for comments and preprocessor regions</value>
+  </data>
+  <data name="Semantic_search_results" xml:space="preserve">
+    <value>Semantic Search Results</value>
+  </data>
+  <data name="Semantic_search_0" xml:space="preserve">
+    <value>Semantic Search ({0})</value>
+  </data>
+  <data name="Prefer_static_anonymous_functions" xml:space="preserve">
+    <value>Prefer static anonymous functions</value>
+  </data>
+  <data name="Show_hints_for_collection_expressions" xml:space="preserve">
+    <value>Show hints for collection expressions</value>
   </data>
 </root>

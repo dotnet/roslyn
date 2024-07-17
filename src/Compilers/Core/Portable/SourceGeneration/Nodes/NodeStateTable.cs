@@ -90,17 +90,60 @@ namespace Microsoft.CodeAnalysis
         public int GetTotalEntryItemCount()
             => _states.Sum(static e => e.Count);
 
-        public IEnumerator<NodeStateEntry<T>> GetEnumerator()
+        public struct Enumerator
         {
-            for (int i = 0; i < _states.Length; i++)
+            private readonly NodeStateTable<T> _stateTable;
+            private int _nextStatesIndex;
+            private int _nextInputEntryIndex;
+            private IncrementalGeneratorRunStep? _step;
+            private TableEntry _inputEntry;
+            private NodeStateEntry<T> _current;
+
+            public Enumerator(NodeStateTable<T> stateTable)
             {
-                TableEntry inputEntry = _states[i];
-                IncrementalGeneratorRunStep? step = HasTrackedSteps ? Steps[i] : null;
-                for (int j = 0; j < inputEntry.Count; j++)
+                _stateTable = stateTable;
+                _nextStatesIndex = 0;
+
+                UpdateAfterNextStatesIndexModification();
+            }
+
+            public NodeStateEntry<T> Current => _current;
+
+            public bool MoveNext()
+            {
+                while (_nextStatesIndex < _stateTable._states.Length)
                 {
-                    yield return new NodeStateEntry<T>(inputEntry.GetItem(j), inputEntry.GetState(j), j, step);
+                    if (_nextInputEntryIndex < _inputEntry.Count)
+                    {
+                        _current = new NodeStateEntry<T>(_inputEntry.GetItem(_nextInputEntryIndex), _inputEntry.GetState(_nextInputEntryIndex), _nextInputEntryIndex, _step);
+                        _nextInputEntryIndex += 1;
+
+                        return true;
+                    }
+
+                    _nextStatesIndex += 1;
+
+                    UpdateAfterNextStatesIndexModification();
+                }
+
+                return false;
+            }
+
+            private void UpdateAfterNextStatesIndexModification()
+            {
+                _nextInputEntryIndex = 0;
+
+                if (_nextStatesIndex < _stateTable._states.Length)
+                {
+                    _step = _stateTable.HasTrackedSteps ? _stateTable.Steps[_nextStatesIndex] : null;
+                    _inputEntry = _stateTable._states[_nextStatesIndex];
                 }
             }
+        }
+
+        public Enumerator GetEnumerator()
+        {
+            return new Enumerator(this);
         }
 
         public NodeStateTable<T> AsCached()
@@ -161,7 +204,16 @@ namespace Microsoft.CodeAnalysis
             {
                 for (int i = 0; i < state.Count; i++)
                 {
-                    pooled.Builder.Append(state.GetState(i).ToString()[0]);
+                    var packedChar = state.GetState(i) switch
+                    {
+                        EntryState.Added => 'A',
+                        EntryState.Removed => 'R',
+                        EntryState.Modified => 'M',
+                        EntryState.Cached => 'C',
+                        _ => throw ExceptionUtilities.Unreachable(),
+                    };
+
+                    pooled.Builder.Append(packedChar);
                 }
                 pooled.Builder.Append(',');
             }

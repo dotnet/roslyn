@@ -7,11 +7,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Serialization;
@@ -53,11 +54,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), new Dictionary<Checksum, object>() { { checksum, data } });
 
             var provider = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            var stored = await provider.GetAssetAsync<object>(checksum, CancellationToken.None);
+            var stored = await provider.GetAssetAsync<object>(AssetPath.FullLookupForTesting, checksum, CancellationToken.None);
             Assert.Equal(data, stored);
 
-            var stored2 = await provider.GetAssetsAsync<object>(new HashSet<Checksum> { checksum }, CancellationToken.None);
-            Assert.Equal(1, stored2.Length);
+            var stored2 = new List<(Checksum, object)>();
+            await provider.GetAssetsAsync<object, VoidResult>(AssetPath.FullLookupForTesting, new HashSet<Checksum> { checksum }, (checksum, asset, _) => stored2.Add((checksum, asset)), default, CancellationToken.None);
+            Assert.Equal(1, stored2.Count);
 
             Assert.Equal(checksum, stored2[0].Item1);
             Assert.Equal(data, stored2[0].Item2);
@@ -72,9 +74,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solution = workspace.CurrentSolution;
 
             // build checksum
-            await solution.State.GetChecksumAsync(CancellationToken.None);
+            await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
 
-            var map = await solution.GetAssetMapAsync(CancellationToken.None);
+            var map = await solution.GetAssetMapAsync(projectConeId: null, CancellationToken.None);
 
             using var remoteWorkspace = CreateRemoteWorkspace();
 
@@ -83,7 +85,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            await service.SynchronizeAssetsAsync(new HashSet<Checksum>(map.Keys), CancellationToken.None);
+            await service.GetAssetsAsync<object>(AssetPath.FullLookupForTesting, new HashSet<Checksum>(map.Keys), CancellationToken.None);
 
             foreach (var kv in map)
             {
@@ -100,9 +102,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var solution = workspace.CurrentSolution;
 
             // build checksum
-            await solution.State.GetChecksumAsync(CancellationToken.None);
+            await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
 
-            var map = await solution.GetAssetMapAsync(CancellationToken.None);
+            var map = await solution.GetAssetMapAsync(projectConeId: null, CancellationToken.None);
 
             using var remoteWorkspace = CreateRemoteWorkspace();
 
@@ -111,7 +113,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            await service.SynchronizeSolutionAssetsAsync(await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
+            await service.SynchronizeSolutionAssetsAsync(await solution.CompilationState.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
 
             TestUtils.VerifyAssetStorage(map, storage);
         }
@@ -136,9 +138,87 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var assetSource = new SimpleAssetSource(workspace.Services.GetService<ISerializerService>(), map);
 
             var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
-            await service.SynchronizeProjectAssetsAsync(new HashSet<Checksum> { await project.State.GetChecksumAsync(CancellationToken.None) }, CancellationToken.None);
+
+            using var _ = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var allProjectChecksums);
+            allProjectChecksums.Add(await project.State.GetStateChecksumsAsync(CancellationToken.None));
+
+            await service.SynchronizeProjectAssetsAsync(allProjectChecksums, CancellationToken.None);
 
             TestUtils.VerifyAssetStorage(map, storage);
+        }
+
+        [Fact]
+        public async Task TestAssetArrayOrdering()
+        {
+            var code1 = @"class Test1 { void Method() { } }";
+            var code2 = @"class Test2 { void Method() { } }";
+
+            using var workspace = TestWorkspace.CreateCSharp([code1, code2]);
+            var project = workspace.CurrentSolution.Projects.First();
+
+            await project.State.GetChecksumAsync(CancellationToken.None);
+
+            var map = await project.GetAssetMapAsync(CancellationToken.None);
+
+            using var remoteWorkspace = CreateRemoteWorkspace();
+
+            var sessionId = Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray()));
+            var storage = new SolutionAssetCache();
+            var assetSource = new OrderedAssetSource(workspace.Services.GetService<ISerializerService>(), map);
+
+            var service = new AssetProvider(sessionId, storage, assetSource, remoteWorkspace.Services.GetService<ISerializerService>());
+
+            using var _ = ArrayBuilder<ProjectStateChecksums>.GetInstance(out var allProjectChecksums);
+            var stateChecksums = await project.State.GetStateChecksumsAsync(CancellationToken.None);
+
+            var textChecksums = stateChecksums.Documents.TextChecksums;
+            var textChecksumsReversed = new ChecksumCollection(textChecksums.Children.Reverse().ToImmutableArray());
+
+            var documents = await service.GetAssetsArrayAsync<SerializableSourceText>(
+                AssetPath.FullLookupForTesting, textChecksums, CancellationToken.None);
+            Assert.True(documents.Length == 2);
+
+            storage.GetTestAccessor().Clear();
+            var documentsReversed = await service.GetAssetsArrayAsync<SerializableSourceText>(
+                AssetPath.FullLookupForTesting, textChecksumsReversed, CancellationToken.None);
+            Assert.True(documentsReversed.Length == 2);
+
+            Assert.True(documents.Select(d => d.ContentChecksum).SequenceEqual(documentsReversed.Reverse().Select(d => d.ContentChecksum)));
+        }
+
+        private sealed class OrderedAssetSource(
+            ISerializerService serializerService,
+            IReadOnlyDictionary<Checksum, object> map) : IAssetSource
+        {
+            public ValueTask GetAssetsAsync<T, TArg>(
+                Checksum solutionChecksum,
+                AssetPath assetPath,
+                ReadOnlyMemory<Checksum> checksums,
+                ISerializerService deserializerService,
+                Action<Checksum, T, TArg> callback,
+                TArg arg,
+                CancellationToken cancellationToken)
+            {
+                foreach (var (checksum, asset) in map)
+                {
+                    if (checksums.Span.IndexOf(checksum) >= 0)
+                    {
+                        using var stream = new MemoryStream();
+                        using (var writer = new ObjectWriter(stream, leaveOpen: true))
+                        {
+                            serializerService.Serialize(asset, writer, cancellationToken);
+                        }
+
+                        stream.Position = 0;
+                        using var reader = ObjectReader.GetReader(stream, leaveOpen: true);
+                        var deserialized = deserializerService.Deserialize(asset.GetWellKnownSynchronizationKind(), reader, cancellationToken);
+                        Contract.ThrowIfNull(deserialized);
+                        callback(checksum, (T)deserialized, arg);
+                    }
+                }
+
+                return ValueTaskFactory.CompletedTask;
+            }
         }
     }
 }

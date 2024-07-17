@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Formatting;
+using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.InlineHints
 {
@@ -266,7 +267,8 @@ namespace Microsoft.CodeAnalysis.Editor.InlineHints
         private async Task StartToolTipServiceAsync(IToolTipPresenter toolTipPresenter)
         {
             var threadingContext = _taggerProvider.ThreadingContext;
-            var uiList = await Task.Run(() => CreateDescriptionAsync(threadingContext.DisposalToken)).ConfigureAwait(false);
+            await TaskScheduler.Default;
+            var uiList = await CreateDescriptionAsync(threadingContext.DisposalToken).ConfigureAwait(false);
             await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(threadingContext.DisposalToken);
 
             toolTipPresenter.StartOrUpdate(_textView.TextSnapshot.CreateTrackingSpan(_span.Start, _span.Length, SpanTrackingMode.EdgeInclusive), uiList);

@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -24,16 +22,18 @@ public sealed class DocumentOptionSetTests
             new OptionKey(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp),
             new CodeStyleOption2<bool>(true, NotificationOption2.Error)));
 
-        var configOptions = StructuredAnalyzerConfigOptions.Create(ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer).Add(
-            "dotnet_style_qualification_for_event", "true:warning"));
+        var configOptions = StructuredAnalyzerConfigOptions.Create(
+            new DictionaryAnalyzerConfigOptions(ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer).Add(
+                "dotnet_style_qualification_for_event", "true:warning")));
 
         var set = new DocumentOptionSet(configOptions, underlyingSet, LanguageNames.CSharp);
 
         // option stored in analyzer config:
-        Assert.Equal(new CodeStyleOption<bool>(true, NotificationOption.Warning), set.GetOption(CodeStyleOptions.QualifyEventAccess, LanguageNames.CSharp));
+        var internalCodeStyleOption = new CodeStyleOption2<bool>(true, NotificationOption2.Warning.WithIsExplicitlySpecified(true));
+        Assert.Equal(new CodeStyleOption<bool>(internalCodeStyleOption), set.GetOption(CodeStyleOptions.QualifyEventAccess, LanguageNames.CSharp));
 
         // cache hit:
-        Assert.Equal(new CodeStyleOption<bool>(true, NotificationOption.Warning), set.GetOption(CodeStyleOptions.QualifyEventAccess, LanguageNames.CSharp));
+        Assert.Equal(new CodeStyleOption<bool>(internalCodeStyleOption), set.GetOption(CodeStyleOptions.QualifyEventAccess, LanguageNames.CSharp));
 
         // option stored in underlying config:
         Assert.Equal(new CodeStyleOption<bool>(true, NotificationOption.Error), set.GetOption(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp));
@@ -124,8 +124,9 @@ public sealed class DocumentOptionSetTests
             .Add(new OptionKey(CSharpFormattingOptions.NewLinesForBracesInAccessors), true)
             .Add(new OptionKey(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods), false));
 
-        var configOptions = StructuredAnalyzerConfigOptions.Create(ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer).Add(
-            "csharp_new_line_before_open_brace", "types,methods"));
+        var configOptions = StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(
+            ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer).Add(
+                "csharp_new_line_before_open_brace", "types,methods")));
 
         var set = new DocumentOptionSet(configOptions, underlyingSet, LanguageNames.CSharp);
 

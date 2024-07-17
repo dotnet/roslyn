@@ -1874,9 +1874,9 @@ e
             var test = "using static type name;";
 
             UsingTree(test,
-                // (1,7): error CS0106: The modifier 'static' is not valid for this item
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
                 // using static type name;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "static").WithArguments("static").WithLocation(1, 7)
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "static").WithLocation(1, 7)
                 );
 
             N(SyntaxKind.CompilationUnit);
@@ -1912,9 +1912,9 @@ e
             var test = "using volatile;";
 
             UsingTree(test,
-                // (1,7): error CS0106: The modifier 'volatile' is not valid for this item
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
                 // using volatile;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "volatile").WithArguments("volatile").WithLocation(1, 7),
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "volatile").WithLocation(1, 7),
                 // (1,15): error CS1031: Type expected
                 // using volatile;
                 Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 15),
@@ -1956,6 +1956,9 @@ e
             var test = "using const;";
 
             UsingTree(test,
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
+                // using const;
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "const").WithLocation(1, 7),
                 // (1,12): error CS1031: Type expected
                 // using const;
                 Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 12),
@@ -2044,9 +2047,9 @@ e
             var test = "using readonly;";
 
             UsingTree(test,
-                // (1,7): error CS0106: The modifier 'readonly' is not valid for this item
+                // (1,7): error CS9229: Modifiers cannot be placed on using declarations
                 // using readonly;
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "readonly").WithArguments("readonly").WithLocation(1, 7),
+                Diagnostic(ErrorCode.ERR_NoModifiersOnUsing, "readonly").WithLocation(1, 7),
                 // (1,15): error CS1031: Type expected
                 // using readonly;
                 Diagnostic(ErrorCode.ERR_TypeExpected, ";").WithLocation(1, 15),
@@ -3524,6 +3527,64 @@ global using Bar x;
                             N(SyntaxKind.IdentifierName);
                             {
                                 N(SyntaxKind.IdentifierToken, "W");
+                            }
+                            M(SyntaxKind.VariableDeclarator);
+                            {
+                                M(SyntaxKind.IdentifierToken);
+                            }
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/67050")]
+        public void EmptyLocalDeclaration()
+        {
+            var text = """ 
+struct S { }
+partial ext X
+""";
+            UsingTree(text,
+                // (1,13): error CS1031: Type expected
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(1, 13),
+                // (1,13): error CS1525: Invalid expression term 'partial'
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("partial").WithLocation(1, 13),
+                // (1,13): error CS1003: Syntax error, ',' expected
+                // struct S { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments(",").WithLocation(1, 13),
+                // (2,1): error CS8803: Top-level statements must precede namespace and type declarations.
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_TopLevelStatementAfterNamespaceOrType, "").WithLocation(2, 1),
+                // (2,14): error CS1002: ; expected
+                // partial ext X
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(2, 14)
+                );
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.StructDeclaration);
+                {
+                    N(SyntaxKind.StructKeyword);
+                    N(SyntaxKind.IdentifierToken, "S");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                M(SyntaxKind.GlobalStatement);
+                {
+                    M(SyntaxKind.LocalDeclarationStatement);
+                    {
+                        M(SyntaxKind.VariableDeclaration);
+                        {
+                            M(SyntaxKind.IdentifierName);
+                            {
+                                M(SyntaxKind.IdentifierToken);
                             }
                             M(SyntaxKind.VariableDeclarator);
                             {

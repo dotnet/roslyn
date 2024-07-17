@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable enable
-
 using System;
 using System.Collections.Immutable;
 using System.Threading;
@@ -97,24 +95,24 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> BreakStateOrCapabilitiesChangedAsync(DebuggingSessionId sessionId, bool? inBreakState, CancellationToken cancellationToken)
+        public ValueTask BreakStateOrCapabilitiesChangedAsync(DebuggingSessionId sessionId, bool? inBreakState, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
-                GetService().BreakStateOrCapabilitiesChanged(sessionId, inBreakState, out var documentsToReanalyze);
-                return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
+                GetService().BreakStateOrCapabilitiesChanged(sessionId, inBreakState);
+                return ValueTaskFactory.CompletedTask;
             }, cancellationToken);
         }
 
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> EndDebuggingSessionAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken)
+        public ValueTask EndDebuggingSessionAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
-                GetService().EndDebuggingSession(sessionId, out var documentsToReanalyze);
-                return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
+                GetService().EndDebuggingSession(sessionId);
+                return ValueTaskFactory.CompletedTask;
             }, cancellationToken);
         }
 
@@ -158,9 +156,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 {
                     return new EmitSolutionUpdateResults.Data()
                     {
-                        ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, ImmutableArray<ManagedHotReloadUpdate>.Empty),
+                        ModuleUpdates = new ModuleUpdates(ModuleUpdateStatus.Blocked, []),
                         Diagnostics = GetUnexpectedUpdateError(solution, e),
-                        RudeEdits = ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)>.Empty,
+                        RudeEdits = [],
                         SyntaxError = null,
                     };
                 }
@@ -171,18 +169,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         {
             var descriptor = EditAndContinueDiagnosticDescriptors.GetDescriptor(EditAndContinueErrorCode.CannotApplyChangesUnexpectedError);
             var diagnostic = Diagnostic.Create(descriptor, Location.None, new[] { e.Message });
-            return ImmutableArray.Create(DiagnosticData.Create(solution, diagnostic, project: null));
+            return [DiagnosticData.Create(solution, diagnostic, project: null)];
         }
 
         /// <summary>
         /// Remote API.
         /// </summary>
-        public ValueTask<ImmutableArray<DocumentId>> CommitSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken)
+        public ValueTask CommitSolutionUpdateAsync(DebuggingSessionId sessionId, CancellationToken cancellationToken)
         {
             return RunServiceAsync(cancellationToken =>
             {
-                GetService().CommitSolutionUpdate(sessionId, out var documentsToReanalyze);
-                return new ValueTask<ImmutableArray<DocumentId>>(documentsToReanalyze);
+                GetService().CommitSolutionUpdate(sessionId);
+                return ValueTaskFactory.CompletedTask;
             }, cancellationToken);
         }
 

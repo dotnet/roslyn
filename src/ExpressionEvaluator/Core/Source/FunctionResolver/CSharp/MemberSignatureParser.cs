@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             if (CurrentToken.Kind == TokenKind.CloseParen)
             {
                 EatToken();
-                return ImmutableArray<ParameterSignature>.Empty;
+                return [];
             }
             var builder = ImmutableArray.CreateBuilder<ParameterSignature>();
             while (true)

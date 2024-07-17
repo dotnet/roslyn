@@ -6,28 +6,27 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
+namespace Microsoft.CodeAnalysis.CodeCleanup.Providers;
+
+/// <summary>
+/// Specifies the exact type of the code cleanup exported.
+/// </summary>
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal class ExportCodeCleanupProvider : ExportAttribute
 {
-    /// <summary>
-    /// Specifies the exact type of the code cleanup exported.
-    /// </summary>
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportCodeCleanupProvider : ExportAttribute
+    public string Name { get; }
+    public IEnumerable<string> Languages { get; }
+
+    public ExportCodeCleanupProvider(string name, params string[] languages)
+        : base(typeof(ICodeCleanupProvider))
     {
-        public string Name { get; }
-        public IEnumerable<string> Languages { get; }
-
-        public ExportCodeCleanupProvider(string name, params string[] languages)
-            : base(typeof(ICodeCleanupProvider))
+        if (languages.Length == 0)
         {
-            if (languages.Length == 0)
-            {
-                throw new ArgumentException("languages");
-            }
-
-            this.Name = name;
-            this.Languages = languages ?? throw new ArgumentNullException(nameof(languages));
+            throw new ArgumentException("languages");
         }
+
+        this.Name = name;
+        this.Languages = languages ?? throw new ArgumentNullException(nameof(languages));
     }
 }

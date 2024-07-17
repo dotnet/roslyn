@@ -12,11 +12,6 @@
         <target state="translated">抽象方法</target>
         <note>{locked: abstract}{locked: method} These are keywords (unless the order of words or capitalization should be handled differently)</note>
       </trans-unit>
-      <trans-unit id="An_element_with_the_same_key_but_a_different_value_already_exists">
-        <source>An element with the same key but a different value already exists.</source>
-        <target state="translated">已經有相同索引鍵但不同值的項目。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Begins_with_I">
         <source>Begins with I</source>
         <target state="translated">以 I 開頭</target>
@@ -166,11 +161,6 @@
         <source>Public or Protected Field</source>
         <target state="translated">公用或受保護欄位</target>
         <note>{locked: public}{locked: protected}{locked:field}</note>
-      </trans-unit>
-      <trans-unit id="Segment_size_must_be_power_of_2_greater_than_1">
-        <source>Segment size must be power of 2 greater than 1</source>
-        <target state="translated">區段大小必須是 2 的乘冪且大於 1</target>
-        <note />
       </trans-unit>
       <trans-unit id="Specified_sequence_has_duplicate_items">
         <source>Specified sequence has duplicate items</source>

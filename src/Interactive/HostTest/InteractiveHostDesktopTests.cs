@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.TestMetadata;
 
@@ -377,7 +376,7 @@ WriteLine(5);
             Assert.Equal("C { }", output.Trim());
 
             // rewrite C.dll:            
-            File.WriteAllBytes(c.Path, new byte[] { 1, 2, 3 });
+            File.WriteAllBytes(c.Path, [1, 2, 3]);
 
             // we can still run code:
             var result = await Execute("new C()");

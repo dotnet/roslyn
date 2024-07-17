@@ -238,6 +238,69 @@ namespace N1
             Assert.True(completedCompilationUnits.Contains(tree1.FilePath));
         }
 
+        [Fact]
+        public void TestCompilationEventsForPartialProperty()
+        {
+            var source1 = @"
+namespace N1
+{
+    partial class Class
+    {
+        int NonPartialProp1 { get; set; }
+        partial int DefOnlyPartialProp { get; set; }
+        partial int ImplOnlyPartialProp { get => 1; set { } }
+        partial int PartialProp { get; set; }
+    }
+} 
+";
+            var source2 = @"
+namespace N1
+{
+    partial class Class
+    {
+        int NonPartialProp2 { get; set; }
+        partial int PartialProp { get => 1; set { } }
+    }
+} 
+";
+
+            var tree1 = CSharpSyntaxTree.ParseText(source1, path: "file1");
+            var tree2 = CSharpSyntaxTree.ParseText(source2, path: "file2");
+            var eventQueue = new AsyncQueue<CompilationEvent>();
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }).WithEventQueue(eventQueue);
+
+            // Invoke SemanticModel.GetDiagnostics to force populate the event queue for symbols in the first source file.
+            var model = compilation.GetSemanticModel(tree1);
+            model.GetDiagnostics(tree1.GetRoot().FullSpan);
+
+            Assert.True(eventQueue.Count > 0);
+            bool compilationStartedFired;
+            HashSet<string> declaredSymbolNames, completedCompilationUnits;
+            Assert.True(DequeueCompilationEvents(eventQueue, out compilationStartedFired, out declaredSymbolNames, out completedCompilationUnits));
+
+            // Verify symbol declared events fired for all symbols declared in the first source file.
+            Assert.True(compilationStartedFired);
+
+            // NB: NonPartialProp2 is missing here because we only asked for diagnostics in tree1
+            AssertEx.Equal([
+                "",
+                "Class",
+                "DefOnlyPartialProp",
+                "get_ImplOnlyPartialProp",
+                "get_NonPartialProp1",
+                "get_PartialProp",
+                "ImplOnlyPartialProp",
+                "N1",
+                "NonPartialProp1",
+                "PartialProp",
+                "set_ImplOnlyPartialProp",
+                "set_NonPartialProp1",
+                "set_PartialProp"
+            ], declaredSymbolNames.OrderBy(name => name));
+
+            AssertEx.Equal(["file1"], completedCompilationUnits.OrderBy(name => name));
+        }
+
         [Fact, WorkItem(8178, "https://github.com/dotnet/roslyn/issues/8178")]
         public void TestEarlyCancellation()
         {
@@ -286,12 +349,7 @@ namespace N1
                         var added = declaredSymbolNames.Add(symbol.Name);
                         if (!added)
                         {
-                            var method = symbol.GetSymbol() as Symbols.MethodSymbol;
-                            Assert.NotNull(method);
-
-                            var isPartialMethod = method.PartialDefinitionPart != null ||
-                                                  method.PartialImplementationPart != null;
-                            Assert.True(isPartialMethod, "Unexpected multiple symbol declared events for symbol " + symbol);
+                            Assert.True(symbol.GetSymbol().IsPartialMember(), "Unexpected multiple symbol declared events for symbol " + symbol);
                         }
                     }
                     else
@@ -1402,7 +1460,7 @@ internal class TestAttribute : Attribute
             analyzerDiagnostic = analyzerDiagnostics.Single();
             Assert.True(analyzerDiagnostic.IsSuppressed);
             var suppression = analyzerDiagnostic.ProgrammaticSuppressionInfo.Suppressions.Single();
-            Assert.Equal(DiagnosticSuppressorForCS0657.SuppressionId, suppression.Id);
+            Assert.Equal(DiagnosticSuppressorForCS0657.SuppressionId, suppression.Descriptor.Id);
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp)]

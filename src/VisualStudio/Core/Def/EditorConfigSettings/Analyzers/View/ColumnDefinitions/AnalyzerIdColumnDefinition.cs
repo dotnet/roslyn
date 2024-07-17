@@ -9,22 +9,21 @@ using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Utilities;
 using static Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Common.ColumnDefinitions.Analyzer;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.View.ColumnDefinitions
-{
-    [Export(typeof(ITableColumnDefinition))]
-    [Name(Id)]
-    internal class AnalyzerIdColumnDefinition : TableColumnDefinitionBase
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public AnalyzerIdColumnDefinition()
-        {
-        }
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.Analyzers.View.ColumnDefinitions;
 
-        public override string Name => Id;
-        public override string DisplayName => ServicesVSResources.Id;
-        public override bool IsFilterable => true;
-        public override bool IsSortable => true;
-        public override double MinWidth => 50;
+[Export(typeof(ITableColumnDefinition))]
+[Name(Id)]
+internal class AnalyzerIdColumnDefinition : TableColumnDefinitionBase
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public AnalyzerIdColumnDefinition()
+    {
     }
+
+    public override string Name => Id;
+    public override string DisplayName => ServicesVSResources.Id;
+    public override bool IsFilterable => true;
+    public override bool IsSortable => true;
+    public override double MinWidth => 50;
 }

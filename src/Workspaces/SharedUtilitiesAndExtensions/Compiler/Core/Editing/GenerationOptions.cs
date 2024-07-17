@@ -8,24 +8,24 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editing
+namespace Microsoft.CodeAnalysis.Editing;
+
+internal class GenerationOptions
 {
-    internal class GenerationOptions
-    {
-        public static readonly PerLanguageOption2<bool> PlaceSystemNamespaceFirst = new(
-            "dotnet_sort_system_directives_first",
-            defaultValue: AddImportPlacementOptions.Default.PlaceSystemNamespaceFirst,
-            group: CodeStyleOptionGroups.Usings,
-            isEditorConfigOption: true);
+    public static readonly PerLanguageOption2<bool> PlaceSystemNamespaceFirst = new(
+        "dotnet_sort_system_directives_first",
+        defaultValue: AddImportPlacementOptions.Default.PlaceSystemNamespaceFirst,
+        group: CodeStyleOptionGroups.Usings,
+        isEditorConfigOption: true);
 
-        public static readonly PerLanguageOption2<bool> SeparateImportDirectiveGroups = new(
-            "dotnet_separate_import_directive_groups",
-            defaultValue: SyntaxFormattingOptions.CommonDefaults.SeparateImportDirectiveGroups,
-            group: CodeStyleOptionGroups.Usings,
-            isEditorConfigOption: true);
+    public static readonly PerLanguageOption2<bool> SeparateImportDirectiveGroups = new(
+        "dotnet_separate_import_directive_groups",
+        defaultValue: SyntaxFormattingOptions.CommonDefaults.SeparateImportDirectiveGroups,
+        group: CodeStyleOptionGroups.Usings,
+        isEditorConfigOption: true);
 
-        public static readonly ImmutableArray<IOption2> AllOptions = ImmutableArray.Create<IOption2>(
-            PlaceSystemNamespaceFirst,
-            SeparateImportDirectiveGroups);
-    }
+    /// <summary>
+    /// Options that we expect the user to set in editorconfig.
+    /// </summary>
+    public static readonly ImmutableArray<IOption2> EditorConfigOptions = [PlaceSystemNamespaceFirst, SeparateImportDirectiveGroups];
 }

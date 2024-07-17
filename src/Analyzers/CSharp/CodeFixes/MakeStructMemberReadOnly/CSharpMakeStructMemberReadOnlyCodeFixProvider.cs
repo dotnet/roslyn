@@ -20,16 +20,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeStructMemberReadOnly), Shared]
-internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpMakeStructMemberReadOnlyCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-        ImmutableArray.Create(IDEDiagnosticIds.MakeStructMemberReadOnlyDiagnosticId);
+        [IDEDiagnosticIds.MakeStructMemberReadOnlyDiagnosticId];
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -41,7 +37,6 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider : SyntaxEdit
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var generator = editor.Generator;

@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     </Project>
                 </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorBuffer = cursorDocument.GetTextBuffer()
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Function
 
         Protected Shared Async Function GetQuickInfoItemAsync(workspaceDefinition As XElement, language As String) As Task(Of VSQuickInfoItem)
-            Using workspace = TestWorkspace.Create(workspaceDefinition)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition)
                 Dim solution = workspace.CurrentSolution
                 Dim cursorDocument = workspace.Documents.First(Function(d) d.CursorPosition.HasValue)
                 Dim cursorPosition = cursorDocument.CursorPosition.Value

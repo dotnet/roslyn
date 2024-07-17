@@ -319,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         Protected Overrides Function GetInsertionText(item As CompletionItem, ch As Char) As String
             If ch = "("c Then
                 Dim insertionText As String = Nothing
-                If item.Properties.TryGetValue(InsertionTextOnOpenParen, insertionText) Then
+                If item.TryGetProperty(InsertionTextOnOpenParen, insertionText) Then
                     Return insertionText
                 End If
             End If

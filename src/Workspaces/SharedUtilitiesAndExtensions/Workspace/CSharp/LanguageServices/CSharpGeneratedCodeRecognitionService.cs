@@ -9,15 +9,14 @@ using System.Composition;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Host.Mef;
 
-namespace Microsoft.CodeAnalysis.CSharp.GeneratedCodeRecognition
+namespace Microsoft.CodeAnalysis.CSharp.GeneratedCodeRecognition;
+
+[ExportLanguageService(typeof(IGeneratedCodeRecognitionService), LanguageNames.CSharp), Shared]
+internal class CSharpGeneratedCodeRecognitionService : AbstractGeneratedCodeRecognitionService
 {
-    [ExportLanguageService(typeof(IGeneratedCodeRecognitionService), LanguageNames.CSharp), Shared]
-    internal class CSharpGeneratedCodeRecognitionService : AbstractGeneratedCodeRecognitionService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpGeneratedCodeRecognitionService()
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpGeneratedCodeRecognitionService()
-        {
-        }
     }
 }

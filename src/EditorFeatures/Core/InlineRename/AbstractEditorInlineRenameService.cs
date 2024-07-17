@@ -5,30 +5,26 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Rename;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+internal abstract partial class AbstractEditorInlineRenameService : IEditorInlineRenameService
 {
-    internal abstract partial class AbstractEditorInlineRenameService : IEditorInlineRenameService
+    private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
+
+    protected AbstractEditorInlineRenameService(IEnumerable<IRefactorNotifyService> refactorNotifyServices)
     {
-        private readonly IEnumerable<IRefactorNotifyService> _refactorNotifyServices;
-        private readonly IGlobalOptionService _globalOptions;
+        _refactorNotifyServices = refactorNotifyServices;
+    }
 
-        protected AbstractEditorInlineRenameService(IEnumerable<IRefactorNotifyService> refactorNotifyServices, IGlobalOptionService globalOptions)
-        {
-            _refactorNotifyServices = refactorNotifyServices;
-            _globalOptions = globalOptions;
-        }
+    public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        var symbolicInfo = await SymbolicRenameInfo.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
+        if (symbolicInfo.LocalizedErrorMessage != null)
+            return new FailureInlineRenameInfo(symbolicInfo.LocalizedErrorMessage);
 
-        public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var symbolicInfo = await SymbolicRenameInfo.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (symbolicInfo.LocalizedErrorMessage != null)
-                return new FailureInlineRenameInfo(symbolicInfo.LocalizedErrorMessage);
-
-            return new SymbolInlineRenameInfo(
-                _refactorNotifyServices, symbolicInfo, _globalOptions.CreateProvider(), cancellationToken);
-        }
+        return new SymbolInlineRenameInfo(
+            _refactorNotifyServices, symbolicInfo, cancellationToken);
     }
 }

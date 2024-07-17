@@ -14,10 +14,10 @@ using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
+using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
 using static Microsoft.VisualStudio.Threading.ThreadingTools;
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         /// <remarks>
         /// Read/write access to this field is guarded by <see cref="s_gate"/>.
         /// </remarks>
-        private static ImmutableHashSet<Task> s_highPriorityComputeTasks = ImmutableHashSet<Task>.Empty;
+        private static ImmutableHashSet<Task> s_highPriorityComputeTasks = [];
 
         /// <summary>
         /// Set of cancellation token sources for normal priority diagnostic computation tasks which are currently executing.
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
         /// <remarks>
         /// Read/write access to this field is guarded by <see cref="s_gate"/>.
         /// </remarks>
-        private static ImmutableHashSet<CancellationTokenSource> s_normalPriorityCancellationTokenSources = ImmutableHashSet<CancellationTokenSource>.Empty;
+        private static ImmutableHashSet<CancellationTokenSource> s_normalPriorityCancellationTokenSources = [];
 
         /// <summary>
         /// Static gate controlling access to following static fields:
@@ -81,7 +81,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         private readonly TextDocument? _document;
         private readonly Project _project;
-        private readonly IdeAnalyzerOptions _ideOptions;
         private readonly TextSpan? _span;
         private readonly AnalysisKind? _analysisKind;
         private readonly IPerformanceTrackerService? _performanceTracker;
@@ -92,7 +91,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             TextDocument? document,
             Project project,
             Checksum solutionChecksum,
-            IdeAnalyzerOptions ideOptions,
             TextSpan? span,
             AnalysisKind? analysisKind,
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
@@ -101,7 +99,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _document = document;
             _project = project;
             _solutionChecksum = solutionChecksum;
-            _ideOptions = ideOptions;
             _span = span;
             _analysisKind = analysisKind;
             _analyzerInfoCache = analyzerInfoCache;
@@ -113,7 +110,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             TextDocument? document,
             Project project,
             Checksum solutionChecksum,
-            IdeAnalyzerOptions ideOptions,
             TextSpan? span,
             IEnumerable<string> analyzerIds,
             AnalysisKind? analysisKind,
@@ -147,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             // We execute explicit, user-invoked diagnostics requests with higher priority compared to implicit requests
             // from clients such as editor diagnostic tagger to show squiggles, background analysis to populate the error list, etc.
-            var diagnosticsComputer = new DiagnosticComputer(document, project, solutionChecksum, ideOptions, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
+            var diagnosticsComputer = new DiagnosticComputer(document, project, solutionChecksum, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
             return isExplicit
                 ? diagnosticsComputer.GetHighPriorityDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken)
                 : diagnosticsComputer.GetNormalPriorityDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken);
@@ -307,11 +303,11 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                         if (task.IsCompleted)
                         {
                             // Make sure to yield so continuations of 'task' can make progress.
-                            await Task.Yield().ConfigureAwait(false);
+                            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
                         }
                         else
                         {
-                            await task.WithCancellation(cancellationToken).NoThrowAwaitableInternal(false);
+                            await task.WithCancellation(cancellationToken).NoThrowAwaitable(false);
                         }
                     }
                 }
@@ -389,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             var telemetry = getTelemetryInfo
                 ? GetTelemetryInfo(analysisResult, analyzers, analyzerToIdMap)
-                : ImmutableArray<(string analyzerId, AnalyzerTelemetryInfo)>.Empty;
+                : [];
 
             return new SerializableDiagnosticAnalysisResults(Dehydrate(builderMap, analyzerToIdMap), telemetry);
         }
@@ -398,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             ImmutableDictionary<DiagnosticAnalyzer, DiagnosticAnalysisResultBuilder> builderMap,
             BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)
         {
-            using var _ = ArrayBuilder<(string analyzerId, SerializableDiagnosticMap diagnosticMap)>.GetInstance(out var diagnostics);
+            var diagnostics = new FixedSizeArrayBuilder<(string analyzerId, SerializableDiagnosticMap diagnosticMap)>(builderMap.Count);
 
             foreach (var (analyzer, analyzerResults) in builderMap)
             {
@@ -412,7 +408,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                         analyzerResults.Others)));
             }
 
-            return diagnostics.ToImmutable();
+            return diagnostics.MoveToImmutable();
         }
 
         private static ImmutableArray<(string analyzerId, AnalyzerTelemetryInfo)> GetTelemetryInfo(
@@ -444,7 +440,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
             }
 
-            return telemetryBuilder.ToImmutable();
+            return telemetryBuilder.ToImmutableAndClear();
         }
 
         private static string GetAnalyzerId(BidirectionalMap<string, DiagnosticAnalyzer> analyzerMap, DiagnosticAnalyzer analyzer)
@@ -468,7 +464,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                 }
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndClear();
         }
 
         private async Task<(CompilationWithAnalyzers? compilationWithAnalyzers, BidirectionalMap<string, DiagnosticAnalyzer> analyzerToIdMap)> GetOrCreateCompilationWithAnalyzersAsync(CancellationToken cancellationToken)
@@ -554,7 +550,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             // TODO: can we support analyzerExceptionFilter in remote host? 
             //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _ideOptions),
+                options: _project.AnalyzerOptions,
                 onAnalyzerException: null,
                 analyzerExceptionFilter: null,
                 concurrentAnalysis: concurrentAnalysis,

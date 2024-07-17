@@ -20,7 +20,7 @@ internal static class CSharpStructureHelpers
     public const string Ellipsis = "...";
     public const string MultiLineCommentSuffix = "*/";
     public const int MaxXmlDocCommentBannerLength = 120;
-    private static readonly char[] s_newLineCharacters = new[] { '\r', '\n' };
+    private static readonly char[] s_newLineCharacters = ['\r', '\n'];
 
     private static int GetCollapsibleStart(SyntaxToken firstToken)
     {

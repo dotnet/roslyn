@@ -6,12 +6,10 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using Roslyn.Test.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -26,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<ArgumentNullException>(() => DocumentInfo.Create(id: null, "doc"));
             Assert.Throws<ArgumentNullException>(() => DocumentInfo.Create(documentId, name: null));
 
-            Assert.Throws<ArgumentNullException>(() => DocumentInfo.Create(documentId, "doc", folders: new[] { "folder", null }));
+            Assert.Throws<ArgumentNullException>(() => DocumentInfo.Create(documentId, "doc", folders: ["folder", null]));
         }
 
         [Fact]
@@ -73,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var documentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
-            var info1 = DocumentInfo.Create(documentId, "doc", folders: new[] { "folder" });
+            var info1 = DocumentInfo.Create(documentId, "doc", folders: ["folder"]);
             Assert.Equal("folder", ((ImmutableArray<string>)info1.Folders).Single());
 
             var info2 = DocumentInfo.Create(documentId, "doc");
@@ -82,7 +80,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var info3 = DocumentInfo.Create(documentId, "doc", folders: new string[0]);
             Assert.True(((ImmutableArray<string>)info3.Folders).IsEmpty);
 
-            var info4 = DocumentInfo.Create(documentId, "doc", folders: ImmutableArray<string>.Empty);
+            var info4 = DocumentInfo.Create(documentId, "doc", folders: []);
             Assert.True(((ImmutableArray<string>)info4.Folders).IsEmpty);
         }
 

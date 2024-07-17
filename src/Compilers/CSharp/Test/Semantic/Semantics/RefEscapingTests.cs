@@ -14,7 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
+    [CompilerTrait(CompilerFeature.ReadOnlyReferences, CompilerFeature.RefLifetime)]
     public class RefEscapingTests : CompilingTestBase
     {
         [Fact]
@@ -91,7 +91,7 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (6,16): error CS1674: 'C.S2': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (6,16): error CS1674: 'C.S2': type used in a using statement must implement 'System.IDisposable'.
                 //         using (var x = GetRefStruct())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var x = GetRefStruct()").WithArguments("C.S2").WithLocation(6, 16));
         }
@@ -760,6 +760,12 @@ ref struct S1
                 // (22,18): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
                 //         global = local && global;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(22, 18),
+                // (22,18): error CS8347: Cannot use a result of 'S1.operator &(S1, S1)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         global = local && global;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "local && global").WithArguments("S1.operator &(S1, S1)", "x").WithLocation(22, 18),
+                // (25,16): error CS8347: Cannot use a result of 'S1.operator |(S1, S1)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return global || local;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "global || local").WithArguments("S1.operator |(S1, S1)", "y").WithLocation(25, 16),
                 // (25,26): error CS8352: Cannot use variable 'local' in this context because it may expose referenced variables outside of their declaration scope
                 //         return global || local;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "local").WithArguments("local").WithLocation(25, 26)
@@ -2599,6 +2605,770 @@ class Program
             );
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73550")]
+        public void RefLikeEscapeMixingCallLegacy1()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+            using System;
+            ref struct S1
+            {
+                public void M1(Span<int> span) { }
+                public readonly void M2(Span<int> span) { }
+            }
+
+            class G
+            {
+                void Go()
+                {
+                    S1 local = default;
+                    Span<int> span = stackalloc int[] { 42 };
+                    local.M1(span); // 1
+                    local.M2(span);
+                }
+            }
+
+            """, options: TestOptions.Regular8);
+
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (14,9): error CS8350: This combination of arguments to 'S1.M1(Span<int>)' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local.M1(span); // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local.M1(span)").WithArguments("S1.M1(System.Span<int>)", "span").WithLocation(14, 9),
+                // (14,18): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //         local.M1(span); // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(14, 18));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73550")]
+        public void RefLikeEscapeMixingCallLegacy2()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+            using System;
+            readonly ref struct S1
+            {
+                public void M1(Span<int> span) { }
+            }
+
+            class G
+            {
+                void Go()
+                {
+                    S1 local = default;
+                    Span<int> span = stackalloc int[] { 42 };
+                    local.M1(span);
+                }
+            }
+
+            """, options: TestOptions.Regular8);
+
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73550")]
+        public void RefLikeEscapeMixingIndexer1(LanguageVersion languageVersion)
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+                ref struct S1
+                {
+                    public int this[Span<int> span] => 42;
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S1 local = default;
+                        _ = local[stackSpan]; // 1
+                        _ = local[heapSpan];
+                    }
+                }
+
+                ref struct S2
+                {
+                    public readonly int this[Span<int> span] => 42;
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S2 local = default;
+                        _ = local[stackSpan];
+                        _ = local[heapSpan];
+                    }
+                }
+
+                ref struct S3
+                {
+                    public int this[Span<int> span]
+                    {
+                        get => 42;
+                        set { }
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S3 local = default;
+                        _ = local[stackSpan]; // 2
+                        _ = local[heapSpan];
+                        local[stackSpan] = 42; // 3
+                        local[heapSpan] = 42;
+
+                        local[stackSpan]++; // 4
+                        local[heapSpan]++;
+                    }
+                }
+
+                ref struct S4
+                {
+                    public int this[Span<int> span]
+                    {
+                        readonly get => 42;
+                        set { }
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S4 local = default;
+                        _ = local[stackSpan];
+                        _ = local[heapSpan];
+                        local[stackSpan] = 42; // 5
+                        local[heapSpan] = 42;
+
+                        local[stackSpan]++; // 6
+                        local[heapSpan]++;
+                    }
+                }
+
+                ref struct S5
+                {
+                    public int this[Span<int> span]
+                    {
+                        get => 42;
+                        readonly set { }
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S5 local = default;
+                        _ = local[stackSpan]; // 7
+                        _ = local[heapSpan];
+                        local[stackSpan] = 42;
+                        local[heapSpan] = 42;
+
+                        local[stackSpan]++; // 8
+                        local[heapSpan]++;
+                    }
+                }
+
+                ref struct S6
+                {
+                    public ref int this[Span<int> span]
+                    {
+                        get => throw null!;
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S6 local = default;
+                        _ = local[stackSpan]; // 9
+                        _ = local[heapSpan];
+                        local[stackSpan] = 42; // 10
+                        local[heapSpan] = 42;
+                        local[stackSpan]++; // 11
+                        local[heapSpan]++;
+                    }
+                }
+                """, options: TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (11,13): error CS8350: This combination of arguments to 'S1.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         _ = local[stackSpan]; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S1.this[System.Span<int>]", "span").WithLocation(11, 13),
+                // (11,19): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = local[stackSpan]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(11, 19),
+                // (43,13): error CS8350: This combination of arguments to 'S3.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         _ = local[stackSpan]; // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S3.this[System.Span<int>]", "span").WithLocation(43, 13),
+                // (43,19): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = local[stackSpan]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(43, 19),
+                // (45,9): error CS8350: This combination of arguments to 'S3.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local[stackSpan] = 42; // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S3.this[System.Span<int>]", "span").WithLocation(45, 9),
+                // (45,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan] = 42; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(45, 15),
+                // (48,9): error CS8350: This combination of arguments to 'S3.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local[stackSpan]++; // 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S3.this[System.Span<int>]", "span").WithLocation(48, 9),
+                // (48,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan]++; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(48, 15),
+                // (68,9): error CS8350: This combination of arguments to 'S4.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local[stackSpan] = 42; // 5
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S4.this[System.Span<int>]", "span").WithLocation(68, 9),
+                // (68,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan] = 42; // 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(68, 15),
+                // (71,9): error CS8350: This combination of arguments to 'S4.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local[stackSpan]++; // 6
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S4.this[System.Span<int>]", "span").WithLocation(71, 9),
+                // (71,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan]++; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(71, 15),
+                // (89,13): error CS8350: This combination of arguments to 'S5.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         _ = local[stackSpan]; // 7
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S5.this[System.Span<int>]", "span").WithLocation(89, 13),
+                // (89,19): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = local[stackSpan]; // 7
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(89, 19),
+                // (94,9): error CS8350: This combination of arguments to 'S5.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local[stackSpan]++; // 8
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S5.this[System.Span<int>]", "span").WithLocation(94, 9),
+                // (94,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan]++; // 8
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(94, 15),
+                // (111,13): error CS8350: This combination of arguments to 'S6.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         _ = local[stackSpan]; // 9
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S6.this[System.Span<int>]", "span").WithLocation(111, 13),
+                // (111,19): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = local[stackSpan]; // 9
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(111, 19),
+                // (113,9): error CS8350: This combination of arguments to 'S6.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local[stackSpan] = 42; // 10
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S6.this[System.Span<int>]", "span").WithLocation(113, 9),
+                // (113,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan] = 42; // 10
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(113, 15),
+                // (115,9): error CS8350: This combination of arguments to 'S6.this[Span<int>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local[stackSpan]++; // 11
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan]").WithArguments("S6.this[System.Span<int>]", "span").WithLocation(115, 9),
+                // (115,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan]++; // 11
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(115, 15));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73550")]
+        public void RefLikeEscapeMixingIndexer2()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+                ref struct S1
+                {
+                    public int this[scoped Span<int> span]
+                    {
+                        get => 42;
+                        set { }
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S1 local = default;
+                        _ = local[stackSpan];
+                        _ = local[heapSpan];
+                        local[stackSpan] = 42;
+                        local[heapSpan] = 42;
+                        local[stackSpan]++;
+                        local[heapSpan]++;
+                    }
+                }
+
+                ref struct S2
+                {
+                    public ref int this[scoped Span<int> span]
+                    {
+                        get => throw null!;
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+                        S2 local = default;
+                        _ = local[stackSpan];
+                        _ = local[heapSpan];
+                        local[stackSpan] = 42;
+                        local[heapSpan] = 42;
+                        local[stackSpan]++;
+                        local[heapSpan]++;
+                    }
+                }
+
+                """, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
+
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics();
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35606")]
+        public void RefLikeEscapeMixingIndexer3(LanguageVersion languageVersion)
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+
+                public ref struct S
+                {
+                    int this[Span<byte> span] { readonly get => 0; set {} }
+
+                    static void M(S s)
+                    {
+                        Span<byte> span = stackalloc byte[10];
+
+                        // `span` can't escape into `s` here because the get is readonly
+                        _ = s[span];
+
+                        s[span] = 42; // 1
+                        s[span]++; // 2
+                    }
+                }
+                """, TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (14,9): error CS8350: This combination of arguments to 'S.this[Span<byte>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         s[span] = 42; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "s[span]").WithArguments("S.this[System.Span<byte>]", "span").WithLocation(14, 9),
+                // (14,11): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //         s[span] = 42; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(14, 11),
+                // (15,9): error CS8350: This combination of arguments to 'S.this[Span<byte>]' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         s[span]++; // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "s[span]").WithArguments("S.this[System.Span<byte>]", "span").WithLocation(15, 9),
+                // (15,11): error CS8352: Cannot use variable 'span' in this context because it may expose referenced variables outside of their declaration scope
+                //         s[span]++; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "span").WithArguments("span").WithLocation(15, 11)
+                );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35606")]
+        public void RefLikeEscapeMixingIndexer4()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+
+                public ref struct S1
+                {
+                    int this[Span<int> span1, Span<int> span2] { get => 0; set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S1 local = default;
+
+                        _ = local[heapSpan, heapSpan];
+                        _ = local[heapSpan, stackSpan]; // 1
+                        _ = local[stackSpan, heapSpan]; // 2
+                        _ = local[stackSpan, stackSpan]; // 3
+
+                        local[heapSpan, heapSpan] = 42;
+                        local[heapSpan, stackSpan] = 42; // 4
+                        local[stackSpan, heapSpan] = 42; // 5
+                        local[stackSpan, stackSpan] = 42; // 6
+                    }
+                }
+
+                public ref struct S2
+                {
+                    int this[scoped Span<int> span1, Span<int> span2] { get => 0; set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S2 local = default;
+
+                        _ = local[heapSpan, heapSpan];
+                        _ = local[heapSpan, stackSpan]; // 7
+                        _ = local[stackSpan, heapSpan]; 
+                        _ = local[stackSpan, stackSpan]; // 8
+
+                        local[heapSpan, heapSpan] = 42;
+                        local[heapSpan, stackSpan] = 42; // 9
+                        local[stackSpan, heapSpan] = 42; 
+                        local[stackSpan, stackSpan] = 42; // 10
+                    }
+                }
+
+                public ref struct S3
+                {
+                    int this[scoped Span<int> span1, scoped Span<int> span2] { get => 0; set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S3 local = default;
+
+                        _ = local[heapSpan, heapSpan];
+                        _ = local[heapSpan, stackSpan];
+                        _ = local[stackSpan, heapSpan];
+                        _ = local[stackSpan, stackSpan];
+
+                        local[heapSpan, heapSpan] = 42;
+                        local[heapSpan, stackSpan] = 42;
+                        local[stackSpan, heapSpan] = 42; 
+                        local[stackSpan, stackSpan] = 42;
+                    }
+                }
+                """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
+
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (15,13): error CS8350: This combination of arguments to 'S1.this[Span<int>, Span<int>]' is disallowed because it may expose variables referenced by parameter 'span2' outside of their declaration scope
+                //         _ = local[heapSpan, stackSpan]; // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[heapSpan, stackSpan]").WithArguments("S1.this[System.Span<int>, System.Span<int>]", "span2").WithLocation(15, 13),
+                // (15,29): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = local[heapSpan, stackSpan]; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(15, 29),
+                // (16,13): error CS8350: This combination of arguments to 'S1.this[Span<int>, Span<int>]' is disallowed because it may expose variables referenced by parameter 'span1' outside of their declaration scope
+                //         _ = local[stackSpan, heapSpan]; // 2
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan, heapSpan]").WithArguments("S1.this[System.Span<int>, System.Span<int>]", "span1").WithLocation(16, 13),
+                // (16,19): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = local[stackSpan, heapSpan]; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(16, 19),
+                // (17,13): error CS8350: This combination of arguments to 'S1.this[Span<int>, Span<int>]' is disallowed because it may expose variables referenced by parameter 'span1' outside of their declaration scope
+                //         _ = local[stackSpan, stackSpan]; // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan, stackSpan]").WithArguments("S1.this[System.Span<int>, System.Span<int>]", "span1").WithLocation(17, 13),
+                // (17,19): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = local[stackSpan, stackSpan]; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(17, 19),
+                // (20,9): error CS8350: This combination of arguments to 'S1.this[Span<int>, Span<int>]' is disallowed because it may expose variables referenced by parameter 'span2' outside of their declaration scope
+                //         local[heapSpan, stackSpan] = 42; // 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[heapSpan, stackSpan]").WithArguments("S1.this[System.Span<int>, System.Span<int>]", "span2").WithLocation(20, 9),
+                // (20,25): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[heapSpan, stackSpan] = 42; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(20, 25),
+                // (21,9): error CS8350: This combination of arguments to 'S1.this[Span<int>, Span<int>]' is disallowed because it may expose variables referenced by parameter 'span1' outside of their declaration scope
+                //         local[stackSpan, heapSpan] = 42; // 5
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan, heapSpan]").WithArguments("S1.this[System.Span<int>, System.Span<int>]", "span1").WithLocation(21, 9),
+                // (21,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan, heapSpan] = 42; // 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(21, 15),
+                // (22,9): error CS8350: This combination of arguments to 'S1.this[Span<int>, Span<int>]' is disallowed because it may expose variables referenced by parameter 'span1' outside of their declaration scope
+                //         local[stackSpan, stackSpan] = 42; // 6
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan, stackSpan]").WithArguments("S1.this[System.Span<int>, System.Span<int>]", "span1").WithLocation(22, 9),
+                // (22,15): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan, stackSpan] = 42; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(22, 15),
+                // (38,13): error CS8350: This combination of arguments to 'S2.this[scoped Span<int>, Span<int>]' is disallowed because it may expose variables referenced by parameter 'span2' outside of their declaration scope
+                //         _ = local[heapSpan, stackSpan]; // 7
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[heapSpan, stackSpan]").WithArguments("S2.this[scoped System.Span<int>, System.Span<int>]", "span2").WithLocation(38, 13),
+                // (38,29): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = local[heapSpan, stackSpan]; // 7
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(38, 29),
+                // (40,13): error CS8350: This combination of arguments to 'S2.this[scoped Span<int>, Span<int>]' is disallowed because it may expose variables referenced by parameter 'span2' outside of their declaration scope
+                //         _ = local[stackSpan, stackSpan]; // 8
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan, stackSpan]").WithArguments("S2.this[scoped System.Span<int>, System.Span<int>]", "span2").WithLocation(40, 13),
+                // (40,30): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = local[stackSpan, stackSpan]; // 8
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(40, 30),
+                // (43,9): error CS8350: This combination of arguments to 'S2.this[scoped Span<int>, Span<int>]' is disallowed because it may expose variables referenced by parameter 'span2' outside of their declaration scope
+                //         local[heapSpan, stackSpan] = 42; // 9
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[heapSpan, stackSpan]").WithArguments("S2.this[scoped System.Span<int>, System.Span<int>]", "span2").WithLocation(43, 9),
+                // (43,25): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[heapSpan, stackSpan] = 42; // 9
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(43, 25),
+                // (45,9): error CS8350: This combination of arguments to 'S2.this[scoped Span<int>, Span<int>]' is disallowed because it may expose variables referenced by parameter 'span2' outside of their declaration scope
+                //         local[stackSpan, stackSpan] = 42; // 10
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[stackSpan, stackSpan]").WithArguments("S2.this[scoped System.Span<int>, System.Span<int>]", "span2").WithLocation(45, 9),
+                // (45,26): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[stackSpan, stackSpan] = 42; // 10
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(45, 26));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35606")]
+        public void RefLikeEscapeMixingIndexer5()
+        {
+            var code = """
+                using System;
+                Console.WriteLine();
+
+                ref struct S1<T> where T : new(), allows ref struct  
+                {  
+                    int this[T t] { get => 0; set {} }  
+
+                    static void Test()  
+                    {  
+                        scoped T x = default;  
+                        T y = default;  
+                        S1<T> local = default;  
+                        _ = local[x]; // 1  
+                        _ = local[y];  
+                        local[x] = 42; // 2  
+                        local[y] = 42;  
+                        local[x]++; // 3  
+                        local[y]++;  
+                    }  
+                }  
+
+                ref struct S2<T> where T : new(), allows ref struct  
+                {  
+                    T this[int index] { get => default; set {} }  
+
+                    static void Test()  
+                    {  
+                        scoped T x = default;  
+                        T y = default;  
+                        S2<T> local = default;  
+                        local[0] = x; // 4  
+                        local[1] = y;  
+                    }  
+                }  
+                """;
+
+            var comp = CreateCompilation([code], targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (13,13): error CS8350: This combination of arguments to 'S1<T>.this[T]' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         _ = local[x]; // 1  
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[x]").WithArguments("S1<T>.this[T]", "t").WithLocation(13, 13),
+                // (13,19): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         _ = local[x]; // 1  
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(13, 19),
+                // (15,9): error CS8350: This combination of arguments to 'S1<T>.this[T]' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         local[x] = 42; // 2  
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[x]").WithArguments("S1<T>.this[T]", "t").WithLocation(15, 9),
+                // (15,15): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[x] = 42; // 2  
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(15, 15),
+                // (17,9): error CS8350: This combination of arguments to 'S1<T>.this[T]' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         local[x]++; // 3  
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[x]").WithArguments("S1<T>.this[T]", "t").WithLocation(17, 9),
+                // (17,15): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[x]++; // 3  
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(17, 15),
+                // (31,20): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+                //         local[0] = x; // 4  
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(31, 20)
+                );
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35606")]
+        public void RefLikeEscapeMixingObjectInitializer1(LanguageVersion languageVersion)
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+
+                public ref struct S
+                {
+                    public S(ref Span<int> span) { }
+                    int this[Span<int> span] { get => 0; set {} }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[10];
+                        Span<int> heapSpan = default;
+
+                        var local = new S(ref heapSpan) { [stackSpan] = 0 };
+                    }
+                }
+                """, TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (13,31): error CS8350: This combination of arguments to 'S.S(ref Span<int>)' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         var local = new S(ref heapSpan) { [stackSpan] = 0 };
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "heapSpan").WithArguments("S.S(ref System.Span<int>)", "span").WithLocation(13, 31));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35606")]
+        public void RefLikeEscapeMixingObjectInitializer2()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+
+                public ref struct S1
+                {
+                    public S1(ref Span<int> span) { }
+                    int this[Span<int> span] { get => 0; set {} }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[10];
+                        Span<int> heapSpan = default;
+
+                        var local1 = new S1(ref heapSpan) { [heapSpan] = 0 };
+                        var local2 = new S1(ref heapSpan) { [stackSpan] = 0 };  // 1
+                        var local3 = new S1(ref stackSpan) { [heapSpan] = 0 };
+                        var local4 = new S1(ref stackSpan) { [stackSpan] = 0 };
+                    }
+                }
+
+                public ref struct S2
+                {
+                    public S2(scoped ref Span<int> span) { }
+                    int this[Span<int> span] { get => 0; set {} }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[10];
+                        Span<int> heapSpan = default;
+
+                        var local1 = new S2(ref heapSpan) { [heapSpan] = 0 };
+                        var local2 = new S2(ref heapSpan) { [stackSpan] = 0 };
+                        var local3 = new S2(ref stackSpan) { [heapSpan] = 0 };
+                        var local4 = new S2(ref stackSpan) { [stackSpan] = 0 };
+                    }
+                }
+
+                public ref struct S3
+                {
+                    public S3(ref Span<int> span) { }
+                    int this[scoped Span<int> span] { get => 0; set {} }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[10];
+                        Span<int> heapSpan = default;
+
+                        var local1 = new S3(ref heapSpan) { [heapSpan] = 0 };
+                        var local2 = new S3(ref heapSpan) { [stackSpan] = 0 };
+                        var local3 = new S3(ref stackSpan) { [heapSpan] = 0 };
+                        var local4 = new S3(ref stackSpan) { [stackSpan] = 0 };
+                    }
+                }
+
+                public ref struct S4
+                {
+                    public S4(in Span<int> span) { }
+                    int this[Span<int> span] { get => 0; set {} }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[10];
+                        Span<int> heapSpan = default;
+
+                        var local1 = new S4(in heapSpan) { [heapSpan] = 0 };
+                        var local2 = new S4(in heapSpan) { [stackSpan] = 0 };
+                        var local3 = new S4(in stackSpan) { [heapSpan] = 0 };
+                        var local4 = new S4(in stackSpan) { [stackSpan] = 0 };
+                    }
+                }
+                """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (14,33): error CS8350: This combination of arguments to 'S1.S1(ref Span<int>)' is disallowed because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         var local2 = new S1(ref heapSpan) { [stackSpan] = 0 };  // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "heapSpan").WithArguments("S1.S1(ref System.Span<int>)", "span").WithLocation(14, 33));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35606")]
+        public void RefLikeEscapeMixingObjectInitializer3()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+                #pragma warning disable 9113
+
+                public ref struct S1<T>(ref T t) where T: allows ref struct
+                {
+                    int this[T t] { get => 0; set {} }
+
+                    static T Create(Span<int> span) => throw null!;
+
+                    static void Test()
+                    {
+                        T stackT = Create(stackalloc int[42]);
+                        T heapT = default;
+
+                        var local1 = new S1<T>(ref heapT) { [heapT] = 0 };
+                        var local2 = new S1<T>(ref heapT) { [stackT] = 0 };  // 1
+                        var local3 = new S1<T>(ref stackT) { [heapT] = 0 };
+                        var local4 = new S1<T>(ref stackT) { [stackT] = 0 };
+                    }
+                }
+
+                public ref struct S2<T>(scoped ref T t) where T: allows ref struct
+                {
+                    int this[T t] { get => 0; set {} }
+
+                    static T Create(Span<int> span) => throw null!;
+
+                    static void Test()
+                    {
+                        T stackT = Create(stackalloc int[42]);
+                        T heapT = default;
+
+                        var local1 = new S2<T>(ref heapT) { [heapT] = 0 };
+                        var local2 = new S2<T>(ref heapT) { [stackT] = 0 };
+                        var local3 = new S2<T>(ref stackT) { [heapT] = 0 };
+                        var local4 = new S2<T>(ref stackT) { [stackT] = 0 };
+                    }
+                }
+
+                public ref struct S3<T>(ref T t) where T: allows ref struct
+                {
+                    int this[scoped T t] { get => 0; set {} }
+
+                    static T Create(Span<int> span) => throw null!;
+
+                    static void Test()
+                    {
+                        T stackT = Create(stackalloc int[42]);
+                        T heapT = default;
+
+                        var local1 = new S3<T>(ref heapT) { [heapT] = 0 };
+                        var local2 = new S3<T>(ref heapT) { [stackT] = 0 };
+                        var local3 = new S3<T>(ref stackT) { [heapT] = 0 };
+                        var local4 = new S3<T>(ref stackT) { [stackT] = 0 };
+                    }
+                }
+
+                public ref struct S4<T>(in T t) where T: allows ref struct
+                {
+                    int this[T t] { get => 0; set {} }
+
+                    static T Create(Span<int> span) => throw null!;
+
+                    static void Test()
+                    {
+                        T stackT = Create(stackalloc int[42]);
+                        T heapT = default;
+
+                        var local1 = new S4<T>(in heapT) { [heapT] = 0 };
+                        var local2 = new S4<T>(in heapT) { [stackT] = 0 };
+                        var local3 = new S4<T>(in stackT) { [heapT] = 0 };
+                        var local4 = new S4<T>(in stackT) { [stackT] = 0 };
+                    }
+                }
+                """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp13));
+            var comp = CreateCompilation(tree, targetFramework: TargetFramework.Net90, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (16,36): error CS8350: This combination of arguments to 'S1<T>.S1(ref T)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                //         var local2 = new S1<T>(ref heapT) { [stackT] = 0 };  // 1
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "heapT").WithArguments("S1<T>.S1(ref T)", "t").WithLocation(16, 36)
+                );
+        }
+
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
@@ -2656,13 +3426,12 @@ class Program
     }
 ";
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                // (16,47): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (16,29): error CS8352: Cannot use variable 'Field2 = inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             return new S2() { Field1 = outer, Field2 = inner };
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "Field2 = inner").WithArguments("inner").WithLocation(16, 47),
-                // (27,33): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ Field1 = outer, Field2 = inner }").WithArguments("Field2 = inner").WithLocation(16, 29),
+                // (27,31): error CS8352: Cannot use variable 'Field1 = inner' in this context because it may expose referenced variables outside of their declaration scope
                 //             result = new S2() { Field1 = inner, Field2 = outer };
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "Field1 = inner").WithArguments("inner").WithLocation(27, 33)
-            );
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ Field1 = inner, Field2 = outer }").WithArguments("Field1 = inner").WithLocation(27, 31));
         }
 
         [Theory]
@@ -2800,19 +3569,18 @@ class Program
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                // (16,28): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (16,25): error CS8352: Cannot use variable '[inner] = outer' in this context because it may expose referenced variables outside of their declaration scope
                 //         return new S2() { [inner] = outer, Field2 = outer };
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(16, 28),
-                // (25,27): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ [inner] = outer, Field2 = outer }").WithArguments("[inner] = outer").WithLocation(16, 25),
+                // (25,25): error CS8352: Cannot use variable '[outer] = inner' in this context because it may expose referenced variables outside of their declaration scope
                 //         return new S2() { [outer] = inner, Field2 = outer };
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "[outer] = inner").WithArguments("inner").WithLocation(25, 27)
-                );
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ [outer] = inner, Field2 = outer }").WithArguments("[outer] = inner").WithLocation(25, 25));
         }
 
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
-        public void RefLikeObjInitializersIndexer1(LanguageVersion languageVersion)
+        public void ObjectInitializer_Indexer_RefLikeType_Mixed(LanguageVersion languageVersion)
         {
             var text = @"
 using System;
@@ -2887,9 +3655,360 @@ class Program
                 // (18,16): error CS8352: Cannot use variable 'x1' in this context because it may expose referenced variables outside of their declaration scope
                 //         return x1;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x1").WithArguments("x1").WithLocation(18, 16),
-                // (29,29): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (29,27): error CS8352: Cannot use variable '[outer] = inner' in this context because it may expose referenced variables outside of their declaration scope
                 //         result = new S2() { [outer] = inner, Field2 = outer };
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "[outer] = inner").WithArguments("inner").WithLocation(29, 29)
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ [outer] = inner, Field2 = outer }").WithArguments("[outer] = inner").WithLocation(29, 27));
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35606")]
+        public void ObjectInitializer_Arguments_Escape(LanguageVersion languageVersion)
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+
+                public ref struct S1
+                {
+                    int this[Span<int> span] { readonly get => 0; set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S1 local;
+                        local = new S1() { [stackSpan] =  0, [heapSpan] = 1 }; // 1
+                    }
+                }
+
+                public ref struct S2
+                {
+                    ref int this[Span<int> span] => throw null!;
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S2 local;
+                        local = new S2() { [stackSpan] =  0, [heapSpan] = 1 }; // 2
+                    }
+                }
+                """, TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (13,26): error CS8352: Cannot use variable '[stackSpan] =  0' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new S1() { [stackSpan] =  0, [heapSpan] = 1 }; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ [stackSpan] =  0, [heapSpan] = 1 }").WithArguments("[stackSpan] =  0").WithLocation(13, 26),
+                // (27,26): error CS8352: Cannot use variable '[stackSpan] =  0' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new S2() { [stackSpan] =  0, [heapSpan] = 1 }; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ [stackSpan] =  0, [heapSpan] = 1 }").WithArguments("[stackSpan] =  0").WithLocation(27, 26));
+        }
+
+        [Fact]
+        public void ObjectInitializer_Indexer_Arguments_Escape_Updated()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+
+                public ref struct S1
+                {
+                    int this[scoped Span<int> span] { readonly get => 0; set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S1 local;
+                        local = new S1() { [stackSpan] =  0, [heapSpan] = 1 };
+                    }
+                }
+
+                public ref struct S2
+                {
+                    ref int this[scoped Span<int> span] => throw null!;
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S2 local;
+                        local = new S2() { [stackSpan] =  0, [heapSpan] = 1 };
+                    }
+                }
+                """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
+
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void ObjectInitializer_Indexer_RefLikeType()
+        {
+            var code = """
+                using System;
+
+                Console.WriteLine();
+
+                public ref struct S1
+                {
+                    Span<int> this[int index] { get => default; set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S1 local;
+                        local = new S1() { [0] =  stackSpan }; // 1
+                        local = new S1() { [0] =  heapSpan };
+                    }
+                }
+
+                public ref struct S2
+                {
+                    Span<int> this[int index] { get => default; readonly set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S2 local;
+                        local = new S2() { [0] =  stackSpan };
+                        local = new S2() { [0] =  heapSpan };
+                    }
+                }
+
+                public ref struct S3<T> where T : new(), allows ref struct  
+                {
+                    T this[int index] { get => default; set {} }  
+
+                    static void Test()  
+                    {  
+                        scoped T stackT = default;  
+                        T heapT = default;  
+                        S3<T> local;
+                        local = new S3<T> { [0] = stackT }; // 2  
+                        local = new S3<T> { [0] = heapT };
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([code], targetFramework: TargetFramework.Net90);
+            comp.VerifyEmitDiagnostics(
+                // (15,26): error CS8352: Cannot use variable '[0] =  stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new S1() { [0] =  stackSpan }; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ [0] =  stackSpan }").WithArguments("[0] =  stackSpan").WithLocation(15, 26),
+                // (44,27): error CS8352: Cannot use variable '[0] = stackT' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new S3<T> { [0] = stackT }; // 2  
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ [0] = stackT }").WithArguments("[0] = stackT").WithLocation(44, 27)
+                );
+        }
+
+        [Fact]
+        public void ObjectInitializer_Constructor_Escape()
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+
+                public ref struct S1
+                {
+                    public S1(Span<int> span) { }
+                    Span<int> this[int index] { get => default; set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S1 local;
+                        local = new S1(stackSpan) { [0] = stackSpan }; // 1
+                        local = new S1(stackSpan) { [0] = heapSpan }; // 2
+                        local = new S1(heapSpan) { [0] = stackSpan }; // 3
+                        local = new S1(heapSpan) { [0] = heapSpan };
+                    }
+                }
+
+                public ref struct S2
+                {
+                    public S2(scoped Span<int> span) { }
+                    Span<int> this[int index] { get => default; set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S2 local;
+                        local = new S2(stackSpan) { [0] = stackSpan }; // 4
+                        local = new S2(stackSpan) { [0] = heapSpan };
+                        local = new S2(heapSpan) { [0] = stackSpan }; // 5
+                        local = new S2(heapSpan) { [0] = heapSpan };
+                    }
+                }
+
+                public ref struct S3
+                {
+                    public S3(Span<int> span) { }
+                    Span<int> this[int index] { get => default; readonly set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S3 local;
+                        local = new S3(stackSpan) { [0] = stackSpan }; // 6
+                        local = new S3(stackSpan) { [0] = heapSpan }; // 7
+                        local = new S3(heapSpan) { [0] = stackSpan }; 
+                        local = new S3(heapSpan) { [0] = heapSpan };
+                    }
+                }
+
+                public ref struct S4
+                {
+                    public S4(scoped Span<int> span) { }
+                    Span<int> this[int index] { get => default; readonly set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S4 local;
+                        local = new S4(stackSpan) { [0] = stackSpan };
+                        local = new S4(stackSpan) { [0] = heapSpan };
+                        local = new S4(heapSpan) { [0] = stackSpan };
+                        local = new S4(heapSpan) { [0] = heapSpan };
+                    }
+                }
+
+                public struct S5
+                {
+                    public S5(Span<int> span) { }
+                    Span<int> this[int index] { get => default; set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S5 local;
+                        local = new S5(stackSpan) { [0] = stackSpan };
+                        local = new S5(stackSpan) { [0] = heapSpan };
+                        local = new S5(heapSpan) { [0] = stackSpan };
+                        local = new S5(heapSpan) { [0] = heapSpan };
+                    }
+                }
+                """, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp11));
+
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (14,17): error CS8347: Cannot use a result of 'S1.S1(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local = new S1(stackSpan) { [0] = stackSpan }; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new S1(stackSpan) { [0] = stackSpan }").WithArguments("S1.S1(System.Span<int>)", "span").WithLocation(14, 17),
+                // (14,24): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new S1(stackSpan) { [0] = stackSpan }; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(14, 24),
+                // (15,17): error CS8347: Cannot use a result of 'S1.S1(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local = new S1(stackSpan) { [0] = heapSpan }; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new S1(stackSpan) { [0] = heapSpan }").WithArguments("S1.S1(System.Span<int>)", "span").WithLocation(15, 17),
+                // (15,24): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new S1(stackSpan) { [0] = heapSpan }; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(15, 24),
+                // (16,34): error CS8352: Cannot use variable '[0] = stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new S1(heapSpan) { [0] = stackSpan }; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ [0] = stackSpan }").WithArguments("[0] = stackSpan").WithLocation(16, 34),
+                // (32,35): error CS8352: Cannot use variable '[0] = stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new S2(stackSpan) { [0] = stackSpan }; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ [0] = stackSpan }").WithArguments("[0] = stackSpan").WithLocation(32, 35),
+                // (34,34): error CS8352: Cannot use variable '[0] = stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new S2(heapSpan) { [0] = stackSpan }; // 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ [0] = stackSpan }").WithArguments("[0] = stackSpan").WithLocation(34, 34),
+                // (50,17): error CS8347: Cannot use a result of 'S3.S3(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local = new S3(stackSpan) { [0] = stackSpan }; // 6
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new S3(stackSpan) { [0] = stackSpan }").WithArguments("S3.S3(System.Span<int>)", "span").WithLocation(50, 17),
+                // (50,24): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new S3(stackSpan) { [0] = stackSpan }; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(50, 24),
+                // (51,17): error CS8347: Cannot use a result of 'S3.S3(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //         local = new S3(stackSpan) { [0] = heapSpan }; // 7
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new S3(stackSpan) { [0] = heapSpan }").WithArguments("S3.S3(System.Span<int>)", "span").WithLocation(51, 17),
+                // (51,24): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new S3(stackSpan) { [0] = heapSpan }; // 7
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(51, 24)
+                );
+        }
+
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/35606")]
+        public void ObjectInitializer_Property_RefLikeType(LanguageVersion languageVersion)
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+
+                public ref struct S1
+                {
+                    Span<int> Prop { get => default; set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S1 local;
+                        local = new () { Prop = stackSpan }; // 1
+                        local = new () { Prop = heapSpan };
+                    }
+                }
+
+                public ref struct S2
+                {
+                    Span<int> Prop { get => default; readonly set { } }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S2 local;
+                        local = new () { Prop = stackSpan };
+                        local = new () { Prop = heapSpan };
+                    }
+                }
+
+                public ref struct S3
+                {
+                    ref Span<int> Prop { get => throw null!; }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S3 local;
+                        local = new () { Prop = stackSpan }; // 2
+                        local = new () { Prop = heapSpan };
+                    }
+                }
+                """, TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (13,24): error CS8352: Cannot use variable 'Prop = stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new () { Prop = stackSpan }; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ Prop = stackSpan }").WithArguments("Prop = stackSpan").WithLocation(13, 24),
+                // (43,24): error CS8352: Cannot use variable 'Prop = stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new () { Prop = stackSpan }; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ Prop = stackSpan }").WithArguments("Prop = stackSpan").WithLocation(43, 24)
                 );
         }
 
@@ -2974,19 +4093,18 @@ class Program
 }
 ";
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                // (15,38): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (15,25): error CS8352: Cannot use variable 'Field2 = {[inner] = outer}' in this context because it may expose referenced variables outside of their declaration scope
                 //         return new S2() { Field2 = {[inner] = outer} };
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "inner").WithArguments("inner").WithLocation(15, 38),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ Field2 = {[inner] = outer} }").WithArguments("Field2 = {[inner] = outer}").WithLocation(15, 25),
                 // (25,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
                 //         return x;
                 Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(25, 16),
-                // (33,37): error CS8352: Cannot use variable 'inner' in this context because it may expose referenced variables outside of their declaration scope
+                // (33,25): error CS8352: Cannot use variable 'Field2 = {[outer] = inner}' in this context because it may expose referenced variables outside of their declaration scope
                 //         return new S2() { Field2 = {[outer] = inner} };
-                Diagnostic(ErrorCode.ERR_EscapeVariable, "[outer] = inner").WithArguments("inner").WithLocation(33, 37),
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "{ Field2 = {[outer] = inner} }").WithArguments("Field2 = {[outer] = inner}").WithLocation(33, 25),
                 // (67,19): warning CS0649: Field 'Program.S3.Field2' is never assigned to, and will always have its default value 
                 //         public S1 Field2;
-                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field2").WithArguments("Program.S3.Field2", "").WithLocation(67, 19)
-                );
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "Field2").WithArguments("Program.S3.Field2", "").WithLocation(67, 19));
         }
 
         [Theory]
@@ -3915,10 +5033,7 @@ public ref struct S<T>
             comp.VerifyDiagnostics(
                 // (10,15): warning CS9080: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
                 //         _ = b[x];
-                Diagnostic(ErrorCode.WRN_EscapeVariable, "x").WithArguments("x").WithLocation(10, 15),
-                // (11,11): warning CS9080: Use of variable 'x' in this context may expose referenced variables outside of their declaration scope
-                //         b[x] = x;
-                Diagnostic(ErrorCode.WRN_EscapeVariable, "x").WithArguments("x").WithLocation(11, 11));
+                Diagnostic(ErrorCode.WRN_EscapeVariable, "x").WithArguments("x").WithLocation(10, 15));
             var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
             verifier.VerifyIL("S<T>.N", @"
 {
@@ -4336,12 +5451,12 @@ namespace System
     }
 }";
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion)).VerifyDiagnostics(
-                // (8,19): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (8,19): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         var t = ((global, global) = global); // error
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(8, 19),
-                // (8,27): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "global").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(8, 19),
+                // (8,27): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         var t = ((global, global) = global); // error
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(8, 27)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "global").WithArguments("(T1, T2)", "T2", "System.Span<int>").WithLocation(8, 27)
             );
         }
 
@@ -4392,27 +5507,27 @@ namespace System
 ";
             var compilation = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             compilation.VerifyDiagnostics(
-                // (12,29): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (12,29): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (global, global) = (local, local); // error 1
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 29),
-                // (12,36): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(12, 29),
+                // (12,36): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         (global, global) = (local, local); // error 1
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 36),
-                // (14,24): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T2", "System.Span<int>").WithLocation(12, 36),
+                // (14,24): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (global, s) = (local, ""); // error 2
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(14, 24),
-                // (15,24): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(14, 24),
+                // (15,24): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (global, s) = (local, null); // error 3
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(15, 24),
-                // (17,23): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(15, 24),
+                // (17,23): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (local, s) = (global, ""); // error 4
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(17, 23),
-                // (18,23): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "global").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(17, 23),
+                // (18,23): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (local, s) = (global, null); // error 5
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(18, 23),
-                // (20,19): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "global").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(18, 23),
+                // (20,19): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (c, s) = (local, ""); // error 6
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(20, 19)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(20, 19)
             );
 
             // Check the Type and ConvertedType of tuples on the right-hand-side
@@ -4480,36 +5595,36 @@ public class C
                 // (12,28): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (global, global) = (local, local); // error 1
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(local, local)").WithArguments("System.ValueTuple`2").WithLocation(12, 28),
-                // (12,29): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (12,29): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '' in the generic type or method '(, )'
                 //         (global, global) = (local, local); // error 1
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 29),
-                // (12,36): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(, )", "", "System.Span<int>").WithLocation(12, 29),
+                // (12,36): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '' in the generic type or method '(, )'
                 //         (global, global) = (local, local); // error 1
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 36),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(, )", "", "System.Span<int>").WithLocation(12, 36),
                 // (14,23): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (global, s) = (local, ""); // error 2
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(local, """")").WithArguments("System.ValueTuple`2").WithLocation(14, 23),
-                // (14,24): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (14,24): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '' in the generic type or method '(, )'
                 //         (global, s) = (local, ""); // error 2
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(14, 24),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(, )", "", "System.Span<int>").WithLocation(14, 24),
                 // (15,23): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (global, s) = (local, null); // error 3
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(local, null)").WithArguments("System.ValueTuple`2").WithLocation(15, 23),
                 // (17,22): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (local, s) = (global, ""); // error 4
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(global, """")").WithArguments("System.ValueTuple`2").WithLocation(17, 22),
-                // (17,23): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (17,23): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '' in the generic type or method '(, )'
                 //         (local, s) = (global, ""); // error 4
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(17, 23),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "global").WithArguments("(, )", "", "System.Span<int>").WithLocation(17, 23),
                 // (18,22): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (local, s) = (global, null); // error 5
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(global, null)").WithArguments("System.ValueTuple`2").WithLocation(18, 22),
                 // (20,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (c, s) = (local, ""); // error 6
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, @"(local, """")").WithArguments("System.ValueTuple`2").WithLocation(20, 18),
-                // (20,19): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (20,19): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter '' in the generic type or method '(, )'
                 //         (c, s) = (local, ""); // error 6
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(20, 19),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(, )", "", "System.Span<int>").WithLocation(20, 19),
                 // (21,18): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (c, s) = (local, null); // error 7
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeNotFound, "(local, null)").WithArguments("System.ValueTuple`2").WithLocation(21, 18)
@@ -4592,27 +5707,28 @@ namespace System
 ";
             var compilation = CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             compilation.VerifyDiagnostics(
-                // (12,29): error CS0306: The type 'Span<int>' may not be used as a type argument
+                // (12,29): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (global, global) = (local, local); // error 1
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 29),
-                // (12,36): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(12, 29),
+                // (12,36): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         (global, global) = (local, local); // error 1
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(12, 36),
-                // (14,24): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T2", "System.Span<int>").WithLocation(12, 36),
+                // (14,24): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (global, s) = (local, ""); // error 2
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(14, 24),
-                // (15,24): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(14, 24),
+                // (15,24): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (global, s) = (local, null); // error 3
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(15, 24),
-                // (17,23): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(15, 24),
+                // (17,23): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (local, s) = (global, ""); // error 4
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(17, 23),
-                // (18,23): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "global").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(17, 23),
+                // (18,23): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (local, s) = (global, null); // error 5
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "global").WithArguments("System.Span<int>").WithLocation(18, 23),
-                // (20,19): error CS0306: The type 'Span<int>' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "global").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(18, 23),
+                // (20,19): error CS9244: The type 'Span<int>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         (c, s) = (local, ""); // error 6
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "local").WithArguments("System.Span<int>").WithLocation(20, 19));
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "local").WithArguments("(T1, T2)", "T1", "System.Span<int>").WithLocation(20, 19)
+                );
         }
 
         [Theory]
@@ -4958,13 +6074,113 @@ public class C
                 Diagnostic(ErrorCode.ERR_ArrayElementCantBeRefAny, "TestStruct").WithArguments("TestStruct").WithLocation(8, 36));
         }
 
+        [Theory]
+        [InlineData(LanguageVersion.CSharp10)]
+        [InlineData(LanguageVersion.CSharp11)]
+        public void PropertyEscape(LanguageVersion languageVersion)
+        {
+            var tree = SyntaxFactory.ParseSyntaxTree("""
+                using System;
+
+                ref struct S1
+                {
+                    internal Span<int> Span 
+                    {
+                        get => default;
+                        set { }
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S1 local = default;
+                        local.Span = stackSpan; // 1
+                        local.Span = heapSpan;
+                    }
+                }
+
+                ref struct S2
+                {
+                    internal Span<int> Span 
+                    {
+                        readonly get => default;
+                        set { }
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S2 local = default;
+                        local.Span = stackSpan; // 2
+                        local.Span = heapSpan;
+                    }
+                }
+
+                ref struct S3
+                {
+                    internal ref Span<int> Span 
+                    {
+                        get => throw null!;
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S3 local = default;
+                        local.Span = stackSpan; // 3
+                        local.Span = heapSpan;
+                    }
+                }
+
+                ref struct S4
+                {
+                    internal readonly ref Span<int> Span 
+                    {
+                        get => throw null!;
+                    }
+
+                    static void Test()
+                    {
+                        Span<int> stackSpan = stackalloc int[] { 13 };
+                        Span<int> heapSpan = default;
+
+                        S4 local = default;
+                        local.Span = stackSpan; // 4
+                        local.Span = heapSpan;
+                    }
+                }
+                """, options: TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            var comp = CreateCompilationWithSpan(tree, TestOptions.UnsafeDebugDll);
+            comp.VerifyEmitDiagnostics(
+                // (17,22): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local.Span = stackSpan; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(17, 22),
+                // (36,22): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local.Span = stackSpan; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(36, 22),
+                // (54,22): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local.Span = stackSpan; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(54, 22),
+                // (72,22): error CS8352: Cannot use variable 'stackSpan' in this context because it may expose referenced variables outside of their declaration scope
+                //         local.Span = stackSpan; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "stackSpan").WithArguments("stackSpan").WithLocation(72, 22));
+        }
+
         [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
         [Theory]
         [InlineData(LanguageVersion.CSharp10)]
         [InlineData(LanguageVersion.CSharp11)]
+        [InlineData(LanguageVersion.CSharp13)]
         public void AwaitRefStruct(LanguageVersion languageVersion)
         {
-            CreateCompilation(@"
+            var comp = CreateCompilation(@"
 using System.Threading.Tasks;
 
 ref struct S { }
@@ -4984,20 +6200,84 @@ class C
     void M(S t, ref S t1)
     {
     }
-}", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (8,26): error CS0306: The type 'S' may not be used as a type argument
-                //     async Task M(Task<S> t)
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "t").WithArguments("S").WithLocation(8, 26),
-                // (12,9): error CS4012: Parameters or locals of type 'S' cannot be declared in async methods or async lambda expressions.
-                //         var a = await t;
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("S").WithLocation(12, 9),
-                // (14,9): error CS4012: Parameters or locals of type 'S' cannot be declared in async methods or async lambda expressions.
-                //         var r = t.Result;
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("S").WithLocation(14, 9),
-                // (15,9): error CS8350: This combination of arguments to 'C.M(S, ref S)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
-                //         M(await t, ref r);
-                Diagnostic(ErrorCode.ERR_CallArgMixing, "M(await t, ref r)").WithArguments("C.M(S, ref S)", "t").WithLocation(15, 9)
-                );
+}", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseDll);
+            if (languageVersion == LanguageVersion.CSharp10)
+            {
+                comp.VerifyDiagnostics(
+                    // (8,26): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Task<TResult>'
+                    //     async Task M(Task<S> t)
+                    Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "t").WithArguments("System.Threading.Tasks.Task<TResult>", "TResult", "S").WithLocation(8, 26),
+                    // (12,9): error CS8936: Feature 'ref and unsafe in async and iterator methods' is not available in C# 10.0. Please use language version 13.0 or greater.
+                    //         var a = await t;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(12, 9),
+                    // (14,9): error CS8936: Feature 'ref and unsafe in async and iterator methods' is not available in C# 10.0. Please use language version 13.0 or greater.
+                    //         var r = t.Result;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion10, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(14, 9),
+                    // (15,9): error CS8350: This combination of arguments to 'C.M(S, ref S)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                    //         M(await t, ref r);
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M(await t, ref r)").WithArguments("C.M(S, ref S)", "t").WithLocation(15, 9)
+                    );
+            }
+            else if (languageVersion == LanguageVersion.CSharp11)
+            {
+                comp.VerifyDiagnostics(
+                    // (8,26): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Task<TResult>'
+                    //     async Task M(Task<S> t)
+                    Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "t").WithArguments("System.Threading.Tasks.Task<TResult>", "TResult", "S").WithLocation(8, 26),
+                    // (12,9): error CS9058: Feature 'ref and unsafe in async and iterator methods' is not available in C# 11.0. Please use language version 13.0 or greater.
+                    //         var a = await t;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(12, 9),
+                    // (14,9): error CS9058: Feature 'ref and unsafe in async and iterator methods' is not available in C# 11.0. Please use language version 13.0 or greater.
+                    //         var r = t.Result;
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion11, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(14, 9),
+                    // (15,9): error CS8350: This combination of arguments to 'C.M(S, ref S)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                    //         M(await t, ref r);
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M(await t, ref r)").WithArguments("C.M(S, ref S)", "t").WithLocation(15, 9)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (8,26): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'TResult' in the generic type or method 'Task<TResult>'
+                    //     async Task M(Task<S> t)
+                    Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "t").WithArguments("System.Threading.Tasks.Task<TResult>", "TResult", "S").WithLocation(8, 26),
+                    // (15,9): error CS8350: This combination of arguments to 'C.M(S, ref S)' is disallowed because it may expose variables referenced by parameter 't' outside of their declaration scope
+                    //         M(await t, ref r);
+                    Diagnostic(ErrorCode.ERR_CallArgMixing, "M(await t, ref r)").WithArguments("C.M(S, ref S)", "t").WithLocation(15, 9)
+                    );
+            }
+        }
+
+        [Fact]
+        public void AsyncLocals_Reassignment()
+        {
+            var code = """
+                using System.Threading.Tasks;
+                class C
+                {
+                    async Task M1()
+                    {
+                        int x = 42;
+                        ref int y = ref x;
+                        y.ToString();
+                        await Task.Yield();
+                        y.ToString(); // 1
+                    }
+                    async Task M2()
+                    {
+                        int x = 42;
+                        ref int y = ref x;
+                        y.ToString();
+                        await Task.Yield();
+                        y = ref x;
+                        y.ToString();
+                    }
+                }
+                """;
+            CreateCompilation(code).VerifyEmitDiagnostics(
+                // (10,9): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         y.ToString(); // 1
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(10, 9));
         }
 
         [WorkItem(25398, "https://github.com/dotnet/roslyn/issues/25398")]
@@ -5018,12 +6298,12 @@ class C
         var a = (S?)null ?? default;
     }
 }", parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion), options: TestOptions.ReleaseDll).VerifyDiagnostics(
-                // (8,14): error CS0306: The type 'S' may not be used as a type argument
+                // (8,14): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //         _ = (S?)null ?? default;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S?").WithArguments("S").WithLocation(8, 14),
-                // (10,18): error CS0306: The type 'S' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "S?").WithArguments("System.Nullable<T>", "T", "S").WithLocation(8, 14),
+                // (10,18): error CS9244: The type 'S' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Nullable<T>'
                 //         var a = (S?)null ?? default;
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S?").WithArguments("S").WithLocation(10, 18)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "S?").WithArguments("System.Nullable<T>", "T", "S").WithLocation(10, 18)
                 );
         }
 
@@ -5338,9 +6618,9 @@ public static class Test
 }
 """);
             compilation.VerifyEmitDiagnostics(
-                // (20,19): error CS4013: Instance of type 'PooledArrayHandle<int>' cannot be used inside a nested function, query expression, iterator block or async method
+                // (20,19): error CS4007: Instance of type 'PooledArrayHandle<int>' cannot be preserved across 'await' or 'yield' boundary.
                 //         using var handle = RentArray<int>(200, out var array);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "handle = RentArray<int>(200, out var array)").WithArguments("PooledArrayHandle<int>").WithLocation(20, 19));
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "handle = RentArray<int>(200, out var array)").WithArguments("PooledArrayHandle<int>").WithLocation(20, 19));
         }
 
         [Theory(Skip = "https://github.com/dotnet/roslyn/issues/40583")]
@@ -7195,6 +8475,1377 @@ public struct Vec4
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefStruct_Explicit()
+        {
+            var source = """
+                class C
+                {
+                    S M1()
+                    {
+                        S s;
+                        s = (S)100; // 1
+                        return s;
+                    }
+
+                    S M2()
+                    {
+                        return (S)200; // 2
+                    }
+
+                    S M3(in int x)
+                    {
+                        S s;
+                        s = (S)x; // 3
+                        return s;
+                    }
+
+                    S M4(in int x)
+                    {
+                        return (S)x;
+                    }
+
+                    S M4s(scoped in int x)
+                    {
+                        return (S)x; // 4
+                    }
+
+                    S M5(in int x)
+                    {
+                        S s = (S)x;
+                        return s;
+                    }
+
+                    S M5s(scoped in int x)
+                    {
+                        S s = (S)x;
+                        return s; // 5
+                    }
+
+                    S M6()
+                    {
+                        S s = (S)300;
+                        return s; // 6
+                    }
+
+                    void M7(in int x)
+                    {
+                        scoped S s;
+                        s = (S)x;
+                        s = (S)100;
+                    }
+                }
+
+                ref struct S
+                {
+                    public static explicit operator S(in int x) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS8347: Cannot use a result of 'S.explicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = (S)100; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "(S)100").WithArguments("S.explicit operator S(in int)", "x").WithLocation(6, 13),
+                // (6,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         s = (S)100; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "100").WithLocation(6, 16),
+                // (12,16): error CS8347: Cannot use a result of 'S.explicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return (S)200; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "(S)200").WithArguments("S.explicit operator S(in int)", "x").WithLocation(12, 16),
+                // (12,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return (S)200; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "200").WithLocation(12, 19),
+                // (18,13): error CS8347: Cannot use a result of 'S.explicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = (S)x; // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "(S)x").WithArguments("S.explicit operator S(in int)", "x").WithLocation(18, 13),
+                // (18,16): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
+                //         s = (S)x; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(18, 16),
+                // (29,16): error CS8347: Cannot use a result of 'S.explicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return (S)x; // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "(S)x").WithArguments("S.explicit operator S(in int)", "x").WithLocation(29, 16),
+                // (29,19): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //         return (S)x; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(29, 19),
+                // (41,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(41, 16),
+                // (47,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(47, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefStruct_Implicit()
+        {
+            var source = """
+                class C
+                {
+                    S M1()
+                    {
+                        S s;
+                        s = 100; // 1
+                        return s;
+                    }
+
+                    S M2()
+                    {
+                        return 200; // 2
+                    }
+
+                    S M3(in int x)
+                    {
+                        S s;
+                        s = x; // 3
+                        return s;
+                    }
+
+                    S M4(in int x)
+                    {
+                        return x;
+                    }
+
+                    S M4s(scoped in int x)
+                    {
+                        return x; // 4
+                    }
+
+                    S M5(in int x)
+                    {
+                        S s = x;
+                        return s;
+                    }
+
+                    S M5s(scoped in int x)
+                    {
+                        S s = x;
+                        return s; // 5
+                    }
+
+                    S M6()
+                    {
+                        S s = 300;
+                        return s; // 6
+                    }
+                
+                    void M7(in int x)
+                    {
+                        scoped S s;
+                        s = x;
+                        s = 100;
+                    }
+                }
+
+                ref struct S
+                {
+                    public static implicit operator S(in int x) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         s = 100; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "100").WithLocation(6, 13),
+                // (6,13): error CS8347: Cannot use a result of 'S.implicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = 100; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "100").WithArguments("S.implicit operator S(in int)", "x").WithLocation(6, 13),
+                // (12,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return 200; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "200").WithLocation(12, 16),
+                // (12,16): error CS8347: Cannot use a result of 'S.implicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return 200; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "200").WithArguments("S.implicit operator S(in int)", "x").WithLocation(12, 16),
+                // (18,13): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
+                //         s = x; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(18, 13),
+                // (18,13): error CS8347: Cannot use a result of 'S.implicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = x; // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x").WithArguments("S.implicit operator S(in int)", "x").WithLocation(18, 13),
+                // (29,16): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //         return x; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(29, 16),
+                // (29,16): error CS8347: Cannot use a result of 'S.implicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return x; // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x").WithArguments("S.implicit operator S(in int)", "x").WithLocation(29, 16),
+                // (41,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(41, 16),
+                // (47,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(47, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefStructArgument()
+        {
+            var source = """
+                class C
+                {
+                    S2 M1()
+                    {
+                        int x = 1;
+                        S1 s1 = (S1)x;
+                        return (S2)s1; // 1
+                    }
+                }
+
+                ref struct S1
+                {
+                    public static implicit operator S1(in int x) => throw null;
+                }
+
+                ref struct S2
+                {
+                    public static implicit operator S2(S1 s1) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,16): error CS8347: Cannot use a result of 'S2.implicit operator S2(S1)' in this context because it may expose variables referenced by parameter 's1' outside of their declaration scope
+                //         return (S2)s1; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "(S2)s1").WithArguments("S2.implicit operator S2(S1)", "s1").WithLocation(7, 16),
+                // (7,20): error CS8352: Cannot use variable 's1' in this context because it may expose referenced variables outside of their declaration scope
+                //         return (S2)s1; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s1").WithArguments("s1").WithLocation(7, 20));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefStructArgument_ScopedIn()
+        {
+            var source = """
+                class C
+                {
+                    S2 M1()
+                    {
+                        int x = 1;
+                        S1 s1 = (S1)x;
+                        return (S2)s1;
+                    }
+                }
+
+                ref struct S1
+                {
+                    public static implicit operator S1(scoped in int x) => throw null;
+                }
+
+                ref struct S2
+                {
+                    public static implicit operator S2(S1 s1) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RegularStruct()
+        {
+            var source = """
+                S s;
+                s = (S)100;
+
+                struct S
+                {
+                    public static explicit operator S(in int x) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_StandardImplicitConversion_Input()
+        {
+            var source = """
+                class C
+                {
+                    S M1()
+                    {
+                        S s;
+                        s = 100; // 1
+                        return s;
+                    }
+
+                    S M2()
+                    {
+                        return 200; // 2
+                    }
+
+                    S M3(in int x)
+                    {
+                        S s;
+                        s = x; // 3
+                        return s;
+                    }
+
+                    S M4(in int x)
+                    {
+                        return x; // 4
+                    }
+
+                    S M4s(scoped in int x)
+                    {
+                        return x; // 5
+                    }
+
+                    S M5(in int x)
+                    {
+                        S s = x;
+                        return s; // 6
+                    }
+
+                    S M5s(scoped in int x)
+                    {
+                        S s = x;
+                        return s; // 7
+                    }
+
+                    S M6()
+                    {
+                        S s = 300;
+                        return s; // 8
+                    }
+                }
+
+                ref struct S
+                {
+                    public static implicit operator S(in int? x) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         s = 100; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "100").WithLocation(6, 13),
+                // (6,13): error CS8347: Cannot use a result of 'S.implicit operator S(in int?)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = 100; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "100").WithArguments("S.implicit operator S(in int?)", "x").WithLocation(6, 13),
+                // (12,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return 200; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "200").WithLocation(12, 16),
+                // (12,16): error CS8347: Cannot use a result of 'S.implicit operator S(in int?)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return 200; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "200").WithArguments("S.implicit operator S(in int?)", "x").WithLocation(12, 16),
+                // (18,13): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         s = x; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(18, 13),
+                // (18,13): error CS8347: Cannot use a result of 'S.implicit operator S(in int?)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = x; // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x").WithArguments("S.implicit operator S(in int?)", "x").WithLocation(18, 13),
+                // (24,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return x; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(24, 16),
+                // (24,16): error CS8347: Cannot use a result of 'S.implicit operator S(in int?)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return x; // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x").WithArguments("S.implicit operator S(in int?)", "x").WithLocation(24, 16),
+                // (29,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return x; // 5
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(29, 16),
+                // (29,16): error CS8347: Cannot use a result of 'S.implicit operator S(in int?)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return x; // 5
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x").WithArguments("S.implicit operator S(in int?)", "x").WithLocation(29, 16),
+                // (35,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(35, 16),
+                // (41,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 7
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(41, 16),
+                // (47,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 8
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(47, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_StandardImplicitConversion_Output()
+        {
+            var source = """
+                object o;
+                o = (S)100;
+
+                struct S
+                {
+                    public static explicit operator S(in int x) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_StandardImplicitConversion_Both()
+        {
+            var source = """
+                object o;
+                int x = 100;
+                o = (S)x;
+
+                struct S
+                {
+                    public static explicit operator S(in int? x) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_Call()
+        {
+            var source = """
+                class C
+                {
+                    S M1(int x)
+                    {
+                        return M2(x);
+                    }
+
+                    S M2(S s) => s;
+                }
+
+                ref struct S
+                {
+                    public static implicit operator S(in int x) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,16): error CS8347: Cannot use a result of 'C.M2(S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         return M2(x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M2(x)").WithArguments("C.M2(S)", "s").WithLocation(5, 16),
+                // (5,19): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //         return M2(x);
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(5, 19),
+                // (5,19): error CS8347: Cannot use a result of 'S.implicit operator S(in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return M2(x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x").WithArguments("S.implicit operator S(in int)", "x").WithLocation(5, 19));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefReturn_01()
+        {
+            var source = """
+                class C
+                {
+                    static ref readonly int M1(int x)
+                    {
+                        return ref M2(x);
+                    }
+
+                    static ref readonly int M2(in S s) => throw null;
+                }
+
+                struct S
+                {
+                    public static implicit operator S(in int x) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,20): error CS8347: Cannot use a result of 'C.M2(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         return ref M2(x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M2(x)").WithArguments("C.M2(in S)", "s").WithLocation(5, 20),
+                // (5,23): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref M2(x);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(5, 23));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefReturn_02()
+        {
+            var source = """
+                class C
+                {
+                    static ref readonly int M1(int x)
+                    {
+                        return ref M2(x);
+                    }
+
+                    static ref readonly int M2(in S s) => throw null;
+                }
+
+                struct S
+                {
+                    public static implicit operator ref S(in int x) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,20): error CS8347: Cannot use a result of 'C.M2(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         return ref M2(x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M2(x)").WithArguments("C.M2(in S)", "s").WithLocation(5, 20),
+                // (5,23): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref M2(x);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(5, 23),
+                // (13,37): error CS1073: Unexpected token 'ref'
+                //     public static implicit operator ref S(in int x) => throw null;
+                Diagnostic(ErrorCode.ERR_UnexpectedToken, "ref").WithArguments("ref").WithLocation(13, 37));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedCast_RefReturn_IL()
+        {
+            // public struct S
+            // {
+            //     public static implicit operator ref readonly S(in int x) => throw null;
+            // }
+            var ilSource = """
+                .class public sequential ansi sealed beforefieldinit S extends System.ValueType
+                {
+                    .pack 0
+                    .size 1
+
+                    .method public hidebysig specialname static valuetype S& modreq(System.Runtime.InteropServices.InAttribute) op_Implicit (
+                            [in] int32& x
+                        ) cil managed 
+                    {
+                        .param [1]
+                            .custom instance void System.Runtime.CompilerServices.IsReadOnlyAttribute::.ctor() = (
+                                01 00 00 00
+                            )
+
+                        .maxstack 1
+                        .locals init (
+                            [0] valuetype S
+                        )
+
+                        ldnull
+                        throw
+                    }
+                }
+
+                .class public auto ansi sealed beforefieldinit System.Runtime.InteropServices.InAttribute extends System.Object
+                {
+                    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+                    {
+                        .maxstack 8
+                        ret
+                    }
+                }
+
+                .class public auto ansi sealed beforefieldinit System.Runtime.CompilerServices.IsReadOnlyAttribute extends System.Object
+                {
+                    .method public hidebysig specialname rtspecialname instance void .ctor() cil managed
+                    {
+                        .maxstack 8
+                        ret
+                    }
+                }
+                """;
+
+            var source = """
+                class C
+                {
+                    static ref readonly int M1(int x)
+                    {
+                        return ref M2(x);
+                    }
+
+                    static ref readonly int M2(in S s) => throw null;
+                }
+                """;
+            CreateCompilationWithIL(source, ilSource).VerifyDiagnostics(
+                // (5,20): error CS8347: Cannot use a result of 'C.M2(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         return ref M2(x);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "M2(x)").WithArguments("C.M2(in S)", "s").WithLocation(5, 20),
+                // (5,23): error CS0570: 'S.implicit operator S(in int)' is not supported by the language
+                //         return ref M2(x);
+                Diagnostic(ErrorCode.ERR_BindToBogus, "x").WithArguments("S.implicit operator S(in int)").WithLocation(5, 23),
+                // (5,23): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return ref M2(x);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "x").WithLocation(5, 23));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct()
+        {
+            var source = """
+                class C
+                {
+                    S M1()
+                    {
+                        S s;
+                        s = 100 + default(S); // 1
+                        return s;
+                    }
+
+                    S M2()
+                    {
+                        return 200 + default(S); // 2
+                    }
+
+                    S M3(in int x)
+                    {
+                        S s;
+                        s = x + default(S); // 3
+                        return s;
+                    }
+
+                    S M4(in int x)
+                    {
+                        return x + default(S);
+                    }
+
+                    S M4s(scoped in int x)
+                    {
+                        return x + default(S); // 4
+                    }
+
+                    S M5(in int x)
+                    {
+                        S s = x + default(S);
+                        return s;
+                    }
+
+                    S M5s(scoped in int x)
+                    {
+                        S s = x + default(S);
+                        return s; // 5
+                    }
+
+                    S M6()
+                    {
+                        S s = 300 + default(S);
+                        return s; // 6
+                    }
+
+                    void M7(in int x)
+                    {
+                        scoped S s;
+                        s = x + default(S);
+                        s = 100 + default(S);
+                    }
+                }
+
+                ref struct S
+                {
+                    public static S operator+(in int x, S y) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         s = 100 + default(S); // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "100").WithLocation(6, 13),
+                // (6,13): error CS8347: Cannot use a result of 'S.operator +(in int, S)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = 100 + default(S); // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "100 + default(S)").WithArguments("S.operator +(in int, S)", "x").WithLocation(6, 13),
+                // (12,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return 200 + default(S); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "200").WithLocation(12, 16),
+                // (12,16): error CS8347: Cannot use a result of 'S.operator +(in int, S)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return 200 + default(S); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "200 + default(S)").WithArguments("S.operator +(in int, S)", "x").WithLocation(12, 16),
+                // (18,13): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
+                //         s = x + default(S); // 3
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(18, 13),
+                // (18,13): error CS8347: Cannot use a result of 'S.operator +(in int, S)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = x + default(S); // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x + default(S)").WithArguments("S.operator +(in int, S)", "x").WithLocation(18, 13),
+                // (29,16): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //         return x + default(S); // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(29, 16),
+                // (29,16): error CS8347: Cannot use a result of 'S.operator +(in int, S)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return x + default(S); // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "x + default(S)").WithArguments("S.operator +(in int, S)", "x").WithLocation(29, 16),
+                // (41,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(41, 16),
+                // (47,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(47, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Nested()
+        {
+            var source = """
+                class C
+                {
+                    S M()
+                    {
+                        S s;
+                        s = default(S) + 100 + 200;
+                        return s;
+                    }
+                }
+
+                ref struct S
+                {
+                    public static S operator+(S y, in int x) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS8347: Cannot use a result of 'S.operator +(S, in int)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         s = default(S) + 100 + 200;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "default(S) + 100").WithArguments("S.operator +(S, in int)", "x").WithLocation(6, 13),
+                // (6,13): error CS8347: Cannot use a result of 'S.operator +(S, in int)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         s = default(S) + 100 + 200;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "default(S) + 100 + 200").WithArguments("S.operator +(S, in int)", "y").WithLocation(6, 13),
+                // (6,26): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         s = default(S) + 100 + 200;
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "100").WithLocation(6, 26));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Scoped_Left()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static R operator +(scoped R x, R y) => default;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        return new R(1) + new R(2);
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (11,16): error CS8347: Cannot use a result of 'R.operator +(scoped R, R)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) + new R(2)").WithArguments("R.operator +(scoped R, R)", "y").WithLocation(11, 16),
+                // (11,27): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(2)").WithArguments("R.R(in int)", "i").WithLocation(11, 27),
+                // (11,33): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(11, 33));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Scoped_Right()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static R operator +(R x, scoped R y) => default;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        return new R(1) + new R(2);
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (11,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(11, 16),
+                // (11,16): error CS8347: Cannot use a result of 'R.operator +(R, scoped R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) + new R(2)").WithArguments("R.operator +(R, scoped R)", "x").WithLocation(11, 16),
+                // (11,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(11, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Scoped_Both()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static R operator +(scoped R x, scoped R y) => default;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        return new R(1) + new R(2);
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Scoped_None()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static R operator +(R x, R y) => default;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        return new R(1) + new R(2);
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (11,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(11, 16),
+                // (11,16): error CS8347: Cannot use a result of 'R.operator +(R, R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) + new R(2)").WithArguments("R.operator +(R, R)", "x").WithLocation(11, 16),
+                // (11,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) + new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(11, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(C left, C right) => right;
+                    public static C X(C left, C right) => right;
+                    public C M(C c, scoped C c1)
+                    {
+                        c += c1;
+                        c = c + c1;
+                        c = X(c, c1);
+                        return c;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (7,9): error CS8347: Cannot use a result of 'C.operator +(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c += c1").WithArguments("C.operator +(C, C)", "right").WithLocation(7, 9),
+                // (7,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(7, 14),
+                // (8,13): error CS8347: Cannot use a result of 'C.operator +(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c = c + c1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c + c1").WithArguments("C.operator +(C, C)", "right").WithLocation(8, 13),
+                // (8,17): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c = c + c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(8, 17),
+                // (9,13): error CS8347: Cannot use a result of 'C.X(C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c = X(c, c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(C, C)", "right").WithLocation(9, 13),
+                // (9,18): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c = X(c, c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(9, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Left()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(scoped C left, C right) => right;
+                    public static C X(scoped C left, C right) => right;
+                    public C M(C c, scoped C c1)
+                    {
+                        c += c1;
+                        c = c + c1;
+                        c = X(c, c1);
+                        return c;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (7,9): error CS8347: Cannot use a result of 'C.operator +(scoped C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c += c1").WithArguments("C.operator +(scoped C, C)", "right").WithLocation(7, 9),
+                // (7,14): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c += c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(7, 14),
+                // (8,13): error CS8347: Cannot use a result of 'C.operator +(scoped C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c = c + c1;
+                Diagnostic(ErrorCode.ERR_EscapeCall, "c + c1").WithArguments("C.operator +(scoped C, C)", "right").WithLocation(8, 13),
+                // (8,17): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c = c + c1;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(8, 17),
+                // (9,13): error CS8347: Cannot use a result of 'C.X(scoped C, C)' in this context because it may expose variables referenced by parameter 'right' outside of their declaration scope
+                //         c = X(c, c1);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "X(c, c1)").WithArguments("C.X(scoped C, C)", "right").WithLocation(9, 13),
+                // (9,18): error CS8352: Cannot use variable 'scoped C c1' in this context because it may expose referenced variables outside of their declaration scope
+                //         c = X(c, c1);
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "c1").WithArguments("scoped C c1").WithLocation(9, 18));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Right()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(C left, scoped C right) => left;
+                    public static C X(C left, scoped C right) => left;
+                    public C M(C c, scoped C c1)
+                    {
+                        c += c1;
+                        c = c + c1;
+                        c = X(c, c1);
+                        return c;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Both()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(scoped C left, scoped C right) => right;
+                    public static C X(scoped C left, scoped C right) => right;
+                    public C M(C c, scoped C c1)
+                    {
+                        c += c1;
+                        c = c + c1;
+                        c = X(c, c1);
+                        return c;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (3,66): error CS8352: Cannot use variable 'scoped C right' in this context because it may expose referenced variables outside of their declaration scope
+                //     public static C operator +(scoped C left, scoped C right) => right;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "right").WithArguments("scoped C right").WithLocation(3, 66),
+                // (4,57): error CS8352: Cannot use variable 'scoped C right' in this context because it may expose referenced variables outside of their declaration scope
+                //     public static C X(scoped C left, scoped C right) => right;
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "right").WithArguments("scoped C right").WithLocation(4, 57));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_ScopedTarget()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(C left, C right) => right;
+                    public static C X(C left, C right) => right;
+                    public C M(scoped C c, C c1)
+                    {
+                        c += c1;
+                        c = c + c1;
+                        c = X(c, c1);
+                        return c1;
+                    }
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Left_ScopedTarget()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(scoped C left, C right) => right;
+                    public static C X(scoped C left, C right) => right;
+                    public C M(scoped C c, C c1)
+                    {
+                        c += c1;
+                        c = c + c1;
+                        c = X(c, c1);
+                        return c1;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Right_ScopedTarget()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(C left, scoped C right) => left;
+                    public static C X(C left, scoped C right) => left;
+                    public C M(scoped C c, C c1)
+                    {
+                        c += c1;
+                        c = c + c1;
+                        c = X(c, c1);
+                        return c1;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedBinaryOperator_RefStruct_Compound_Scoped_Both_ScopedTarget()
+        {
+            var source = """
+                public ref struct C
+                {
+                    public static C operator +(scoped C left, scoped C right) => throw null;
+                    public static C X(scoped C left, scoped C right) => throw null;
+                    public C M(scoped C c, C c1)
+                    {
+                        c += c1;
+                        c = c + c1;
+                        c = X(c, c1);
+                        return c1;
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedUnaryOperator_RefStruct()
+        {
+            var source = """
+                class C
+                {
+                    S M1()
+                    {
+                        S s;
+                        s = +s; // 1
+                        return s;
+                    }
+
+                    S M2()
+                    {
+                        return +new S(); // 2
+                    }
+
+                    S M3(in S x)
+                    {
+                        S s;
+                        s = +x; // 3
+                        return s;
+                    }
+
+                    S M4(in S x)
+                    {
+                        return +x;
+                    }
+
+                    S M4s(scoped in S x)
+                    {
+                        return +x; // 4
+                    }
+
+                    S M5(in S x)
+                    {
+                        S s = +x;
+                        return s;
+                    }
+
+                    S M5s(scoped in S x)
+                    {
+                        S s = +x;
+                        return s; // 5
+                    }
+
+                    S M6()
+                    {
+                        S s = +new S();
+                        return s; // 6
+                    }
+
+                    void M7(in S x)
+                    {
+                        scoped S s;
+                        s = +x;
+                        s = +new S();
+                    }
+                }
+
+                ref struct S
+                {
+                    public static S operator+(in S s) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,13): error CS8347: Cannot use a result of 'S.operator +(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         s = +s; // 1
+                Diagnostic(ErrorCode.ERR_EscapeCall, "+s").WithArguments("S.operator +(in S)", "s").WithLocation(6, 13),
+                // (6,14): error CS8168: Cannot return local 's' by reference because it is not a ref local
+                //         s = +s; // 1
+                Diagnostic(ErrorCode.ERR_RefReturnLocal, "s").WithArguments("s").WithLocation(6, 14),
+                // (12,16): error CS8347: Cannot use a result of 'S.operator +(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         return +new S(); // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "+new S()").WithArguments("S.operator +(in S)", "s").WithLocation(12, 16),
+                // (12,17): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return +new S(); // 2
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "new S()").WithLocation(12, 17),
+                // (18,13): error CS8347: Cannot use a result of 'S.operator +(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         s = +x; // 3
+                Diagnostic(ErrorCode.ERR_EscapeCall, "+x").WithArguments("S.operator +(in S)", "s").WithLocation(18, 13),
+                // (18,14): error CS9077: Cannot return a parameter by reference 'x' through a ref parameter; it can only be returned in a return statement
+                //         s = +x; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "x").WithArguments("x").WithLocation(18, 14),
+                // (29,16): error CS8347: Cannot use a result of 'S.operator +(in S)' in this context because it may expose variables referenced by parameter 's' outside of their declaration scope
+                //         return +x; // 4
+                Diagnostic(ErrorCode.ERR_EscapeCall, "+x").WithArguments("S.operator +(in S)", "s").WithLocation(29, 16),
+                // (29,17): error CS9075: Cannot return a parameter by reference 'x' because it is scoped to the current method
+                //         return +x; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnScopedParameter, "x").WithArguments("x").WithLocation(29, 17),
+                // (41,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 5
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(41, 16),
+                // (47,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 6
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(47, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedUnaryOperator_RefStruct_Scoped()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static R operator !(scoped R r) => default;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        return !new R(0);
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedLogicalOperator_RefStruct()
+        {
+            var source = """
+                class C
+                {
+                    S M1(S s1, S s2)
+                    {
+                        S s = s1 && s2;
+                        return s; // 1
+                    }
+
+                    S M2(S s1, S s2)
+                    {
+                        return s1 && s2; // 2
+                    }
+
+                    S M3(in S s1, in S s2)
+                    {
+                        S s = s1 && s2;
+                        return s;
+                    }
+
+                    S M4(scoped in S s1, in S s2)
+                    {
+                        S s = s1 && s2;
+                        return s; // 3
+                    }
+
+                    S M5(in S s1, scoped in S s2)
+                    {
+                        S s = s1 && s2;
+                        return s; // 4
+                    }
+                }
+
+                ref struct S
+                {
+                    public static bool operator true(in S s) => throw null;
+                    public static bool operator false(in S s) => throw null;
+                    public static S operator &(in S x, in S y) => throw null;
+                    public static S operator |(in S x, in S y) => throw null;
+                }
+                """;
+            CreateCompilation(source).VerifyDiagnostics(
+                // (6,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(6, 16),
+                // (11,16): error CS8166: Cannot return a parameter by reference 's1' because it is not a ref parameter
+                //         return s1 && s2; // 2
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "s1").WithArguments("s1").WithLocation(11, 16),
+                // (11,16): error CS8347: Cannot use a result of 'S.operator &(in S, in S)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return s1 && s2; // 2
+                Diagnostic(ErrorCode.ERR_EscapeCall, "s1 && s2").WithArguments("S.operator &(in S, in S)", "x").WithLocation(11, 16),
+                // (23,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 3
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(23, 16),
+                // (29,16): error CS8352: Cannot use variable 's' in this context because it may expose referenced variables outside of their declaration scope
+                //         return s; // 4
+                Diagnostic(ErrorCode.ERR_EscapeVariable, "s").WithArguments("s").WithLocation(29, 16));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedLogicalOperator_RefStruct_Scoped_Left()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static bool operator true(R r) => true;
+                    public static bool operator false(R r) => false;
+                    public static R operator |(scoped R x, R y) => default;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        return new R(1) || new R(2);
+                    }
+                
+                    static R F2()
+                    {
+                        return new R(1) | new R(2);
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (13,16): error CS8347: Cannot use a result of 'R.operator |(scoped R, R)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) || new R(2)").WithArguments("R.operator |(scoped R, R)", "y").WithLocation(13, 16),
+                // (13,28): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(2)").WithArguments("R.R(in int)", "i").WithLocation(13, 28),
+                // (13,34): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(13, 34),
+                // (18,16): error CS8347: Cannot use a result of 'R.operator |(scoped R, R)' in this context because it may expose variables referenced by parameter 'y' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) | new R(2)").WithArguments("R.operator |(scoped R, R)", "y").WithLocation(18, 16),
+                // (18,27): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(2)").WithArguments("R.R(in int)", "i").WithLocation(18, 27),
+                // (18,33): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "2").WithLocation(18, 33));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedLogicalOperator_RefStruct_Scoped_Right()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static bool operator true(R r) => true;
+                    public static bool operator false(R r) => false;
+                    public static R operator |(R x, scoped R y) => default;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        return new R(1) || new R(2);
+                    }
+                
+                    static R F2()
+                    {
+                        return new R(1) | new R(2);
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (13,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(13, 16),
+                // (13,16): error CS8347: Cannot use a result of 'R.operator |(R, scoped R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) || new R(2)").WithArguments("R.operator |(R, scoped R)", "x").WithLocation(13, 16),
+                // (13,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(13, 22),
+                // (18,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(18, 16),
+                // (18,16): error CS8347: Cannot use a result of 'R.operator |(R, scoped R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) | new R(2)").WithArguments("R.operator |(R, scoped R)", "x").WithLocation(18, 16),
+                // (18,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(18, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedLogicalOperator_RefStruct_Scoped_Both()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static bool operator true(R r) => true;
+                    public static bool operator false(R r) => false;
+                    public static R operator |(scoped R x, scoped R y) => default;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        return new R(1) || new R(2);
+                    }
+                
+                    static R F2()
+                    {
+                        return new R(1) | new R(2);
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
+        public void UserDefinedLogicalOperator_RefStruct_Scoped_None()
+        {
+            var source = """
+                ref struct R
+                {
+                    private ref readonly int _i;
+                    public R(in int i) { _i = ref i; }
+                    public static bool operator true(R r) => true;
+                    public static bool operator false(R r) => false;
+                    public static R operator |(R x, R y) => default;
+                }
+                class Program
+                {
+                    static R F()
+                    {
+                        return new R(1) || new R(2);
+                    }
+
+                    static R F2()
+                    {
+                        return new R(1) | new R(2);
+                    }
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (13,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(13, 16),
+                // (13,16): error CS8347: Cannot use a result of 'R.operator |(R, R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) || new R(2)").WithArguments("R.operator |(R, R)", "x").WithLocation(13, 16),
+                // (13,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) || new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(13, 22),
+                // (18,16): error CS8347: Cannot use a result of 'R.R(in int)' in this context because it may expose variables referenced by parameter 'i' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1)").WithArguments("R.R(in int)", "i").WithLocation(18, 16),
+                // (18,16): error CS8347: Cannot use a result of 'R.operator |(R, R)' in this context because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_EscapeCall, "new R(1) | new R(2)").WithArguments("R.operator |(R, R)", "x").WithLocation(18, 16),
+                // (18,22): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+                //         return new R(1) | new R(2);
+                Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "1").WithLocation(18, 22));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72873")]
+        public void Utf8Addition()
+        {
+            var code = """
+                using System;
+                ReadOnlySpan<byte> x = "Hello"u8 + " "u8 + "World!"u8;
+                Console.WriteLine(x.Length);
+                """;
+            CreateCompilation(code, targetFramework: TargetFramework.Net70).VerifyDiagnostics();
         }
     }
 }

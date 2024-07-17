@@ -105,6 +105,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)UseSystemHashCode\UseSystemHashCodeDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)UseThrowExpression\AbstractUseThrowExpressionDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\AbstractValidateFormatStringDiagnosticAnalyzer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ValidateFormatString\FormatStringValidationOptionStorage.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />

@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -13,84 +12,79 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Snippets
+namespace Microsoft.CodeAnalysis.CSharp.Snippets;
+
+using static CSharpSyntaxTokens;
+
+internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractPropertySnippetProvider<PropertyDeclarationSyntax>
 {
-    internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractPropertySnippetProvider
+    protected virtual AccessorDeclarationSyntax? GenerateGetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator, CancellationToken cancellationToken)
+        => (AccessorDeclarationSyntax)generator.GetAccessorDeclaration();
+
+    protected virtual AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator, CancellationToken cancellationToken)
+        => (AccessorDeclarationSyntax)generator.SetAccessorDeclaration();
+
+    protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
     {
-        protected virtual AccessorDeclarationSyntax? GenerateGetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
-            => (AccessorDeclarationSyntax)generator.GetAccessorDeclaration();
+        return context.SyntaxContext.SyntaxTree.IsMemberDeclarationContext(context.Position, (CSharpSyntaxContext)context.SyntaxContext,
+            SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken);
+    }
 
-        protected virtual AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
-            => (AccessorDeclarationSyntax)generator.SetAccessorDeclaration();
-
-        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
+    protected override async Task<PropertyDeclarationSyntax> GenerateSnippetSyntaxAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var generator = SyntaxGenerator.GetGenerator(document);
+        var identifierName = NameGenerator.GenerateUniqueName("MyProperty",
+            n => semanticModel.LookupSymbols(position, name: n).IsEmpty);
+        var syntaxContext = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
+        var accessors = new AccessorDeclarationSyntax?[]
         {
-            var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+            GenerateGetAccessorDeclaration(syntaxContext, generator, cancellationToken),
+            GenerateSetAccessorDeclaration(syntaxContext, generator, cancellationToken),
+        };
 
-            return syntaxTree.IsMemberDeclarationContext(position, context: null,
-                SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken);
+        SyntaxTokenList modifiers = default;
+
+        // If there are no preceding accessibility modifiers create default `public` one
+        if (!syntaxContext.PrecedingModifiers.Any(SyntaxFacts.IsAccessibilityModifier))
+        {
+            modifiers = SyntaxTokenList.Create(PublicKeyword);
         }
 
-        protected override async Task<SyntaxNode> GenerateSnippetSyntaxAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var identifierName = NameGenerator.GenerateUniqueName("MyProperty",
-                n => semanticModel.LookupSymbols(position, name: n).IsEmpty);
-            var syntaxContext = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
-            var accessors = new AccessorDeclarationSyntax?[]
-            {
-                GenerateGetAccessorDeclaration(syntaxContext, generator),
-                GenerateSetAccessorDeclaration(syntaxContext, generator),
-            };
+        return SyntaxFactory.PropertyDeclaration(
+            attributeLists: default,
+            modifiers: modifiers,
+            type: compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(allowVar: false),
+            explicitInterfaceSpecifier: null,
+            identifier: identifierName.ToIdentifierToken(),
+            accessorList: SyntaxFactory.AccessorList([.. accessors.Where(a => a is not null)!]));
+    }
 
-            SyntaxTokenList modifiers = default;
+    protected override int GetTargetCaretPosition(PropertyDeclarationSyntax propertyDeclaration, SourceText sourceText)
+        => propertyDeclaration.AccessorList!.CloseBraceToken.Span.End;
 
-            // If there are no preceding accessibility modifiers create default `public` one
-            if (!syntaxContext.PrecedingModifiers.Any(SyntaxFacts.IsAccessibilityModifier))
-            {
-                modifiers = SyntaxTokenList.Create(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
-            }
+    protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(PropertyDeclarationSyntax propertyDeclaration, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
+    {
+        var identifier = propertyDeclaration.Identifier;
+        var type = propertyDeclaration.Type;
 
-            return SyntaxFactory.PropertyDeclaration(
-                attributeLists: default,
-                modifiers: modifiers,
-                type: compilation.GetSpecialType(SpecialType.System_Int32).GenerateTypeSyntax(allowVar: false),
-                explicitInterfaceSpecifier: null,
-                identifier: identifierName.ToIdentifierToken(),
-                accessorList: SyntaxFactory.AccessorList(new SyntaxList<AccessorDeclarationSyntax>(accessors.Where(a => a is not null)!)));
-        }
+        return
+        [
+            new SnippetPlaceholder(type.ToString(), type.SpanStart),
+            new SnippetPlaceholder(identifier.ValueText, identifier.SpanStart),
+        ];
+    }
 
-        protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
-        {
-            var propertyDeclaration = (PropertyDeclarationSyntax)caretTarget;
-            return propertyDeclaration.AccessorList!.CloseBraceToken.Span.End;
-        }
-
-        protected override ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(SyntaxNode node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken)
-        {
-            using var _ = ArrayBuilder<SnippetPlaceholder>.GetInstance(out var arrayBuilder);
-            var propertyDeclaration = (PropertyDeclarationSyntax)node;
-            var identifier = propertyDeclaration.Identifier;
-            var type = propertyDeclaration.Type;
-
-            arrayBuilder.Add(new SnippetPlaceholder(type.ToString(), type.SpanStart));
-            arrayBuilder.Add(new SnippetPlaceholder(identifier.ValueText, identifier.SpanStart));
-            return arrayBuilder.ToImmutableArray();
-        }
-
-        protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
-        {
-            var node = root.FindNode(TextSpan.FromBounds(position, position));
-            return node.GetAncestorOrThis<PropertyDeclarationSyntax>();
-        }
+    protected override PropertyDeclarationSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position)
+    {
+        var node = root.FindNode(TextSpan.FromBounds(position, position));
+        return node.GetAncestorOrThis<PropertyDeclarationSyntax>();
     }
 }

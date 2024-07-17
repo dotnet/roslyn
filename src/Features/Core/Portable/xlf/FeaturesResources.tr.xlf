@@ -40,11 +40,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Bir çıkarma bir karakter sınıfı içinde son öğe olması gerekir</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: [a-[b]-c]</note>
       </trans-unit>
-      <trans-unit id="Accessing_captured_variable_0_that_hasn_t_been_accessed_before_in_1_requires_restarting_the_application">
-        <source>Accessing captured variable '{0}' that hasn't been accessed before in {1} requires restarting the application.</source>
-        <target state="translated">{1} öğesinde daha önce erişilmeyen yakalanan '{0}' değişkenine erişilmesi, uygulamanın yeniden başlatılmasını gerektirir.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Add_DebuggerDisplay_attribute">
         <source>Add 'DebuggerDisplay' attribute</source>
         <target state="translated">'DebuggerDisplay' özniteliği ekle</target>
@@ -113,11 +108,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       <trans-unit id="Adding_0_requires_restarting_the_application">
         <source>Adding {0} requires restarting the application.</source>
         <target state="translated">{0} öğesinin eklenmesi, uygulamanın yeniden başlatılmasını gerektirir.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Adding_0_that_accesses_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Adding {0} that accesses captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">Farklı kapsamlarda tanımlanan yakalanmış '{1}' ve '{2}' değişkenlerine erişen {0} öğesini eklemek, uygulamanın yeniden başlatılmasını gerektirir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Adding_0_with_the_Handles_clause_requires_restarting_the_application">
@@ -316,8 +306,8 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <note>{Locked="ConfigureAwait"} "ConfigureAwait" is an api name and should not be localized. {0} is a placeholder for the language specific keyword 'false'.</note>
       </trans-unit>
       <trans-unit id="Awaited_task_returns_0">
-        <source>Awaited task returns '{0}'</source>
-        <target state="translated">Beklenen görev '{0}' döndürüyor</target>
+        <source>Awaited task returns {0}</source>
+        <target state="translated">Beklenen görev {0} döndürüyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Awaited_task_returns_no_value">
@@ -328,6 +318,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
         <source>Base classes contain inaccessible unimplemented members</source>
         <target state="translated">Temel sınıflarda erişilemeyen, uygulanmamış üyeler var</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Built_in_Copilot_analysis">
+        <source>Built-in Copilot analysis</source>
+        <target state="translated">Yerleşik Copilot analizi</target>
         <note />
       </trans-unit>
       <trans-unit id="CSharp_VisualBasic_References">
@@ -362,27 +357,12 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Capturing_primary_constructor_parameter_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
         <source>Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</source>
-        <target state="new">Capturing primary constructor parameter '{0}' that hasn't been capture before requires restarting the application.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Capturing_variable_0_that_hasn_t_been_captured_before_requires_restarting_the_application">
-        <source>Capturing variable '{0}' that hasn't been captured before requires restarting the application.</source>
-        <target state="translated">Önceden yakalanmamış olan '{0}' değişkenini yakalamak, uygulamanın yeniden başlatılmasını gerektiriyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_access_captured_variable_0_in_1_requires_restarting_the_application">
-        <source>Ceasing to access captured variable '{0}' in {1} requires restarting the application.</source>
-        <target state="translated">{1}‘ de yakalanan '{0}' değişkenine erişimin kesilmesi uygulamanın yeniden başlatılmasını gerektirir.</target>
+        <target state="translated">Önceden yakalanmamış olan '{0}' birincil oluşturucu parametresini yakalamak için uygulamanın yeniden başlatılmasını gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application">
         <source>Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</source>
-        <target state="new">Ceasing to capture primary constructor parameter '{0}' of '{1}' requires restarting the application.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Ceasing_to_capture_variable_0_requires_restarting_the_application">
-        <source>Ceasing to capture variable '{0}' requires restarting the application.</source>
-        <target state="new">Ceasing to capture variable '{0}' requires restarting the application.</target>
+        <target state="translated">'{0}' / '{1}' birincil oluşturucu parametresini yakalama işleminin başlatılması için uygulamanın yeniden başlatılması gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="ChangeSignature_NewParameterInferValue">
@@ -425,6 +405,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">{0} öğesinin zaman uyumsuzdan zaman uyumluya değiştirilmesi, uygulamanın yeniden başlatılmasını gerektirir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Changing_0_might_not_have_any_effect_until_the_application_is_restarted">
+        <source>Changing '{0}' might not have any effect until the application is restarted.</source>
+        <target state="translated">'{0}' değişikliği uygulama yeniden başlatılana kadar etkili olmaz.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Changing_0_to_1_requires_restarting_the_application_because_it_changes_the_shape_of_the_state_machine">
         <source>Changing '{0}' to '{1}' requires restarting the application because it changes the shape of the state machine.</source>
         <target state="translated">'{0}' öğesinin '{1}' olarak değiştirilmesi, durum makinesinin şeklini değiştirdiği için uygulamanın yeniden başlatılmasını gerektirir.</target>
@@ -437,12 +422,17 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Changing_attribute_0_requires_restarting_the_application">
         <source>Changing attribute '{0}' requires restarting the application.</source>
-        <target state="new">Changing attribute '{0}' requires restarting the application.</target>
+        <target state="translated">'{0}' özniteliğinin değiştirilmesi için uygulamanın yeniden başlatılması gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_constraints_of_0_requires_restarting_the_application">
         <source>Changing constraints of {0} requires restarting the application.</source>
         <target state="translated">{0} öğesinin kısıtlamalarının değiştirilmesi, uygulamanın yeniden başlatılmasını gerektirir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_name_or_signature_of_0_that_contains_an_active_statement_requires_restarting_the_application">
+        <source>Changing attribute '{0}' requires restarting the application.</source>
+        <target state="translated">'{0}' özniteliğinin değiştirilmesi, uygulamanın yeniden başlatılmasını gerektirir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_parameter_types_of_0_requires_restarting_the_application">
@@ -475,9 +465,9 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">{0} öğesinin dönüş türünün değiştirilmesi, uygulamanın yeniden başlatılmasını gerektirir.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_the_type_of_0_requires_restarting_the_application">
-        <source>Changing the type of {0} requires restarting the application.</source>
-        <target state="translated">{0} türünün değiştirilmesi, uygulamanın yeniden başlatılmasını gerektirir.</target>
+      <trans-unit id="Changing_the_signature_of_0_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
+        <source>Changing the signature of {0} requires restarting the application because is not supported by the runtime.</source>
+        <target state="translated">{0} imzasının silinmesi, çalışma zamanı tarafından desteklenmediğinden uygulamanın yeniden başlatılmasını gerektirir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_the_type_of_a_captured_variable_0_previously_of_type_1_requires_restarting_the_application">
@@ -497,7 +487,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Chosen_version_0">
         <source>Chosen version: '{0}'</source>
-        <target state="new">Chosen version: '{0}'</target>
+        <target state="translated">Seçilen sürüm: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Code_snippet_for_0">
@@ -547,7 +537,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Convert_number">
         <source>Convert number</source>
-        <target state="new">Convert number</target>
+        <target state="translated">Sayıyı dönüştür</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_linq">
@@ -597,7 +587,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Could_not_find_by_name_0">
         <source>Could not find by name: '{0}'</source>
-        <target state="new">Could not find by name: '{0}'</target>
+        <target state="translated">'{0}' adıyla bulunamadı</target>
         <note />
       </trans-unit>
       <trans-unit id="Could_not_find_implementation_of_symbol_0">
@@ -627,17 +617,17 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Debug_All_Tests">
         <source>Debug All Tests</source>
-        <target state="new">Debug All Tests</target>
+        <target state="translated">Tüm Testlerin Hatalarını Ayıkla</target>
         <note />
       </trans-unit>
       <trans-unit id="Debug_Test">
         <source>Debug Test</source>
-        <target state="new">Debug Test</target>
+        <target state="translated">Testin Hatalarını Ayıkla</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompilation_log">
         <source>Decompilation log</source>
-        <target state="new">Decompilation log</target>
+        <target state="translated">Kaynak koda dönüştürme günlüğü</target>
         <note />
       </trans-unit>
       <trans-unit id="Decompiled">
@@ -665,14 +655,14 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">{0} öğesini silmek, çalışma zamanı tarafından desteklenmediğinden uygulamanın yeniden başlatılmasını gerektirir.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Deleting_captured_variable_0_requires_restarting_the_application">
-        <source>Deleting captured variable '{0}' requires restarting the application.</source>
-        <target state="translated">Yakalanan '{0}' değişkenini silmek, uygulamanın yeniden başlatılmasını gerektirir.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Directives_from_0">
         <source>Directives from '{0}'</source>
         <target state="translated">'{0}' yönergeleri</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Dismiss">
+        <source>Dismiss</source>
+        <target state="translated">Kapat</target>
         <note />
       </trans-unit>
       <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
@@ -780,6 +770,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Uygulanabilir sembolde 'Tüm Referansları Bul' çağrılmadı</target>
         <note />
       </trans-unit>
+      <trans-unit id="Fix_All_0">
+        <source>Fix All: {0}</source>
+        <target state="translated">Tümünü Düzelt: {0}</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_typo_0">
         <source>Fix typo '{0}'</source>
         <target state="translated">'{0}' yazım hatasını düzeltin</target>
@@ -797,7 +792,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Found_0_assemblies_for_1">
         <source>Found '{0}' assemblies for '{1}':</source>
-        <target state="new">Found '{0}' assemblies for '{1}':</target>
+        <target state="translated">'{1}' için '{0}' bütünleştirilmiş kod bulundu:</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_PDB_file_at_0">
@@ -822,17 +817,17 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Found_exact_match_0">
         <source>Found exact match: '{0}'</source>
-        <target state="new">Found exact match: '{0}'</target>
+        <target state="translated">Tam eşleşme bulundu: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_higher_version_match_0">
         <source>Found higher version match: '{0}'</source>
-        <target state="new">Found higher version match: '{0}'</target>
+        <target state="translated">Daha yüksek bir sürüm eşleşmesi bulundu: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_single_assembly_0">
         <source>Found single assembly: '{0}'</source>
-        <target state="new">Found single assembly: '{0}'</target>
+        <target state="translated">Tek bütünleştirilmiş kod bulundu: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_abstract_method_0">
@@ -927,7 +922,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Illegal_x_y_with_x_less_than_y">
         <source>Illegal {x,y} with x &gt; y</source>
-        <target state="translated">Yasadışı {x, y} x &gt; y</target>
+        <target state="translated">Yasadışı {x,y} x &gt; y</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: a{1,0}</note>
       </trans-unit>
       <trans-unit id="Implement_0_explicitly">
@@ -1112,7 +1107,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Load_from_0">
         <source>Load from: '{0}'</source>
-        <target state="new">Load from: '{0}'</target>
+        <target state="translated">Şuradan yükle: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Making_a_method_an_iterator_requires_restarting_the_application_because_it_is_not_supported_by_the_runtime">
@@ -1163,6 +1158,16 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       <trans-unit id="MethodMustReturnStreamThatSupportsReadAndSeek">
         <source>{0} must return a stream that supports read and seek operations.</source>
         <target state="translated">{0} okuma ve arama işlemlerini destekleyen bir akış döndürmelidir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method_0_must_be_static_and_non_generic">
+        <source>Method '{0}' must be static and non-generic</source>
+        <target state="translated">'{0}' yönteminin statik olması ve genel olmaması gerekir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Method_0_must_have_a_single_parameter_of_type_1_and_return_2">
+        <source>Method '{0}' must have a single parameter of type '{1}' and return '{2}'</source>
+        <target state="translated">'{0}' yönteminin '{1}' türünde tek bir parametre olması ve '{2}' değerini döndürmesi gerekir</target>
         <note />
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
@@ -1247,7 +1252,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Module_not_found">
         <source>Module not found!</source>
-        <target state="new">Module not found!</target>
+        <target state="translated">Modül bulunamadı!</target>
         <note />
       </trans-unit>
       <trans-unit id="Move_contents_to_namespace">
@@ -1278,6 +1283,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       <trans-unit id="Moving_0_requires_restarting_the_application">
         <source>Moving {0} requires restarting the application.</source>
         <target state="translated">{0} öğesinin taşınması uygulamanın yeniden başlatılmasını gerektirir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NET_Code_Actions">
+        <source>.NET Code Actions</source>
+        <target state="new">.NET Code Actions</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_expected">
@@ -1392,8 +1402,13 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Quantifier_x_y_following_nothing">
         <source>Quantifier {x,y} following nothing</source>
-        <target state="translated">Niceleyici {x, y} hiçbir şeyi takip etmiyor</target>
+        <target state="translated">Niceleyici {x,y} hiçbir şeyi takip etmiyor</target>
         <note>This is an error message shown to the user when they write an invalid Regular Expression. Example: *</note>
+      </trans-unit>
+      <trans-unit id="Query">
+        <source>Query</source>
+        <target state="translated">Sorgu</target>
+        <note />
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group">
         <source>reference to undefined group</source>
@@ -2530,14 +2545,14 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Belgenin kaldırılması desteklenmiyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_unnecessary_Imports_or_usings">
-        <source>Remove unnecessary Imports or usings</source>
-        <target state="translated">Gereksiz İçe Aktarmaları veya using’leri kaldır</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_casts">
         <source>Remove unnecessary casts</source>
         <target state="translated">Gereksiz atamaları kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_imports_or_usings">
+        <source>Remove unnecessary imports or usings</source>
+        <target state="translated">Gereksiz içeri aktarmaları veya kullanmaları kaldır</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unused_parameters">
@@ -2553,11 +2568,6 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       <trans-unit id="Remove_unused_variables">
         <source>Remove unused variables</source>
         <target state="translated">Kullanılmayan değişkenleri kaldır</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Removing_0_that_accessed_captured_variables_1_and_2_declared_in_different_scopes_requires_restarting_the_application">
-        <source>Removing {0} that accessed captured variables '{1}' and '{2}' declared in different scopes requires restarting the application.</source>
-        <target state="translated">Farklı kapsamlarda bildirilen '{1}' ve '{2}' değişkenlerine erişen {0} öğesinin kaldırılması, uygulamanın yeniden başlatılmasını gerektirir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Removing_0_that_contains_an_active_statement_requires_restarting_the_application">
@@ -2602,17 +2612,12 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Resolve_0">
         <source>Resolve: '{0}'</source>
-        <target state="new">Resolve: '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Resolve_conflict_markers">
-        <source>Resolve conflict markers</source>
-        <target state="translated">Çakışma işaretçilerini çözümle</target>
+        <target state="translated">Çözümle: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Resolve_module_0_of_1">
         <source>Resolve module: '{0}' of '{1}'</source>
-        <target state="new">Resolve module: '{0}' of '{1}'</target>
+        <target state="translated">'{1}' modül içinden '{0}' modülü çözümle</target>
         <note />
       </trans-unit>
       <trans-unit id="RudeEdit">
@@ -2622,12 +2627,12 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Run_All_Tests">
         <source>Run All Tests</source>
-        <target state="new">Run All Tests</target>
+        <target state="translated">Tüm Testleri Çalıştır</target>
         <note />
       </trans-unit>
       <trans-unit id="Run_Test">
         <source>Run Test</source>
-        <target state="new">Run Test</target>
+        <target state="translated">Testi Çalıştır</target>
         <note />
       </trans-unit>
       <trans-unit id="Selection_does_not_contain_a_valid_token">
@@ -2638,6 +2643,26 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       <trans-unit id="Selection_not_contained_inside_a_type">
         <source>Selection not contained inside a type.</source>
         <target state="translated">Seçim bir türün içinde yer almıyor.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticSearch">
+        <source>Semantic Search</source>
+        <target state="translated">Anlamsal Arama</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_only_supported_on_net_core">
+        <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
+        <target state="translated">Anlamsal arama yalnızca kod analizi en son .NET üzerinde ayrı bir işlemde çalıştırıldığında desteklenir (Araçlar &gt; Seçenekler &gt; Metin Düzenleyici &gt; C# &gt; Gelişmiş seçeneğine bakın).</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_query_failed_to_compile">
+        <source>Semantic search query failed to compile</source>
+        <target state="translated">Anlamsal arama sorgusu derlenemedi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Semantic_search_query_terminated_with_exception">
+        <source>Semantic search query terminated with exception</source>
+        <target state="translated">Anlamsal arama sorgusu bir özel durumla sonlandırıldı</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2700,6 +2725,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">“{0}” derleme yolunda sembol bulundu</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbols">
+        <source>Symbols</source>
+        <target state="translated">Semboller</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Syntax_error">
         <source>Syntax error</source>
         <target state="translated">Söz dizimi hatası</target>
@@ -2728,6 +2758,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       <trans-unit id="The_assembly_0_references_compiler_version_1_newer_than_2">
         <source>The analyzer assembly '{0}' references version '{1}' of the compiler, which is newer than the currently running version '{2}'.</source>
         <target state="translated">'{0}' çözümleyici bütünleştirilmiş kodu, derleyicinin şu anda çalışan '{2}' sürümünden daha yeni olan '{1}' sürümüne başvurur.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_query_does_not_specify_0_method_or_top_level_function">
+        <source>The query does not specify '{0}' method or top-level function</source>
+        <target state="translated">Sorgu '{0}' yöntemini veya üst düzey işlev belirtmiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2775,6 +2810,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Sona eklenen virgüle izin verilmiyor</target>
         <note />
       </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="new">Type members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
         <target state="translated">Türler:</target>
@@ -2783,6 +2823,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       <trans-unit id="UnableToReadSourceFileOrPdb">
         <source>Unable to read source file '{0}' or the PDB built for the containing project. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">'{0}' kaynak dosyası veya içeren proje için oluşturulan PDB okunamıyor. Hata ayıklama sırasında bu dosyada yapılan değişiklikler, dosyanın içeriği oluşturulan kaynakla eşleşene kadar uygulanmaz.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unable_to_load_type_0_1">
+        <source>Unable to load type '{0}': '{1}'</source>
+        <target state="translated">'{0}' türü yüklenemiyor: '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">
@@ -2863,6 +2908,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       <trans-unit id="Unwrap_call_chain">
         <source>Unwrap call chain</source>
         <target state="translated">Çağrı zincirinin sarmalamasını kaldır</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Unwrap_collection">
+        <source>Unwrap collection</source>
+        <target state="translated">Koleksiyonun sarmalamasını kaldır</target>
         <note />
       </trans-unit>
       <trans-unit id="Unwrap_expression">
@@ -3002,7 +3052,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="WARN_Version_mismatch_Expected_0_Got_1">
         <source>WARN: Version mismatch. Expected: '{0}', Got: '{1}'</source>
-        <target state="new">WARN: Version mismatch. Expected: '{0}', Got: '{1}'</target>
+        <target state="translated">UYARI: Sürüm uyumsuzluğu. Beklenen: '{0}', Alınan: '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_changing_namespace_may_produce_invalid_code_and_change_code_meaning">
@@ -3035,6 +3085,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Çağrı zincirini sarmala</target>
         <note />
       </trans-unit>
+      <trans-unit id="Wrap_collection">
+        <source>Wrap collection</source>
+        <target state="translated">Koleksiyonu sarmala</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Wrap_every_argument">
         <source>Wrap every argument</source>
         <target state="translated">Her bağımsız değişkeni sarmala</target>
@@ -3063,6 +3118,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       <trans-unit id="Wrap_long_call_chain">
         <source>Wrap long call chain</source>
         <target state="translated">Uzun çağrı zincirini sarmala</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Wrap_long_collection">
+        <source>Wrap long collection</source>
+        <target state="translated">Uzun koleksiyonu sarmala</target>
         <note />
       </trans-unit>
       <trans-unit id="Wrap_long_initializer">
@@ -3187,7 +3247,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="_0_items_in_cache">
         <source>'{0}' items in cache</source>
-        <target state="new">'{0}' items in cache</target>
+        <target state="translated">Önbellekteki '{0}' öğe</target>
         <note />
       </trans-unit>
       <trans-unit id="_0_literal_not_allowed">
@@ -3468,7 +3528,7 @@ If the "H" format specifier is used without other custom format specifiers, it's
       </trans-unit>
       <trans-unit id="class_with_explicit_or_sequential_layout">
         <source>class with explicit or sequential layout</source>
-        <target state="new">class with explicit or sequential layout</target>
+        <target state="translated">açık veya sıralı düzeni olan sınıf</target>
         <note />
       </trans-unit>
       <trans-unit id="code">
@@ -3808,11 +3868,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Could_not_extract_interface_colon_The_type_does_not_contain_any_member_that_can_be_extracted_to_an_interface">
         <source>Could not extract interface: The type does not contain any member that can be extracted to an interface.</source>
         <target state="translated">Arabirim ayıklanamadı: Tür, arabirime çıkarılabilecek bir üye içermiyor.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="can_t_not_construct_final_tree">
-        <source>can't not construct final tree</source>
-        <target state="translated">Son ağaç oluşturulamıyor</target>
         <note />
       </trans-unit>
       <trans-unit id="Parameters_type_or_return_type_cannot_be_an_anonymous_type_colon_bracket_0_bracket">

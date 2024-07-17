@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -19,6 +17,8 @@ using static TestReferences.NetFx;
 using static Roslyn.Test.Utilities.TestMetadata;
 using Microsoft.CodeAnalysis.Test.Resources.Proprietary;
 using Basic.Reference.Assemblies;
+using Roslyn.Utilities;
+using System.Globalization;
 
 namespace Roslyn.Test.Utilities
 {
@@ -27,10 +27,24 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public abstract class TestBase : IDisposable
     {
-        private TempRoot _temp;
+        private TempRoot? _temp;
+        private readonly CultureInfo? _originalUICulture;
 
         protected TestBase()
         {
+            // Force the UI culture to be the same as current culture. This will more fully exercise our
+            // localization paths on machines that aren't en-US.
+            // 
+            // Consider as an example our test infrastructure which runs machines in the es-ES locale. The 
+            // machine setup is such that CurrentCulture is es-ES but CurrentUICUlture is en-US. That means 
+            // our test infra isn't actually testing anything with respect to resource strings as they 
+            // all load with CurrentUICulture. This normalization means that when running on a machine 
+            // that doesn't use en-US we fully test our capabilities here.
+            if (CultureInfo.CurrentUICulture != CultureInfo.CurrentCulture)
+            {
+                _originalUICulture = CultureInfo.CurrentUICulture;
+                CultureInfo.CurrentUICulture = CultureInfo.CurrentCulture;
+            }
         }
 
         public static string GetUniqueName()
@@ -53,6 +67,11 @@ namespace Roslyn.Test.Utilities
 
         public virtual void Dispose()
         {
+            if (_originalUICulture != null)
+            {
+                CultureInfo.CurrentUICulture = _originalUICulture;
+            }
+
             if (_temp != null)
             {
                 _temp.Dispose();
@@ -144,7 +163,7 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference SystemRuntimeSerializationRef_v4_0_30319_17929 => s_systemRuntimeSerializationRef_v4_0_30319_17929.Value;
 
         private static readonly Lazy<MetadataReference> s_systemCoreRef_v46 = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(Net461.References.SystemCore.ImageBytes).GetReference(display: "System.Core.v4_6_1038_0.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.ReferenceInfos.SystemCore.ImageBytes).GetReference(display: "System.Core.v4_6_1038_0.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemCoreRef_v46 => s_systemCoreRef_v4_0_30319_17929.Value;
 
@@ -201,7 +220,7 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference MscorlibRef_v4_0_30316_17626 => Net451.mscorlib;
 
         private static readonly Lazy<MetadataReference> s_mscorlibRef_v46 = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(Net461.References.mscorlib.ImageBytes).GetReference(display: "mscorlib.v4_6_1038_0.dll", filePath: @"Z:\FxReferenceAssembliesUri"),
+            () => AssemblyMetadata.CreateFromImage(Net461.ReferenceInfos.mscorlib.ImageBytes).GetReference(display: "mscorlib.v4_6_1038_0.dll", filePath: @"Z:\FxReferenceAssembliesUri"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference MscorlibRef_v46 => s_mscorlibRef_v46.Value;
 
@@ -248,7 +267,7 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference SystemRef => s_systemRef.Value;
 
         private static readonly Lazy<MetadataReference> s_systemRef_v46 = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(Net461.References.System.ImageBytes).GetReference(display: "System.v4_6_1038_0.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.ReferenceInfos.System.ImageBytes).GetReference(display: "System.v4_6_1038_0.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemRef_v46 => s_systemRef_v46.Value;
 
@@ -315,10 +334,10 @@ namespace Roslyn.Test.Utilities
 
         internal static DiagnosticDescription Diagnostic(
             object code,
-            string squiggledText = null,
-            object[] arguments = null,
+            string? squiggledText = null,
+            object[]? arguments = null,
             LinePosition? startLocation = null,
-            Func<SyntaxNode, bool> syntaxNodePredicate = null,
+            Func<SyntaxNode, bool>? syntaxNodePredicate = null,
             bool argumentOrderDoesNotMatter = false,
             bool isSuppressed = false)
         {
@@ -335,9 +354,9 @@ namespace Roslyn.Test.Utilities
         internal static DiagnosticDescription Diagnostic(
            object code,
            XCData squiggledText,
-           object[] arguments = null,
+           object[]? arguments = null,
            LinePosition? startLocation = null,
-           Func<SyntaxNode, bool> syntaxNodePredicate = null,
+           Func<SyntaxNode, bool>? syntaxNodePredicate = null,
            bool argumentOrderDoesNotMatter = false,
            bool isSuppressed = false)
         {

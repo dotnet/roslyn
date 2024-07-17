@@ -16,30 +16,25 @@ using Microsoft.CodeAnalysis.CSharp.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseImplicitType
+namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseImplicitType;
+
+[ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseImplicitType), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class UseImplicitTypeCodeRefactoringProvider() : AbstractUseTypeCodeRefactoringProvider
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.UseImplicitType), Shared]
-    internal partial class UseImplicitTypeCodeRefactoringProvider : AbstractUseTypeCodeRefactoringProvider
+    protected override string Title
+        => CSharpAnalyzersResources.Use_implicit_type;
+
+    protected override TypeSyntax FindAnalyzableType(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
+        => CSharpUseImplicitTypeHelper.Instance.FindAnalyzableType(node, semanticModel, cancellationToken);
+
+    protected override TypeStyleResult AnalyzeTypeName(TypeSyntax typeName, SemanticModel semanticModel, CSharpSimplifierOptions options, CancellationToken cancellationToken)
+        => CSharpUseImplicitTypeHelper.Instance.AnalyzeTypeName(typeName, semanticModel, options, cancellationToken);
+
+    protected override Task HandleDeclarationAsync(Document document, SyntaxEditor editor, TypeSyntax type, CancellationToken cancellationToken)
     {
-        [ImportingConstructor]
-        [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-        public UseImplicitTypeCodeRefactoringProvider()
-        {
-        }
-
-        protected override string Title
-            => CSharpAnalyzersResources.Use_implicit_type;
-
-        protected override TypeSyntax FindAnalyzableType(SyntaxNode node, SemanticModel semanticModel, CancellationToken cancellationToken)
-            => CSharpUseImplicitTypeHelper.Instance.FindAnalyzableType(node, semanticModel, cancellationToken);
-
-        protected override TypeStyleResult AnalyzeTypeName(TypeSyntax typeName, SemanticModel semanticModel, CSharpSimplifierOptions options, CancellationToken cancellationToken)
-            => CSharpUseImplicitTypeHelper.Instance.AnalyzeTypeName(typeName, semanticModel, options, cancellationToken);
-
-        protected override Task HandleDeclarationAsync(Document document, SyntaxEditor editor, TypeSyntax type, CancellationToken cancellationToken)
-        {
-            UseImplicitTypeCodeFixProvider.ReplaceTypeWithVar(editor, type);
-            return Task.CompletedTask;
-        }
+        UseImplicitTypeCodeFixProvider.ReplaceTypeWithVar(editor, type);
+        return Task.CompletedTask;
     }
 }

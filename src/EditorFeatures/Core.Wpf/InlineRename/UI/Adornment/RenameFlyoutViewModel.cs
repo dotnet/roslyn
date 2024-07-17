@@ -10,12 +10,14 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows.Interop;
-using Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 using Microsoft.CodeAnalysis.InlineRename;
+using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Rename;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -34,7 +36,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private bool _isReplacementTextValid = true;
         public event PropertyChangedEventHandler? PropertyChanged;
 
-        public RenameFlyoutViewModel(InlineRenameSession session, TextSpan selectionSpan, bool registerOleComponent, IGlobalOptionService globalOptionService)
+        public RenameFlyoutViewModel(
+            InlineRenameSession session,
+            TextSpan selectionSpan,
+            bool registerOleComponent,
+            IGlobalOptionService globalOptionService,
+            IThreadingContext threadingContext,
+            IAsynchronousOperationListenerProvider listenerProvider,
+#pragma warning disable CS0618 // Editor team use Obsolete attribute to mark potential changing API
+            Lazy<ISmartRenameSessionFactoryWrapper>? smartRenameSessionFactory)
+#pragma warning restore CS0618 
         {
             _session = session;
             _registerOleComponent = registerOleComponent;
@@ -44,9 +55,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             StartingSelection = selectionSpan;
             InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
+            var smartRenameSession = smartRenameSessionFactory?.Value.CreateSmartRenameSession(_session.TriggerSpan);
+            if (smartRenameSession is not null)
+            {
+                SmartRenameViewModel = new SmartRenameViewModel(globalOptionService, threadingContext, listenerProvider, smartRenameSession.Value, this);
+            }
 
             RegisterOleComponent();
         }
+
+        public SmartRenameViewModel? SmartRenameViewModel { get; }
 
         public string IdentifierText
         {
@@ -198,12 +216,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return false;
             }
 
+            SmartRenameViewModel?.Commit(IdentifierText);
             _session.Commit();
             return true;
         }
 
         public void Cancel()
-            => _session.Cancel();
+        {
+            SmartRenameViewModel?.Cancel();
+            _session.Cancel();
+        }
 
         public void Dispose()
         {
@@ -289,6 +311,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     _session.ReplacementTextChanged -= OnReplacementTextChanged;
                     _session.ReplacementsComputed -= OnReplacementsComputed;
+
+                    if (SmartRenameViewModel is not null)
+                    {
+                        SmartRenameViewModel.Dispose();
+                    }
 
                     UnregisterOleComponent();
                 }

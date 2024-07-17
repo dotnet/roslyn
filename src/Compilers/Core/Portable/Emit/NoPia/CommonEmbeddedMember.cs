@@ -34,9 +34,12 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
         TEmbeddedParameter,
         TEmbeddedTypeParameter>
     {
-        internal abstract class CommonEmbeddedMember
+        internal abstract class CommonEmbeddedMember : Cci.IEmbeddedDefinition
         {
             internal abstract TEmbeddedTypesManager TypeManager { get; }
+
+            public bool IsEncDeleted
+                => false;
         }
 
         internal abstract class CommonEmbeddedMember<TMember> : CommonEmbeddedMember, Cci.IReference
@@ -69,11 +72,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 foreach (var attrData in GetCustomAttributesToEmit(moduleBuilder))
                 {
-                    if (TypeManager.IsTargetAttribute(UnderlyingSymbol, attrData, AttributeDescription.DispIdAttribute))
+                    if (TypeManager.IsTargetAttribute(attrData, AttributeDescription.DispIdAttribute, out int signatureIndex))
                     {
-                        if (attrData.CommonConstructorArguments.Length == 1)
+                        if (signatureIndex == 0 && TypeManager.TryGetAttributeArguments(attrData, out var constructorArguments, out var namedArguments, syntaxNodeOpt, diagnostics))
                         {
-                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_DispIdAttribute__ctor, attrData, syntaxNodeOpt, diagnostics));
+                            builder.AddOptional(TypeManager.CreateSynthesizedAttribute(WellKnownMember.System_Runtime_InteropServices_DispIdAttribute__ctor, constructorArguments, namedArguments, syntaxNodeOpt, diagnostics));
                         }
                     }
                     else

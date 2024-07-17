@@ -2,49 +2,31 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
+namespace Microsoft.CodeAnalysis.Serialization;
 
-namespace Microsoft.CodeAnalysis.Serialization
+internal enum WellKnownSynchronizationKind : byte
 {
-    // TODO: Kind might not actually needed. see whether we can get rid of this
-    internal enum WellKnownSynchronizationKind
-    {
-        Null,
+    // Start at a different value from 0 so that if we ever get 0 we know it's a bug.
 
-        SolutionState,
-        ProjectState,
-        DocumentState,
+    // Solution snapshot state, including generator info (like frozen generated documents).
+    SolutionCompilationState = 1,
 
-        ChecksumCollection,
+    // Solution snapshot state, only referencing actual user (non-generated) documents, options, and references.
+    SolutionState = 2,
+    ProjectState = 3,
 
-        SolutionAttributes,
-        ProjectAttributes,
-        DocumentAttributes,
-        SourceGeneratedDocumentIdentity,
+    SolutionAttributes = 4,
+    ProjectAttributes = 5,
+    DocumentAttributes = 6,
+    SourceGeneratedDocumentIdentity = 7,
+    SourceGeneratorExecutionVersionMap = 8,
+    FallbackAnalyzerOptions = 9,
 
-        CompilationOptions,
-        ParseOptions,
-        ProjectReference,
-        MetadataReference,
-        AnalyzerReference,
-        SourceText,
+    CompilationOptions = 10,
+    ParseOptions = 11,
+    ProjectReference = 12,
+    MetadataReference = 13,
+    AnalyzerReference = 14,
 
-        SerializableSourceText,
-
-        //
-
-        SyntaxTreeIndex,
-        SymbolTreeInfo,
-
-        ProjectReferenceChecksumCollection,
-        MetadataReferenceChecksumCollection,
-        AnalyzerReferenceChecksumCollection,
-        TextDocumentChecksumCollection,
-        DocumentChecksumCollection,
-        AnalyzerConfigDocumentChecksumCollection,
-        ProjectChecksumCollection,
-        SolutionStateChecksums,
-        ProjectStateChecksums,
-        DocumentStateChecksums,
-    }
+    SerializableSourceText = 15,
 }

@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Continue For
                         End If
                         Dim newArgs = ImmutableArray.Create(New TypedConstant(oldTypedConstant.TypeInternal, oldTypedConstant.Kind, correctedParameterName))
-                        Yield New SourceAttributeData(attribute.ApplicationSyntaxReference, attribute.AttributeClass, attribute.AttributeConstructor, newArgs, attribute.CommonNamedArguments, attribute.IsConditionallyOmitted, attribute.HasErrors)
+                        Yield New SourceAttributeData(DeclaringCompilation, attribute.ApplicationSyntaxReference, attribute.AttributeClass, attribute.AttributeConstructor, newArgs, attribute.CommonNamedArguments, attribute.IsConditionallyOmitted, attribute.HasErrors)
                         Continue For
                     End If
                 End If
@@ -339,26 +339,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             '  InAttribute, OutAttribute
             '     - metadata flag set, no diagnostics reported, don't influence language semantics
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.TupleElementNamesAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.TupleElementNamesAttribute) Then
                 DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.ERR_ExplicitTupleElementNamesAttribute, arguments.AttributeSyntaxOpt.Location)
             End If
 
-            If attrData.IsTargetAttribute(Me, AttributeDescription.DefaultParameterValueAttribute) Then
+            If attrData.IsTargetAttribute(AttributeDescription.DefaultParameterValueAttribute) Then
                 ' Attribute decoded and constant value stored during EarlyDecodeWellKnownAttribute.
                 DecodeDefaultParameterValueAttribute(AttributeDescription.DefaultParameterValueAttribute, arguments)
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DecimalConstantAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.DecimalConstantAttribute) Then
                 ' Attribute decoded and constant value stored during EarlyDecodeWellKnownAttribute.
                 DecodeDefaultParameterValueAttribute(AttributeDescription.DecimalConstantAttribute, arguments)
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DateTimeConstantAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.DateTimeConstantAttribute) Then
                 ' Attribute decoded and constant value stored during EarlyDecodeWellKnownAttribute.
                 DecodeDefaultParameterValueAttribute(AttributeDescription.DateTimeConstantAttribute, arguments)
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.InAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.InAttribute) Then
                 arguments.GetOrCreateData(Of CommonParameterWellKnownAttributeData)().HasInAttribute = True
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.OutAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.OutAttribute) Then
                 arguments.GetOrCreateData(Of CommonParameterWellKnownAttributeData)().HasOutAttribute = True
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.MarshalAsAttribute) Then
                 MarshalAsAttributeDecoder(Of CommonParameterWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.Parameter, MessageProvider.Instance)
-            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.CallerArgumentExpressionAttribute) Then
+            ElseIf attrData.IsTargetAttribute(AttributeDescription.CallerArgumentExpressionAttribute) Then
                 Dim index = GetEarlyDecodedWellKnownAttributeData()?.CallerArgumentExpressionParameterIndex
                 If index = Ordinal Then
                     DirectCast(arguments.Diagnostics, BindingDiagnosticBag).Add(ERRID.WRN_CallerArgumentExpressionAttributeSelfReferential, arguments.AttributeSyntaxOpt.Location, Me.Name)

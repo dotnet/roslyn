@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
                 genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
-                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers,
+                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.ExpandValueTuple,
                 compilerInternalOptions: SymbolDisplayCompilerInternalOptions.ReverseArrayRankSpecifiers | SymbolDisplayCompilerInternalOptions.IncludeFileLocalTypesPrefix);
 
         /// <summary>

@@ -852,6 +852,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        /// <summary>
+        /// Gets the underlying element <see cref="Conversion"/> information from this <see cref="ISpreadOperation"/>.
+        /// </summary>
+        /// <remarks>
+        /// This spread operation must have been created from C# code.
+        /// </remarks>
+        public static Conversion GetElementConversion(this ISpreadOperation spread)
+        {
+            if (spread == null)
+            {
+                throw new ArgumentNullException(nameof(spread));
+            }
+
+            if (spread.Language == LanguageNames.CSharp)
+            {
+                return (Conversion)((SpreadOperation)spread).ElementConversionConvertible;
+            }
+            else
+            {
+                throw new ArgumentException(string.Format(CSharpResources.ISpreadOperationIsNotCSharpSpread, nameof(spread)), nameof(spread));
+            }
+        }
+
         public static Conversion GetSpeculativeConversion(this SemanticModel? semanticModel, int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
         {
             var csmodel = semanticModel as CSharpSemanticModel;
@@ -1595,6 +1618,45 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var csmodel = semanticModel as CSharpSemanticModel;
             return csmodel?.GetDeclaredSymbol(node, cancellationToken);
+        }
+
+        /// <summary>
+        /// Given a local function declaration syntax, get the corresponding symbol.
+        /// </summary>
+#pragma warning disable RS0026
+        public static IMethodSymbol? GetDeclaredSymbol(this SemanticModel? semanticModel, LocalFunctionStatementSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+#pragma warning restore RS0026
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            return csmodel?.GetDeclaredSymbol(node, cancellationToken);
+        }
+
+        /// <summary>If the call represented by <paramref name="node"/> is referenced in an InterceptsLocationAttribute, returns the original definition symbol which is decorated with that attribute. Otherwise, returns null.</summary>
+        [Experimental(RoslynExperiments.Interceptors, UrlFormat = RoslynExperiments.Interceptors_Url)]
+        public static IMethodSymbol? GetInterceptorMethod(this SemanticModel? semanticModel, InvocationExpressionSyntax node, CancellationToken cancellationToken = default)
+        {
+            var csModel = semanticModel as CSharpSemanticModel;
+            return csModel?.GetInterceptorMethod(node, cancellationToken);
+        }
+
+        /// <summary>
+        /// If <paramref name="node"/> cannot be intercepted syntactically, returns null.
+        /// Otherwise, returns an instance which can be used to intercept the call denoted by <paramref name="node"/>.
+        /// </summary>
+        [Experimental(RoslynExperiments.Interceptors, UrlFormat = RoslynExperiments.Interceptors_Url)]
+        public static InterceptableLocation? GetInterceptableLocation(this SemanticModel? semanticModel, InvocationExpressionSyntax node, CancellationToken cancellationToken = default)
+        {
+            var csModel = semanticModel as CSharpSemanticModel;
+            return csModel?.GetInterceptableLocation(node, cancellationToken);
+        }
+
+        /// <summary>
+        /// Gets an attribute list syntax consisting of an InterceptsLocationAttribute, which intercepts the call referenced by parameter <paramref name="location"/>.
+        /// </summary>
+        [Experimental(RoslynExperiments.Interceptors, UrlFormat = RoslynExperiments.Interceptors_Url)]
+        public static string GetInterceptsLocationAttributeSyntax(this InterceptableLocation location)
+        {
+            return $"""[global::System.Runtime.CompilerServices.InterceptsLocationAttribute({location.Version}, "{location.Data}")]""";
         }
         #endregion
     }

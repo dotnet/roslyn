@@ -4,13 +4,12 @@
 
 using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
-{
-    internal class RQErrorType(string name) : RQType
-    {
-        public readonly string Name = name;
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
 
-        public override SimpleTreeNode ToSimpleTree()
-            => new SimpleGroupNode(RQNameStrings.Error, Name);
-    }
+internal class RQErrorType(string name) : RQType
+{
+    public readonly string Name = name;
+
+    public override SimpleTreeNode ToSimpleTree()
+        => new SimpleGroupNode(RQNameStrings.Error, Name);
 }

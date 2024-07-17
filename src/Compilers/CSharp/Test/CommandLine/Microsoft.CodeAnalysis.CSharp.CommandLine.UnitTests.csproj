@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests</RootNamespace>
-    <TargetFrameworks>net7.0;net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <GenerateMicrosoftCodeAnalysisCommitHashAttribute>true</GenerateMicrosoftCodeAnalysisCommitHashAttribute>
   </PropertyGroup>
   <ItemGroup>
@@ -20,13 +20,13 @@
     <ProjectReference Include="..\..\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
     <ProjectReference Include="..\..\..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.vbproj" />
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\Roslyn.Test.PdbUtilities.csproj" />
-    <PackageReference Include="Basic.Reference.Assemblies.NetStandard13" Version="$(BasicReferenceAssembliesNetStandard13Version)" />
+    <PackageReference Include="Basic.Reference.Assemblies.NetStandard13" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="..\..\csc\csc.rsp" LogicalName="csc.rsp" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Xunit.Combinatorial" Version="$(XunitCombinatorialVersion)" />
+    <PackageReference Include="Xunit.Combinatorial" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />

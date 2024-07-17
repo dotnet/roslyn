@@ -37,41 +37,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             End If
         End Sub
 
-        Friend Sub New(reader As ObjectReader)
-            MyBase.New(reader)
-
-            Me._text = reader.ReadString()
-            Me.FullWidth = Me._text.Length
-            If Text.Length > 0 Then
-                Me.SetFlags(NodeFlags.IsNotMissing)
-            End If
-        End Sub
-
-        Shared Sub New()
-            ObjectBinder.RegisterTypeReader(GetType(SyntaxTrivia), Function(r) New SyntaxTrivia(r))
-        End Sub
-
-        Friend Overrides ReadOnly Property ShouldReuseInSerialization As Boolean
-            Get
-                Select Case Me.Kind
-                    Case SyntaxKind.WhitespaceTrivia,
-                        SyntaxKind.EndOfLineTrivia,
-                        SyntaxKind.LineContinuationTrivia,
-                        SyntaxKind.DocumentationCommentExteriorTrivia,
-                        SyntaxKind.ColonTrivia
-
-                        Return True
-                    Case Else
-                        Return False
-                End Select
-            End Get
-        End Property
-
-        Friend Overrides Sub WriteTo(writer As ObjectWriter)
-            MyBase.WriteTo(writer)
-            writer.WriteString(Me._text)
-        End Sub
-
         Friend ReadOnly Property Text As String
             Get
                 Return Me._text

@@ -270,6 +270,71 @@ class Derived : MethodCustomModifierCombinations
         }
 
         /// <summary>
+        /// Test copying custom modifiers in/on parameters/return types.
+        /// </summary>
+        [Fact]
+        public void TestPartialMethodOverrideCombinations()
+        {
+            var text = @"
+partial class Derived : MethodCustomModifierCombinations
+{
+    public override partial int[] Method1111(int[] a) { return a; }
+    public override partial int[] Method1110(int[] a) { return a; }
+    public override partial int[] Method1101(int[] a) { return a; }
+    public override partial int[] Method1100(int[] a) { return a; }
+    public override partial int[] Method1011(int[] a) { return a; }
+    public override partial int[] Method1010(int[] a) { return a; }
+    public override partial int[] Method1001(int[] a) { return a; }
+    public override partial int[] Method1000(int[] a) { return a; }
+    public override partial int[] Method0111(int[] a) { return a; }
+    public override partial int[] Method0110(int[] a) { return a; }
+    public override partial int[] Method0101(int[] a) { return a; }
+    public override partial int[] Method0100(int[] a) { return a; }
+    public override partial int[] Method0011(int[] a) { return a; }
+    public override partial int[] Method0010(int[] a) { return a; }
+    public override partial int[] Method0001(int[] a) { return a; }
+    public override partial int[] Method0000(int[] a) { return a; }
+
+    public override partial int[] Method1111(int[] a);
+    public override partial int[] Method1110(int[] a);
+    public override partial int[] Method1101(int[] a);
+    public override partial int[] Method1100(int[] a);
+    public override partial int[] Method1011(int[] a);
+    public override partial int[] Method1010(int[] a);
+    public override partial int[] Method1001(int[] a);
+    public override partial int[] Method1000(int[] a);
+    public override partial int[] Method0111(int[] a);
+    public override partial int[] Method0110(int[] a);
+    public override partial int[] Method0101(int[] a);
+    public override partial int[] Method0100(int[] a);
+    public override partial int[] Method0011(int[] a);
+    public override partial int[] Method0010(int[] a);
+    public override partial int[] Method0001(int[] a);
+    public override partial int[] Method0000(int[] a);
+}
+";
+
+            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
+
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var global = comp.GlobalNamespace;
+
+            comp.VerifyEmitDiagnostics();
+
+            var @class = global.GetMember<NamedTypeSymbol>("Derived");
+
+            for (int i = 0; i < 0xf; i++)
+            {
+                CheckMethodCustomModifiers(
+                    @class.GetMember<MethodSymbol>("Method" + Convert.ToString(i, 2).PadLeft(4, '0')),
+                    inReturnType: (i & 0x8) != 0,
+                    onReturnType: (i & 0x4) != 0,
+                    inParameterType: (i & 0x2) != 0,
+                    onParameterType: (i & 0x1) != 0);
+            }
+        }
+
+        /// <summary>
         /// Test copying custom modifiers in/on property types.
         /// </summary>
         [Fact]
@@ -290,7 +355,61 @@ class Derived : PropertyCustomModifierCombinations
             var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             var global = comp.GlobalNamespace;
 
-            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics();
+
+            var @class = global.GetMember<NamedTypeSymbol>("Derived");
+
+            for (int i = 0; i < 0x4; i++)
+            {
+                PropertySymbol property = @class.GetMember<PropertySymbol>("Property" + Convert.ToString(i, 2).PadLeft(2, '0'));
+                bool inType = (i & 0x2) != 0;
+                bool onType = (i & 0x1) != 0;
+
+                CheckPropertyCustomModifiers(property, inType, onType);
+                CheckMethodCustomModifiers(
+                    property.GetMethod,
+                    inReturnType: inType,
+                    onReturnType: onType,
+                    inParameterType: false,
+                    onParameterType: false);
+                CheckMethodCustomModifiers(
+                    property.SetMethod,
+                    inReturnType: false,
+                    onReturnType: false,
+                    inParameterType: inType,
+                    onParameterType: onType);
+            }
+        }
+
+        /// <summary>
+        /// Test copying custom modifiers in/on partial property types.
+        /// </summary>
+        [Fact]
+        public void TestPartialPropertyOverrideCombinations()
+        {
+            var text = @"
+partial class Derived : PropertyCustomModifierCombinations
+{
+    public override partial int[] Property11 { get; set; }
+    public override partial int[] Property11 { get => new int[0]; set { } }
+
+    public override partial int[] Property10 { get; set; }
+    public override partial int[] Property10 { get => new int[0]; set { } }
+
+    public override partial int[] Property01 { get; set; }
+    public override partial int[] Property01 { get => new int[0]; set { } }
+
+    public override partial int[] Property00 { get; set; }
+    public override partial int[] Property00 { get => new int[0]; set { } }
+}
+";
+
+            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
+
+            var comp = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            var global = comp.GlobalNamespace;
+
+            comp.VerifyEmitDiagnostics();
 
             var @class = global.GetMember<NamedTypeSymbol>("Derived");
 
@@ -530,11 +649,23 @@ public class Derived2 : Derived
             var derived2N = derived2Class.GetMember<MethodSymbol>("N");
 
             Assert.True(baseM.Parameters.Single().IsParams, "Base.M.IsParams should be true");
+            Assert.True(baseM.Parameters.Single().IsParamsArray, "Base.M.IsParams should be true");
+            Assert.False(baseM.Parameters.Single().IsParamsCollection);
             Assert.False(baseN.Parameters.Single().IsParams, "Base.N.IsParams should be false");
+            Assert.False(baseN.Parameters.Single().IsParamsArray, "Base.N.IsParams should be false");
+            Assert.False(baseN.Parameters.Single().IsParamsCollection);
             Assert.True(derivedM.Parameters.Single().IsParams, "Derived.M.IsParams should be true"); //NB: does not reflect source
+            Assert.True(derivedM.Parameters.Single().IsParamsArray, "Derived.M.IsParams should be true"); //NB: does not reflect source
+            Assert.False(derivedM.Parameters.Single().IsParamsCollection);
             Assert.False(derivedN.Parameters.Single().IsParams, "Derived.N.IsParams should be false"); //NB: does not reflect source
+            Assert.False(derivedN.Parameters.Single().IsParamsArray, "Derived.N.IsParams should be false"); //NB: does not reflect source
+            Assert.False(derivedN.Parameters.Single().IsParamsCollection);
             Assert.True(derived2M.Parameters.Single().IsParams, "Derived2.M.IsParams should be true");
+            Assert.True(derived2M.Parameters.Single().IsParamsArray, "Derived2.M.IsParams should be true");
+            Assert.False(derived2M.Parameters.Single().IsParamsCollection);
             Assert.False(derived2N.Parameters.Single().IsParams, "Derived2.N.IsParams should be false");
+            Assert.False(derived2N.Parameters.Single().IsParamsArray, "Derived2.N.IsParams should be false");
+            Assert.False(derived2N.Parameters.Single().IsParamsCollection);
         }
 
         /// <summary>
@@ -689,11 +820,23 @@ public class Derived2 : Derived
             var derived2Indexer2 = (PropertySymbol)derived2Class.GetMembers().Where(IsPropertyWithSingleParameter(SpecialType.System_Int64, isArrayType: true)).Single();
 
             Assert.True(baseIndexer1.Parameters.Single().IsParams, "Base.Indexer1.IsParams should be true");
+            Assert.True(baseIndexer1.Parameters.Single().IsParamsArray, "Base.Indexer1.IsParams should be true");
+            Assert.False(baseIndexer1.Parameters.Single().IsParamsCollection);
             Assert.False(baseIndexer2.Parameters.Single().IsParams, "Base.Indexer2.IsParams should be false");
+            Assert.False(baseIndexer2.Parameters.Single().IsParamsArray, "Base.Indexer2.IsParams should be false");
+            Assert.False(baseIndexer2.Parameters.Single().IsParamsCollection);
             Assert.True(derivedIndexer1.Parameters.Single().IsParams, "Derived.Indexer1.IsParams should be true"); //Indexer2B: does not reflect source
+            Assert.True(derivedIndexer1.Parameters.Single().IsParamsArray, "Derived.Indexer1.IsParams should be true"); //Indexer2B: does not reflect source
+            Assert.False(derivedIndexer1.Parameters.Single().IsParamsCollection);
             Assert.False(derivedIndexer2.Parameters.Single().IsParams, "Derived.Indexer2.IsParams should be false"); //Indexer2B: does not reflect source
+            Assert.False(derivedIndexer2.Parameters.Single().IsParamsArray, "Derived.Indexer2.IsParams should be false"); //Indexer2B: does not reflect source
+            Assert.False(derivedIndexer2.Parameters.Single().IsParamsCollection);
             Assert.True(derived2Indexer1.Parameters.Single().IsParams, "Derived2.Indexer1.IsParams should be true");
+            Assert.True(derived2Indexer1.Parameters.Single().IsParamsArray, "Derived2.Indexer1.IsParams should be true");
+            Assert.False(derived2Indexer1.Parameters.Single().IsParamsCollection);
             Assert.False(derived2Indexer2.Parameters.Single().IsParams, "Derived2.Indexer2.IsParams should be false");
+            Assert.False(derived2Indexer2.Parameters.Single().IsParamsArray, "Derived2.Indexer2.IsParams should be false");
+            Assert.False(derived2Indexer2.Parameters.Single().IsParamsCollection);
         }
 
         [ConditionalFact(typeof(ClrOnly), typeof(DesktopOnly))]

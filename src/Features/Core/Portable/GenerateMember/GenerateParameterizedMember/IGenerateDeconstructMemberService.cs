@@ -9,11 +9,10 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
+namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
+
+internal interface IGenerateDeconstructMemberService : ILanguageService
 {
-    internal interface IGenerateDeconstructMemberService : ILanguageService
-    {
-        Task<ImmutableArray<CodeAction>> GenerateDeconstructMethodAsync(
-            Document document, SyntaxNode targetVariables, INamedTypeSymbol typeToGenerateIn, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
-    }
+    Task<ImmutableArray<CodeAction>> GenerateDeconstructMethodAsync(
+        Document document, SyntaxNode targetVariables, INamedTypeSymbol typeToGenerateIn, CancellationToken cancellationToken);
 }

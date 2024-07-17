@@ -103,6 +103,8 @@ namespace Microsoft.Cci
             return SpecializedCollections.EmptyEnumerable<Cci.TypeReferenceWithAttributes>();
         }
 
+        bool IDefinition.IsEncDeleted => false;
+
         public bool IsAbstract
         {
             get { return false; }

@@ -4386,7 +4386,7 @@
     <value>The specified version string does not conform to the recommended format</value>
   </data>
   <data name="ERR_InvalidVersionFormat2" xml:space="preserve">
-    <value>The specified version string does not conform to the recommended format - major.minor.build.revision</value>
+    <value>The specified version string does not conform to the recommended format - major.minor.build.revision (without wildcards)</value>
   </data>
   <data name="ERR_InvalidAssemblyCultureForExe" xml:space="preserve">
     <value>Executables cannot be satellite assemblies; culture should always be empty</value>
@@ -5589,25 +5589,23 @@
     <value>Attribute is not supported in VB</value>
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration" xml:space="preserve">
-    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
-    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
-  </data>
-  <data name="WRN_GeneratorFailedDuringGeneration_Description" xml:space="preserve">
-    <value>Generator threw the following exception:
-'{0}'.</value>
-    <comment>{0} is the string representation of the exception that was thrown.</comment>
+    <value>Generator '{0}' failed to generate source. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</value>
+    <comment>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringGeneration_Title" xml:space="preserve">
     <value>Generator failed to generate source.</value>
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization" xml:space="preserve">
-    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'</value>
-    <comment>{0} is the name of the generator that failed. {1} is the type of exception that was thrown {2} is the message in the exception</comment>
-  </data>
-  <data name="WRN_GeneratorFailedDuringInitialization_Description" xml:space="preserve">
-    <value>Generator threw the following exception:
-'{0}'.</value>
-    <comment>{0} is the string representation of the exception that was thrown.</comment>
+    <value>Generator '{0}' failed to initialize. It will not contribute to the output and compilation errors may occur as a result. Exception was of type '{1}' with message '{2}'.
+{3}</value>
+    <comment>{0} is the name of the generator that failed.
+{1} is the type of exception that was thrown.
+{2} is the message in the exception.
+{3} is the string representation of the exception that was thrown.</comment>
   </data>
   <data name="WRN_GeneratorFailedDuringInitialization_Title" xml:space="preserve">
     <value>Generator failed to initialize.</value>
@@ -5693,5 +5691,20 @@
   </data>
   <data name="ERR_SymbolDefinedInAssembly" xml:space="preserve">
     <value>'{0}' is defined in assembly '{1}'.</value>
+  </data>
+  <data name="ERR_InvalidExperimentalDiagID" xml:space="preserve">
+    <value>The diagnosticId argument to the 'Experimental' attribute must be a valid identifier</value>
+  </data>
+  <data name="ERR_LockTypeUnsupported" xml:space="preserve">
+    <value>A value of type 'System.Threading.Lock' is not supported in SyncLock. Consider manually calling 'Enter' and 'Exit' methods in a Try/Finally block instead.</value>
+  </data>
+  <data name="WRN_ConvertingLock" xml:space="preserve">
+    <value>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</value>
+  </data>
+  <data name="WRN_ConvertingLock_Title" xml:space="preserve">
+    <value>A value of type 'System.Threading.Lock' converted to a different type will use likely unintended monitor-based locking in SyncLock statement.</value>
+  </data>
+  <data name="ERR_InvalidVersionFormatDeterministic" xml:space="preserve">
+    <value>The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation</value>
   </data>
 </root>

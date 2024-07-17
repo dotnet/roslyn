@@ -60,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (fieldSymbol.IsStatic ||
                 !fieldSymbol.ContainingType.IsValueType ||
+                fieldSymbol.RefKind != RefKind.None ||
                 receiver == null) // receiver may be null in error cases
             {
                 return false;
@@ -88,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ThreeState initialBindingReceiverIsSubjectToCloning,
             MethodSymbol method,
             ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<string> argumentNamesOpt,
+            ImmutableArray<string?> argumentNamesOpt,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool isDelegateCall,
             bool expanded,
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ThreeState initialBindingReceiverIsSubjectToCloning,
                                 MethodSymbol method,
                                 ImmutableArray<BoundExpression> arguments,
-                                ImmutableArray<string> argumentNamesOpt,
+                                ImmutableArray<string?> argumentNamesOpt,
                                 ImmutableArray<RefKind> argumentRefKindsOpt,
                                 bool isDelegateCall,
                                 bool expanded,
@@ -122,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt,
             MethodSymbol method,
             ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<string> namedArguments,
+            ImmutableArray<string?> namedArguments,
             ImmutableArray<RefKind> refKinds,
             bool isDelegateCall,
             bool invokedAsExtensionMethod,
@@ -212,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     initialBindingReceiverIsSubjectToCloning: initialBindingReceiverIsSubjectToCloning,
                     method: method,
                     arguments: arguments,
-                    argumentNamesOpt: default(ImmutableArray<string>),
+                    argumentNamesOpt: default(ImmutableArray<string?>),
                     argumentRefKindsOpt: argumentRefKindsOpt,
                     isDelegateCall: false,
                     expanded: false,
@@ -250,11 +251,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal sealed partial class BoundObjectCreationExpression
     {
         public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, params BoundExpression[] arguments)
-            : this(syntax, constructor, ImmutableArray.Create<BoundExpression>(arguments), default(ImmutableArray<string>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>), default(BitVector), null, null, constructor.ContainingType)
+            : this(syntax, constructor, ImmutableArray.Create<BoundExpression>(arguments), default(ImmutableArray<string?>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>), default(BitVector), null, null, constructor.ContainingType)
         {
         }
         public BoundObjectCreationExpression(SyntaxNode syntax, MethodSymbol constructor, ImmutableArray<BoundExpression> arguments)
-            : this(syntax, constructor, arguments, default(ImmutableArray<string>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>), default(BitVector), null, null, constructor.ContainingType)
+            : this(syntax, constructor, arguments, default(ImmutableArray<string?>), default(ImmutableArray<RefKind>), false, default(ImmutableArray<int>), default(BitVector), null, null, constructor.ContainingType)
         {
         }
     }
@@ -266,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt,
             PropertySymbol indexer,
             ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<string> namedArguments,
+            ImmutableArray<string?> namedArguments,
             ImmutableArray<RefKind> refKinds,
             ImmutableArray<PropertySymbol> originalIndexers)
         {
@@ -279,9 +280,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 namedArguments,
                 refKinds,
                 expanded: false,
+                accessorKind: AccessorKind.Unknown,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 defaultArguments: default(BitVector),
-                originalIndexers,
+                originalIndexersOpt: originalIndexers,
                 type: indexer.Type,
                 hasErrors: true);
         }
@@ -291,27 +293,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             ThreeState initialBindingReceiverIsSubjectToCloning,
             PropertySymbol indexer,
             ImmutableArray<BoundExpression> arguments,
-            ImmutableArray<string> argumentNamesOpt,
+            ImmutableArray<string?> argumentNamesOpt,
             ImmutableArray<RefKind> argumentRefKindsOpt,
             bool expanded,
+            AccessorKind accessorKind,
             ImmutableArray<int> argsToParamsOpt,
             BitVector defaultArguments,
             TypeSymbol type,
             bool hasErrors = false) :
-            this(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, originalIndexersOpt: default, type, hasErrors)
+            this(syntax, receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, accessorKind, argsToParamsOpt, defaultArguments, originalIndexersOpt: default, type, hasErrors)
         { }
 
         public BoundIndexerAccess Update(BoundExpression? receiverOpt,
                                          ThreeState initialBindingReceiverIsSubjectToCloning,
                                          PropertySymbol indexer,
                                          ImmutableArray<BoundExpression> arguments,
-                                         ImmutableArray<string> argumentNamesOpt,
+                                         ImmutableArray<string?> argumentNamesOpt,
                                          ImmutableArray<RefKind> argumentRefKindsOpt,
                                          bool expanded,
+                                         AccessorKind accessorKind,
                                          ImmutableArray<int> argsToParamsOpt,
                                          BitVector defaultArguments,
                                          TypeSymbol type)
-            => Update(receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, argsToParamsOpt, defaultArguments, this.OriginalIndexersOpt, type);
+            => Update(receiverOpt, initialBindingReceiverIsSubjectToCloning, indexer, arguments, argumentNamesOpt, argumentRefKindsOpt, expanded, accessorKind, argsToParamsOpt, defaultArguments, this.OriginalIndexersOpt, type);
     }
 
     internal sealed partial class BoundConversion

@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -83,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// The set of local variables and parameters that were hoisted and need a proxy.
         /// </summary>
-        private readonly Roslyn.Utilities.IReadOnlySet<Symbol> _hoistedVariables;
+        private readonly IReadOnlySet<Symbol> _hoistedVariables;
 
         private readonly SynthesizedLocalOrdinalsDispenser _synthesizedLocalOrdinals;
         private int _nextFreeHoistedLocalSlot;
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol originalMethod,
             FieldSymbol state,
             FieldSymbol? instanceIdField,
-            Roslyn.Utilities.IReadOnlySet<Symbol> hoistedVariables,
+            IReadOnlySet<Symbol> hoistedVariables,
             IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> nonReusableLocalProxies,
             SynthesizedLocalOrdinalsDispenser synthesizedLocalOrdinals,
             ArrayBuilder<StateMachineStateDebugInfo> stateMachineStateDebugInfoBuilder,
@@ -141,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 proxies.TryGetValue(thisParameter, out thisProxy) &&
                 F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release)
             {
-                BoundExpression thisProxyReplacement = thisProxy.Replacement(F.Syntax, frameType => F.This());
+                BoundExpression thisProxyReplacement = thisProxy.Replacement(F.Syntax, static (frameType, F) => F.This(), F);
                 Debug.Assert(thisProxyReplacement.Type is not null);
                 this.cachedThis = F.SynthesizedLocal(thisProxyReplacement.Type, syntax: F.Syntax, kind: SynthesizedLocalKind.FrameCache);
             }
@@ -188,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { return OriginalMethod.ContainingType; }
         }
 
-        internal Roslyn.Utilities.IReadOnlySet<Symbol> HoistedVariables
+        internal IReadOnlySet<Symbol> HoistedVariables
         {
             get
             {
@@ -206,22 +205,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 #nullable enable
-        protected void AddResumableState(SyntaxNode awaitOrYieldReturnSyntax, out StateMachineState state, out GeneratedLabelSymbol resumeLabel)
-            => AddResumableState(_resumableStateAllocator, awaitOrYieldReturnSyntax, out state, out resumeLabel);
+        protected void AddResumableState(SyntaxNode awaitOrYieldReturnSyntax, AwaitDebugId awaitId, out StateMachineState state, out GeneratedLabelSymbol resumeLabel)
+            => AddResumableState(_resumableStateAllocator, awaitOrYieldReturnSyntax, awaitId, out state, out resumeLabel);
 
-        protected void AddResumableState(ResumableStateMachineStateAllocator allocator, SyntaxNode awaitOrYieldReturnSyntax, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
+        protected void AddResumableState(ResumableStateMachineStateAllocator allocator, SyntaxNode awaitOrYieldReturnSyntax, AwaitDebugId awaitId, out StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
         {
-            stateNumber = allocator.AllocateState(awaitOrYieldReturnSyntax);
-            AddStateDebugInfo(awaitOrYieldReturnSyntax, stateNumber);
+            stateNumber = allocator.AllocateState(awaitOrYieldReturnSyntax, awaitId);
+            AddStateDebugInfo(awaitOrYieldReturnSyntax, awaitId, stateNumber);
             AddState(stateNumber, out resumeLabel);
         }
 
-        protected void AddStateDebugInfo(SyntaxNode node, StateMachineState state)
+        protected void AddStateDebugInfo(SyntaxNode node, AwaitDebugId awaitId, StateMachineState state)
         {
             Debug.Assert(SyntaxBindingUtilities.BindsToResumableStateMachineState(node) || SyntaxBindingUtilities.BindsToTryStatement(node), $"Unexpected syntax: {node.Kind()}");
 
             int syntaxOffset = CurrentMethod.CalculateLocalSyntaxOffset(node.SpanStart, node.SyntaxTree);
-            _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, state));
+            _stateDebugInfoBuilder.Add(new StateMachineStateDebugInfo(syntaxOffset, awaitId, state));
         }
 
         protected void AddState(StateMachineState stateNumber, out GeneratedLabelSymbol resumeLabel)
@@ -440,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (type.IsReferenceType || type.TypeKind == TypeKind.TypeParameter) return true; // type parameter or reference type
             if (type.TypeKind != TypeKind.Struct) return false; // enums, etc
             if (type.SpecialType == SpecialType.System_TypedReference) return true;
-            if (type.SpecialType != SpecialType.None) return false; // int, etc
+            if (type.SpecialType.CanOptimizeBehavior()) return false; // int, etc
             if (!type.IsFromCompilation(this.CompilationState.ModuleBuilderOpt.Compilation)) return true; // perhaps from ref assembly
             foreach (var f in _emptyStructTypeCache.GetStructInstanceFields(type))
             {
@@ -672,8 +671,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Editing await expression is not allowed. Thus all spilled fields will be present in the previous state machine.
                         // However, it may happen that the type changes, in which case we need to allocate a new slot.
                         int slotIndex;
-                        if (slotAllocatorOpt == null ||
-                            !slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
+                        if (slotAllocator == null ||
+                            !slotAllocator.TryGetPreviousHoistedLocalSlotIndex(
                                 awaitSyntaxOpt,
                                 F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics.DiagnosticBag),
                                 kind,
@@ -926,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)this.cachedThis != null)
             {
                 CapturedSymbolReplacement proxy = proxies[this.OriginalMethod.ThisParameter];
-                var fetchThis = proxy.Replacement(F.Syntax, frameType => F.This());
+                var fetchThis = proxy.Replacement(F.Syntax, static (frameType, F) => F.This(), F);
                 return F.Assignment(F.Local(this.cachedThis), fetchThis);
             }
 
@@ -962,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(proxy != null);
-                return proxy.Replacement(F.Syntax, frameType => F.This());
+                return proxy.Replacement(F.Syntax, static (frameType, F) => F.This(), F);
             }
         }
 
@@ -978,7 +977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CapturedSymbolReplacement proxy = proxies[this.OriginalMethod.ThisParameter];
             Debug.Assert(proxy != null);
-            return proxy.Replacement(F.Syntax, frameType => F.This());
+            return proxy.Replacement(F.Syntax, static (frameType, F) => F.This(), F);
         }
 
         #endregion

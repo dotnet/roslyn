@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var lazy = GetDynamicFileInfoProvider();
 
             Assert.Equal(2, lazy.Metadata.Extensions.Count());
-            AssertEx.SetEqual(new[] { "cshtml", "vbhtml" }, lazy.Metadata.Extensions);
+            AssertEx.SetEqual(["cshtml", "vbhtml"], lazy.Metadata.Extensions);
         }
 
         [Fact]

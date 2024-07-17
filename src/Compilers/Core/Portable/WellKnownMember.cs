@@ -7,13 +7,8 @@ namespace Microsoft.CodeAnalysis
     // Members of well known types
     internal enum WellKnownMember
     {
-        System_Object__ToString,
-
         System_Math__RoundDouble,
         System_Math__PowDoubleDouble,
-
-        System_Array__get_Length,
-        System_Array__Empty,
 
         System_Convert__ToBooleanDecimal,
         System_Convert__ToBooleanInt32,
@@ -64,8 +59,6 @@ namespace Microsoft.CodeAnalysis
         System_Reflection_MethodBase__GetMethodFromHandle,
         System_Reflection_MethodBase__GetMethodFromHandle2,
         System_Reflection_MethodInfo__CreateDelegate,
-        System_Delegate__CreateDelegate,
-        System_Delegate__CreateDelegate4,
         System_Reflection_FieldInfo__GetFieldFromHandle,
         System_Reflection_FieldInfo__GetFieldFromHandle2,
 
@@ -430,8 +423,6 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_TupleElementNamesAttribute__ctorTransformNames,
 
-        System_String__Format_IFormatProvider,
-
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
         Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
 
@@ -488,6 +479,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Span_T__ctor_Pointer,
         System_Span_T__ctor_Array,
+        System_Span_T__ctor_ref_T,
         System_Span_T__get_Item,
         System_Span_T__get_Length,
         System_Span_T__Slice_Int_Int,
@@ -495,10 +487,10 @@ namespace Microsoft.CodeAnalysis
         System_ReadOnlySpan_T__ctor_Pointer,
         System_ReadOnlySpan_T__ctor_Array,
         System_ReadOnlySpan_T__ctor_Array_Start_Length,
+        System_ReadOnlySpan_T__ctor_ref_readonly_T,
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
         System_ReadOnlySpan_T__Slice_Int_Int,
-        System_ReadOnlySpan_T__op_Implicit_ReadOnlySpan_T_Array,
 
         System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor,
 
@@ -559,6 +551,7 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_SwitchExpressionException__ctorObject,
 
         System_Threading_CancellationToken__Equals,
+        System_Threading_CancellationToken__ThrowIfCancellationRequested,
         System_Threading_CancellationTokenSource__CreateLinkedTokenSource,
         System_Threading_CancellationTokenSource__Token,
         System_Threading_CancellationTokenSource__Dispose,
@@ -586,12 +579,51 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_CompilerFeatureRequiredAttribute__ctor,
         System_Diagnostics_CodeAnalysis_UnscopedRefAttribute__ctor,
 
-        System_MissingMethodException__ctor,
+        System_NotSupportedException__ctor,
+        System_IndexOutOfRangeException__ctor,
+
+        System_MissingMethodException__ctorString,
         System_Runtime_CompilerServices_MetadataUpdateOriginalTypeAttribute__ctor,
 
+        System_Collections_ICollection__Count,
+        System_Collections_ICollection__IsSynchronized,
+        System_Collections_ICollection__SyncRoot,
+        System_Collections_ICollection__CopyTo,
+        System_Collections_IList__get_Item,
+        System_Collections_IList__IsFixedSize,
+        System_Collections_IList__IsReadOnly,
+        System_Collections_IList__Add,
+        System_Collections_IList__Clear,
+        System_Collections_IList__Contains,
+        System_Collections_IList__IndexOf,
+        System_Collections_IList__Insert,
+        System_Collections_IList__Remove,
+        System_Collections_IList__RemoveAt,
+
+        System_Collections_Generic_List_T__ctor,
+        System_Collections_Generic_List_T__ctorInt32,
+        System_Collections_Generic_List_T__Add,
+        System_Collections_Generic_List_T__Count,
+        System_Collections_Generic_List_T__Contains,
+        System_Collections_Generic_List_T__CopyTo,
+        System_Collections_Generic_List_T__get_Item,
+        System_Collections_Generic_List_T__IndexOf,
         System_Collections_Generic_List_T__ToArray,
 
-        Count
+        System_Runtime_InteropServices_CollectionsMarshal__AsSpan_T,
+        System_Runtime_InteropServices_CollectionsMarshal__SetCount_T,
+        System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T,
+
+        System_Span_T__ToArray,
+        System_ReadOnlySpan_T__ToArray,
+        System_Span_T__CopyTo_Span_T,
+        System_ReadOnlySpan_T__CopyTo_Span_T,
+        System_Collections_Immutable_ImmutableArray_T__AsSpan,
+        System_Collections_Generic_List_T__AddRange,
+
+        System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,
+
+        Count,
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here
     }

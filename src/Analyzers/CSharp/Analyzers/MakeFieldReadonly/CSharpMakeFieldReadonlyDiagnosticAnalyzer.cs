@@ -10,15 +10,14 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.MakeFieldReadonly;
 
-namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MakeFieldReadonly
-{
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpMakeFieldReadonlyDiagnosticAnalyzer
-        : AbstractMakeFieldReadonlyDiagnosticAnalyzer<SyntaxKind, ThisExpressionSyntax>
-    {
-        protected override ISyntaxKinds SyntaxKinds => CSharpSyntaxKinds.Instance;
+namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MakeFieldReadonly;
 
-        protected override bool IsWrittenTo(SemanticModel semanticModel, ThisExpressionSyntax expression, CancellationToken cancellationToken)
-            => expression.IsWrittenTo(semanticModel, cancellationToken);
-    }
+[DiagnosticAnalyzer(LanguageNames.CSharp)]
+internal sealed class CSharpMakeFieldReadonlyDiagnosticAnalyzer
+    : AbstractMakeFieldReadonlyDiagnosticAnalyzer<SyntaxKind, ThisExpressionSyntax>
+{
+    protected override ISyntaxKinds SyntaxKinds => CSharpSyntaxKinds.Instance;
+
+    protected override bool IsWrittenTo(SemanticModel semanticModel, ThisExpressionSyntax expression, CancellationToken cancellationToken)
+        => expression.IsWrittenTo(semanticModel, cancellationToken);
 }

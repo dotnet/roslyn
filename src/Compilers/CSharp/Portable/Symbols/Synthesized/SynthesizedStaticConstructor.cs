@@ -434,5 +434,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal sealed override bool HasUnscopedRefAttribute => false;
 
         internal sealed override bool UseUpdatedEscapeRules => false;
+
+        internal sealed override bool HasAsyncMethodBuilderAttribute(out TypeSymbol? builderArgument)
+        {
+            builderArgument = null;
+            return false;
+        }
+
+        internal sealed override int? TryGetOverloadResolutionPriority()
+        {
+            return null;
+        }
     }
 }

@@ -8,7 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote.Diagnostics;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Telemetry;
@@ -33,22 +35,7 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         /// <summary>
-        /// Remote API.
-        /// </summary>
-        public ValueTask StartSolutionCrawlerAsync(CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(cancellationToken =>
-            {
-                // register solution crawler:
-                var workspace = GetWorkspace();
-                workspace.Services.GetRequiredService<ISolutionCrawlerRegistrationService>().Register(workspace);
-
-                return ValueTaskFactory.CompletedTask;
-            }, cancellationToken);
-        }
-
-        /// <summary>
-        /// Calculate dignostics. this works differently than other ones such as todo comments or designer attribute scanner
+        /// Calculate diagnostics. this works differently than other ones such as todo comments or designer attribute scanner
         /// since in proc and out of proc runs quite differently due to concurrency and due to possible amount of data
         /// that needs to pass through between processes
         /// </summary>
@@ -76,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                         var result = await DiagnosticComputer.GetDiagnosticsAsync(
                             document, project, solutionChecksum,
-                            arguments.IdeOptions, documentSpan,
+                            documentSpan,
                             arguments.AnalyzerIds, documentAnalysisKind,
                             _analyzerInfoCache, hostWorkspaceServices,
                             isExplicit: arguments.IsExplicit,
@@ -94,6 +81,28 @@ namespace Microsoft.CodeAnalysis.Remote
                         return result;
                     }, cancellationToken).ConfigureAwait(false);
             }
+        }
+
+        public async ValueTask<ImmutableArray<DiagnosticData>> GetSourceGeneratorDiagnosticsAsync(Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
+        {
+            return await RunWithSolutionAsync(
+                solutionChecksum,
+                async solution =>
+                {
+                    var project = solution.GetRequiredProject(projectId);
+                    var diagnostics = await project.GetSourceGeneratorDiagnosticsAsync(cancellationToken).ConfigureAwait(false);
+                    using var builder = TemporaryArray<DiagnosticData>.Empty;
+                    foreach (var diagnostic in diagnostics)
+                    {
+                        var document = solution.GetDocument(diagnostic.Location.SourceTree);
+                        var data = document != null
+                            ? DiagnosticData.Create(diagnostic, document)
+                            : DiagnosticData.Create(solution, diagnostic, project);
+                        builder.Add(data);
+                    }
+
+                    return builder.ToImmutableAndClear();
+                }, cancellationToken).ConfigureAwait(false);
         }
 
         public ValueTask ReportAnalyzerPerformanceAsync(ImmutableArray<AnalyzerPerformanceInfo> snapshot, int unitCount, bool forSpanAnalysis, CancellationToken cancellationToken)

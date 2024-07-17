@@ -8,11 +8,9 @@ using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
-using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -22,10 +20,8 @@ namespace Microsoft.CodeAnalysis.EditorFeatures.Intents;
 [IntentProvider(WellKnownIntents.DeleteParameter, LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DeleteParameterIntentProvider(IGlobalOptionService globalOptionService) : IIntentProvider
+internal sealed class DeleteParameterIntentProvider() : IIntentProvider
 {
-    private readonly IGlobalOptionService _globalOptionService = globalOptionService;
-
     public async Task<ImmutableArray<IntentProcessorResult>> ComputeIntentAsync(
         Document priorDocument,
         TextSpan priorSelection,
@@ -35,11 +31,11 @@ internal sealed class DeleteParameterIntentProvider(IGlobalOptionService globalO
     {
         var changeSignatureService = priorDocument.GetRequiredLanguageService<AbstractChangeSignatureService>();
         var contextResult = await changeSignatureService.GetChangeSignatureContextAsync(
-            priorDocument, priorSelection.Start, restrictToDeclarations: false, _globalOptionService.CreateProvider(), cancellationToken).ConfigureAwait(false);
+            priorDocument, priorSelection.Start, restrictToDeclarations: false, cancellationToken).ConfigureAwait(false);
 
         if (contextResult is not ChangeSignatureAnalysisSucceededContext context)
         {
-            return ImmutableArray<IntentProcessorResult>.Empty;
+            return [];
         }
 
         var parameterIndexToDelete = context.ParameterConfiguration.SelectedIndex;
@@ -49,7 +45,7 @@ internal sealed class DeleteParameterIntentProvider(IGlobalOptionService globalO
         if (isExtensionMethod && parameterIndexToDelete == 0)
         {
             // We can't delete the 'this' parameter of an extension method.
-            return ImmutableArray<IntentProcessorResult>.Empty;
+            return [];
         }
 
         var newParameters = parameters.RemoveAt(parameterIndexToDelete);
@@ -60,10 +56,10 @@ internal sealed class DeleteParameterIntentProvider(IGlobalOptionService globalO
         var changeSignatureResult = await changeSignatureService.ChangeSignatureWithContextAsync(context, changeSignatureOptionResult, cancellationToken).ConfigureAwait(false);
         if (!changeSignatureResult.Succeeded)
         {
-            return ImmutableArray<IntentProcessorResult>.Empty;
+            return [];
         }
 
         var changedDocuments = changeSignatureResult.UpdatedSolution.GetChangedDocuments(priorDocument.Project.Solution).ToImmutableArray();
-        return ImmutableArray.Create(new IntentProcessorResult(changeSignatureResult.UpdatedSolution, changedDocuments, EditorFeaturesResources.Change_Signature, WellKnownIntents.DeleteParameter));
+        return [new IntentProcessorResult(changeSignatureResult.UpdatedSolution, changedDocuments, EditorFeaturesResources.Change_Signature, WellKnownIntents.DeleteParameter)];
     }
 }

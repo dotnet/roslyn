@@ -127,9 +127,19 @@
         <target state="translated">语义分类</target>
         <note />
       </trans-unit>
+      <trans-unit id="FeatureName_SemanticSearch">
+        <source>Semantic search</source>
+        <target state="translated">语义搜索</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FeatureName_SolutionAssetProvider">
         <source>Asset provider</source>
         <target state="translated">资产提供商</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FeatureName_SourceGeneration">
+        <source>Source generation</source>
+        <target state="translated">源生成</target>
         <note />
       </trans-unit>
       <trans-unit id="FeatureName_StackTraceExplorer">

@@ -9,36 +9,37 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+[Export(typeof(VSTypeScriptGlobalOptions)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSTypeScriptGlobalOptions(IGlobalOptionService globalOptions)
 {
-    [Export(typeof(VSTypeScriptGlobalOptions)), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class VSTypeScriptGlobalOptions(IGlobalOptionService globalOptions)
+    private readonly IGlobalOptionService _globalOptions = globalOptions;
+
+    public bool BlockForCompletionItems
     {
-        private readonly IGlobalOptionService _globalOptions = globalOptions;
+        get => _globalOptions.GetOption(CompletionViewOptionsStorage.BlockForCompletionItems, InternalLanguageNames.TypeScript);
+        set => _globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, InternalLanguageNames.TypeScript, value);
+    }
 
-        public bool BlockForCompletionItems
-        {
-            get => _globalOptions.GetOption(CompletionViewOptionsStorage.BlockForCompletionItems, InternalLanguageNames.TypeScript);
-            set => _globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, InternalLanguageNames.TypeScript, value);
-        }
+    public void SetBackgroundAnalysisScope(bool openFilesOnly)
+    {
+        _globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript,
+            openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution);
+        _globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, InternalLanguageNames.TypeScript,
+            openFilesOnly ? CompilerDiagnosticsScope.OpenFiles : CompilerDiagnosticsScope.FullSolution);
 
-        public void SetBackgroundAnalysisScope(bool openFilesOnly)
-        {
-            _globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript,
-                openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution);
-
-            _globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.RemoveDocumentDiagnosticsOnDocumentClose, InternalLanguageNames.TypeScript,
-                openFilesOnly);
-        }
+        _globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.RemoveDocumentDiagnosticsOnDocumentClose, InternalLanguageNames.TypeScript,
+            openFilesOnly);
+    }
 
 #pragma warning disable IDE0060 // Remove unused parameter
-        [Obsolete("Do not pass workspace")]
-        public void SetBackgroundAnalysisScope(Workspace workspace, bool openFilesOnly)
-            => SetBackgroundAnalysisScope(openFilesOnly);
+    [Obsolete("Do not pass workspace")]
+    public void SetBackgroundAnalysisScope(Workspace workspace, bool openFilesOnly)
+        => SetBackgroundAnalysisScope(openFilesOnly);
 #pragma warning restore
 
-        internal IGlobalOptionService Service => _globalOptions;
-    }
+    internal IGlobalOptionService Service => _globalOptions;
 }

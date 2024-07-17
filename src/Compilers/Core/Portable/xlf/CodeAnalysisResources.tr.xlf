@@ -42,13 +42,6 @@
         <target state="translated">Hata ayıklama sırasında bütünleştirilmiş kod başvurusunun sürümünü değiştirmeye izin verilmez: '{0}' sürümü, '{1}' olarak değiştirildi.</target>
         <note />
       </trans-unit>
-      <trans-unit id="CompilerAnalyzerThrowsDescription">
-        <source>Analyzer '{0}' threw the following exception:
-'{1}'.</source>
-        <target state="translated">'{0}' çözümleyicisi şu özel durumu oluşturdu:
-'{1}'.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DisableAnalyzerDiagnosticsMessage">
         <source>Suppress the following diagnostics to disable this analyzer: {0}</source>
         <target state="translated">Bu çözümleyiciyi devre dışı bırakmak için şu tanılamaları gizleyin: {0}</target>
@@ -62,6 +55,26 @@
       <trans-unit id="EncCannotResumeSuspendedIteratorMethod">
         <source>Edit and Continue can't resume suspended iterator since the corresponding yield return statement has been deleted</source>
         <target state="translated">İlgili yield return deyimi silindiğinden Düzenle ve Devam Et, askıya alınmış yineleyiciyi sürdüremiyor</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncDeletedLambdaInvoked">
+        <source>Attempted to invoke a deleted lambda or local function implementation. This can happen when lambda or local function is deleted while the application is running.</source>
+        <target state="translated">Silinmiş bir lambda işlevi veya yerel işlev uygulaması çağrılmaya çalışıldı. Uygulama çalışırken lambda işlevi veya yerel işlev silindiğinde bu durum gerçekleşebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncDeletedMethodInvoked">
+        <source>Attempted to invoke a deleted method implementation. This can happen when a method is deleted or its name or signature is changed while the application is running.</source>
+        <target state="translated">Silinmiş bir yöntem uygulaması çağrılmaya çalışıldı. Uygulama çalışırken bir yöntem silindiğinde ya da yöntemin adı veya imzası değiştirildiğinde bu durum gerçekleşebilir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncLambdaRudeEdit">
+        <source>Attempted to invoke lambda or local function with an unsupported change made while the application is running: {0}</source>
+        <target state="translated">Uygulama çalışırken desteklenmeyen bir değişikliğin yapıldığı lambda işlevi veya yerel işlev çağrılmaya çalışıldı: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="EncLambdaRudeEdit_CapturedVariables">
+        <source>Attempted to invoke lambda or local function that has an unsupported change to captured variables made while the application is running</source>
+        <target state="translated">Uygulama çalışırken yakalanan değişkenlere değiştirme işleminin desteklenmediği lambda işlevi veya yerel işlev çağrılmaya çalışıldı.</target>
         <note />
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">
@@ -212,7 +225,7 @@
       </trans-unit>
       <trans-unit id="SigningTempPathUnavailable">
         <source>The temporary path for legacy file signing is unavailable.</source>
-        <target state="new">The temporary path for legacy file signing is unavailable.</target>
+        <target state="translated">Eski dosya imzalama için geçici yol kullanılamıyor.</target>
         <note />
       </trans-unit>
       <trans-unit id="Single_type_per_generator_0">
@@ -746,16 +759,13 @@
         <note />
       </trans-unit>
       <trans-unit id="AnalyzerDriverThrows">
-        <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.</source>
-        <target state="translated">Çözümleyici sürücüsü, '{1}' iletisiyle '{0}' türünde bir özel durum oluşturdu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="AnalyzerDriverThrowsDescription">
-        <source>Analyzer driver threw the following exception:
-'{0}'.</source>
-        <target state="translated">Çözümleyici sürücüsü aşağıdaki özel durumu oluşturdu:
-'{0}'.</target>
-        <note />
+        <source>Analyzer driver threw an exception of type '{0}' with message '{1}'.
+{2}</source>
+        <target state="translated">Çözümleyici sürücüsü, '{0}' iletisiyle '{1}' türünde bir özel durum oluşturdu.
+{2}</target>
+        <note>{0}: Type name
+{1}: Localized exception message
+{2}: Localized detail message</note>
       </trans-unit>
       <trans-unit id="PEImageDoesntContainManagedMetadata">
         <source>PE image doesn't contain managed metadata.</source>
