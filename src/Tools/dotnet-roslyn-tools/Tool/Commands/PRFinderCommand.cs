@@ -13,7 +13,7 @@ internal static class PRFinderCommand
 {
     private static readonly PrFinderCommandDefaultHandler s_prFinderCommandHandler = new();
 
-    internal static readonly string[] SupportedFormats = [PRFinder.PRFinder.DefaultFormat, PRFinder.PRFinder.OmniSharpFormat];
+    internal static readonly string[] SupportedFormats = [PRFinder.PRFinder.DefaultFormat, PRFinder.PRFinder.OmniSharpFormat, PRFinder.PRFinder.ChangelogFormat];
 
     internal static readonly Option<string> PreviousCommitShaOption = new(["--previous", "-p"], "SHA of the commit you want to start looking for PRs from") { IsRequired = true };
     internal static readonly Option<string> CurrentCommitSHAOption = new(["--current", "-c"], "SHA of commit you want to stop looking for PRs at") { IsRequired = true };
