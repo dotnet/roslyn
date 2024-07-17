@@ -1450,10 +1450,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MethodSymbol { AssociatedSymbol: SourcePropertySymbol property }:
                     field = property.BackingField;
                     break;
-                default:
-                    // PROTOTYPE: Handle other cases.
-                    diagnostics.Add(ErrorCode.ERR_NoSuchMember, node, ContainingType, "field");
-                    return BadExpression(node);
+                case var containingMember:
+                    throw ExceptionUtilities.UnexpectedValue(containingMember);
             }
 
             // PROTOTYPE: We're not applying any checks to this field reference. What checks do we
