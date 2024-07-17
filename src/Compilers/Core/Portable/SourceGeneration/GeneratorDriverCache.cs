@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal sealed class GeneratorDriverCache
     {
-        internal const int MaxCacheSize = 10;
+        internal const int MaxCacheSize = 100;
 
         private readonly (string cacheKey, GeneratorDriver driver)[] _cachedDrivers = new (string, GeneratorDriver)[MaxCacheSize];
 

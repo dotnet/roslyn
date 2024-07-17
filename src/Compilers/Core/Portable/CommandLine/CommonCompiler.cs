@@ -838,7 +838,11 @@ namespace Microsoft.CodeAnalysis
             driver = driver.RunGeneratorsAndUpdateCompilation(input, out var compilationOut, out var diagnostics);
             generatorDiagnostics.AddRange(diagnostics);
 
-            if (!disableCache)
+            // We only cache the generator driver if it produced any generated files. While its possible that it was expensive
+            // to calculate that nothing needed to be generated, real world usage has found that generators are generally only
+            // expensive when actually producing source. By only caching those with results, we help to keep memory usage down
+            // when it probably wouldn't improve the performance anyway.
+            if (!disableCache && driver.GetRunResult().GeneratedTrees.Any())
             {
                 this.GeneratorDriverCache?.CacheGenerator(cacheKey, driver);
             }
