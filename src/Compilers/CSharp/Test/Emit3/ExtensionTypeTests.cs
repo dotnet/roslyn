@@ -41049,6 +41049,75 @@ class Program
     }
 
     [Fact]
+    public void InstanceMethod_Metadata_18_modopt_instead_of_modreq()
+    {
+        // public implicit extension E for C
+        // {
+        //     public void Method() // But use modopt here instead
+        //     {
+        //     }
+        // }
+        // 
+        // public class C
+        // {
+        // }
+        var ilSource = """
+.class public sequential ansi sealed beforefieldinit E
+	extends [mscorlib]System.ValueType
+{
+	.method public hidebysig static 
+		void Method (
+			class C modopt([mscorlib]System.Runtime.CompilerServices.ExtensionAttribute) '<>4__this'
+		) cil managed 
+	{
+		.maxstack 8
+		IL_0006: ret
+	}
+
+	.method public hidebysig static 
+		void '<ImplicitExtension>$' (
+			class C ''
+		) cil managed 
+	{
+		.maxstack 8
+		IL_0000: ret
+	}
+}
+
+.class public auto ansi beforefieldinit C
+    extends [mscorlib]System.Object
+{
+    .method public hidebysig specialname rtspecialname 
+    	instance void .ctor () cil managed 
+    {
+    	.maxstack 8
+    	IL_0000: ldarg.0
+    	IL_0001: call instance void [mscorlib]System.Object::.ctor()
+    	IL_0006: ret
+    }
+}
+""";
+
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        c.Method();
+        E.Method(c);
+    }
+}
+""";
+        var comp = CreateCompilationWithIL(src2, ilSource, options: TestOptions.ReleaseExe);
+        comp.VerifyDiagnostics(
+            // (6,11): error CS7036: There is no argument given that corresponds to the required parameter '<>4__this' of 'E.Method(C)'
+            //         c.Method();
+            Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Method").WithArguments("<>4__this", "E.Method(C)").WithLocation(6, 11)
+            );
+    }
+
+    [Fact]
     public void InstanceProperty_Metadata_01()
     {
         var src1 = """
@@ -42019,8 +42088,6 @@ class Program
     // PROTOTYPE(roles): Test expression trees with instance members.
 
     // PROTOTYPE(roles): Ensure instance events are never treated as WINRT events.
-
-    // PROTOTYPE(roles): Test consumption of instance APIs from VB as static APIs. Also check behavior of legacy C# compilers.
 
     [Fact]
     public void InstanceMethod_Metadata_ConsumptionFromPreviousVersion_01()
