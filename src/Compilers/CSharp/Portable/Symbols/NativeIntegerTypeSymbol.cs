@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray((member, name) => member.Name == name, name);
+        public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray(predicate: (member, name) => member.Name == name, arg: name);
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers() => ImmutableArray<NamedTypeSymbol>.Empty;
 
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyInterfaces.IsDefault)
             {
-                var interfaces = _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved).SelectAsArray((type, map) => map.SubstituteNamedType(type), GetTypeMap());
+                var interfaces = _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved).SelectAsArray(map: (type, map) => map.SubstituteNamedType(type), arg: GetTypeMap());
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyInterfaces, interfaces);
             }
             return _lazyInterfaces;
@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyParameters.IsDefault)
                 {
-                    var parameters = UnderlyingMethod.Parameters.SelectAsArray((p, m) => (ParameterSymbol)new NativeIntegerParameterSymbol(m._container, m, p), this);
+                    var parameters = UnderlyingMethod.Parameters.SelectAsArray(map: (p, m) => (ParameterSymbol)new NativeIntegerParameterSymbol(m._container, m, p), arg: this);
                     ImmutableInterlocked.InterlockedInitialize(ref _lazyParameters, parameters);
                 }
                 return _lazyParameters;

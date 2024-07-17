@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
         Friend Shared Function GetAllLocals(compilation As VisualBasicCompilation, method As IMethodSymbol) As ImmutableArray(Of KeyValuePair(Of ILocalSymbol, Integer))
             Dim locals = GetAllLocals(compilation, DirectCast(method, MethodSymbol))
-            Return locals.SelectAsArray(Function(local, index, arg) New KeyValuePair(Of ILocalSymbol, Integer)(local, index), DirectCast(Nothing, Object))
+            Return locals.SelectAsArray(map:=Function(local, index, arg) New KeyValuePair(Of ILocalSymbol, Integer)(local, index), arg:=DirectCast(Nothing, Object))
         End Function
 
         Friend Shared Function GetAllLocals(method As SourceMethodSymbol) As ImmutableArray(Of VisualBasicSyntaxNode)

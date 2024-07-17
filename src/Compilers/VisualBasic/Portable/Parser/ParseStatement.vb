@@ -792,7 +792,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         Case SyntaxKind.OpenParenToken
                             Dim lookAhead As SyntaxToken = Nothing
-                            Dim i = PeekAheadFor(s_isTokenOrKeywordFunc, {SyntaxKind.AsKeyword, SyntaxKind.InKeyword, SyntaxKind.EqualsToken}, lookAhead)
+                            Dim i = PeekAheadFor(predicate:=s_isTokenOrKeywordFunc, arg:={SyntaxKind.AsKeyword, SyntaxKind.InKeyword, SyntaxKind.EqualsToken}, token:=lookAhead)
                             If lookAhead IsNot Nothing AndAlso
                                 lookAhead.Kind = SyntaxKind.AsKeyword AndAlso
                                 PeekToken(i - 1).Kind = SyntaxKind.CloseParenToken Then

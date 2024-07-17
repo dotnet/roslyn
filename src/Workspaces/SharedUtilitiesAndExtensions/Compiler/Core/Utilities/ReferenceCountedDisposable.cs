@@ -256,7 +256,7 @@ internal sealed class ReferenceCountedDisposable<T> : IReferenceCountedDisposabl
 
             // We only need to allocate a new WeakReference<T> for this reference if one has not already been
             // created for it.
-            InterlockedOperations.Initialize(ref referenceCount._weakInstance, static instance => new WeakReference<T>(instance), instance);
+            InterlockedOperations.Initialize(ref referenceCount._weakInstance, valueFactory: static instance => new WeakReference<T>(instance), arg: instance);
 
             _boxedReferenceCount = referenceCount;
         }

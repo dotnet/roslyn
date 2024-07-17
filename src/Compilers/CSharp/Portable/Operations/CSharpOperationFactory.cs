@@ -1226,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? collectionType = expr.GetPublicTypeSymbol();
             bool isImplicit = expr.WasCompilerGenerated;
             IMethodSymbol? constructMethod = getConstructMethod((CSharpCompilation)_semanticModel.Compilation, expr).GetPublicSymbol();
-            ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray((element, expr) => CreateBoundCollectionExpressionElement(expr, element), expr);
+            ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray(map: (element, expr) => CreateBoundCollectionExpressionElement(expr, element), arg: expr);
             return new CollectionExpressionOperation(
                 constructMethod,
                 elements,
@@ -1405,7 +1405,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? type = syntax.IsMissing ? null : boundBadExpression.GetPublicTypeSymbol();
 
             // if child has syntax node point to same syntax node as bad expression, then this invalid expression is implicit
-            bool isImplicit = boundBadExpression.WasCompilerGenerated || boundBadExpression.ChildBoundNodes.Any(static (e, boundBadExpression) => e?.Syntax == boundBadExpression.Syntax, boundBadExpression);
+            bool isImplicit = boundBadExpression.WasCompilerGenerated || boundBadExpression.ChildBoundNodes.Any(predicate: static (e, boundBadExpression) => e?.Syntax == boundBadExpression.Syntax, arg: boundBadExpression);
             var children = CreateFromArray<BoundExpression, IOperation>(boundBadExpression.ChildBoundNodes);
             return new InvalidOperation(children, _semanticModel, syntax, type, constantValue: null, isImplicit);
         }
@@ -2062,7 +2062,7 @@ namespace Microsoft.CodeAnalysis.Operations
             SyntaxNode syntax = boundBadStatement.Syntax;
 
             // if child has syntax node point to same syntax node as bad statement, then this invalid statement is implicit
-            bool isImplicit = boundBadStatement.WasCompilerGenerated || boundBadStatement.ChildBoundNodes.Any(static (e, boundBadStatement) => e?.Syntax == boundBadStatement.Syntax, boundBadStatement);
+            bool isImplicit = boundBadStatement.WasCompilerGenerated || boundBadStatement.ChildBoundNodes.Any(predicate: static (e, boundBadStatement) => e?.Syntax == boundBadStatement.Syntax, arg: boundBadStatement);
             var children = CreateFromArray<BoundNode, IOperation>(boundBadStatement.ChildBoundNodes);
             return new InvalidOperation(children, _semanticModel, syntax, type: null, constantValue: null, isImplicit);
         }
@@ -2408,7 +2408,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                     case BoundInterpolatedString interpolatedString:
                         var parts = interpolatedString.Parts.SelectAsArray(
-                            static IInterpolatedStringContentOperation (part, @this) =>
+                            map: static IInterpolatedStringContentOperation (part, @this) =>
                             {
                                 var methodName = part switch
                                 {
@@ -2427,7 +2427,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                 };
 
                                 return new InterpolatedStringAppendOperation(@this.Create(part), operationKind, @this._semanticModel, part.Syntax, isImplicit: true);
-                            }, this);
+                            }, arg: this);
 
                         return new InterpolatedStringOperation(
                             parts,
@@ -2519,10 +2519,10 @@ namespace Microsoft.CodeAnalysis.Operations
         {
             ITypeSymbol matchedType = (boundRecursivePattern.DeclaredType?.Type ?? boundRecursivePattern.InputType.StrippedType()).GetPublicSymbol();
             ImmutableArray<IPatternOperation> deconstructionSubpatterns = boundRecursivePattern.Deconstruction is { IsDefault: false } deconstructions
-                ? deconstructions.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p.Pattern), this)
+                ? deconstructions.SelectAsArray(map: (p, fac) => (IPatternOperation)fac.Create(p.Pattern), arg: this)
                 : ImmutableArray<IPatternOperation>.Empty;
             ImmutableArray<IPropertySubpatternOperation> propertySubpatterns = boundRecursivePattern.Properties is { IsDefault: false } properties
-                ? properties.SelectAsArray((p, arg) => arg.Fac.CreatePropertySubpattern(p, arg.MatchedType), (Fac: this, MatchedType: matchedType))
+                ? properties.SelectAsArray(map: (p, arg) => arg.Fac.CreatePropertySubpattern(p, arg.MatchedType), arg: (Fac: this, MatchedType: matchedType))
                 : ImmutableArray<IPropertySubpatternOperation>.Empty;
             return new RecursivePatternOperation(
                 matchedType,
@@ -2540,7 +2540,7 @@ namespace Microsoft.CodeAnalysis.Operations
         private IRecursivePatternOperation CreateBoundRecursivePatternOperation(BoundITuplePattern boundITuplePattern)
         {
             ImmutableArray<IPatternOperation> deconstructionSubpatterns = boundITuplePattern.Subpatterns is { IsDefault: false } subpatterns
-                ? subpatterns.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p.Pattern), this)
+                ? subpatterns.SelectAsArray(map: (p, fac) => (IPatternOperation)fac.Create(p.Pattern), arg: this)
                 : ImmutableArray<IPatternOperation>.Empty;
 
             return new RecursivePatternOperation(
@@ -2585,7 +2585,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return new ListPatternOperation(
                 lengthSymbol: Binder.GetPropertySymbol(boundNode.LengthAccess, out _, out _).GetPublicSymbol(),
                 indexerSymbol: Binder.GetIndexerOrImplicitIndexerSymbol(boundNode.IndexerAccess).GetPublicSymbol(),
-                patterns: boundNode.Subpatterns.SelectAsArray((p, fac) => (IPatternOperation)fac.Create(p), this),
+                patterns: boundNode.Subpatterns.SelectAsArray(map: (p, fac) => (IPatternOperation)fac.Create(p), arg: this),
                 declaredSymbol: boundNode.Variable.GetPublicSymbol(),
                 inputType: boundNode.InputType.GetPublicSymbol(),
                 narrowedType: boundNode.NarrowedType.GetPublicSymbol(),

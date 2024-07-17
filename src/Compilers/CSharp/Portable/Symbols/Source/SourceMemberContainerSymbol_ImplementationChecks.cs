@@ -967,8 +967,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             CheckValidNullableEventOverride(overridingEvent.DeclaringCompilation, overriddenEvent, overridingEvent,
                                                             diagnostics,
-                                                            (diagnostics, overriddenEvent, overridingEvent, location) => diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, location),
-                                                            overridingMemberLocation);
+                                                            reportMismatch: (diagnostics, overriddenEvent, overridingEvent, location) => diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInTypeOnOverride, location),
+                                                            extraArgument: overridingMemberLocation);
                         }
                     }
                     else
@@ -1155,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         overriddenMethod,
                         overridingMethod,
                         diagnostics,
-                        static (diagnostics, overriddenMethod, overridingMethod, overridingParameter, _, location) =>
+                        reportMismatchInParameterType: static (diagnostics, overriddenMethod, overridingMethod, overridingParameter, _, location) =>
                             {
                                 diagnostics.Add(
                                     ReportInvalidScopedOverrideAsError(overriddenMethod, overridingMethod) ?
@@ -1164,15 +1164,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                     location,
                                     new FormattedSymbol(overridingParameter, SymbolDisplayFormat.ShortFormat));
                             },
-                        overridingMemberLocation,
+                        extraArgument: overridingMemberLocation,
                         allowVariance: true,
                         invokedAsExtensionMethod: false);
                 }
 
                 CheckValidNullableMethodOverride(overridingMethod.DeclaringCompilation, overriddenMethod, overridingMethod, diagnostics,
-                                                 ReportBadReturn,
-                                                 ReportBadParameter,
-                                                 overridingMemberLocation);
+                                                 reportMismatchInReturnType: ReportBadReturn,
+                                                 reportMismatchInParameterType: ReportBadParameter,
+                                                 extraArgument: overridingMemberLocation);
 
                 CheckRefReadonlyInMismatch(
                     overriddenMethod, overridingMethod, diagnostics,
@@ -1235,9 +1235,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol baseMethod,
             MethodSymbol overrideMethod,
             BindingDiagnosticBag diagnostics,
+            TArg extraArgument,
             ReportMismatchInReturnType<TArg> reportMismatchInReturnType,
             ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
-            TArg extraArgument,
             bool invokedAsExtensionMethod = false)
         {
             if (!PerformValidNullableOverrideCheck(compilation, baseMethod, overrideMethod))
@@ -1433,8 +1433,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             MethodSymbol? baseMethod,
             MethodSymbol? overrideMethod,
             BindingDiagnosticBag diagnostics,
-            ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
             TArg extraArgument,
+            ReportMismatchInParameterType<TArg> reportMismatchInParameterType,
             bool allowVariance,
             bool invokedAsExtensionMethod)
         {
@@ -1532,8 +1532,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             EventSymbol overriddenEvent,
             EventSymbol overridingEvent,
             BindingDiagnosticBag diagnostics,
-            Action<BindingDiagnosticBag, EventSymbol, EventSymbol, TArg> reportMismatch,
-            TArg extraArgument)
+            TArg extraArgument,
+            Action<BindingDiagnosticBag, EventSymbol, EventSymbol, TArg> reportMismatch)
         {
             if (!PerformValidNullableOverrideCheck(compilation, overriddenEvent, overridingEvent))
             {

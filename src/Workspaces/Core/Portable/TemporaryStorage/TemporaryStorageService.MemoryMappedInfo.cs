@@ -79,8 +79,8 @@ internal partial class TemporaryStorageService
             if (streamAccessor == null)
             {
                 var rawAccessor = RunWithCompactingGCFallback(
-                    static info => info.MemoryMappedFile.CreateViewAccessor(info.Offset, info.Size, MemoryMappedFileAccess.Read),
-                    this);
+                    function: static info => info.MemoryMappedFile.CreateViewAccessor(info.Offset, info.Size, MemoryMappedFileAccess.Read),
+                    argument: this);
                 streamAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>(rawAccessor);
                 _weakReadAccessor = new ReferenceCountedDisposable<MemoryMappedViewAccessor>.WeakReference(streamAccessor);
             }
@@ -96,8 +96,8 @@ internal partial class TemporaryStorageService
         public Stream CreateWritableStream()
         {
             return RunWithCompactingGCFallback(
-                static info => info.MemoryMappedFile.CreateViewStream(info.Offset, info.Size, MemoryMappedFileAccess.Write),
-                this);
+                function: static info => info.MemoryMappedFile.CreateViewStream(info.Offset, info.Size, MemoryMappedFileAccess.Write),
+                argument: this);
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ internal partial class TemporaryStorageService
         /// <param name="function">The function to execute.</param>
         /// <param name="argument">The argument to pass to the function.</param>
         /// <returns>The value returned by <paramref name="function"/>.</returns>
-        private static T RunWithCompactingGCFallback<TArg, T>(Func<TArg, T> function, TArg argument)
+        private static T RunWithCompactingGCFallback<TArg, T>(TArg argument, Func<TArg, T> function)
         {
             try
             {

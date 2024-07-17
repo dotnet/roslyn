@@ -235,7 +235,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             Contract.ThrowIfNull(TypeToGenerateIn);
 
             var syntaxFacts = _document.Project.Solution.Services.GetRequiredLanguageService<ISyntaxFactsService>(TypeToGenerateIn.Language);
-            return TypeToGenerateIn.InstanceConstructors.Any(static (c, arg) => arg.self.Matches(c, arg.syntaxFacts), (self: this, syntaxFacts));
+            return TypeToGenerateIn.InstanceConstructors.Any(predicate: static (c, arg) => arg.self.Matches(c, arg.syntaxFacts), arg: (self: this, syntaxFacts));
         }
 
         private bool Matches(IMethodSymbol ctor, ISyntaxFactsService service)

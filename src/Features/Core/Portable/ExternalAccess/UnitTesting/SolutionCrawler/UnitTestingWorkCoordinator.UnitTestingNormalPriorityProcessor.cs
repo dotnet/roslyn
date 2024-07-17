@@ -202,7 +202,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                     var solution = Processor._registration.GetSolutionToAnalyze();
                     try
                     {
-                        using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, w => w.ToString(), workItem, cancellationToken))
+                        using (Logger.LogBlock(FunctionId.WorkCoordinator_ProcessDocumentAsync, messageGetter: w => w.ToString(), arg: workItem, token: cancellationToken))
                         {
                             var textDocument = solution.GetTextDocument(documentId) ?? await solution.GetSourceGeneratedDocumentAsync(documentId, cancellationToken).ConfigureAwait(false);
 

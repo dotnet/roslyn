@@ -71,12 +71,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         <Extension()>
         Friend Function IsInStatementBlockOfKind(context As VisualBasicSyntaxContext, kind As SyntaxKind) As Boolean
-            Return IsInStatementBlockHelper(context, Function(n, k) n.IsKind(k), kind)
+            Return IsInStatementBlockHelper(context, predicate:=Function(n, k) n.IsKind(k), arg:=kind)
         End Function
 
         <Extension()>
         Friend Function IsInStatementBlockOfKind(context As VisualBasicSyntaxContext, ParamArray kinds As SyntaxKind()) As Boolean
-            Return IsInStatementBlockHelper(context, Function(n, k) n.IsKind(k), kinds)
+            Return IsInStatementBlockHelper(context, predicate:=Function(n, k) n.IsKind(k), arg:=kinds)
         End Function
 
         Private Function IsInStatementBlockHelper(Of TArg)(context As VisualBasicSyntaxContext, predicate As Func(Of SyntaxNode, TArg, Boolean), arg As TArg) As Boolean

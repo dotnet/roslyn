@@ -19,7 +19,7 @@ internal sealed class ClientOptionsProvider<TOptions, TCallback>(RemoteCallback<
     public async ValueTask<TOptions> GetOptionsAsync(LanguageServices languageServices, CancellationToken cancellationToken)
     {
         var lazyOptions = ImmutableInterlocked.GetOrAdd(ref _cache, languageServices.Language, _ => AsyncLazy.Create(
-            static (arg, cancellationToken) => arg.self.GetRemoteOptionsAsync(arg.languageServices, cancellationToken), arg: (self: this, languageServices)));
+            asynchronousComputeFunction: static (arg, cancellationToken) => arg.self.GetRemoteOptionsAsync(arg.languageServices, cancellationToken), arg: (self: this, languageServices)));
         return await lazyOptions.GetValueAsync(cancellationToken).ConfigureAwait(false);
     }
 

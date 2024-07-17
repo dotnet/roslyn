@@ -24,10 +24,10 @@ internal partial class TextDocumentState
     public Task<Checksum> GetChecksumAsync(CancellationToken cancellationToken)
     {
         return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
-            static (lazyChecksums, cancellationToken) => new ValueTask<DocumentStateChecksums>(lazyChecksums.GetValueAsync(cancellationToken)),
-            static (documentStateChecksums, _) => documentStateChecksums.Checksum,
-            _lazyChecksums,
-            cancellationToken).AsTask();
+            func: static (lazyChecksums, cancellationToken) => new ValueTask<DocumentStateChecksums>(lazyChecksums.GetValueAsync(cancellationToken)),
+            transform: static (documentStateChecksums, _) => documentStateChecksums.Checksum,
+            arg: _lazyChecksums,
+            cancellationToken: cancellationToken).AsTask();
     }
 
     private async Task<DocumentStateChecksums> ComputeChecksumsAsync(CancellationToken cancellationToken)

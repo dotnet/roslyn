@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                  BoundBadExpression);
 
             // Assert that the shape of the BoundBadExpression is sound and is not going to confuse NullableWalker for target-typed 'new'.
-            Debug.Assert(expr is not BoundBadExpression { ChildBoundNodes: var children } || !children.Any((child, node) => child.Syntax == node.Syntax, node));
+            Debug.Assert(expr is not BoundBadExpression { ChildBoundNodes: var children } || !children.Any(predicate: (child, node) => child.Syntax == node.Syntax, arg: node));
 
             if (wasCompilerGenerated)
             {
@@ -1181,7 +1181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // Overload resolution doesn't check the conversion when 'this' type refers to a type parameter
                             TypeSymbol? receiverType = methodGroup.ReceiverOpt.Type;
                             Debug.Assert(receiverType is not null);
-                            bool thisTypeIsOpen = typeParameters.Any((typeParameter, parameter) => parameter.Type.ContainsTypeParameter(typeParameter), member.Parameters[0]);
+                            bool thisTypeIsOpen = typeParameters.Any(predicate: (typeParameter, parameter) => parameter.Type.ContainsTypeParameter(typeParameter), arg: member.Parameters[0]);
                             MethodSymbol? constructed = null;
                             bool wasFullyInferred = false;
 
@@ -1194,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (constructed is null || !wasFullyInferred)
                             {
                                 // It is quite possible that inference failed because we didn't supply type from the second argument
-                                if (!typeParameters.Any((typeParameter, parameter) => parameter.Type.ContainsTypeParameter(typeParameter), member.Parameters[1]))
+                                if (!typeParameters.Any(predicate: (typeParameter, parameter) => parameter.Type.ContainsTypeParameter(typeParameter), arg: member.Parameters[1]))
                                 {
                                     continue;
                                 }
@@ -1250,7 +1250,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             }
                         }
-                        else if (typeParameters.Any((typeParameter, parameter) => !parameter.Type.ContainsTypeParameter(typeParameter), member.Parameters[0]))
+                        else if (typeParameters.Any(predicate: (typeParameter, parameter) => !parameter.Type.ContainsTypeParameter(typeParameter), arg: member.Parameters[0]))
                         {
                             // A type parameter does not appear in the parameter type.
                             continue;
@@ -1996,7 +1996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     delegateMethod,
                     lambdaOrMethod,
                     diagnostics,
-                    static (diagnostics, delegateMethod, lambdaOrMethod, parameter, _, typeAndSyntax) =>
+                    reportMismatchInParameterType: static (diagnostics, delegateMethod, lambdaOrMethod, parameter, _, typeAndSyntax) =>
                     {
                         diagnostics.Add(
                             SourceMemberContainerTypeSymbol.ReportInvalidScopedOverrideAsError(delegateMethod, lambdaOrMethod) ?
@@ -2006,7 +2006,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             new FormattedSymbol(parameter, SymbolDisplayFormat.ShortFormat),
                             typeAndSyntax.Type);
                     },
-                    (Type: targetType, Syntax: syntax),
+                    extraArgument: (Type: targetType, Syntax: syntax),
                     allowVariance: true,
                     invokedAsExtensionMethod: invokedAsExtensionMethod);
             }

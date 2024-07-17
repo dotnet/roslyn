@@ -166,7 +166,7 @@ internal sealed class DateAndTimeLanguageDetector(
 
         var parameters = method.Parameters;
         if (argName != null)
-            return parameters.Any(static (p, argName) => p.Name == argName, argName);
+            return parameters.Any(predicate: static (p, argName) => p.Name == argName, arg: argName);
 
         var parameter = argIndex < parameters.Length ? parameters[argIndex.Value] : null;
         return parameter?.Name == FormatName;

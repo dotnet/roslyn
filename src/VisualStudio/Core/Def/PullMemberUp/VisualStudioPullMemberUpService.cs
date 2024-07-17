@@ -48,7 +48,7 @@ internal class VisualStudioPullMemberUpService : IPullMemberUpOptionsService
                 new MemberSymbolViewModel(member, _glyphService)
                 {
                     // The member user selected will be checked at the beginning.
-                    IsChecked = selectedMembers.Any(SymbolEquivalenceComparer.Instance.Equals, member),
+                    IsChecked = selectedMembers.Any(predicate: SymbolEquivalenceComparer.Instance.Equals, arg: member),
                     MakeAbstract = false,
                     IsMakeAbstractCheckable = !member.IsKind(SymbolKind.Field) && !member.IsAbstract,
                     IsCheckable = true

@@ -24,7 +24,7 @@ internal abstract class AbstractAssetProvider
     /// return data of type T whose checksum is the given checksum
     /// </summary>
     public abstract ValueTask<T> GetAssetAsync<T>(AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken);
-    public abstract Task GetAssetsAsync<T, TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken);
+    public abstract Task GetAssetsAsync<T, TArg>(AssetPath assetPath, HashSet<Checksum> checksums, TArg? arg, Action<Checksum, T, TArg>? callback, CancellationToken cancellationToken);
 
     public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
     {
@@ -156,10 +156,10 @@ internal abstract class AbstractAssetProvider
     public readonly struct AssetHelper<T>(AbstractAssetProvider assetProvider)
     {
         public Task GetAssetsAsync<TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
-            => assetProvider.GetAssetsAsync(assetPath, checksums, callback, arg, cancellationToken);
+            => assetProvider.GetAssetsAsync(assetPath, checksums, callback: callback, arg: arg, cancellationToken: cancellationToken);
 
         public Task GetAssetsAsync<TArg>(AssetPath assetPath, ChecksumCollection checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
-            => assetProvider.GetAssetsAsync(assetPath, checksums, callback, arg, cancellationToken);
+            => assetProvider.GetAssetsAsync(assetPath, checksums, callback: callback, arg: arg, cancellationToken: cancellationToken);
     }
 }
 
@@ -169,18 +169,18 @@ internal static class AbstractAssetProviderExtensions
         this AbstractAssetProvider assetProvider, AssetPath assetPath, HashSet<Checksum> checksums, CancellationToken cancellationToken)
     {
         return assetProvider.GetAssetsAsync<TAsset, VoidResult>(
-            assetPath, checksums, callback: null, arg: default, cancellationToken);
+            assetPath, checksums, callback: null, arg: default, cancellationToken: cancellationToken);
     }
 
     public static Task GetAssetsAsync<T>(
         this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, CancellationToken cancellationToken)
     {
         return assetProvider.GetAssetsAsync<T, VoidResult>(
-            assetPath, checksums, callback: null, arg: default, cancellationToken);
+            assetPath, checksums, callback: null, arg: default, cancellationToken: cancellationToken);
     }
 
     public static async Task GetAssetsAsync<T, TArg>(
-        this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken)
+        this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, TArg? arg, Action<Checksum, T, TArg>? callback, CancellationToken cancellationToken)
     {
         using var _1 = PooledHashSet<Checksum>.GetInstance(out var checksumSet);
 #if NET
@@ -188,7 +188,7 @@ internal static class AbstractAssetProviderExtensions
 #endif
         checksumSet.AddAll(checksums.Children);
 
-        await assetProvider.GetAssetsAsync(assetPath, checksumSet, callback, arg, cancellationToken).ConfigureAwait(false);
+        await assetProvider.GetAssetsAsync(assetPath, checksumSet, callback: callback, arg: arg, cancellationToken: cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>

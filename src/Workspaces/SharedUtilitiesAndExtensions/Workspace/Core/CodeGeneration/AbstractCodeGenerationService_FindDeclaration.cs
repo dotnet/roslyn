@@ -24,7 +24,7 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
     public bool CanAddTo(ISymbol destination, Solution solution, CancellationToken cancellationToken)
     {
         var declarations = _symbolDeclarationService.GetDeclarations(destination);
-        return declarations.Any(static (r, arg) => arg.self.CanAddTo(r.GetSyntax(arg.cancellationToken), arg.solution, arg.cancellationToken), (self: this, solution, cancellationToken));
+        return declarations.Any(predicate: static (r, arg) => arg.self.CanAddTo(r.GetSyntax(arg.cancellationToken), arg.solution, arg.cancellationToken), arg: (self: this, solution, cancellationToken));
     }
 
     protected static SyntaxToken GetEndToken(SyntaxNode node)

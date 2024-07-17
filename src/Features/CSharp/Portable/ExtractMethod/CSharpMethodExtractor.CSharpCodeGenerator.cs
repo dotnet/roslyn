@@ -813,7 +813,7 @@ internal partial class CSharpMethodExtractor
             var localFunctionKind = new SymbolSpecification.SymbolKindOrTypeKind(MethodKind.LocalFunction);
             if (LocalFunction)
             {
-                if (namingRules.Any(static (rule, arg) => rule.NamingStyle.CapitalizationScheme.Equals(Capitalization.CamelCase) && rule.SymbolSpecification.AppliesTo(arg.localFunctionKind, arg.self.CreateMethodModifiers(), null), (self: this, localFunctionKind)))
+                if (namingRules.Any(predicate: static (rule, arg) => rule.NamingStyle.CapitalizationScheme.Equals(Capitalization.CamelCase) && rule.SymbolSpecification.AppliesTo(arg.localFunctionKind, arg.self.CreateMethodModifiers(), null), arg: (self: this, localFunctionKind)))
                 {
                     methodName = NewMethodCamelCaseStr;
                 }

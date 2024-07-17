@@ -93,7 +93,7 @@ internal abstract class AbstractDelayStartedService
             return;
 
         // If feature isn't enabled for any registered language, do nothing.
-        var languageEnabled = _registeredLanguages.Any(lang => _perLanguageOptions.Any(static (option, arg) => arg.self._globalOptions.GetOption(option, arg.lang), (self: this, lang)));
+        var languageEnabled = _registeredLanguages.Any(lang => _perLanguageOptions.Any(predicate: static (option, arg) => arg.self._globalOptions.GetOption(option, arg.lang), arg: (self: this, lang)));
         if (!languageEnabled)
             return;
 

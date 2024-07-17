@@ -27,7 +27,7 @@ internal sealed class FindReferenceCache
 
     public static async ValueTask<FindReferenceCache> GetCacheAsync(Document document, CancellationToken cancellationToken)
     {
-        var lazy = s_cache.GetValue(document, static document => AsyncLazy.Create(ComputeCacheAsync, document));
+        var lazy = s_cache.GetValue(document, static document => AsyncLazy.Create(asynchronousComputeFunction: ComputeCacheAsync, arg: document));
         return await lazy.GetValueAsync(cancellationToken).ConfigureAwait(false);
 
         static async Task<FindReferenceCache> ComputeCacheAsync(Document document, CancellationToken cancellationToken)
@@ -90,7 +90,7 @@ internal sealed class FindReferenceCache
     }
 
     public SymbolInfo GetSymbolInfo(SyntaxNode node, CancellationToken cancellationToken)
-        => _symbolInfoCache.GetOrAdd(node, static (n, arg) => arg.SemanticModel.GetSymbolInfo(n, arg.cancellationToken), (SemanticModel, cancellationToken));
+        => _symbolInfoCache.GetOrAdd(node, valueFactory: static (n, arg) => arg.SemanticModel.GetSymbolInfo(n, arg.cancellationToken), factoryArgument: (SemanticModel, cancellationToken));
 
     public IAliasSymbol? GetAliasInfo(
         ISemanticFactsService semanticFacts, SyntaxToken token, CancellationToken cancellationToken)

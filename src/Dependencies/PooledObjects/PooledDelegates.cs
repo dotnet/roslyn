@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// <param name="boundAction">A delegate which calls <paramref name="unboundAction"/> with the specified
         /// <paramref name="argument"/>.</param>
         /// <returns>A disposable <see cref="Releaser"/> which returns the object to the delegate pool.</returns>
-        public static Releaser GetPooledAction<TArg>(Action<TArg> unboundAction, TArg argument, out Action boundAction)
+        public static Releaser GetPooledAction<TArg>(TArg argument, Action<TArg> unboundAction, out Action boundAction)
             => GetPooledDelegate<ActionWithBoundArgument<TArg>, TArg, Action<TArg>, Action>(unboundAction, argument, out boundAction);
 
         /// <summary>
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// <param name="boundAction">A delegate which calls <paramref name="unboundAction"/> with the specified
         /// <paramref name="argument"/>.</param>
         /// <returns>A disposable <see cref="Releaser"/> which returns the object to the delegate pool.</returns>
-        public static Releaser GetPooledAction<T1, TArg>(Action<T1, TArg> unboundAction, TArg argument, out Action<T1> boundAction)
+        public static Releaser GetPooledAction<T1, TArg>(TArg argument, Action<T1, TArg> unboundAction, out Action<T1> boundAction)
             => GetPooledDelegate<ActionWithBoundArgument<T1, TArg>, TArg, Action<T1, TArg>, Action<T1>>(unboundAction, argument, out boundAction);
 
         /// <summary>
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// <param name="boundAction">A delegate which calls <paramref name="unboundAction"/> with the specified
         /// <paramref name="argument"/>.</param>
         /// <returns>A disposable <see cref="Releaser"/> which returns the object to the delegate pool.</returns>
-        public static Releaser GetPooledAction<T1, T2, TArg>(Action<T1, T2, TArg> unboundAction, TArg argument, out Action<T1, T2> boundAction)
+        public static Releaser GetPooledAction<T1, T2, TArg>(TArg argument, Action<T1, T2, TArg> unboundAction, out Action<T1, T2> boundAction)
             => GetPooledDelegate<ActionWithBoundArgument<T1, T2, TArg>, TArg, Action<T1, T2, TArg>, Action<T1, T2>>(unboundAction, argument, out boundAction);
 
         /// <summary>
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// <param name="boundAction">A delegate which calls <paramref name="unboundAction"/> with the specified
         /// <paramref name="argument"/>.</param>
         /// <returns>A disposable <see cref="Releaser"/> which returns the object to the delegate pool.</returns>
-        public static Releaser GetPooledAction<T1, T2, T3, TArg>(Action<T1, T2, T3, TArg> unboundAction, TArg argument, out Action<T1, T2, T3> boundAction)
+        public static Releaser GetPooledAction<T1, T2, T3, TArg>(TArg argument, Action<T1, T2, T3, TArg> unboundAction, out Action<T1, T2, T3> boundAction)
             => GetPooledDelegate<ActionWithBoundArgument<T1, T2, T3, TArg>, TArg, Action<T1, T2, T3, TArg>, Action<T1, T2, T3>>(unboundAction, argument, out boundAction);
 
         /// <summary>
@@ -195,16 +195,16 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// <param name="boundFunction">A delegate which calls <paramref name="unboundFunction"/> with the specified
         /// <paramref name="argument"/>.</param>
         /// <returns>A disposable <see cref="Releaser"/> which returns the object to the delegate pool.</returns>
-        public static Releaser GetPooledFunction<TArg, TResult>(Func<TArg, TResult> unboundFunction, TArg argument, out Func<TResult> boundFunction)
+        public static Releaser GetPooledFunction<TArg, TResult>(TArg argument, Func<TArg, TResult> unboundFunction, out Func<TResult> boundFunction)
             => GetPooledDelegate<FuncWithBoundArgument<TArg, TResult>, TArg, Func<TArg, TResult>, Func<TResult>>(unboundFunction, argument, out boundFunction);
 
         /// <summary>
-        /// Equivalent to <see cref="GetPooledFunction{TArg, TResult}(Func{TArg, TResult}, TArg, out Func{TResult})"/>,
+        /// Equivalent to <see cref="GetPooledFunction{TArg, TResult}(TArg, Func{TArg, TResult}, out Func{TResult})"/>,
         /// except typed such that it can be used to create a pooled <see cref="ConditionalWeakTable{TKey,
         /// TValue}.CreateValueCallback"/>.
         /// </summary>
         public static Releaser GetPooledCreateValueCallback<TKey, TArg, TValue>(
-            Func<TKey, TArg, TValue> unboundFunction, TArg argument,
+            TArg argument, Func<TKey, TArg, TValue> unboundFunction,
             out ConditionalWeakTable<TKey, TValue>.CreateValueCallback boundFunction) where TKey : class where TValue : class
 
         {
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// <param name="boundFunction">A delegate which calls <paramref name="unboundFunction"/> with the specified
         /// <paramref name="argument"/>.</param>
         /// <returns>A disposable <see cref="Releaser"/> which returns the object to the delegate pool.</returns>
-        public static Releaser GetPooledFunction<T1, TArg, TResult>(Func<T1, TArg, TResult> unboundFunction, TArg argument, out Func<T1, TResult> boundFunction)
+        public static Releaser GetPooledFunction<T1, TArg, TResult>(TArg argument, Func<T1, TArg, TResult> unboundFunction, out Func<T1, TResult> boundFunction)
             => GetPooledDelegate<FuncWithBoundArgument<T1, TArg, TResult>, TArg, Func<T1, TArg, TResult>, Func<T1, TResult>>(unboundFunction, argument, out boundFunction);
 
         /// <summary>
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// <param name="boundFunction">A delegate which calls <paramref name="unboundFunction"/> with the specified
         /// <paramref name="argument"/>.</param>
         /// <returns>A disposable <see cref="Releaser"/> which returns the object to the delegate pool.</returns>
-        public static Releaser GetPooledFunction<T1, T2, TArg, TResult>(Func<T1, T2, TArg, TResult> unboundFunction, TArg argument, out Func<T1, T2, TResult> boundFunction)
+        public static Releaser GetPooledFunction<T1, T2, TArg, TResult>(TArg argument, Func<T1, T2, TArg, TResult> unboundFunction, out Func<T1, T2, TResult> boundFunction)
             => GetPooledDelegate<FuncWithBoundArgument<T1, T2, TArg, TResult>, TArg, Func<T1, T2, TArg, TResult>, Func<T1, T2, TResult>>(unboundFunction, argument, out boundFunction);
 
         /// <summary>
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
         /// <param name="boundFunction">A delegate which calls <paramref name="unboundFunction"/> with the specified
         /// <paramref name="argument"/>.</param>
         /// <returns>A disposable <see cref="Releaser"/> which returns the object to the delegate pool.</returns>
-        public static Releaser GetPooledFunction<T1, T2, T3, TArg, TResult>(Func<T1, T2, T3, TArg, TResult> unboundFunction, TArg argument, out Func<T1, T2, T3, TResult> boundFunction)
+        public static Releaser GetPooledFunction<T1, T2, T3, TArg, TResult>(TArg argument, Func<T1, T2, T3, TArg, TResult> unboundFunction, out Func<T1, T2, T3, TResult> boundFunction)
             => GetPooledDelegate<FuncWithBoundArgument<T1, T2, T3, TArg, TResult>, TArg, Func<T1, T2, T3, TArg, TResult>, Func<T1, T2, T3, TResult>>(unboundFunction, argument, out boundFunction);
 
         /// <summary>

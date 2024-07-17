@@ -218,14 +218,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 
                 Dim assembly = metadata.GetAssembly
-                Dim peReferences = assembly.AssemblyReferences.SelectAsArray(AddressOf MapAssemblyIdentityToResolvedSymbol, referencedAssembliesByIdentity)
+                Dim peReferences = assembly.AssemblyReferences.SelectAsArray(map:=AddressOf MapAssemblyIdentityToResolvedSymbol, arg:=referencedAssembliesByIdentity)
 
                 assemblyReferenceIdentityMap = GetAssemblyReferenceIdentityBaselineMap(peReferences, assembly.AssemblyReferences)
 
                 Dim assemblySymbol = New PEAssemblySymbol(assembly, DocumentationProvider.Default, isLinked:=False, importOptions:=importOptions)
 
                 Dim unifiedAssemblies = Me.UnifiedAssemblies.WhereAsArray(
-                    Function(unified, refAsmByIdentity) refAsmByIdentity.Contains(unified.OriginalReference, allowHigherVersion:=False), referencedAssembliesByIdentity)
+                    predicate:=Function(unified, refAsmByIdentity) refAsmByIdentity.Contains(unified.OriginalReference, allowHigherVersion:=False), arg:=referencedAssembliesByIdentity)
 
                 InitializeAssemblyReuseData(assemblySymbol, peReferences, unifiedAssemblies)
 

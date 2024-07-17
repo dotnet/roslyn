@@ -80,7 +80,7 @@ internal partial class SolutionCompilationState
         {
             if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums))
             {
-                checksums = AsyncLazy.Create(static async (arg, cancellationToken) =>
+                checksums = AsyncLazy.Create(asynchronousComputeFunction: static async (arg, cancellationToken) =>
                 {
                     var (checksum, projectCone) = await arg.self.ComputeChecksumsAsync(arg.projectId, cancellationToken).ConfigureAwait(false);
                     Contract.ThrowIfNull(projectCone);
@@ -133,7 +133,7 @@ internal partial class SolutionCompilationState
                 {
                     var serializer = this.SolutionState.Services.GetRequiredService<ISerializerService>();
                     var identityChecksums = FrozenSourceGeneratedDocumentStates.SelectAsArray(
-                        static (s, arg) => arg.serializer.CreateChecksum(s.Identity, cancellationToken: arg.cancellationToken), (serializer, cancellationToken));
+                        selector: static (s, arg) => arg.serializer.CreateChecksum(s.Identity, cancellationToken: arg.cancellationToken), arg: (serializer, cancellationToken));
 
                     frozenSourceGeneratedDocumentTexts = await FrozenSourceGeneratedDocumentStates.GetDocumentChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false);
                     frozenSourceGeneratedDocumentIdentities = new ChecksumCollection(identityChecksums);

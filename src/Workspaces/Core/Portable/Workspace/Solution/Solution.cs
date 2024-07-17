@@ -52,7 +52,7 @@ public partial class Solution
         _cachedFrozenSolution = cachedFrozenSolution ??
             AsyncLazy.Create(synchronousComputeFunction: static (self, c) =>
                 self.ComputeFrozenSolution(c),
-                this);
+                arg: this);
     }
 
     internal Solution(

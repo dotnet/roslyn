@@ -36,8 +36,8 @@ internal static partial class DependentTypeFinder
             {
                 lazyIndex = s_projectToIndex.GetValue(
                     project.State, p => AsyncLazy.Create(
-                        static (project, c) => CreateIndexAsync(project, c),
-                        project));
+                        asynchronousComputeFunction: static (project, c) => CreateIndexAsync(project, c),
+                        arg: project));
             }
 
             return lazyIndex.GetValueAsync(cancellationToken);

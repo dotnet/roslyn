@@ -22,7 +22,7 @@ internal sealed partial class TopLevelSyntaxTreeIndex
         {
             try
             {
-                var infos = reader.ReadArray(static (r, stringTable) => DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, r), stringTable);
+                var infos = reader.ReadArray(read: static (r, stringTable) => DeclaredSymbolInfo.ReadFrom_ThrowsOnFailure(stringTable, r), arg: stringTable);
                 return new DeclarationInfo(infos);
             }
             catch (Exception)

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var location = ReturnTypeLocation;
             return (ReturnType: TypeWithAnnotations.Create(Binder.GetSpecialType(compilation, SpecialType.System_Void, location, diagnostics)),
                     Parameters: _ctor.Parameters.SelectAsArray<ParameterSymbol, ImmutableArray<Location>, ParameterSymbol>(
-                                        (param, locations) =>
+                                        map: (param, locations) =>
                                             new SourceSimpleParameterSymbol(owner: this,
                                                 param.TypeWithAnnotations,
                                                 param.Ordinal,

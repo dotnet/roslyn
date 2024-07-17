@@ -73,19 +73,19 @@ internal static partial class SymbolUsageAnalysis
         /// <summary>
         /// Gets the currently reachable writes for the given symbol.
         /// </summary>
-        public void ForEachCurrentWrite<TArg>(ISymbol symbol, Action<IOperation, TArg> action, TArg arg)
+        public void ForEachCurrentWrite<TArg>(ISymbol symbol, TArg arg, Action<IOperation, TArg> action)
         {
             ForEachCurrentWrite(
                 symbol,
-                static (write, arg) =>
+                action: static (write, arg) =>
                 {
                     arg.action(write, arg.arg);
                     return true;
                 },
-                (action, arg));
+                arg: (action, arg));
         }
 
-        public bool ForEachCurrentWrite<TArg>(ISymbol symbol, Func<IOperation, TArg, bool> action, TArg arg)
+        public bool ForEachCurrentWrite<TArg>(ISymbol symbol, TArg arg, Func<IOperation, TArg, bool> action)
         {
             if (_reachingWrites.TryGetValue(symbol, out var values))
             {

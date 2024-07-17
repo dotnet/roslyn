@@ -541,8 +541,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Both of those scenarios are legal.)
 
             var fixedArguments = _methodTypeParameters.SelectAsArray(
-                static (typeParameter, i, self) => self.IsUnfixed(i) ? TypeWithAnnotations.Create(typeParameter) : self._fixedResults[i].Type,
-                this);
+                map: static (typeParameter, i, self) => self.IsUnfixed(i) ? TypeWithAnnotations.Create(typeParameter) : self._fixedResults[i].Type,
+                arg: this);
             TypeMap typeMap = new TypeMap(_constructedContainingTypeOfMethod, _methodTypeParameters, fixedArguments);
             return typeMap.SubstituteType(delegateOrFunctionPointerType).Type;
         }

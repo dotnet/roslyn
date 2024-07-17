@@ -36,7 +36,7 @@ internal static class TextExtensions
 
             var relatedIds = solution.GetRelatedDocumentIds(documentId);
             solution = solution.WithDocumentText(relatedIds, text, PreservationMode.PreserveIdentity);
-            return relatedIds.SelectAsArray((id, solution) => solution.GetRequiredDocument(id), solution);
+            return relatedIds.SelectAsArray(map: (id, solution) => solution.GetRequiredDocument(id), arg: solution);
         }
 
         return [];
@@ -112,7 +112,7 @@ internal static class TextExtensions
             if (documentId != null)
             {
                 var relatedIds = solution.GetRelatedDocumentIds(documentId);
-                return relatedIds.SelectAsArray((id, solution) => solution.GetRequiredDocument(id), solution);
+                return relatedIds.SelectAsArray(map: (id, solution) => solution.GetRequiredDocument(id), arg: solution);
             }
         }
 

@@ -103,8 +103,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             {
                 return InterlockedOperations.Initialize(
                     ref _lazyTypeArguments,
-                    static underlying => underlying.TypeArgumentsWithAnnotations.GetPublicSymbols(),
-                    _underlying);
+                    createArray: static underlying => underlying.TypeArgumentsWithAnnotations.GetPublicSymbols(),
+                    arg: _underlying);
             }
         }
 
@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             {
                 return InterlockedOperations.Initialize(
                     ref _lazyParameters,
-                    static underlying => underlying.Parameters.GetPublicSymbols(),
-                    _underlying);
+                    createArray: static underlying => underlying.Parameters.GetPublicSymbols(),
+                    arg: _underlying);
             }
         }
 

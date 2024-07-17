@@ -1498,7 +1498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 visitedParameters[paramsIndex] = true;
             }
 
-            bool haveDefaultArguments = !parameters.All(static (param, visitedParameters) => visitedParameters[param.Ordinal], visitedParameters);
+            bool haveDefaultArguments = !parameters.All(predicate: static (param, visitedParameters) => visitedParameters[param.Ordinal], arg: visitedParameters);
 
             if (!haveDefaultArguments && !expanded)
             {

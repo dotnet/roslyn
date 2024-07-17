@@ -48,7 +48,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             return declarations;
 
             static AsyncLazy<IAssemblySymbol?> CreateLazyAssembly(Project project)
-                => AsyncLazy.Create(static async (project, c) =>
+                => AsyncLazy.Create(asynchronousComputeFunction: static async (project, c) =>
                        {
                            var compilation = await project.GetRequiredCompilationAsync(c).ConfigureAwait(false);
                            return (IAssemblySymbol?)compilation.Assembly;

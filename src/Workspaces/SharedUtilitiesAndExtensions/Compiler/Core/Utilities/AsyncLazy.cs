@@ -10,20 +10,20 @@ namespace Roslyn.Utilities;
 
 internal static class AsyncLazy
 {
-    public static AsyncLazy<T> Create<T, TArg>(Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction, Func<TArg, CancellationToken, T>? synchronousComputeFunction, TArg arg)
+    public static AsyncLazy<T> Create<T, TArg>(TArg arg, Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction, Func<TArg, CancellationToken, T>? synchronousComputeFunction)
         => AsyncLazy<T>.Create(asynchronousComputeFunction, synchronousComputeFunction, arg);
 
-    public static AsyncLazy<T> Create<T, TArg>(Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction, TArg arg)
+    public static AsyncLazy<T> Create<T, TArg>(TArg arg, Func<TArg, CancellationToken, Task<T>> asynchronousComputeFunction)
         => Create(
-            asynchronousComputeFunction,
+            asynchronousComputeFunction: asynchronousComputeFunction,
             synchronousComputeFunction: null,
-            arg);
+            arg: arg);
 
-    public static AsyncLazy<T> Create<T, TArg>(Func<TArg, CancellationToken, T> synchronousComputeFunction, TArg arg)
+    public static AsyncLazy<T> Create<T, TArg>(TArg arg, Func<TArg, CancellationToken, T> synchronousComputeFunction)
         => Create(
             asynchronousComputeFunction: static (outerArg, cancellationToken) => Task.FromResult(outerArg.synchronousComputeFunction(outerArg.arg, cancellationToken)),
             synchronousComputeFunction: static (outerArg, cancellationToken) => outerArg.synchronousComputeFunction(outerArg.arg, cancellationToken),
-            (synchronousComputeFunction, arg));
+            arg: (synchronousComputeFunction, arg));
 
     public static AsyncLazy<T> Create<T>(Func<CancellationToken, Task<T>> asynchronousComputeFunction)
         => Create(

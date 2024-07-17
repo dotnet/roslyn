@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return actions;
                 }
 
-                return actions.WhereAsArray((action, analyzer) => action.Analyzer == analyzer, analyzer);
+                return actions.WhereAsArray(predicate: (action, analyzer) => action.Analyzer == analyzer, arg: analyzer);
             }
 
             public ImmutableSegmentedDictionary<TLanguageKindEnum, ImmutableArray<SyntaxNodeAnalyzerAction<TLanguageKindEnum>>> NodeActionsByAnalyzerAndKind

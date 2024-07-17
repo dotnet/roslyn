@@ -85,8 +85,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
             Dim getTypeMap As New Func(Of TypeSubstitution)(Function() TypeMap)
             _typeParameters = sourceMethodTypeParameters.SelectAsArray(
-                Function(tp As TypeParameterSymbol, i As Integer, arg As Object) DirectCast(New EETypeParameterSymbol(Me, tp, i, getTypeMap), TypeParameterSymbol),
-                DirectCast(Nothing, Object))
+                map:=Function(tp As TypeParameterSymbol, i As Integer, arg As Object) DirectCast(New EETypeParameterSymbol(Me, tp, i, getTypeMap), TypeParameterSymbol),
+                arg:=DirectCast(Nothing, Object))
             _allTypeParameters = container.TypeParameters.Concat(_typeParameters)
             Me.TypeMap = TypeSubstitution.Create(sourceMethod, allSourceTypeParameters, ImmutableArrayExtensions.Cast(Of TypeParameterSymbol, TypeSymbol)(_allTypeParameters))
 

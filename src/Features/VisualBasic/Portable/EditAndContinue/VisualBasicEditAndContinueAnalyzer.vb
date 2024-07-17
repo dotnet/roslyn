@@ -735,7 +735,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             newSymbols As OneOrMany(Of ISymbol)) As IEnumerable(Of (ISymbol, ISymbol))
 
             For Each oldSymbol In oldSymbols
-                Dim newSymbol = newSymbols.FirstOrDefault(Function(s, o) CaseInsensitiveComparison.Equals(s.Name, o.Name), oldSymbol)
+                Dim newSymbol = newSymbols.FirstOrDefault(predicate:=Function(s, o) CaseInsensitiveComparison.Equals(s.Name, o.Name), arg:=oldSymbol)
                 If newSymbol IsNot Nothing Then
                     Yield (oldSymbol, newSymbol)
                 End If

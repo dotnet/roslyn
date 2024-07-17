@@ -156,15 +156,15 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         [Fact]
         public void Single_Arg()
         {
-            Assert.Throws<NullReferenceException>(() => default(ImmutableArray<int>).Single((_, _) => true, 1));
-            Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>().Single((x, a) => x == a, 1));
-            Assert.Equal(1, ImmutableArray.Create<int>(1).Single((x, a) => x == a, 1));
-            Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>(1, 1).Single((x, a) => x == a, 1));
+            Assert.Throws<NullReferenceException>(() => default(ImmutableArray<int>).Single(predicate: (_, _) => true, arg: 1));
+            Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>().Single(predicate: (x, a) => x == a, arg: 1));
+            Assert.Equal(1, ImmutableArray.Create<int>(1).Single(predicate: (x, a) => x == a, arg: 1));
+            Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>(1, 1).Single(predicate: (x, a) => x == a, arg: 1));
 
-            Assert.Throws<NullReferenceException>(() => default(ImmutableArray<int>).Single((x, a) => x % a == 1, 2));
-            Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>().Single((x, a) => x % a == 1, 2));
-            Assert.Equal(1, ImmutableArray.Create<int>(1, 2).Single((x, a) => x % a == 1, 2));
-            Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>(1, 2, 3).Single((x, a) => x % a == 1, 2));
+            Assert.Throws<NullReferenceException>(() => default(ImmutableArray<int>).Single(predicate: (x, a) => x % a == 1, arg: 2));
+            Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>().Single(predicate: (x, a) => x % a == 1, arg: 2));
+            Assert.Equal(1, ImmutableArray.Create<int>(1, 2).Single(predicate: (x, a) => x % a == 1, arg: 2));
+            Assert.Throws<InvalidOperationException>(() => ImmutableArray.Create<int>(1, 2, 3).Single(predicate: (x, a) => x % a == 1, arg: 2));
         }
 
         [Fact]
@@ -359,21 +359,21 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         {
             var empty = ImmutableArray.Create<object>();
             Assert.True(empty.SequenceEqual(empty.SelectAsArray(item => item)));
-            Assert.True(empty.SequenceEqual(empty.SelectAsArray((item, arg) => item, 1)));
-            Assert.True(empty.SequenceEqual(empty.SelectAsArray((item, arg) => arg, 2)));
-            Assert.True(empty.SequenceEqual(empty.SelectAsArray((item, index, arg) => item, 1)));
-            Assert.True(empty.SequenceEqual(empty.SelectAsArray((item, index, arg) => arg, 2)));
-            Assert.True(empty.SequenceEqual(empty.SelectAsArray((item, index, arg) => index, 3)));
+            Assert.True(empty.SequenceEqual(empty.SelectAsArray(map: (item, arg) => item, arg: 1)));
+            Assert.True(empty.SequenceEqual(empty.SelectAsArray(map: (item, arg) => arg, arg: 2)));
+            Assert.True(empty.SequenceEqual(empty.SelectAsArray(map: (item, index, arg) => item, arg: 1)));
+            Assert.True(empty.SequenceEqual(empty.SelectAsArray(map: (item, index, arg) => arg, arg: 2)));
+            Assert.True(empty.SequenceEqual(empty.SelectAsArray(map: (item, index, arg) => index, arg: 3)));
 
             var a = ImmutableArray.Create<int>(3, 2, 1, 0);
             var b = ImmutableArray.Create<int>(0, 1, 2, 3);
             var c = ImmutableArray.Create<int>(2, 2, 2, 2);
             Assert.True(a.SequenceEqual(a.SelectAsArray(item => item)));
-            Assert.True(a.SequenceEqual(a.SelectAsArray((item, arg) => item, 1)));
-            Assert.True(c.SequenceEqual(a.SelectAsArray((item, arg) => arg, 2)));
-            Assert.True(a.SequenceEqual(a.SelectAsArray((item, index, arg) => item, 1)));
-            Assert.True(c.SequenceEqual(a.SelectAsArray((item, index, arg) => arg, 2)));
-            Assert.True(b.SequenceEqual(a.SelectAsArray((item, index, arg) => index, 3)));
+            Assert.True(a.SequenceEqual(a.SelectAsArray(map: (item, arg) => item, arg: 1)));
+            Assert.True(c.SequenceEqual(a.SelectAsArray(map: (item, arg) => arg, arg: 2)));
+            Assert.True(a.SequenceEqual(a.SelectAsArray(map: (item, index, arg) => item, arg: 1)));
+            Assert.True(c.SequenceEqual(a.SelectAsArray(map: (item, index, arg) => arg, arg: 2)));
+            Assert.True(b.SequenceEqual(a.SelectAsArray(map: (item, index, arg) => index, arg: 3)));
 
             AssertEx.Equal(new[] { 10 }, ImmutableArray.Create(1).SelectAsArray(i => 10 * i));
             AssertEx.Equal(new[] { 10, 20 }, ImmutableArray.Create(1, 2).SelectAsArray(i => 10 * i));
@@ -493,10 +493,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
         public void WhereAsArray_WithArg()
         {
             var x = new C();
-            Assert.Same(x, ImmutableArray.Create<object>(x).WhereAsArray((o, arg) => o == arg, x)[0]);
+            Assert.Same(x, ImmutableArray.Create<object>(x).WhereAsArray(predicate: (o, arg) => o == arg, arg: x)[0]);
 
             var a = ImmutableArray.Create(0, 1, 2, 3, 4, 5);
-            AssertEx.Equal(new[] { 3, 4, 5 }, a.WhereAsArray((i, j) => i > j, 2));
+            AssertEx.Equal(new[] { 3, 4, 5 }, a.WhereAsArray(predicate: (i, j) => i > j, arg: 2));
         }
 
         private class C

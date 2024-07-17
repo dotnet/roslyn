@@ -160,7 +160,7 @@ internal sealed class CSharpUseCollectionInitializerAnalyzer : AbstractUseCollec
             current = memberAccess.Expression;
 
             // Now see if we have an item we're spreading matching 'x'.
-            var matchIndex = spreadElements.FindIndex(SyntaxFacts.AreEquivalent, current);
+            var matchIndex = spreadElements.FindIndex(match: SyntaxFacts.AreEquivalent, arg: current);
             if (matchIndex < 0)
                 return false;
 

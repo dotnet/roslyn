@@ -90,7 +90,7 @@ internal partial class ISymbolExtensions
 
             return
                 symbol.Type.Accept(this) ||
-                symbol.Parameters.Any(static (p, self) => p.Accept(self), this);
+                symbol.Parameters.Any(predicate: static (p, self) => p.Accept(self), arg: this);
         }
 
         public override bool VisitTypeParameter(ITypeParameterSymbol symbol)
@@ -100,7 +100,7 @@ internal partial class ISymbolExtensions
                 return false;
             }
 
-            return symbol.ConstraintTypes.Any(static (ts, self) => ts.Accept(self), this);
+            return symbol.ConstraintTypes.Any(predicate: static (ts, self) => ts.Accept(self), arg: this);
         }
 
         public override bool VisitMethod(IMethodSymbol symbol)
@@ -112,8 +112,8 @@ internal partial class ISymbolExtensions
 
             return
                 symbol.ReturnType.Accept(this) ||
-                symbol.Parameters.Any(static (p, self) => p.Accept(self), this) ||
-                symbol.TypeParameters.Any(static (tp, self) => tp.Accept(self), this);
+                symbol.Parameters.Any(predicate: static (p, self) => p.Accept(self), arg: this) ||
+                symbol.TypeParameters.Any(predicate: static (tp, self) => tp.Accept(self), arg: this);
         }
 
         public override bool VisitParameter(IParameterSymbol symbol)

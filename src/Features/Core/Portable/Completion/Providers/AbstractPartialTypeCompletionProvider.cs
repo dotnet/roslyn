@@ -98,7 +98,7 @@ internal abstract partial class AbstractPartialTypeCompletionProvider<TSyntaxCon
     }
 
     private static bool InSameProject(INamedTypeSymbol symbol, Compilation compilation)
-        => symbol.DeclaringSyntaxReferences.Any(static (r, compilation) => compilation.SyntaxTrees.Contains(r.SyntaxTree), compilation);
+        => symbol.DeclaringSyntaxReferences.Any(predicate: static (r, compilation) => compilation.SyntaxTrees.Contains(r.SyntaxTree), arg: compilation);
 
     private static bool NotNewDeclaredMember(INamedTypeSymbol symbol, TSyntaxContext context)
     {

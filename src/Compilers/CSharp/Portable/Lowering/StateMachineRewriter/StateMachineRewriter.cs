@@ -313,8 +313,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var leftExpression = proxy.Replacement(
                         F.Syntax,
-                        static (frameType1, arg) => arg.F.Local(arg.stateMachineVariable),
-                        (F, stateMachineVariable));
+                        makeFrame: static (frameType1, arg) => arg.F.Local(arg.stateMachineVariable),
+                        arg: (F, stateMachineVariable));
 
                     bodyBuilder.Add(F.Assignment(leftExpression, F.This()));
                 }
@@ -327,8 +327,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var leftExpression = proxy.Replacement(
                         F.Syntax,
-                        static (frameType1, arg) => arg.F.Local(arg.stateMachineVariable),
-                        (F, stateMachineVariable));
+                        makeFrame: static (frameType1, arg) => arg.F.Local(arg.stateMachineVariable),
+                        arg: (F, stateMachineVariable));
 
                     bodyBuilder.Add(F.Assignment(leftExpression, F.Parameter(parameter)));
                 }
@@ -467,10 +467,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var leftExpression = proxy.Replacement(
                         F.Syntax,
-                        static (stateMachineType, arg) => arg.F.Local(arg.resultVariable),
-                        (F, resultVariable));
+                        makeFrame: static (stateMachineType, arg) => arg.F.Local(arg.resultVariable),
+                        arg: (F, resultVariable));
 
-                    var rightExpression = copySrc[method.ThisParameter].Replacement(F.Syntax, static (stateMachineType, F) => F.This(), F);
+                    var rightExpression = copySrc[method.ThisParameter].Replacement(F.Syntax, makeFrame: static (stateMachineType, F) => F.This(), arg: F);
 
                     bodyBuilder.Add(F.Assignment(leftExpression, rightExpression));
                 }
@@ -486,11 +486,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // result.parameter
                     BoundExpression resultParameter = proxy.Replacement(
                         F.Syntax,
-                        static (stateMachineType, arg) => arg.F.Local(arg.resultVariable),
-                        (F, resultVariable));
+                        makeFrame: static (stateMachineType, arg) => arg.F.Local(arg.resultVariable),
+                        arg: (F, resultVariable));
 
                     // this.parameterProxy
-                    BoundExpression parameterProxy = copySrc[parameter].Replacement(F.Syntax, static (stateMachineType, F) => F.This(), F);
+                    BoundExpression parameterProxy = copySrc[parameter].Replacement(F.Syntax, makeFrame: static (stateMachineType, F) => F.This(), arg: F);
                     BoundStatement copy = InitializeParameterField(getEnumeratorMethod, parameter, resultParameter, parameterProxy);
 
                     bodyBuilder.Add(copy);

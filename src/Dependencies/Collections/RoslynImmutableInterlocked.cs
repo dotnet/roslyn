@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <paramref name="transformer"/> function; otherwise, <see langword="false"/> if the location's value remained
         /// the same because the last invocation of <paramref name="transformer"/> returned the existing value.
         /// </returns>
-        public static bool Update<T, TArg>(ref ImmutableSegmentedList<T> location, Func<ImmutableSegmentedList<T>, TArg, ImmutableSegmentedList<T>> transformer, TArg transformerArgument)
+        public static bool Update<T, TArg>(ref ImmutableSegmentedList<T> location, TArg transformerArgument, Func<ImmutableSegmentedList<T>, TArg, ImmutableSegmentedList<T>> transformer)
         {
             if (transformer is null)
                 throw new ArgumentNullException(nameof(transformer));
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <paramref name="transformer"/> function; otherwise, <see langword="false"/> if the location's value remained
         /// the same because the last invocation of <paramref name="transformer"/> returned the existing value.
         /// </returns>
-        public static bool Update<T, TArg>(ref ImmutableSegmentedHashSet<T> location, Func<ImmutableSegmentedHashSet<T>, TArg, ImmutableSegmentedHashSet<T>> transformer, TArg transformerArgument)
+        public static bool Update<T, TArg>(ref ImmutableSegmentedHashSet<T> location, TArg transformerArgument, Func<ImmutableSegmentedHashSet<T>, TArg, ImmutableSegmentedHashSet<T>> transformer)
         {
             if (transformer is null)
                 throw new ArgumentNullException(nameof(transformer));
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// <paramref name="transformer"/> function; otherwise, <see langword="false"/> if the location's value remained
         /// the same because the last invocation of <paramref name="transformer"/> returned the existing value.
         /// </returns>
-        public static bool Update<TKey, TValue, TArg>(ref ImmutableSegmentedDictionary<TKey, TValue> location, Func<ImmutableSegmentedDictionary<TKey, TValue>, TArg, ImmutableSegmentedDictionary<TKey, TValue>> transformer, TArg transformerArgument)
+        public static bool Update<TKey, TValue, TArg>(ref ImmutableSegmentedDictionary<TKey, TValue> location, TArg transformerArgument, Func<ImmutableSegmentedDictionary<TKey, TValue>, TArg, ImmutableSegmentedDictionary<TKey, TValue>> transformer)
             where TKey : notnull
         {
             if (transformer is null)
@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Collections
         }
 
         /// <inheritdoc cref="ImmutableInterlocked.GetOrAdd{TKey, TValue, TArg}(ref ImmutableDictionary{TKey, TValue}, TKey, Func{TKey, TArg, TValue}, TArg)"/>
-        public static TValue GetOrAdd<TKey, TValue, TArg>(ref ImmutableSegmentedDictionary<TKey, TValue> location, TKey key, Func<TKey, TArg, TValue> valueFactory, TArg factoryArgument)
+        public static TValue GetOrAdd<TKey, TValue, TArg>(ref ImmutableSegmentedDictionary<TKey, TValue> location, TKey key, TArg factoryArgument, Func<TKey, TArg, TValue> valueFactory)
             where TKey : notnull
         {
             if (valueFactory is null)

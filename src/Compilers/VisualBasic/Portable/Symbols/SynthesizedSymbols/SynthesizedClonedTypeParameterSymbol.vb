@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Shared Function MakeTypeParameters(origParameters As ImmutableArray(Of TypeParameterSymbol), container As Symbol,
                                                   mapFunction As Func(Of TypeParameterSymbol, Symbol, TypeParameterSymbol)) As ImmutableArray(Of TypeParameterSymbol)
-            Return origParameters.SelectAsArray(mapFunction, container)
+            Return origParameters.SelectAsArray(map:=mapFunction, arg:=container)
         End Function
 
         Friend Sub New(correspondingMethodTypeParameter As TypeParameterSymbol, container As Symbol, name As String, typeMapFactory As Func(Of Symbol, TypeSubstitution))

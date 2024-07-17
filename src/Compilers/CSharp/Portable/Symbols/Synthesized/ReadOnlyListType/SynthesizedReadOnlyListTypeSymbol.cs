@@ -875,7 +875,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Symbol> GetMembers() => _members;
 
-        public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray(static (m, name) => m.Name == name, name);
+        public override ImmutableArray<Symbol> GetMembers(string name) => GetMembers().WhereAsArray(predicate: static (m, name) => m.Name == name, arg: name);
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
             => _enumeratorType is not null
@@ -883,10 +883,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 : ImmutableArray<NamedTypeSymbol>.Empty;
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
-            => GetTypeMembers(name).WhereAsArray(static (type, arity) => type.Arity == arity, arity);
+            => GetTypeMembers(name).WhereAsArray(predicate: static (type, arity) => type.Arity == arity, arg: arity);
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
-            => GetTypeMembers().WhereAsArray(static (type, name) => type.Name.AsSpan().SequenceEqual(name.Span), name);
+            => GetTypeMembers().WhereAsArray(predicate: static (type, name) => type.Name.AsSpan().SequenceEqual(name.Span), arg: name);
 
         protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData) => throw ExceptionUtilities.Unreachable();
 

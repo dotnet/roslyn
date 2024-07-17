@@ -1294,7 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
-            return GetTypeMembers(name).WhereAsArray((t, arity) => t.Arity == arity, arity);
+            return GetTypeMembers(name).WhereAsArray(predicate: (t, arity) => t.Arity == arity, arg: arity);
         }
 
         private Dictionary<ReadOnlyMemory<char>, ImmutableArray<NamedTypeSymbol>> GetTypeMembersDictionary()

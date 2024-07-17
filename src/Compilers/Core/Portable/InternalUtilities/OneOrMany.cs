@@ -116,7 +116,7 @@ namespace Roslyn.Utilities
                 return EqualityComparer<T>.Default.Equals(item, _one) ? Empty : this;
             }
 
-            return OneOrMany.Create(_many.WhereAsArray(static (value, item) => !EqualityComparer<T>.Default.Equals(value, item), item));
+            return OneOrMany.Create(_many.WhereAsArray(predicate: static (value, item) => !EqualityComparer<T>.Default.Equals(value, item), arg: item));
         }
 
         public OneOrMany<TResult> Select<TResult>(Func<T, TResult> selector)
@@ -126,11 +126,11 @@ namespace Roslyn.Utilities
                 OneOrMany.Create(_many.SelectAsArray(selector));
         }
 
-        public OneOrMany<TResult> Select<TResult, TArg>(Func<T, TArg, TResult> selector, TArg arg)
+        public OneOrMany<TResult> Select<TResult, TArg>(TArg arg, Func<T, TArg, TResult> selector)
         {
             return HasOneItem ?
                 OneOrMany.Create(selector(_one, arg)) :
-                OneOrMany.Create(_many.SelectAsArray(selector, arg));
+                OneOrMany.Create(_many.SelectAsArray(map: selector, arg: arg));
         }
 
         public T First() => this[0];
@@ -148,14 +148,14 @@ namespace Roslyn.Utilities
             return _many.FirstOrDefault(predicate);
         }
 
-        public T? FirstOrDefault<TArg>(Func<T, TArg, bool> predicate, TArg arg)
+        public T? FirstOrDefault<TArg>(TArg arg, Func<T, TArg, bool> predicate)
         {
             if (HasOneItem)
             {
                 return predicate(_one, arg) ? _one : default;
             }
 
-            return _many.FirstOrDefault(predicate, arg);
+            return _many.FirstOrDefault(predicate: predicate, arg: arg);
         }
 
         public static OneOrMany<T> CastUp<TDerived>(OneOrMany<TDerived> from) where TDerived : class, T
@@ -168,8 +168,8 @@ namespace Roslyn.Utilities
         public bool All(Func<T, bool> predicate)
             => HasOneItem ? predicate(_one) : _many.All(predicate);
 
-        public bool All<TArg>(Func<T, TArg, bool> predicate, TArg arg)
-            => HasOneItem ? predicate(_one, arg) : _many.All(predicate, arg);
+        public bool All<TArg>(TArg arg, Func<T, TArg, bool> predicate)
+            => HasOneItem ? predicate(_one, arg) : _many.All(predicate: predicate, arg: arg);
 
         public bool Any()
             => !IsEmpty;
@@ -177,8 +177,8 @@ namespace Roslyn.Utilities
         public bool Any(Func<T, bool> predicate)
             => HasOneItem ? predicate(_one) : _many.Any(predicate);
 
-        public bool Any<TArg>(Func<T, TArg, bool> predicate, TArg arg)
-            => HasOneItem ? predicate(_one, arg) : _many.Any(predicate, arg);
+        public bool Any<TArg>(TArg arg, Func<T, TArg, bool> predicate)
+            => HasOneItem ? predicate(_one, arg) : _many.Any(predicate: predicate, arg: arg);
 
         public ImmutableArray<T> ToImmutable()
             => HasOneItem ? ImmutableArray.Create(_one) : _many;

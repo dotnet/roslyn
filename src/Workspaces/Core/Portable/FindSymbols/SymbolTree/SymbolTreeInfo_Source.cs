@@ -72,7 +72,7 @@ internal partial class SymbolTreeInfo
         var lazy = s_projectToSourceChecksum.GetValue(
             project.State,
             static p => AsyncLazy.Create(
-                static (p, c) => ComputeSourceSymbolsChecksumAsync(p, c),
+                asynchronousComputeFunction: static (p, c) => ComputeSourceSymbolsChecksumAsync(p, c),
                 arg: p));
 
         return lazy.GetValueAsync(cancellationToken);

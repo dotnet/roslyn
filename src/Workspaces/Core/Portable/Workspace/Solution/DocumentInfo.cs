@@ -256,6 +256,6 @@ public sealed class DocumentInfo
         }
 
         public Checksum Checksum
-            => _lazyChecksum.Initialize(static @this => Checksum.Create(@this, static (@this, writer) => @this.WriteTo(writer)), this);
+            => _lazyChecksum.Initialize(valueFactory: static @this => Checksum.Create(@this, static (@this, writer) => @this.WriteTo(writer)), arg: this);
     }
 }

@@ -162,7 +162,7 @@ internal sealed class CSharpMakeMethodAsynchronousCodeFixProvider() : AbstractMa
     }
 
     private static bool IsIterator(IMethodSymbol method, CancellationToken cancellationToken)
-        => method.Locations.Any(static (loc, cancellationToken) => loc.FindNode(cancellationToken).ContainsYield(), cancellationToken);
+        => method.Locations.Any(predicate: static (loc, cancellationToken) => loc.FindNode(cancellationToken).ContainsYield(), arg: cancellationToken);
 
     private static bool IsIAsyncEnumerableOrEnumerator(ITypeSymbol returnType, KnownTaskTypes knownTypes)
         => returnType.OriginalDefinition.Equals(knownTypes.IAsyncEnumerableOfTType) ||

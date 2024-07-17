@@ -208,22 +208,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered()
         {
-            return OriginalDefinition.GetTypeMembersUnordered().SelectAsArray((t, self) => t.AsMember(self), this);
+            return OriginalDefinition.GetTypeMembersUnordered().SelectAsArray(map: (t, self) => t.AsMember(self), arg: this);
         }
 
         public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
         {
-            return OriginalDefinition.GetTypeMembers().SelectAsArray((t, self) => t.AsMember(self), this);
+            return OriginalDefinition.GetTypeMembers().SelectAsArray(map: (t, self) => t.AsMember(self), arg: this);
         }
 
         public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name)
         {
-            return OriginalDefinition.GetTypeMembers(name).SelectAsArray((t, self) => t.AsMember(self), this);
+            return OriginalDefinition.GetTypeMembers(name).SelectAsArray(map: (t, self) => t.AsMember(self), arg: this);
         }
 
         public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
-            return OriginalDefinition.GetTypeMembers(name, arity).SelectAsArray((t, self) => t.AsMember(self), this);
+            return OriginalDefinition.GetTypeMembers(name, arity).SelectAsArray(map: (t, self) => t.AsMember(self), arg: this);
         }
 
         internal sealed override bool HasDeclaredRequiredMembers => !_unbound && OriginalDefinition.HasDeclaredRequiredMembers;
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (IsTupleType)
             {
-                var result = GetMembers().WhereAsArray((m, name) => m.Name == name, name);
+                var result = GetMembers().WhereAsArray(predicate: (m, name) => m.Name == name, arg: name);
                 cacheResult(result);
                 return result;
             }
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _unbound
                 ? GetMembers()
-                : OriginalDefinition.GetEarlyAttributeDecodingMembers().SelectAsArray(s_symbolAsMemberFunc, this);
+                : OriginalDefinition.GetEarlyAttributeDecodingMembers().SelectAsArray(map: s_symbolAsMemberFunc, arg: this);
         }
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name)

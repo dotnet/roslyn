@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            var rewrittenLocals = node.Locals.WhereAsArray((local, rewriter) => local.IsCompilerGenerated || local.Name == null || rewriter.GetVariable(local.Name) == null, this);
+            var rewrittenLocals = node.Locals.WhereAsArray(predicate: (local, rewriter) => local.IsCompilerGenerated || local.Name == null || rewriter.GetVariable(local.Name) == null, arg: this);
             var rewrittenLocalFunctions = node.LocalFunctions;
             var rewrittenStatements = VisitList(node.Statements);
             return node.Update(rewrittenLocals, rewrittenLocalFunctions, node.HasUnsafeModifier, instrumentation: null, rewrittenStatements);

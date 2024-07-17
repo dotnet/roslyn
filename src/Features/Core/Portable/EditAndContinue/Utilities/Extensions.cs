@@ -143,7 +143,7 @@ internal static partial class Extensions
         => symbol is IPropertySymbol property && IsAutoProperty(property);
 
     public static bool IsAutoProperty(this IPropertySymbol property)
-        => property.ContainingType.GetMembers().Any(static (member, property) => member is IFieldSymbol field && field.AssociatedSymbol == property, property);
+        => property.ContainingType.GetMembers().Any(predicate: static (member, property) => member is IFieldSymbol field && field.AssociatedSymbol == property, arg: property);
 
     public static bool HasSynthesizedDefaultConstructor(this INamedTypeSymbol type)
         => !type.InstanceConstructors.Any(static c => !(c.Parameters is [] || c.ContainingType.IsRecord && c.IsCopyConstructor()));
@@ -155,13 +155,13 @@ internal static partial class Extensions
         => method.Parameters.Length > 0 &&
            method.Parameters.Length == constructor.Parameters.Length &&
            method.Parameters.All(
-               static (param, constructor) => param.RefKind == RefKind.Out && param.Type.Equals(constructor.Parameters[param.Ordinal].Type, SymbolEqualityComparer.Default),
-               constructor);
+               predicate: static (param, constructor) => param.RefKind == RefKind.Out && param.Type.Equals(constructor.Parameters[param.Ordinal].Type, SymbolEqualityComparer.Default),
+               arg: constructor);
 
     // TODO: use AssociatedSymbol to tie field to the parameter (see https://github.com/dotnet/roslyn/issues/69115)
     public static IFieldSymbol? GetPrimaryParameterBackingField(this IParameterSymbol parameter)
         => (IFieldSymbol?)parameter.ContainingType.GetMembers().FirstOrDefault(
-            static (member, parameter) => member is IFieldSymbol field && ParsePrimaryParameterBackingFieldName(field.Name, out var paramName) && paramName == parameter.Name, parameter);
+            predicate: static (member, parameter) => member is IFieldSymbol field && ParsePrimaryParameterBackingFieldName(field.Name, out var paramName) && paramName == parameter.Name, arg: parameter);
 
     private static bool ParsePrimaryParameterBackingFieldName(string fieldName, [NotNullWhen(true)] out string? parameterName)
     {
@@ -181,7 +181,7 @@ internal static partial class Extensions
     /// </summary>
     public static IMethodSymbol? GetMatchingDeconstructor(this IMethodSymbol constructor)
         => (IMethodSymbol?)constructor.ContainingType.GetMembers(WellKnownMemberNames.DeconstructMethodName).FirstOrDefault(
-            static (symbol, constructor) => symbol is IMethodSymbol method && HasDeconstructorSignature(method, constructor), constructor)?.PartialAsImplementation();
+            predicate: static (symbol, constructor) => symbol is IMethodSymbol method && HasDeconstructorSignature(method, constructor), arg: constructor)?.PartialAsImplementation();
 
     // https://github.com/dotnet/roslyn/issues/73772: does this helper need to be updated to use IPropertySymbol.PartialImplementationPart?
     public static ISymbol PartialAsImplementation(this ISymbol symbol)

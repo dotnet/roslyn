@@ -33,8 +33,9 @@ internal sealed class SimpleTreeAndVersionSource : ITreeAndVersionSource
         => _source.TryGetValue(out value);
 
     public static SimpleTreeAndVersionSource Create<TArg>(
+        TArg arg,
         Func<TArg, CancellationToken, Task<TreeAndVersion>> asynchronousComputeFunction,
-        Func<TArg, CancellationToken, TreeAndVersion>? synchronousComputeFunction, TArg arg)
+        Func<TArg, CancellationToken, TreeAndVersion>? synchronousComputeFunction)
     {
         return new(AsyncLazy<TreeAndVersion>.Create(asynchronousComputeFunction, synchronousComputeFunction, arg));
     }

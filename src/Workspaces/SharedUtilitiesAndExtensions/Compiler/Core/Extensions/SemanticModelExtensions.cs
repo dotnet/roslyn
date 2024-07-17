@@ -188,7 +188,7 @@ internal static partial class SemanticModelExtensions
             return false;
 
         var enumerableType = semanticModel.Compilation.IEnumerableOfTType();
-        return type.AllInterfaces.Any(static (i, enumerableType) => i.OriginalDefinition.Equals(enumerableType), enumerableType);
+        return type.AllInterfaces.Any(predicate: static (i, enumerableType) => i.OriginalDefinition.Equals(enumerableType), arg: enumerableType);
     }
 
     private static bool TryGeneratePluralizedNameFromTypeArgument(

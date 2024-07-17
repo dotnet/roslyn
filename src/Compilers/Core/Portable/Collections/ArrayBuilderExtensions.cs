@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="map">The mapping delegate</param>
         /// <param name="arg">The extra input used by mapping delegate</param>
         /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
-        public static ImmutableArray<TResult> SelectAsArray<TItem, TArg, TResult>(this ArrayBuilder<TItem> items, Func<TItem, TArg, TResult> map, TArg arg)
+        public static ImmutableArray<TResult> SelectAsArray<TItem, TArg, TResult>(this ArrayBuilder<TItem> items, TArg arg, Func<TItem, TArg, TResult> map)
         {
             switch (items.Count)
             {
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis
         /// <param name="map">The mapping delegate</param>
         /// <param name="arg">The extra input used by mapping delegate</param>
         /// <returns>If the items's length is 0, this will return an empty immutable array.</returns>
-        public static ImmutableArray<TResult> SelectAsArrayWithIndex<TItem, TArg, TResult>(this ArrayBuilder<TItem> items, Func<TItem, int, TArg, TResult> map, TArg arg)
+        public static ImmutableArray<TResult> SelectAsArrayWithIndex<TItem, TArg, TResult>(this ArrayBuilder<TItem> items, TArg arg, Func<TItem, int, TArg, TResult> map)
         {
             switch (items.Count)
             {

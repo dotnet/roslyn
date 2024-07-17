@@ -288,7 +288,7 @@ internal static partial class SourceTextExtensions
             Contract.ThrowIfFalse(offset == length);
 
             var chunksArray = chunks.MoveToImmutable();
-            Contract.ThrowIfTrue(chunksArray.Any(static (c, s) => c.Length != s, CharArrayLength));
+            Contract.ThrowIfTrue(chunksArray.Any(predicate: static (c, s) => c.Length != s, arg: CharArrayLength));
 
             return new CharArrayChunkTextReader(chunksArray, length);
         }

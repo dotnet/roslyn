@@ -123,7 +123,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         => new VisualStudioPortableExecutableReference(this, properties, filePath, fileChangeTracker: null);
 
     private bool VsSmartScopeCandidate(string fullPath)
-        => _runtimeDirectories.Any(static (d, fullPath) => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase), fullPath);
+        => _runtimeDirectories.Any(predicate: static (d, fullPath) => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase), arg: fullPath);
 
     internal static IEnumerable<string> GetReferencePaths()
     {

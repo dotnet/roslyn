@@ -1056,7 +1056,7 @@ internal sealed partial class ProjectSystemProject
             if (!vsixRazorAnalyzers.IsEmpty)
             {
                 if (s_razorSourceGeneratorAssemblyRootedFileNames.Any(
-                    static (fileName, fullPath) => fullPath.EndsWith(fileName, StringComparison.OrdinalIgnoreCase), fullPath))
+                    predicate: static (fileName, fullPath) => fullPath.EndsWith(fileName, StringComparison.OrdinalIgnoreCase), arg: fullPath))
                 {
                     return OneOrMany.Create(vsixRazorAnalyzers);
                 }

@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return result;
         }
 
-        public static T? SingleOrDefault<T, TArg>(this in TemporaryArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+        public static T? SingleOrDefault<T, TArg>(this in TemporaryArray<T> array, TArg arg, Func<T, TArg, bool> predicate)
         {
             var first = true;
             T? result = default;
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         public static T? FirstOrDefault<T>(this in TemporaryArray<T> array)
             => array.Count > 0 ? array[0] : default;
 
-        public static T? FirstOrDefault<T, TArg>(this in TemporaryArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+        public static T? FirstOrDefault<T, TArg>(this in TemporaryArray<T> array, TArg arg, Func<T, TArg, bool> predicate)
         {
             foreach (var item in array)
             {
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return default;
         }
 
-        public static int IndexOf<T, TArg>(this in TemporaryArray<T> array, Func<T, TArg, bool> predicate, TArg arg)
+        public static int IndexOf<T, TArg>(this in TemporaryArray<T> array, TArg arg, Func<T, TArg, bool> predicate)
         {
             var index = 0;
             foreach (var item in array)

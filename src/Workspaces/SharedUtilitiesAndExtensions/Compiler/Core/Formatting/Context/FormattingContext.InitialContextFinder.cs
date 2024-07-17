@@ -154,7 +154,7 @@ internal partial class FormattingContext
             {
                 _formattingRules.AddSuppressOperations(buffer, currentIndentationNode);
 
-                buffer.RemoveAll(Predicate, (startPosition, _tokenStream, mask));
+                buffer.RemoveAll(match: Predicate, arg: (startPosition, _tokenStream, mask));
                 if (buffer.Count > 0)
                 {
                     result.AddRange(buffer);

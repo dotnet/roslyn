@@ -82,7 +82,7 @@ internal static partial class ConvertProgramTransform
         var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
 
         // See if we have an existing part in another file.  If so, we'll have to generate our declaration as partial.
-        var hasExistingPart = programType.DeclaringSyntaxReferences.Any(static (d, cancellationToken) => d.GetSyntax(cancellationToken) is TypeDeclarationSyntax, cancellationToken);
+        var hasExistingPart = programType.DeclaringSyntaxReferences.Any(predicate: static (d, cancellationToken) => d.GetSyntax(cancellationToken) is TypeDeclarationSyntax, arg: cancellationToken);
 
         var method = (MethodDeclarationSyntax)generator.MethodDeclaration(
             mainMethod, WellKnownMemberNames.EntryPointMethodName,

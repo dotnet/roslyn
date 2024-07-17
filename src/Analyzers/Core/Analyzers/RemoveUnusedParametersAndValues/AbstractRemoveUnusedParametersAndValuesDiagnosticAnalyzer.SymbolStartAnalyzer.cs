@@ -237,7 +237,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
 
             // Ignore flagging parameters for methods with certain well-known attributes,
             // which are known to have unused parameters in real world code.
-            if (method.GetAttributes().Any(static (a, self) => self._attributeSetForMethodsToIgnore.Contains(a.AttributeClass), this))
+            if (method.GetAttributes().Any(predicate: static (a, self) => self._attributeSetForMethodsToIgnore.Contains(a.AttributeClass), arg: this))
             {
                 return false;
             }
@@ -269,7 +269,7 @@ internal abstract partial class AbstractRemoveUnusedParametersAndValuesDiagnosti
             // See https://docs.microsoft.com/dotnet/api/system.runtime.interopservices.icustommarshaler#implementing-the-getinstance-method
             if (method is { MetadataName: "GetInstance", IsStatic: true, Parameters.Length: 1, ContainingType: { } containingType } methodSymbol &&
                 methodSymbol.Parameters[0].Type.SpecialType == SpecialType.System_String &&
-                containingType.AllInterfaces.Any((@interface, marshaler) => @interface.Equals(marshaler), _iCustomMarshaler))
+                containingType.AllInterfaces.Any(predicate: (@interface, marshaler) => @interface.Equals(marshaler), arg: _iCustomMarshaler))
             {
                 return false;
             }

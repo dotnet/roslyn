@@ -147,7 +147,7 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
             }
 
             // all baseline spans are being tracked in their corresponding mapped documents (if a span is deleted it's still tracked as empty):
-            var newMappedDocumentActiveSpan = newMappedDocumentSpans.Single(static (s, id) => s.Id == id, oldActiveStatement.Statement.Id);
+            var newMappedDocumentActiveSpan = newMappedDocumentSpans.Single(predicate: static (s, id) => s.Id == id, arg: oldActiveStatement.Statement.Id);
             Debug.Assert(newMappedDocumentActiveSpan.UnmappedDocumentId == null || newMappedDocumentActiveSpan.UnmappedDocumentId == newDocument.Id);
 
             // TODO: optimize
@@ -182,7 +182,7 @@ internal sealed class EditAndContinueDocumentAnalysesCache(AsyncLazy<ActiveState
         }
 
         var lazyResults = AsyncLazy.Create(
-            static async (arg, cancellationToken) =>
+            asynchronousComputeFunction: static async (arg, cancellationToken) =>
             {
                 try
                 {

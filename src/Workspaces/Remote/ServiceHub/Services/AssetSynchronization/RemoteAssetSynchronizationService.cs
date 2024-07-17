@@ -32,7 +32,7 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
     {
         return RunServiceAsync(async cancellationToken =>
         {
-            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, Checksum.GetChecksumLogInfo, solutionChecksum, cancellationToken))
+            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizePrimaryWorkspaceAsync, messageGetter: Checksum.GetChecksumLogInfo, arg: solutionChecksum, token: cancellationToken))
             {
                 var workspace = GetWorkspace();
                 var assetProvider = workspace.CreateAssetProvider(solutionChecksum, WorkspaceManager.SolutionAssetCache, SolutionAssetSource);
@@ -54,7 +54,7 @@ internal sealed class RemoteAssetSynchronizationService(in BrokeredServiceBase.S
         {
             var workspace = GetWorkspace();
 
-            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, Checksum.GetChecksumLogInfo, baseTextChecksum, cancellationToken))
+            using (RoslynLogger.LogBlock(FunctionId.RemoteHostService_SynchronizeTextAsync, messageGetter: Checksum.GetChecksumLogInfo, arg: baseTextChecksum, token: cancellationToken))
             {
                 // Try to get the text associated with baseTextChecksum
                 var text = await TryGetSourceTextAsync(WorkspaceManager, workspace, documentId, baseTextChecksum, cancellationToken).ConfigureAwait(false);

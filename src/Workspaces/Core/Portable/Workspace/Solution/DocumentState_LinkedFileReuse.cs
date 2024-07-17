@@ -99,8 +99,8 @@ internal partial class DocumentState
         // provided source, gets the tree from it, and then wraps its root in a new tree for us.
 
         var lazyComputation = AsyncLazy.Create(
-            static (arg, cancellationToken) => TryReuseSiblingTreeAsync(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
-            static (arg, cancellationToken) => TryReuseSiblingTree(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
+            asynchronousComputeFunction: static (arg, cancellationToken) => TryReuseSiblingTreeAsync(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
+            synchronousComputeFunction: static (arg, cancellationToken) => TryReuseSiblingTree(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
             arg: (filePath: attributes.SyntaxTreeFilePath, languageServices, loadTextOptions, parseOptions, originalTreeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer));
 
         var newTreeSource = new LinkedFileReuseTreeAndVersionSource(originalTreeSource, lazyComputation);

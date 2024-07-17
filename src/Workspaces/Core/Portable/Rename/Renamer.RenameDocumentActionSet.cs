@@ -77,7 +77,7 @@ public static partial class Renamer
                 throw new ArgumentNullException(nameof(solution));
             }
 
-            if (actions.Any(static (a, self) => !self.ApplicableActions.Contains(a), this))
+            if (actions.Any(predicate: static (a, self) => !self.ApplicableActions.Contains(a), arg: this))
             {
                 throw new ArgumentException(string.Format(WorkspacesResources.Cannot_apply_action_that_is_not_in_0, nameof(ApplicableActions)));
             }

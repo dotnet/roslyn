@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
                         if (useListOptimization(_compilation, node, out var listElementType))
                         {
-                            return CreateAndPopulateList(node, listElementType, node.Elements.SelectAsArray(static (element, node) => unwrapListElement(node, element), node));
+                            return CreateAndPopulateList(node, listElementType, node.Elements.SelectAsArray(map: static (element, node) => unwrapListElement(node, element), arg: node));
                         }
                         return VisitCollectionInitializerCollectionExpression(node, node.Type);
                     case CollectionExpressionTypeKind.Array:
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return false;
                 }
-                return elements.All(canOptimizeListElement, addMethod);
+                return elements.All(predicate: canOptimizeListElement, arg: addMethod);
             }
 
             static bool canOptimizeListElement(BoundNode element, MethodSymbol addMethod)
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Assert that binding layer agrees with lowering layer about whether this collection-expr will allocate.
                     Debug.Assert(!IsAllocatingRefStructCollectionExpression(node, collectionTypeKind, elementType.Type, _compilation));
                     var constructor = ((MethodSymbol)_factory.WellKnownMember(WellKnownMember.System_ReadOnlySpan_T__ctor_Array)).AsMember(spanType);
-                    var rewrittenElements = elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression((BoundExpression)element), this);
+                    var rewrittenElements = elements.SelectAsArray(map: static (element, rewriter) => rewriter.VisitExpression((BoundExpression)element), arg: this);
                     return _factory.New(constructor, _factory.Array(elementType.Type, rewrittenElements));
                 }
 
@@ -626,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var initialization = new BoundArrayInitialization(
                     syntax,
                     isInferred: false,
-                    elements.SelectAsArray(static (element, rewriter) => rewriter.VisitExpression((BoundExpression)element), this));
+                    elements.SelectAsArray(map: static (element, rewriter) => rewriter.VisitExpression((BoundExpression)element), arg: this));
                 return new BoundArrayCreation(
                     syntax,
                     ImmutableArray.Create<BoundExpression>(

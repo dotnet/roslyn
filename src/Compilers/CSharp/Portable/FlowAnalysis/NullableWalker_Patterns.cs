@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to evaluate the patterns.  In this way we infer non-nullability of the original element's parts.
             // We do not extend such courtesy to nested tuple literals.
             var originalInputElementSlots = expression is BoundTupleExpression tuple
-                ? tuple.Arguments.SelectAsArray(static (a, w) => w.GetSlotForSwitchInputValue(a), this)
+                ? tuple.Arguments.SelectAsArray(map: static (a, w) => w.GetSlotForSwitchInputValue(a), arg: this)
                 : default;
             var originalInputMap = PooledDictionary<int, BoundExpression>.GetInstance();
             originalInputMap.Add(originalInputSlot, expression);

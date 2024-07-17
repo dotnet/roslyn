@@ -120,8 +120,8 @@ internal partial class DocumentState : TextDocumentState
         PreservationMode mode = PreservationMode.PreserveValue)
     {
         return SimpleTreeAndVersionSource.Create(
-            static (arg, c) => FullyParseTreeAsync(arg.newTextSource, arg.loadTextOptions, arg.filePath, arg.options, arg.languageServices, arg.mode, c),
-            static (arg, c) => FullyParseTree(arg.newTextSource, arg.loadTextOptions, arg.filePath, arg.options, arg.languageServices, arg.mode, c),
+            asynchronousComputeFunction: static (arg, c) => FullyParseTreeAsync(arg.newTextSource, arg.loadTextOptions, arg.filePath, arg.options, arg.languageServices, arg.mode, c),
+            synchronousComputeFunction: static (arg, c) => FullyParseTree(arg.newTextSource, arg.loadTextOptions, arg.filePath, arg.options, arg.languageServices, arg.mode, c),
             arg: (newTextSource, loadTextOptions, filePath, options, languageServices, mode));
     }
 
@@ -183,8 +183,8 @@ internal partial class DocumentState : TextDocumentState
         LoadTextOptions loadTextOptions)
     {
         return SimpleTreeAndVersionSource.Create(
-            static (arg, c) => IncrementallyParseTreeAsync(arg.oldTreeSource, arg.newTextSource, arg.loadTextOptions, c),
-            static (arg, c) => IncrementallyParseTree(arg.oldTreeSource, arg.newTextSource, arg.loadTextOptions, c),
+            asynchronousComputeFunction: static (arg, c) => IncrementallyParseTreeAsync(arg.oldTreeSource, arg.newTextSource, arg.loadTextOptions, c),
+            synchronousComputeFunction: static (arg, c) => IncrementallyParseTree(arg.oldTreeSource, arg.newTextSource, arg.loadTextOptions, c),
             arg: (oldTreeSource, newTextSource, loadTextOptions));
     }
 
@@ -547,8 +547,8 @@ internal partial class DocumentState : TextDocumentState
             // its okay to use a strong cached AsyncLazy here because the compiler layer SyntaxTree will also keep the text alive once its built.
             var lazyTextAndVersion = new TreeTextSource(
                 AsyncLazy.Create(
-                    static (tree, c) => tree.GetTextAsync(c),
-                    static (tree, c) => tree.GetText(c),
+                    asynchronousComputeFunction: static (tree, c) => tree.GetTextAsync(c),
+                    synchronousComputeFunction: static (tree, c) => tree.GetText(c),
                     arg: tree),
                 textVersion);
 

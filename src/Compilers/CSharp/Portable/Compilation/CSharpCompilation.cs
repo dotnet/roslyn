@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return InterlockedOperations.Initialize(ref _lazyBuiltInOperators, static self => new BuiltInOperators(self), this);
+                return InterlockedOperations.Initialize(ref _lazyBuiltInOperators, valueFactory: static self => new BuiltInOperators(self), arg: this);
             }
         }
 
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return InterlockedOperations.Initialize(ref _lazyAnonymousTypeManager, static self => new AnonymousTypeManager(self), this);
+                return InterlockedOperations.Initialize(ref _lazyAnonymousTypeManager, valueFactory: static self => new AnonymousTypeManager(self), arg: this);
             }
         }
 
@@ -1567,7 +1567,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Global imports (including those from previous submissions, if there are any).
         /// </summary>
         internal ImmutableArray<NamespaceOrTypeAndUsingDirective> GlobalImports
-            => InterlockedOperations.Initialize(ref _lazyGlobalImports, static self => self.BindGlobalImports(), arg: this);
+            => InterlockedOperations.Initialize(ref _lazyGlobalImports, createArray: static self => self.BindGlobalImports(), arg: this);
 
         private ImmutableArray<NamespaceOrTypeAndUsingDirective> BindGlobalImports()
         {
@@ -1607,7 +1607,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Global imports not including those from previous submissions.
         /// </summary>
         private UsingsFromOptionsAndDiagnostics UsingsFromOptions
-            => InterlockedOperations.Initialize(ref _lazyUsingsFromOptions, static self => self.BindUsingsFromOptions(), this);
+            => InterlockedOperations.Initialize(ref _lazyUsingsFromOptions, valueFactory: static self => self.BindUsingsFromOptions(), arg: this);
 
         private UsingsFromOptionsAndDiagnostics BindUsingsFromOptions() => UsingsFromOptionsAndDiagnostics.FromOptions(this);
 
@@ -1633,7 +1633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Imports from all previous submissions.
         /// </summary>
         internal Imports GetPreviousSubmissionImports()
-            => InterlockedOperations.Initialize(ref _lazyPreviousSubmissionImports, static self => self.ExpandPreviousSubmissionImports(), this);
+            => InterlockedOperations.Initialize(ref _lazyPreviousSubmissionImports, valueFactory: static self => self.ExpandPreviousSubmissionImports(), arg: this);
 
         private Imports ExpandPreviousSubmissionImports()
         {
@@ -1653,7 +1653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return InterlockedOperations.Initialize(ref _lazyGlobalNamespaceAlias, static self => self.CreateGlobalNamespaceAlias(), this);
+                return InterlockedOperations.Initialize(ref _lazyGlobalNamespaceAlias, valueFactory: static self => self.CreateGlobalNamespaceAlias(), arg: this);
             }
         }
 
@@ -4073,7 +4073,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type => TypeWithAnnotations.Create(type.EnsureCSharpSymbolOrNull(nameof(parameterTypes)), type.NullableAnnotation.ToInternalAnnotation()));
             var internalCallingConvention = callingConvention.FromSignatureConvention();
             var conventionModifiers = internalCallingConvention == CallingConvention.Unmanaged && !callingConventionTypes.IsDefaultOrEmpty
-                ? callingConventionTypes.SelectAsArray((type, i, @this) => getCustomModifierForType(type, @this, i), this)
+                ? callingConventionTypes.SelectAsArray(map: (type, i, @this) => getCustomModifierForType(type, @this, i), arg: this)
                 : ImmutableArray<CustomModifier>.Empty;
 
             return FunctionPointerTypeSymbol.CreateFromParts(

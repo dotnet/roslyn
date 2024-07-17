@@ -100,7 +100,7 @@ internal class CSharpIntroduceLocalForExpressionCodeRefactoringProvider :
 
         // Generate the names for the locals.  For Tuples that have user provided names, keep that name.
         // Otherwise, generate a reasonable local name for the type of the field, using our helpers.
-        var localTypesAndDesignations = tupleType.TupleElements.SelectAsArray((field, index, _) =>
+        var localTypesAndDesignations = tupleType.TupleElements.SelectAsArray(map: (field, index, _) =>
             {
                 var name = field.Name.ToCamelCase();
                 if (field.Name == tupleUnderlyingType.TupleElements[index].Name)

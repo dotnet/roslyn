@@ -892,7 +892,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         break;
 
                     default:
-                        var param = parameters.FirstOrDefault(static (p, name) => string.Equals(p.Name, name, StringComparison.Ordinal), name);
+                        var param = parameters.FirstOrDefault(predicate: static (p, name) => string.Equals(p.Name, name, StringComparison.Ordinal), arg: name);
                         if (param is not null && (object)param != this)
                         {
                             builder.Add(param.Ordinal);

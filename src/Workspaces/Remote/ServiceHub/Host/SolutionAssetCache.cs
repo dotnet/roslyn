@@ -75,7 +75,7 @@ internal sealed class SolutionAssetCache
 
     public bool TryGetAsset<T>(Checksum checksum, [MaybeNullWhen(false)] out T value)
     {
-        using (Logger.LogBlock(FunctionId.AssetStorage_TryGetAsset, Checksum.GetChecksumLogInfo, checksum, CancellationToken.None))
+        using (Logger.LogBlock(FunctionId.AssetStorage_TryGetAsset, messageGetter: Checksum.GetChecksumLogInfo, arg: checksum, token: CancellationToken.None))
         {
             if (!_assets.TryGetValue(checksum, out var entry))
             {

@@ -562,7 +562,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
                 break;
             }
 
-            if (!arguments[i].IsNamed || updatedSignature.UpdatedConfiguration.ToListOfParameters().Any(static (p, arg) => p.Name == arg.arguments[arg.i].GetName(), (arguments, i)))
+            if (!arguments[i].IsNamed || updatedSignature.UpdatedConfiguration.ToListOfParameters().Any(predicate: static (p, arg) => p.Name == arg.arguments[arg.i].GetName(), arg: (arguments, i)))
             {
                 newArguments.Add(arguments[i]);
             }

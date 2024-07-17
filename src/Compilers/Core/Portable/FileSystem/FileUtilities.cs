@@ -315,10 +315,10 @@ namespace Roslyn.Utilities
 
         public static T RethrowExceptionsAsIOException<T>(Func<T> operation)
             => RethrowExceptionsAsIOException(
-                static operation => operation(),
-                operation);
+                operation: static operation => operation(),
+                arg: operation);
 
-        public static T RethrowExceptionsAsIOException<T, TArg>(Func<TArg, T> operation, TArg arg)
+        public static T RethrowExceptionsAsIOException<T, TArg>(TArg arg, Func<TArg, T> operation)
         {
             try
             {
@@ -332,10 +332,10 @@ namespace Roslyn.Utilities
 
         public static Task<T> RethrowExceptionsAsIOExceptionAsync<T>(Func<Task<T>> operation)
             => RethrowExceptionsAsIOExceptionAsync(
-                static operation => operation(),
-                operation);
+                operation: static operation => operation(),
+                arg: operation);
 
-        public static async Task<T> RethrowExceptionsAsIOExceptionAsync<T, TArg>(Func<TArg, Task<T>> operation, TArg arg)
+        public static async Task<T> RethrowExceptionsAsIOExceptionAsync<T, TArg>(TArg arg, Func<TArg, Task<T>> operation)
         {
             try
             {

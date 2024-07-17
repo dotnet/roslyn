@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Interactive
 
             public LazyRemoteService(InteractiveHost host, InteractiveHostOptions options, int instanceId, bool skipInitialization)
             {
-                _lazyInitializedService = AsyncLazy.Create(static (self, cancellationToken) => self.TryStartAndInitializeProcessAsync(cancellationToken), this);
+                _lazyInitializedService = AsyncLazy.Create(asynchronousComputeFunction: static (self, cancellationToken) => self.TryStartAndInitializeProcessAsync(cancellationToken), arg: this);
                 _cancellationSource = new CancellationTokenSource();
                 InstanceId = instanceId;
                 Options = options;

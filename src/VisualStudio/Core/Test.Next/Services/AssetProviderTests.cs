@@ -58,7 +58,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             Assert.Equal(data, stored);
 
             var stored2 = new List<(Checksum, object)>();
-            await provider.GetAssetsAsync<object, VoidResult>(AssetPath.FullLookupForTesting, new HashSet<Checksum> { checksum }, (checksum, asset, _) => stored2.Add((checksum, asset)), default, CancellationToken.None);
+            await provider.GetAssetsAsync<object, VoidResult>(AssetPath.FullLookupForTesting, new HashSet<Checksum> { checksum }, callback: (checksum, asset, _) => stored2.Add((checksum, asset)), arg: default, cancellationToken: CancellationToken.None);
             Assert.Equal(1, stored2.Count);
 
             Assert.Equal(checksum, stored2[0].Item1);
@@ -195,8 +195,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 AssetPath assetPath,
                 ReadOnlyMemory<Checksum> checksums,
                 ISerializerService deserializerService,
-                Action<Checksum, T, TArg> callback,
                 TArg arg,
+                Action<Checksum, T, TArg> callback,
                 CancellationToken cancellationToken)
             {
                 foreach (var (checksum, asset) in map)

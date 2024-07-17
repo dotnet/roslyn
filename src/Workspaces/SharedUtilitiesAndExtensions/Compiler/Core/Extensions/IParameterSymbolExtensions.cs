@@ -36,7 +36,7 @@ internal static partial class IParameterSymbolExtensions
             // ok, we have a record constructor.  This might be the primary constructor or not.
             var parameterSyntax = parameter.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
             var constructorSyntax = constructor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-            if (containingType.DeclaringSyntaxReferences.Any(static (r, arg) => r.GetSyntax(arg.cancellationToken) == arg.constructorSyntax, (constructorSyntax, cancellationToken)))
+            if (containingType.DeclaringSyntaxReferences.Any(predicate: static (r, arg) => r.GetSyntax(arg.cancellationToken) == arg.constructorSyntax, arg: (constructorSyntax, cancellationToken)))
             {
                 // this was a primary constructor. see if we can map this parameter to a corresponding synthesized property 
                 foreach (var member in containingType.GetMembers(parameter.Name))
@@ -66,7 +66,7 @@ internal static partial class IParameterSymbolExtensions
             })
         {
             var constructorSyntax = constructorReference.GetSyntax(cancellationToken);
-            return containingType.DeclaringSyntaxReferences.Any(static (r, arg) => r.GetSyntax(arg.cancellationToken) == arg.constructorSyntax, (constructorSyntax, cancellationToken));
+            return containingType.DeclaringSyntaxReferences.Any(predicate: static (r, arg) => r.GetSyntax(arg.cancellationToken) == arg.constructorSyntax, arg: (constructorSyntax, cancellationToken));
         }
 
         return false;

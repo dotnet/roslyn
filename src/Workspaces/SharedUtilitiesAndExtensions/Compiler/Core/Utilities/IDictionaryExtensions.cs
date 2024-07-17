@@ -25,7 +25,7 @@ internal static class IDictionaryExtensions
         return value;
     }
 
-    public static V GetOrAdd<K, V, TArg>(this IDictionary<K, V> dictionary, K key, Func<K, TArg, V> function, TArg arg)
+    public static V GetOrAdd<K, V, TArg>(this IDictionary<K, V> dictionary, K key, TArg arg, Func<K, TArg, V> function)
         where K : notnull
     {
         if (!dictionary.TryGetValue(key, out var value))

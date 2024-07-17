@@ -63,7 +63,7 @@ internal partial class InvocationExpressionSignatureHelpProviderBase
 
             var includeStatic = throughSymbol is INamedTypeSymbol ||
                 (throughExpression.IsKind(SyntaxKind.IdentifierName) &&
-                semanticModel.LookupNamespacesAndTypes(throughExpression.SpanStart, name: throughSymbol?.Name).Any(static (t, throughType) => Equals(t.GetSymbolType(), throughType), throughType));
+                semanticModel.LookupNamespacesAndTypes(throughExpression.SpanStart, name: throughSymbol?.Name).Any(predicate: static (t, throughType) => Equals(t.GetSymbolType(), throughType), arg: throughType));
 
             Contract.ThrowIfFalse(includeInstance || includeStatic);
             methodGroup = methodGroup.Where(m => (m.IsStatic && includeStatic) || (!m.IsStatic && includeInstance));

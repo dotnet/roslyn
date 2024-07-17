@@ -55,8 +55,8 @@ public static partial class SymbolFinder
             var namespace2Count = namespace2.ConstituentNamespaces.Length;
             if (namespace1Count != namespace2Count)
             {
-                if ((namespace1Count > 1 && namespace1.ConstituentNamespaces.Any(static (n, arg) => OriginalSymbolsMatch(arg.solution, n, arg.namespace2), (solution, namespace2))) ||
-                    (namespace2Count > 1 && namespace2.ConstituentNamespaces.Any(static (n2, arg) => OriginalSymbolsMatch(arg.solution, arg.namespace1, n2), (solution, namespace1))))
+                if ((namespace1Count > 1 && namespace1.ConstituentNamespaces.Any(predicate: static (n, arg) => OriginalSymbolsMatch(arg.solution, n, arg.namespace2), arg: (solution, namespace2))) ||
+                    (namespace2Count > 1 && namespace2.ConstituentNamespaces.Any(predicate: static (n2, arg) => OriginalSymbolsMatch(arg.solution, arg.namespace1, n2), arg: (solution, namespace1))))
                 {
                     return true;
                 }

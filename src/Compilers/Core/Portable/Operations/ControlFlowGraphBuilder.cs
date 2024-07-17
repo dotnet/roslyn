@@ -7621,7 +7621,7 @@ oneMoreTime:
             return new ListPatternOperation(
                 operation.LengthSymbol,
                 operation.IndexerSymbol,
-                operation.Patterns.SelectAsArray((p, @this) => (IPatternOperation)@this.VisitRequired(p), this),
+                operation.Patterns.SelectAsArray(map: (p, @this) => (IPatternOperation)@this.VisitRequired(p), arg: this),
                 operation.DeclaredSymbol,
                 operation.InputType,
                 operation.NarrowedType,
@@ -7635,8 +7635,8 @@ oneMoreTime:
             return new RecursivePatternOperation(
                 operation.MatchedType,
                 operation.DeconstructSymbol,
-                operation.DeconstructionSubpatterns.SelectAsArray((p, @this) => (IPatternOperation)@this.VisitRequired(p), this),
-                operation.PropertySubpatterns.SelectAsArray((p, @this) => (IPropertySubpatternOperation)@this.VisitRequired(p), this),
+                operation.DeconstructionSubpatterns.SelectAsArray(map: (p, @this) => (IPatternOperation)@this.VisitRequired(p), arg: this),
+                operation.PropertySubpatterns.SelectAsArray(map: (p, @this) => (IPropertySubpatternOperation)@this.VisitRequired(p), arg: this),
                 operation.DeclaredSymbol,
                 operation.InputType,
                 operation.NarrowedType,

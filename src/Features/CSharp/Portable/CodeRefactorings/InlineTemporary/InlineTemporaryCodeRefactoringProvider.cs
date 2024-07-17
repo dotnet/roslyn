@@ -87,7 +87,7 @@ internal partial class CSharpInlineTemporaryCodeRefactoringProvider
         // If the variable is itself referenced in its own initializer then don't offer anything here.  This
         // practically does not occur (though the language allows it), and it only serves to add a huge amount
         // of complexity to this feature.
-        if (references.Any(static (r, variableDeclarator) => variableDeclarator.Initializer.Span.Contains(r.Span), variableDeclarator))
+        if (references.Any(predicate: static (r, variableDeclarator) => variableDeclarator.Initializer.Span.Contains(r.Span), arg: variableDeclarator))
             return;
 
         context.RegisterRefactoring(

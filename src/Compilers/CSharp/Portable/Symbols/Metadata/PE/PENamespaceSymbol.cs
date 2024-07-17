@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public sealed override ImmutableArray<NamedTypeSymbol> GetTypeMembers(ReadOnlyMemory<char> name, int arity)
         {
-            return GetTypeMembers(name).WhereAsArray((type, arity) => type.Arity == arity, arity);
+            return GetTypeMembers(name).WhereAsArray(predicate: (type, arity) => type.Arity == arity, arg: arity);
         }
 
         public sealed override ImmutableArray<Location> Locations

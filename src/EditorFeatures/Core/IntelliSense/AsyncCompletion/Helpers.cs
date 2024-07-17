@@ -35,7 +35,7 @@ internal static class Helpers
             return item;
 
         Debug.Assert(item.DisplayText.StartsWith(Completion.Utilities.UnicodeStarAndSpace));
-        var newProperties = item.GetProperties().WhereAsArray((kvp, propName) => kvp.Key != propName, PromotedItemOriginalIndexPropertyName);
+        var newProperties = item.GetProperties().WhereAsArray(predicate: (kvp, propName) => kvp.Key != propName, arg: PromotedItemOriginalIndexPropertyName);
         return item
             .WithDisplayText(item.DisplayText[Completion.Utilities.UnicodeStarAndSpace.Length..])
             .WithProperties(newProperties);
@@ -160,7 +160,7 @@ internal static class Helpers
     {
         if (textTypedSoFar.Length > 0)
         {
-            using var _ = PooledDelegates.GetPooledFunction(static (filterText, pattern) => filterText.StartsWith(pattern, StringComparison.CurrentCultureIgnoreCase), textTypedSoFar, out Func<string, bool> isPrefixMatch);
+            using var _ = PooledDelegates.GetPooledFunction(unboundFunction: static (filterText, pattern) => filterText.StartsWith(pattern, StringComparison.CurrentCultureIgnoreCase), argument: textTypedSoFar, boundFunction: out Func<string, bool> isPrefixMatch);
 
             // Note that StartsWith ignores \0 at the end of textTypedSoFar on VS Mac and Mono.
             return item.DisplayText.StartsWith(textTypedSoFar, StringComparison.CurrentCultureIgnoreCase) ||

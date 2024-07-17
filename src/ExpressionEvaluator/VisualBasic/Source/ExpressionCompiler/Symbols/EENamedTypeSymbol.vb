@@ -85,8 +85,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Dim typeMap As TypeSubstitution = Nothing
             Dim getTypeMap = New Func(Of TypeSubstitution)(Function() typeMap)
             _typeParameters = SourceTypeParameters.SelectAsArray(
-                Function(tp As TypeParameterSymbol, i As Integer, arg As Object) DirectCast(New EETypeParameterSymbol(Me, tp, i, getTypeMap), TypeParameterSymbol),
-                DirectCast(Nothing, Object))
+                map:=Function(tp As TypeParameterSymbol, i As Integer, arg As Object) DirectCast(New EETypeParameterSymbol(Me, tp, i, getTypeMap), TypeParameterSymbol),
+                arg:=DirectCast(Nothing, Object))
 
             typeMap = TypeSubstitution.Create(sourceType, SourceTypeParameters, ImmutableArrayExtensions.Cast(Of TypeParameterSymbol, TypeSymbol)(_typeParameters))
 
@@ -171,7 +171,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
         Public Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
             ' Should not be requesting generated members by name other than constructors.
             Debug.Assert(name = WellKnownMemberNames.InstanceConstructorName OrElse name = WellKnownMemberNames.StaticConstructorName)
-            Return GetMembers().WhereAsArray(Function(member, name_) member.Name = name_, name)
+            Return GetMembers().WhereAsArray(predicate:=Function(member, name_) member.Name = name_, arg:=name)
         End Function
 
         Public Overrides Function GetTypeMembers() As ImmutableArray(Of NamedTypeSymbol)

@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 proxies.TryGetValue(thisParameter, out thisProxy) &&
                 F.Compilation.Options.OptimizationLevel == OptimizationLevel.Release)
             {
-                BoundExpression thisProxyReplacement = thisProxy.Replacement(F.Syntax, static (frameType, F) => F.This(), F);
+                BoundExpression thisProxyReplacement = thisProxy.Replacement(F.Syntax, makeFrame: static (frameType, F) => F.This(), arg: F);
                 Debug.Assert(thisProxyReplacement.Type is not null);
                 this.cachedThis = F.SynthesizedLocal(thisProxyReplacement.Type, syntax: F.Syntax, kind: SynthesizedLocalKind.FrameCache);
             }
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 translatedStatement = F.Block(
                     translatedStatement,
-                    F.Block(variableCleanup.SelectAsArray((e, f) => (BoundStatement)f.ExpressionStatement(e), F)));
+                    F.Block(variableCleanup.SelectAsArray(map: (e, f) => (BoundStatement)f.ExpressionStatement(e), arg: F)));
             }
 
             variableCleanup.Free();
@@ -925,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if ((object)this.cachedThis != null)
             {
                 CapturedSymbolReplacement proxy = proxies[this.OriginalMethod.ThisParameter];
-                var fetchThis = proxy.Replacement(F.Syntax, static (frameType, F) => F.This(), F);
+                var fetchThis = proxy.Replacement(F.Syntax, makeFrame: static (frameType, F) => F.This(), arg: F);
                 return F.Assignment(F.Local(this.cachedThis), fetchThis);
             }
 
@@ -961,7 +961,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert(proxy != null);
-                return proxy.Replacement(F.Syntax, static (frameType, F) => F.This(), F);
+                return proxy.Replacement(F.Syntax, makeFrame: static (frameType, F) => F.This(), arg: F);
             }
         }
 
@@ -977,7 +977,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CapturedSymbolReplacement proxy = proxies[this.OriginalMethod.ThisParameter];
             Debug.Assert(proxy != null);
-            return proxy.Replacement(F.Syntax, static (frameType, F) => F.This(), F);
+            return proxy.Replacement(F.Syntax, makeFrame: static (frameType, F) => F.This(), arg: F);
         }
 
         #endregion

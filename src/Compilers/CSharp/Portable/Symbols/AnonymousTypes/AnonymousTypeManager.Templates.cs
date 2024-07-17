@@ -249,8 +249,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var key = new SynthesizedDelegateKey(genericTypeDescr);
                     var namedTemplate = this.AnonymousDelegates.GetOrAdd(
                         key,
-                        static (key, @this) => new AnonymousDelegateTemplateSymbol(@this, key.TypeDescriptor),
-                        this);
+                        valueFactory: static (key, @this) => new AnonymousDelegateTemplateSymbol(@this, key.TypeDescriptor),
+                        factoryArgument: this);
 
                     return namedTemplate.Construct(typeArguments);
                 }
@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (GeneratedNames.TryParseSynthesizedDelegateName(key.Name, out var refKinds, out var returnsVoid, out var generation, out var parameterCount))
                 {
                     var delegateKey = new SynthesizedDelegateKey(parameterCount, refKinds, returnsVoid, generation);
-                    this.AnonymousDelegates.GetOrAdd(delegateKey, (k, args) => CreatePlaceholderSynthesizedDelegateValue(key.Name, args.refKinds, args.returnsVoid, args.parameterCount), (refKinds, returnsVoid, parameterCount));
+                    this.AnonymousDelegates.GetOrAdd(delegateKey, valueFactory: (k, args) => CreatePlaceholderSynthesizedDelegateValue(key.Name, args.refKinds, args.returnsVoid, args.parameterCount), factoryArgument: (refKinds, returnsVoid, parameterCount));
                 }
             }
 

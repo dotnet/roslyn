@@ -11987,7 +11987,7 @@ class C
 System.NotImplementedException: 28
    at TestAnalyzer.get_SupportedDiagnostics()
    at Microsoft.CodeAnalysis.Diagnostics.AnalyzerManager.AnalyzerExecutionContext.<>c__DisplayClass21_0.<ComputeDiagnosticDescriptors_NoLock>b__0(Object _)
-   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAndCatchIfThrows_NoLock[TArg](DiagnosticAnalyzer analyzer, Action`1 analyze, TArg argument, Nullable`1 info, CancellationToken cancellationToken)
+   at Microsoft.CodeAnalysis.Diagnostics.AnalyzerExecutor.ExecuteAndCatchIfThrows_NoLock[TArg](DiagnosticAnalyzer analyzer, TArg argument, Action`1 analyze, Nullable`1 info, CancellationToken cancellationToken)
 -----
 Analyzer 'TestAnalyzer' threw an exception of type 'System.NotImplementedException' with message '28'.
 System.NotImplementedException: 28

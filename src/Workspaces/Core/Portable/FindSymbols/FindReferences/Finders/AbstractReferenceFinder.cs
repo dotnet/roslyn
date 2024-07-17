@@ -493,7 +493,7 @@ internal abstract partial class AbstractReferenceFinder : IReferenceFinder
                 deconstructMethods = semanticFacts.GetDeconstructionForEachMethods(semanticModel, node);
             }
 
-            if (deconstructMethods.Any(static (m, symbol) => Matches(m, symbol), symbol))
+            if (deconstructMethods.Any(predicate: static (m, symbol) => Matches(m, symbol), arg: symbol))
             {
                 var location = state.SyntaxFacts.GetDeconstructionReferenceLocation(node);
                 var symbolUsageInfo = GetSymbolUsageInfo(node, state, cancellationToken);

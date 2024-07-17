@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 // Retarget by type code - primitive types are encoded in short form in an attribute signature:
                 return marshallingInfo?.WithTranslatedTypes<TypeSymbol, RetargetingSymbolTranslator>(
-                    (type, translator) => translator.Retarget(type, RetargetOptions.RetargetPrimitiveTypesByTypeCode), this);
+                    translator: (type, translator) => translator.Retarget(type, RetargetOptions.RetargetPrimitiveTypesByTypeCode), arg: this);
             }
 
             public TypeSymbol Retarget(TypeSymbol symbol, RetargetOptions options)
@@ -827,14 +827,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             public ImmutableArray<Symbol> Retarget(ImmutableArray<Symbol> arr)
             {
                 return arr.SelectAsArray(
-                    static (s, self) => self.Retarget(s),
-                    this);
+                    map: static (s, self) => self.Retarget(s),
+                    arg: this);
             }
 
             public ImmutableArray<NamedTypeSymbol> Retarget(ImmutableArray<NamedTypeSymbol> sequence)
             {
                 return sequence.SelectAsArray(
-                    static (nts, self) =>
+                    map: static (nts, self) =>
                     {
                         // If there is an error type in the base type list, it will end up in the interface list (rather
                         // than as the base class), so it might end up passing through here.  If it is specified using
@@ -842,33 +842,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         Debug.Assert(nts.TypeKind == TypeKind.Error || nts.PrimitiveTypeCode == Cci.PrimitiveTypeCode.NotPrimitive);
                         return self.Retarget(nts, RetargetOptions.RetargetPrimitiveTypesByName);
                     },
-                    this);
+                    arg: this);
             }
 
             public ImmutableArray<TypeSymbol> Retarget(ImmutableArray<TypeSymbol> sequence)
             {
                 return sequence.SelectAsArray(
-                    static (ts, self) =>
+                    map: static (ts, self) =>
                     {
                         // In incorrect code, a type parameter constraint list can contain primitive types.
                         Debug.Assert(ts.TypeKind == TypeKind.Error || ts.PrimitiveTypeCode == Cci.PrimitiveTypeCode.NotPrimitive);
                         return self.Retarget(ts, RetargetOptions.RetargetPrimitiveTypesByName);
                     },
-                    this);
+                    arg: this);
             }
 
             public ImmutableArray<TypeWithAnnotations> Retarget(ImmutableArray<TypeWithAnnotations> sequence)
             {
                 return sequence.SelectAsArray(
-                    static (ts, self) => self.Retarget(ts, RetargetOptions.RetargetPrimitiveTypesByName),
-                    this);
+                    map: static (ts, self) => self.Retarget(ts, RetargetOptions.RetargetPrimitiveTypesByName),
+                    arg: this);
             }
 
             public ImmutableArray<TypeParameterSymbol> Retarget(ImmutableArray<TypeParameterSymbol> list)
             {
                 return list.SelectAsArray(
-                    static (tps, self) => self.Retarget(tps),
-                    this);
+                    map: static (tps, self) => self.Retarget(tps),
+                    arg: this);
             }
 
             public MethodSymbol Retarget(MethodSymbol method)
@@ -1000,13 +1000,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 )
                 {
                     var targetParams = method.Parameters.SelectAsArray(
-                        static ParameterSymbol (param, translator) => new SignatureOnlyParameterSymbol(
+                        map: static ParameterSymbol (param, translator) => new SignatureOnlyParameterSymbol(
                             translator.Retarget(param.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                             translator.RetargetModifiers(param.RefCustomModifiers, modifiersHaveChanged: out _),
                             isParamsArray: param.IsParamsArray,
                             isParamsCollection: param.IsParamsCollection,
                             param.RefKind),
-                        translator);
+                        arg: translator);
 
                     // We will be using this symbol only for the purpose of method signature comparison,
                     // IndexedTypeParameterSymbols should work just fine as the type parameters for the method.
@@ -1074,13 +1074,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             private PropertySymbol FindPropertyInRetargetedType(PropertySymbol property, NamedTypeSymbol retargetedType, IEqualityComparer<PropertySymbol> retargetedPropertyComparer)
             {
                 var targetParams = property.Parameters.SelectAsArray(
-                    static ParameterSymbol (param, self) => new SignatureOnlyParameterSymbol(
+                    map: static ParameterSymbol (param, self) => new SignatureOnlyParameterSymbol(
                         self.Retarget(param.TypeWithAnnotations, RetargetOptions.RetargetPrimitiveTypesByTypeCode),
                         self.RetargetModifiers(param.RefCustomModifiers, modifiersHaveChanged: out _),
                         isParamsArray: param.IsParamsArray,
                         isParamsCollection: param.IsParamsCollection,
                         param.RefKind),
-                    this);
+                    arg: this);
 
                 var targetProperty = new SignatureOnlyPropertySymbol(
                     property.Name,
@@ -1142,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             private ImmutableArray<CSharpAttributeData> RetargetAttributes(ImmutableArray<CSharpAttributeData> oldAttributes)
             {
-                return oldAttributes.SelectAsArray((a, t) => t.RetargetAttributeData(a), this);
+                return oldAttributes.SelectAsArray(map: (a, t) => t.RetargetAttributeData(a), arg: this);
             }
 
             internal IEnumerable<CSharpAttributeData> RetargetAttributes(IEnumerable<CSharpAttributeData> attributes)

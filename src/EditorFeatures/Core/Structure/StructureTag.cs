@@ -34,7 +34,7 @@ internal sealed class StructureTag(AbstractStructureTaggerProvider tagProvider, 
 
     public IReadOnlyList<SubHeadingStructureData>? SubHeadings { get; } = blockSpan.SubHeadings.IsDefault
         ? null
-        : blockSpan.SubHeadings.SelectAsArray(CreateSubHeading, snapshot);
+        : blockSpan.SubHeadings.SelectAsArray(map: CreateSubHeading, arg: snapshot);
 
     public Span? GuideLineSpan => null;
     public int? GuideLineHorizontalAnchorPoint => null;

@@ -22,9 +22,9 @@ internal static class ObjectWriterExtensions
 internal static class ObjectReaderExtensions
 {
     public static ImmutableArray<T> ReadArray<T>(this ObjectReader reader, Func<ObjectReader, T> read)
-        => ReadArray(reader, static (reader, read) => read(reader), read);
+        => ReadArray(reader, read: static (reader, read) => read(reader), arg: read);
 
-    public static ImmutableArray<T> ReadArray<T, TArg>(this ObjectReader reader, Func<ObjectReader, TArg, T> read, TArg arg)
+    public static ImmutableArray<T> ReadArray<T, TArg>(this ObjectReader reader, TArg arg, Func<ObjectReader, TArg, T> read)
     {
         var length = reader.ReadInt32();
         var builder = new FixedSizeArrayBuilder<T>(length);

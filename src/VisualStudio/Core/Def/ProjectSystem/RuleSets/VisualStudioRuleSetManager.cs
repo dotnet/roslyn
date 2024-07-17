@@ -32,7 +32,7 @@ internal sealed partial class VisualStudioRuleSetManager : IRuleSetManager
 
     public IReferenceCountedDisposable<ICacheEntry<string, IRuleSetFile>> GetOrCreateRuleSet(string ruleSetFileFullPath)
     {
-        var cacheEntry = _ruleSetFileMap.GetOrCreate(ruleSetFileFullPath, static (ruleSetFileFullPath, self) => new RuleSetFile(ruleSetFileFullPath, self), this);
+        var cacheEntry = _ruleSetFileMap.GetOrCreate(ruleSetFileFullPath, valueCreator: static (ruleSetFileFullPath, self) => new RuleSetFile(ruleSetFileFullPath, self), arg: this);
 
         // Call InitializeFileTracking outside the lock inside ReferenceCountedDisposableCache, so we don't have requests
         // for other files blocking behind the initialization of this one. RuleSetFile itself will ensure InitializeFileTracking is locked as appropriate.

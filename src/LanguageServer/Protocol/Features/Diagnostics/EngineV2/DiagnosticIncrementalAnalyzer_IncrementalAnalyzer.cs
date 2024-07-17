@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         private async Task TextDocumentOpenAsync(TextDocument document, CancellationToken cancellationToken)
         {
-            using (Logger.LogBlock(FunctionId.Diagnostics_DocumentOpen, GetOpenLogMessage, document, cancellationToken))
+            using (Logger.LogBlock(FunctionId.Diagnostics_DocumentOpen, messageGetter: GetOpenLogMessage, arg: document, token: cancellationToken))
             {
                 var stateSets = _stateManager.GetStateSets(document.Project);
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             var descriptors = DiagnosticAnalyzerInfoCache.GetDiagnosticDescriptors(analyzer);
             var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
 
-            return descriptors.Any(static (d, arg) => d.GetEffectiveSeverity(arg.CompilationOptions, arg.analyzerConfigOptions?.ConfigOptions, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, (project.CompilationOptions, analyzerConfigOptions));
+            return descriptors.Any(predicate: static (d, arg) => d.GetEffectiveSeverity(arg.CompilationOptions, arg.analyzerConfigOptions?.ConfigOptions, arg.analyzerConfigOptions?.TreeOptions) != ReportDiagnostic.Hidden, arg: (project.CompilationOptions, analyzerConfigOptions));
         }
 
         public TestAccessor GetTestAccessor()

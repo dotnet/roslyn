@@ -50,7 +50,7 @@ internal partial class TextDocumentState
         // a new AsyncLazy to compute the checksum though, and that's because there's no practical way for
         // the newly created TextDocumentState to have the same checksum as a previous TextDocumentState:
         // if we're creating a new state, it's because something changed, and we'll have to create a new checksum.
-        _lazyChecksums = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
+        _lazyChecksums = AsyncLazy.Create(asynchronousComputeFunction: static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
     }
 
     public TextDocumentState(SolutionServices solutionServices, DocumentInfo info, LoadTextOptions loadTextOptions)
@@ -106,10 +106,10 @@ internal partial class TextDocumentState
         }
 
         return SpecializedTasks.TransformWithoutIntermediateCancellationExceptionAsync(
-            static (self, cancellationToken) => self.GetTextAndVersionAsync(cancellationToken),
-            static (textAndVersion, _) => textAndVersion.Text,
-            this,
-            cancellationToken);
+            func: static (self, cancellationToken) => self.GetTextAndVersionAsync(cancellationToken),
+            transform: static (textAndVersion, _) => textAndVersion.Text,
+            arg: this,
+            cancellationToken: cancellationToken);
     }
 
     public SourceText GetTextSynchronously(CancellationToken cancellationToken)

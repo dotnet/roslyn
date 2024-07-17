@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             // (Necessary for VB in particular since the EENamedTypeSymbol.Locations
             // is tied to the expression syntax in VB.)
             var synthesizedTypes = syntaxNodes.SelectAsArray(
-                (syntax, i, _) => (NamedTypeSymbol)CreateSynthesizedType(syntax, typeNameBase + i, methodName, ImmutableArray<Alias>.Empty),
+                map: (syntax, i, _) => (NamedTypeSymbol)CreateSynthesizedType(syntax, typeNameBase + i, methodName, ImmutableArray<Alias>.Empty),
                 arg: (object?)null);
 
             if (synthesizedTypes.Length == 0)
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     ExpressionCompilerConstants.TypeVariablesClassName,
                     (m, t) => ImmutableArray.Create<MethodSymbol>(new EEConstructorSymbol(t)),
                     allTypeParameters,
-                    (t1, t2) => allTypeParameters.SelectAsArray((tp, i, t) => (TypeParameterSymbol)new SimpleTypeParameterSymbol(t, i, tp.Name), t2));
+                    (t1, t2) => allTypeParameters.SelectAsArray(map: (tp, i, t) => (TypeParameterSymbol)new SimpleTypeParameterSymbol(t, i, tp.Name), arg: t2));
                 additionalTypes.Add(typeVariablesType);
             }
 
@@ -462,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         foreach (var local in _localsForBindingOutside)
                         {
                             if (!itemsAdded.Contains(local.Name) &&
-                                !_locals.Any(static (l, name) => l.Name == name, local.Name)) // Not captured locals inside the method shadow outside locals
+                                !_locals.Any(predicate: static (l, name) => l.Name == name, arg: local.Name)) // Not captured locals inside the method shadow outside locals
                             {
                                 AppendLocalAndMethod(localBuilder, methodBuilder, local, container, localIndex, GetLocalResultFlags(local));
                             }

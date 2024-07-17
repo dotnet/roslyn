@@ -191,7 +191,8 @@ namespace Microsoft.CodeAnalysis
         /// Returns this instance if it doesn't hold on any types.
         /// </summary>
         internal MarshalPseudoCustomAttributeData WithTranslatedTypes<TTypeSymbol, TArg>(
-            Func<TTypeSymbol, TArg, TTypeSymbol> translator, TArg arg)
+            TArg arg,
+            Func<TTypeSymbol, TArg, TTypeSymbol> translator)
             where TTypeSymbol : ITypeSymbolInternal
         {
             if (_marshalType != Cci.Constants.UnmanagedType_SafeArray || _marshalTypeNameOrSymbol == null)

@@ -189,8 +189,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (attributeTypeForBinding.IsErrorType())
             {
                 boundConstructorArguments = analyzedArguments.ConstructorArguments.Arguments.SelectAsArray(
-                    static (arg, attributeArgumentBinder) => attributeArgumentBinder.BindToTypeForErrorRecovery(arg),
-                    attributeArgumentBinder);
+                    map: static (arg, attributeArgumentBinder) => attributeArgumentBinder.BindToTypeForErrorRecovery(arg),
+                    arg: attributeArgumentBinder);
                 argsToParamsOpt = default;
             }
             else

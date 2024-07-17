@@ -158,7 +158,7 @@ internal partial class SymbolTreeInfo
             // CreateMetadataSymbolTreeInfoAsync
             var asyncLazy = s_peReferenceToInfo.GetValue(
                 reference,
-                id => AsyncLazy.Create(static (arg, c) =>
+                id => AsyncLazy.Create(asynchronousComputeFunction: static (arg, c) =>
                     CreateMetadataSymbolTreeInfoAsync(arg.services, arg.solutionKey, arg.reference, arg.checksum, c),
                     arg: (services, solutionKey, reference, checksum)));
 
@@ -178,7 +178,7 @@ internal partial class SymbolTreeInfo
 
             var asyncLazy = s_metadataIdToSymbolTreeInfo.GetValue(
                 metadataId,
-                metadataId => AsyncLazy.Create(static (arg, cancellationToken) =>
+                metadataId => AsyncLazy.Create(asynchronousComputeFunction: static (arg, cancellationToken) =>
                         LoadOrCreateAsync(
                         arg.services,
                         arg.solutionKey,
@@ -212,7 +212,7 @@ internal partial class SymbolTreeInfo
     {
         // We can reuse the index for any given reference as long as it hasn't changed.
         // So our checksum is just the checksum for the PEReference itself.
-        return ChecksumCache.GetOrCreate(reference, static (reference, tuple) =>
+        return ChecksumCache.GetOrCreate(reference, checksumCreator: static (reference, tuple) =>
         {
             var (services, cancellationToken) = tuple;
             var serializer = services.GetRequiredService<ISerializerService>();
@@ -222,7 +222,7 @@ internal partial class SymbolTreeInfo
             // version ever changes, all persisted data won't match the current checksum
             // we expect, and we'll recompute things.
             return Checksum.Create(checksum, SerializationFormatChecksum);
-        }, (services, cancellationToken));
+        }, arg: (services, cancellationToken));
     }
 
     private static string GetMetadataKeySuffix(PortableExecutableReference reference)
@@ -710,7 +710,7 @@ internal partial class SymbolTreeInfo
         private readonly MetadataNode GetOrCreateChildNode(
            MetadataNode currentNode, string simpleName)
         {
-            if (_parentToChildren.TryGetValue(currentNode, static (childNode, simpleName) => childNode.Name == simpleName, simpleName, out var childNode))
+            if (_parentToChildren.TryGetValue(currentNode, predicate: static (childNode, simpleName) => childNode.Name == simpleName, arg: simpleName, value: out var childNode))
             {
                 // Found an existing child node.  Just return that and all 
                 // future parts off of it.

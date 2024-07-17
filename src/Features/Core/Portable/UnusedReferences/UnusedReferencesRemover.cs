@@ -149,7 +149,7 @@ internal static class UnusedReferencesRemover
 
                 // We will look at the project assemblies brought in directly by the
                 // references to see if they are used.
-                if (!projectAssemblyFileNames.Any(static (name, usedProjectFileNames) => usedProjectFileNames.Contains(name), usedProjectFileNames))
+                if (!projectAssemblyFileNames.Any(predicate: static (name, usedProjectFileNames) => usedProjectFileNames.Contains(name), arg: usedProjectFileNames))
                 {
                     // None of the project assemblies brought into this compilation are in the
                     // used assemblies list, so we will consider the reference unused.
@@ -164,7 +164,7 @@ internal static class UnusedReferencesRemover
             {
                 // We will look at the compilation assemblies brought in directly by the
                 // references to see if they are used.
-                if (!reference.CompilationAssemblies.Any(static (name, usedAssemblyFilePaths) => usedAssemblyFilePaths.Contains(name), usedAssemblyFilePaths))
+                if (!reference.CompilationAssemblies.Any(predicate: static (name, usedAssemblyFilePaths) => usedAssemblyFilePaths.Contains(name), arg: usedAssemblyFilePaths))
                 {
                     // None of the assemblies brought into this compilation are in the
                     // used assemblies list, so we will consider the reference unused.
@@ -234,12 +234,12 @@ internal static class UnusedReferencesRemover
 
     internal static bool ContainsAnyCompilationAssembly(ReferenceInfo reference, HashSet<string> usedAssemblyFilePaths)
     {
-        if (reference.CompilationAssemblies.Any(static (name, usedAssemblyFilePaths) => usedAssemblyFilePaths.Contains(name), usedAssemblyFilePaths))
+        if (reference.CompilationAssemblies.Any(predicate: static (name, usedAssemblyFilePaths) => usedAssemblyFilePaths.Contains(name), arg: usedAssemblyFilePaths))
         {
             return true;
         }
 
-        return reference.Dependencies.Any(static (dependency, usedAssemblyFilePaths) => ContainsAnyCompilationAssembly(dependency, usedAssemblyFilePaths), usedAssemblyFilePaths);
+        return reference.Dependencies.Any(predicate: static (dependency, usedAssemblyFilePaths) => ContainsAnyCompilationAssembly(dependency, usedAssemblyFilePaths), arg: usedAssemblyFilePaths);
     }
 
     internal static void RemoveAllCompilationAssemblies(ReferenceInfo reference, HashSet<string> usedAssemblyFilePaths)

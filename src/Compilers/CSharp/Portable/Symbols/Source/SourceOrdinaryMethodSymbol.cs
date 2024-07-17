@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 constructedDefinition,
                 implementation,
                 diagnostics,
-                static (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
+                reportMismatchInParameterType: static (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                 {
                     diagnostics.Add(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, implementingMethod.GetFirstLocation(), new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                 },
@@ -553,12 +553,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 constructedDefinition,
                 implementation,
                 diagnostics,
-                static (diagnostics, implementedMethod, implementingMethod, topLevel, arg) =>
+                reportMismatchInReturnType: static (diagnostics, implementedMethod, implementingMethod, topLevel, arg) =>
                 {
                     // report only if this is an unsafe *nullability* difference
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInReturnTypeOnPartial, implementingMethod.GetFirstLocation());
                 },
-                static (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
+                reportMismatchInParameterType: static (diagnostics, implementedMethod, implementingMethod, implementingParameter, blameAttributes, arg) =>
                 {
                     diagnostics.Add(ErrorCode.WRN_NullabilityMismatchInParameterTypeOnPartial, implementingMethod.GetFirstLocation(), new FormattedSymbol(implementingParameter, SymbolDisplayFormat.ShortFormat));
                 },

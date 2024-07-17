@@ -65,7 +65,7 @@ internal class BaseIndentationFormattingRule : AbstractFormattingRule
     private void AdjustIndentBlockOperation(List<IndentBlockOperation> list)
     {
         list.RemoveOrTransformAll(
-            (operation, self) =>
+            transform: (operation, self) =>
             {
                 // already filtered out operation
                 if (operation == null)
@@ -101,7 +101,7 @@ internal class BaseIndentationFormattingRule : AbstractFormattingRule
 
                 return operation;
             },
-            this);
+            arg: this);
     }
 
     private bool Myself(IndentBlockOperation operation)

@@ -144,7 +144,7 @@ internal sealed partial class ColorSchemeApplier
     {
         return _colorSchemes.Values.Any(
             scheme => scheme.Themes.Any(
-                static (theme, themeId) => theme.Guid == themeId, themeId));
+                predicate: static (theme, themeId) => theme.Guid == themeId, arg: themeId));
     }
 
     public async Task<bool> IsThemeCustomizedAsync(CancellationToken cancellationToken)

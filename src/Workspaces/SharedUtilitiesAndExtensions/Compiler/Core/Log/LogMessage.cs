@@ -20,7 +20,7 @@ internal abstract class LogMessage
     public static LogMessage Create(Func<string> messageGetter, LogLevel logLevel)
         => LazyLogMessage.Construct(messageGetter, logLevel);
 
-    public static LogMessage Create<TArg>(Func<TArg, string> messageGetter, TArg arg, LogLevel logLevel)
+    public static LogMessage Create<TArg>(TArg arg, Func<TArg, string> messageGetter, LogLevel logLevel)
         => LazyLogMessage<TArg>.Construct(messageGetter, arg, logLevel);
 
     public static LogMessage Create<TArg0, TArg1>(Func<TArg0, TArg1, string> messageGetter, TArg0 arg0, TArg1 arg1, LogLevel logLevel)

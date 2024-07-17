@@ -80,7 +80,7 @@ internal partial class SolutionState
             if (!_lazyProjectChecksums.TryGetValue(projectId, out checksums))
             {
                 checksums = AsyncLazy.Create(
-                    static (arg, cancellationToken) => arg.self.ComputeChecksumsAsync(arg.projectId, cancellationToken),
+                    asynchronousComputeFunction: static (arg, cancellationToken) => arg.self.ComputeChecksumsAsync(arg.projectId, cancellationToken),
                     arg: (self: this, projectId));
                 _lazyProjectChecksums.Add(projectId, checksums);
             }
@@ -139,7 +139,7 @@ internal partial class SolutionState
 
                 var fallbackAnalyzerOptionsChecksum = ChecksumCache.GetOrCreate(
                     FallbackAnalyzerOptions,
-                    static (value, args) => args.serializer.CreateChecksum(value, args.cancellationToken),
+                    checksumCreator: static (value, args) => args.serializer.CreateChecksum(value, args.cancellationToken),
                     arg: (serializer, cancellationToken));
 
                 var stateChecksums = new SolutionStateChecksums(

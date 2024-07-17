@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _needsGeneratedAttributes_IsFrozen;
 
         internal WellKnownMembersSignatureComparer WellKnownMemberSignatureComparer
-            => InterlockedOperations.Initialize(ref _lazyWellKnownMemberSignatureComparer, static self => new WellKnownMembersSignatureComparer(self), this);
+            => InterlockedOperations.Initialize(ref _lazyWellKnownMemberSignatureComparer, valueFactory: static self => new WellKnownMembersSignatureComparer(self), arg: this);
 
         /// <summary>
         /// Returns a value indicating which embedded attributes should be generated during emit phase.
@@ -845,8 +845,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return default;
                 }
 
-                var names = namesBuilder.SelectAsArray((name, constantType) =>
-                    new TypedConstant(constantType, TypedConstantKind.Primitive, name), stringType);
+                var names = namesBuilder.SelectAsArray(map: (name, constantType) =>
+                    new TypedConstant(constantType, TypedConstantKind.Primitive, name), arg: stringType);
                 namesBuilder.Free();
                 return names;
             }
@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(flagsBuilder.Any());
                 Debug.Assert(flagsBuilder.Contains(true));
 
-                var result = flagsBuilder.SelectAsArray((flag, constantType) => new TypedConstant(constantType, TypedConstantKind.Primitive, flag), booleanType);
+                var result = flagsBuilder.SelectAsArray(map: (flag, constantType) => new TypedConstant(constantType, TypedConstantKind.Primitive, flag), arg: booleanType);
                 flagsBuilder.Free();
                 return result;
             }

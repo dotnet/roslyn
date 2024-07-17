@@ -146,7 +146,7 @@ internal sealed class DocumentationComment
 
         private DocumentationComment ParseInternal(string xml)
         {
-            XmlFragmentParser.ParseFragment(xml, ParseCallback, this);
+            XmlFragmentParser.ParseFragment(xml, callback: ParseCallback, arg: this);
 
             if (_exceptionTextBuilders != null)
             {

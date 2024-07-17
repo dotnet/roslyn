@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 return false;
             }
 
-            return !_noShadowCopyDirectories.Any(static (dir, directory) => directory.StartsWith(dir, StringComparison.Ordinal), directory);
+            return !_noShadowCopyDirectories.Any(predicate: static (dir, directory) => directory.StartsWith(dir, StringComparison.Ordinal), arg: directory);
         }
 
         private CacheEntry<MetadataShadowCopy> CreateMetadataShadowCopy(string originalPath, MetadataImageKind kind)

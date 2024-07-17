@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                 if (actions.Length > 0)
                 {
-                    var renameFileAction = actions.Any(static (action, self) => action.Title.StartsWith(self.RenameTypeCodeActionTitle), this);
+                    var renameFileAction = actions.Any(predicate: static (action, self) => action.Title.StartsWith(self.RenameTypeCodeActionTitle), arg: this);
                     Assert.False(renameFileAction, "Rename Type to match file name code action was not expected, but shows up.");
                 }
             }
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.MoveType
 
                 if (actions.Length > 0)
                 {
-                    var renameFileAction = actions.Any(static (action, self) => action.Title.StartsWith(self.RenameFileCodeActionTitle), this);
+                    var renameFileAction = actions.Any(predicate: static (action, self) => action.Title.StartsWith(self.RenameFileCodeActionTitle), arg: this);
                     Assert.False(renameFileAction, "Rename File to match type code action was not expected, but shows up.");
                 }
             }

@@ -57,8 +57,8 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
         AssetPath assetPath,
         TextDocumentStates<TState> documentStates,
         HashSet<Checksum> searchingChecksumsLeft,
-        Action<Checksum, object, TArg> onAssetFound,
         TArg arg,
+        Action<Checksum, object, TArg> onAssetFound,
         CancellationToken cancellationToken) where TState : TextDocumentState
     {
         var hintDocument = assetPath.DocumentId;
@@ -68,7 +68,7 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
             if (state != null)
             {
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
-                await stateChecksums.FindAsync(assetPath, state, searchingChecksumsLeft, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(assetPath, state, searchingChecksumsLeft, onAssetFound: onAssetFound, arg: arg, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
         else
@@ -81,7 +81,7 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
 
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
 
-                await stateChecksums.FindAsync(assetPath, state, searchingChecksumsLeft, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(assetPath, state, searchingChecksumsLeft, onAssetFound: onAssetFound, arg: arg, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
         }
     }
@@ -90,8 +90,8 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
         IReadOnlyList<T> values,
         ChecksumCollection checksums,
         HashSet<Checksum> searchingChecksumsLeft,
-        Action<Checksum, object, TArg> onAssetFound,
         TArg arg,
+        Action<Checksum, object, TArg> onAssetFound,
         CancellationToken cancellationToken) where T : class
     {
         Contract.ThrowIfFalse(values.Count == checksums.Children.Length);

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 typeDescr.AssertIsGood();
 
                 var fields = typeDescr.Fields;
-                var properties = fields.SelectAsArray((field, i, type) => new AnonymousTypePropertySymbol(type, field, i), this);
+                var properties = fields.SelectAsArray(map: (field, i, type) => new AnonymousTypePropertySymbol(type, field, i), arg: this);
 
                 //  members
                 int membersCount = fields.Length * 2 + 1;

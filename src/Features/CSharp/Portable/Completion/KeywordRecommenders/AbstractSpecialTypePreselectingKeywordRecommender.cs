@@ -25,7 +25,7 @@ internal abstract class AbstractSpecialTypePreselectingKeywordRecommender(
     protected override int PreselectMatchPriority => SymbolMatchPriority.PreferType;
 
     protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
-        => context.InferredTypes.Any(static (t, self) => t.SpecialType == self.SpecialType, this);
+        => context.InferredTypes.Any(predicate: static (t, self) => t.SpecialType == self.SpecialType, arg: this);
 
     protected sealed override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
     {

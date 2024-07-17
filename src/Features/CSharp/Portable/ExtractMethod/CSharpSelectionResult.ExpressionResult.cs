@@ -138,6 +138,6 @@ internal partial class CSharpSelectionResult
         }
 
         // let's see whether this interface has coclass attribute
-        return info.ConvertedType.GetAttributes().Any(static (c, coclassSymbol) => c.AttributeClass?.Equals(coclassSymbol) == true, coclassSymbol);
+        return info.ConvertedType.GetAttributes().Any(predicate: static (c, coclassSymbol) => c.AttributeClass?.Equals(coclassSymbol) == true, arg: coclassSymbol);
     }
 }

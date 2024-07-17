@@ -121,9 +121,9 @@ internal static class SpecializedTasks
     /// <param name="cancellationToken">The <see cref="CancellationToken"/> that the operation will observe.</param>
     /// <returns></returns>
     public static ValueTask<TResult> TransformWithoutIntermediateCancellationExceptionAsync<TArg, TIntermediate, TResult>(
+        TArg arg,
         Func<TArg, CancellationToken, ValueTask<TIntermediate>> func,
         Func<TIntermediate, TArg, TResult> transform,
-        TArg arg,
         CancellationToken cancellationToken)
     {
         if (func is null)

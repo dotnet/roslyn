@@ -501,7 +501,7 @@ internal sealed class DebuggingSession : IDisposable
             EditSession.Telemetry.LogRudeEditDiagnostics(analysis.RudeEdits, project.State.Attributes.TelemetryId);
 
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return analysis.RudeEdits.SelectAsArray((e, t) => e.ToDiagnostic(t), tree);
+            return analysis.RudeEdits.SelectAsArray(map: (e, t) => e.ToDiagnostic(t), arg: tree);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -805,7 +805,7 @@ internal sealed class DebuggingSession : IDisposable
                 {
                     foreach (var activeStatement in analysis.ActiveStatements)
                     {
-                        var i = adjustedMappedSpans.FindIndex(static (s, id) => s.Id == id, activeStatement.Id);
+                        var i = adjustedMappedSpans.FindIndex(match: static (s, id) => s.Id == id, arg: activeStatement.Id);
                         if (i >= 0)
                         {
                             adjustedMappedSpans[i] = new ActiveStatementSpan(activeStatement.Id, activeStatement.Span, activeStatement.Flags, unmappedDocumentId);

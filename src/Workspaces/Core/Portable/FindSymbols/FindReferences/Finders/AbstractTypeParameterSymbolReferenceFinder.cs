@@ -32,13 +32,13 @@ internal abstract class AbstractTypeParameterSymbolReferenceFinder : AbstractRef
 
         FindReferencesInTokens(
             symbol, state,
-            tokens.WhereAsArray(static (token, state) => !IsObjectCreationToken(token, state), state),
+            tokens.WhereAsArray(predicate: static (token, state) => !IsObjectCreationToken(token, state), arg: state),
             processResult,
             processResultData,
             cancellationToken);
 
         GetObjectCreationReferences(
-            tokens.WhereAsArray(static (token, state) => IsObjectCreationToken(token, state), state),
+            tokens.WhereAsArray(predicate: static (token, state) => IsObjectCreationToken(token, state), arg: state),
             processResult,
             processResultData);
 

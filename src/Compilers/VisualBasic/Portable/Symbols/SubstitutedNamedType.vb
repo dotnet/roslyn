@@ -407,24 +407,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)
             ' TODO - Perf
-            Return OriginalDefinition.GetMembers(name).SelectAsArray(Function(member, self) self.SubstituteTypeParametersInMember(member), Me)
+            Return OriginalDefinition.GetMembers(name).SelectAsArray(map:=Function(member, self) self.SubstituteTypeParametersInMember(member), arg:=Me)
         End Function
 
         Friend Overrides Function GetTypeMembersUnordered() As ImmutableArray(Of NamedTypeSymbol)
-            Return OriginalDefinition.GetTypeMembersUnordered().SelectAsArray(Function(nestedType, self) self.SubstituteTypeParametersForMemberType(nestedType), Me)
+            Return OriginalDefinition.GetTypeMembersUnordered().SelectAsArray(map:=Function(nestedType, self) self.SubstituteTypeParametersForMemberType(nestedType), arg:=Me)
         End Function
 
         Public Overrides Function GetTypeMembers() As ImmutableArray(Of NamedTypeSymbol)
-            Return OriginalDefinition.GetTypeMembers().SelectAsArray(Function(nestedType, self) self.SubstituteTypeParametersForMemberType(nestedType), Me)
+            Return OriginalDefinition.GetTypeMembers().SelectAsArray(map:=Function(nestedType, self) self.SubstituteTypeParametersForMemberType(nestedType), arg:=Me)
         End Function
 
         Public Overrides Function GetTypeMembers(name As String) As ImmutableArray(Of NamedTypeSymbol)
             ' TODO - Perf
-            Return OriginalDefinition.GetTypeMembers(name).SelectAsArray(Function(nestedType, self) self.SubstituteTypeParametersForMemberType(nestedType), Me)
+            Return OriginalDefinition.GetTypeMembers(name).SelectAsArray(map:=Function(nestedType, self) self.SubstituteTypeParametersForMemberType(nestedType), arg:=Me)
         End Function
 
         Public Overrides Function GetTypeMembers(name As String, arity As Integer) As ImmutableArray(Of NamedTypeSymbol)
-            Return OriginalDefinition.GetTypeMembers(name, arity).SelectAsArray(Function(nestedType, self) self.SubstituteTypeParametersForMemberType(nestedType), Me)
+            Return OriginalDefinition.GetTypeMembers(name, arity).SelectAsArray(map:=Function(nestedType, self) self.SubstituteTypeParametersForMemberType(nestedType), arg:=Me)
         End Function
 
         Friend NotOverridable Overrides Function GetFieldsToEmit() As IEnumerable(Of FieldSymbol)

@@ -108,7 +108,7 @@ internal sealed class FileChangeTracker : IVsFreeThreadedFileChangeEvents2, IDis
         Contract.ThrowIfTrue(_fileChangeCookie != s_none);
 
         _fileChangeCookie = AsyncLazy.Create(
-            static async (self, cancellationToken) =>
+            asynchronousComputeFunction: static async (self, cancellationToken) =>
             {
                 try
                 {
@@ -121,7 +121,7 @@ internal sealed class FileChangeTracker : IVsFreeThreadedFileChangeEvents2, IDis
                     return null;
                 }
             },
-            static (self, cancellationToken) =>
+            synchronousComputeFunction: static (self, cancellationToken) =>
             {
                 try
                 {

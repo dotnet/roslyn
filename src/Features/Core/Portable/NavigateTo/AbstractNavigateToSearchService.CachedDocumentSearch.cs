@@ -177,7 +177,7 @@ internal abstract partial class AbstractNavigateToSearchService
         // match on disk anymore.
         var asyncLazy = cachedIndexMap.GetOrAdd(
             (storageService, documentKey, stringTable),
-            static t => AsyncLazy.Create(static (t, c) =>
+            static t => AsyncLazy.Create(asynchronousComputeFunction: static (t, c) =>
                 TopLevelSyntaxTreeIndex.LoadAsync(t.service, t.documentKey, checksum: null, t.stringTable, c),
                 arg: t));
         return asyncLazy.GetValueAsync(cancellationToken);

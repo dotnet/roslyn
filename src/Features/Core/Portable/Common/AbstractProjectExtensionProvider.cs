@@ -87,7 +87,7 @@ internal abstract class AbstractProjectExtensionProvider<TProvider, TExtension, 
 
     public static ImmutableArray<TExtension> FilterExtensions(TextDocument document, ImmutableArray<TExtension> extensions, Func<TExportAttribute, ExtensionInfo> getExtensionInfoForFiltering)
     {
-        return extensions.WhereAsArray(ShouldIncludeExtension, (document, getExtensionInfoForFiltering));
+        return extensions.WhereAsArray(predicate: ShouldIncludeExtension, arg: (document, getExtensionInfoForFiltering));
 
         static bool ShouldIncludeExtension(TExtension extension, (TextDocument, Func<TExportAttribute, ExtensionInfo>) args)
         {

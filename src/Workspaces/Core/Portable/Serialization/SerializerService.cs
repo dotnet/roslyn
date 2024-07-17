@@ -70,7 +70,7 @@ internal partial class SerializerService : ISerializerService
     {
         var kind = value.GetWellKnownSynchronizationKind();
 
-        using (Logger.LogBlock(FunctionId.Serializer_CreateChecksum, s_logKind, kind, cancellationToken))
+        using (Logger.LogBlock(FunctionId.Serializer_CreateChecksum, messageGetter: s_logKind, arg: kind, token: cancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -109,7 +109,7 @@ internal partial class SerializerService : ISerializerService
     {
         var kind = value.GetWellKnownSynchronizationKind();
 
-        using (Logger.LogBlock(FunctionId.Serializer_Serialize, s_logKind, kind, cancellationToken))
+        using (Logger.LogBlock(FunctionId.Serializer_Serialize, messageGetter: s_logKind, arg: kind, token: cancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -258,7 +258,7 @@ internal partial class SerializerService : ISerializerService
 
     public object Deserialize(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
     {
-        using (Logger.LogBlock(FunctionId.Serializer_Deserialize, s_logKind, kind, cancellationToken))
+        using (Logger.LogBlock(FunctionId.Serializer_Deserialize, messageGetter: s_logKind, arg: kind, token: cancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
 

@@ -312,13 +312,13 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             array.Add(3);
 
             Assert.Equal(3, array.SingleOrDefault(p => p > 2));
-            Assert.Equal(3, array.SingleOrDefault((p, arg) => p > arg, arg: 2));
+            Assert.Equal(3, array.SingleOrDefault(predicate: (p, arg) => p > arg, arg: 2));
 
             Assert.Equal(0, array.SingleOrDefault(p => p > 5));
-            Assert.Equal(0, array.SingleOrDefault((p, arg) => p > arg, arg: 5));
+            Assert.Equal(0, array.SingleOrDefault(predicate: (p, arg) => p > arg, arg: 5));
 
             Assert.Throws<InvalidOperationException>(() => array.SingleOrDefault(p => p > 1));
-            Assert.Throws<InvalidOperationException>(() => array.SingleOrDefault((p, arg) => p > arg, arg: 1));
+            Assert.Throws<InvalidOperationException>(() => array.SingleOrDefault(predicate: (p, arg) => p > arg, arg: 1));
         }
     }
 }

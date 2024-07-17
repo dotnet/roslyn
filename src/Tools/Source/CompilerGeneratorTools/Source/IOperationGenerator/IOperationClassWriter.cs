@@ -936,8 +936,8 @@ namespace IOperationGenerator
             WriteLine(@"[return: NotNullIfNotNull(""node"")]");
             WriteLine("private T? Visit<T>(T? node) where T : IOperation? => (T?)Visit(node, argument: null);");
             WriteLine("public override IOperation DefaultVisit(IOperation operation, object? argument) => throw ExceptionUtilities.Unreachable();");
-            WriteLine("private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => @this.Visit(n), this)!;");
-            WriteLine("private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation => nodes.SelectAsArray((n, @this) => (n.Item1, @this.Visit(n.Item2)), this)!;");
+            WriteLine("private ImmutableArray<T> VisitArray<T>(ImmutableArray<T> nodes) where T : IOperation => nodes.SelectAsArray(this, (n, @this) => @this.Visit(n))!;");
+            WriteLine("private ImmutableArray<(ISymbol, T)> VisitArray<T>(ImmutableArray<(ISymbol, T)> nodes) where T : IOperation => nodes.SelectAsArray(this, (n, @this) => (n.Item1, @this.Visit(n.Item2)))!;");
 
             foreach (var node in _tree.Types.OfType<Node>())
             {

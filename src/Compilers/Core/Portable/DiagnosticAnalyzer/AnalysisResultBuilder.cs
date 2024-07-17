@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     : null;
 
                 return analyzers.WhereAsArray(
-                    static (analyzer, arg) =>
+                    predicate: static (analyzer, arg) =>
                     {
                         // If the analyzer has not executed for the entire compilation, or we are computing
                         // pending analyzers for a specific filterScope and the analyzer has not executed on
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                         return false;
                     },
-                    (self: this, completedAnalyzersForFile));
+                    arg: (self: this, completedAnalyzersForFile));
             }
         }
 

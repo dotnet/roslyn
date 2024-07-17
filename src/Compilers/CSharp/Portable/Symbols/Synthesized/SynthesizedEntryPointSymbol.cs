@@ -350,7 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var binder = compilation.GetBinder(_userMainReturnTypeSyntax);
                 _parameters = SynthesizedParameterSymbol.DeriveParameters(userMain, this);
 
-                var arguments = Parameters.SelectAsArray((p, s) => (BoundExpression)new BoundParameter(s, p, p.Type), _userMainReturnTypeSyntax);
+                var arguments = Parameters.SelectAsArray(map: (p, s) => (BoundExpression)new BoundParameter(s, p, p.Type), arg: _userMainReturnTypeSyntax);
 
                 // Main(args) or Main()
                 BoundCall userMainInvocation = new BoundCall(

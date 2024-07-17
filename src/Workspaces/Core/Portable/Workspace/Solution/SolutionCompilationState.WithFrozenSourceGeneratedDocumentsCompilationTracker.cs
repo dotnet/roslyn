@@ -154,7 +154,7 @@ internal partial class SolutionCompilationState
                 // note: solution is captured here, but it will go away once GetValueAsync executes.
                 Interlocked.CompareExchange(
                     ref _lazyDependentChecksum,
-                    AsyncLazy.Create(static (arg, c) =>
+                    AsyncLazy.Create(asynchronousComputeFunction: static (arg, c) =>
                         arg.self.ComputeDependentChecksumAsync(arg.tmp, c),
                         arg: (self: this, tmp)),
                     null);

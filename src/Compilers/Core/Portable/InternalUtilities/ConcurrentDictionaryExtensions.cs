@@ -25,7 +25,7 @@ namespace Roslyn.Utilities
             }
         }
 
-        public static TValue GetOrAdd<TKey, TArg, TValue>(this ConcurrentDictionary<TKey, TValue> dictionary, TKey key, Func<TKey, TArg, TValue> valueFactory, TArg factoryArgument)
+        public static TValue GetOrAdd<TKey, TArg, TValue>(this ConcurrentDictionary<TKey, TValue> dictionary, TKey key, TArg factoryArgument, Func<TKey, TArg, TValue> valueFactory)
             where TKey : notnull
         {
 #if NETCOREAPP
@@ -34,7 +34,7 @@ namespace Roslyn.Utilities
             if (dictionary.TryGetValue(key, out var value))
                 return value;
 
-            using var _ = PooledDelegates.GetPooledFunction(valueFactory, factoryArgument, out var boundFunction);
+            using var _ = PooledDelegates.GetPooledFunction(unboundFunction: valueFactory, argument: factoryArgument, boundFunction: out var boundFunction);
             return dictionary.GetOrAdd(key, boundFunction);
 #endif
         }
@@ -44,16 +44,16 @@ namespace Roslyn.Utilities
         public static TValue AddOrUpdate<TKey, TValue, TArg>(
             this ConcurrentDictionary<TKey, TValue> dictionary,
             TKey key,
+            TArg factoryArgument,
             Func<TKey, TArg, TValue> addValueFactory,
-            Func<TKey, TValue, TArg, TValue> updateValueFactory,
-            TArg factoryArgument)
+            Func<TKey, TValue, TArg, TValue> updateValueFactory)
             where TKey : notnull
         {
 #if NETCOREAPP
             return dictionary.AddOrUpdate(key, addValueFactory, updateValueFactory, factoryArgument);
 #else
-            using var _a = PooledDelegates.GetPooledFunction(addValueFactory, factoryArgument, out var pooledAddValueFactory);
-            using var _b = PooledDelegates.GetPooledFunction(updateValueFactory, factoryArgument, out var pooledUpdateValueFactory);
+            using var _a = PooledDelegates.GetPooledFunction(unboundFunction: addValueFactory, argument: factoryArgument, boundFunction: out var pooledAddValueFactory);
+            using var _b = PooledDelegates.GetPooledFunction(unboundFunction: updateValueFactory, argument: factoryArgument, boundFunction: out var pooledUpdateValueFactory);
             return dictionary.AddOrUpdate(key, pooledAddValueFactory, pooledUpdateValueFactory);
 #endif
         }

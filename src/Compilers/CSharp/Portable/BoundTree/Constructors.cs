@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiverOpt: binder.BindToTypeForErrorRecovery(receiverOpt),
                 initialBindingReceiverIsSubjectToCloning: ThreeState.False,
                 method: method,
-                arguments: arguments.SelectAsArray((e, binder) => binder.BindToTypeForErrorRecovery(e), binder),
+                arguments: arguments.SelectAsArray(map: (e, binder) => binder.BindToTypeForErrorRecovery(e), arg: binder),
                 argumentNamesOpt: namedArguments,
                 argumentRefKindsOpt: refKinds,
                 isDelegateCall: isDelegateCall,

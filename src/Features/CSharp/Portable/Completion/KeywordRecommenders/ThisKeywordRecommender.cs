@@ -82,6 +82,6 @@ internal class ThisKeywordRecommender : AbstractSyntacticSingleKeywordRecommende
     protected override bool ShouldPreselect(CSharpSyntaxContext context, CancellationToken cancellationToken)
     {
         var outerType = context.SemanticModel.GetEnclosingNamedType(context.Position, cancellationToken);
-        return context.InferredTypes.Any(static (t, outerType) => Equals(t, outerType), outerType);
+        return context.InferredTypes.Any(predicate: static (t, outerType) => Equals(t, outerType), arg: outerType);
     }
 }

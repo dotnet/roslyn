@@ -43,7 +43,7 @@ internal static class MembersPuller
             selectedMembers.SelectAsArray(m => (member: m, makeAbstract: false)));
 
         if (result.PullUpOperationNeedsToDoExtraChanges ||
-            selectedMembers.Any(IsSelectedMemberDeclarationAlreadyInDestination, destination))
+            selectedMembers.Any(predicate: IsSelectedMemberDeclarationAlreadyInDestination, arg: destination))
         {
             return null;
         }

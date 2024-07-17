@@ -469,7 +469,7 @@ internal static class GraphNodeIdCreation
         if (containingSymbol is IMethodSymbol method && method.AssociatedSymbol != null && method.AssociatedSymbol.Kind == SymbolKind.Property)
         {
             var property = (IPropertySymbol)method.AssociatedSymbol;
-            if (property.Parameters.Any(static (p, symbol) => p.Name == symbol.Name, symbol))
+            if (property.Parameters.Any(predicate: static (p, symbol) => p.Name == symbol.Name, arg: symbol))
             {
                 containingSymbol = property;
             }

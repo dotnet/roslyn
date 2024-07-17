@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private NullableContextStateMap GetNullableContextStateMap()
             // Create the #nullable directive map on demand.
-            => _lazyNullableContextStateMap.Initialize(static @this => NullableContextStateMap.Create(@this), this);
+            => _lazyNullableContextStateMap.Initialize(valueFactory: static @this => NullableContextStateMap.Create(@this), arg: this);
 
         internal NullableContextState GetNullableContextState(int position)
             => GetNullableContextStateMap().GetContextState(position);

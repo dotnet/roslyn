@@ -491,7 +491,7 @@ internal abstract class AbstractCodeCleanerService : ICodeCleanerService
                     currentDocument = originalDocument;
                 }
 
-                using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, GetCodeCleanerTypeName, codeCleaner, cancellationToken))
+                using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, messageGetter: GetCodeCleanerTypeName, arg: codeCleaner, token: cancellationToken))
                 {
                     currentDocument = await codeCleaner.CleanupAsync(currentDocument, spans, options, cancellationToken).ConfigureAwait(false);
                 }
@@ -568,7 +568,7 @@ internal abstract class AbstractCodeCleanerService : ICodeCleanerService
                     currentRoot = originalRoot;
                 }
 
-                using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, GetCodeCleanerTypeName, codeCleaner, cancellationToken))
+                using (Logger.LogBlock(FunctionId.CodeCleanup_IterateOneCodeCleanup, messageGetter: GetCodeCleanerTypeName, arg: codeCleaner, token: cancellationToken))
                 {
                     currentRoot = await codeCleaner.CleanupAsync(currentRoot, spans, options, services, cancellationToken).ConfigureAwait(false);
                 }
