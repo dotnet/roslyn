@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool isNamedTypeOrAliasName = symbol?.Kind is SymbolKind.NamedType or SymbolKind.Alias;
-            
+
             bool isEscapable = IsEscapable(kind);
 
             text = isEscapable ? EscapeIdentifier(text, isNamedTypeOrAliasName) : text;
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static string EscapeIdentifier(string identifier, bool isNamedTypeOrAliasName)
         {
             SyntaxKind kind = SyntaxFacts.GetKeywordKind(identifier);
-            
+
             if (kind is SyntaxKind.None && isNamedTypeOrAliasName && StringComparer.Ordinal.Equals(identifier, "record"))
             {
                 kind = SyntaxKind.RecordKeyword;
