@@ -3953,7 +3953,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasImplicitSpanConversion(TypeSymbol? source, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            if (!IsFeatureFirstClassSpanEnabled)
+            if (source is null || !IsFeatureFirstClassSpanEnabled)
             {
                 return false;
             }
@@ -3973,6 +3973,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
                     return hasCovariantConversion(elementType, spanElementType, ref useSiteInfo);
+                }
+            }
+            // SPEC: From `System.Span<Ti>` to `System.ReadOnlySpan<Ui>`, provided that `Ti` is covariance-convertible to `Ui`.
+            // SPEC: From `System.ReadOnlySpan<Ti>` to `System.ReadOnlySpan<Ui>`, provided that `Ti` is covariance-convertible to `Ui`.
+            else if (source.OriginalDefinition.IsSpan() || source.OriginalDefinition.IsReadOnlySpan())
+            {
+                if (destination.OriginalDefinition.IsReadOnlySpan())
+                {
+                    var sourceElementType = ((NamedTypeSymbol)source).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                    var destinationElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                    return hasCovariantConversion(sourceElementType, destinationElementType, ref useSiteInfo);
+                }
+            }
+            // SPEC: From `string` to `System.ReadOnlySpan<char>`.
+            else if (source.IsStringType())
+            {
+                if (destination.OriginalDefinition.IsReadOnlySpan())
+                {
+                    var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
+                    return spanElementType.SpecialType is SpecialType.System_Char;
                 }
             }
 
@@ -4019,7 +4039,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return source is not null && target is not null &&
                 IsFeatureFirstClassSpanEnabled &&
-                (ignoreUserDefinedSpanConversionsInOneDirection(source, target) ||
+                (ignoreUserDefinedSpanConversionsInAnyDirection(source, target) ||
+                ignoreUserDefinedSpanConversionsInOneDirection(source, target) ||
                 ignoreUserDefinedSpanConversionsInOneDirection(target, source));
 
             static bool ignoreUserDefinedSpanConversionsInOneDirection(TypeSymbol a, TypeSymbol b)
@@ -4032,10 +4053,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                // PROTOTYPE: - any combination of `System.Span<T>`/`System.ReadOnlySpan<T>`
-                // PROTOTYPE: - `string` and `System.ReadOnlySpan<char>`
+                // SPEC: - `string` and `System.ReadOnlySpan<char>`
+                if (a.IsStringType() && b.IsReadOnlySpanChar())
+                {
+                    return true;
+                }
 
                 return false;
+            }
+
+            static bool ignoreUserDefinedSpanConversionsInAnyDirection(TypeSymbol a, TypeSymbol b)
+            {
+                // SPEC: - any combination of `System.Span<T>`/`System.ReadOnlySpan<T>`
+                return (a.OriginalDefinition.IsSpan() || a.OriginalDefinition.IsReadOnlySpan()) &&
+                    (b.OriginalDefinition.IsSpan() || b.OriginalDefinition.IsReadOnlySpan());
             }
         }
     }
