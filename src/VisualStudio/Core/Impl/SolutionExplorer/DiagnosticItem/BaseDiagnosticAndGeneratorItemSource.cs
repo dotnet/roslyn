@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -89,7 +88,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 
     [MemberNotNullWhen(true, nameof(AnalyzerReference))]
     // Defer actual determination and computation of the items until later.
-    public bool HasItems => this.AnalyzerReference != null && !_cancellationTokenSource.IsCancellationRequested;
+    public bool HasItems => !_cancellationTokenSource.IsCancellationRequested;
 
     public IEnumerable Items => _items;
 
