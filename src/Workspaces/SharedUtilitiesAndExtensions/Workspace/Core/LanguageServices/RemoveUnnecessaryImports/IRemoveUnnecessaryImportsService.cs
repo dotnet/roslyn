@@ -5,16 +5,13 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 
 internal interface IRemoveUnnecessaryImportsService : ILanguageService
 {
-    /// <param name="formattingOptions">Null if the document does not support syntax trees.</param>
-    Task<Document> RemoveUnnecessaryImportsAsync(Document document, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken);
+    Task<Document> RemoveUnnecessaryImportsAsync(Document document, CancellationToken cancellationToken);
 
-    /// <param name="formattingOptions">Null if the document does not support syntax trees.</param>
-    Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool>? predicate, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken);
+    Task<Document> RemoveUnnecessaryImportsAsync(Document fromDocument, Func<SyntaxNode, bool>? predicate, CancellationToken cancellationToken);
 }
