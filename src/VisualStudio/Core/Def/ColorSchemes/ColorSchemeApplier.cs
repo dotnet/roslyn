@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Settings;
@@ -20,6 +21,7 @@ using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
 using Microsoft.Win32;
+using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.ColorSchemes;
@@ -36,11 +38,11 @@ internal sealed partial class ColorSchemeApplier
     private readonly ColorSchemeSettings _settings;
     private readonly ClassificationVerifier _classificationVerifier;
     private readonly ImmutableDictionary<ColorSchemeName, ColorScheme> _colorSchemes;
+    private readonly AsyncBatchingWorkQueue _workQueue;
 
     private readonly object _gate = new();
 
     private ImmutableDictionary<ColorSchemeName, ImmutableArray<RegistryItem>>? _colorSchemeRegistryItems;
-    private int _updateQueued = 0;
     private bool _isInitialized = false;
 
     [ImportingConstructor]
@@ -49,7 +51,8 @@ internal sealed partial class ColorSchemeApplier
         IThreadingContext threadingContext,
         IVsService<SVsFontAndColorStorage, IVsFontAndColorStorage> fontAndColorStorage,
         IGlobalOptionService globalOptions,
-        SVsServiceProvider serviceProvider)
+        SVsServiceProvider serviceProvider,
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
         _threadingContext = threadingContext;
         _serviceProvider = serviceProvider;
@@ -58,6 +61,11 @@ internal sealed partial class ColorSchemeApplier
         _settings = new ColorSchemeSettings(threadingContext, _serviceProvider, globalOptions);
         _colorSchemes = ColorSchemeSettings.GetColorSchemes();
         _classificationVerifier = new ClassificationVerifier(threadingContext, fontAndColorStorage, _colorSchemes);
+        _workQueue = new(
+            TimeSpan.FromMilliseconds(1000),
+            async (token) => await QueueColorSchemeUpdateAsync().ConfigureAwait(false),
+            listenerProvider.GetListener(FeatureAttribute.ColorScheme),
+            CancellationToken.None);
     }
 
     public async Task InitializeAsync(CancellationToken cancellationToken)
@@ -108,23 +116,18 @@ internal sealed partial class ColorSchemeApplier
     }
 
     private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
-        => QueueColorSchemeUpdateAsync().Forget();
+        => _workQueue.AddWork();
 
     private Task ColorSchemeChangedAsync(object sender, PropertyChangedEventArgs args)
-        => QueueColorSchemeUpdateAsync();
+    {
+        _workQueue.AddWork();
+        return Task.CompletedTask;
+    }
 
     private async Task QueueColorSchemeUpdateAsync()
     {
-        if (Interlocked.Exchange(ref _updateQueued, 1) == 1)
-            return;
-
         // Wait until things have settled down from the theme change, since we will potentially be changing theme colors.
-        await VsTaskLibraryHelper.StartOnIdle(_threadingContext.JoinableTaskFactory,
-            async () =>
-            {
-                await UpdateColorSchemeAsync(_threadingContext.DisposalToken).ConfigureAwait(false);
-                Interlocked.Exchange(ref _updateQueued, 0);
-            });
+        await VsTaskLibraryHelper.StartOnIdle(_threadingContext.JoinableTaskFactory, () => UpdateColorSchemeAsync(_threadingContext.DisposalToken));
     }
 
     /// <summary>
