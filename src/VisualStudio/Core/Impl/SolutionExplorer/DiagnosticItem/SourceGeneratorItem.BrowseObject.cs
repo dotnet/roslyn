@@ -14,7 +14,7 @@ internal sealed partial class SourceGeneratorItem
         public string TypeName => sourceGeneratorItem.Identity.TypeName;
 
         [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Path))]
-        public string? Path => sourceGeneratorItem.Path;
+        public string? Path => sourceGeneratorItem._path;
 
         public override string GetClassName() => SolutionExplorerShim.Source_Generator_Properties;
         public override string GetComponentName() => TypeName;

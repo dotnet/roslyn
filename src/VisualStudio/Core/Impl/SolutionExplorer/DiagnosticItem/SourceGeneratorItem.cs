@@ -17,7 +17,7 @@ internal sealed partial class SourceGeneratorItem(
 {
     public ProjectId ProjectId { get; } = projectId;
     public SourceGeneratorIdentity Identity { get; } = identity;
-    public string? Path { get; } = path;
+    private readonly string? _path = path;
 
     // TODO: do we need an icon for our use?
     public override ImageMoniker IconMoniker => KnownMonikers.Process;
@@ -28,7 +28,7 @@ internal sealed partial class SourceGeneratorItem(
     public override int GetHashCode()
         => Hash.Combine(this.Name,
            Hash.Combine(this.ProjectId,
-           Hash.Combine(this.Path, this.Identity.GetHashCode())));
+           Hash.Combine(_path, this.Identity.GetHashCode())));
 
     public override bool Equals(object obj)
         => Equals(obj as SourceGeneratorItem);
@@ -39,6 +39,6 @@ internal sealed partial class SourceGeneratorItem(
             this.Name == other.Name &&
             this.ProjectId == other.ProjectId &&
             this.Identity == other.Identity &&
-            this.Path == other.Path;
+            _path == other._path;
     }
 }
