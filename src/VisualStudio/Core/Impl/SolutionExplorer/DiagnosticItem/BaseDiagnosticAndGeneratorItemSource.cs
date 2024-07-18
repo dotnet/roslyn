@@ -138,7 +138,45 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 
     private async ValueTask ProcessQueueAsync(CancellationToken token)
     {
-        throw new NotImplementedException();
+        var project = this.Workspace.CurrentSolution.GetProject(this.ProjectId);
+        if (project is null || !project.AnalyzerReferences.Contains(this.AnalyzerReference))
+        {
+            // Project went away, or no longer contains this analyzer.  Shut ourselves down.
+            _cancellationTokenSource.Cancel();
+            _items.Clear();
+
+            _generalDiagnosticOption = default;
+            _specificDiagnosticOptions = null;
+            _analyzerConfigOptions = null;
+            return;
+        }
+
+        UpdateCurrentOptions();
+
+        return;
+
+        void UpdateCurrentOptions()
+        {
+            var newGeneralDiagnosticOption = project.CompilationOptions!.GeneralDiagnosticOption;
+            var newSpecificDiagnosticOptions = project.CompilationOptions!.SpecificDiagnosticOptions;
+            var newAnalyzerConfigOptions = project.GetAnalyzerConfigOptions();
+
+            if (newGeneralDiagnosticOption != _generalDiagnosticOption ||
+                !object.ReferenceEquals(newSpecificDiagnosticOptions, _specificDiagnosticOptions) ||
+                !object.ReferenceEquals(newAnalyzerConfigOptions?.TreeOptions, _analyzerConfigOptions?.TreeOptions) ||
+                !object.ReferenceEquals(newAnalyzerConfigOptions?.ConfigOptions, _analyzerConfigOptions?.ConfigOptions))
+            {
+                _generalDiagnosticOption = newGeneralDiagnosticOption;
+                _specificDiagnosticOptions = newSpecificDiagnosticOptions;
+                _analyzerConfigOptions = newAnalyzerConfigOptions;
+
+                foreach (var item in _items.OfType<DiagnosticItem>())
+                {
+                    var effectiveSeverity = item.Descriptor.GetEffectiveSeverity(project.CompilationOptions, newAnalyzerConfigOptions?.ConfigOptions, newAnalyzerConfigOptions?.TreeOptions);
+                    item.UpdateEffectiveSeverity(effectiveSeverity);
+                }
+            }
+        }
     }
 
     private BulkObservableCollection<BaseItem> CreateDiagnosticAndGeneratorItems(ProjectId projectId, string language, CompilationOptions options, AnalyzerConfigData? analyzerConfigOptions)
@@ -180,16 +218,15 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
                       WorkspaceChangeKind.SolutionReloaded or
                       WorkspaceChangeKind.SolutionRemoved)
         {
-            // Solution is going away or being reloaded.  We can stop all our processing. If it is being reloaded, a new
-            // instance of this type will be create after the reload and will track the solution from that point on.
-            _cancellationTokenSource.Cancel();
+            // Solution is going away or being reloaded. The work queue will detect this and clean up accordingly.
+            _workQueue.AddWork();
         }
         else if (e.ProjectId == ProjectId)
         {
             if (e.Kind is WorkspaceChangeKind.ProjectRemoved)
             {
-                // Similarly, if the project itself is removed.  There's no need to continue processing.
-                _cancellationTokenSource.Cancel();
+                // The project itself is being removed.  The work queue will detect this and clean up accordingly.
+                _workQueue.AddWork();
             }
             else if (e.Kind == WorkspaceChangeKind.ProjectChanged)
             {
