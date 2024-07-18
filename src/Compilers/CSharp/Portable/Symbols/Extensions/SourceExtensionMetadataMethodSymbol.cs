@@ -41,6 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override TypeWithAnnotations IteratorElementTypeWithAnnotations => UnderlyingMethod.IteratorElementTypeWithAnnotations;
+
+        internal override bool IsIterator => UnderlyingMethod.IsIterator;
+
         protected override ImmutableArray<ParameterSymbol> MakeParameters()
         {
             var sourceParameters = _originalMethod.Parameters;
