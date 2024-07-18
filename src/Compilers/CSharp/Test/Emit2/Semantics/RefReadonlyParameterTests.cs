@@ -176,7 +176,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 [return: RequiresLocation] ref readonly int M7() => throw null;
                 [RequiresLocation] void M8() { }
                 [RequiresLocation] public int field;
-                [RequiresLocation] int Property { get => field; set => field = value; }
+                [RequiresLocation] int Property { get => @field; set => @field = value; }
             }
             """;
 
@@ -215,7 +215,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //     [RequiresLocation] public int field;
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(12, 6),
             // 0.cs(13,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
-            //     [RequiresLocation] int Property { get => field; set => field = value; }
+            //     [RequiresLocation] int Property { get => @field; set => @field = value; }
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(13, 6));
 
         var expectedDiagnostics = new[]
@@ -251,7 +251,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //     [RequiresLocation] public int field;
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(12, 6),
             // 0.cs(13,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
-            //     [RequiresLocation] int Property { get => field; set => field = value; }
+            //     [RequiresLocation] int Property { get => @field; set => @field = value; }
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(13, 6)
         };
 
@@ -5975,12 +5975,15 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             C123
             """, sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics(
-            // (22,9): warning CS9196: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
-            //         set { }
-            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("ref readonly int x", "in int x").WithLocation(22, 9),
-            // (28,19): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
-            //         _ = c[ref x];
-            Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(28, 19));
+                // (17,9): warning CS9196: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
+                //         get
+                Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "get").WithArguments("ref readonly int x", "in int x").WithLocation(17, 9),
+                // (22,9): warning CS9196: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
+                //         set { }
+                Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("ref readonly int x", "in int x").WithLocation(22, 9),
+                // (28,19): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         _ = c[ref x];
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(28, 19));
 
         static void verify(ModuleSymbol m)
         {
@@ -6763,6 +6766,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             get1
             set1
             """).VerifyDiagnostics(
+            // (9,9): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            //         get
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "get").WithArguments("in int x", "ref readonly int x").WithLocation(9, 9),
             // (14,9): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
             //         set
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("in int x", "ref readonly int x").WithLocation(14, 9));
@@ -6803,6 +6809,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             get1
             set1
             """).VerifyDiagnostics(
+            // (9,9): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            //         get
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "get").WithArguments("in int x", "ref readonly int x").WithLocation(9, 9),
             // (14,9): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
             //         set
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("in int x", "ref readonly int x").WithLocation(14, 9));
@@ -7000,7 +7009,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(6, 17));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -7025,7 +7034,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(6, 17));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -7054,7 +7063,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(5, 17));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
             // (5,17): error CS8917: The delegate type could not be inferred.
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(5, 17));

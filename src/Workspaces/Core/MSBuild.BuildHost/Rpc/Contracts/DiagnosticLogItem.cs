@@ -2,30 +2,27 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Runtime.Serialization;
 
-namespace Microsoft.CodeAnalysis.MSBuild
+namespace Microsoft.CodeAnalysis.MSBuild;
+
+internal enum DiagnosticLogItemKind
 {
-    [DataContract]
-    internal class DiagnosticLogItem
-    {
-        [DataMember(Order = 0)]
-        public WorkspaceDiagnosticKind Kind { get; }
+    Error,
+    Warning,
+}
 
-        [DataMember(Order = 1)]
-        public string Message { get; }
+[DataContract]
+internal class DiagnosticLogItem(DiagnosticLogItemKind kind, string message, string projectFilePath)
+{
+    [DataMember(Order = 0)]
+    public DiagnosticLogItemKind Kind { get; } = kind;
 
-        [DataMember(Order = 2)]
-        public string ProjectFilePath { get; }
+    [DataMember(Order = 1)]
+    public string Message { get; } = message;
 
-        public DiagnosticLogItem(WorkspaceDiagnosticKind kind, string message, string projectFilePath)
-        {
-            Kind = kind;
-            Message = message ?? throw new ArgumentNullException(nameof(message));
-            ProjectFilePath = projectFilePath ?? throw new ArgumentNullException(nameof(message));
-        }
+    [DataMember(Order = 2)]
+    public string ProjectFilePath { get; } = projectFilePath;
 
-        public override string ToString() => Message;
-    }
+    public override string ToString() => Message;
 }

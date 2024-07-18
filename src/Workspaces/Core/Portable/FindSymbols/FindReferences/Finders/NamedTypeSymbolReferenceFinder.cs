@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders;
 
@@ -148,16 +147,23 @@ internal sealed class NamedTypeSymbolReferenceFinder : AbstractReferenceFinder<I
             namedType, namedType.Name, state, processResult, processResultData, cancellationToken);
 
         foreach (var globalAlias in state.GlobalAliases)
-        {
-            // ignore the cases where the global alias might match the type name (i.e.
-            // global alias Console = System.Console).  We'll already find those references
-            // above.
-            if (state.SyntaxFacts.StringComparer.Equals(namedType.Name, globalAlias))
-                continue;
+            FindReferenceToAlias(namedType, state, processResult, processResultData, globalAlias, cancellationToken);
 
-            AddNonAliasReferences(
-                namedType, globalAlias, state, processResult, processResultData, cancellationToken);
-        }
+        foreach (var localAlias in state.Cache.SyntaxTreeIndex.GetAliases(namedType.Name, namedType.Arity))
+            FindReferenceToAlias(namedType, state, processResult, processResultData, localAlias, cancellationToken);
+    }
+
+    private static void FindReferenceToAlias<TData>(
+        INamedTypeSymbol namedType, FindReferencesDocumentState state, Action<FinderLocation, TData> processResult, TData processResultData, string alias, CancellationToken cancellationToken)
+    {
+        // ignore the cases where the global alias might match the type name (i.e.
+        // global alias Console = System.Console).  We'll already find those references
+        // above.
+        if (state.SyntaxFacts.StringComparer.Equals(namedType.Name, alias))
+            return;
+
+        AddNonAliasReferences(
+            namedType, alias, state, processResult, processResultData, cancellationToken);
     }
 
     /// <summary>

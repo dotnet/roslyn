@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using static Microsoft.CodeAnalysis.CodeActions.CodeAction;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings.SyncNamespace;
 
@@ -76,7 +73,7 @@ internal abstract partial class AbstractSyncNamespaceCodeRefactoringProvider<TNa
                 : string.Format(FeaturesResources.Change_namespace_to_0, state.TargetNamespace);
             var solutionChangeAction = CodeAction.Create(
                 title,
-                token => service.ChangeNamespaceAsync(document, state.Container, state.TargetNamespace, context.Options, token),
+                token => service.ChangeNamespaceAsync(document, state.Container, state.TargetNamespace, token),
                 title);
 
             context.RegisterRefactoring(solutionChangeAction, textSpan);

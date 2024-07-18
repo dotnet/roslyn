@@ -55,6 +55,10 @@ internal sealed partial class SolutionCompilationState
     /// compilation-state level.  When syncing to our OOP process, this information is included, allowing the oop side
     /// to move its own generators forward when a host changes these versions.
     /// </summary>
+    /// <remarks>
+    /// Contains information for all projects, even non-C#/VB ones.  Though this will have no meaning for those project
+    /// types.
+    /// </remarks>
     private readonly SourceGeneratorExecutionVersionMap _sourceGeneratorExecutionVersionMap;
 
     /// <summary>
@@ -117,9 +121,8 @@ internal sealed partial class SolutionCompilationState
         // An id shouldn't point at a tracker for a different project.
         Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
 
-        // Solution and SG version maps must correspond to the same set of projets.
+        // Solution and SG version maps must correspond to the same set of projects.
         Contract.ThrowIfFalse(this.SolutionState.ProjectStates
-            .Where(kvp => RemoteSupportedLanguages.IsSupported(kvp.Value.Language))
             .Select(kvp => kvp.Key)
             .SetEquals(_sourceGeneratorExecutionVersionMap.Map.Keys));
     }
@@ -340,12 +343,13 @@ internal sealed partial class SolutionCompilationState
             modifyNewTrackerInfo: static (_, _) => { }, argModifyNewTrackerInfo: default(VoidResult),
             skipEmptyCallback: true);
 
+        // Add the new projects to the source generator execution version map.  Note: it's ok for us to have entries for
+        // non-C#/VB projects.  These will have no effect in-proc as we won't have compilation-trackers for these
+        // projects.  And, when communicating with the OOP process, we'll filter out these projects before sending them
+        // across in SolutionCompilationState.GetFilteredSourceGenerationExecutionMap.
         var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
         foreach (var projectInfo in projectInfos)
-        {
-            if (RemoteSupportedLanguages.IsSupported(projectInfo.Language))
-                versionMapBuilder.Add(projectInfo.Id, new());
-        }
+            versionMapBuilder.Add(projectInfo.Id, new());
 
         var sourceGeneratorExecutionVersionMap = new SourceGeneratorExecutionVersionMap(versionMapBuilder.ToImmutable());
         return Branch(
@@ -708,25 +712,20 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithDocumentFilePath(documentId, filePath), documentId);
     }
 
-    /// <inheritdoc cref="SolutionState.WithDocumentText(DocumentId, SourceText, PreservationMode)"/>
-    public SolutionCompilationState WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode)
-        => WithDocumentTexts([(documentId, text, mode)]);
+    internal SolutionCompilationState WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode)
+        => WithDocumentContents(
+            texts, SourceTextIsUnchanged,
+            static (documentState, text, mode) => documentState.UpdateText(text, mode),
+            data: mode);
 
-    internal SolutionCompilationState WithDocumentTexts(
-        ImmutableArray<(DocumentId documentId, SourceText text, PreservationMode mode)> texts)
-    {
-        return WithDocumentContents(
-            texts, IsUnchanged,
-            static (documentState, text, mode) => documentState.UpdateText(text, mode));
+    private static bool SourceTextIsUnchanged(DocumentState oldDocument, SourceText text, PreservationMode mode)
+        => oldDocument.TryGetText(out var oldText) && text == oldText;
 
-        static bool IsUnchanged(DocumentState oldDocument, SourceText text)
-            => oldDocument.TryGetText(out var oldText) && text == oldText;
-    }
-
-    private SolutionCompilationState WithDocumentContents<TContent>(
-        ImmutableArray<(DocumentId documentId, TContent content, PreservationMode mode)> texts,
-        Func<DocumentState, TContent, bool> isUnchanged,
-        Func<DocumentState, TContent, PreservationMode, DocumentState> updateContent)
+    private SolutionCompilationState WithDocumentContents<TContent, TData>(
+        ImmutableArray<(DocumentId documentId, TContent content)> texts,
+        Func<DocumentState, TContent, TData, bool> isUnchanged,
+        Func<DocumentState, TContent, TData, DocumentState> updateContent,
+        TData data)
     {
         return UpdateDocumentsInMultipleProjects(
              texts.GroupBy(d => d.documentId.ProjectId).Select(g =>
@@ -735,13 +734,13 @@ internal sealed partial class SolutionCompilationState
                  var projectState = this.SolutionState.GetRequiredProjectState(projectId);
 
                  using var _ = ArrayBuilder<DocumentState>.GetInstance(out var newDocumentStates);
-                 foreach (var (documentId, content, mode) in g)
+                 foreach (var (documentId, content) in g)
                  {
                      var documentState = projectState.DocumentStates.GetRequiredState(documentId);
-                     if (isUnchanged(documentState, content))
+                     if (isUnchanged(documentState, content, data))
                          continue;
 
-                     newDocumentStates.Add(updateContent(documentState, content, mode));
+                     newDocumentStates.Add(updateContent(documentState, content, data));
                  }
 
                  return (projectId, newDocumentStates.ToImmutableAndClear());
@@ -777,6 +776,10 @@ internal sealed partial class SolutionCompilationState
         return UpdateAnalyzerConfigDocumentState(this.SolutionState.WithAnalyzerConfigDocumentText(documentId, text, mode));
     }
 
+    /// <inheritdoc cref="SolutionState.WithFallbackAnalyzerOptions(ImmutableDictionary{string, StructuredAnalyzerConfigOptions})"/>
+    public SolutionCompilationState WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions> options)
+        => Branch(SolutionState.WithFallbackAnalyzerOptions(options));
+
     /// <inheritdoc cref="SolutionState.WithDocumentText(DocumentId, TextAndVersion, PreservationMode)"/>
     public SolutionCompilationState WithDocumentText(
         DocumentId documentId, TextAndVersion textAndVersion, PreservationMode mode)
@@ -801,14 +804,15 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode));
     }
 
-    /// <inheritdoc cref="Solution.WithDocumentSyntaxRoots(ImmutableArray{ValueTuple{DocumentId, SyntaxNode, PreservationMode}})"/>
-    public SolutionCompilationState WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root, PreservationMode mode)> syntaxRoots)
+    /// <inheritdoc cref="Solution.WithDocumentSyntaxRoots(ImmutableArray{ValueTuple{DocumentId, SyntaxNode}}, PreservationMode)"/>
+    public SolutionCompilationState WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots, PreservationMode mode)
     {
         return WithDocumentContents(
             syntaxRoots, IsUnchanged,
-            static (documentState, root, mode) => documentState.UpdateTree(root, mode));
+            static (documentState, root, mode) => documentState.UpdateTree(root, mode),
+            data: mode);
 
-        static bool IsUnchanged(DocumentState oldDocument, SyntaxNode root)
+        static bool IsUnchanged(DocumentState oldDocument, SyntaxNode root, PreservationMode _)
         {
             return oldDocument.TryGetSyntaxTree(out var oldTree) &&
                 oldTree.TryGetRoot(out var oldRoot) &&
@@ -817,10 +821,18 @@ internal sealed partial class SolutionCompilationState
     }
 
     public SolutionCompilationState WithDocumentContentsFrom(
-        DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
+        ImmutableArray<(DocumentId documentId, DocumentState documentState)> documentIdsAndStates, bool forceEvenIfTreesWouldDiffer)
     {
-        return UpdateDocumentState(
-            this.SolutionState.WithDocumentContentsFrom(documentId, documentState, forceEvenIfTreesWouldDiffer), documentId);
+        return WithDocumentContents(
+            documentIdsAndStates,
+            isUnchanged: static (oldDocumentState, documentState, forceEvenIfTreesWouldDiffer) =>
+            {
+                return oldDocumentState.TextAndVersionSource == documentState.TextAndVersionSource
+                    && oldDocumentState.TreeSource == documentState.TreeSource;
+            },
+            static (oldDocumentState, documentState, forceEvenIfTreesWouldDiffer) =>
+                oldDocumentState.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource, forceEvenIfTreesWouldDiffer),
+            data: forceEvenIfTreesWouldDiffer);
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentSourceCodeKind"/>
@@ -938,13 +950,13 @@ internal sealed partial class SolutionCompilationState
     private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out ICompilationTracker? tracker)
         => _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
 
-    private static readonly Func<ProjectId, SolutionState, CompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
+    private static readonly Func<ProjectId, SolutionState, RegularCompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
 
-    private static CompilationTracker CreateCompilationTracker(ProjectId projectId, SolutionState solution)
+    private static RegularCompilationTracker CreateCompilationTracker(ProjectId projectId, SolutionState solution)
     {
         var projectState = solution.GetProjectState(projectId);
         Contract.ThrowIfNull(projectState);
-        return new CompilationTracker(projectState);
+        return new RegularCompilationTracker(projectState);
     }
 
     private ICompilationTracker GetCompilationTracker(ProjectId projectId)
@@ -1017,11 +1029,15 @@ internal sealed partial class SolutionCompilationState
     /// <summary>
     /// Returns the generated document states for source generated documents.
     /// </summary>
+    public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(ProjectState project, CancellationToken cancellationToken)
+        => GetSourceGeneratedDocumentStatesAsync(project, withFrozenSourceGeneratedDocuments: true, cancellationToken);
+
+    /// <inheritdoc cref="GetSourceGeneratedDocumentStatesAsync(ProjectState, CancellationToken)"/>
     public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
-        ProjectState project, CancellationToken cancellationToken)
+        ProjectState project, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)
     {
         return project.SupportsCompilation
-            ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, cancellationToken)
+            ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, withFrozenSourceGeneratedDocuments, cancellationToken)
             : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
     }
 
@@ -1126,8 +1142,9 @@ internal sealed partial class SolutionCompilationState
             .Distinct()
             .ToImmutableArray();
 
-        // Since we previously froze documents in these projects, we should have a CompilationTracker entry for it, and it should be a
-        // GeneratedFileReplacingCompilationTracker. To undo the operation, we'll just restore the original CompilationTracker.
+        // Since we previously froze documents in these projects, we should have a CompilationTracker entry for it, and
+        // it should be a WithFrozenSourceGeneratedDocumentsCompilationTracker. To undo the operation, we'll just
+        // restore the original CompilationTracker.
         var newTrackerMap = CreateCompilationTrackerMap(
             projectIdsToUnfreeze,
             this.SolutionState.GetProjectDependencyGraph(),
@@ -1136,7 +1153,11 @@ internal sealed partial class SolutionCompilationState
                 foreach (var projectId in projectIdsToUnfreeze)
                 {
                     Contract.ThrowIfFalse(trackerMap.TryGetValue(projectId, out var existingTracker));
-                    var replacingItemTracker = (GeneratedFileReplacingCompilationTracker)existingTracker;
+                    // TODO(cyrusn): Is it possible to wrap an underlying tracker with multiple frozen document
+                    // compilation trackers?  Should we be unwrapping as much as we can here?  Or would that also be bad
+                    // given that we're basing what we want to unfreeze on the FrozenSourceGeneratedDocumentStates,
+                    // which may not represent those inner freezes.  Unclear.  There may be bugs here.
+                    var replacingItemTracker = (WithFrozenSourceGeneratedDocumentsCompilationTracker)existingTracker;
                     trackerMap[projectId] = replacingItemTracker.UnderlyingTracker;
                 }
             },
@@ -1221,7 +1242,7 @@ internal sealed partial class SolutionCompilationState
                         existingTracker = CreateCompilationTracker(projectId, arg.SolutionState);
                     }
 
-                    trackerMap[projectId] = new GeneratedFileReplacingCompilationTracker(existingTracker, new(documentStatesForProject));
+                    trackerMap[projectId] = new WithFrozenSourceGeneratedDocumentsCompilationTracker(existingTracker, new(documentStatesForProject));
                 }
             },
             (documentStatesByProjectId, this.SolutionState),
@@ -1247,8 +1268,14 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
-    public SolutionCompilationState WithSourceGeneratorExecutionVersions(
-        SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions, CancellationToken cancellationToken)
+    /// <summary>
+    /// Updates entries in our <see cref="_sourceGeneratorExecutionVersionMap"/> to the corresponding values in the
+    /// given <paramref name="sourceGeneratorExecutionVersions"/>.  Importantly, <paramref
+    /// name="sourceGeneratorExecutionVersions"/> must refer to projects in this solution.  Projects not mentioned in
+    /// <paramref name="sourceGeneratorExecutionVersions"/> will not be touched (and they will stay in the map).
+    /// </summary>
+    public SolutionCompilationState UpdateSpecificSourceGeneratorExecutionVersions(
+        SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions)
     {
         var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
@@ -1256,8 +1283,6 @@ internal sealed partial class SolutionCompilationState
 
         foreach (var (projectId, sourceGeneratorExecutionVersion) in sourceGeneratorExecutionVersions.Map)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             var currentExecutionVersion = versionMapBuilder[projectId];
 
             // Nothing to do if already at this version.
@@ -1275,7 +1300,7 @@ internal sealed partial class SolutionCompilationState
                 // if the major version has changed then we also want to drop the generator driver so that we're rerun
                 // generators from scratch.
                 var forceRegeneration = currentExecutionVersion.MajorVersion != sourceGeneratorExecutionVersion.MajorVersion;
-                var newTracker = existingTracker.WithCreationPolicy(create: true, forceRegeneration, cancellationToken);
+                var newTracker = existingTracker.WithCreateCreationPolicy(forceRegeneration);
                 if (newTracker != existingTracker)
                     newIdToTrackerMapBuilder[projectId] = newTracker;
             }
@@ -1311,7 +1336,7 @@ internal sealed partial class SolutionCompilationState
 
             // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
             // perf hit on either of those at all for our clients.
-            var newTracker = oldTracker.WithCreationPolicy(create: false, forceRegeneration: false, cancellationToken);
+            var newTracker = oldTracker.WithDoNotCreateCreationPolicy(cancellationToken);
             if (oldTracker == newTracker)
                 continue;
 
@@ -1392,8 +1417,8 @@ internal sealed partial class SolutionCompilationState
         // compilation state instance.  So in the case where there are no linked documents, there is no cost here.  And
         // there is no additional cost processing the initiating document in this loop.
         var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId);
-        foreach (var siblingId in allDocumentIds)
-            currentCompilationState = currentCompilationState.WithDocumentContentsFrom(siblingId, currentDocumentState, forceEvenIfTreesWouldDiffer: true);
+        var allDocumentIdsWithCurrentDocumentState = allDocumentIds.SelectAsArray(static (docId, currentDocumentState) => (docId, currentDocumentState), currentDocumentState);
+        currentCompilationState = currentCompilationState.WithDocumentContentsFrom(allDocumentIdsWithCurrentDocumentState, forceEvenIfTreesWouldDiffer: true);
 
         return WithFrozenPartialCompilationIncludingSpecificDocumentWorker(currentCompilationState, documentId, cancellationToken);
 
@@ -1652,7 +1677,7 @@ internal sealed partial class SolutionCompilationState
     /// </summary>
     public SolutionCompilationState WithDocumentText(IEnumerable<DocumentId?> documentIds, SourceText text, PreservationMode mode)
     {
-        var result = this;
+        using var _ = ArrayBuilder<(DocumentId, SourceText)>.GetInstance(out var changedDocuments);
 
         foreach (var documentId in documentIds)
         {
@@ -1664,10 +1689,22 @@ internal sealed partial class SolutionCompilationState
 
             var documentState = this.SolutionState.GetProjectState(documentId.ProjectId)?.DocumentStates.GetState(documentId);
             if (documentState != null)
-                result = result.WithDocumentText(documentId, text, mode);
+            {
+                // before allocating an array below (and calling into a function that does a fair amount of linq work),
+                // do a fast check if the text has actually changed. this shows up in allocation traces and is
+                // worthwhile to avoid for the common case where we're continually being asked to update the same doc to
+                // the same text (for example, when GetOpenDocumentInCurrentContextWithChanges) is called.
+                //
+                // The use of GetRequiredState mirrors what happens in WithDocumentTexts
+                if (!SourceTextIsUnchanged(documentState, text, mode))
+                    changedDocuments.Add((documentId, text));
+            }
         }
 
-        return result;
+        if (changedDocuments.Count == 0)
+            return this;
+
+        return this.WithDocumentTexts(changedDocuments.ToImmutableAndClear(), mode);
     }
 
     internal TestAccessor GetTestAccessor()

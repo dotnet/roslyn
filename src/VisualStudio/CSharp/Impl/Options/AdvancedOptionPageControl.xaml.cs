@@ -25,6 +25,8 @@ using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ExtractMethod;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
+using Microsoft.CodeAnalysis.Features.EmbeddedLanguages.RegularExpressions.LanguageServices;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.InheritanceMargin;
@@ -41,6 +43,7 @@ using Microsoft.CodeAnalysis.StackTraceExplorer;
 using Microsoft.CodeAnalysis.StringCopyPaste;
 using Microsoft.CodeAnalysis.Structure;
 using Microsoft.CodeAnalysis.SymbolSearch;
+using Microsoft.CodeAnalysis.ValidateFormatString;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
@@ -95,12 +98,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 // If the option has not been set by the user, check if the option is enabled from experimentation. If so, default to that.
                 return optionStore.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag);
             });
-            BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace, () =>
-            {
-                // If the option has not been set by the user, check if the option is enabled from experimentation.
-                // If so, default to that.
-                return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag);
-            });
 
             // Go To Definition
             BindToOption(Enable_navigation_to_sourcelink_and_embedded_sources, MetadataAsSourceOptionsStorage.NavigateToSourceLinkAndEmbeddedSources);
@@ -154,26 +151,23 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(RenameTrackingPreview, RenameTrackingOptionsStorage.RenameTrackingPreview, LanguageNames.CSharp);
             BindToOption(Split_string_literals_on_enter, SplitStringLiteralOptionsStorage.Enabled);
             BindToOption(Fix_text_pasted_into_string_literals_experimental, StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste, LanguageNames.CSharp);
-            BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp);
+            BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, FormatStringValidationOptionStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp);
             BindToOption(Underline_reassigned_variables, ClassificationOptionsStorage.ClassifyReassignedVariables, LanguageNames.CSharp);
             BindToOption(Strike_out_obsolete_symbols, ClassificationOptionsStorage.ClassifyObsoleteSymbols, LanguageNames.CSharp);
 
             // Regular Expressions
             BindToOption(Colorize_regular_expressions, ClassificationOptionsStorage.ColorizeRegexPatterns, LanguageNames.CSharp);
-            BindToOption(Report_invalid_regular_expressions, IdeAnalyzerOptionsStorage.ReportInvalidRegexPatterns, LanguageNames.CSharp);
+            BindToOption(Report_invalid_regular_expressions, RegexOptionsStorage.ReportInvalidRegexPatterns, LanguageNames.CSharp);
             BindToOption(Highlight_related_regular_expression_components_under_cursor, HighlightingOptionsStorage.HighlightRelatedRegexComponentsUnderCursor, LanguageNames.CSharp);
             BindToOption(Show_completion_list, CompletionOptionsStorage.ProvideRegexCompletions, LanguageNames.CSharp);
 
             // Json
             BindToOption(Colorize_JSON_strings, ClassificationOptionsStorage.ColorizeJsonPatterns, LanguageNames.CSharp);
-            BindToOption(Report_invalid_JSON_strings, IdeAnalyzerOptionsStorage.ReportInvalidJsonPatterns, LanguageNames.CSharp);
+            BindToOption(Report_invalid_JSON_strings, JsonDetectionOptionsStorage.ReportInvalidJsonPatterns, LanguageNames.CSharp);
             BindToOption(Highlight_related_JSON_components_under_cursor, HighlightingOptionsStorage.HighlightRelatedJsonComponentsUnderCursor, LanguageNames.CSharp);
 
             // Classifications
             BindToOption(Editor_color_scheme, ColorSchemeOptionsStorage.ColorScheme);
-
-            // Extract Method
-            BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct, LanguageNames.CSharp);
 
             // Implement Interface or Abstract Class
             BindToOption(with_other_members_of_the_same_kind, ImplementTypeOptionsStorage.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind, LanguageNames.CSharp);
@@ -198,6 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ShowHintsForVariablesWithInferredTypes, InlineHintsOptionsStorage.ForImplicitVariableTypes, LanguageNames.CSharp);
             BindToOption(ShowHintsForLambdaParameterTypes, InlineHintsOptionsStorage.ForLambdaParameterTypes, LanguageNames.CSharp);
             BindToOption(ShowHintsForImplicitObjectCreation, InlineHintsOptionsStorage.ForImplicitObjectCreation, LanguageNames.CSharp);
+            BindToOption(ShowHintsForCollectionExpressions, InlineHintsOptionsStorage.ForCollectionExpressions, LanguageNames.CSharp);
 
             // Inheritance Margin
             // Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
@@ -250,6 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             ShowHintsForVariablesWithInferredTypes.IsEnabled = enabledForTypes;
             ShowHintsForLambdaParameterTypes.IsEnabled = enabledForTypes;
             ShowHintsForImplicitObjectCreation.IsEnabled = enabledForTypes;
+            ShowHintsForCollectionExpressions.IsEnabled = enabledForTypes;
         }
 
         private void DisplayInlineParameterNameHints_Checked(object sender, RoutedEventArgs e)

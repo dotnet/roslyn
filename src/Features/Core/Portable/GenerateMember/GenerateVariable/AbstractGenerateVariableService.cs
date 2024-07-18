@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -40,7 +39,6 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
     public async Task<ImmutableArray<CodeAction>> GenerateVariableAsync(
         Document document,
         SyntaxNode node,
-        CodeAndImportGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateVariable, cancellationToken))
@@ -64,18 +62,18 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                 var name = state.IdentifierToken.ValueText;
                 if (char.IsUpper(name.ToCharArray().FirstOrDefault()))
                 {
-                    await AddPropertyCodeActionsAsync(actions, semanticDocument, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
-                    AddFieldCodeActions(actions, semanticDocument, state, fallbackOptions);
+                    await AddPropertyCodeActionsAsync(actions, semanticDocument, state, cancellationToken).ConfigureAwait(false);
+                    AddFieldCodeActions(actions, semanticDocument, state);
                 }
                 else
                 {
-                    AddFieldCodeActions(actions, semanticDocument, state, fallbackOptions);
-                    await AddPropertyCodeActionsAsync(actions, semanticDocument, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    AddFieldCodeActions(actions, semanticDocument, state);
+                    await AddPropertyCodeActionsAsync(actions, semanticDocument, state, cancellationToken).ConfigureAwait(false);
                 }
             }
 
-            await AddLocalCodeActionsAsync(actions, document, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
-            await AddParameterCodeActionsAsync(actions, document, state, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            await AddLocalCodeActionsAsync(actions, document, state, cancellationToken).ConfigureAwait(false);
+            await AddParameterCodeActionsAsync(actions, document, state, cancellationToken).ConfigureAwait(false);
 
             if (actions.Count > 1)
             {
@@ -95,7 +93,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
         => false;
 
     private static async Task AddPropertyCodeActionsAsync(
-        ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CancellationToken cancellationToken)
     {
         if (state.IsInOutContext)
             return;
@@ -108,7 +106,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
 
         // Don't generate properties with a `_` prefix unless that's what the user really wants as their naming style.
         if (await NameIsHighlyUnlikelyToWarrantSymbolAsync(
-                document.Document, state, SymbolKind.Property, state.DetermineMaximalAccessibility(), fallbackOptions, cancellationToken).ConfigureAwait(false))
+                document.Document, state, SymbolKind.Property, state.DetermineMaximalAccessibility(), cancellationToken).ConfigureAwait(false))
         {
             return;
         }
@@ -117,20 +115,20 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
         if (isOnlyReadAndIsInInterface || state.IsInConstructor)
         {
             result.Add(new GenerateVariableCodeAction(
-                document, state, generateProperty: true, isReadonly: true, isConstant: false, refKind: GetRefKindFromContext(state), fallbackOptions));
+                document, state, generateProperty: true, isReadonly: true, isConstant: false, refKind: GetRefKindFromContext(state)));
         }
 
-        GenerateWritableProperty(result, document, state, fallbackOptions);
+        GenerateWritableProperty(result, document, state);
     }
 
     private static async Task<bool> NameIsHighlyUnlikelyToWarrantSymbolAsync(
-        Document document, State state, SymbolKind kind, Accessibility accessibility, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, State state, SymbolKind kind, Accessibility accessibility, CancellationToken cancellationToken)
     {
         // Check If the user explicitly used _ as the start of the name they're generating.  Don't offer to generate
         // a non-field symbol unless that's genuinely the naming style they have setup.
         if (state.IdentifierToken.ValueText.StartsWith("_"))
         {
-            var namingStyle = await document.GetApplicableNamingRuleAsync(kind, accessibility, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var namingStyle = await document.GetApplicableNamingRuleAsync(kind, accessibility, cancellationToken).ConfigureAwait(false);
             if (namingStyle.NamingStyle.Prefix != "_")
                 return true;
         }
@@ -138,27 +136,27 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
         return false;
     }
 
-    private static void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions)
+    private static void GenerateWritableProperty(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
     {
         result.Add(new GenerateVariableCodeAction(
             document, state, generateProperty: true, isReadonly: false, isConstant: false,
-            refKind: GetRefKindFromContext(state), fallbackOptions));
+            refKind: GetRefKindFromContext(state)));
     }
 
-    private static void AddFieldCodeActions(ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions)
+    private static void AddFieldCodeActions(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
     {
         if (state.TypeToGenerateIn.TypeKind != TypeKind.Interface)
         {
             if (state.IsConstant)
             {
                 result.Add(new GenerateVariableCodeAction(
-                    document, state, generateProperty: false, isReadonly: false, isConstant: true, refKind: RefKind.None, fallbackOptions));
+                    document, state, generateProperty: false, isReadonly: false, isConstant: true, refKind: RefKind.None));
             }
             else
             {
                 if (!state.OfferReadOnlyFieldFirst)
                 {
-                    GenerateWriteableField(result, document, state, fallbackOptions);
+                    GenerateWriteableField(result, document, state);
                 }
 
                 // If we haven't written to the field, or we're in the constructor for the type
@@ -166,47 +164,47 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                 if (!state.IsWrittenTo || state.IsInConstructor)
                 {
                     result.Add(new GenerateVariableCodeAction(
-                        document, state, generateProperty: false, isReadonly: true, isConstant: false, refKind: RefKind.None, fallbackOptions));
+                        document, state, generateProperty: false, isReadonly: true, isConstant: false, refKind: RefKind.None));
                 }
 
                 if (state.OfferReadOnlyFieldFirst)
                 {
-                    GenerateWriteableField(result, document, state, fallbackOptions);
+                    GenerateWriteableField(result, document, state);
                 }
             }
         }
     }
 
-    private static void GenerateWriteableField(ArrayBuilder<CodeAction> result, SemanticDocument document, State state, CodeAndImportGenerationOptionsProvider fallbackOptions)
+    private static void GenerateWriteableField(ArrayBuilder<CodeAction> result, SemanticDocument document, State state)
     {
         result.Add(new GenerateVariableCodeAction(
-            document, state, generateProperty: false, isReadonly: false, isConstant: false, refKind: RefKind.None, fallbackOptions));
+            document, state, generateProperty: false, isReadonly: false, isConstant: false, refKind: RefKind.None));
     }
 
     private async Task AddLocalCodeActionsAsync(
-        ArrayBuilder<CodeAction> result, Document document, State state, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        ArrayBuilder<CodeAction> result, Document document, State state, CancellationToken cancellationToken)
     {
         if (state.CanGenerateLocal())
         {
             // Don't generate locals with a `_` prefix unless that's what the user really wants as their naming style.
             if (await NameIsHighlyUnlikelyToWarrantSymbolAsync(
-                    document, state, SymbolKind.Local, Accessibility.NotApplicable, fallbackOptions, cancellationToken).ConfigureAwait(false))
+                    document, state, SymbolKind.Local, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false))
             {
                 return;
             }
 
-            result.Add(new GenerateLocalCodeAction((TService)this, document, state, fallbackOptions));
+            result.Add(new GenerateLocalCodeAction((TService)this, document, state));
         }
     }
 
     private static async Task AddParameterCodeActionsAsync(
-        ArrayBuilder<CodeAction> result, Document document, State state, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        ArrayBuilder<CodeAction> result, Document document, State state, CancellationToken cancellationToken)
     {
         if (state.CanGenerateParameter())
         {
             // Don't generate parameters with a `_` prefix unless that's what the user really wants as their naming style.
             if (await NameIsHighlyUnlikelyToWarrantSymbolAsync(
-                    document, state, SymbolKind.Parameter, Accessibility.NotApplicable, fallbackOptions, cancellationToken).ConfigureAwait(false))
+                    document, state, SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false))
             {
                 return;
             }

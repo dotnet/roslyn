@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -54,10 +53,10 @@ internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigu
     public FixAllProvider? GetFixAllProvider()
         => null;
 
-    public Task<ImmutableArray<CodeFix>> GetFixesAsync(TextDocument document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public Task<ImmutableArray<CodeFix>> GetFixesAsync(TextDocument document, TextSpan span, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         => Task.FromResult(GetConfigurations(document.Project, diagnostics));
 
-    public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public Task<ImmutableArray<CodeFix>> GetFixesAsync(Project project, IEnumerable<Diagnostic> diagnostics, CancellationToken cancellationToken)
         => Task.FromResult(GetConfigurations(project, diagnostics));
 
     private static ImmutableArray<CodeFix> GetConfigurations(Project project, IEnumerable<Diagnostic> diagnostics)
@@ -109,7 +108,7 @@ internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigu
 
             // Try to get the parsed editorconfig string representation of the new code style option value
             var optionName = option.Definition.ConfigName;
-            var defaultValue = (ICodeStyleOption?)option.DefaultValue;
+            var defaultValue = (ICodeStyleOption2?)option.DefaultValue;
             Contract.ThrowIfNull(defaultValue);
 
             if (defaultValue.Value is bool)
@@ -140,7 +139,7 @@ internal sealed partial class ConfigureCodeStyleOptionCodeFixProvider : IConfigu
             return null;
 
             // Local functions
-            void AddCodeActionWithOptionValue(ICodeStyleOption codeStyleOption, object newValue)
+            void AddCodeActionWithOptionValue(ICodeStyleOption2 codeStyleOption, object newValue)
             {
                 // Create a new code style option value with the newValue
                 var configuredCodeStyleOption = codeStyleOption.WithValue(newValue);

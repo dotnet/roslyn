@@ -7,6 +7,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Features.EmbeddedLanguages.Json.LanguageServices;
@@ -38,16 +40,13 @@ internal abstract class AbstractJsonDetectionAnalyzer : AbstractBuiltInCodeStyle
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-    public override bool OpenFileOnly(SimplifierOptions? options)
-        => false;
-
     protected override void InitializeWorker(AnalysisContext context)
         => context.RegisterSemanticModelAction(Analyze);
 
     public void Analyze(SemanticModelAnalysisContext context)
     {
-        if (!context.GetIdeAnalyzerOptions().DetectAndOfferEditorFeaturesForProbableJsonStrings
-            || ShouldSkipAnalysis(context, notification: null))
+        if (!context.GetAnalyzerOptions().GetOption(JsonDetectionOptionsStorage.DetectAndOfferEditorFeaturesForProbableJsonStrings) ||
+            ShouldSkipAnalysis(context, notification: null))
         {
             return;
         }
@@ -69,9 +68,9 @@ internal abstract class AbstractJsonDetectionAnalyzer : AbstractBuiltInCodeStyle
             if (!context.ShouldAnalyzeSpan(child.FullSpan))
                 continue;
 
-            if (child.IsNode)
+            if (child.AsNode(out var childNode))
             {
-                Analyze(context, detector, child.AsNode()!, cancellationToken);
+                Analyze(context, detector, childNode, cancellationToken);
             }
             else
             {

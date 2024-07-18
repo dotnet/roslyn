@@ -4,8 +4,6 @@
 
 #nullable disable
 
-using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -112,13 +110,15 @@ internal abstract class AbstractSpellCheckCodeFixProvider<TSimpleName> : CodeFix
         var document = context.Document;
         var service = CompletionService.GetService(document);
 
+        var memberDisplayOptions = await document.GetMemberDisplayOptionsAsync(cancellationToken).ConfigureAwait(false);
+
         // Disable snippets and unimported types from ever appearing in the completion items. 
         // -    It's very unlikely the user would ever misspell a snippet, then use spell-checking to fix it, 
         //      then try to invoke the snippet.
         // -    We believe spell-check should only compare what you have typed to what symbol would be offered here.
         var options = CompletionOptions.Default with
         {
-            HideAdvancedMembers = context.Options.GetOptions(document.Project.Services).HideAdvancedMembers,
+            MemberDisplayOptions = memberDisplayOptions,
             SnippetsBehavior = SnippetsRule.NeverInclude,
             ShowItemsFromUnimportedNamespaces = false,
             TargetTypedCompletionFilter = false,

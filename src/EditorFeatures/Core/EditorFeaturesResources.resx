@@ -613,6 +613,12 @@ Do you want to proceed?</value>
   <data name="_0_declarations" xml:space="preserve">
     <value>'{0}' declarations</value>
   </data>
+  <data name="_0_declarations_and_interceptors" xml:space="preserve">
+    <value>'{0}' declarations and interceptors</value>
+  </data>
+  <data name="_0_intercepted_locations" xml:space="preserve">
+    <value>'{0}' intercepted locations</value>
+  </data>
   <data name="An_inline_rename_session_is_active_for_identifier_0" xml:space="preserve">
     <value>An inline rename session is active for identifier '{0}'. Invoke inline rename again to access additional options. You may continue to edit the identifier being renamed at any time.</value>
     <comment>For screenreaders. {0} is the identifier being renamed.</comment>
@@ -929,20 +935,17 @@ Do you want to proceed?</value>
   <data name="Obsolete_symbol" xml:space="preserve">
     <value>Obsolete symbol</value>
   </data>
-  <data name="AI_generated_content_may_be_inaccurate" xml:space="preserve">
-    <value>AI-generated content may be inaccurate</value>
+  <data name="Copilot" xml:space="preserve">
+    <value>Copilot</value>
   </data>
-  <data name="GitHub_Copilot" xml:space="preserve">
-    <value>GitHub Copilot</value>
+  <data name="Copilot_thinking" xml:space="preserve">
+    <value>Copilot thinking...</value>
   </data>
-  <data name="GitHub_Copilot_thinking" xml:space="preserve">
-    <value>GitHub Copilot thinking...</value>
+  <data name="Generate_summary_with_Copilot" xml:space="preserve">
+    <value>Generate summary with Copilot (might be inaccurate)</value>
   </data>
-  <data name="Show_an_AI_generated_summary_of_this_code" xml:space="preserve">
-    <value>Show an AI generated summary of this code</value>
-  </data>
-  <data name="Tell_me_more" xml:space="preserve">
-    <value>Tell me more</value>
+  <data name="Describe_with_Copilot" xml:space="preserve">
+    <value>Describe with Copilot</value>
   </data>
   <data name="On_the_fly_documentation" xml:space="preserve">
     <value>On-the-fly documentation</value>

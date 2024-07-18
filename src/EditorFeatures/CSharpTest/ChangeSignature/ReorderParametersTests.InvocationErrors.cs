@@ -8,69 +8,67 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ChangeSignature;
 using Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature;
+
+[Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+public partial class ChangeSignatureTests : AbstractChangeSignatureTests
 {
-    [Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-    public partial class ChangeSignatureTests : AbstractChangeSignatureTests
+    [Fact]
+    public async Task ReorderMethodParameters_InvokeOnClassName_ShouldFail()
     {
-        [Fact]
-        public async Task ReorderMethodParameters_InvokeOnClassName_ShouldFail()
-        {
-            var markup = """
-                using System;
-                class MyClass$$
+        var markup = """
+            using System;
+            class MyClass$$
+            {
+                public void Goo(int x, string y)
                 {
-                    public void Goo(int x, string y)
-                    {
-                    }
                 }
-                """;
+            }
+            """;
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
-        }
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
+    }
 
-        [Fact]
-        public async Task ReorderMethodParameters_InvokeOnField_ShouldFail()
-        {
-            var markup = """
-                using System;
-                class MyClass
+    [Fact]
+    public async Task ReorderMethodParameters_InvokeOnField_ShouldFail()
+    {
+        var markup = """
+            using System;
+            class MyClass
+            {
+                int t$$ = 2;
+
+                public void Goo(int x, string y)
                 {
-                    int t$$ = 2;
-
-                    public void Goo(int x, string y)
-                    {
-                    }
                 }
-                """;
+            }
+            """;
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
-        }
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
+    }
 
-        [Fact]
-        public async Task ReorderMethodParameters_CanBeStartedEvenWithNoParameters()
-        {
-            var markup = @"class C { void $$M() { } }";
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: true);
-        }
+    [Fact]
+    public async Task ReorderMethodParameters_CanBeStartedEvenWithNoParameters()
+    {
+        var markup = @"class C { void $$M() { } }";
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: true);
+    }
 
-        [Fact]
-        public async Task ReorderMethodParameters_InvokeOnOverloadedOperator_ShouldFail()
-        {
-            var markup = """
-                class C
+    [Fact]
+    public async Task ReorderMethodParameters_InvokeOnOverloadedOperator_ShouldFail()
+    {
+        var markup = """
+            class C
+            {
+                public static C $$operator +(C a, C b)
                 {
-                    public static C $$operator +(C a, C b)
-                    {
-                        return null;
-                    }
+                    return null;
                 }
-                """;
+            }
+            """;
 
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
-        }
+        await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, expectedSuccess: false, expectedFailureReason: ChangeSignatureFailureKind.IncorrectKind);
     }
 }

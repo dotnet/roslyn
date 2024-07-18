@@ -589,12 +589,6 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 return true;
             }
 
-            if (UserDefinedValueType(model.Compilation, type) && !SelectionResult.Options.DoNotPutOutOrRefOnStruct)
-            {
-                variableStyle = AlwaysReturn(variableStyle);
-                return true;
-            }
-
             // for captured variable, never try to move the decl into extracted method
             if (captured && variableStyle == VariableStyle.MoveIn)
             {
@@ -651,32 +645,6 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             }
 
             return type.Equals(SelectionResult.GetContainingScopeType());
-        }
-
-        private static bool UserDefinedValueType(Compilation compilation, ITypeSymbol type)
-        {
-            if (!type.IsValueType || type is IPointerTypeSymbol || type.IsEnumType())
-            {
-                return false;
-            }
-
-            return type.OriginalDefinition.SpecialType == SpecialType.None && !WellKnownFrameworkValueType(compilation, type);
-        }
-
-        private static bool WellKnownFrameworkValueType(Compilation compilation, ITypeSymbol type)
-        {
-            if (!type.IsValueType)
-            {
-                return false;
-            }
-
-            var cancellationTokenType = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!);
-            if (cancellationTokenType != null && cancellationTokenType.Equals(type))
-            {
-                return true;
-            }
-
-            return false;
         }
 
         protected virtual ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
@@ -910,6 +878,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                     if (!parameter.HasConstructorConstraint &&
                         !parameter.HasReferenceTypeConstraint &&
                         !parameter.HasValueTypeConstraint &&
+                        !parameter.AllowsRefLikeType &&
                         parameter.ConstraintTypes.IsDefaultOrEmpty)
                     {
                         continue;

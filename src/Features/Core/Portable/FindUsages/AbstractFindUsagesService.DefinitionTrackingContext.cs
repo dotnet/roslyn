@@ -6,9 +6,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 
@@ -42,8 +39,8 @@ internal abstract partial class AbstractFindUsagesService
         public ValueTask SetSearchTitleAsync(string title, CancellationToken cancellationToken)
             => _underlyingContext.SetSearchTitleAsync(title, cancellationToken);
 
-        public ValueTask OnReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
-            => _underlyingContext.OnReferenceFoundAsync(reference, cancellationToken);
+        public ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
+            => _underlyingContext.OnReferencesFoundAsync(references, cancellationToken);
 
         public ValueTask OnDefinitionFoundAsync(DefinitionItem definition, CancellationToken cancellationToken)
         {

@@ -407,7 +407,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Changing_0_might_not_have_any_effect_until_the_application_is_restarted">
         <source>Changing '{0}' might not have any effect until the application is restarted.</source>
-        <target state="new">Changing '{0}' might not have any effect until the application is restarted.</target>
+        <target state="translated">'{0}' değişikliği uygulama yeniden başlatılana kadar etkili olmaz.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_0_to_1_requires_restarting_the_application_because_it_changes_the_shape_of_the_state_machine">
@@ -1162,12 +1162,12 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Method_0_must_be_static_and_non_generic">
         <source>Method '{0}' must be static and non-generic</source>
-        <target state="new">Method '{0}' must be static and non-generic</target>
+        <target state="translated">'{0}' yönteminin statik olması ve genel olmaması gerekir.</target>
         <note />
       </trans-unit>
       <trans-unit id="Method_0_must_have_a_single_parameter_of_type_1_and_return_2">
         <source>Method '{0}' must have a single parameter of type '{1}' and return '{2}'</source>
-        <target state="new">Method '{0}' must have a single parameter of type '{1}' and return '{2}'</target>
+        <target state="translated">'{0}' yönteminin '{1}' türünde tek bir parametre olması ve '{2}' değerini döndürmesi gerekir</target>
         <note />
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
@@ -1283,6 +1283,11 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       <trans-unit id="Moving_0_requires_restarting_the_application">
         <source>Moving {0} requires restarting the application.</source>
         <target state="translated">{0} öğesinin taşınması uygulamanın yeniden başlatılmasını gerektirir.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NET_Code_Actions">
+        <source>.NET Code Actions</source>
+        <target state="new">.NET Code Actions</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_expected">
@@ -1402,7 +1407,7 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       </trans-unit>
       <trans-unit id="Query">
         <source>Query</source>
-        <target state="new">Query</target>
+        <target state="translated">Sorgu</target>
         <note />
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group">
@@ -2642,22 +2647,22 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="SemanticSearch">
         <source>Semantic Search</source>
-        <target state="new">Semantic Search</target>
+        <target state="translated">Anlamsal Arama</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_only_supported_on_net_core">
         <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
-        <target state="new">Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</target>
+        <target state="translated">Anlamsal arama yalnızca kod analizi en son .NET üzerinde ayrı bir işlemde çalıştırıldığında desteklenir (Araçlar &gt; Seçenekler &gt; Metin Düzenleyici &gt; C# &gt; Gelişmiş seçeneğine bakın).</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_query_failed_to_compile">
         <source>Semantic search query failed to compile</source>
-        <target state="new">Semantic search query failed to compile</target>
+        <target state="translated">Anlamsal arama sorgusu derlenemedi</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_query_terminated_with_exception">
         <source>Semantic search query terminated with exception</source>
-        <target state="new">Semantic search query terminated with exception</target>
+        <target state="translated">Anlamsal arama sorgusu bir özel durumla sonlandırıldı</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2722,7 +2727,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Symbols">
         <source>Symbols</source>
-        <target state="new">Symbols</target>
+        <target state="translated">Semboller</target>
         <note />
       </trans-unit>
       <trans-unit id="Syntax_error">
@@ -2757,7 +2762,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="The_query_does_not_specify_0_method_or_top_level_function">
         <source>The query does not specify '{0}' method or top-level function</source>
-        <target state="new">The query does not specify '{0}' method or top-level function</target>
+        <target state="translated">Sorgu '{0}' yöntemini veya üst düzey işlev belirtmiyor</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2805,6 +2810,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Sona eklenen virgüle izin verilmiyor</target>
         <note />
       </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="new">Type members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
         <target state="translated">Türler:</target>
@@ -2817,7 +2827,7 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
         <source>Unable to load type '{0}': '{1}'</source>
-        <target state="new">Unable to load type '{0}': '{1}'</target>
+        <target state="translated">'{0}' türü yüklenemiyor: '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">

@@ -74,7 +74,7 @@
       </trans-unit>
       <trans-unit id="ArgumentOutOfRange_IndexMustBeLessOrEqual">
         <source>Index was out of range. Must be non-negative and less than or equal to the size of the collection.</source>
-        <target state="new">Index was out of range. Must be non-negative and less than or equal to the size of the collection.</target>
+        <target state="translated">L'indice non è compreso nell'intervallo. Deve essere non negativo e minore o uguale alle dimensioni della raccolta.</target>
         <note />
       </trans-unit>
       <trans-unit id="ArgumentOutOfRange_ListInsert">

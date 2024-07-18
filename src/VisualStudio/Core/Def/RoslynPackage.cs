@@ -22,7 +22,6 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.EditorConfigSettings;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -39,7 +38,6 @@ using Microsoft.VisualStudio.LanguageServices.StackTraceExplorer;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
-using Microsoft.VisualStudio.TaskStatusCenter;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Microsoft.VisualStudio.Threading;
 using Roslyn.Utilities;
@@ -229,7 +227,6 @@ internal sealed class RoslynPackage : AbstractPackage
         // we need to load it as early as possible since we can have errors from
         // package from each language very early
         await this.ComponentModel.GetService<VisualStudioSuppressionFixService>().InitializeAsync(this).ConfigureAwait(false);
-        await this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
         await this.ComponentModel.GetService<VisualStudioDiagnosticListSuppressionStateService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);
 
         await this.ComponentModel.GetService<IVisualStudioDiagnosticAnalyzerService>().InitializeAsync(this, cancellationToken).ConfigureAwait(false);

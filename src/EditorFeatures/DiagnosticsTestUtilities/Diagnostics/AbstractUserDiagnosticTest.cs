@@ -19,10 +19,7 @@ using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Remote.Testing;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
@@ -233,12 +230,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             ParseOptions parseOptions = null,
             CompilationOptions compilationOptions = null,
             OptionsCollectionAlias options = null,
-            OptionsCollectionAlias globalOptions = null,
             object fixProviderData = null)
         {
             return TestActionCountInAllFixesAsync(
                 initialMarkup,
-                new TestParameters(parseOptions, compilationOptions, options, globalOptions, fixProviderData),
+                new TestParameters(parseOptions, compilationOptions, options, globalOptions: null, fixProviderData),
                 count);
         }
 

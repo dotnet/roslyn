@@ -802,7 +802,7 @@ class Base2<A, B> : Base<A, B>
 {
     A field = default(A);
     public override A Property { set { } }
-    public override ref A RefProperty { get { return ref field; } }
+    public override ref A RefProperty { get { return ref @field; } }
 }
 
 abstract class Base3<T, U> : Base2<T, U>
@@ -4362,14 +4362,14 @@ class BaseClass
 {
     protected int field;
     public virtual ref readonly int Method1(in BaseClass a) { return ref field; }
-    public virtual ref readonly int Property1 { get { return ref field; } }
+    public virtual ref readonly int Property1 { get { return ref @field; } }
     public virtual ref readonly int this[int a] { get { return ref field; } }
 }
 
 class DerivedClass : BaseClass
 {
     public override ref readonly int Method1(in BaseClass a) { return ref field; }
-    public override ref readonly int Property1 { get { return ref field; } }
+    public override ref readonly int Property1 { get { return ref @field; } }
     public override ref readonly int this[int a] { get { return ref field; } }
 }";
 

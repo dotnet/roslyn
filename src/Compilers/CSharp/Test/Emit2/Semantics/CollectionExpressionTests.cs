@@ -2215,9 +2215,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (9,9): error CS0411: The type arguments for method 'Program.AsArray<T>(T[])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         AsArray([]);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "AsArray").WithArguments("Program.AsArray<T>(T[])").WithLocation(9, 9),
-                // (10,17): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'int[]'
+                // (10,21): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
                 //         AsArray([1, null]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[1, null]").WithArguments("1", "collection expressions", "int[]").WithLocation(10, 17));
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(10, 21));
         }
 
         [Fact]
@@ -2760,9 +2760,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,9): error CS0411: The type arguments for method 'Program.F<T>(T[*,*])' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         F([]);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "F").WithArguments("Program.F<T>(T[*,*])").WithLocation(6, 9),
-                // (7,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'int[*,*]'
+                // (7,11): error CS9174: Cannot initialize type 'int[*,*]' with a collection expression because the type is not constructible.
                 //         F([null, default, 0]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[null, default, 0]").WithArguments("1", "collection expressions", "int[*,*]").WithLocation(7, 11));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[null, default, 0]").WithArguments("int[*,*]").WithLocation(7, 11));
         }
 
         [Fact]
@@ -2782,15 +2782,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                // (6,11): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         F([], ['B']);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "string").WithLocation(6, 11),
-                // (7,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[]").WithArguments("string", "0").WithLocation(6, 11),
+                // (7,11): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         F([default], ['B']);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[default]").WithArguments("1", "collection expressions", "string").WithLocation(7, 11),
-                // (8,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'string'
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "[default]").WithArguments("string", "0").WithLocation(7, 11),
+                // (7,11): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         F([default], ['B']);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[default]").WithArguments("string", "Add").WithLocation(7, 11),
+                // (8,11): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 //         F(['A'], ['B']);
-                Diagnostic(ErrorCode.ERR_BadArgType, "['A']").WithArguments("1", "collection expressions", "string").WithLocation(8, 11));
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "['A']").WithArguments("string", "0").WithLocation(8, 11),
+                // (8,11): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                //         F(['A'], ['B']);
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "['A']").WithArguments("string", "Add").WithLocation(8, 11));
         }
 
         [Fact]
@@ -2814,15 +2820,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (10,12): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'dynamic'
+                // (10,12): error CS9174: Cannot initialize type 'dynamic' with a collection expression because the type is not constructible.
                 //         F1([1], [2]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "collection expressions", "dynamic").WithLocation(10, 12),
-                // (11,12): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'D'
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("dynamic").WithLocation(10, 12),
+                // (11,12): error CS9174: Cannot initialize type 'D' with a collection expression because the type is not constructible.
                 //         F2([3], [4]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[3]").WithArguments("1", "collection expressions", "D").WithLocation(11, 12),
-                // (12,12): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'E'
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[3]").WithArguments("D").WithLocation(11, 12),
+                // (12,12): error CS9174: Cannot initialize type 'E' with a collection expression because the type is not constructible.
                 //         F3([5], [6]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[5]").WithArguments("1", "collection expressions", "E").WithLocation(12, 12));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[5]").WithArguments("E").WithLocation(12, 12));
         }
 
         [Fact]
@@ -7666,15 +7672,15 @@ static class Program
                 """;
             comp = CreateCompilation(new[] { sourceA, sourceB2 });
             comp.VerifyEmitDiagnostics(
-                // 1.cs(5,32): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'MyCollection<object, string>'
+                // 1.cs(5,32): error CS9213: Collection expression target 'MyCollection<object, string>' has no element type.
                 //         Create<object, string>([]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "MyCollection<object, string>").WithLocation(5, 32),
-                // 1.cs(6,29): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'MyCollection<int, string>'
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[]").WithArguments("MyCollection<object, string>").WithLocation(5, 32),
+                // 1.cs(6,29): error CS9213: Collection expression target 'MyCollection<int, string>' has no element type.
                 //         Create<int, string>([2]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[2]").WithArguments("1", "collection expressions", "MyCollection<int, string>").WithLocation(6, 29),
-                // 1.cs(10,22): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'MyCollection<T, U>'
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[2]").WithArguments("MyCollection<int, string>").WithLocation(6, 29),
+                // 1.cs(10,22): error CS9213: Collection expression target 'MyCollection<T, U>' has no element type.
                 //         Create<T, U>([t]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[t]").WithArguments("1", "collection expressions", "MyCollection<T, U>").WithLocation(10, 22));
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetNoElementType, "[t]").WithArguments("MyCollection<T, U>").WithLocation(10, 22));
 
             string sourceB3 = """
                 class Program
@@ -8843,9 +8849,9 @@ static class Program
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'System.Collections.IEnumerable'
+                // (6,11): error CS9174: Cannot initialize type 'IEnumerable' with a collection expression because the type is not constructible.
                 //         F([1, 2, 3]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2, 3]").WithArguments("1", "collection expressions", "System.Collections.IEnumerable").WithLocation(6, 11),
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2, 3]").WithArguments("System.Collections.IEnumerable").WithLocation(6, 11),
                 // (8,41): error CS0029: Cannot implicitly convert type 'object' to 'int'
                 //     static int[] F(IEnumerable s) => [..s];
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "s").WithArguments("object", "int").WithLocation(8, 41));
@@ -9306,6 +9312,411 @@ static class Program
                 // (5,22): error CS0446: Foreach cannot operate on a 'method group'. Did you intend to invoke the 'method group'?
                 //         int[] x = [..Main];
                 Diagnostic(ErrorCode.ERR_AnonMethGrpInForEach, "Main").WithArguments("method group").WithLocation(5, 22));
+        }
+
+        [Fact]
+        public void SpreadElement_15()
+        {
+            // Optimization: pass ReadOnlySpan directly to collection builder method without copying
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly T[] _arr;
+
+                    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_arr).GetEnumerator();
+
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+                    public MyCollection(T[] arr)
+                    {
+                        _arr = arr;
+                    }
+                }
+
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> span) => new(span.ToArray());
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M([1, 2, 3]).Report();
+                    }
+
+                    static MyCollection<int> M(ReadOnlySpan<int> span) => [.. span];
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, s_collectionExtensions], targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[1, 2, 3], "), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "MyCollection<int> MyCollectionBuilder.Create<int>(System.ReadOnlySpan<int>)"
+                  IL_0006:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SpreadElement_16()
+        {
+            // Spread operand element type differs from result collection element type by CLR signature
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly T[] _arr;
+
+                    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_arr).GetEnumerator();
+
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+                    public MyCollection(T[] arr)
+                    {
+                        _arr = arr;
+                    }
+                }
+
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> span) => new(span.ToArray());
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M([1, 2, 3]).Report();
+                    }
+
+                    static MyCollection<object> M(ReadOnlySpan<int> span) => [.. span];
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, s_collectionExtensions], targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[1, 2, 3], "), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       72 (0x48)
+                  .maxstack  3
+                  .locals init (System.ReadOnlySpan<int> V_0,
+                                int V_1,
+                                object[] V_2,
+                                System.ReadOnlySpan<int>.Enumerator V_3,
+                                int V_4)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.0
+                  IL_0003:  stloc.1
+                  IL_0004:  ldloca.s   V_0
+                  IL_0006:  call       "int System.ReadOnlySpan<int>.Length.get"
+                  IL_000b:  newarr     "object"
+                  IL_0010:  stloc.2
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "System.ReadOnlySpan<int>.Enumerator System.ReadOnlySpan<int>.GetEnumerator()"
+                  IL_0018:  stloc.3
+                  IL_0019:  br.s       IL_0033
+                  IL_001b:  ldloca.s   V_3
+                  IL_001d:  call       "ref readonly int System.ReadOnlySpan<int>.Enumerator.Current.get"
+                  IL_0022:  ldind.i4
+                  IL_0023:  stloc.s    V_4
+                  IL_0025:  ldloc.2
+                  IL_0026:  ldloc.1
+                  IL_0027:  ldloc.s    V_4
+                  IL_0029:  box        "int"
+                  IL_002e:  stelem.ref
+                  IL_002f:  ldloc.1
+                  IL_0030:  ldc.i4.1
+                  IL_0031:  add
+                  IL_0032:  stloc.1
+                  IL_0033:  ldloca.s   V_3
+                  IL_0035:  call       "bool System.ReadOnlySpan<int>.Enumerator.MoveNext()"
+                  IL_003a:  brtrue.s   IL_001b
+                  IL_003c:  ldloc.2
+                  IL_003d:  newobj     "System.ReadOnlySpan<object>..ctor(object[])"
+                  IL_0042:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
+                  IL_0047:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SpreadElement_17()
+        {
+            // 'dynamic' and 'object' are the same things during runtime, so apply 'no-copy' optimization
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly T[] _arr;
+
+                    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_arr).GetEnumerator();
+
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+                    public MyCollection(T[] arr)
+                    {
+                        _arr = arr;
+                    }
+                }
+
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> span) => new(span.ToArray());
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M([1, 2, 3]).Report();
+                    }
+
+                    static MyCollection<object> M(ReadOnlySpan<dynamic> span) => [.. span];
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, s_collectionExtensions], targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[1, 2, 3], "), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "MyCollection<object> MyCollectionBuilder.Create<object>(System.ReadOnlySpan<object>)"
+                  IL_0006:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SpreadElement_18()
+        {
+            // Tuple element names only have effect in the code,
+            // thus '(int A, int B)' and just '(int, int)' are the same thing,
+            // so apply 'no-copy' optimization here as well
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly T[] _arr;
+
+                    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_arr).GetEnumerator();
+
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+                    public MyCollection(T[] arr)
+                    {
+                        _arr = arr;
+                    }
+                }
+
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> span) => new(span.ToArray());
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M([(1, 1), (2, 2), (3, 3)]).Report();
+                    }
+
+                    static MyCollection<(int A, int B)> M(ReadOnlySpan<(int, int)> span) => [.. span];
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, s_collectionExtensions], targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[(1, 1), (2, 2), (3, 3)], "), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "MyCollection<System.ValueTuple<int, int>> MyCollectionBuilder.Create<System.ValueTuple<int, int>>(System.ReadOnlySpan<System.ValueTuple<int, int>>)"
+                  IL_0006:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SpreadElement_19()
+        {
+            // Spread operand element type differs from result collection element type by CLR signature
+            string source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly T[] _arr;
+
+                    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_arr).GetEnumerator();
+
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+                    public MyCollection(T[] arr)
+                    {
+                        _arr = arr;
+                    }
+                }
+
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> span) => new(span.ToArray());
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M([(1, 1), (2, 2), (3, 3)]).Report();
+                    }
+
+                    static MyCollection<(object, object)> M(ReadOnlySpan<(int, int)> span) => [.. span];
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, s_collectionExtensions], targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[(1, 1), (2, 2), (3, 3)], "), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size      106 (0x6a)
+                  .maxstack  4
+                  .locals init (System.ReadOnlySpan<System.ValueTuple<int, int>> V_0,
+                                int V_1,
+                                System.ValueTuple<object, object>[] V_2,
+                                System.ReadOnlySpan<System.ValueTuple<int, int>>.Enumerator V_3,
+                                System.ValueTuple<int, int> V_4,
+                                System.ValueTuple<int, int> V_5)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.0
+                  IL_0003:  stloc.1
+                  IL_0004:  ldloca.s   V_0
+                  IL_0006:  call       "int System.ReadOnlySpan<System.ValueTuple<int, int>>.Length.get"
+                  IL_000b:  newarr     "System.ValueTuple<object, object>"
+                  IL_0010:  stloc.2
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "System.ReadOnlySpan<System.ValueTuple<int, int>>.Enumerator System.ReadOnlySpan<System.ValueTuple<int, int>>.GetEnumerator()"
+                  IL_0018:  stloc.3
+                  IL_0019:  br.s       IL_0055
+                  IL_001b:  ldloca.s   V_3
+                  IL_001d:  call       "ref readonly System.ValueTuple<int, int> System.ReadOnlySpan<System.ValueTuple<int, int>>.Enumerator.Current.get"
+                  IL_0022:  ldobj      "System.ValueTuple<int, int>"
+                  IL_0027:  stloc.s    V_4
+                  IL_0029:  ldloc.2
+                  IL_002a:  ldloc.1
+                  IL_002b:  ldloc.s    V_4
+                  IL_002d:  stloc.s    V_5
+                  IL_002f:  ldloc.s    V_5
+                  IL_0031:  ldfld      "int System.ValueTuple<int, int>.Item1"
+                  IL_0036:  box        "int"
+                  IL_003b:  ldloc.s    V_5
+                  IL_003d:  ldfld      "int System.ValueTuple<int, int>.Item2"
+                  IL_0042:  box        "int"
+                  IL_0047:  newobj     "System.ValueTuple<object, object>..ctor(object, object)"
+                  IL_004c:  stelem     "System.ValueTuple<object, object>"
+                  IL_0051:  ldloc.1
+                  IL_0052:  ldc.i4.1
+                  IL_0053:  add
+                  IL_0054:  stloc.1
+                  IL_0055:  ldloca.s   V_3
+                  IL_0057:  call       "bool System.ReadOnlySpan<System.ValueTuple<int, int>>.Enumerator.MoveNext()"
+                  IL_005c:  brtrue.s   IL_001b
+                  IL_005e:  ldloc.2
+                  IL_005f:  newobj     "System.ReadOnlySpan<System.ValueTuple<object, object>>..ctor(System.ValueTuple<object, object>[])"
+                  IL_0064:  call       "MyCollection<System.ValueTuple<object, object>> MyCollectionBuilder.Create<System.ValueTuple<object, object>>(System.ReadOnlySpan<System.ValueTuple<object, object>>)"
+                  IL_0069:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void SpreadElement_20()
+        {
+            // Nullability annotations only affect diagnostics and have no effect on the runtime,
+            // so 'T?[]' and 'T[]' are the same times, therefore apply 'no-copy' optimization here
+            string source = """
+                #nullable enable
+
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(MyCollectionBuilder), nameof(MyCollectionBuilder.Create))]
+                class MyCollection<T> : IEnumerable<T>
+                {
+                    private readonly T[] _arr;
+
+                    public IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_arr).GetEnumerator();
+
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+                    public MyCollection(T[] arr)
+                    {
+                        _arr = arr;
+                    }
+                }
+
+                class MyCollectionBuilder
+                {
+                    public static MyCollection<T> Create<T>(ReadOnlySpan<T> span) => new(span.ToArray());
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M([[1], [2], [3]]).Report();
+                    }
+
+                    static MyCollection<T?[]> M<T>(ReadOnlySpan<T[]> span) => [.. span];
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, s_collectionExtensions], targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[[1], [2], [3]], "), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M<T>", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "MyCollection<T[]> MyCollectionBuilder.Create<T[]>(System.ReadOnlySpan<T[]>)"
+                  IL_0006:  ret
+                }
+                """);
         }
 
         [Fact]
@@ -17759,9 +18170,9 @@ partial class Program
                 // (7,24): error CS0416: 'Container<T>.MyCollectionBuilder': an attribute argument cannot use type parameters
                 //     [CollectionBuilder(typeof(MyCollectionBuilder), "Create")]
                 Diagnostic(ErrorCode.ERR_AttrArgWithTypeVars, "typeof(MyCollectionBuilder)").WithArguments("Container<T>.MyCollectionBuilder").WithLocation(7, 24),
-                // (24,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'Container<string>.MyCollection'
+                // (24,11): error CS1061: 'Container<string>.MyCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'Container<string>.MyCollection' could be found (are you missing a using directive or an assembly reference?)
                 //         F([null]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[null]").WithArguments("1", "collection expressions", "Container<string>.MyCollection").WithLocation(24, 11));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[null]").WithArguments("Container<string>.MyCollection", "Add").WithLocation(24, 11));
 
             var collectionType = (NamedTypeSymbol)comp.GetMember<MethodSymbol>("Program.F").Parameters[0].Type;
             Assert.Equal("Container<System.String>.MyCollection", collectionType.ToTestDisplayString());
@@ -18598,9 +19009,12 @@ partial class Program
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (6,49): error CS1503: Argument 2: cannot convert from 'collection expressions' to 'string'
+                // (6,49): error CS1729: 'string' does not contain a constructor that takes 0 arguments
                 // [CollectionBuilder(typeof(MyCollectionBuilder), ['h', 'i'])]
-                Diagnostic(ErrorCode.ERR_BadArgType, "['h', 'i']").WithArguments("2", "collection expressions", "string").WithLocation(6, 49));
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "['h', 'i']").WithArguments("string", "0").WithLocation(6, 49),
+                // (6,49): error CS1061: 'string' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
+                // [CollectionBuilder(typeof(MyCollectionBuilder), ['h', 'i'])]
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "['h', 'i']").WithArguments("string", "Add").WithLocation(6, 49));
         }
 
         [Fact]
@@ -20578,6 +20992,204 @@ partial class Program
                 // S s = [d];
                 Diagnostic(ErrorCode.ERR_CannotDynamicInvokeOnExpression, "[d]").WithArguments("S").WithLocation(5, 7)
             );
+        }
+
+        [Fact]
+        public void RefStruct_EnsureCopyingSemanticsWhenReadOnlySpanParameterOfCollectionBuilderIsNotScoped()
+        {
+            string source = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(SpanWrap), "Create")]
+                ref struct SpanWrap<T>
+                {
+                    private readonly ReadOnlySpan<T> _ros;
+
+                    public int Length => _ros.Length;
+                    public T this[int index] => _ros[index];
+
+                    public Enumerator GetEnumerator() => default;
+
+                    public SpanWrap(ReadOnlySpan<T> ros)
+                    {
+                        _ros = ros;
+                    }
+
+                    public ref struct Enumerator
+                    {
+                        public bool MoveNext() => default;
+                        public T Current => default;
+                    }
+                }
+
+                static class SpanWrap
+                {
+                    public static SpanWrap<T> Create<T>(ReadOnlySpan<T> values) => new SpanWrap<T>(values);
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] arr = { 1, 2, 3 };
+                        ReadOnlySpan<int> span = arr;
+                        SpanWrap<int> spanWrap = [.. span];
+
+                        arr[1] = 4;
+
+                        span.Report();
+                        ReportSpanWrap(spanWrap);
+                    }
+
+                    static void ReportSpanWrap(SpanWrap<int> spanWrap)
+                    {
+                        Console.Write('[');
+
+                        for (int i = 0; i < spanWrap.Length - 1; i++)
+                        {
+                            Console.Write(spanWrap[i] + ", ");
+                        }
+
+                        Console.Write(spanWrap[^1]);
+                        Console.Write(']');
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensionsWithSpan],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 4, 3], [1, 2, 3]"));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       59 (0x3b)
+                  .maxstack  3
+                  .locals init (System.ReadOnlySpan<int> V_0, //span
+                                SpanWrap<int> V_1) //spanWrap
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newarr     "int"
+                  IL_0006:  dup
+                  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
+                  IL_000c:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+                  IL_0011:  dup
+                  IL_0012:  call       "System.ReadOnlySpan<int> System.ReadOnlySpan<int>.op_Implicit(int[])"
+                  IL_0017:  stloc.0
+                  IL_0018:  ldloca.s   V_0
+                  IL_001a:  call       "int[] System.ReadOnlySpan<int>.ToArray()"
+                  IL_001f:  newobj     "System.ReadOnlySpan<int>..ctor(int[])"
+                  IL_0024:  call       "SpanWrap<int> SpanWrap.Create<int>(System.ReadOnlySpan<int>)"
+                  IL_0029:  stloc.1
+                  IL_002a:  ldc.i4.1
+                  IL_002b:  ldc.i4.4
+                  IL_002c:  stelem.i4
+                  IL_002d:  ldloca.s   V_0
+                  IL_002f:  call       "void CollectionExtensions.Report<int>(in System.ReadOnlySpan<int>)"
+                  IL_0034:  ldloc.1
+                  IL_0035:  call       "void Program.ReportSpanWrap(SpanWrap<int>)"
+                  IL_003a:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void RefStruct_CanSkipCopyingReadOnlySpanWhenCollectionBuilderParameterIsScoped()
+        {
+            string source = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                [CollectionBuilder(typeof(ArrayWrap), "Create")]
+                ref struct ArrayWrap<T>
+                {
+                    private readonly T[] _arr;
+
+                    public int Length => _arr.Length;
+                    public T this[int index] => _arr[index];
+
+                    public Enumerator GetEnumerator() => default;
+
+                    public ArrayWrap(T[] arr)
+                    {
+                        _arr = arr;
+                    }
+
+                    public ref struct Enumerator
+                    {
+                        public bool MoveNext() => default;
+                        public T Current => default;
+                    }
+                }
+
+                static class ArrayWrap
+                {
+                    public static ArrayWrap<T> Create<T>(scoped ReadOnlySpan<T> values) => new ArrayWrap<T>(values.ToArray());
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] arr = { 1, 2, 3 };
+                        ReadOnlySpan<int> span = arr;
+                        ArrayWrap<int> arrWrap = [.. span];
+
+                        arr[1] = 4;
+
+                        span.Report();
+                        ReportArrayWrap(arrWrap);
+                    }
+
+                    static void ReportArrayWrap(ArrayWrap<int> arrWrap)
+                    {
+                        Console.Write('[');
+
+                        for (int i = 0; i < arrWrap.Length - 1; i++)
+                        {
+                            Console.Write(arrWrap[i] + ", ");
+                        }
+
+                        Console.Write(arrWrap[^1]);
+                        Console.Write(']');
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensionsWithSpan],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 4, 3], [1, 2, 3]"));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       48 (0x30)
+                  .maxstack  3
+                  .locals init (System.ReadOnlySpan<int> V_0, //span
+                                ArrayWrap<int> V_1) //arrWrap
+                  IL_0000:  ldc.i4.3
+                  IL_0001:  newarr     "int"
+                  IL_0006:  dup
+                  IL_0007:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D"
+                  IL_000c:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
+                  IL_0011:  dup
+                  IL_0012:  call       "System.ReadOnlySpan<int> System.ReadOnlySpan<int>.op_Implicit(int[])"
+                  IL_0017:  stloc.0
+                  IL_0018:  ldloc.0
+                  IL_0019:  call       "ArrayWrap<int> ArrayWrap.Create<int>(scoped System.ReadOnlySpan<int>)"
+                  IL_001e:  stloc.1
+                  IL_001f:  ldc.i4.1
+                  IL_0020:  ldc.i4.4
+                  IL_0021:  stelem.i4
+                  IL_0022:  ldloca.s   V_0
+                  IL_0024:  call       "void CollectionExtensions.Report<int>(in System.ReadOnlySpan<int>)"
+                  IL_0029:  ldloc.1
+                  IL_002a:  call       "void Program.ReportArrayWrap(ArrayWrap<int>)"
+                  IL_002f:  ret
+                }
+                """);
         }
 
         [CombinatorialData]
@@ -24027,6 +24639,36 @@ partial class Program
         }
 
         [Fact]
+        public void ReadOnlySpan_EnsureCopyingSemantics()
+        {
+            string source = """
+                using System;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        int[] arr = { 1, 2, 3 };
+                        ReadOnlySpan<int> span1 = arr;
+                        ReadOnlySpan<int> span2 = [.. span1];
+
+                        arr[1] = 4;
+
+                        span1.Report();
+                        span2.Report();
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensionsWithSpan],
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("[1, 4, 3], [1, 2, 3], "));
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void RuntimeHelpers_CreateSpan_MissingCreateSpan()
         {
             string source = """
@@ -25953,6 +26595,94 @@ partial class Program
                 """);
         }
 
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73297")]
+        [Theory]
+        [InlineData("A[]")]
+        [InlineData("System.Collections.Generic.List<A>")]
+        [InlineData("System.Collections.Generic.IEnumerable<A>")]
+        public void OverloadResolutionArgumentErrors_01(string collectionType)
+        {
+            string source = $$"""
+                {{collectionType}} values = [
+                    new A(),
+                    new B() // 1
+                ];
+
+                M([
+                    new A(),
+                    new B() // 2
+                ]);
+
+                void M({{collectionType}} values) { }
+
+                class A { }
+                class B { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,5): error CS0029: Cannot implicitly convert type 'B' to 'A'
+                //     new B() // 1
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new B()").WithArguments("B", "A").WithLocation(3, 5),
+                // (8,5): error CS0029: Cannot implicitly convert type 'B' to 'A'
+                //     new B() // 2
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new B()").WithArguments("B", "A").WithLocation(8, 5));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73297")]
+        [Fact]
+        public void OverloadResolutionArgumentErrors_02()
+        {
+            string source = """
+                B b = [new A()];
+                M([new A()]);
+
+                void M(B b) { }
+
+                class A { }
+                class B { }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS9174: Cannot initialize type 'B' with a collection expression because the type is not constructible.
+                // B b = [new A()];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[new A()]").WithArguments("B").WithLocation(1, 7),
+                // (2,3): error CS9174: Cannot initialize type 'B' with a collection expression because the type is not constructible.
+                // M([new A()]);
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[new A()]").WithArguments("B").WithLocation(2, 3));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/73297")]
+        [Fact]
+        public void OverloadResolutionArgumentErrors_03()
+        {
+            string source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                B b = [new A()];
+                M([new A()]);
+
+                void M(B b) { }
+
+                class A { }
+                class B : IEnumerable<A>
+                {
+                    private B() { }
+                    public void Add(A a) { }
+                    IEnumerator<A> IEnumerable<A>.GetEnumerator() => default;
+                    IEnumerator IEnumerable.GetEnumerator() => default;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (4,7): error CS0122: 'B.B()' is inaccessible due to its protection level
+                // B b = [new A()];
+                Diagnostic(ErrorCode.ERR_BadAccess, "[new A()]").WithArguments("B.B()").WithLocation(4, 7),
+                // (5,3): error CS0122: 'B.B()' is inaccessible due to its protection level
+                // M([new A()]);
+                Diagnostic(ErrorCode.ERR_BadAccess, "[new A()]").WithArguments("B.B()").WithLocation(5, 3));
+        }
+
         [Fact]
         public void Async_01()
         {
@@ -26493,13 +27223,23 @@ partial class Program
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (1,4): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'ERROR[]'
-                // [X([1])]
-                Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "collection expressions", "ERROR[]").WithLocation(1, 4),
                 // (8,23): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
                 //     public XAttribute(ERROR[] values) { }
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(8, 23)
                 );
+        }
+
+        [Fact]
+        public void InAssignment_BadArrayType()
+        {
+            string source = """
+                ERROR[] values = [1];
+                values = [2];
+                """;
+            CreateCompilation(source).VerifyEmitDiagnostics(
+                // (1,1): error CS0246: The type or namespace name 'ERROR' could not be found (are you missing a using directive or an assembly reference?)
+                // ERROR[] values = [1];
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "ERROR").WithArguments("ERROR").WithLocation(1, 1));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69133")]
@@ -26518,9 +27258,9 @@ partial class Program
                 """;
 
             CreateCompilation(source).VerifyEmitDiagnostics(
-                // (1,4): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'int'
+                // (1,4): error CS9174: Cannot initialize type 'int' with a collection expression because the type is not constructible.
                 // [X([1])]
-                Diagnostic(ErrorCode.ERR_BadArgType, "[1]").WithArguments("1", "collection expressions", "int").WithLocation(1, 4)
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1]").WithArguments("int").WithLocation(1, 4)
                 );
         }
 
@@ -27254,9 +27994,9 @@ partial class Program
                 """;
 
             var comp = CreateCompilation(source).VerifyEmitDiagnostics(
-                // (17,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'AbstractCollection'
+                // (17,11): error CS0144: Cannot create an instance of the abstract type or interface 'AbstractCollection'
                 //         F([]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "AbstractCollection").WithLocation(17, 11));
+                Diagnostic(ErrorCode.ERR_NoNewAbstract, "[]").WithArguments("AbstractCollection").WithLocation(17, 11));
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -27296,9 +28036,9 @@ partial class Program
                 """;
 
             var comp = CreateCompilation(source).VerifyEmitDiagnostics(
-                // (20,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'NoConstructorCollection'
+                // (20,11): error CS0122: 'NoConstructorCollection.NoConstructorCollection()' is inaccessible due to its protection level
                 //         F([]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[]").WithArguments("1", "collection expressions", "NoConstructorCollection").WithLocation(20, 11)
+                Diagnostic(ErrorCode.ERR_BadAccess, "[]").WithArguments("NoConstructorCollection.NoConstructorCollection()").WithLocation(20, 11)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -27343,9 +28083,9 @@ partial class Program
                 """;
 
             var comp = CreateCompilation(source).VerifyEmitDiagnostics(
-                // (19,11): error CS1503: Argument 1: cannot convert from 'collection expressions' to 'NoConstructorCollection'
+                // (19,11): error CS0122: 'NoConstructorCollection.NoConstructorCollection()' is inaccessible due to its protection level
                 //         F([1, 2, 3]);
-                Diagnostic(ErrorCode.ERR_BadArgType, "[1, 2, 3]").WithArguments("1", "collection expressions", "NoConstructorCollection").WithLocation(19, 11)
+                Diagnostic(ErrorCode.ERR_BadAccess, "[1, 2, 3]").WithArguments("NoConstructorCollection.NoConstructorCollection()").WithLocation(19, 11)
                 );
 
             var tree = comp.SyntaxTrees.First();
@@ -28749,6 +29489,101 @@ partial class Program
                   IL_0030:  ldc.i4.0
                   IL_0031:  call       "void CollectionExtensions.Report(object, bool)"
                   IL_0036:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ImmutableArray_09()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M([1, 2, 3]).Report();
+                    }
+
+                    static ImmutableArray<int> M(ReadOnlySpan<int> span) => [.. span];
+                }
+                """;
+
+            var verifier = CompileAndVerify([sourceA, s_collectionExtensions], targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Immutable.ImmutableArray<int> System.Collections.Immutable.ImmutableArray.Create<int>(System.ReadOnlySpan<int>)"
+                  IL_0006:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ImmutableArray_10()
+        {
+            string sourceA = """
+                using System;
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        M([1, 2, 3]).Report();
+                    }
+
+                    static ImmutableArray<object> M(ReadOnlySpan<int> span) => [.. span];
+                }
+                """;
+
+            var verifier = CompileAndVerify([sourceA, s_collectionExtensions], targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.M", """
+                {
+                  // Code size       67 (0x43)
+                  .maxstack  3
+                  .locals init (System.ReadOnlySpan<int> V_0,
+                                int V_1,
+                                object[] V_2,
+                                System.ReadOnlySpan<int>.Enumerator V_3,
+                                int V_4)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.0
+                  IL_0003:  stloc.1
+                  IL_0004:  ldloca.s   V_0
+                  IL_0006:  call       "int System.ReadOnlySpan<int>.Length.get"
+                  IL_000b:  newarr     "object"
+                  IL_0010:  stloc.2
+                  IL_0011:  ldloca.s   V_0
+                  IL_0013:  call       "System.ReadOnlySpan<int>.Enumerator System.ReadOnlySpan<int>.GetEnumerator()"
+                  IL_0018:  stloc.3
+                  IL_0019:  br.s       IL_0033
+                  IL_001b:  ldloca.s   V_3
+                  IL_001d:  call       "ref readonly int System.ReadOnlySpan<int>.Enumerator.Current.get"
+                  IL_0022:  ldind.i4
+                  IL_0023:  stloc.s    V_4
+                  IL_0025:  ldloc.2
+                  IL_0026:  ldloc.1
+                  IL_0027:  ldloc.s    V_4
+                  IL_0029:  box        "int"
+                  IL_002e:  stelem.ref
+                  IL_002f:  ldloc.1
+                  IL_0030:  ldc.i4.1
+                  IL_0031:  add
+                  IL_0032:  stloc.1
+                  IL_0033:  ldloca.s   V_3
+                  IL_0035:  call       "bool System.ReadOnlySpan<int>.Enumerator.MoveNext()"
+                  IL_003a:  brtrue.s   IL_001b
+                  IL_003c:  ldloc.2
+                  IL_003d:  call       "System.Collections.Immutable.ImmutableArray<object> System.Runtime.InteropServices.ImmutableCollectionsMarshal.AsImmutableArray<object>(object[])"
+                  IL_0042:  ret
                 }
                 """);
         }
@@ -39079,6 +39914,128 @@ class Program
                 //         Test([1]);
                 Diagnostic(ErrorCode.ERR_CollectionBuilderAttributeMethodNotFound, "[1]").WithArguments("Create", "long", "MyCollection").WithLocation(5, 14)
                 );
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74185")]
+        [Fact]
+        public void UserDefinedConversion_Nullable_01()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+                using System.Collections.Immutable;
+
+                public class Class1
+                {
+                    public Container<object> CreateDiagnostic()
+                    {
+                        return [new object()];
+                    }
+                }
+
+                public class Container<T> : IEnumerable<T>
+                {
+                    public Container() { }
+
+                    public IEnumerator<T> GetEnumerator() => null;
+
+                    IEnumerator IEnumerable.GetEnumerator() => null;
+
+                    public static implicit operator Container<T>(in ImmutableArray<T>? items) => default;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (9,16): error CS1061: 'Container<object>' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'Container<object>' could be found (are you missing a using directive or an assembly reference?)
+                //         return [new object()];
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "[new object()]").WithArguments("Container<object>", "Add").WithLocation(9, 16));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74185")]
+        [Theory]
+        [InlineData("ImmutableArray<T>")]
+        [InlineData("ImmutableArray<T>?")]
+        public void UserDefinedConversion_Nullable_02(string sourceParameterType)
+        {
+            var source = $$"""
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        Container<object> x = [new object()];
+                    }
+                }
+
+                public class Container<T>
+                {
+                    public static implicit operator Container<T>({{sourceParameterType}} items) => default;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (7,31): error CS9174: Cannot initialize type 'Container<object>' with a collection expression because the type is not constructible.
+                //         Container<object> x = [new object()];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[new object()]").WithArguments("Container<object>").WithLocation(7, 31));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74185")]
+        [Theory]
+        [InlineData("ImmutableArray<T>")]
+        [InlineData("ImmutableArray<T>?")]
+        public void UserDefinedConversion_Nullable_03(string sourceParameterType)
+        {
+            var source = $$"""
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        var x = (Container<object>)[new object()];
+                    }
+                }
+
+                public class Container<T>
+                {
+                    public static implicit operator Container<T>({{sourceParameterType}} items) => default;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (7,36): error CS9174: Cannot initialize type 'Container<object>' with a collection expression because the type is not constructible.
+                //         var x = (Container<object>)[new object()];
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[new object()]").WithArguments("Container<object>").WithLocation(7, 36));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74185")]
+        [Theory]
+        [InlineData("ImmutableArray<T>")]
+        [InlineData("ImmutableArray<T>?")]
+        public void UserDefinedConversion_Nullable_04(string sourceParameterType)
+        {
+            var source = $$"""
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        (Container<int>, int) x = ([1, 2], 3);
+                    }
+                }
+
+                public class Container<T>
+                {
+                    public static implicit operator Container<T>({{sourceParameterType}} items) => default;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (7,36): error CS9174: Cannot initialize type 'Container<int>' with a collection expression because the type is not constructible.
+                //         (Container<int>, int) x = ([1, 2], 3);
+                Diagnostic(ErrorCode.ERR_CollectionExpressionTargetTypeNotConstructible, "[1, 2]").WithArguments("Container<int>").WithLocation(7, 36));
         }
     }
 }

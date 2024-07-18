@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                                 else
                                 {
-                                    CheckFeatureAvailability(allowsConstraint, MessageID.IDS_FeatureRefStructInterfaces, diagnostics);
+                                    CheckFeatureAvailability(allowsConstraint, MessageID.IDS_FeatureAllowsRefStructConstraint, diagnostics);
 
                                     if (!Compilation.Assembly.RuntimeSupportsByRefLikeGenerics)
                                     {

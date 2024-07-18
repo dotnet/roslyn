@@ -3231,6 +3231,19 @@ partial class D
                 // (14,10): warning CS4025: The CallerFilePathAttribute applied to parameter 'path' will have no effect because it applies to a member that is used in contexts that do not allow optional arguments
                 //         [CallerFilePath] string path) { }
                 Diagnostic(ErrorCode.WRN_CallerFilePathParamForUnconsumedLocation, "CallerFilePath").WithArguments("path"));
+
+            CompileAndVerify(source, options: TestOptions.DebugExe.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: verify);
+
+            void verify(ModuleSymbol module)
+            {
+                // https://github.com/dotnet/roslyn/issues/73482
+                // These are ignored in source but they still get written out to metadata.
+                // This means if the method is accessible from another compilation, then the attribute will be respected there, but not in the declaring compilation.
+                var goo = module.GlobalNamespace.GetMember<MethodSymbol>("D.Goo");
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerLineNumberAttribute"], goo.Parameters[0].GetAttributes().SelectAsArray(attr => attr.ToString()));
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerMemberNameAttribute"], goo.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+                AssertEx.Equal(["System.Runtime.CompilerServices.CallerFilePathAttribute"], goo.Parameters[2].GetAttributes().SelectAsArray(attr => attr.ToString()));
+            }
         }
 
         [Fact]
@@ -5835,6 +5848,107 @@ void M(int i, [CallerArgumentExpression(""i"")] in string s = ""default value"")
                 // (5,51): error CS8964: The CallerArgumentExpressionAttribute may only be applied to parameters with default values
                 //         public CallerArgumentExpressionAttribute([CallerArgumentExpression(nameof(parameterName))] string parameterName)
                 Diagnostic(ErrorCode.ERR_BadCallerArgumentExpressionParamWithoutDefaultValue, "CallerArgumentExpression").WithLocation(5, 51));
+        }
+
+        [Fact]
+        public void CallerMemberName_SetterValueParam()
+        {
+            // There is no way in C# to call a setter without passing an argument for the value, so the CallerMemberName effectively does nothing.
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+                using System.Runtime.InteropServices;
+
+                public partial class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        c[1] = "1";
+                    }
+
+                    public string this[int x]
+                    {
+                        [param: Optional, DefaultParameterValue("0")]
+                        [param: CallerMemberName]
+                        set
+                        {
+                            Console.Write(value);
+                        }
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            verifier.VerifyDiagnostics();
+
+            var source1 = """
+                class D
+                {
+                    void M()
+                    {
+                        var c = new C();
+                        c.set_Item(1);
+                    }
+                }
+                """;
+            var comp1 = CreateCompilation(source1, references: [verifier.Compilation.EmitToImageReference()]);
+            comp1.VerifyEmitDiagnostics(
+                // (6,11): error CS0571: 'C.this[int].set': cannot explicitly call operator or accessor
+                //         c.set_Item(1);
+                Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_Item").WithArguments("C.this[int].set").WithLocation(6, 11));
+        }
+
+        [Fact]
+        public void CallerArgumentExpression_SetterValueParam()
+        {
+            var source = """
+                using System;
+                using System.Runtime.CompilerServices;
+
+                namespace System.Runtime.CompilerServices
+                {
+                    [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true, Inherited = false)]
+                    public sealed class CallerArgumentExpressionAttribute : Attribute
+                    {
+                        public CallerArgumentExpressionAttribute(string parameterName)
+                        {
+                            ParameterName = parameterName;
+                        }
+                        public string ParameterName { get; }
+                    }
+                }
+
+                partial class C
+                {
+                    public static void Main()
+                    {
+                        var c = new C();
+                        c[1] = GetNumber();
+                    }
+
+                    public static int GetNumber() => 1;
+
+                    public int this[int x, [CallerArgumentExpression("value")] string argumentExpression = "0"]
+                    {
+                        set
+                        {
+                            Console.Write(argumentExpression);
+                        }
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "0", symbolValidator: verify);
+            verifier.VerifyDiagnostics(
+                // (27,29): warning CS8963: The CallerArgumentExpressionAttribute applied to parameter 'argumentExpression' will have no effect. It is applied with an invalid parameter name.
+                //     public int this[int x, [CallerArgumentExpression("value")] string argumentExpression = "0"]
+                Diagnostic(ErrorCode.WRN_CallerArgumentExpressionAttributeHasInvalidParameterName, "CallerArgumentExpression").WithArguments("argumentExpression").WithLocation(27, 29));
+
+            void verify(ModuleSymbol module)
+            {
+                var indexer = (PropertySymbol)module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Indexers.Single();
+                AssertEx.Equal(["""System.Runtime.CompilerServices.CallerArgumentExpressionAttribute("value")"""], indexer.Parameters[1].GetAttributes().SelectAsArray(attr => attr.ToString()));
+            }
         }
     }
 }

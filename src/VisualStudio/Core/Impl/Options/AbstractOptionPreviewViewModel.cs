@@ -71,10 +71,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public void SetOptionAndUpdatePreview<T>(T value, IOption2 option, string preview)
         {
             object actualValue;
-            if (option.DefaultValue is ICodeStyleOption codeStyleOption)
+            if (option.DefaultValue is ICodeStyleOption2 codeStyleOption)
             {
-                // The value provided is either an ICodeStyleOption OR the underlying ICodeStyleOption.Value
-                if (value is ICodeStyleOption newCodeStyleOption)
+                // The value provided is either an ICodeStyleOption2 OR the underlying ICodeStyleOption2.Value
+                if (value is ICodeStyleOption2 newCodeStyleOption)
                 {
                     actualValue = codeStyleOption.WithValue(newCodeStyleOption.Value).WithNotification(newCodeStyleOption.Notification);
                 }
@@ -137,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             var document = project.AddDocument("document", SourceText.From(text, Encoding.UTF8));
             var fallbackFormattingOptions = OptionStore.GlobalOptions.GetSyntaxFormattingOptions(document.Project.Services);
             var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-            var formattingOptions = formattingService.GetFormattingOptions(OptionStore, fallbackFormattingOptions);
+            var formattingOptions = formattingService.GetFormattingOptions(OptionStore);
             var formatted = Formatter.FormatAsync(document, formattingOptions, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 
             var textBuffer = _textBufferCloneService.Clone(formatted.GetTextSynchronously(CancellationToken.None), _contentType);

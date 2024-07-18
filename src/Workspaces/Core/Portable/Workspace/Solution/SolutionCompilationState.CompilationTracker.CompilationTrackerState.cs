@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis;
 
 internal partial class SolutionCompilationState
 {
-    private partial class CompilationTracker
+    private partial class RegularCompilationTracker
     {
         /// <summary>
-        /// The base type of all <see cref="CompilationTracker"/> states. The state of a <see
-        /// cref="CompilationTracker" /> starts at null, and then will progress through the other states until it
+        /// The base type of all <see cref="RegularCompilationTracker"/> states. The state of a <see
+        /// cref="RegularCompilationTracker" /> starts at null, and then will progress through the other states until it
         /// finally reaches <see cref="FinalCompilationTrackerState" />.
         /// </summary>
         private abstract class CompilationTrackerState
@@ -161,10 +161,18 @@ internal partial class SolutionCompilationState
             /// </summary>
             public readonly Compilation FinalCompilationWithGeneratedDocuments;
 
+            /// <summary>
+            /// Whether or not this final compilation state *just* generated documents which exactly correspond to the
+            /// state of the compilation.  False if the generated documents came from a point in the past, and are being
+            /// carried forward until the next time we run generators.
+            /// </summary>
+            public readonly bool GeneratedDocumentsUpToDate;
+
             public override Compilation CompilationWithoutGeneratedDocuments { get; }
 
             private FinalCompilationTrackerState(
                 CreationPolicy creationPolicy,
+                bool generatedDocumentsUpToDate,
                 Compilation finalCompilationWithGeneratedDocuments,
                 Compilation compilationWithoutGeneratedDocuments,
                 bool hasSuccessfullyLoaded,
@@ -172,6 +180,8 @@ internal partial class SolutionCompilationState
                 : base(creationPolicy, generatorInfo)
             {
                 Contract.ThrowIfNull(finalCompilationWithGeneratedDocuments);
+
+                this.GeneratedDocumentsUpToDate = generatedDocumentsUpToDate;
 
                 // As a policy, all partial-state projects are said to have incomplete references, since the
                 // state has no guarantees.
@@ -201,6 +211,7 @@ internal partial class SolutionCompilationState
             /// <param name="metadataReferenceToProjectId">Not held onto</param>
             public static FinalCompilationTrackerState Create(
                 CreationPolicy creationPolicy,
+                bool generatedDocumentsUpToDate,
                 Compilation finalCompilationWithGeneratedDocuments,
                 Compilation compilationWithoutGeneratedDocuments,
                 bool hasSuccessfullyLoaded,
@@ -215,6 +226,7 @@ internal partial class SolutionCompilationState
 
                 return new FinalCompilationTrackerState(
                     creationPolicy,
+                    generatedDocumentsUpToDate,
                     finalCompilationWithGeneratedDocuments,
                     compilationWithoutGeneratedDocuments,
                     hasSuccessfullyLoaded,
@@ -229,6 +241,7 @@ internal partial class SolutionCompilationState
                 => creationPolicy == this.CreationPolicy
                     ? this
                     : new(creationPolicy,
+                        GeneratedDocumentsUpToDate,
                         FinalCompilationWithGeneratedDocuments,
                         CompilationWithoutGeneratedDocuments,
                         HasSuccessfullyLoaded,

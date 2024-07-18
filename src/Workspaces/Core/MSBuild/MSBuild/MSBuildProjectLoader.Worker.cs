@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 // If there were any failures during load, we won't be able to build the project. So, bail early with an empty project.
                 var diagnosticItems = await projectFile.GetDiagnosticLogItemsAsync(cancellationToken).ConfigureAwait(false);
-                if (diagnosticItems.Any(d => d.Kind == WorkspaceDiagnosticKind.Failure))
+                if (diagnosticItems.Any(d => d.Kind == DiagnosticLogItemKind.Error))
                 {
                     _diagnosticReporter.Report(diagnosticItems);
 
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                                 name: projectName,
                                 assemblyName: assemblyName,
                                 language: language,
-                                compilationOutputFilePaths: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath),
+                                compilationOutputInfo: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath),
                                 checksumAlgorithm: SourceHashAlgorithms.Default,
                                 filePath: projectPath),
                             compilationOptions: compilationOptions,
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                             projectName,
                             assemblyName,
                             language,
-                            compilationOutputFilePaths: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath),
+                            compilationOutputInfo: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath),
                             checksumAlgorithm: commandLineArgs.ChecksumAlgorithm,
                             filePath: projectPath,
                             outputFilePath: projectFileInfo.OutputFilePath,
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         DocumentId.CreateNewId(projectId, debugName: info.FilePath),
                         name,
                         folders,
-                        info.SourceCodeKind,
+                        SourceCodeKind.Regular,
                         new WorkspaceFileTextLoader(_solutionServices, info.FilePath, encoding),
                         info.FilePath,
                         info.IsGenerated);

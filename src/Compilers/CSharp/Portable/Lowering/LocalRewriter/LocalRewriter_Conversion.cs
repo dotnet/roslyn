@@ -615,31 +615,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 case ConversionKind.ImplicitSpan:
+                case ConversionKind.ExplicitSpan:
                     {
                         var spanType = (NamedTypeSymbol)rewrittenType;
 
-                        WellKnownMember member;
-                        if (spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_ReadOnlySpan_T), TypeCompareKind.AllIgnoreOptions))
-                        {
-                            member = WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array;
-                        }
-                        else
-                        {
-                            Debug.Assert(spanType.OriginalDefinition.Equals(_compilation.GetWellKnownType(WellKnownType.System_Span_T), TypeCompareKind.AllIgnoreOptions));
-                            member = WellKnownMember.System_Span_T__op_Implicit_Array;
-                        }
-
-                        if (!TryGetWellKnownTypeMember(rewrittenOperand.Syntax, member, out MethodSymbol? symbol))
+                        if (Binder.TryFindImplicitOperatorFromArray(spanType.OriginalDefinition) is not { } methodDefinition)
                         {
                             throw ExceptionUtilities.Unreachable();
                         }
                         else
                         {
-                            MethodSymbol method = symbol.AsMember(spanType);
+                            MethodSymbol method = methodDefinition.AsMember(spanType);
 
                             rewrittenOperand = _factory.Convert(method.ParameterTypesWithAnnotations[0].Type, rewrittenOperand);
 
-                            if (member == WellKnownMember.System_ReadOnlySpan_T__op_Implicit_Array)
+                            if (!_inExpressionLambda && _compilation.IsReadOnlySpanType(spanType))
                             {
                                 return new BoundReadOnlySpanFromArray(syntax, rewrittenOperand, method, spanType) { WasCompilerGenerated = true };
                             }

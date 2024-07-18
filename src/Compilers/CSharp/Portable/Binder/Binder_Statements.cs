@@ -270,11 +270,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(diagnostics, ErrorCode.ERR_BadYieldInUnsafe, node.YieldKeyword);
             }
-            // NOTE: Error conditions should be checked above this point; only warning conditions below.
-            else if (this.Flags.Includes(BinderFlags.InLockBody))
-            {
-                Error(diagnostics, ErrorCode.WRN_BadYieldInLock, node.YieldKeyword);
-            }
 
             CheckRequiredLangVersionForIteratorMethods(node, diagnostics);
             return new BoundYieldReturnStatement(node, argument);
@@ -779,13 +774,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if ((!hasAwait && disposeMethod?.ReturnsVoid == false)
                 || result == PatternLookupResult.NotAMethod)
             {
-                CompoundUseSiteInfo<AssemblySymbol> useSiteInfo = GetNewCompoundUseSiteInfo(diagnostics);
-                if (this.IsAccessible(disposeMethod, ref useSiteInfo))
-                {
-                    diagnostics.Add(ErrorCode.WRN_PatternBadSignature, syntaxNode.Location, expr.Type, MessageID.IDS_Disposable.Localize(), disposeMethod);
-                }
-
-                diagnostics.Add(syntaxNode, useSiteInfo);
                 disposeMethod = null;
             }
 

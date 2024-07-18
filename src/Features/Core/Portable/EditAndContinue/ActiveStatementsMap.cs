@@ -236,7 +236,7 @@ internal sealed class ActiveStatementsMap
 
         if (!hasAnyLineDirectives)
         {
-            Debug.Assert(builder.IsEmpty());
+            Debug.Assert(builder.IsEmpty);
 
             if (DocumentPathMap.TryGetValue(oldTree.FilePath, out var activeStatements))
             {

@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -771,7 +770,7 @@ internal sealed partial class ContainedDocument : IContainedDocument
         Debug.Assert(ReferenceEquals(parsedDocument.Text, subjectBuffer.CurrentSnapshot.AsText()));
 
         var editorOptionsService = _componentModel.GetService<EditorOptionsService>();
-        var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.Services, explicitFormat: false);
+        var formattingOptions = subjectBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), document.Project.Services, explicitFormat: false);
 
         using var pooledObject = SharedPools.Default<List<TextSpan>>().GetPooledObject();
 

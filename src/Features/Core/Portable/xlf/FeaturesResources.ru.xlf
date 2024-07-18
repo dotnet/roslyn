@@ -407,7 +407,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Changing_0_might_not_have_any_effect_until_the_application_is_restarted">
         <source>Changing '{0}' might not have any effect until the application is restarted.</source>
-        <target state="new">Changing '{0}' might not have any effect until the application is restarted.</target>
+        <target state="translated">Изменение "{0}" может не иметь эффекта до перезапуска приложения.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_0_to_1_requires_restarting_the_application_because_it_changes_the_shape_of_the_state_machine">
@@ -1162,12 +1162,12 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Method_0_must_be_static_and_non_generic">
         <source>Method '{0}' must be static and non-generic</source>
-        <target state="new">Method '{0}' must be static and non-generic</target>
+        <target state="translated">Метод "{0}" должен быть статическим и неуниверсалным</target>
         <note />
       </trans-unit>
       <trans-unit id="Method_0_must_have_a_single_parameter_of_type_1_and_return_2">
         <source>Method '{0}' must have a single parameter of type '{1}' and return '{2}'</source>
-        <target state="new">Method '{0}' must have a single parameter of type '{1}' and return '{2}'</target>
+        <target state="translated">Метод "{0}" должен иметь один параметр типа "{1}" и возвращать "{2}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
@@ -1283,6 +1283,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Moving_0_requires_restarting_the_application">
         <source>Moving {0} requires restarting the application.</source>
         <target state="translated">Для перемещения {0} требуется перезапустить приложение.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NET_Code_Actions">
+        <source>.NET Code Actions</source>
+        <target state="new">.NET Code Actions</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_expected">
@@ -1402,7 +1407,7 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       </trans-unit>
       <trans-unit id="Query">
         <source>Query</source>
-        <target state="new">Query</target>
+        <target state="translated">Запрос</target>
         <note />
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group">
@@ -2642,22 +2647,22 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="SemanticSearch">
         <source>Semantic Search</source>
-        <target state="new">Semantic Search</target>
+        <target state="translated">Семантический поиск</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_only_supported_on_net_core">
         <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
-        <target state="new">Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</target>
+        <target state="translated">Семантический поиск поддерживается только в том случае, если анализ кода выполняется в отдельном процессе последней версии .NET (см. "Сервис" &gt; "Параметры" &gt; "Текстовый редактор" &gt; "C#" &gt; "Дополнительно").</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_query_failed_to_compile">
         <source>Semantic search query failed to compile</source>
-        <target state="new">Semantic search query failed to compile</target>
+        <target state="translated">Не удалось скомпилировать запрос семантического поиска</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_query_terminated_with_exception">
         <source>Semantic search query terminated with exception</source>
-        <target state="new">Semantic search query terminated with exception</target>
+        <target state="translated">Запрос семантического поиска завершен с исключением</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2722,7 +2727,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Symbols">
         <source>Symbols</source>
-        <target state="new">Symbols</target>
+        <target state="translated">Символы</target>
         <note />
       </trans-unit>
       <trans-unit id="Syntax_error">
@@ -2757,7 +2762,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="The_query_does_not_specify_0_method_or_top_level_function">
         <source>The query does not specify '{0}' method or top-level function</source>
-        <target state="new">The query does not specify '{0}' method or top-level function</target>
+        <target state="translated">В запросе не указан метод "{0}" или функция верхнего уровня</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2805,6 +2810,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Завершающая запятая не разрешена</target>
         <note />
       </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="new">Type members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
         <target state="translated">Типы:</target>
@@ -2817,7 +2827,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
         <source>Unable to load type '{0}': '{1}'</source>
-        <target state="new">Unable to load type '{0}': '{1}'</target>
+        <target state="translated">Не удалось загрузить тип "{0}": "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">

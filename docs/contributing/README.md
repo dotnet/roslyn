@@ -12,7 +12,7 @@ Guides for contributing to this project
 - [Bootstrap Builds](Bootstrap%20Builds.md)
 - [API Review Process](API%20Review%20Process.md)
 - [Developing a Language Feature](Developing%20a%20Language%20Feature.md)
-- [Documetation for IDE Code Style Analyzers](Documentation%20for%20IDE%20Code%20Style%20Analyzers.md)
+- [Documentation for IDE CodeStyle analyzers](Documentation%20for%20IDE%20CodeStyle%20analyzers.md)
 - [IDE Design Process](ide_design_process.md)
 - [Powershell Guidelines](Powershell%20Guidelines.md)
 - [Testing for Interactive readiness](Testing%20for%20Interactive%20readiness.md)

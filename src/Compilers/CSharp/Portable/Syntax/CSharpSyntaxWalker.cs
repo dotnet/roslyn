@@ -36,10 +36,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var childCnt = node.ChildNodesAndTokens().Count;
             int i = 0;
+            var slotData = new ChildSyntaxList.SlotData(node);
 
             do
             {
-                var child = ChildSyntaxList.ItemInternal((CSharpSyntaxNode)node, i);
+                var child = ChildSyntaxList.ItemInternal((CSharpSyntaxNode)node, i, ref slotData);
                 i++;
 
                 var asNode = child.AsNode();

@@ -32,9 +32,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
             End Get
         End Property
 
-        Protected Overrides Function GetCodeActionsAsync(document As Document, node As SyntaxNode, fallbackOptions As CleanCodeGenerationOptionsProvider, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CodeAction))
+        Protected Overrides Function GetCodeActionsAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CodeAction))
             Dim service = document.GetLanguageService(Of IGenerateConstructorService)()
-            Return service.GenerateConstructorAsync(document, node, fallbackOptions, cancellationToken)
+            Return service.GenerateConstructorAsync(document, node, cancellationToken)
         End Function
 
         Protected Overrides Function GetTargetNode(node As SyntaxNode) As SyntaxNode

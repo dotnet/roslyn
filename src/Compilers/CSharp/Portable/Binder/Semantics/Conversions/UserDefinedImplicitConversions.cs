@@ -245,6 +245,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (IgnoreUserDefinedSpanConversions(source, target))
+            {
+                return;
+            }
+
             bool haveInterfaces = false;
 
             foreach ((NamedTypeSymbol declaringType, TypeParameterSymbol constrainedToTypeOpt) in d)
@@ -639,6 +644,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.IntPtr:
                 case ConversionKind.ExplicitTupleLiteral:
                 case ConversionKind.ExplicitTuple:
+                case ConversionKind.ExplicitSpan:
                     return false;
 
                 // Spec'd in C# 4.

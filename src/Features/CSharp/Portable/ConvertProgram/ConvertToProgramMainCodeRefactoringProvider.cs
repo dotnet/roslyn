@@ -4,13 +4,10 @@
 
 using System;
 using System.Composition;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -49,7 +46,7 @@ internal class ConvertToProgramMainCodeRefactoringProvider : CodeRefactoringProv
         if (!acceptableLocation.SourceSpan.IntersectsWith(position))
             return;
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
 
         var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
         if (!CanOfferUseProgramMain(options.PreferTopLevelStatements, root, compilation, forAnalyzer: false))

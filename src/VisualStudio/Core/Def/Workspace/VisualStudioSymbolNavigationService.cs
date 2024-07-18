@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -129,9 +128,9 @@ internal sealed partial class VisualStudioSymbolNavigationService(
     private async Task<INavigableLocation?> GetNavigableLocationForMetadataAsync(
         Project project, ISymbol symbol, CancellationToken cancellationToken)
     {
-        var masOptions = _globalOptions.GetMetadataAsSourceOptions(project.Services);
+        var masOptions = _globalOptions.GetMetadataAsSourceOptions();
 
-        var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(_workspace, project, symbol, signaturesOnly: false, masOptions, cancellationToken).ConfigureAwait(false);
+        var result = await _metadataAsSourceFileService.GetGeneratedFileAsync(_workspace, project, symbol, signaturesOnly: false, options: masOptions, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return new NavigableLocation(async (options, cancellationToken) =>
         {

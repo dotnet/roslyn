@@ -582,6 +582,8 @@ internal partial class SymbolEquivalenceComparer
                 x.IsIndexer == y.IsIndexer &&
                 x.MetadataName == y.MetadataName &&
                 x.Parameters.Length == y.Parameters.Length &&
+                IsPartialMethodDefinitionPart(x) == IsPartialMethodDefinitionPart(y) &&
+                IsPartialMethodImplementationPart(x) == IsPartialMethodImplementationPart(y) &&
                 ParametersAreEquivalent(x.Parameters, y.Parameters, equivalentTypesWithDifferingAssemblies) &&
                 AreEquivalent(x.ContainingSymbol, y.ContainingSymbol, equivalentTypesWithDifferingAssemblies);
         }

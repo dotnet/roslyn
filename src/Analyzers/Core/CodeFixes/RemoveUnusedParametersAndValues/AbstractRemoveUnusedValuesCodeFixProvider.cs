@@ -73,7 +73,7 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
     /// </summary>
     /// <param name="node">Flagged node containing the identifier token to be replaced.</param>
     /// <param name="newName">New identifier token</param>
-    protected abstract SyntaxNode TryUpdateNameForFlaggedNode(SyntaxNode node, SyntaxToken newName);
+    protected abstract SyntaxNode? TryUpdateNameForFlaggedNode(SyntaxNode node, SyntaxToken newName);
 
     /// <summary>
     /// Gets the identifier token for the iteration variable of the given foreach statement node.
@@ -282,9 +282,9 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
         return document.WithSyntaxRoot(root);
     }
 
-    protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
         var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());
         var preprocessedDocument = await PreprocessDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
         var newRoot = await GetNewRootAsync(preprocessedDocument, formattingOptions, diagnostics, cancellationToken).ConfigureAwait(false);
@@ -742,7 +742,7 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
         }
     }
 
-    protected abstract TLocalDeclarationStatementSyntax GetCandidateLocalDeclarationForRemoval(TVariableDeclaratorSyntax declarator);
+    protected abstract TLocalDeclarationStatementSyntax? GetCandidateLocalDeclarationForRemoval(TVariableDeclaratorSyntax declarator);
 
     private async Task<SyntaxNode> PostProcessDocumentAsync(
         Document document,

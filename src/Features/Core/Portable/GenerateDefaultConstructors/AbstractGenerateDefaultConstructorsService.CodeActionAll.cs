@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 
 namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors;
@@ -13,8 +12,7 @@ internal abstract partial class AbstractGenerateDefaultConstructorsService<TServ
     private sealed class CodeActionAll(
         Document document,
         State state,
-        IList<IMethodSymbol> constructors,
-        CodeAndImportGenerationOptionsProvider fallbackOptions) : AbstractCodeAction(document, state, constructors, FeaturesResources.Generate_all, fallbackOptions)
+        IList<IMethodSymbol> constructors) : AbstractCodeAction(document, state, constructors, FeaturesResources.Generate_all)
     {
     }
 }

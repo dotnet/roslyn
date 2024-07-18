@@ -241,6 +241,7 @@ internal sealed class ParameterSymbolReferenceFinder : AbstractReferenceFinder<I
         IParameterSymbol parameter,
         ArrayBuilder<ISymbol> results)
     {
+        // https://github.com/dotnet/roslyn/issues/73772: also cascade partial indexer parameters
         if (parameter.ContainingSymbol is IMethodSymbol method)
         {
             var ordinal = parameter.Ordinal;

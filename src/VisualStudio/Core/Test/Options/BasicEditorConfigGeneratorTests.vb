@@ -7,7 +7,6 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Options.EditorConfig
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 Imports Roslyn.Test.Utilities
@@ -37,6 +36,11 @@ tab_width = 4
 end_of_line = crlf
 insert_final_newline = false
 
+#### .NET Code Actions ####
+
+# Type members
+dotnet_hide_advanced_members = false
+
 #### .NET Coding Conventions ####
 
 # Organize usings
@@ -64,6 +68,7 @@ dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity
 dotnet_style_require_accessibility_modifiers = for_non_interface_members
 
 # Expression-level preferences
+dotnet_prefer_system_hash_code = true
 dotnet_style_coalesce_expression = true
 dotnet_style_collection_initializer = true
 dotnet_style_explicit_tuple_names = true
@@ -151,8 +156,7 @@ dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
                 ' Use the default options 
                 Dim options = New OptionStore(workspace.GlobalOptions)
-                Dim editorService = workspace.GetService(Of EditorConfigOptionsGenerator)()
-                Dim editorConfigOptions = editorService.GetDefaultOptions(LanguageNames.VisualBasic)
+                Dim editorConfigOptions = workspace.GetService(Of EditorConfigOptionsEnumerator).GetOptions(LanguageNames.VisualBasic)
                 Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, options, LanguageNames.VisualBasic)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using
@@ -179,6 +183,11 @@ tab_width = 4
 # New line preferences
 end_of_line = crlf
 insert_final_newline = false
+
+#### .NET Code Actions ####
+
+# Type members
+dotnet_hide_advanced_members = false
 
 #### .NET Coding Conventions ####
 
@@ -207,6 +216,7 @@ dotnet_style_parentheses_in_relational_binary_operators = always_for_clarity
 dotnet_style_require_accessibility_modifiers = for_non_interface_members
 
 # Expression-level preferences
+dotnet_prefer_system_hash_code = true
 dotnet_style_coalesce_expression = true
 dotnet_style_collection_initializer = true
 dotnet_style_explicit_tuple_names = false:error
@@ -292,8 +302,7 @@ dotnet_naming_style.begins_with_i.required_suffix =
 dotnet_naming_style.begins_with_i.word_separator = 
 dotnet_naming_style.begins_with_i.capitalization = pascal_case
 "
-                Dim editorService = workspace.GetService(Of EditorConfigOptionsGenerator)()
-                Dim editorConfigOptions = editorService.GetDefaultOptions(LanguageNames.VisualBasic)
+                Dim editorConfigOptions = workspace.GetService(Of EditorConfigOptionsEnumerator).GetOptions(LanguageNames.VisualBasic)
                 Dim actualText = EditorConfigFileGenerator.Generate(editorConfigOptions, options, LanguageNames.VisualBasic)
                 AssertEx.EqualOrDiff(expectedText, actualText)
             End Using

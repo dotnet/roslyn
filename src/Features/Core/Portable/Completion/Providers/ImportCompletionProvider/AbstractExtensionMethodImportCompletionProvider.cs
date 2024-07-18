@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -55,7 +54,7 @@ internal abstract class AbstractExtensionMethodImportCompletionProvider : Abstra
                     namespaceInScope,
                     inferredTypes,
                     forceCacheCreation: completionContext.CompletionOptions.ForceExpandedCompletionIndexCreation,
-                    hideAdvancedMembers: completionContext.CompletionOptions.HideAdvancedMembers,
+                    hideAdvancedMembers: completionContext.CompletionOptions.MemberDisplayOptions.HideAdvancedMembers,
                     cancellationToken).ConfigureAwait(false);
 
                 if (result is not null)

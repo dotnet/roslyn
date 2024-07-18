@@ -26,7 +26,7 @@ internal abstract partial class AbstractGenerateEnumMemberService<TService, TSim
     protected abstract bool IsIdentifierNameGeneration(SyntaxNode node);
     protected abstract bool TryInitializeIdentifierNameState(SemanticDocument document, TSimpleNameSyntax identifierName, CancellationToken cancellationToken, out SyntaxToken identifierToken, out TExpressionSyntax simpleNameOrMemberAccessExpression);
 
-    public async Task<ImmutableArray<CodeAction>> GenerateEnumMemberAsync(Document document, SyntaxNode node, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<CodeAction>> GenerateEnumMemberAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Refactoring_GenerateMember_GenerateEnumMember, cancellationToken))
         {
@@ -37,7 +37,7 @@ internal abstract partial class AbstractGenerateEnumMemberService<TService, TSim
                 return [];
             }
 
-            return [new GenerateEnumMemberCodeAction(document, state, fallbackOptions)];
+            return [new GenerateEnumMemberCodeAction(document, state)];
         }
     }
 }

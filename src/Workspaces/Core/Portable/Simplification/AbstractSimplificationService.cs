@@ -42,7 +42,7 @@ internal abstract class AbstractSimplificationService<TCompilationUnitSyntax, TE
     protected abstract void AddImportDeclarations(TCompilationUnitSyntax root, ArrayBuilder<SyntaxNode> importDeclarations);
 
     public abstract SimplifierOptions DefaultOptions { get; }
-    public abstract SimplifierOptions GetSimplifierOptions(IOptionsReader options, SimplifierOptions? fallbackOptions);
+    public abstract SimplifierOptions GetSimplifierOptions(IOptionsReader options);
 
     protected virtual SyntaxNode TransformReducedNode(SyntaxNode reducedNode, SyntaxNode originalNode)
         => reducedNode;
@@ -103,7 +103,7 @@ internal abstract class AbstractSimplificationService<TCompilationUnitSyntax, TE
         CancellationToken cancellationToken)
     {
         // Create a simple interval tree for simplification spans.
-        var spansTree = new TextSpanIntervalTree(spans);
+        var spansTree = new TextSpanMutableIntervalTree(spans);
 
         var root = (TCompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 

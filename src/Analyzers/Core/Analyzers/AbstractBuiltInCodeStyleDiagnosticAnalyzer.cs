@@ -85,7 +85,7 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer
     {
         foreach (var (descriptor, option) in supportedDiagnosticsWithOptions)
         {
-            Debug.Assert(option is { Definition.DefaultValue: ICodeStyleOption } == descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomSeverityConfigurable));
+            Debug.Assert(option is { Definition.DefaultValue: ICodeStyleOption2 } == descriptor.CustomTags.Contains(WellKnownDiagnosticTags.CustomSeverityConfigurable));
             AddDiagnosticIdToOptionMapping(descriptor.Id, option);
         }
     }
@@ -117,7 +117,4 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer
         => IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, options);
 
     public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
-
-    public virtual bool OpenFileOnly(SimplifierOptions? options)
-        => false;
 }

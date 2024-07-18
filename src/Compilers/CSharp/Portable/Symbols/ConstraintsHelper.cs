@@ -9,11 +9,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Runtime.CompilerServices;
-using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (inherited)
                 {
                     Location location = typeParameter.GetFirstLocation();
-                    Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_FeatureRefStructInterfaces, diagnostics, location);
+                    Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_FeatureAllowsRefStructConstraint, diagnostics, location);
 
                     if (!typeParameter.DeclaringCompilation.Assembly.RuntimeSupportsByRefLikeGenerics)
                     {
@@ -751,6 +751,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // metadata and be instantiated in C#.  We check to see if that's happened.
         private static bool HasDuplicateInterfaces(NamedTypeSymbol type, ConsList<TypeSymbol> basesBeingResolved)
         {
+            if (type.OriginalDefinition is not PENamedTypeSymbol)
+            {
+                return false;
+            }
+
             // PERF: avoid instantiating all interfaces here
             //       Ex: if class implements just IEnumerable<> and IComparable<> it cannot have conflicting implementations
             var array = type.OriginalDefinition.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
@@ -940,7 +945,7 @@ hasRelatedInterfaces:
                 {
                     if (args.CurrentCompilation.SourceModule != typeParameter.ContainingModule)
                     {
-                        if (MessageID.IDS_FeatureRefStructInterfaces.GetFeatureAvailabilityDiagnosticInfo(args.CurrentCompilation) is { } diagnosticInfo)
+                        if (MessageID.IDS_FeatureAllowsRefStructConstraint.GetFeatureAvailabilityDiagnosticInfo(args.CurrentCompilation) is { } diagnosticInfo)
                         {
                             diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(diagnosticInfo)));
                         }

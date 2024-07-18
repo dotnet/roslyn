@@ -7,8 +7,8 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
@@ -43,6 +43,9 @@ internal readonly record struct SourceGeneratorExecutionVersion(
 
     public static SourceGeneratorExecutionVersion ReadFrom(ObjectReader reader)
         => new(reader.ReadInt32(), reader.ReadInt32());
+
+    public override string ToString()
+        => $"{MajorVersion}.{MinorVersion}";
 }
 
 /// <summary>
@@ -98,5 +101,29 @@ internal sealed class SourceGeneratorExecutionVersionMap(ImmutableSortedDictiona
         }
 
         return new(builder.ToImmutable());
+    }
+
+    public Checksum GetChecksum()
+    {
+        using var _ = ArrayBuilder<Checksum>.GetInstance(this.Map.Count * 2, out var checksums);
+
+        foreach (var (projectId, version) in this.Map)
+        {
+            checksums.Add(projectId.Checksum);
+            checksums.Add(Checksum.Create(version, static (v, w) => v.WriteTo(w)));
+        }
+
+        return Checksum.Create(checksums);
+    }
+
+    public override string ToString()
+    {
+        using var _ = PooledStringBuilder.GetInstance(out var builder);
+
+        builder.AppendLine(nameof(SourceGeneratorExecutionVersionMap));
+        foreach (var (projectId, version) in Map)
+            builder.AppendLine($"    {projectId}: {version}");
+
+        return builder.ToString();
     }
 }

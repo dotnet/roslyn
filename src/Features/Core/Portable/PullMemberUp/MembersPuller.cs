@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.PullMemberUp;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
@@ -38,8 +37,7 @@ internal static class MembersPuller
     public static CodeAction TryComputeCodeAction(
         Document document,
         ImmutableArray<ISymbol> selectedMembers,
-        INamedTypeSymbol destination,
-        CleanCodeGenerationOptionsProvider fallbackOptions)
+        INamedTypeSymbol destination)
     {
         var result = PullMembersUpOptionsBuilder.BuildPullMembersUpOptions(destination,
             selectedMembers.SelectAsArray(m => (member: m, makeAbstract: false)));
@@ -56,21 +54,20 @@ internal static class MembersPuller
 
         return SolutionChangeAction.Create(
             title,
-            cancellationToken => PullMembersUpAsync(document, result, fallbackOptions, cancellationToken),
+            cancellationToken => PullMembersUpAsync(document, result, cancellationToken),
             title);
     }
 
     public static Task<Solution> PullMembersUpAsync(
         Document document,
         PullMembersUpOptions pullMembersUpOptions,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         return pullMembersUpOptions.Destination.TypeKind switch
         {
-            TypeKind.Interface => PullMembersIntoInterfaceAsync(document, pullMembersUpOptions, fallbackOptions, cancellationToken),
+            TypeKind.Interface => PullMembersIntoInterfaceAsync(document, pullMembersUpOptions, cancellationToken),
             // We can treat VB modules as a static class
-            TypeKind.Class or TypeKind.Module => PullMembersIntoClassAsync(document, pullMembersUpOptions, fallbackOptions, cancellationToken),
+            TypeKind.Class or TypeKind.Module => PullMembersIntoClassAsync(document, pullMembersUpOptions, cancellationToken),
             _ => throw ExceptionUtilities.UnexpectedValue(pullMembersUpOptions.Destination),
         };
     }
@@ -96,7 +93,6 @@ internal static class MembersPuller
     private static async Task<Solution> PullMembersIntoInterfaceAsync(
         Document document,
         PullMembersUpOptions pullMemberUpOptions,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var solution = document.Project.Solution;
@@ -116,7 +112,7 @@ internal static class MembersPuller
             generateMethodBodies: false,
             generateMembers: false);
 
-        var info = await destinationEditor.OriginalDocument.GetCodeGenerationInfoAsync(context, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var info = await destinationEditor.OriginalDocument.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
         var destinationWithMembersAdded = info.Service.AddMembers(destinationSyntaxNode, symbolsToPullUp, info, cancellationToken);
 
         destinationEditor.ReplaceNode(destinationSyntaxNode, (syntaxNode, generator) => destinationWithMembersAdded);
@@ -275,7 +271,6 @@ internal static class MembersPuller
     private static async Task<Solution> PullMembersIntoClassAsync(
         Document document,
         PullMembersUpOptions result,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var solution = document.Project.Solution;
@@ -310,7 +305,7 @@ internal static class MembersPuller
             reuseSyntax: true,
             generateMethodBodies: false);
 
-        var options = await destinationEditor.OriginalDocument.GetCleanCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await destinationEditor.OriginalDocument.GetCleanCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
         var info = codeGenerationService.GetInfo(context, options.GenerationOptions, destinationEditor.OriginalDocument.Project.ParseOptions);
 
         var newDestination = codeGenerationService
