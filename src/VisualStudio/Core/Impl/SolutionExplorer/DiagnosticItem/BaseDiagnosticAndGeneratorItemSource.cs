@@ -115,6 +115,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         var newSourceGeneratorItems = await GenerateSourceGeneratorItemsAsync(
             project, analyzerReference).ConfigureAwait(false);
 
+        // If we computed the same set of items as the last time, we can bail out now.
         if (_items.SequenceEqual([.. newDiagnosticItems, .. newSourceGeneratorItems]))
             return;
 
