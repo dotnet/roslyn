@@ -19,7 +19,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
     <Trait(Traits.Feature, Traits.Features.Diagnostics)>
     Public Class SourceGeneratorItemTests
         <WpfFact>
-        Public Sub SourceGeneratorsListed()
+        Public Async Function SourceGeneratorsListed() As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language="C#" CommonReferences="true" LanguageVersion="Preview">
@@ -30,13 +30,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Dim projectId = workspace.Projects.Single().Id
 
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
+                Await WaitForGeneratorsAndItemSourcesAsync(workspace)
 
                 Assert.True(source.HasItems)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
 
                 Assert.Equal(GetType(GenerateFileForEachAdditionalFileWithContentsCommented).FullName, generatorItem.Text)
             End Using
-        End Sub
+        End Function
 
         <WpfFact>
         Public Async Function PlaceholderItemCreateIfGeneratorProducesNoFiles() As Task
@@ -49,6 +50,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
+                Await WaitForGeneratorsAndItemSourcesAsync(workspace)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
                 Dim generatorFilesItemSource = CreateSourceGeneratedFilesItemSource(workspace, generatorItem)
 
@@ -74,6 +76,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
+                Await WaitForGeneratorsAndItemSourcesAsync(workspace)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
                 Dim generatorFilesItemSource = CreateSourceGeneratedFilesItemSource(workspace, generatorItem)
 
@@ -108,6 +111,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
+                Await WaitForGeneratorsAndItemSourcesAsync(workspace)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
                 Dim generatorFilesItemSource = CreateSourceGeneratedFilesItemSource(workspace, generatorItem)
 
@@ -142,6 +146,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
+                Await WaitForGeneratorsAndItemSourcesAsync(workspace)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
                 Dim generatorFilesItemSource = CreateSourceGeneratedFilesItemSource(workspace, generatorItem)
 
@@ -182,6 +187,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
+                Await WaitForGeneratorsAndItemSourcesAsync(workspace)
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
                 Dim generatorFilesItemSource = CreateSourceGeneratedFilesItemSource(workspace, generatorItem)
 
@@ -234,6 +240,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim projectId = workspace.Projects.Single().Id
                 Dim source = CreateItemSourceForAnalyzerReference(workspace, projectId)
+                Await WaitForGeneratorsAndItemSourcesAsync(workspace)
+
                 Dim generatorItem = Assert.IsAssignableFrom(Of SourceGeneratorItem)(Assert.Single(source.Items))
                 Dim generatorFilesItemSource = CreateSourceGeneratedFilesItemSource(workspace, generatorItem)
 

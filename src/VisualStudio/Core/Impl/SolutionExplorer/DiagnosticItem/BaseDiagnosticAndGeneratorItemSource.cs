@@ -161,11 +161,19 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             Project project,
             AnalyzerReference analyzerReference)
         {
+            var identifies = await GetIdentitiesAsync().ConfigureAwait(false);
+            return identifies.SelectAsArray(
+                identity => (BaseItem)new SourceGeneratorItem(project.Id, identity, analyzerReference.FullPath));
+        }
+
+        async Task<ImmutableArray<SourceGeneratorIdentity>> GetIdentitiesAsync()
+        {
+            // Can only remote AnalyzerFileReferences over to the oop side.
+            if (analyzerReference is not AnalyzerFileReference analyzerFileReference)
+                return SourceGeneratorIdentity.GetIdentities(analyzerReference, project.Language);
+
             var client = await RemoteHostClient.TryGetClientAsync(this.Workspace, cancellationToken).ConfigureAwait(false);
             if (client is null)
-                return [];
-
-            if (analyzerReference is not AnalyzerFileReference analyzerFileReference)
                 return [];
 
             var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, ImmutableArray<SourceGeneratorIdentity>>(
@@ -178,8 +186,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             if (!result.HasValue)
                 return [];
 
-            return result.Value.SelectAsArray(
-                identity => (BaseItem)new SourceGeneratorItem(project.Id, identity, analyzerFileReference.FullPath));
+            return result.Value;
         }
     }
 
