@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -4366,6 +4367,9 @@ public class C<T>
 
             CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
+            CompileAndVerify(comp, sourceSymbolValidator: verify, symbolValidator: verify, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped,
+                             emitOptions: EmitOptions.Default.WithEmitMetadataOnly(true)).VerifyDiagnostics();
+
             void verify(ModuleSymbol m)
             {
                 var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
@@ -5916,6 +5920,11 @@ class C
     {
         Test(new S1());
     }
+
+    static void Test2<T2>(T2 x) where T2 : I1, allows ref struct
+    {
+        Test(x);
+    }
     
     static void Test<T>(T x) where T : I1
     {
@@ -5923,12 +5932,15 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(src);
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
 
             comp.VerifyDiagnostics(
                 // (19,9): error CS9244: The type 'S1' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.Test<T>(T)'
                 //         Test(new S1());
-                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Test").WithArguments("C.Test<T>(T)", "T", "S1").WithLocation(19, 9)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Test").WithArguments("C.Test<T>(T)", "T", "S1").WithLocation(19, 9),
+                // (24,9): error CS9244: The type 'T2' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.Test<T>(T)'
+                //         Test(x);
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Test").WithArguments("C.Test<T>(T)", "T", "T2").WithLocation(24, 9)
                 );
         }
 
@@ -5994,7 +6006,12 @@ interface I1<in T>
     void M1(T x);
 }
 
-ref struct S1 : I1<object>
+interface I2<out T>
+{
+    T M2();
+}
+
+ref struct S1 : I1<object>, I2<string>
 {
     public void M1(object x)
     {
@@ -6002,25 +6019,55 @@ ref struct S1 : I1<object>
         System.Console.Write("" "");
         System.Console.Write(x);
     }
+
+    public string M2() 
+    {
+        System.Console.Write(""S1.M2 "");
+        return ""z"";
+    }
 }
 
 class C
 {
     static void Main()
     {
-        Test(new S1(), ""y"");
+        Test1(new S1(), ""y"");
+        System.Console.Write("" - "");
+        System.Console.Write(Test2(new S1()));
+        System.Console.Write("" - "");
+        Test3(new S1(), ""y"");
+        System.Console.Write("" - "");
+        System.Console.Write(Test4(new S1()));
     }
     
-    static void Test<T>(T x, string y) where T : I1<string>, allows ref struct
+    static void Test1<T>(T x, string y) where T : I1<string>, allows ref struct
     {
         x.M1(y);
+    }
+
+    static object Test2<T>(T x) where T : I2<object>, allows ref struct
+    {
+        return x.M2();
+    }
+    
+    static void Test3<T>(T x, string y) where T : I1<object>, allows ref struct
+    {
+        Test1(x, y);
+    }
+
+    static object Test4<T>(T x) where T : I2<string>, allows ref struct
+    {
+        return Test2(x);
     }
 }
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"S1.M1 y" : null, verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
-            verifier.VerifyIL("C.Test<T>(T, string)",
+            var verifier = CompileAndVerify(
+                comp, expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? @"S1.M1 y - S1.M2 z - S1.M1 y - S1.M2 z" : null,
+                verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+            verifier.VerifyIL("C.Test1<T>(T, string)",
 @"
 {
   // Code size       15 (0xf)
@@ -6030,6 +6077,18 @@ class C
   IL_0003:  constrained. ""T""
   IL_0009:  callvirt   ""void I1<string>.M1(string)""
   IL_000e:  ret
+}
+");
+
+            verifier.VerifyIL("C.Test2<T>(T)",
+@"
+{
+  // Code size       14 (0xe)
+  .maxstack  1
+  IL_0000:  ldarga.s   V_0
+  IL_0002:  constrained. ""T""
+  IL_0008:  callvirt   ""object I2<object>.M2()""
+  IL_000d:  ret
 }
 ");
         }
@@ -6438,23 +6497,51 @@ interface IOut<out T>
 {
     T MOut();
 }
-ref struct S : I<object>, IOut<object>
+interface IIn<in T>
+{
+    void MIn(T x);
+}
+
+ref struct S : I<object>, IOut<object>, IIn<string>
 {
     public void M(object o) { }
     public object MOut() => null;
+    public void MIn(string x) {}
 }
 class Program
 {
     static void Main()
     {
+#line 19
         Test1(new S());
         Test2(new S());
+        Test3(new S());
+
+        Test4(new S());
+        Test5(new S());
+        Test6(new S());
     }
     static void Test1<T>(T x) where T : I<string>, allows ref struct
     {
     }
     static void Test2<T>(T x) where T : IOut<string>, allows ref struct
     {
+    }
+    static void Test3<T>(T x) where T : IIn<object>, allows ref struct
+    {
+    }
+
+    static void Test4<T4>(T4 x) where T4 : I<object>, allows ref struct
+    {
+        Test1(x);
+    }
+    static void Test5<T5>(T5 x) where T5 : IOut<object>, allows ref struct
+    {
+        Test2(x);
+    }
+    static void Test6<T6>(T6 x) where T6 : IIn<string>, allows ref struct
+    {
+        Test3(x);
     }
 }
 ";
@@ -6466,7 +6553,19 @@ class Program
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "Test1").WithArguments("Program.Test1<T>(T)", "I<string>", "T", "S").WithLocation(19, 9),
                 // (20,9): error CS0315: The type 'S' cannot be used as type parameter 'T' in the generic type or method 'Program.Test2<T>(T)'. There is no boxing conversion from 'S' to 'IOut<string>'.
                 //         Test2(new S());
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "Test2").WithArguments("Program.Test2<T>(T)", "IOut<string>", "T", "S").WithLocation(20, 9)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "Test2").WithArguments("Program.Test2<T>(T)", "IOut<string>", "T", "S").WithLocation(20, 9),
+                // (21,9): error CS0315: The type 'S' cannot be used as type parameter 'T' in the generic type or method 'Program.Test3<T>(T)'. There is no boxing conversion from 'S' to 'IIn<object>'.
+                //         Test3(new S());
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "Test3").WithArguments("Program.Test3<T>(T)", "IIn<object>", "T", "S").WithLocation(21, 9),
+                // (39,9): error CS0314: The type 'T4' cannot be used as type parameter 'T' in the generic type or method 'Program.Test1<T>(T)'. There is no boxing conversion or type parameter conversion from 'T4' to 'I<string>'.
+                //         Test1(x);
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "Test1").WithArguments("Program.Test1<T>(T)", "I<string>", "T", "T4").WithLocation(39, 9),
+                // (43,9): error CS0314: The type 'T5' cannot be used as type parameter 'T' in the generic type or method 'Program.Test2<T>(T)'. There is no boxing conversion or type parameter conversion from 'T5' to 'IOut<string>'.
+                //         Test2(x);
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "Test2").WithArguments("Program.Test2<T>(T)", "IOut<string>", "T", "T5").WithLocation(43, 9),
+                // (47,9): error CS0314: The type 'T6' cannot be used as type parameter 'T' in the generic type or method 'Program.Test3<T>(T)'. There is no boxing conversion or type parameter conversion from 'T6' to 'IIn<object>'.
+                //         Test3(x);
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "Test3").WithArguments("Program.Test3<T>(T)", "IIn<object>", "T", "T6").WithLocation(47, 9)
                 );
         }
 
@@ -21067,6 +21166,18 @@ public class Helper
         var d = void (scoped T u) => {};   
         d(default);
     }
+
+    static void Test5<T>()
+    {
+        void local5(scoped T u) {};   
+        local5(default);
+    }
+
+    static void Test6()
+    {
+        void local6<T>(scoped T u) {};   
+        local6<string>(default);
+    }
 }
 
 ref struct S
@@ -21080,7 +21191,13 @@ ref struct S
                 Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T z").WithLocation(13, 26),
                 // (19,23): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
                 //         var d = void (scoped T u) => {};   
-                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T u").WithLocation(19, 23)
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T u").WithLocation(19, 23),
+                // (25,21): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         void local5(scoped T u) {};   
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T u").WithLocation(25, 21),
+                // (31,24): error CS9048: The 'scoped' modifier can be used for refs and ref struct values only.
+                //         void local6<T>(scoped T u) {};   
+                Diagnostic(ErrorCode.ERR_ScopedRefAndRefStructOnly, "scoped T u").WithLocation(31, 24)
                 );
 
             var src2 = @"
@@ -21090,9 +21207,44 @@ public class Helper
         where T : allows ref struct
     {
     }
+
+    public static void Test2<T>()
+        where T : allows ref struct
+    {
+        var d = void (scoped T u) => {};   
+        d(default);
+
+        void local5(scoped T u) {};   
+        local5(default);
+    }
+
+    static void Test3()
+    {
+        void local6<T>(scoped T u) where T : allows ref struct {};   
+        local6<string>(default);
+    }
 }
 ";
             var comp2 = CreateCompilation(src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            var tree = comp2.SyntaxTrees.Single();
+            var model = comp2.GetSemanticModel(tree);
+
+            var lambda = tree.GetRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
+            var parameter = model.GetSymbolInfo(lambda).Symbol.GetSymbol<MethodSymbol>().Parameters[0];
+
+            AssertEx.Equal("scoped T u", parameter.ToTestDisplayString());
+            Assert.Equal(ScopedKind.ScopedValue, parameter.EffectiveScope);
+
+            var localFunctions = tree.GetRoot().DescendantNodes().OfType<LocalFunctionStatementSyntax>().ToArray();
+            Assert.Equal(2, localFunctions.Length);
+
+            foreach (var localFunction in localFunctions)
+            {
+                parameter = model.GetDeclaredSymbol(localFunction).GetSymbol<MethodSymbol>().Parameters[0];
+
+                AssertEx.Equal("scoped T u", parameter.ToTestDisplayString());
+                Assert.Equal(ScopedKind.ScopedValue, parameter.EffectiveScope);
+            }
 
             CompileAndVerify(
                 comp2, symbolValidator: validate, sourceSymbolValidator: validate,
@@ -21149,6 +21301,80 @@ ref struct S
             var local = model.GetDeclaredSymbol(declarator).GetSymbol<LocalSymbol>();
             AssertEx.Equal("T x", local.ToTestDisplayString());
             Assert.Equal(ScopedKind.ScopedValue, local.Scope);
+        }
+
+        [Fact]
+        public void ScopedTypeParameter_03()
+        {
+            var src = @"
+partial class Helper<T>
+    where T : allows ref struct
+{
+    partial void M1(scoped T x);
+    
+    partial void M1(T x){}
+
+    partial void M2(T x);
+    
+    partial void M2(scoped T x){}
+
+    partial void M3(scoped T x);
+    
+    partial void M3(scoped T x){}
+
+    partial void M4(T x);
+    
+    partial void M4(T x){}
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyDiagnostics(
+                // (7,18): error CS8988: The 'scoped' modifier of parameter 'x' doesn't match partial definition.
+                //     partial void M1(T x){}
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M1").WithArguments("x").WithLocation(7, 18),
+                // (11,18): error CS8988: The 'scoped' modifier of parameter 'x' doesn't match partial definition.
+                //     partial void M2(scoped T x){}
+                Diagnostic(ErrorCode.ERR_ScopedMismatchInParameterOfPartial, "M2").WithArguments("x").WithLocation(11, 18)
+                );
+        }
+
+        [Fact]
+        public void ScopedTypeParameter_04()
+        {
+            var src = @"
+using System;
+
+class Helper<T>
+    where T : allows ref struct
+{
+    delegate void D1(scoped T x);
+    delegate void D2(T x);
+    
+    static D1 d11 = M1;
+    static D1 d12 = M2;
+    static D2 d21 = M1;
+    static D2 d22 = M2;
+
+    static void M1(scoped T x) {}
+    static void M2(T x) {}
+}
+
+class Helper
+{
+    delegate void D1(scoped Span<int> x);
+    delegate void D2(Span<int> x);
+    
+    static D1 d11 = M1;
+    static D1 d12 = M2;
+    static D2 d21 = M1;
+    static D2 d22 = M2;
+
+    static void M1(scoped Span<int> x) {}
+    static void M2(Span<int> x) {}
+}
+";
+            var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -23673,12 +23899,15 @@ class Program
 ");
         }
 
-        [Fact]
-        public void IsOperator_05()
+        [Theory]
+        [CombinatorialData]
+        public void IsOperator_05(bool uHasClassConstraint, bool uHasInterfaceConstraint)
         {
+            var uConstraint = GetUConstraint(uHasClassConstraint, uHasInterfaceConstraint);
+
             var src1 = @"
 class Helper1<T, U>
-    where T : allows ref struct
+    where T : allows ref struct" + uConstraint + @"
 {
     public static void Test1(T h1)
     {
@@ -23686,6 +23915,10 @@ class Helper1<T, U>
         {
         }
     }
+}
+
+interface I1
+{
 }
 ";
 
@@ -23697,7 +23930,7 @@ class Helper1<T, U>
                 );
 
             var src2 = @"
-class Helper2<U>
+class Helper2<U>" + uConstraint + @"
 {
     public static void Test2(S h2)
     {
@@ -23751,6 +23984,19 @@ class Program
 ");
         }
 
+        private static string GetUConstraint(bool uHasClassConstraint, bool uHasInterfaceConstraint)
+        {
+            if (!uHasClassConstraint && !uHasInterfaceConstraint)
+            {
+                return "";
+            }
+
+            return " where U :" +
+                   (uHasClassConstraint ? " class" : "") +
+                   ((uHasClassConstraint && uHasInterfaceConstraint) ? "," : "") +
+                   (uHasInterfaceConstraint ? " I1" : "");
+        }
+
         [Fact]
         public void IsOperator_06()
         {
@@ -23798,12 +24044,15 @@ interface I1
                 );
         }
 
-        [Fact]
-        public void IsOperator_07()
+        [Theory]
+        [CombinatorialData]
+        public void IsOperator_07(bool uHasClassConstraint, bool uHasInterfaceConstraint)
         {
+            var uConstraint = GetUConstraint(uHasClassConstraint, uHasInterfaceConstraint);
+
             var src = @"
 class Helper1<T, U>
-    where T : allows ref struct
+    where T : allows ref struct" + uConstraint + @"
 {
     public static void Test1(U h1)
     {
@@ -23818,7 +24067,7 @@ class Helper1<T, U>
     }
 }
 
-class Helper2<U>
+class Helper2<U>" + uConstraint + @"
 {
     public static void Test2(U h2)
     {
@@ -23852,14 +24101,25 @@ class Program : I1
         Helper1<S, I1>.Test1(new Program());
         Helper1<Program, I1>.Test1(new Program());
         Helper1<I1, Program>.Test1(new Program());
-        Helper1<Program, Program>.Test1(new Program());
-        Helper1<I1, S1>.Test1(new S1());
+        Helper1<Program, Program>.Test1(new Program());" +
+            (uHasClassConstraint ? "" :
+@"
+        Helper1<I1, S1>.Test1(new S1());") +
+@"
         Helper1<S1, I1>.Test1(new S1());
-        Helper1<I1, I1>.Test1(new Program());
-        Helper1<S1, S1>.Test1(new S1());
-        Helper1<I1, S2>.Test1(new S2());
-        Helper1<S2, I1>.Test1(new S1());
-        Helper1<S2, S2>.Test1(new S2());
+        Helper1<I1, I1>.Test1(new Program());" +
+            (uHasClassConstraint ? "" :
+@"
+        Helper1<S1, S1>.Test1(new S1());") +
+            (uHasClassConstraint || uHasInterfaceConstraint ? "" :
+@"
+        Helper1<I1, S2>.Test1(new S2());") +
+@"
+        Helper1<S2, I1>.Test1(new S1());" +
+            (uHasClassConstraint || uHasInterfaceConstraint ? "" :
+@"
+        Helper1<S2, S2>.Test1(new S2());") +
+@"
         Helper2<I1>.Test2(new Program());
     }
 }
@@ -23867,7 +24127,13 @@ class Program : I1
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(
                 comp,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "211111112214" : null,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    (uHasClassConstraint ?
+                        "21111124" :
+                        (uHasInterfaceConstraint ?
+                            "2111111124" :
+                            "211111112214")) :
+                    null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).
             VerifyDiagnostics(
                 // (22,13): warning CS0184: The given expression is never of the provided ('S') type
@@ -24480,12 +24746,15 @@ class Program
 ");
         }
 
-        [Fact]
-        public void IsPattern_05()
+        [Theory]
+        [CombinatorialData]
+        public void IsPattern_05(bool uHasClassConstraint, bool uHasInterfaceConstraint)
         {
+            var uConstraint = GetUConstraint(uHasClassConstraint, uHasInterfaceConstraint);
+
             var src = @"
 class Helper1<T, U>
-    where T : allows ref struct
+    where T : allows ref struct" + uConstraint + @"
 {
     public static void Test1(T h1)
     {
@@ -24495,7 +24764,7 @@ class Helper1<T, U>
     }
 }
 
-class Helper2<U>
+class Helper2<U>" + uConstraint + @"
 {
     public static void Test2(S h2)
     {
@@ -24572,12 +24841,15 @@ interface I1
                 );
         }
 
-        [Fact]
-        public void IsPattern_07()
+        [Theory]
+        [CombinatorialData]
+        public void IsPattern_07(bool uHasClassConstraint, bool uHasInterfaceConstraint)
         {
+            var uConstraint = GetUConstraint(uHasClassConstraint, uHasInterfaceConstraint);
+
             var src1 = @"
 class Helper1<T, U>
-    where T : I2, allows ref struct
+    where T : I2, allows ref struct" + uConstraint + @"
 {
     public static void Test1(U h1)
     {
@@ -24623,14 +24895,25 @@ class Program : I1, I2
         Helper1<S, I1>.Test1(new Program());
         Helper1<Program, I1>.Test1(new Program());
         Helper1<I1, Program>.Test1(new Program());
-        Helper1<Program, Program>.Test1(new Program());
-        Helper1<I1, S1>.Test1(new S1());
+        Helper1<Program, Program>.Test1(new Program());" +
+            (uHasClassConstraint ? "" :
+@"
+        Helper1<I1, S1>.Test1(new S1());") +
+@"
         Helper1<S1, I1>.Test1(new S1());
-        Helper1<I1, I1>.Test1(new Program());
-        Helper1<S1, S1>.Test1(new S1());
-        Helper1<I1, S2>.Test1(new S2());
-        Helper1<S2, I1>.Test1(new S1());
-        Helper1<S2, S2>.Test1(new S2());
+        Helper1<I1, I1>.Test1(new Program());" +
+            (uHasClassConstraint ? "" :
+@"
+        Helper1<S1, S1>.Test1(new S1());") +
+            (uHasClassConstraint || uHasInterfaceConstraint ? "" :
+@"
+        Helper1<I1, S2>.Test1(new S2());") +
+@"
+        Helper1<S2, I1>.Test1(new S1());" +
+            (uHasClassConstraint || uHasInterfaceConstraint ? "" :
+@"
+        Helper1<S2, S2>.Test1(new S2());") +
+@"
     }
 
     public void M() => System.Console.Write(3);
@@ -24640,7 +24923,13 @@ class Program : I1, I2
             var comp1 = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(
                 comp1,
-                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "23335535224" : null,
+                expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ?
+                    (uHasClassConstraint ?
+                        "2333532" :
+                        (uHasInterfaceConstraint ?
+                            "233355352" :
+                            "23335535224")) :
+                    null,
                 verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
             // According to
@@ -24673,7 +24962,7 @@ class Program : I1, I2
 ");
 
             var src2 = @"
-class Helper2<U>
+class Helper2<U>" + uConstraint + @"
 {
     public static void Test2(U h2)
     {
@@ -25091,12 +25380,15 @@ ref struct S
                 );
         }
 
-        [Fact]
-        public void AsOperator_05()
+        [Theory]
+        [CombinatorialData]
+        public void AsOperator_05(bool uHasClassConstraint, bool uHasInterfaceConstraint)
         {
+            var uConstraint = GetUConstraint(uHasClassConstraint, uHasInterfaceConstraint);
+
             var src1 = @"
 class Helper1<T, U>
-    where T : allows ref struct
+    where T : allows ref struct" + uConstraint + @"
 {
     public static void Test1(T h1)
     {
@@ -25104,7 +25396,7 @@ class Helper1<T, U>
     }
 }
 
-class Helper2<U>
+class Helper2<U>" + uConstraint + @"
 {
     public static void Test2(S h2)
     {
@@ -25122,53 +25414,29 @@ interface I1
 ";
 
             var comp = CreateCompilation(src1, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
-            comp.VerifyDiagnostics(
-                // (7,13): error CS0413: The type parameter 'U' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint
-                //         _ = h1 as U;
-                Diagnostic(ErrorCode.ERR_AsWithTypeVar, "h1 as U").WithArguments("U").WithLocation(7, 13),
-                // (15,13): error CS0413: The type parameter 'U' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint
-                //         _ = h2 as U;
-                Diagnostic(ErrorCode.ERR_AsWithTypeVar, "h2 as U").WithArguments("U").WithLocation(15, 13)
-                );
 
-            var src2 = @"
-class Helper1<T, U>
-    where T : allows ref struct
-    where U : class
-{
-    public static void Test1(T h1)
-    {
-        _ = h1 as U;
-    }
-}
-
-class Helper2<U>
-    where U : class
-{
-    public static void Test2(S h2)
-    {
-        _ = h2 as U;
-    }
-}
-
-ref struct S : I1
-{
-}
-
-interface I1
-{
-}
-";
-
-            comp = CreateCompilation(src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
-            comp.VerifyDiagnostics(
-                // (8,13): error CS0019: Operator 'as' cannot be applied to operands of type 'T' and 'U'
-                //         _ = h1 as U;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "h1 as U").WithArguments("as", "T", "U").WithLocation(8, 13),
-                // (17,13): error CS0019: Operator 'as' cannot be applied to operands of type 'S' and 'U'
-                //         _ = h2 as U;
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "h2 as U").WithArguments("as", "S", "U").WithLocation(17, 13)
-                );
+            if (!uHasClassConstraint)
+            {
+                comp.VerifyDiagnostics(
+                    // (7,13): error CS0413: The type parameter 'U' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint
+                    //         _ = h1 as U;
+                    Diagnostic(ErrorCode.ERR_AsWithTypeVar, "h1 as U").WithArguments("U").WithLocation(7, 13),
+                    // (15,13): error CS0413: The type parameter 'U' cannot be used with the 'as' operator because it does not have a class type constraint nor a 'class' constraint
+                    //         _ = h2 as U;
+                    Diagnostic(ErrorCode.ERR_AsWithTypeVar, "h2 as U").WithArguments("U").WithLocation(15, 13)
+                    );
+            }
+            else
+            {
+                comp.VerifyDiagnostics(
+                    // (7,13): error CS0019: Operator 'as' cannot be applied to operands of type 'T' and 'U'
+                    //         _ = h1 as U;
+                    Diagnostic(ErrorCode.ERR_BadBinaryOps, "h1 as U").WithArguments("as", "T", "U").WithLocation(7, 13),
+                    // (15,13): error CS0019: Operator 'as' cannot be applied to operands of type 'S' and 'U'
+                    //         _ = h2 as U;
+                    Diagnostic(ErrorCode.ERR_BadBinaryOps, "h2 as U").WithArguments("as", "S", "U").WithLocation(15, 13)
+                    );
+            }
         }
 
         [Fact]
@@ -25214,12 +25482,15 @@ interface I1
                 );
         }
 
-        [Fact]
-        public void AsOperator_07()
+        [Theory]
+        [CombinatorialData]
+        public void AsOperator_07(bool uHasClassConstraint, bool uHasInterfaceConstraint)
         {
+            var uConstraint = GetUConstraint(uHasClassConstraint, uHasInterfaceConstraint);
+
             var src = @"
 class Helper1<T, U>
-    where T : allows ref struct
+    where T : allows ref struct" + uConstraint + @"
 {
     static void Test1(U h1)
     {
@@ -25227,7 +25498,7 @@ class Helper1<T, U>
     }
 }
 
-class Helper2<U>
+class Helper2<U>" + uConstraint + @"
 {
     public static void Test2(U h2)
     {
