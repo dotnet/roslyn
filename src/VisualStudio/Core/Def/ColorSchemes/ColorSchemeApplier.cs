@@ -39,6 +39,7 @@ internal sealed partial class ColorSchemeApplier
     private readonly object _gate = new();
 
     private ImmutableDictionary<ColorSchemeName, ImmutableArray<RegistryItem>>? _colorSchemeRegistryItems;
+    private int _updateQueued = 0;
     private bool _isInitialized = false;
 
     [ImportingConstructor]
@@ -113,8 +114,16 @@ internal sealed partial class ColorSchemeApplier
 
     private async Task QueueColorSchemeUpdateAsync()
     {
+        if (Interlocked.Exchange(ref _updateQueued, 1) == 1)
+            return;
+
         // Wait until things have settled down from the theme change, since we will potentially be changing theme colors.
-        await VsTaskLibraryHelper.StartOnIdle(_threadingContext.JoinableTaskFactory, () => UpdateColorSchemeAsync(_threadingContext.DisposalToken));
+        await VsTaskLibraryHelper.StartOnIdle(_threadingContext.JoinableTaskFactory,
+            async () =>
+            {
+                await UpdateColorSchemeAsync(_threadingContext.DisposalToken).ConfigureAwait(false);
+                Interlocked.Exchange(ref _updateQueued, 0);
+            });
     }
 
     /// <summary>
