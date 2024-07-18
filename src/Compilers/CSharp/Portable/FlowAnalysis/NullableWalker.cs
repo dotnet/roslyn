@@ -3702,7 +3702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Record the final state
                 NullableFlowState resultState = getResultState(node, collectionKind);
-                var resultTypeWithState = TypeWithState.Create(node.Type, resultState);
+                var resultTypeWithState = TypeWithState.Create(strippedTargetCollectionType, resultState);
                 SetAnalyzedNullability(node, resultTypeWithState);
                 return resultTypeWithState;
             }
@@ -4570,7 +4570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is done using <see cref="TargetTypedAnalysisCompletion"/>. All registered completions must be processed
         /// (ie. analyzed via some conversion) before the nullable analysis completes.
         /// </summary>
-        private static bool IsTargetTypedExpression(BoundExpression node)
+        internal static bool IsTargetTypedExpression(BoundExpression node)
         {
             return node is BoundConditionalOperator { WasTargetTyped: true } or
                            BoundConvertedSwitchExpression { WasTargetTyped: true } or
@@ -4613,7 +4613,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var (returnExpr, resultType, _) = returns[i];
                 resultTypes.Add(resultType);
-                placeholdersBuilder.Add(CreatePlaceholderIfNecessary(returnExpr, resultType));
+
+                if (!IsTargetTypedExpression(returnExpr))
+                {
+                    placeholdersBuilder.Add(CreatePlaceholderIfNecessary(returnExpr, resultType));
+                }
             }
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
@@ -5816,6 +5820,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (wasTargetTyped)
             {
                 resultType = null;
+            }
+            else if (IsTargetTypedExpression(consequence))
+            {
+                resultType = alternativeRValue.Type;
+            }
+            else if (IsTargetTypedExpression(alternative))
+            {
+                resultType = consequenceRValue.Type;
             }
             else
             {
@@ -9305,7 +9317,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (conversionOpt != null && conversionOpt != convertedNode)
             {
                 Debug.Assert(conversionOpt.ConversionGroupOpt == conversionGroup);
-                visitResult = withType(visitResult, conversionOpt.Type);
+                // TODO2: what does it mean for these types to differ? Why is it correct to copy over the top-level nullability when the types have differences beyond nullability?
+                if (!visitResult.LValueType.Type.Equals(conversionOpt.Type, TypeCompareKind.AllNullableIgnoreOptions))
+                {
+                    visitResult = withType(visitResult, conversionOpt.Type);
+                }
                 SetAnalyzedNullability(conversionOpt, visitResult);
                 conversionOpt = conversionOpt.Operand as BoundConversion;
             }

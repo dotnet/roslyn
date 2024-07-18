@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using Roslyn.Utilities;
 using Xunit;
 using PublicNullableAnnotation = Microsoft.CodeAnalysis.NullableAnnotation;
 using PublicNullableFlowState = Microsoft.CodeAnalysis.NullableFlowState;
@@ -5235,5 +5236,156 @@ class C
                 Assert.Equal(PublicNullableAnnotation.None, typeInfo.Type.NullableAnnotation);
             }
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+        public void CollectionExpression_NestedNullability_01()
+        {
+            var source = """
+                #nullable enable
+
+                var b = false;
+                var arr = b ? ["1"] : new[] { "2" };
+                """;
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var collectionExpr = root.DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(collectionExpr);
+            var type = (IArrayTypeSymbol)typeInfo.ConvertedType;
+            Assert.Equal("System.String[]", type.ToTestDisplayString());
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.ElementNullableAnnotation);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+        public void CollectionExpression_NestedNullability_02()
+        {
+            var source = """
+                #nullable enable
+
+                using System;
+                using System.Collections.Generic;
+                using System.Linq.Expressions;
+
+                class C
+                {
+                    void M()
+                    {
+                        string[] x = ["1"];
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var collectionExpr = root.DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(collectionExpr);
+            var type = (IArrayTypeSymbol)typeInfo.ConvertedType;
+            Assert.Equal("System.String[]", type.ToTestDisplayString());
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.ElementNullableAnnotation);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+        public void CollectionExpression_NestedNullability_03()
+        {
+            var source = """
+                #nullable enable
+
+                var b = false;
+                var arr = b switch { true => ["1"], false => new[] { "2" } };
+                """;
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var collectionExpr = root.DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(collectionExpr);
+            var type = (IArrayTypeSymbol)typeInfo.ConvertedType;
+            Assert.Equal("System.String[]", type.ToTestDisplayString());
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.ElementNullableAnnotation);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+        public void CollectionExpression_NestedNullability_04()
+        {
+            var source = """
+                #nullable enable
+
+                var arr = new[] { ["1"], new[] { "2" } };
+                """;
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var collectionExpr = root.DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(collectionExpr);
+            var type = (IArrayTypeSymbol)typeInfo.ConvertedType;
+            Assert.Equal("System.String[]", type.ToTestDisplayString());
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.ElementNullableAnnotation);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+        public void CollectionExpression_NestedNullability_05()
+        {
+            var source = """
+                #nullable enable
+                public class C
+                {
+                    public string[] M1(bool b)
+                    {
+                        var arr = b ? ["1"] : new[] { "2" };
+                        arr[0] = null; // 1
+                        return arr;
+                    }
+
+                    public string[] M2(bool b)
+                    {
+                        var arr = new[] { "2" };
+                        arr = b ? ["1"] : arr;
+                        arr[0] = null; // 2
+                        return arr;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,18): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         arr[0] = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 18),
+                // (15,18): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         arr[0] = null; // 2
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(15, 18));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var collectionExprs = root.DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
+            Assert.Equal(2, collectionExprs.Length);
+            foreach (var collectionExpr in collectionExprs)
+            {
+                var typeInfo = model.GetTypeInfo(collectionExpr);
+                var type = (IArrayTypeSymbol)typeInfo.ConvertedType;
+                Assert.Equal("System.String[]", type.ToTestDisplayString());
+                Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.NullableAnnotation);
+                Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.ElementNullableAnnotation);
+            }
+        }
+
+        // TODO2: test collection-exprs in lambda returns to exercise all BestTypeInferrer usages in NullableWalker
     }
 }
