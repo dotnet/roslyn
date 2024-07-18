@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -138,7 +139,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         UpdateEffectiveSeverity();
         return;
 
-        ImmutableArray<DiagnosticItem> GenerateDiagnosticItems(
+        ImmutableArray<BaseItem> GenerateDiagnosticItems(
             Project project,
             AnalyzerReference analyzerReference)
         {
@@ -150,11 +151,11 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
                 {
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
                     var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(project.CompilationOptions!, _analyzerConfigOptions?.ConfigOptions, _analyzerConfigOptions?.TreeOptions);
-                    return new DiagnosticItem(project.Id, analyzerReference, selectedDiagnostic, effectiveSeverity, CommandHandler);
+                    return (BaseItem)new DiagnosticItem(project.Id, analyzerReference, selectedDiagnostic, effectiveSeverity, CommandHandler);
                 });
         }
 
-        async Task<ImmutableArray<SourceGeneratorItem>> GenerateSourceGeneratorItemsAsync(
+        async Task<ImmutableArray<BaseItem>> GenerateSourceGeneratorItemsAsync(
             Project project,
             AnalyzerReference analyzerReference)
         {
@@ -176,7 +177,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
                 return [];
 
             return result.Value.SelectAsArray(
-                identity => new SourceGeneratorItem(project.Id, identity, analyzerFileReference.FullPath));
+                identity => (BaseItem)new SourceGeneratorItem(project.Id, identity, analyzerFileReference.FullPath));
         }
 
         void UpdateEffectiveSeverity()
