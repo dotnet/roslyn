@@ -12,7 +12,7 @@ public interface IRepositoryHost
     Task<MergeInfo?> TryParseMergeInfoAsync(Commit commit);
     string GetPullRequestUrl(string prNumber);
     string GetCommitUrl(string commitSha);
-    string GetDiffUrl(string previousSha, string currentSha);
+    string GetDiffUrl(string startRef, string endRef);
 }
 
 public record class MergeInfo(string PrNumber, string Comment);

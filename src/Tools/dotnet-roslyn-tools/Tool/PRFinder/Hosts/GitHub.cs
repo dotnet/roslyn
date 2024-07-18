@@ -43,8 +43,8 @@ public class GitHub : IRepositoryHost
     public string GetCommitUrl(string commitSha)
         => $"{_repoUrl}/commit/{commitSha}";
 
-    public string GetDiffUrl(string previousSha, string currentSha)
-        => $"{_repoUrl}/compare/{previousSha}...{currentSha}?w=1";
+    public string GetDiffUrl(string startRef, string endRef)
+        => $"{_repoUrl}/compare/{startRef}...{endRef}?w=1";
 
     public string GetPullRequestUrl(string prNumber)
         => $"{_repoUrl}/pull/{prNumber}";
@@ -136,7 +136,7 @@ public class GitHub : IRepositoryHost
         [JsonPropertyName("title")]
         public string Title { get; set; } = "";
 
-        [JsonPropertyName ("description")]
+        [JsonPropertyName("description")]
         public string Body { get; set; } = "";
     }
 

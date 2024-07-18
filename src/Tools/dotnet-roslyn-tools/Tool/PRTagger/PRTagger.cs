@@ -157,7 +157,7 @@ internal static class PRTagger
 
         // Find PRs between product commit SHAs
         var prDescription = new StringBuilder();
-        var isSuccess = await PRFinder.PRFinder.FindPRsAsync(previousProductCommitSha, currentProductCommitSha, PRFinder.PRFinder.DefaultFormat, logger, gitHubRepoPath, prDescription);
+        var isSuccess = await PRFinder.PRFinder.FindPRsAsync(previousProductCommitSha, currentProductCommitSha, path: null, PRFinder.PRFinder.DefaultFormat, logger, gitHubRepoPath, prDescription);
         if (isSuccess != 0)
         {
             // Error occurred; should be logged in FindPRs method

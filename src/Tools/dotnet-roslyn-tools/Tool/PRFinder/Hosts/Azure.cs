@@ -21,9 +21,9 @@ public class Azure : IRepositoryHost
     public string GetCommitUrl(string commitSha)
         => $"{_repoUrl}/commit/{commitSha}";
 
-    public string GetDiffUrl(string previousSha, string currentSha)
+    public string GetDiffUrl(string startRef, string endRef)
         // AzDO does not have a UI for comparing two commits. Instead generate the REST API call to retrieve commits between two SHAs.
-        => $"{_repoUrl.Replace("_git", "_apis/git/repositories")}/commits?searchCriteria.itemVersion.version={previousSha}&searchCriteria.itemVersion.versionType=commit&searchCriteria.compareVersion.version={currentSha}&searchCriteria.compareVersion.versionType=commit";
+        => $"{_repoUrl.Replace("_git", "_apis/git/repositories")}/commits?searchCriteria.itemVersion.version={startRef}&searchCriteria.itemVersion.versionType=commit&searchCriteria.compareVersion.version={endRef}&searchCriteria.compareVersion.versionType=commit";
 
     public string GetPullRequestUrl(string prNumber)
         => $"{_repoUrl}/pullrequest/{prNumber}";
