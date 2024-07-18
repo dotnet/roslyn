@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -30,10 +29,10 @@ internal sealed partial class DiagnosticItem(
 
     public ProjectId ProjectId { get; } = projectId;
     public DiagnosticDescriptor Descriptor { get; } = descriptor;
-    public ReportDiagnostic EffectiveSeverity { get; } = effectiveSeverity;
+    private readonly ReportDiagnostic _effectiveSeverity = effectiveSeverity;
 
     public override ImageMoniker IconMoniker
-        => MapEffectiveSeverityToIconMoniker(EffectiveSeverity);
+        => MapEffectiveSeverityToIconMoniker(_effectiveSeverity);
 
     public override IContextMenuController ContextMenuController => _commandHandler.DiagnosticContextMenuController;
 
@@ -70,7 +69,7 @@ internal sealed partial class DiagnosticItem(
     public override int GetHashCode()
         => Hash.Combine(this.Name,
             Hash.Combine(this.ProjectId,
-            Hash.Combine(this.Descriptor.GetHashCode(), (int)this.EffectiveSeverity)));
+            Hash.Combine(this.Descriptor.GetHashCode(), (int)_effectiveSeverity)));
 
     public override bool Equals(object obj)
         => Equals(obj as DiagnosticItem);
@@ -81,6 +80,6 @@ internal sealed partial class DiagnosticItem(
             this.Name == other.Name &&
             this.ProjectId == other.ProjectId &&
             this.Descriptor.Equals(other.Descriptor) &&
-            this.EffectiveSeverity == other.EffectiveSeverity;
+            _effectiveSeverity == other._effectiveSeverity;
     }
 }
