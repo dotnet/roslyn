@@ -32,7 +32,4 @@ internal readonly record struct SourceGeneratorIdentity(
         return new SourceGeneratorIdentity(
             assemblyName.Name!, analyzerReference.FullPath, assemblyName.Version!, generatorType.FullName!);
     }
-
-    //public static string GetGeneratorTypeName(ISourceGenerator generator)
-    //    => generator.GetGeneratorType().FullName!;
 }

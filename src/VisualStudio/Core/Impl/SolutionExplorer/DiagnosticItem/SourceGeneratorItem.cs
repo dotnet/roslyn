@@ -6,6 +6,7 @@ using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -25,7 +26,9 @@ internal sealed partial class SourceGeneratorItem(
         => new BrowseObject(this);
 
     public override int GetHashCode()
-        => throw new NotImplementedException();
+        => Hash.Combine(this.Name,
+           Hash.Combine(this.ProjectId,
+           Hash.Combine(this.Path, this.Identity.GetHashCode())));
 
     public override bool Equals(object obj)
         => Equals(obj as SourceGeneratorItem);

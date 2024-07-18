@@ -13,10 +13,11 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
-internal partial class DiagnosticItem(
+internal sealed partial class DiagnosticItem(
     ProjectId projectId,
     AnalyzerReference analyzerReference,
     DiagnosticDescriptor descriptor,
@@ -29,9 +30,7 @@ internal partial class DiagnosticItem(
 
     public ProjectId ProjectId { get; } = projectId;
     public DiagnosticDescriptor Descriptor { get; } = descriptor;
-    public ReportDiagnostic EffectiveSeverity { get; private set; } = effectiveSeverity;
-
-    public override event PropertyChangedEventHandler? PropertyChanged;
+    public ReportDiagnostic EffectiveSeverity { get; } = effectiveSeverity;
 
     public override ImageMoniker IconMoniker
         => MapEffectiveSeverityToIconMoniker(EffectiveSeverity);
@@ -39,20 +38,7 @@ internal partial class DiagnosticItem(
     public override IContextMenuController ContextMenuController => _commandHandler.DiagnosticContextMenuController;
 
     public override object GetBrowseObject()
-    {
-        return new BrowseObject(this);
-    }
-
-    internal void UpdateEffectiveSeverity(ReportDiagnostic newEffectiveSeverity)
-    {
-        if (EffectiveSeverity != newEffectiveSeverity)
-        {
-            EffectiveSeverity = newEffectiveSeverity;
-
-            NotifyPropertyChanged(nameof(EffectiveSeverity));
-            NotifyPropertyChanged(nameof(IconMoniker));
-        }
-    }
+        => new BrowseObject(this);
 
     private static ImageMoniker MapEffectiveSeverityToIconMoniker(ReportDiagnostic effectiveSeverity)
         => effectiveSeverity switch
@@ -64,11 +50,6 @@ internal partial class DiagnosticItem(
             ReportDiagnostic.Suppress => KnownMonikers.CodeSuppressedRule,
             _ => default,
         };
-
-    private void NotifyPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
 
     internal void SetRuleSetSeverity(ReportDiagnostic value, string pathToRuleSet)
     {
@@ -87,7 +68,9 @@ internal partial class DiagnosticItem(
     }
 
     public override int GetHashCode()
-        => throw new NotImplementedException();
+        => Hash.Combine(this.Name,
+            Hash.Combine(this.ProjectId,
+            Hash.Combine(this.Descriptor.GetHashCode(), (int)this.EffectiveSeverity)));
 
     public override bool Equals(object obj)
         => Equals(obj as DiagnosticItem);

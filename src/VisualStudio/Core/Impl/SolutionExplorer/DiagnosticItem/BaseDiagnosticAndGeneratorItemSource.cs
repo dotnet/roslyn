@@ -43,12 +43,6 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
     /// </summary>
     private AnalyzerReference? _analyzerReference_DoNotAccessDirectly;
 
-    // Last computed values for this data.
-
-    private ReportDiagnostic _generalDiagnosticOption;
-    private ImmutableDictionary<string, ReportDiagnostic>? _specificDiagnosticOptions;
-    private AnalyzerConfigData? _analyzerConfigOptions;
-
     public BaseDiagnosticAndGeneratorItemSource(
         Workspace workspace,
         ProjectId projectId,
@@ -111,10 +105,6 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 
             _cancellationTokenSource.Cancel();
             _items.Clear();
-
-            _generalDiagnosticOption = default;
-            _specificDiagnosticOptions = null;
-            _analyzerConfigOptions = null;
             return;
         }
 
@@ -122,27 +112,30 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         var newSourceGeneratorItems = await GenerateSourceGeneratorItemsAsync(
             project, analyzerReference).ConfigureAwait(false);
 
-        if (!_items.SequenceEqual([.. newDiagnosticItems, .. newSourceGeneratorItems]))
+        if (_items.SequenceEqual([.. newDiagnosticItems, .. newSourceGeneratorItems]))
+            return;
+
+        _items.BeginBulkOperation();
+        try
         {
-            _items.BeginBulkOperation();
-            try
-            {
-                _items.AddRange(newDiagnosticItems);
-                _items.AddRange(newSourceGeneratorItems);
-            }
-            finally
-            {
-                _items.EndBulkOperation();
-            }
+            _items.AddRange(newDiagnosticItems);
+            _items.AddRange(newSourceGeneratorItems);
+        }
+        finally
+        {
+            _items.EndBulkOperation();
         }
 
-        UpdateEffectiveSeverity();
         return;
 
         ImmutableArray<BaseItem> GenerateDiagnosticItems(
             Project project,
             AnalyzerReference analyzerReference)
         {
+            var generalDiagnosticOption = project.CompilationOptions!.GeneralDiagnosticOption;
+            var specificDiagnosticOptions = project.CompilationOptions!.SpecificDiagnosticOptions;
+            var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
+
             return analyzerReference.GetAnalyzers(project.Language)
                 .SelectMany(a => _diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a))
                 .GroupBy(d => d.Id)
@@ -150,7 +143,10 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
                 .SelectAsArray(g =>
                 {
                     var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
-                    var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(project.CompilationOptions!, _analyzerConfigOptions?.ConfigOptions, _analyzerConfigOptions?.TreeOptions);
+                    var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(
+                        project.CompilationOptions!,
+                        analyzerConfigOptions?.ConfigOptions,
+                        analyzerConfigOptions?.TreeOptions);
                     return (BaseItem)new DiagnosticItem(project.Id, analyzerReference, selectedDiagnostic, effectiveSeverity, CommandHandler);
                 });
         }
@@ -178,29 +174,6 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 
             return result.Value.SelectAsArray(
                 identity => (BaseItem)new SourceGeneratorItem(project.Id, identity, analyzerFileReference.FullPath));
-        }
-
-        void UpdateEffectiveSeverity()
-        {
-            var newGeneralDiagnosticOption = project.CompilationOptions!.GeneralDiagnosticOption;
-            var newSpecificDiagnosticOptions = project.CompilationOptions!.SpecificDiagnosticOptions;
-            var newAnalyzerConfigOptions = project.GetAnalyzerConfigOptions();
-
-            if (newGeneralDiagnosticOption != _generalDiagnosticOption ||
-                !object.ReferenceEquals(newSpecificDiagnosticOptions, _specificDiagnosticOptions) ||
-                !object.ReferenceEquals(newAnalyzerConfigOptions?.TreeOptions, _analyzerConfigOptions?.TreeOptions) ||
-                !object.ReferenceEquals(newAnalyzerConfigOptions?.ConfigOptions, _analyzerConfigOptions?.ConfigOptions))
-            {
-                _generalDiagnosticOption = newGeneralDiagnosticOption;
-                _specificDiagnosticOptions = newSpecificDiagnosticOptions;
-                _analyzerConfigOptions = newAnalyzerConfigOptions;
-
-                foreach (var item in _items.OfType<DiagnosticItem>())
-                {
-                    var effectiveSeverity = item.Descriptor.GetEffectiveSeverity(project.CompilationOptions, newAnalyzerConfigOptions?.ConfigOptions, newAnalyzerConfigOptions?.TreeOptions);
-                    item.UpdateEffectiveSeverity(effectiveSeverity);
-                }
-            }
         }
     }
 
