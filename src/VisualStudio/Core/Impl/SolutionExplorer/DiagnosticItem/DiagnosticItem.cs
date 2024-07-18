@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using ICSharpCode.Decompiler.IL;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes.Configuration;
 using Microsoft.CodeAnalysis.Diagnostics;
