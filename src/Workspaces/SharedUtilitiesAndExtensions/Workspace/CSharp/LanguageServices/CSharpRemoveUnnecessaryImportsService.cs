@@ -5,28 +5,19 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-
-#if CODE_STYLE
-using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
-#else
-using Formatter = Microsoft.CodeAnalysis.Formatting.Formatter;
-#endif
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports;
 
@@ -40,10 +31,8 @@ internal partial class CSharpRemoveUnnecessaryImportsService :
     {
     }
 
-#if CODE_STYLE
-    private static ISyntaxFormatting GetSyntaxFormatting()
+    private static ISyntaxFormatting SyntaxFormatting
         => CSharpSyntaxFormatting.Instance;
-#endif
 
     protected override IUnnecessaryImportsProvider<UsingDirectiveSyntax> UnnecessaryImportsProvider
         => CSharpUnnecessaryImportsProvider.Instance;
@@ -51,11 +40,8 @@ internal partial class CSharpRemoveUnnecessaryImportsService :
     public override async Task<Document> RemoveUnnecessaryImportsAsync(
         Document document,
         Func<SyntaxNode, bool>? predicate,
-        SyntaxFormattingOptions? formattingOptions,
         CancellationToken cancellationToken)
     {
-        Contract.ThrowIfNull(formattingOptions);
-
         predicate ??= Functions<SyntaxNode>.True;
         using (Logger.LogBlock(FunctionId.Refactoring_RemoveUnnecessaryImports_CSharp, cancellationToken))
         {
@@ -72,14 +58,13 @@ internal partial class CSharpRemoveUnnecessaryImportsService :
             var newRoot = (CompilationUnitSyntax)new Rewriter(unnecessaryImports, cancellationToken).Visit(oldRoot);
 
             cancellationToken.ThrowIfCancellationRequested();
-#if CODE_STYLE
-            var provider = GetSyntaxFormatting();
-#else
-            var provider = document.Project.Solution.Services;
-#endif
-            var spans = new List<TextSpan>();
-            AddFormattingSpans(newRoot, spans, cancellationToken);
-            var formattedRoot = Formatter.Format(newRoot, spans, provider, formattingOptions, rules: default, cancellationToken);
+
+            var spansToFormat = new List<TextSpan>();
+            AddFormattingSpans(newRoot, spansToFormat, cancellationToken);
+
+            var options = await document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var formattingOptions = options.GetFormattingOptions(SyntaxFormatting);
+            var formattedRoot = SyntaxFormatting.GetFormattingResult(newRoot, spansToFormat, formattingOptions, rules: default, cancellationToken).GetFormattedRoot(cancellationToken);
 
             return document.WithSyntaxRoot(formattedRoot);
         }
