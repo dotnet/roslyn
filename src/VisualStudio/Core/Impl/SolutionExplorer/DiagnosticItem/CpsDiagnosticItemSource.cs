@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
@@ -22,6 +23,7 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public CpsDiagnosticItemSource(
+        IThreadingContext threadingContext,
         Workspace workspace,
         string projectPath,
         ProjectId projectId,
@@ -29,7 +31,7 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
         IAnalyzersCommandHandler commandHandler,
         IDiagnosticAnalyzerService analyzerService,
         IAsynchronousOperationListenerProvider listenerProvider)
-        : base(workspace, projectId, commandHandler, analyzerService, listenerProvider)
+        : base(threadingContext, workspace, projectId, commandHandler, analyzerService, listenerProvider)
     {
         _item = item;
         _projectDirectoryPath = Path.GetDirectoryName(projectPath);

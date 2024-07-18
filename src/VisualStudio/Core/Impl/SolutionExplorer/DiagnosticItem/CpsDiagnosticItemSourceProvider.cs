@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -27,12 +28,14 @@ using Workspace = Microsoft.CodeAnalysis.Workspace;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CpsDiagnosticItemSourceProvider(
+    IThreadingContext threadingContext,
     [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler,
     IDiagnosticAnalyzerService diagnosticAnalyzerService,
     VisualStudioWorkspace workspace,
     IAsynchronousOperationListenerProvider listenerProvider)
     : AttachedCollectionSourceProvider<IVsHierarchyItem>
 {
+    private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly IAnalyzersCommandHandler _commandHandler = commandHandler;
     private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService = diagnosticAnalyzerService;
     private readonly Workspace _workspace = workspace;
@@ -60,7 +63,7 @@ internal sealed class CpsDiagnosticItemSourceProvider(
                         if (hierarchy.GetCanonicalName(itemId, out var projectCanonicalName) == VSConstants.S_OK)
                         {
                             return new CpsDiagnosticItemSource(
-                                _workspace, projectCanonicalName, projectId, item, _commandHandler, _diagnosticAnalyzerService, _listenerProvider);
+                                _threadingContext, _workspace, projectCanonicalName, projectId, item, _commandHandler, _diagnosticAnalyzerService, _listenerProvider);
                         }
                     }
                 }

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
@@ -12,11 +13,13 @@ internal sealed partial class LegacyDiagnosticItemSource : BaseDiagnosticAndGene
     private readonly AnalyzerItem _item;
 
     public LegacyDiagnosticItemSource(
+        IThreadingContext threadingContext,
         AnalyzerItem item,
         IAnalyzersCommandHandler commandHandler,
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
         IAsynchronousOperationListenerProvider listenerProvider)
         : base(
+            threadingContext,
             item.AnalyzersFolder.Workspace,
             item.AnalyzersFolder.ProjectId,
             commandHandler,

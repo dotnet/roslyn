@@ -261,6 +261,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             workspace.OnAnalyzerReferenceAdded(projectId, analyzerReference)
 
             Return New LegacyDiagnosticItemSource(
+                workspace.GetService(Of IThreadingContext),
                 New AnalyzerItem(New AnalyzersFolderItem(workspace, projectId, Nothing, Nothing), analyzerReference, Nothing),
                 New FakeAnalyzersCommandHandler,
                 workspace.GetService(Of IDiagnosticAnalyzerService),

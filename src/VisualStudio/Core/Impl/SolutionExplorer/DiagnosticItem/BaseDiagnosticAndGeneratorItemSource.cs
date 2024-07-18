@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -32,6 +33,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly AsyncBatchingWorkQueue _workQueue;
+    private readonly IThreadingContext _threadingContext;
 
     protected Workspace Workspace { get; }
     protected ProjectId ProjectId { get; }
@@ -44,12 +46,14 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
     private AnalyzerReference? _analyzerReference_DoNotAccessDirectly;
 
     public BaseDiagnosticAndGeneratorItemSource(
+        IThreadingContext threadingContext,
         Workspace workspace,
         ProjectId projectId,
         IAnalyzersCommandHandler commandHandler,
         IDiagnosticAnalyzerService diagnosticAnalyzerService,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
+        _threadingContext = threadingContext;
         Workspace = workspace;
         ProjectId = projectId;
         CommandHandler = commandHandler;
@@ -114,6 +118,8 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 
         if (_items.SequenceEqual([.. newDiagnosticItems, .. newSourceGeneratorItems]))
             return;
+
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         _items.BeginBulkOperation();
         try

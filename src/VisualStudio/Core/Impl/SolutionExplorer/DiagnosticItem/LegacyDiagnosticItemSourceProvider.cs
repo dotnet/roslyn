@@ -5,6 +5,7 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -20,6 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class LegacyDiagnosticItemSourceProvider(
+    IThreadingContext threadingContext,
     [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler,
     IDiagnosticAnalyzerService diagnosticAnalyzerService,
     IAsynchronousOperationListenerProvider listenerProvider) : AttachedCollectionSourceProvider<AnalyzerItem>
@@ -29,7 +31,7 @@ internal sealed class LegacyDiagnosticItemSourceProvider(
         if (relationshipName == KnownRelationships.Contains)
         {
             return new LegacyDiagnosticItemSource(
-                item, commandHandler, diagnosticAnalyzerService, listenerProvider);
+                threadingContext, item, commandHandler, diagnosticAnalyzerService, listenerProvider);
         }
 
         return null;
