@@ -40,10 +40,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseConditionalExpression
             Return statement
         End Function
 
-        Protected Overrides ReadOnly Property SyntaxFormatting As ISyntaxFormatting
-            Get
-                Return VisualBasicSyntaxFormatting.Instance
-            End Get
-        End Property
+        Protected Overrides ReadOnly Property SyntaxFormatting As ISyntaxFormatting = VisualBasicSyntaxFormatting.Instance
     End Class
 End Namespace
