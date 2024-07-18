@@ -14,9 +14,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             : base(item.AnalyzersFolder.Workspace, item.AnalyzersFolder.ProjectId, commandHandler, diagnosticAnalyzerService)
         {
             _item = item;
+            this.AnalyzerReference = item.AnalyzerReference;
         }
 
         public override object SourceItem => _item;
-        public override AnalyzerReference AnalyzerReference => _item.AnalyzerReference;
     }
 }

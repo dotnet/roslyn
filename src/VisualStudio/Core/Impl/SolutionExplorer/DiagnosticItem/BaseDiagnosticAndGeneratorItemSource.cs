@@ -9,8 +9,10 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
@@ -22,34 +24,63 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
     private static readonly DiagnosticDescriptorComparer s_comparer = new();
 
     private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
+    private readonly IAsynchronousOperationListener _listener;
+    private readonly BulkObservableCollection<BaseItem> _items = new();
+    private readonly AsyncBatchingWorkQueue _workQueue;
 
-    private BulkObservableCollection<BaseItem> _items = new();
     private ReportDiagnostic _generalDiagnosticOption;
     private ImmutableDictionary<string, ReportDiagnostic>? _specificDiagnosticOptions;
     private AnalyzerConfigData? _analyzerConfigOptions;
 
+    private AnalyzerReference? _analyzerReference_DoNotAccessDirectly;
+
     public BaseDiagnosticAndGeneratorItemSource(
+        IThreadingContext threadingContext,
         Workspace workspace,
         ProjectId projectId,
         IAnalyzersCommandHandler commandHandler,
-        IDiagnosticAnalyzerService diagnosticAnalyzerService)
+        IDiagnosticAnalyzerService diagnosticAnalyzerService,
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
         Workspace = workspace;
         ProjectId = projectId;
         CommandHandler = commandHandler;
         _diagnosticAnalyzerService = diagnosticAnalyzerService;
+
+        _listener = listenerProvider.GetListener(FeatureAttribute.SourceGenerators);
+        _workQueue = new AsyncBatchingWorkQueue(
+            DelayTimeSpan.Idle,
+            ProcessQueueAsync,
+            _listener,
+            threadingContext.DisposalToken);
+    }
+
+    public AnalyzerReference? AnalyzerReference
+    {
+        get => _analyzerReference_DoNotAccessDirectly;
+        protected set
+        {
+            Contract.ThrowIfTrue(_analyzerReference_DoNotAccessDirectly != null);
+            _analyzerReference_DoNotAccessDirectly = value;
+
+            // Listen for changes that would affect the set of analyzers/generators in this reference, and kick off work
+            // to now get the items for this source.
+            Workspace.WorkspaceChanged += OnWorkspaceChangedLookForOptionsChanges;
+            _workQueue.AddWork();
+        }
     }
 
     public Workspace Workspace { get; }
     public ProjectId ProjectId { get; }
     protected IAnalyzersCommandHandler CommandHandler { get; }
 
-    public abstract AnalyzerReference? AnalyzerReference { get; }
-
     public abstract object SourceItem { get; }
 
     [MemberNotNullWhen(true, nameof(AnalyzerReference))]
-    public bool HasItems
+    // Defer actual determination and computation of the items until later.
+    public bool HasItems => this.AnalyzerReference != null;
+
+    #if false
     {
         get
         {
@@ -74,6 +105,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
                    AnalyzerReference.GetGenerators(project.Language).Any();
         }
     }
+#endif
 
     public IEnumerable Items
     {
@@ -135,10 +167,11 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
     private void OnWorkspaceChangedLookForOptionsChanges(object sender, WorkspaceChangeEventArgs e)
     {
         if (e.Kind is WorkspaceChangeKind.SolutionCleared or
-            WorkspaceChangeKind.SolutionReloaded or
-            WorkspaceChangeKind.SolutionRemoved)
+                      WorkspaceChangeKind.SolutionReloaded or
+                      WorkspaceChangeKind.SolutionRemoved)
         {
-            Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForOptionsChanges;
+            _workQueue.AddWork();
+            // Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForOptionsChanges;
         }
         else if (e.ProjectId == ProjectId)
         {
