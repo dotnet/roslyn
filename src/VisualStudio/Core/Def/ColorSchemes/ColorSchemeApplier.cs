@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
+using Microsoft.Win32;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.ColorSchemes;
@@ -180,7 +181,27 @@ internal sealed partial class ColorSchemeApplier
             return KnownColorThemes.Blue;
         }
 
-        return Guid.Parse(currentThemeString);
+        var themeId = Guid.Parse(currentThemeString);
+
+        if (themeId == KnownColorThemes.System)
+        {
+            themeId = ShouldAppsUseLightTheme()
+                ? KnownColorThemes.Light
+                : KnownColorThemes.Dark;
+        }
+
+        return themeId;
+    }
+
+    private static bool ShouldAppsUseLightTheme()
+    {
+        const string PersonalizeKey = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
+        const string AppsUseLightThemeValue = "AppsUseLightTheme";
+        const string appsUseDarkTheme = "0";
+
+        using var personalizeKey = Registry.CurrentUser.OpenSubKey(PersonalizeKey, writable: false);
+        var appsThemeValue = personalizeKey?.GetValue(AppsUseLightThemeValue)?.ToString();
+        return appsThemeValue != appsUseDarkTheme;
     }
 
     // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.
