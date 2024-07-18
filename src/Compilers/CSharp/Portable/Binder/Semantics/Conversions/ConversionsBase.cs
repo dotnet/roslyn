@@ -1899,7 +1899,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         // Spec 7.6.5.2: "An extension method ... is eligible if ... [an] implicit identity, reference,
-        // or boxing conversion exists from expr to the type of the first parameter"
+        // boxing, or span conversion exists from expr to the type of the first parameter.
+        // Span conversion is not considered when overload resolution is performed for a method group conversion."
         public Conversion ClassifyImplicitExtensionMethodThisArgConversion(BoundExpression sourceExpressionOpt, TypeSymbol sourceType, TypeSymbol destination, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo, bool isMethodGroupConversion)
         {
             Debug.Assert(sourceExpressionOpt is null || Compilation is not null);
