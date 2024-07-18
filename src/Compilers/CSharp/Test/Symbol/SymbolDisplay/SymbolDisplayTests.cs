@@ -2664,7 +2664,7 @@ namespace N1 {
                 GetTypeMembers("C2").Single();
 
             var format = new SymbolDisplayFormat(
-                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces);
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces, miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
 
             TestSymbolDescription(
                 text,
@@ -2676,6 +2676,35 @@ namespace N1 {
                 SymbolDisplayPartKind.AliasName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact]
+        public void TestAliases_AliasesNamedRecordAreEscaped()
+        {
+            var text = @"
+using @record = N1;
+
+namespace N1 {
+    class C1 {} }
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.GetNestedNamespace("N1").
+                GetTypeMembers("C1").Single();
+
+            var format = new SymbolDisplayFormat(
+                typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces, miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                "@record.C1",
+                text.IndexOf("namespace", StringComparison.Ordinal),
+                true,
+                SymbolDisplayPartKind.AliasName,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.ClassName);
         }

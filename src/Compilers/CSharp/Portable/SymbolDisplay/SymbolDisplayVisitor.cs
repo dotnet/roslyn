@@ -103,11 +103,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new SymbolDisplayPart(kind, symbol, text);
             }
 
-            bool isNamedTypeOrAliasName = symbol?.Kind is SymbolKind.NamedType or SymbolKind.Alias;
-
-            bool isEscapable = IsEscapable(kind);
-
-            text = isEscapable ? EscapeIdentifier(text, isNamedTypeOrAliasName) : text;
+            if (IsEscapable(kind))
+            {
+                text = EscapeIdentifier(text, symbol?.Kind is SymbolKind.NamedType or SymbolKind.Alias);
+            }
 
             return new SymbolDisplayPart(kind, symbol, text);
         }
