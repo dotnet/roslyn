@@ -34,6 +34,7 @@
     <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="Newtonsoft.Json" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+    <PackageReference Include="System.Text.Json" VersionOverride="8.0.4" PrivateAssets="All" Condition="'$(DotnetBuildFromSource)' != 'true'"/>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\*.cs" Link="InternalUtilities\%(FileName).cs" />
