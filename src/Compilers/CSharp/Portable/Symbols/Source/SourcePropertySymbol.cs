@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 out bool hasAccessorList,
                 out bool accessorsHaveImplementation,
-                out bool generateBackingFieldAlways,
+                out bool usesFieldKeyword,
                 out bool isInitOnly,
                 out var getSyntax,
                 out var setSyntax);
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
                 accessorsHaveImplementation: accessorsHaveImplementation,
-                generateBackingFieldAlways: generateBackingFieldAlways,
+                usesFieldKeyword: usesFieldKeyword,
                 memberName,
                 location,
                 diagnostics);
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExpressionBodied,
             bool isInitOnly,
             bool accessorsHaveImplementation,
-            bool generateBackingFieldAlways,
+            bool usesFieldKeyword,
             string memberName,
             Location location,
             BindingDiagnosticBag diagnostics)
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
                 accessorsHaveImplementation: accessorsHaveImplementation,
-                generateBackingFieldAlways: generateBackingFieldAlways,
+                usesFieldKeyword: usesFieldKeyword,
                 syntax.Type.SkipScoped(out _).GetRefKindInLocalOrReturn(diagnostics),
                 memberName,
                 syntax.AttributeLists,
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BindingDiagnosticBag diagnostics,
             out bool hasAccessorList,
             out bool accessorsHaveImplementation,
-            out bool generateBackingFieldAlways,
+            out bool usesFieldKeyword,
             out bool isInitOnly,
             out CSharpSyntaxNode? getSyntax,
             out CSharpSyntaxNode? setSyntax)
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasAccessorList)
             {
-                generateBackingFieldAlways = false;
+                usesFieldKeyword = false;
                 accessorsHaveImplementation = false;
                 foreach (var accessor in syntax.AccessorList!.Accessors)
                 {
@@ -264,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (body != null)
                     {
                         accessorsHaveImplementation = true;
-                        generateBackingFieldAlways = generateBackingFieldAlways || containsFieldKeyword(body);
+                        usesFieldKeyword = usesFieldKeyword || containsFieldKeyword(body);
                     }
                 }
             }
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var body = GetArrowExpression(syntax);
                 accessorsHaveImplementation = body is object;
-                generateBackingFieldAlways = body is { } && containsFieldKeyword(body);
+                usesFieldKeyword = body is { } && containsFieldKeyword(body);
                 Debug.Assert(accessorsHaveImplementation); // it's not clear how this even parsed as a property if it has no accessor list and no arrow expression.
             }
 

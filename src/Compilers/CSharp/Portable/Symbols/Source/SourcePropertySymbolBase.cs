@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExpressionBodied,
             bool isInitOnly,
             bool accessorsHaveImplementation,
-            bool generateBackingFieldAlways,
+            bool usesFieldKeyword,
             RefKind refKind,
             string memberName,
             SyntaxList<AttributeListSyntax> indexerNameAttributeLists,
@@ -161,13 +161,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _name = _lazySourceName = memberName;
             }
 
-            if (generateBackingFieldAlways || (isAutoProperty && hasGetAccessor) || hasInitializer)
+            if (usesFieldKeyword || (isAutoProperty && hasGetAccessor) || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
                 string fieldName = GeneratedNames.MakeBackingFieldName(_name);
                 BackingField = new SynthesizedBackingFieldSymbol(this,
                                                                       fieldName,
-                                                                      isReadOnly: (hasGetAccessor && !hasSetAccessor) || isInitOnly,
+                                                                      // Synthesized backing field for 'field' should not be marked 'initonly'
+                                                                      // since the field might be modified in the get accessor.
+                                                                      isReadOnly: !usesFieldKeyword && ((hasGetAccessor && !hasSetAccessor) || isInitOnly),
                                                                       this.IsStatic,
                                                                       hasInitializer);
             }
