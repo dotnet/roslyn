@@ -123,6 +123,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         _items.BeginBulkOperation();
         try
         {
+            _items.Clear();
             _items.AddRange(newDiagnosticItems);
             _items.AddRange(newSourceGeneratorItems);
         }
