@@ -17,8 +17,9 @@ internal partial class AnalyzerItem(
     IContextMenuController contextMenuController) : BaseItem(GetNameText(analyzerReference))
 {
     private readonly AnalyzersFolderItem _analyzersFolder = analyzersFolder;
-    private readonly AnalyzerReference _analyzerReference = analyzerReference;
     private readonly IContextMenuController _contextMenuController = contextMenuController;
+
+    public AnalyzerReference AnalyzerReference { get; } = analyzerReference;
 
     public override ImageMoniker IconMoniker
     {
@@ -32,7 +33,7 @@ internal partial class AnalyzerItem(
     {
         get
         {
-            if (_analyzerReference is UnresolvedAnalyzerReference)
+            if (this.AnalyzerReference is UnresolvedAnalyzerReference)
             {
                 return KnownMonikers.OverlayWarning;
             }
@@ -46,11 +47,6 @@ internal partial class AnalyzerItem(
     public override object GetBrowseObject()
     {
         return new BrowseObject(this);
-    }
-
-    public AnalyzerFileReference AnalyzerReference
-    {
-        get { return _analyzerReference; }
     }
 
     public override IContextMenuController ContextMenuController
@@ -68,7 +64,7 @@ internal partial class AnalyzerItem(
     /// </summary>
     public void Remove()
     {
-        _analyzersFolder.RemoveAnalyzer(_analyzerReference.FullPath);
+        _analyzersFolder.RemoveAnalyzer(this.AnalyzerReference.FullPath);
     }
 
     private static string GetNameText(AnalyzerReference analyzerReference)

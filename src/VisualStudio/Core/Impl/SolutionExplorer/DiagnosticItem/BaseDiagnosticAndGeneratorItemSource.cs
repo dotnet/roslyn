@@ -5,7 +5,6 @@
 using System;
 using System.Collections;
 using System.Collections.Immutable;
-using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -78,8 +77,6 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             // to now get the items for this source.
             Workspace.WorkspaceChanged += OnWorkspaceChanged;
             _workQueue.AddWork();
-
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
         }
     }
 
