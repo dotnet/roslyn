@@ -76,6 +76,9 @@ internal sealed partial class DiagnosticItem(
 
     public bool Equals(DiagnosticItem? other)
     {
+        if (this == other)
+            return true;
+
         return other != null &&
             this.Name == other.Name &&
             this.ProjectId == other.ProjectId &&

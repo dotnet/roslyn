@@ -35,6 +35,9 @@ internal sealed partial class SourceGeneratorItem(
 
     public bool Equals(SourceGeneratorItem? other)
     {
+        if (this == other)
+            return true;
+
         return other != null &&
             this.Name == other.Name &&
             this.ProjectId == other.ProjectId &&
