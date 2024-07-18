@@ -5,6 +5,7 @@
 using System;
 using System.Collections;
 using System.Collections.Immutable;
+using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -36,6 +37,10 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
     private ImmutableDictionary<string, ReportDiagnostic>? _specificDiagnosticOptions;
     private AnalyzerConfigData? _analyzerConfigOptions;
 
+    /// <summary>
+    /// The analyzer reference that has been found. Once it's been assigned a non-null value, it'll never be assigned
+    /// <see langword="null"/> again.
+    /// </summary>
     private AnalyzerReference? _analyzerReference_DoNotAccessDirectly;
 
     public BaseDiagnosticAndGeneratorItemSource(
@@ -64,12 +69,17 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         protected set
         {
             Contract.ThrowIfTrue(_analyzerReference_DoNotAccessDirectly != null);
+            if (value is null)
+                return;
+
             _analyzerReference_DoNotAccessDirectly = value;
 
             // Listen for changes that would affect the set of analyzers/generators in this reference, and kick off work
             // to now get the items for this source.
             Workspace.WorkspaceChanged += OnWorkspaceChanged;
             _workQueue.AddWork();
+
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));
         }
     }
 
