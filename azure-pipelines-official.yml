@@ -36,6 +36,18 @@ parameters:
   type: boolean
   default: true
 
+schedules:
+  - cron: "0 8 23-29 * 0"
+    displayName: "Monthly smoke test"
+    branches:
+      include: 
+        - main
+        - release/*
+      exclude: 
+        - ""
+    always: true # Run even if there have been no source code changes since the last successful scheduled run
+    batch: false # Do not run the pipeline if the previously scheduled run is in-progress
+
 # The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
   - name: _DotNetArtifactsCategory
