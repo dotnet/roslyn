@@ -16,56 +16,25 @@ internal partial class AnalyzerItem(
     AnalyzerReference analyzerReference,
     IContextMenuController contextMenuController) : BaseItem(GetNameText(analyzerReference))
 {
-    private readonly AnalyzersFolderItem _analyzersFolder = analyzersFolder;
-    private readonly IContextMenuController _contextMenuController = contextMenuController;
-
+    public AnalyzersFolderItem AnalyzersFolder { get; } = analyzersFolder;
     public AnalyzerReference AnalyzerReference { get; } = analyzerReference;
+    public override IContextMenuController ContextMenuController { get; } = contextMenuController;
 
-    public override ImageMoniker IconMoniker
-    {
-        get
-        {
-            return KnownMonikers.CodeInformation;
-        }
-    }
+    public override ImageMoniker IconMoniker => KnownMonikers.CodeInformation;
 
     public override ImageMoniker OverlayIconMoniker
-    {
-        get
-        {
-            if (this.AnalyzerReference is UnresolvedAnalyzerReference)
-            {
-                return KnownMonikers.OverlayWarning;
-            }
-            else
-            {
-                return default;
-            }
-        }
-    }
+        => this.AnalyzerReference is UnresolvedAnalyzerReference
+            ? KnownMonikers.OverlayWarning
+            : default;
 
     public override object GetBrowseObject()
-    {
-        return new BrowseObject(this);
-    }
-
-    public override IContextMenuController ContextMenuController
-    {
-        get { return _contextMenuController; }
-    }
-
-    public AnalyzersFolderItem AnalyzersFolder
-    {
-        get { return _analyzersFolder; }
-    }
+        => new BrowseObject(this);
 
     /// <summary>
     /// Remove this AnalyzerItem from it's folder.
     /// </summary>
     public void Remove()
-    {
-        _analyzersFolder.RemoveAnalyzer(this.AnalyzerReference.FullPath);
-    }
+        => this.AnalyzersFolder.RemoveAnalyzer(this.AnalyzerReference.FullPath);
 
     private static string GetNameText(AnalyzerReference analyzerReference)
     {
