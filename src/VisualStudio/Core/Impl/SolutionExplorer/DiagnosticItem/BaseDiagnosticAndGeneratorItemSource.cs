@@ -62,10 +62,10 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             _cancellationTokenSource.Token);
     }
 
-    public AnalyzerReference? AnalyzerReference
+    protected AnalyzerReference? AnalyzerReference
     {
         get => _analyzerReference_DoNotAccessDirectly;
-        protected set
+        set
         {
             Contract.ThrowIfTrue(_analyzerReference_DoNotAccessDirectly != null);
             if (value is null)
@@ -80,8 +80,8 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         }
     }
 
-    public Workspace Workspace { get; }
-    public ProjectId ProjectId { get; }
+    protected Workspace Workspace { get; }
+    protected ProjectId ProjectId { get; }
     protected IAnalyzersCommandHandler CommandHandler { get; }
 
     public abstract object SourceItem { get; }
