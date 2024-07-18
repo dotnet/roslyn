@@ -263,7 +263,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Return New LegacyDiagnosticItemSource(
                 New AnalyzerItem(New AnalyzersFolderItem(workspace, projectId, Nothing, Nothing), analyzerReference, Nothing),
                 New FakeAnalyzersCommandHandler,
-                workspace.GetService(Of IDiagnosticAnalyzerService))
+                workspace.GetService(Of IDiagnosticAnalyzerService),
+                workspace.GetService(Of IAsynchronousOperationListenerProvider))
         End Function
 
         Private Shared Function CreateSourceGeneratedFilesItemSource(workspace As EditorTestWorkspace, generatorItem As SourceGeneratorItem) As Shell.IAttachedCollectionSource

@@ -6,6 +6,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.[Shared].TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.Internal.VisualStudio.PlatformUI
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
@@ -40,7 +41,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     project.FilePath,
                     project.Id,
                     New MockHierarchyItem() With {.CanonicalName = "\net472\analyzerdependency\" + analyzerPath},
-                    New FakeAnalyzersCommandHandler, workspace.GetService(Of IDiagnosticAnalyzerService))
+                    New FakeAnalyzersCommandHandler, workspace.GetService(Of IDiagnosticAnalyzerService),
+                    workspace.GetService(Of IAsynchronousOperationListenerProvider))
 
                 Assert.True(source.HasItems)
                 Dim diagnostic = Assert.IsAssignableFrom(Of ITreeDisplayItem)(Assert.Single(source.Items))

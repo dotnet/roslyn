@@ -32,15 +32,21 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly AsyncBatchingWorkQueue _workQueue;
 
-    private ReportDiagnostic _generalDiagnosticOption;
-    private ImmutableDictionary<string, ReportDiagnostic>? _specificDiagnosticOptions;
-    private AnalyzerConfigData? _analyzerConfigOptions;
+    protected Workspace Workspace { get; }
+    protected ProjectId ProjectId { get; }
+    protected IAnalyzersCommandHandler CommandHandler { get; }
 
     /// <summary>
     /// The analyzer reference that has been found. Once it's been assigned a non-null value, it'll never be assigned
     /// <see langword="null"/> again.
     /// </summary>
     private AnalyzerReference? _analyzerReference_DoNotAccessDirectly;
+
+    // Last computed values for this data.
+
+    private ReportDiagnostic _generalDiagnosticOption;
+    private ImmutableDictionary<string, ReportDiagnostic>? _specificDiagnosticOptions;
+    private AnalyzerConfigData? _analyzerConfigOptions;
 
     public BaseDiagnosticAndGeneratorItemSource(
         Workspace workspace,
@@ -80,15 +86,11 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         }
     }
 
-    protected Workspace Workspace { get; }
-    protected ProjectId ProjectId { get; }
-    protected IAnalyzersCommandHandler CommandHandler { get; }
-
     public abstract object SourceItem { get; }
 
     [MemberNotNullWhen(true, nameof(AnalyzerReference))]
     // Defer actual determination and computation of the items until later.
-    public bool HasItems => this.AnalyzerReference != null;
+    public bool HasItems => this.AnalyzerReference != null && !_cancellationTokenSource.IsCancellationRequested;
 
     public IEnumerable Items => _items;
 
@@ -104,6 +106,8 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         var project = this.Workspace.CurrentSolution.GetProject(this.ProjectId);
         if (project is null || !project.AnalyzerReferences.Contains(analyzerReference))
         {
+            this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+
             _cancellationTokenSource.Cancel();
             _items.Clear();
 
@@ -201,36 +205,24 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 
     private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
     {
-        if (e.Kind is WorkspaceChangeKind.SolutionCleared or
-                      WorkspaceChangeKind.SolutionReloaded or
-                      WorkspaceChangeKind.SolutionRemoved)
+        switch (e.Kind)
         {
             // Solution is going away or being reloaded. The work queue will detect this and clean up accordingly.
-            _workQueue.AddWork();
-        }
-        else if (e.ProjectId == ProjectId)
-        {
-            if (e.Kind is WorkspaceChangeKind.ProjectRemoved)
-            {
-                // The project itself is being removed.  The work queue will detect this and clean up accordingly.
+            case WorkspaceChangeKind.SolutionCleared:
+            case WorkspaceChangeKind.SolutionReloaded:
+            case WorkspaceChangeKind.SolutionRemoved:
+            // The project itself is being removed.  The work queue will detect this and clean up accordingly.
+            case WorkspaceChangeKind.ProjectRemoved:
+            case WorkspaceChangeKind.ProjectChanged:
+            // Could change the severity of an analyzer.
+            case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
+            case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
+            case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
+            case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
                 _workQueue.AddWork();
-            }
-            else if (e.Kind == WorkspaceChangeKind.ProjectChanged)
-            {
-                _workQueue.AddWork();
-            }
-            else if (e.DocumentId != null)
-            {
-                switch (e.Kind)
-                {
-                    case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
-                    case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
-                    case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
-                    case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
-                        _workQueue.AddWork();
-                        break;
-                }
-            }
+                break;
+            default:
+                break;
         }
     }
 }
