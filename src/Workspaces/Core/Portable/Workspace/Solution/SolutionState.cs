@@ -1137,7 +1137,7 @@ internal sealed partial class SolutionState
 
     private StateChange UpdateAdditionalDocumentState(AdditionalDocumentState newDocument, bool contentChanged)
     {
-        var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
+        var oldProject = GetRequiredProjectState(newDocument.Id.ProjectId);
         var newProject = oldProject.UpdateAdditionalDocument(newDocument, contentChanged);
 
         // This method shouldn't have been called if the document has not changed.
@@ -1148,7 +1148,7 @@ internal sealed partial class SolutionState
 
     private StateChange UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument)
     {
-        var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
+        var oldProject = GetRequiredProjectState(newDocument.Id.ProjectId);
         var newProject = oldProject.UpdateAnalyzerConfigDocument(newDocument);
 
         // This method shouldn't have been called if the document has not changed.
