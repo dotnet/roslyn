@@ -7,6 +7,8 @@ using System.Collections;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -26,6 +28,8 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
     private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
     private readonly IAsynchronousOperationListener _listener;
     private readonly BulkObservableCollection<BaseItem> _items = new();
+
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly AsyncBatchingWorkQueue _workQueue;
 
     private ReportDiagnostic _generalDiagnosticOption;
@@ -35,7 +39,6 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
     private AnalyzerReference? _analyzerReference_DoNotAccessDirectly;
 
     public BaseDiagnosticAndGeneratorItemSource(
-        IThreadingContext threadingContext,
         Workspace workspace,
         ProjectId projectId,
         IAnalyzersCommandHandler commandHandler,
@@ -52,7 +55,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             DelayTimeSpan.Idle,
             ProcessQueueAsync,
             _listener,
-            threadingContext.DisposalToken);
+            _cancellationTokenSource.Token);
     }
 
     public AnalyzerReference? AnalyzerReference
@@ -65,7 +68,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 
             // Listen for changes that would affect the set of analyzers/generators in this reference, and kick off work
             // to now get the items for this source.
-            Workspace.WorkspaceChanged += OnWorkspaceChangedLookForOptionsChanges;
+            Workspace.WorkspaceChanged += OnWorkspaceChanged;
             _workQueue.AddWork();
         }
     }
@@ -80,7 +83,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
     // Defer actual determination and computation of the items until later.
     public bool HasItems => this.AnalyzerReference != null;
 
-    #if false
+#if false
     {
         get
         {
@@ -107,7 +110,8 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
     }
 #endif
 
-    public IEnumerable Items
+    public IEnumerable Items => _items;
+    #if false
     {
         get
         {
@@ -129,6 +133,12 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 
             return _items;
         }
+    }
+#endif
+
+    private async ValueTask ProcessQueueAsync(CancellationToken token)
+    {
+        throw new NotImplementedException();
     }
 
     private BulkObservableCollection<BaseItem> CreateDiagnosticAndGeneratorItems(ProjectId projectId, string language, CompilationOptions options, AnalyzerConfigData? analyzerConfigOptions)
@@ -164,24 +174,26 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         return collection;
     }
 
-    private void OnWorkspaceChangedLookForOptionsChanges(object sender, WorkspaceChangeEventArgs e)
+    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
     {
         if (e.Kind is WorkspaceChangeKind.SolutionCleared or
                       WorkspaceChangeKind.SolutionReloaded or
                       WorkspaceChangeKind.SolutionRemoved)
         {
-            _workQueue.AddWork();
-            // Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForOptionsChanges;
+            // Solution is going away or being reloaded.  We can stop all our processing. If it is being reloaded, a new
+            // instance of this type will be create after the reload and will track the solution from that point on.
+            _cancellationTokenSource.Cancel();
         }
         else if (e.ProjectId == ProjectId)
         {
-            if (e.Kind == WorkspaceChangeKind.ProjectRemoved)
+            if (e.Kind is WorkspaceChangeKind.ProjectRemoved)
             {
-                Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForOptionsChanges;
+                // Similarly, if the project itself is removed.  There's no need to continue processing.
+                _cancellationTokenSource.Cancel();
             }
             else if (e.Kind == WorkspaceChangeKind.ProjectChanged)
             {
-                OnProjectConfigurationChanged();
+                _workQueue.AddWork();
             }
             else if (e.DocumentId != null)
             {
@@ -191,7 +203,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
                     case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
                     case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
                     case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
-                        OnProjectConfigurationChanged();
+                        _workQueue.AddWork();
                         break;
                 }
             }

@@ -7,28 +7,23 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
+
+internal sealed partial class SourceGeneratorItem(
+    ProjectId projectId,
+    string generatorName,
+    SourceGeneratorIdentity generatorIdentity,
+    AnalyzerReference analyzerReference) : BaseItem(generatorName)
 {
-    internal sealed partial class SourceGeneratorItem : BaseItem
+    public ProjectId ProjectId { get; } = projectId;
+    public SourceGeneratorIdentity Identity { get; } = generatorIdentity;
+    public AnalyzerReference AnalyzerReference { get; } = analyzerReference;
+
+    // TODO: do we need an icon for our use?
+    public override ImageMoniker IconMoniker => KnownMonikers.Process;
+
+    public override object GetBrowseObject()
     {
-        public ProjectId ProjectId { get; }
-        public SourceGeneratorIdentity Identity { get; }
-        public AnalyzerReference AnalyzerReference { get; }
-
-        public SourceGeneratorItem(ProjectId projectId, ISourceGenerator generator, AnalyzerReference analyzerReference)
-            : base(name: SourceGeneratorIdentity.GetGeneratorTypeName(generator))
-        {
-            ProjectId = projectId;
-            Identity = SourceGeneratorIdentity.Create(generator, analyzerReference);
-            AnalyzerReference = analyzerReference;
-        }
-
-        // TODO: do we need an icon for our use?
-        public override ImageMoniker IconMoniker => KnownMonikers.Process;
-
-        public override object GetBrowseObject()
-        {
-            return new BrowseObject(this);
-        }
+        return new BrowseObject(this);
     }
 }
