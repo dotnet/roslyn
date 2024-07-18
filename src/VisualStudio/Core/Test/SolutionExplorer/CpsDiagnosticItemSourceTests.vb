@@ -5,18 +5,21 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.[Shared].Utilities
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.[Shared].TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.Internal.VisualStudio.PlatformUI
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 Imports Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Framework
 Imports Microsoft.VisualStudio.Shell
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
     <UseExportProvider>
     Public Class CpsDiagnosticItemSourceTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
-        Public Sub AnalyzerHasDiagnostics()
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        Public Async Function AnalyzerHasDiagnostics() As Task
             Dim workspaceXml =
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
@@ -35,6 +38,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                 Const analyzerPath = "C:\Analyzer.dll"
                 workspace.OnAnalyzerReferenceAdded(project.Id, New TestAnalyzerReferenceByLanguage(analyzers, analyzerPath))
 
+                Dim listenerProvider = workspace.GetService(Of IAsynchronousOperationListenerProvider)
                 Dim source As IAttachedCollectionSource = New CpsDiagnosticItemSource(
                     workspace,
                     project.FilePath,
@@ -43,9 +47,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
                     New FakeAnalyzersCommandHandler, workspace.GetService(Of IDiagnosticAnalyzerService))
 
                 Assert.True(source.HasItems)
+
+                Dim waiter = DirectCast(listenerProvider.GetListener(FeatureAttribute.SourceGenerators), IAsynchronousOperationWaiter)
+                Await waiter.ExpeditedWaitAsync()
+
                 Dim diagnostic = Assert.IsAssignableFrom(Of ITreeDisplayItem)(Assert.Single(source.Items))
                 Assert.Contains(IDEDiagnosticIds.UseAutoPropertyDiagnosticId, diagnostic.Text)
             End Using
-        End Sub
+        End Function
     End Class
 End Namespace

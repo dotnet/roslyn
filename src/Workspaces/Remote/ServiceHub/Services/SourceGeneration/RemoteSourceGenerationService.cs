@@ -29,7 +29,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             => new RemoteSourceGenerationService(arguments);
     }
 
-    public ValueTask<ImmutableArray<SourceGeneratedDocmentInfo>> GetSourceGeneratedDocumentInfoAsync(
+    public ValueTask<ImmutableArray<SourceGeneratedDocumentInfo>> GetSourceGeneratedDocumentInfoAsync(
         Checksum solutionChecksum, ProjectId projectId, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
@@ -38,7 +38,7 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(
                 project.State, withFrozenSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
-            var result = new FixedSizeArrayBuilder<SourceGeneratedDocmentInfo>(documentStates.States.Count);
+            var result = new FixedSizeArrayBuilder<SourceGeneratedDocumentInfo>(documentStates.States.Count);
             foreach (var (id, state) in documentStates.States)
             {
                 Contract.ThrowIfFalse(id.IsSourceGenerated);

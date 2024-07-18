@@ -4,19 +4,26 @@
 
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
+
+internal sealed partial class LegacyDiagnosticItemSource : BaseDiagnosticAndGeneratorItemSource
 {
-    internal partial class LegacyDiagnosticItemSource : BaseDiagnosticAndGeneratorItemSource
+    private readonly AnalyzerItem _item;
+
+    public LegacyDiagnosticItemSource(
+        AnalyzerItem item,
+        IAnalyzersCommandHandler commandHandler,
+        IDiagnosticAnalyzerService diagnosticAnalyzerService)
+        : base(
+            item.AnalyzersFolder.Workspace,
+            item.AnalyzersFolder.ProjectId,
+            commandHandler,
+            diagnosticAnalyzerService)
     {
-        private readonly AnalyzerItem _item;
-
-        public LegacyDiagnosticItemSource(AnalyzerItem item, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService diagnosticAnalyzerService)
-            : base(item.AnalyzersFolder.Workspace, item.AnalyzersFolder.ProjectId, commandHandler, diagnosticAnalyzerService)
-        {
-            _item = item;
-        }
-
-        public override object SourceItem => _item;
-        public override AnalyzerReference AnalyzerReference => _item.AnalyzerReference;
+        _item = item;
     }
+
+    public override object SourceItem => _item;
+
+    public override AnalyzerReference? AnalyzerReference => _item.AnalyzerReference;
 }
