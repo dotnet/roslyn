@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration;
@@ -50,7 +51,16 @@ internal interface IRemoteSourceGenerationService
     ValueTask<bool> HasGeneratorsAsync(
         Checksum solutionChecksum, ProjectId projectId, ImmutableArray<Checksum> analyzerReferenceChecksums, string language, CancellationToken cancellationToken);
 
-    ValueTask<ImmutableArray<(string generatorName, SourceGeneratorIdentity identity, string filePath)>> GetAnalyzerReferenceSourceGeneratorInfoAsync(
+    /// <summary>
+    /// Returns information about the source generators found in the <see cref="AnalyzerReference"/> with <see
+    /// cref="AnalyzerFileReference.FullPath"/> equal to <paramref name="analyzerReferenceFullPath"/>.
+    /// </summary>
+    /// <param name="solutionChecksum"></param>
+    /// <param name="projectId"></param>
+    /// <param name="analyzerReferenceFullPath"></param>
+    /// <param name="cancellationToken"></param>
+    /// <returns></returns>
+    ValueTask<ImmutableArray<SourceGeneratorIdentity>> GetSourceGeneratorIdentitiesAsync(
         Checksum solutionChecksum, ProjectId projectId, string analyzerReferenceFullPath, CancellationToken cancellationToken);
 }
 

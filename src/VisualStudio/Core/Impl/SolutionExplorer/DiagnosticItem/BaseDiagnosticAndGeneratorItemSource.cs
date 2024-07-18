@@ -161,11 +161,9 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
             if (analyzerReference is not AnalyzerFileReference analyzerFileReference)
                 return [];
 
-            var result = await client.TryInvokeAsync<
-                    IRemoteSourceGenerationService,
-                    ImmutableArray<(string generatorName, SourceGeneratorIdentity identity, string filePath)>>(
+            var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, ImmutableArray<SourceGeneratorIdentity>>(
                 project,
-                (service, solutionChecksum, cancellationToken) => service.GetAnalyzerReferenceSourceGeneratorInfoAsync(
+                (service, solutionChecksum, cancellationToken) => service.GetSourceGeneratorIdentitiesAsync(
                     solutionChecksum, project.Id, analyzerFileReference.FullPath, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
@@ -174,7 +172,7 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
                 return [];
 
             return result.Value.SelectAsArray(
-                v => new SourceGeneratorItem(project.Id, v.generatorName, v.identity, v.filePath));
+                identity => new SourceGeneratorItem(project.Id, identity, analyzerFileReference.FullPath));
         }
 
         void UpdateEffectiveSeverity()

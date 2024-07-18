@@ -132,4 +132,25 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
 
         return false;
     }
+
+    public ValueTask<ImmutableArray<SourceGeneratorIdentity>> GetSourceGeneratorIdentitiesAsync(
+        Checksum solutionChecksum,
+        ProjectId projectId,
+        string analyzerReferenceFullPath,
+        CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(solutionChecksum, solution =>
+        {
+            var project = solution.GetRequiredProject(projectId);
+            var analyzerReference = project.AnalyzerReferences
+                .OfType<AnalyzerFileReference>()
+                .First(r => r.FullPath == analyzerReferenceFullPath);
+
+            using var _ = ArrayBuilder<SourceGeneratorIdentity>.GetInstance(out var result);
+            foreach (var generator in analyzerReference.GetGenerators(project.Language))
+                result.Add(SourceGeneratorIdentity.Create(generator, analyzerReference));
+
+            return ValueTaskFactory.FromResult(result.ToImmutableAndClear());
+        }, cancellationToken);
+    }
 }

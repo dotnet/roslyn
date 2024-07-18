@@ -11,9 +11,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
 internal sealed partial class SourceGeneratorItem(
     ProjectId projectId,
-    string name,
     SourceGeneratorIdentity identity,
-    string? path) : BaseItem(name), IEquatable<SourceGeneratorItem>
+    string? path) : BaseItem(identity.TypeName), IEquatable<SourceGeneratorItem>
 {
     public ProjectId ProjectId { get; } = projectId;
     public SourceGeneratorIdentity Identity { get; } = identity;
