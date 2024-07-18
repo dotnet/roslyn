@@ -52,14 +52,8 @@ internal interface IRemoteSourceGenerationService
         Checksum solutionChecksum, ProjectId projectId, ImmutableArray<Checksum> analyzerReferenceChecksums, string language, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Returns information about the source generators found in the <see cref="AnalyzerReference"/> with <see
+    /// Returns the identities for all source generators found in the <see cref="AnalyzerReference"/> with <see
     /// cref="AnalyzerFileReference.FullPath"/> equal to <paramref name="analyzerReferenceFullPath"/>.
-    /// </summary>
-    /// <param name="solutionChecksum"></param>
-    /// <param name="projectId"></param>
-    /// <param name="analyzerReferenceFullPath"></param>
-    /// <param name="cancellationToken"></param>
-    /// <returns></returns>
     ValueTask<ImmutableArray<SourceGeneratorIdentity>> GetSourceGeneratorIdentitiesAsync(
         Checksum solutionChecksum, ProjectId projectId, string analyzerReferenceFullPath, CancellationToken cancellationToken);
 }
