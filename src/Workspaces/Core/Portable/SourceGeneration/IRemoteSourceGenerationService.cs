@@ -54,6 +54,7 @@ internal interface IRemoteSourceGenerationService
     /// <summary>
     /// Returns the identities for all source generators found in the <see cref="AnalyzerReference"/> with <see
     /// cref="AnalyzerFileReference.FullPath"/> equal to <paramref name="analyzerReferenceFullPath"/>.
+    /// </summary>
     ValueTask<ImmutableArray<SourceGeneratorIdentity>> GetSourceGeneratorIdentitiesAsync(
         Checksum solutionChecksum, ProjectId projectId, string analyzerReferenceFullPath, CancellationToken cancellationToken);
 }
