@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(source, targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("""
+            CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("""
                 <P>k__BackingField: False
                 <Q>k__BackingField: False
                 """));

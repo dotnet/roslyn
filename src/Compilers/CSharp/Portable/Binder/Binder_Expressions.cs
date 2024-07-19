@@ -1793,6 +1793,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        // PROTOTYPE: Inline this method if BindFieldExpression is the only caller.
         private static void ReportFieldContextualKeywordConflict(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
         {
             string name = identifier.Text;
