@@ -4868,7 +4868,7 @@ namespace Microsoft.CodeAnalysis
                 "CopyTo",                                   // System_Span_T__CopyTo_Span_T
                 "CopyTo",                                   // System_ReadOnlySpan_T__CopyTo_Span_T
                 "AsSpan",                                   // System_Collections_Immutable_ImmutableArray_T__AsSpan
-                "Empty",                                   // System_Collections_Immutable_ImmutableArray_T__Empty
+                "Empty",                                    // System_Collections_Immutable_ImmutableArray_T__Empty
                 "AddRange",                                 // System_Collections_Generic_List_T__AddRange
                 ".ctor",                                    // System_Runtime_CompilerServices_ParamCollectionAttribute__ctor
             };
