@@ -1788,10 +1788,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // PROTOTYPE: Inline this method if BindFieldExpression is the only caller.
         private static void ReportFieldContextualKeywordConflict(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
         {
             string name = identifier.Text;
+            // PROTOTYPE: Report the diagnostic in LanguageParser.ParseTermWithoutPostfix() (regardless
+            // of whether we treat the 'field' token as an identifier or keyword) rather than here.
             var requiredVersion = MessageID.IDS_FeatureFieldKeyword.RequiredVersion();
             diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
         }

@@ -213,6 +213,61 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
+        public void FieldInInitializer_01()
+        {
+            string source = """
+                class C
+                {
+                    object P { get; } = F(field);
+                    static object F(object value) => value;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,27): error CS0103: The name 'field' does not exist in the current context
+                //     object P { get; } = F(field);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 27));
+        }
+
+        [Fact]
+        public void FieldInInitializer_02()
+        {
+            string source = """
+                class C
+                {
+                    object P { get => null; } = field;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS8050: Only auto-implemented properties can have initializers.
+                //     object P { get => null; } = field;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(3, 12),
+                // (3,33): error CS0103: The name 'field' does not exist in the current context
+                //     object P { get => null; } = field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 33));
+        }
+
+        [Fact]
+        public void FieldInInitializer_03()
+        {
+            string source = """
+                class C
+                {
+                    object P { set { } } = field;
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,12): error CS8050: Only auto-implemented properties can have initializers.
+                //     object P { set { } } = field;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(3, 12),
+                // (3,28): error CS0103: The name 'field' does not exist in the current context
+                //     object P { set { } } = field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 28));
+        }
+
+        [Fact]
         public void RefProperty()
         {
             string source = """
