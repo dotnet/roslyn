@@ -62,10 +62,10 @@ internal sealed partial class ColorSchemeApplier
         _colorSchemes = ColorSchemeSettings.GetColorSchemes();
         _classificationVerifier = new ClassificationVerifier(threadingContext, fontAndColorStorage, _colorSchemes);
         _workQueue = new(
-            TimeSpan.FromMilliseconds(1000),
-            async (token) => await QueueColorSchemeUpdateAsync().ConfigureAwait(false),
+            DelayTimeSpan.Idle,
+            QueueColorSchemeUpdateAsync,
             listenerProvider.GetListener(FeatureAttribute.ColorScheme),
-            CancellationToken.None);
+            threadingContext.DisposalToken);
     }
 
     public async Task InitializeAsync(CancellationToken cancellationToken)
@@ -124,10 +124,10 @@ internal sealed partial class ColorSchemeApplier
         return Task.CompletedTask;
     }
 
-    private async Task QueueColorSchemeUpdateAsync()
+    private async ValueTask QueueColorSchemeUpdateAsync(CancellationToken token)
     {
         // Wait until things have settled down from the theme change, since we will potentially be changing theme colors.
-        await VsTaskLibraryHelper.StartOnIdle(_threadingContext.JoinableTaskFactory, () => UpdateColorSchemeAsync(_threadingContext.DisposalToken));
+        await VsTaskLibraryHelper.StartOnIdle(_threadingContext.JoinableTaskFactory, () => UpdateColorSchemeAsync(token));
     }
 
     /// <summary>
