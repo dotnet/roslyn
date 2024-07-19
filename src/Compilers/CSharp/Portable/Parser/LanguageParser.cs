@@ -8599,7 +8599,7 @@ done:;
                     return true;
 
                 case SyntaxKind.IdentifierToken:
-                    return IsTrueIdentifier() || IsCurrentTokenFieldInKeywordContext();
+                    return IsTrueIdentifier();
 
                 // Accessibility modifiers are not legal in a statement,
                 // but a common mistake for local functions. Parse to give a
@@ -10360,7 +10360,7 @@ done:;
                 case SyntaxKind.IdentifierToken:
                     // Specifically allow the from contextual keyword, because it can always be the start of an
                     // expression (whether it is used as an identifier or a keyword).
-                    return this.IsTrueIdentifier() || IsCurrentTokenFieldInKeywordContext() || this.CurrentToken.ContextualKind == SyntaxKind.FromKeyword;
+                    return this.IsTrueIdentifier() || this.CurrentToken.ContextualKind == SyntaxKind.FromKeyword;
                 default:
                     return IsPredefinedType(tk)
                         || SyntaxFacts.IsAnyUnaryExpression(tk)
@@ -13778,9 +13778,6 @@ tryAgain:
             internal readonly TerminatorState TerminatorState;
             internal readonly bool IsInAsync;
             internal readonly bool IsInQuery;
-            // PROTOTYPE: Why do we need this? We don't need something similar for 'partial'
-            // for instance (see IsCurrentTokenPartialKeywordOfPartialMethodOrType).
-            // PROTOTYPE: Test cases where this makes a difference. That is, where we need to change this and reset it.
             internal readonly bool IsInFieldKeywordContext;
 
             internal ResetPoint(

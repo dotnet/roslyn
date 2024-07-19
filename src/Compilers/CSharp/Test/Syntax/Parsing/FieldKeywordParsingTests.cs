@@ -1265,6 +1265,105 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             EOF();
         }
 
+        [Fact]
+        public void Incremental_ChangeBetweenMethodAndProperty()
+        {
+            var tree = ParseTree("""
+                class C
+                {
+                    object F() => field;
+                }
+                """,
+                TestOptions.RegularPreview);
+
+            verifyMethod(tree);
+            verifyProperty(tree.WithRemoveFirst("()"));
+
+            tree = ParseTree("""
+                class C
+                {
+                    object F => field;
+                }
+                """,
+                TestOptions.RegularPreview);
+
+            verifyProperty(tree);
+            verifyMethod(tree.WithInsertBefore(" =>", "()"));
+
+            void verifyMethod(SyntaxTree tree)
+            {
+                UsingTree(tree);
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "F");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "field");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+
+            void verifyProperty(SyntaxTree tree)
+            {
+                UsingTree(tree);
+                N(SyntaxKind.CompilationUnit);
+                {
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.PropertyDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.ObjectKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "F");
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.FieldExpression);
+                                {
+                                    N(SyntaxKind.FieldKeyword);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.EndOfFileToken);
+                }
+                EOF();
+            }
+        }
+
         // PROTOTYPE: Test all possible identifier token cases. See FieldKeywordTests.IdentifierToken_*. Already covered:
         // IdentifierToken_IdentifierNameSyntax
         // IdentifierToken_CatchDeclarationSyntax
