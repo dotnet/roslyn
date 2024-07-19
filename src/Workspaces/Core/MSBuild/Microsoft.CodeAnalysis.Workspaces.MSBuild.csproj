@@ -24,10 +24,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Build" />
     <PackageReference Include="Microsoft.Build.Tasks.Core" />
-
-    <!-- These PackageReferences aren't needed for the compiler for this project, but ensure correct NuGet packaging. Since we're bundling the BuildHost in lib/, we need to
-         ensure we include the references it needs, but since it's PrivateAssets="true" they don't flow into this package's package references when packaging. -->
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
   <ItemGroup>
@@ -38,7 +35,10 @@
          for it. PrivateAssets="all" is needed to prevent this reference from becoming a package reference in the package, as a workaround for
          https://github.com/NuGet/Home/issues/3891.
          -->
-    <ProjectReference Include="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" PrivateAssets="all">
+    <ProjectReference Include="..\MSBuild.BuildHost\Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost.csproj" PrivateAssets="all" ReferenceOutputAssembly="false">
+      <IncludeOutputInThisPackage>true</IncludeOutputInThisPackage>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Tools\ExternalAccess\RazorCompiler\Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler.csproj" PrivateAssets="all">
       <IncludeOutputInThisPackage>true</IncludeOutputInThisPackage>
     </ProjectReference>
   </ItemGroup>
@@ -50,18 +50,19 @@
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
-    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
+    <Compile Include="..\MSBuild.BuildHost\Rpc\Contracts\*.cs" Link="Rpc\Contracts\%(FileName).cs"/>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\MSBuild.BuildHost\Rpc\Readme.md" Link="Rpc\Readme.md" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="WorkspaceMSBuildResources.resx" GenerateSource="true" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Workspaces.MSBuild.UnitTests" />
+    <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" LoadsWithinVisualStudio="false" />
   </ItemGroup>
   <!--
     Include certain project reference binaries into this package in lib/ regular library.

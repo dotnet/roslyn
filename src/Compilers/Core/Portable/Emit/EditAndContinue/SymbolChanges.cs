@@ -414,6 +414,7 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 // Partial methods are supplied as implementations but recorded
                 // internally as definitions since definitions are used in emit.
+                // https://github.com/dotnet/roslyn/issues/73772: should we also make sure to use the definition for a partial property?
                 if (newMember.Kind == SymbolKind.Method)
                 {
                     var newMethod = (IMethodSymbolInternal)newMember;

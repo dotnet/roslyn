@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.BraceCompletion
-    <Export(LanguageNames.VisualBasic, GetType(IBraceCompletionService)), [Shared]>
+    <ExportBraceCompletionService(LanguageNames.VisualBasic), [Shared]>
     Friend Class InterpolatedStringBraceCompletionService
         Inherits AbstractVisualBasicBraceCompletionService
 

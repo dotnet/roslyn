@@ -204,6 +204,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 memberSet.Add(member);
 
                                 // Ensure that we include symbols for both parts of partial methods.
+                                // https://github.com/dotnet/roslyn/issues/73772: also cascade to partial property implementation part
                                 if (member is IMethodSymbol method &&
                                     !(method.PartialImplementationPart is null))
                                 {

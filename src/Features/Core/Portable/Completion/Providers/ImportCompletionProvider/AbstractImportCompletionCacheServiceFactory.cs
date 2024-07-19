@@ -48,10 +48,10 @@ internal abstract class AbstractImportCompletionCacheServiceFactory<TProjectCach
         }
 
         var workQueue = new AsyncBatchingWorkQueue<Project>(
-                TimeSpan.FromSeconds(1),
-                _processBatchAsync,
-                _listenerProvider.GetListener(FeatureAttribute.CompletionSet),
-                _disposalToken);
+            TimeSpan.FromSeconds(1),
+            _processBatchAsync,
+            _listenerProvider.GetListener(FeatureAttribute.CompletionSet),
+            _disposalToken);
 
         return new ImportCompletionCacheService(
             _peItemsCache, _projectItemsCache, workQueue);

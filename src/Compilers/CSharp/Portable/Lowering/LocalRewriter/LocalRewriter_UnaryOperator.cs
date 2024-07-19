@@ -438,8 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression transformedLHS = TransformCompoundAssignmentLHS(node.Operand, isRegularCompoundAssignment: true, tempInitializers, tempSymbols, isDynamic);
             TypeSymbol? operandType = transformedLHS.Type; //type of the variable being incremented
             Debug.Assert(operandType is { });
-            Debug.Assert(TypeSymbol.Equals(operandType, node.Type, TypeCompareKind.ConsiderEverything2) ||
-                         ShouldConvertResultOfAssignmentToDynamic(node, node.Operand));
+            Debug.Assert(TypeSymbol.Equals(operandType, node.Type, TypeCompareKind.ConsiderEverything2));
 
             LocalSymbol tempSymbol = _factory.SynthesizedLocal(operandType);
             tempSymbols.Add(tempSymbol);
@@ -473,21 +472,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             // In a case of the non-byref operand we use a single-sequence strategy as it results in shorter 
             // overall life time of temps and as such more appropriate. (problem of crossed reads does not affect that case)
             //
-            BoundExpression result;
-
             if (isIndirectOrInstanceField(transformedLHS))
             {
-                result = rewriteWithRefOperand(isPrefix, isChecked, tempSymbols, tempInitializers, syntax, transformedLHS, boundTemp, newValue);
+                return rewriteWithRefOperand(isPrefix, isChecked, tempSymbols, tempInitializers, syntax, transformedLHS, boundTemp, newValue);
             }
             else
             {
-                result = rewriteWithNotRefOperand(isPrefix, isChecked, tempSymbols, tempInitializers, syntax, transformedLHS, boundTemp, newValue);
+                return rewriteWithNotRefOperand(isPrefix, isChecked, tempSymbols, tempInitializers, syntax, transformedLHS, boundTemp, newValue);
             }
-
-            result = ConvertResultOfAssignmentToDynamicIfNecessary(node, node.Operand, result, used: true);
-            Debug.Assert(TypeSymbol.Equals(result.Type, node.Type, TypeCompareKind.AllIgnoreOptions));
-
-            return result;
 
             static bool isIndirectOrInstanceField(BoundExpression expression)
             {

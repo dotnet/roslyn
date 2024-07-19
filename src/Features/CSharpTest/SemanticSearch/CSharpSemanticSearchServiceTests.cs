@@ -240,7 +240,7 @@ public sealed class CSharpSemanticSearchServiceTests
         AssertEx.Equal(
             $"   at Program.<<Main>$>g__F|0_1(ISymbol s) in {FeaturesResources.Query}:line 11" + Environment.NewLine +
             $"   at Program.<>c.<<Main>$>b__0_2(ISymbol x) in {FeaturesResources.Query}:line 5" + Environment.NewLine +
-            $"   at System.Linq.Enumerable.SelectArrayIterator`2.MoveNext()" + Environment.NewLine,
+            $"   at System.Linq.Enumerable.ArraySelectIterator`2.MoveNext()" + Environment.NewLine,
             exception.StackTrace.JoinText());
     }
 }

@@ -54,11 +54,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(symbol));
             }
 
-            var builder = new StringBuilder();
+            var builder = PooledStringBuilder.GetInstance();
             var generator = new PrefixAndDeclarationGenerator(builder);
             generator.Visit(symbol);
 
-            return generator.Failed ? null : builder.ToString();
+            return generator.Failed ? null : builder.ToStringAndFree();
         }
 
         /// <summary>
@@ -86,10 +86,10 @@ namespace Microsoft.CodeAnalysis
                 return result;
             }
 
-            var builder = new StringBuilder();
+            var builder = PooledStringBuilder.GetInstance();
             var generator = new ReferenceGenerator(builder, typeParameterContext: null);
             generator.Visit(symbol);
-            return builder.ToString();
+            return builder.ToStringAndFree();
         }
 
         /// <summary>

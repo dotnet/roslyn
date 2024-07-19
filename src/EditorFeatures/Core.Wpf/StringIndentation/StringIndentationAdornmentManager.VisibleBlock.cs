@@ -44,17 +44,21 @@ namespace Microsoft.CodeAnalysis.Editor.StringIndentation
                 if (span.End.GetContainingLine().Start == span.End)
                     return null;
 
-                // We want to draw the line right before the quote character.  So -1 to get that character's position.
-                // Horizontally position the adornment in the center of the character.  This position could actually be
-                // 0 if the entire doc is deleted and we haven't recomputed the updated tags yet.  So be resilient for 
-                // the position being out of bounds.
+                // This position could actually be 0 if the entire doc is deleted
+                // and we haven't recomputed the updated tags yet. So be resilient
+                // for the position being out of bounds.
                 if (span.End == 0)
                     return null;
 
+                // We want to draw the line right before the quote character. So -1 to get that character's position.
+                // If we position the adornment right at the end of that character it will visually merge with the
+                // text, so we want to back it off a little bit to the left. Half of a virtual space is gonna do the trick.
+                // It is important to keep this value independent of what space character is used to avoid visual bugs
+                // like https://github.com/dotnet/roslyn/issues/64230
                 var bufferPosition = span.End - 1;
                 var anchorPointLine = view.GetTextViewLineContainingBufferPosition(bufferPosition);
                 var bounds = anchorPointLine.GetCharacterBounds(bufferPosition);
-                var x = Math.Floor((bounds.Left + bounds.Right) * 0.5);
+                var x = Math.Floor(bounds.Right - (anchorPointLine.VirtualSpaceWidth / 2));
 
                 var firstLine = view.TextViewLines.FirstVisibleLine;
                 var lastLine = view.TextViewLines.LastVisibleLine;

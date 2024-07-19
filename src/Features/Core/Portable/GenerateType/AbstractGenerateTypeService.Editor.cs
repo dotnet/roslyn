@@ -525,7 +525,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                     AddFoldersToNamespaceContainers(containerList, folders);
 
                     containers = [.. containerList];
-                    includeUsingsOrImports = string.Join(".", [.. containerList]);
+                    includeUsingsOrImports = string.Join(".", containers);
                 }
 
                 // Case 4 : If the type is generated into the same VB project or
@@ -539,7 +539,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                     // Populate the ContainerList
                     AddFoldersToNamespaceContainers(containerList, folders);
                     containers = [.. containerList];
-                    includeUsingsOrImports = string.Join(".", [.. containerList]);
+                    includeUsingsOrImports = string.Join(".", containers);
                     if (!string.IsNullOrWhiteSpace(rootNamespaceOfTheProjectGeneratedInto))
                     {
                         includeUsingsOrImports = string.IsNullOrEmpty(includeUsingsOrImports)

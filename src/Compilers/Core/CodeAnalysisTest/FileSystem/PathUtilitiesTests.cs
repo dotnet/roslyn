@@ -420,5 +420,44 @@ namespace Microsoft.CodeAnalysis.UnitTests.FileSystem
             var result = PathUtilities.GetRelativePath(@"/A/B/", @"/A/B");
             Assert.Equal(expected, result);
         }
+
+        [Theory]
+        [InlineData(@"//a/b/c", @"//a/b/c")]
+        [InlineData(@"/a\b/c/", @"/a/b/c/")]
+        [InlineData(@"\a\b/c/", @"/a/b/c/")]
+        [InlineData(@"C:\\a", @"C:/a")]
+        [InlineData(@"C:\a\b\c\", @"C:/a/b/c/")]
+        [InlineData(@"/\a", @"//a")]
+        [InlineData(@"a\\\b", @"a/b")]
+        [InlineData(@"\\\a\b\c", @"///a/b/c")]
+        [InlineData(@"\\\\a\b\c", @"///a/b/c")]
+        public void CollapseWithForwardSlash(string input, string output)
+        {
+            AssertEx.Equal(output, PathUtilities.CollapseWithForwardSlash(input.AsSpan()));
+        }
+
+        [ConditionalTheory(typeof(WindowsOnly))]
+        [InlineData(@"//a/b/c", @"//a/b/c")]
+        [InlineData(@"/a\b/c/", @"/a\b/c/")]
+        [InlineData(@"C:B", @"C:B")]
+        [InlineData(@"c:b", @"c:b")]
+        [InlineData(@"c:\b", @"C:\b")]
+        [InlineData(@"c:/b", @"C:/b")]
+        public void NormalizeDriveLetter_Windows(string input, string output)
+        {
+            AssertEx.Equal(output, PathUtilities.NormalizeDriveLetter(input));
+        }
+
+        [ConditionalTheory(typeof(UnixLikeOnly))]
+        [InlineData(@"//a/b/c")]
+        [InlineData(@"/a\b/c/")]
+        [InlineData(@"C:B")]
+        [InlineData(@"c:b")]
+        [InlineData(@"c:\b")]
+        [InlineData(@"c:/b")]
+        public void NormalizeDriveLetter_UnixLike(string input)
+        {
+            AssertEx.Equal(input, PathUtilities.NormalizeDriveLetter(input));
+        }
     }
 }

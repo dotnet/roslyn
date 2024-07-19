@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                         if (task.IsCompleted)
                         {
                             // Make sure to yield so continuations of 'task' can make progress.
-                            await AwaitExtensions.ConfigureAwait(Task.Yield(), false);
+                            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
                         }
                         else
                         {

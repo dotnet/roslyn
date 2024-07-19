@@ -130,7 +130,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 }
             };
 
-            var documents = (await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken)).ToList();
+            var documents = new List<Document>();
+            await foreach (var document in project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken))
+                documents.Add(document);
+
             var tasks = new List<Task>();
             foreach (var document in documents)
             {

@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -116,13 +117,13 @@ internal abstract class BaseFormattingRule : AbstractFormattingRule
         list.Add(FormattingOperations.CreateRelativeIndentBlockOperation(baseToken, startToken, endToken, indentationDelta: 0, option: option));
     }
 
-    protected static void AddSuppressWrappingIfOnSingleLineOperation(List<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
+    protected static void AddSuppressWrappingIfOnSingleLineOperation(ArrayBuilder<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
         => AddSuppressOperation(list, startToken, endToken, SuppressOption.NoWrappingIfOnSingleLine | extraOption);
 
-    protected static void AddSuppressAllOperationIfOnMultipleLine(List<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
+    protected static void AddSuppressAllOperationIfOnMultipleLine(ArrayBuilder<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption extraOption = SuppressOption.None)
         => AddSuppressOperation(list, startToken, endToken, SuppressOption.NoSpacingIfOnMultipleLine | SuppressOption.NoWrapping | extraOption);
 
-    protected static void AddSuppressOperation(List<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption option)
+    protected static void AddSuppressOperation(ArrayBuilder<SuppressOperation> list, SyntaxToken startToken, SyntaxToken endToken, SuppressOption option)
     {
         if (startToken.Kind() == SyntaxKind.None || endToken.Kind() == SyntaxKind.None)
         {
@@ -158,7 +159,7 @@ internal abstract class BaseFormattingRule : AbstractFormattingRule
     protected static AdjustSpacesOperation CreateAdjustSpacesOperation(int space, AdjustSpacesOption option)
         => FormattingOperations.CreateAdjustSpacesOperation(space, option);
 
-    protected static void AddBraceSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
+    protected static void AddBraceSuppressOperations(ArrayBuilder<SuppressOperation> list, SyntaxNode node)
     {
         var bracePair = node.GetBracePair();
         if (!bracePair.IsValidBracketOrBracePair())

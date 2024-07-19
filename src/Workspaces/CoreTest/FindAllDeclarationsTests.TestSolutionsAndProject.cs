@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        private Workspace CreateWorkspace(TestHost testHost = TestHost.InProcess)
+        private Workspace CreateWorkspace(TestHost testHost = TestHost.OutOfProcess)
         {
             var composition = FeaturesTestCompositions.Features.WithTestHostParts(testHost);
             var workspace = new AdhocWorkspace(composition.GetHostServices());
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return workspace;
         }
 
-        private Workspace CreateWorkspaceWithSolution(SolutionKind solutionKind, out Solution solution, TestHost testHost = TestHost.InProcess)
+        private Workspace CreateWorkspaceWithSolution(SolutionKind solutionKind, out Solution solution, TestHost testHost = TestHost.OutOfProcess)
             => solutionKind switch
             {
                 SolutionKind.SingleClass => CreateWorkspaceWithSingleProjectSolution(testHost, [SingleClass], out solution),
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 _ => throw ExceptionUtilities.UnexpectedValue(solutionKind),
             };
 
-        private Workspace CreateWorkspaceWithProject(SolutionKind solutionKind, out Project project, TestHost testHost = TestHost.InProcess)
+        private Workspace CreateWorkspaceWithProject(SolutionKind solutionKind, out Project project, TestHost testHost = TestHost.OutOfProcess)
         {
             var workspace = CreateWorkspaceWithSolution(solutionKind, out var solution, testHost);
             project = solution.Projects.First();

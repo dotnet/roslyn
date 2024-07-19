@@ -132,32 +132,32 @@ Gelişmiş renkleri kullan;Düzenleyici Renk Düzeni;Devralma Kenar Boşluğu;İ
       </trans-unit>
       <trans-unit id="Always_add_new_line_on_enter">
         <source>Always add new line on enter</source>
-        <target state="new">Always add new line on enter</target>
+        <target state="translated">Enter'a basıldığında her zaman yeni satır ekle</target>
         <note />
       </trans-unit>
       <trans-unit id="Always_include_snippets">
         <source>Always include snippets</source>
-        <target state="new">Always include snippets</target>
+        <target state="translated">Kod parçacıklarını her zaman dahil et</target>
         <note />
       </trans-unit>
       <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
         <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="new">Include snippets when ?-Tab is typed after an identifier</target>
+        <target state="translated">Bir tanımlayıcıdan sonra ?-Tab yazılırsa kod parçacıklarını dahil et</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_add_new_line_on_enter">
         <source>Never add new line on enter</source>
-        <target state="new">Never add new line on enter</target>
+        <target state="translated">Enter'a basıldığında hiçbir zaman yeni satır ekleme</target>
         <note />
       </trans-unit>
       <trans-unit id="Never_include_snippets">
         <source>Never include snippets</source>
-        <target state="new">Never include snippets</target>
+        <target state="translated">Kod parçacıklarını hiçbir zaman dahil etme</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_add_new_line_on_enter_after_end_of_fully_typed_word">
         <source>Only add new line on enter after end of fully typed word</source>
-        <target state="new">Only add new line on enter after end of fully typed word</target>
+        <target state="translated">Yalnızca tam olarak yazılmış bir kelimeden sonra Enter'a basıldığında yeni satır ekle</target>
         <note />
       </trans-unit>
     </body>

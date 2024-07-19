@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
@@ -31,6 +30,8 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         // accumulated cache for language services
         private ImmutableDictionary<string, MefLanguageServices> _languageServicesMap
             = ImmutableDictionary<string, MefLanguageServices>.Empty;
+
+        private ImmutableArray<string> _languages;
 
         public MefWorkspaceServices(IMefHostExportProvider host, Workspace workspace)
         {
@@ -86,29 +87,32 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             return service != null;
         }
 
-        private IEnumerable<string>? _languages;
-
-        private IEnumerable<string> GetSupportedLanguages()
+        private ImmutableArray<string> ComputeSupportedLanguages()
         {
-            if (_languages == null)
+            var localLanguages = _languages;
+            if (localLanguages.IsDefault)
             {
                 var list = _exportProvider.GetExports<ILanguageService, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language).Concat(
                            _exportProvider.GetExports<ILanguageServiceFactory, LanguageServiceMetadata>().Select(lz => lz.Metadata.Language))
-                           .Distinct();
+                           .Distinct()
+                           .ToImmutableArray();
 
-                Interlocked.CompareExchange(ref _languages, list, null);
+                ImmutableInterlocked.InterlockedCompareExchange(ref _languages, list, localLanguages);
             }
 
             return _languages;
         }
 
-        public override IEnumerable<string> SupportedLanguages
-        {
-            get { return this.GetSupportedLanguages(); }
-        }
+        public override IEnumerable<string> SupportedLanguages => ComputeSupportedLanguages();
+
+#if CODE_STYLE
+        internal ImmutableArray<string> SupportedLanguagesArray => ComputeSupportedLanguages();
+#else
+        internal override ImmutableArray<string> SupportedLanguagesArray => ComputeSupportedLanguages();
+#endif
 
         public override bool IsSupported(string languageName)
-            => this.GetSupportedLanguages().Contains(languageName);
+            => this.SupportedLanguagesArray.Contains(languageName);
 
         public override HostLanguageServices GetLanguageServices(string languageName)
         {
@@ -133,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 
         public override IEnumerable<TLanguageService> FindLanguageServices<TLanguageService>(MetadataFilter filter)
         {
-            foreach (var language in this.SupportedLanguages)
+            foreach (var language in SupportedLanguagesArray)
             {
 #pragma warning disable RS0030 // Do not used banned API 'GetLanguageServices', use 'GetExtendedLanguageServices' instead - allowed in this context.
                 var services = (MefLanguageServices)this.GetLanguageServices(language);

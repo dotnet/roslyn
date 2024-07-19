@@ -85,4 +85,10 @@ internal class CodeGenerationPropertySymbol(
     public ImmutableArray<CustomModifier> RefCustomModifiers => [];
 
     public ImmutableArray<CustomModifier> TypeCustomModifiers => [];
+
+    public IPropertySymbol PartialImplementationPart => null;
+
+    public IPropertySymbol PartialDefinitionPart => null;
+
+    public bool IsPartialDefinition => false;
 }

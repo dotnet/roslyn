@@ -105,7 +105,7 @@ internal partial class AutomaticLineEnderCommandHandler(
             root,
             [CommonFormattingHelpers.GetFormattingSpan(root, span.Value)],
             options,
-            rules: null,
+            rules: default,
             cancellationToken).GetTextChanges(cancellationToken);
     }
 

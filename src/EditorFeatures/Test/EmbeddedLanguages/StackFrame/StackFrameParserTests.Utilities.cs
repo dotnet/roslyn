@@ -14,135 +14,134 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using static Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame.StackFrameSyntaxFactory;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.EmbeddedLanguages.StackFrame;
+
+using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
+
+public partial class StackFrameParserTests
 {
-    using StackFrameToken = EmbeddedSyntaxToken<StackFrameKind>;
-
-    public partial class StackFrameParserTests
+    private static void Verify(
+        string input,
+        StackFrameMethodDeclarationNode? methodDeclaration = null,
+        bool expectFailure = false,
+        StackFrameFileInformationNode? fileInformation = null,
+        StackFrameToken? eolTokenOpt = null)
     {
-        private static void Verify(
-            string input,
-            StackFrameMethodDeclarationNode? methodDeclaration = null,
-            bool expectFailure = false,
-            StackFrameFileInformationNode? fileInformation = null,
-            StackFrameToken? eolTokenOpt = null)
+        FuzzyTest(input);
+
+        var tree = StackFrameParser.TryParse(input);
+        if (expectFailure)
         {
-            FuzzyTest(input);
-
-            var tree = StackFrameParser.TryParse(input);
-            if (expectFailure)
-            {
-                Assert.Null(tree);
-                return;
-            }
-
-            AssertEx.NotNull(tree);
-            VerifyCharacterSpans(input, tree);
-
-            if (methodDeclaration is null)
-            {
-                Assert.Null(tree.Root.MethodDeclaration);
-            }
-            else
-            {
-                StackFrameUtils.AssertEqual(methodDeclaration, tree.Root.MethodDeclaration);
-            }
-
-            if (fileInformation is null)
-            {
-                Assert.Null(tree.Root.FileInformationExpression);
-            }
-            else
-            {
-                StackFrameUtils.AssertEqual(fileInformation, tree.Root.FileInformationExpression);
-            }
-
-            var eolToken = eolTokenOpt.HasValue
-                ? eolTokenOpt.Value
-                : CreateToken(StackFrameKind.EndOfFrame, "");
-
-            StackFrameUtils.AssertEqual(eolToken, tree.Root.EndOfLineToken);
+            Assert.Null(tree);
+            return;
         }
 
-        /// <summary>
-        /// Tests that with a given input, no crashes are found
-        /// with multiple substrings of the input
-        /// </summary>
-        private static void FuzzyTest(string input)
-        {
-            for (var i = 0; i < input.Length - 1; i++)
-            {
-                StackFrameParser.TryParse(input[i..]);
-                StackFrameParser.TryParse(input[..^i]);
+        AssertEx.NotNull(tree);
+        VerifyCharacterSpans(input, tree);
 
-                for (var j = 0; j + i < input.Length; j++)
+        if (methodDeclaration is null)
+        {
+            Assert.Null(tree.Root.MethodDeclaration);
+        }
+        else
+        {
+            StackFrameUtils.AssertEqual(methodDeclaration, tree.Root.MethodDeclaration);
+        }
+
+        if (fileInformation is null)
+        {
+            Assert.Null(tree.Root.FileInformationExpression);
+        }
+        else
+        {
+            StackFrameUtils.AssertEqual(fileInformation, tree.Root.FileInformationExpression);
+        }
+
+        var eolToken = eolTokenOpt.HasValue
+            ? eolTokenOpt.Value
+            : CreateToken(StackFrameKind.EndOfFrame, "");
+
+        StackFrameUtils.AssertEqual(eolToken, tree.Root.EndOfLineToken);
+    }
+
+    /// <summary>
+    /// Tests that with a given input, no crashes are found
+    /// with multiple substrings of the input
+    /// </summary>
+    private static void FuzzyTest(string input)
+    {
+        for (var i = 0; i < input.Length - 1; i++)
+        {
+            StackFrameParser.TryParse(input[i..]);
+            StackFrameParser.TryParse(input[..^i]);
+
+            for (var j = 0; j + i < input.Length; j++)
+            {
+                var start = input[..j];
+                var end = input[(j + i)..];
+                StackFrameParser.TryParse(start + end);
+            }
+        }
+    }
+
+    private static void VerifyCharacterSpans(string originalText, StackFrameTree tree)
+    {
+        AssertEx.EqualOrDiff(originalText, tree.Root.ToFullString());
+
+        // Manually enumerate to verify that it works as expected and the spans align.
+        // This should be the same as ToFullString, but this tests that enumeration of the 
+        // tokens yields the correct order (which we can't guarantee with ToFullString depending
+        // on implementation). 
+        var textSeq = VirtualCharSequence.Create(0, originalText);
+        var index = 0;
+        List<VirtualChar> enumeratedParsedCharacters = [];
+
+        foreach (var charSeq in StackFrameUtils.Enumerate(tree.Root))
+        {
+            foreach (var ch in charSeq)
+            {
+                enumeratedParsedCharacters.Add(ch);
+
+                if (textSeq[index++] != ch)
                 {
-                    var start = input[..j];
-                    var end = input[(j + i)..];
-                    StackFrameParser.TryParse(start + end);
+                    Assert.True(false, PrintDifference());
                 }
             }
         }
 
-        private static void VerifyCharacterSpans(string originalText, StackFrameTree tree)
+        // Make sure we enumerated the total input
+        Assert.Equal(textSeq.Length, index);
+
+        string PrintDifference()
         {
-            AssertEx.EqualOrDiff(originalText, tree.Root.ToFullString());
+            var sb = new StringBuilder();
 
-            // Manually enumerate to verify that it works as expected and the spans align.
-            // This should be the same as ToFullString, but this tests that enumeration of the 
-            // tokens yields the correct order (which we can't guarantee with ToFullString depending
-            // on implementation). 
-            var textSeq = VirtualCharSequence.Create(0, originalText);
-            var index = 0;
-            List<VirtualChar> enumeratedParsedCharacters = [];
+            var start = Math.Max(0, index - 10);
+            var end = Math.Min(index, originalText.Length - 1);
 
-            foreach (var charSeq in StackFrameUtils.Enumerate(tree.Root))
+            sb.Append("Expected: \t");
+            PrintString(originalText, start, end, sb);
+            sb.AppendLine();
+
+            sb.Append("Actual: \t");
+            var enumeratedString = new string(enumeratedParsedCharacters.Select(ch => (char)ch.Value).ToArray());
+            PrintString(enumeratedString, start, end, sb);
+            sb.AppendLine();
+
+            return sb.ToString();
+
+            static void PrintString(string s, int start, int end, StringBuilder sb)
             {
-                foreach (var ch in charSeq)
+                if (start > 0)
                 {
-                    enumeratedParsedCharacters.Add(ch);
-
-                    if (textSeq[index++] != ch)
-                    {
-                        Assert.True(false, PrintDifference());
-                    }
+                    sb.Append("...");
                 }
-            }
 
-            // Make sure we enumerated the total input
-            Assert.Equal(textSeq.Length, index);
+                sb.Append(s[start..end]);
 
-            string PrintDifference()
-            {
-                var sb = new StringBuilder();
-
-                var start = Math.Max(0, index - 10);
-                var end = Math.Min(index, originalText.Length - 1);
-
-                sb.Append("Expected: \t");
-                PrintString(originalText, start, end, sb);
-                sb.AppendLine();
-
-                sb.Append("Actual: \t");
-                var enumeratedString = new string(enumeratedParsedCharacters.Select(ch => (char)ch.Value).ToArray());
-                PrintString(enumeratedString, start, end, sb);
-                sb.AppendLine();
-
-                return sb.ToString();
-
-                static void PrintString(string s, int start, int end, StringBuilder sb)
+                if (end < s.Length - 1)
                 {
-                    if (start > 0)
-                    {
-                        sb.Append("...");
-                    }
-
-                    sb.Append(s[start..end]);
-
-                    if (end < s.Length - 1)
-                    {
-                        sb.Append("...");
-                    }
+                    sb.Append("...");
                 }
             }
         }

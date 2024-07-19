@@ -17,30 +17,30 @@ using Roslyn.VisualStudio.IntegrationTests;
 using WindowsInput.Native;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp
+namespace Roslyn.VisualStudio.NewIntegrationTests.CSharp;
+
+[Trait(Traits.Feature, Traits.Features.FindReferences)]
+public class CSharpFindReferences : AbstractEditorTest
 {
-    [Trait(Traits.Feature, Traits.Features.FindReferences)]
-    public class CSharpFindReferences : AbstractEditorTest
+    public CSharpFindReferences()
+        : base(nameof(CSharpFindReferences))
     {
-        public CSharpFindReferences()
-            : base(nameof(CSharpFindReferences))
-        {
-        }
+    }
 
-        protected override string LanguageName => LanguageNames.CSharp;
+    protected override string LanguageName => LanguageNames.CSharp;
 
-        [IdeFact]
-        public async Task FindReferencesToCtor()
-        {
-            await SetUpEditorAsync(@"
+    [IdeFact]
+    public async Task FindReferencesToCtor()
+    {
+        await SetUpEditorAsync(@"
 class Program
 {
 }$$
 ", HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "File2.cs", cancellationToken: HangMitigatingCancellationToken);
-            await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "File2.cs", HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.AddFileAsync(ProjectName, "File2.cs", cancellationToken: HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.OpenFileAsync(ProjectName, "File2.cs", HangMitigatingCancellationToken);
 
-            await SetUpEditorAsync(@"
+        await SetUpEditorAsync(@"
 class SomeOtherClass
 {
     void M()
@@ -50,41 +50,41 @@ class SomeOtherClass
 }
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
+        await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
-            var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
+        var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
-            Assert.Collection(
-                results,
-                new Action<ITableEntryHandle2>[]
+        Assert.Collection(
+            results,
+            new Action<ITableEntryHandle2>[]
+            {
+                reference =>
                 {
-                    reference =>
-                    {
-                        Assert.Equal(expected: "class Program", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                        Assert.Equal(expected: 1, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
-                        Assert.Equal(expected: 6, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
-                    },
-                    reference =>
-                    {
-                        Assert.Equal(expected: "Program p = new Program();", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                        Assert.Equal(expected: 5, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
-                        Assert.Equal(expected: 24, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
-                    }
-                });
+                    Assert.Equal(expected: "class Program", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
+                    Assert.Equal(expected: 1, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
+                    Assert.Equal(expected: 6, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
+                },
+                reference =>
+                {
+                    Assert.Equal(expected: "Program p = new Program();", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
+                    Assert.Equal(expected: 5, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
+                    Assert.Equal(expected: 24, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
+                }
+            });
 
-            results[0].NavigateTo(isPreview: false, shouldActivate: true);
-            await WaitForNavigateAsync(HangMitigatingCancellationToken);
+        results[0].NavigateTo(isPreview: false, shouldActivate: true);
+        await WaitForNavigateAsync(HangMitigatingCancellationToken);
 
-            // Assert we are in the right file now
-            Assert.Equal($"Class1.cs", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
-            Assert.Equal("Program", await TestServices.Editor.GetLineTextAfterCaretAsync(HangMitigatingCancellationToken));
-        }
+        // Assert we are in the right file now
+        Assert.Equal($"Class1.cs", await TestServices.Shell.GetActiveDocumentFileNameAsync(HangMitigatingCancellationToken));
+        Assert.Equal("Program", await TestServices.Editor.GetLineTextAfterCaretAsync(HangMitigatingCancellationToken));
+    }
 
-        [IdeFact]
-        public async Task FindReferencesToLocals()
-        {
-            await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
-            await SetUpEditorAsync(@"
+    [IdeFact]
+    public async Task FindReferencesToLocals()
+    {
+        await using var telemetry = await TestServices.Telemetry.EnableTestTelemetryChannelAsync(HangMitigatingCancellationToken);
+        await SetUpEditorAsync(@"
 class Program
 {
     static void Main()
@@ -95,35 +95,35 @@ class Program
 }
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
+        await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
-            var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
+        var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
-            Assert.Collection(
-                results,
-                new Action<ITableEntryHandle2>[]
+        Assert.Collection(
+            results,
+            new Action<ITableEntryHandle2>[]
+            {
+                reference =>
                 {
-                    reference =>
-                    {
-                        Assert.Equal(expected: "int local = 1;", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                        Assert.Equal(expected: 5, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
-                        Assert.Equal(expected: 12, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
-                    },
-                    reference =>
-                    {
-                        Assert.Equal(expected: "Console.WriteLine(local);", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                        Assert.Equal(expected: 6, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
-                        Assert.Equal(expected: 26, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
-                    }
-                });
+                    Assert.Equal(expected: "int local = 1;", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
+                    Assert.Equal(expected: 5, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
+                    Assert.Equal(expected: 12, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
+                },
+                reference =>
+                {
+                    Assert.Equal(expected: "Console.WriteLine(local);", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
+                    Assert.Equal(expected: 6, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
+                    Assert.Equal(expected: 26, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
+                }
+            });
 
-            await telemetry.VerifyFiredAsync(["vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference"], HangMitigatingCancellationToken);
-        }
+        await telemetry.VerifyFiredAsync(["vs/platform/findallreferences/search", "vs/ide/vbcs/commandhandler/findallreference"], HangMitigatingCancellationToken);
+    }
 
-        [IdeFact]
-        public async Task FindReferencesToString()
-        {
-            await SetUpEditorAsync(@"
+    [IdeFact]
+    public async Task FindReferencesToString()
+    {
+        await SetUpEditorAsync(@"
 class Program
 {
     static void Main()
@@ -133,48 +133,47 @@ class Program
 }
 ", HangMitigatingCancellationToken);
 
-            await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
+        await TestServices.Input.SendAsync((VirtualKeyCode.F12, VirtualKeyCode.SHIFT), HangMitigatingCancellationToken);
 
-            var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
+        var results = await TestServices.FindReferencesWindow.GetContentsAsync(HangMitigatingCancellationToken);
 
-            Assert.Collection(
-                results,
-                new Action<ITableEntryHandle2>[]
+        Assert.Collection(
+            results,
+            new Action<ITableEntryHandle2>[]
+            {
+                reference =>
                 {
-                    reference =>
-                    {
-                        Assert.Equal(expected: "string local = \"1\";", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
-                        Assert.Equal(expected: 5, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
-                        Assert.Equal(expected: 24, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
-                    }
-                });
-        }
+                    Assert.Equal(expected: "string local = \"1\";", actual: reference.TryGetValue(StandardTableKeyNames.Text, out string code) ? code : null);
+                    Assert.Equal(expected: 5, actual: reference.TryGetValue(StandardTableKeyNames.Line, out int line) ? line : -1);
+                    Assert.Equal(expected: 24, actual: reference.TryGetValue(StandardTableKeyNames.Column, out int column) ? column : -1);
+                }
+            });
+    }
 
-        [IdeFact]
-        public async Task VerifyWorkingFolder()
-        {
-            await SetUpEditorAsync(@"class EmptyContent {$$}", HangMitigatingCancellationToken);
+    [IdeFact]
+    public async Task VerifyWorkingFolder()
+    {
+        await SetUpEditorAsync(@"class EmptyContent {$$}", HangMitigatingCancellationToken);
 
-            var visualStudioWorkspace = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(HangMitigatingCancellationToken);
-            var persistentStorageConfiguration = visualStudioWorkspace.Services.GetRequiredService<IPersistentStorageConfiguration>();
+        var visualStudioWorkspace = await TestServices.Shell.GetComponentModelServiceAsync<VisualStudioWorkspace>(HangMitigatingCancellationToken);
+        var persistentStorageConfiguration = visualStudioWorkspace.Services.GetRequiredService<IPersistentStorageConfiguration>();
 
-            // verify working folder has set
-            Assert.NotNull(persistentStorageConfiguration.TryGetStorageLocation(SolutionKey.ToSolutionKey(visualStudioWorkspace.CurrentSolution)));
+        // verify working folder has set
+        Assert.NotNull(persistentStorageConfiguration.TryGetStorageLocation(SolutionKey.ToSolutionKey(visualStudioWorkspace.CurrentSolution)));
 
-            await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
+        await TestServices.SolutionExplorer.CloseSolutionAsync(HangMitigatingCancellationToken);
 
-            // Since we no longer have an open solution, we don't have a storage location for it, since that
-            // depends on the open solution.
-            Assert.Null(persistentStorageConfiguration.TryGetStorageLocation(SolutionKey.ToSolutionKey(visualStudioWorkspace.CurrentSolution)));
-        }
+        // Since we no longer have an open solution, we don't have a storage location for it, since that
+        // depends on the open solution.
+        Assert.Null(persistentStorageConfiguration.TryGetStorageLocation(SolutionKey.ToSolutionKey(visualStudioWorkspace.CurrentSolution)));
+    }
 
-        private async Task WaitForNavigateAsync(CancellationToken cancellationToken)
-        {
-            // Navigation operations handled by Roslyn are tracked by FeatureAttribute.FindReferences
-            await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.FindReferences, cancellationToken);
+    private async Task WaitForNavigateAsync(CancellationToken cancellationToken)
+    {
+        // Navigation operations handled by Roslyn are tracked by FeatureAttribute.FindReferences
+        await TestServices.Workspace.WaitForAsyncOperationsAsync(FeatureAttribute.FindReferences, cancellationToken);
 
-            // Navigation operations handled by the editor are tracked within its own JoinableTaskFactory instance
-            await TestServices.Editor.WaitForEditorOperationsAsync(cancellationToken);
-        }
+        // Navigation operations handled by the editor are tracked within its own JoinableTaskFactory instance
+        await TestServices.Editor.WaitForEditorOperationsAsync(cancellationToken);
     }
 }

@@ -153,8 +153,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             private void OnTextViewClosed(object sender, EventArgs e)
                 => Dispose();
 
-            public async Task<ISuggestedActionCategorySet?> GetSuggestedActionCategoriesAsync(ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
+            public async Task<ISuggestedActionCategorySet?> GetSuggestedActionCategoriesAsync(
+                ISuggestedActionCategorySet requestedActionCategories, SnapshotSpan range, CancellationToken cancellationToken)
             {
+                // This function gets called immediately after operations like scrolling.  We want to wait just a small
+                // amount to ensure that we don't immediately start consuming CPU/memory which then impedes the very
+                // action the user is trying to perform.  To accomplish this, we wait 100ms.  That's longer than normal
+                // keyboard repeat rates (usually around 30ms), but short enough that it's not noticeable to the user.
+                await Task.Delay(100, cancellationToken).NoThrowAwaitable();
+                if (cancellationToken.IsCancellationRequested)
+                    return null;
+
                 using var state = _state.TryAddReference();
                 if (state is null)
                     return null;
@@ -186,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 cancellationToken = linkedTokenSource.Token;
 
                 // Kick off the work to get errors.
-                var errorTask = GetFixLevelAsync();
+                var errorTask = GetFixLevelAsync(document, range, fallbackOptions, cancellationToken);
 
                 // Make a quick jump back to the UI thread to get the user's selection, then go back to the thread pool..
                 await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(alwaysYield: true, cancellationToken);
@@ -196,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                 // If we have a selection, kick off the work to get refactorings concurrently with the above work to get errors.
                 var refactoringTask = selection != null
-                    ? TryGetRefactoringSuggestedActionCategoryAsync(selection)
+                    ? TryGetRefactoringSuggestedActionCategoryAsync(document, selection, fallbackOptions, cancellationToken)
                     : SpecializedTasks.Null<string>();
 
                 // If we happen to get the result of the error task before the refactoring task,
@@ -207,26 +216,37 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return result == null
                     ? null
                     : _suggestedActionCategoryRegistry.CreateSuggestedActionCategorySet(result);
+            }
 
-                async Task<string?> GetFixLevelAsync()
-                {
-                    // Ensure we yield the thread that called into us, allowing it to continue onwards.
-                    await TaskScheduler.Default.SwitchTo(alwaysYield: true);
-                    var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
+            private async Task<string?> GetFixLevelAsync(
+                TextDocument document,
+                SnapshotSpan range,
+                CodeActionOptionsProvider fallbackOptions,
+                CancellationToken cancellationToken)
+            {
+                // Ensure we yield the thread that called into us, allowing it to continue onwards.
+                await TaskScheduler.Default.SwitchTo(alwaysYield: true);
 
-                    foreach (var order in Orderings)
-                    {
-                        var priority = TryGetPriority(order);
-                        Contract.ThrowIfNull(priority);
-                        var priorityProvider = new SuggestedActionPriorityProvider(priority.Value, lowPriorityAnalyzers);
-
-                        var result = await GetFixCategoryAsync(priorityProvider).ConfigureAwait(false);
-                        if (result != null)
-                            return result;
-                    }
-
+                // Ensure we can get the snapshot of our state.  If not, we were disposed between this task being
+                // created, and eventually run.
+                using var state = _state.TryAddReference();
+                if (state is null)
                     return null;
+
+                var lowPriorityAnalyzers = new ConcurrentSet<DiagnosticAnalyzer>();
+
+                foreach (var order in Orderings)
+                {
+                    var priority = TryGetPriority(order);
+                    Contract.ThrowIfNull(priority);
+                    var priorityProvider = new SuggestedActionPriorityProvider(priority.Value, lowPriorityAnalyzers);
+
+                    var result = await GetFixCategoryAsync(priorityProvider).ConfigureAwait(false);
+                    if (result != null)
+                        return result;
                 }
+
+                return null;
 
                 async Task<string?> GetFixCategoryAsync(ICodeActionRequestPriorityProvider priorityProvider)
                 {
@@ -236,10 +256,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                         var result = await state.Target.Owner._codeFixService.GetMostSevereFixAsync(
                             document, range.Span.ToTextSpan(), priorityProvider, fallbackOptions, cancellationToken).ConfigureAwait(false);
 
-                        if (result.HasFix)
+                        if (result != null)
                         {
                             Logger.Log(FunctionId.SuggestedActions_HasSuggestedActionsAsync);
-                            return result.CodeFixCollection.FirstDiagnostic.Severity switch
+                            return result.FirstDiagnostic.Severity switch
                             {
 
                                 DiagnosticSeverity.Hidden or DiagnosticSeverity.Info or DiagnosticSeverity.Warning => PredefinedSuggestedActionCategoryNames.CodeFix,
@@ -247,39 +267,46 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                                 _ => throw ExceptionUtilities.Unreachable(),
                             };
                         }
-
-                        if (!result.UpToDate)
-                            return null;
                     }
 
                     return null;
                 }
+            }
 
-                async Task<string?> TryGetRefactoringSuggestedActionCategoryAsync(TextSpan? selection)
+            private async Task<string?> TryGetRefactoringSuggestedActionCategoryAsync(
+                TextDocument document,
+                TextSpan? selection,
+                CodeActionOptionsProvider fallbackOptions,
+                CancellationToken cancellationToken)
+            {
+                // Ensure we yield the thread that called into us, allowing it to continue onwards.
+                await TaskScheduler.Default.SwitchTo(alwaysYield: true);
+
+                // Ensure we can get the snapshot of our state.  If not, we were disposed between this task being
+                // created, and eventually run.
+                using var state = _state.TryAddReference();
+                if (state is null)
+                    return null;
+
+                if (!selection.HasValue)
                 {
-                    // Ensure we yield the thread that called into us, allowing it to continue onwards.
-                    await TaskScheduler.Default.SwitchTo(alwaysYield: true);
-
-                    if (!selection.HasValue)
-                    {
-                        // this is here to fail test and see why it is failed.
-                        Trace.WriteLine("given range is not current");
-                        return null;
-                    }
-
-                    if (GlobalOptions.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
-                        state.Target.Owner._codeRefactoringService != null &&
-                        state.Target.SubjectBuffer.SupportsRefactorings())
-                    {
-                        if (await state.Target.Owner._codeRefactoringService.HasRefactoringsAsync(
-                                document, selection.Value, fallbackOptions, cancellationToken).ConfigureAwait(false))
-                        {
-                            return PredefinedSuggestedActionCategoryNames.Refactoring;
-                        }
-                    }
-
+                    // this is here to fail test and see why it is failed.
+                    Trace.WriteLine("given range is not current");
                     return null;
                 }
+
+                if (GlobalOptions.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
+                    state.Target.Owner._codeRefactoringService != null &&
+                    state.Target.SubjectBuffer.SupportsRefactorings())
+                {
+                    if (await state.Target.Owner._codeRefactoringService.HasRefactoringsAsync(
+                            document, selection.Value, fallbackOptions, cancellationToken).ConfigureAwait(false))
+                    {
+                        return PredefinedSuggestedActionCategoryNames.Refactoring;
+                    }
+                }
+
+                return null;
             }
         }
     }

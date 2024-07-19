@@ -2432,9 +2432,9 @@ class C
             var comp = CreateCompilation(source, targetFramework: TargetFramework.NetCoreApp, options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // (6,9): error CS0306: The type 'ReadOnlySpan<byte>' may not be used as a type argument
-                //         PrintType("""
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "PrintType").WithArguments("System.ReadOnlySpan<byte>").WithLocation(6, 9)
+                // (6,9): error CS9244: The type 'ReadOnlySpan<byte>' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'C.PrintType<T>(T)'
+                //         PrintType(@"hello"u8);
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "PrintType").WithArguments("C.PrintType<T>(T)", "T", "System.ReadOnlySpan<byte>").WithLocation(6, 9)
                 );
         }
 

@@ -362,20 +362,21 @@ internal sealed class NavigateToSearcher
             if (!parallel)
             {
                 foreach (var group in groups)
-                    await SearchCoreAsync(group).ConfigureAwait(false);
+                    await SearchCoreAsync(group, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                var allTasks = groups.Select(SearchCoreAsync);
-                await Task.WhenAll(allTasks).ConfigureAwait(false);
+                await RoslynParallel.ForEachAsync(
+                    source: groups,
+                    cancellationToken,
+                    SearchCoreAsync).ConfigureAwait(false);
             }
         }
 
         return;
 
-        async Task SearchCoreAsync(IGrouping<INavigateToSearchService, Project> grouping)
+        async ValueTask SearchCoreAsync(IGrouping<INavigateToSearchService, Project> grouping, CancellationToken cancellationToken)
         {
-            await Task.Yield().ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             var searchService = grouping.Key;

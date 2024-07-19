@@ -217,6 +217,12 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
     private static bool IsPartialMethodImplementationPart(IMethodSymbol symbol)
         => symbol.PartialDefinitionPart != null;
 
+    private static bool IsPartialMethodDefinitionPart(IPropertySymbol symbol)
+        => symbol.PartialImplementationPart != null;
+
+    private static bool IsPartialMethodImplementationPart(IPropertySymbol symbol)
+        => symbol.PartialDefinitionPart != null;
+
     private static TypeKind GetTypeKind(INamedTypeSymbol x)
         => x.TypeKind switch
         {

@@ -656,8 +656,7 @@ Goo f;
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577178")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577178")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function TypingInOtherFileTriggersCommit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -714,8 +713,7 @@ Goo f;
             End Using
         End Function
 
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577178")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/577178")>
         <CombinatorialData, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function TypingInOtherFileWithConflictTriggersCommit(host As RenameTestHost) As Task
             Using workspace = CreateWorkspaceWithWaiter(

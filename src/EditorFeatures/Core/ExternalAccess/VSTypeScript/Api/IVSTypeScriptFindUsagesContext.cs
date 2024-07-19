@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.CodeAnalysis.Navigation;
 
@@ -59,7 +58,7 @@ internal sealed class VSTypeScriptDefinitionItem
             metadataLocations: [],
             classifiedSpans: default,
             properties: null,
-            displayableProperties: ImmutableDictionary<string, string>.Empty,
+            displayableProperties: [],
             displayIfNoReferences: true)
     {
         private readonly VSTypeScriptDefinitionItemNavigator _navigator = navigator;
@@ -90,7 +89,7 @@ internal sealed class VSTypeScriptDefinitionItem
     {
         return new(DefinitionItem.Create(
             tags, displayParts, sourceSpans.SelectAsArray(static span => span.ToDocumentSpan()), classifiedSpans: [],
-            metadataLocations: [], nameDisplayParts, properties: null, displayableProperties: ImmutableDictionary<string, string>.Empty, displayIfNoReferences: displayIfNoReferences));
+            metadataLocations: [], nameDisplayParts, properties: null, displayableProperties: [], displayIfNoReferences: displayIfNoReferences));
     }
 
     public static VSTypeScriptDefinitionItem CreateExternal(

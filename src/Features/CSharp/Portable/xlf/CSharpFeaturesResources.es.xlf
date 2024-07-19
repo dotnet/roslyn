@@ -269,7 +269,7 @@
       </trans-unit>
       <trans-unit id="do_while_loop">
         <source>do-while loop</source>
-        <target state="new">do-while loop</target>
+        <target state="translated">bucle do-while</target>
         <note>{Locked="do"}{Locked="while"} "do" and "while" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="extern_alias">

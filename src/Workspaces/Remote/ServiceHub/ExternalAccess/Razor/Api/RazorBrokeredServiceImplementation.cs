@@ -20,5 +20,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Api
 
         public static ValueTask<T> RunServiceAsync<T>(this RazorPinnedSolutionInfoWrapper solutionInfo, ServiceBrokerClient client, Func<Solution, ValueTask<T>> implementation, CancellationToken cancellationToken)
             => RemoteWorkspaceManager.Default.RunServiceAsync(client, solutionInfo.UnderlyingObject, implementation, cancellationToken);
+
+        public static Workspace GetWorkspace()
+            => RemoteWorkspaceManager.Default.GetWorkspace();
     }
 }

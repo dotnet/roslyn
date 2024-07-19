@@ -14,4 +14,7 @@ internal static class RoslynExperiments
 
     internal const string Interceptors = "RSEXPERIMENTAL002";
     internal const string Interceptors_Url = "https://github.com/dotnet/csharplang/issues/7009";
+
+    internal const string SyntaxTokenParser = "RSEXPERIMENTAL003";
+    internal const string SyntaxTokenParser_Url = "https://github.com/dotnet/roslyn/issues/73002";
 }

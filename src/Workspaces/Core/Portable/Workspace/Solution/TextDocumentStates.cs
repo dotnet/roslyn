@@ -10,7 +10,6 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -168,14 +167,27 @@ internal sealed class TextDocumentStates<TState>
         return new(_ids.RemoveRange(enumerableIds), _map.RemoveRange(enumerableIds), filePathToDocumentIds: null);
     }
 
-    internal TextDocumentStates<TState> SetState(DocumentId id, TState state)
-    {
-        var oldState = _map[id];
-        var filePathToDocumentIds = oldState.FilePath != state.FilePath
-            ? null
-            : _filePathToDocumentIds;
+    internal TextDocumentStates<TState> SetState(TState state)
+        => SetStates([state]);
 
-        return new(_ids, _map.SetItem(id, state), filePathToDocumentIds);
+    internal TextDocumentStates<TState> SetStates(ImmutableArray<TState> states)
+    {
+        var builder = _map.ToBuilder();
+        var filePathToDocumentIds = _filePathToDocumentIds;
+
+        foreach (var state in states)
+        {
+            var id = state.Id;
+            var oldState = _map[id];
+
+            // If any file paths have changed, don't preseve the computed map.  We'll regenerate the new map on demand when needed.
+            if (filePathToDocumentIds != null && oldState.FilePath != state.FilePath)
+                filePathToDocumentIds = null;
+
+            builder[id] = state;
+        }
+
+        return new(_ids, builder.ToImmutable(), filePathToDocumentIds);
     }
 
     public TextDocumentStates<TState> UpdateStates<TArg>(Func<TState, TArg, TState> transformation, TArg arg)

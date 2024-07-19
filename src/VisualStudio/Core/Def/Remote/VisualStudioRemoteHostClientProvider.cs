@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 using VSThreading = Microsoft.VisualStudio.Threading;

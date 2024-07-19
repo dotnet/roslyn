@@ -28,6 +28,34 @@ public class C
 }
 ```
 
+## Collection expression for type implementing `IEnumerable` must have elements implicitly convertible to `object`
+
+***Introduced in Visual Studio 2022 version 17.10***
+
+*Conversion* of a collection expression to a `struct` or `class` that implements `System.Collections.IEnumerable` and *does not* have a strongly-typed `GetEnumerator()`
+requires the elements in the collection expression are implicitly convertible to the `object`.
+Previously, the elements of a collection expression targeting an `IEnumerable` implementation were assumed to be convertible to `object`, and converted only when binding to the applicable `Add` method.
+
+This additional requirement means that collection expression conversions to `IEnumerable` implementations are treated consistently with other target types where the elements in the collection expression must be implicitly convertible to the *iteration type* of the target type.
+
+This change affects collection expressions targeting `IEnumerable` implementations where the elements rely on target-typing to a strongly-typed `Add` method parameter type.
+In the example below, an error is reported that `_ => { }` cannot be implicitly converted to `object`.
+```csharp
+class Actions : IEnumerable
+{
+    public void Add(Action<int> action);
+    // ...
+}
+
+Actions a = [_ => { }]; // error CS8917: The delegate type could not be inferred.
+```
+
+To resolve the error, the element expression could be explicitly typed.
+```csharp
+a = [(int _) => { }];          // ok
+a = [(Action<int>)(_ => { })]; // ok
+```
+
 ## Collection expression target type must have constructor and `Add` method
 
 ***Introduced in Visual Studio 2022 version 17.10***

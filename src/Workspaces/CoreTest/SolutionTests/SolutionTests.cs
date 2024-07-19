@@ -11,13 +11,10 @@ using System.Composition;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.Versioning;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using ICSharpCode.Decompiler.Solution;
-using Microsoft.Build.Evaluation;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -1227,8 +1224,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOptions(ProjectId.CreateNewId(), options));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public void WithProjectCompilationOptionsReplacesSyntaxTreeOptionProvider([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName)
         {
             var projectId = ProjectId.CreateNewId();
@@ -3702,8 +3698,7 @@ public class C : A {
             Assert.Contains(await frozenDocument.GetSyntaxTreeAsync(), (await frozenDocument.Project.GetCompilationAsync()).SyntaxTrees);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestFrozenPartialSemanticsWithMulitipleUnrelatedEdits([CombinatorialValues(1, 2, 3)] int documentToFreeze)
         {
             using var workspace = CreateWorkspaceWithPartialSemantics();
@@ -4023,8 +4018,7 @@ public class C : A {
             Assert.Throws<ArgumentException>(() => solution = solution.WithProjectDocumentsOrder(pid, ImmutableList.CreateRange(new[] { did3, did2, did1 })));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddingEditorConfigFileWithDiagnosticSeverity([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName)
         {
             using var workspace = CreateWorkspace();
@@ -4060,8 +4054,7 @@ public class C : A {
             Assert.Equal(ReportDiagnostic.Error, severity);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAddingAndRemovingEditorConfigFileWithDiagnosticSeverity([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName)
         {
             using var workspace = CreateWorkspace();
@@ -4102,8 +4095,7 @@ public class C : A {
             Assert.True(finalCompilation.ContainsSyntaxTree(syntaxTreeAfterRemovingEditorConfig));
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestChangingAnEditorConfigFile([CombinatorialValues(LanguageNames.CSharp, LanguageNames.VisualBasic)] string languageName)
         {
             using var workspace = CreateWorkspace();

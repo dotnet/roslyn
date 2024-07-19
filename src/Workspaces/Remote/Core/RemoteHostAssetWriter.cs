@@ -71,9 +71,9 @@ internal readonly struct RemoteHostAssetWriter(
     public Task WriteDataAsync(CancellationToken cancellationToken)
         => ProducerConsumer<ChecksumAndAsset>.RunAsync(
             ProducerConsumerOptions.SingleReaderWriterOptions,
-            produceItems: static (onItemFound, args) => args.@this.FindAssetsAsync(onItemFound, args.cancellationToken),
-            consumeItems: static (items, args) => args.@this.WriteBatchToPipeAsync(items, args.cancellationToken),
-            args: (@this: this, cancellationToken),
+            produceItems: static (onItemFound, @this, cancellationToken) => @this.FindAssetsAsync(onItemFound, cancellationToken),
+            consumeItems: static (items, @this, cancellationToken) => @this.WriteBatchToPipeAsync(items, cancellationToken),
+            args: this,
             cancellationToken);
 
     private Task FindAssetsAsync(Action<ChecksumAndAsset> onItemFound, CancellationToken cancellationToken)
