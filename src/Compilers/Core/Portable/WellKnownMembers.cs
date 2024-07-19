@@ -4311,7 +4311,7 @@ namespace Microsoft.CodeAnalysis
                         (byte)SignatureTypeCode.GenericTypeParameter, 0,
 
                 // System_Collections_Immutable_ImmutableArray_T__Empty
-                (byte)(MemberFlags.Field | MemberFlags.Static),                                                                                    // Flags
+                (byte)(MemberFlags.Field | MemberFlags.Static),                                                             // Flags
                 (byte)WellKnownType.System_Collections_Immutable_ImmutableArray_T,                                          // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeInstance,                                                            // Field Signature
