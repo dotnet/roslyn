@@ -9632,7 +9632,6 @@ public struct Vec4
                 );
         }
 
-
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71773")]
         public void UserDefinedUnaryOperator_RefStruct()
         {
