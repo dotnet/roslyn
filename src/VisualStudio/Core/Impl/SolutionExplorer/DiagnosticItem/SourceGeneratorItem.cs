@@ -20,7 +20,8 @@ internal sealed partial class SourceGeneratorItem(
     private readonly string? _path = path;
 
     // TODO: do we need an icon for our use?
-    public override ImageMoniker IconMoniker => KnownMonikers.Process;
+    public override ImageMoniker IconMoniker
+        => KnownMonikers.Process;
 
     public override object GetBrowseObject()
         => new BrowseObject(this);
