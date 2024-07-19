@@ -623,14 +623,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var sameElementTypes = sourceElementType.Equals(destinationElementType, TypeCompareKind.AllIgnoreOptions);
 
-            if (source.OriginalDefinition.IsReadOnlySpan())
-            {
-                Debug.Assert(!sameElementTypes);
-            }
-            else
-            {
-                Debug.Assert(source.OriginalDefinition.IsSpan());
-            }
+            Debug.Assert(!source.OriginalDefinition.IsReadOnlySpan() || !sameElementTypes);
 
             return !sameElementTypes;
         }
