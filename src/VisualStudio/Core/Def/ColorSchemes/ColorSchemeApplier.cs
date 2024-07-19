@@ -127,7 +127,7 @@ internal sealed partial class ColorSchemeApplier
     private async ValueTask QueueColorSchemeUpdateAsync(CancellationToken cancellationToken)
     {
         // Wait until things have settled down from the theme change, since we will potentially be changing theme colors.
-        await VsTaskLibraryHelper.StartOnIdle(_threadingContext.JoinableTaskFactory, () => UpdateColorSchemeAsync(token));
+        await VsTaskLibraryHelper.StartOnIdle(_threadingContext.JoinableTaskFactory, () => UpdateColorSchemeAsync(cancellationToken));
     }
 
     /// <summary>
