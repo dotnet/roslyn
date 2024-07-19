@@ -169,25 +169,29 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 
         async Task<ImmutableArray<SourceGeneratorIdentity>> GetIdentitiesAsync()
         {
-            // Can only remote AnalyzerFileReferences over to the oop side.
-            if (analyzerReference is not AnalyzerFileReference analyzerFileReference)
-                return SourceGeneratorIdentity.GetIdentities(analyzerReference, project.Language);
+            // Can only remote AnalyzerFileReferences over to the oop side.  If we have another form of reference (like
+            // in tests), we'll just fall back to loading these in process.
+            if (analyzerReference is AnalyzerFileReference analyzerFileReference)
+            {
+                var client = await RemoteHostClient.TryGetClientAsync(this.Workspace, cancellationToken).ConfigureAwait(false);
+                if (client is not null)
+                {
+                    var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, ImmutableArray<SourceGeneratorIdentity>>(
+                        project,
+                        (service, solutionChecksum, cancellationToken) => service.GetSourceGeneratorIdentitiesAsync(
+                            solutionChecksum, project.Id, analyzerFileReference.FullPath, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
 
-            var client = await RemoteHostClient.TryGetClientAsync(this.Workspace, cancellationToken).ConfigureAwait(false);
-            if (client is null)
-                return [];
+                    // If the call fails, the OOP substrate will have already reported an error
+                    if (!result.HasValue)
+                        return [];
 
-            var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, ImmutableArray<SourceGeneratorIdentity>>(
-                project,
-                (service, solutionChecksum, cancellationToken) => service.GetSourceGeneratorIdentitiesAsync(
-                    solutionChecksum, project.Id, analyzerFileReference.FullPath, cancellationToken),
-                cancellationToken).ConfigureAwait(false);
+                    return result.Value;
+                }
+            }
 
-            // If the call fails, the OOP substrate will have already reported an error
-            if (!result.HasValue)
-                return [];
-
-            return result.Value;
+            // Do the work in process.
+            return SourceGeneratorIdentity.GetIdentities(analyzerReference, project.Language);
         }
     }
 
