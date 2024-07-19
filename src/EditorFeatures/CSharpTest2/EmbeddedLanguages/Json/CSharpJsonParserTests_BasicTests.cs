@@ -4204,7 +4204,10 @@ public sealed partial class CSharpJsonParserBasicTests : CSharpJsonParserTests
                     <OpenBracketToken>[</OpenBracketToken>
                     <Sequence>
                       <Literal>
-                        <NumberToken>07777777777777777777777777777777</NumberToken>
+            """ +
+                         // [SuppressMessage("Microsoft.Security", "CS002:SecretInNextLine", Justification="this is not a credential")]
+            "            <NumberToken>07777777777777777777777777777777</NumberToken>" +
+            """
                       </Literal>
                     </Sequence>
                     <CloseBracketToken>]</CloseBracketToken>
