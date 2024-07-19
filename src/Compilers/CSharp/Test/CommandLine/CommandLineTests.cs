@@ -10070,6 +10070,7 @@ class C
                 ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
                 {
                     sourceCallbackCount++;
+                    spc.AddSource("output.cs", "");
                 });
             });
 
@@ -10175,6 +10176,7 @@ class C
                 ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
                 {
                     sourceCallbackCount++;
+                    spc.AddSource("output.cs", "");
                 });
             });
 

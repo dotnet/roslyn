@@ -10,11 +10,11 @@ using Microsoft.CodeAnalysis;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class GeneratorDriverCache
+    internal sealed class GeneratorDriverCache(int maxCacheSize = 100)
     {
-        internal const int MaxCacheSize = 100;
+        internal readonly int MaxCacheSize = maxCacheSize;
 
-        private readonly (string cacheKey, GeneratorDriver driver)[] _cachedDrivers = new (string, GeneratorDriver)[MaxCacheSize];
+        private readonly (string cacheKey, GeneratorDriver driver)[] _cachedDrivers = new (string, GeneratorDriver)[maxCacheSize];
 
         private readonly object _cacheLock = new object();
 
