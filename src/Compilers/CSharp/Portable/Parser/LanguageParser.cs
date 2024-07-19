@@ -4185,6 +4185,8 @@ parse_member_name:;
                 return (AccessorDeclarationSyntax)this.EatNode();
             }
 
+            using var __ = new FieldKeywordContext(this, isInFieldKeywordContext: declaringKind is AccessorDeclaringKind.Property);
+
             var accMods = _pool.Allocate();
 
             var accAttrs = this.ParseAttributeDeclarations(inExpressionContext: false);
@@ -4218,9 +4220,6 @@ parse_member_name:;
             {
                 accessorName = ConvertToKeyword(accessorName);
             }
-
-            // PROTOTYPE: How should ‘field’ be interpreted in the attributes, modifiers? Those parts have already been parsed.
-            using var __ = new FieldKeywordContext(this, isInFieldKeywordContext: declaringKind is AccessorDeclaringKind.Property);
 
             BlockSyntax blockBody = null;
             ArrowExpressionClauseSyntax expressionBody = null;

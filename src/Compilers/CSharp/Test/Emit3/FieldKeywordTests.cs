@@ -4,8 +4,11 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -225,6 +228,80 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (3,22): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
                 //     ref int P => ref field;
                 Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 22));
+        }
+
+        [Fact]
+        public void Attribute_04()
+        {
+            string source = """
+                using System;
+                class A : Attribute
+                {
+                    public A(object o) { }
+                }
+                class C
+                {
+                    [A(field)] object P1 { get { return null; } set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,8): error CS0103: The name 'field' does not exist in the current context
+                //     [A(field)] object P1 { get { return null; } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(8, 8));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var attributeArguments = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().Select(arg => arg.Expression).ToArray();
+
+            var argument = attributeArguments[0];
+            Assert.IsType<IdentifierNameSyntax>(argument);
+            Assert.Null(model.GetSymbolInfo(argument).Symbol);
+        }
+
+        [Fact]
+        public void Attribute_05()
+        {
+            string source = """
+                using System;
+                class A : Attribute
+                {
+                    public A(object o) { }
+                }
+                class C
+                {
+                    object P2 { [A(field)] get { return null; } set { } }
+                    object P3 { get { return null; } [A(field)] set { } }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,20): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     object P2 { [A(field)] get { return null; } set { } }
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(8, 20),
+                // (8,20): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     object P2 { [A(field)] get { return null; } set { } }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(8, 20),
+                // (9,41): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     object P3 { get { return null; } [A(field)] set { } }
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(9, 41),
+                // (9,41): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     object P3 { get { return null; } [A(field)] set { } }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(9, 41));
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+            var attributeArguments = tree.GetRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().Select(arg => arg.Expression).ToArray();
+
+            var argument = attributeArguments[0];
+            Assert.IsType<FieldExpressionSyntax>(argument);
+            Assert.Equal("System.Object C.<P2>k__BackingField", model.GetSymbolInfo(argument).Symbol.ToTestDisplayString());
+
+            argument = attributeArguments[1];
+            Assert.IsType<FieldExpressionSyntax>(argument);
+            Assert.Equal("System.Object C.<P3>k__BackingField", model.GetSymbolInfo(argument).Symbol.ToTestDisplayString());
         }
     }
 }

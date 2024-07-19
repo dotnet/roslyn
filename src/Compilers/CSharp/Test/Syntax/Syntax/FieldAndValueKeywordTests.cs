@@ -1133,7 +1133,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics();
+            if (!escapeIdentifier && languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (12,19): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //         [A(nameof(field))] get { return null; }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(12, 19),
+                    // (12,19): error CS8081: Expression does not have a name.
+                    //         [A(nameof(field))] get { return null; }
+                    Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(12, 19),
+                    // (13,19): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //         [A(nameof(field))] set { }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 19),
+                    // (13,19): error CS8081: Expression does not have a name.
+                    //         [A(nameof(field))] set { }
+                    Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(13, 19));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]

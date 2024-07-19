@@ -1438,7 +1438,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression BindFieldExpression(FieldExpressionSyntax node, BindingDiagnosticBag diagnostics)
         {
             Debug.Assert(ContainingType is { });
-            SynthesizedBackingFieldSymbolBase field;
+            SynthesizedBackingFieldSymbolBase? field = null;
 
             ReportFieldContextualKeywordConflict(node, node.Token, diagnostics);
 
@@ -1450,8 +1450,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MethodSymbol { AssociatedSymbol: SourcePropertySymbol property }:
                     field = property.BackingField;
                     break;
-                case var containingMember:
-                    throw ExceptionUtilities.UnexpectedValue(containingMember);
+                default:
+                    {
+                        Debug.Assert((this.Flags & BinderFlags.InContextualAttributeBinder) != 0);
+                        var contextualAttributeBinder = TryGetContextualAttributeBinder(this);
+                        if (contextualAttributeBinder is { AttributeTarget: MethodSymbol { AssociatedSymbol: SourcePropertySymbol property } })
+                        {
+                            field = property.BackingField;
+                        }
+                        break;
+                    }
+            }
+
+            if (field is null)
+            {
+                throw ExceptionUtilities.UnexpectedValue(ContainingMember());
             }
 
             // PROTOTYPE: We're not applying any checks to this field reference. What checks do we

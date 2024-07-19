@@ -264,8 +264,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (body != null)
                     {
                         accessorsHaveImplementation = true;
-                        usesFieldKeyword = usesFieldKeyword || containsFieldKeyword(body);
                     }
+
+                    usesFieldKeyword = usesFieldKeyword || containsFieldKeyword(accessor);
                 }
             }
             else
