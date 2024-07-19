@@ -17,9 +17,9 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -692,13 +692,9 @@ public abstract partial class Workspace : IDisposable
 
         _legacyOptions.UnregisterWorkspace(this);
 
-        // Directly dispose IRemoteHostClientProvider if necessary. This is a test hook to ensure RemoteWorkspace
-        // gets disposed in unit tests as soon as TestWorkspace gets disposed. This would be superseded by direct
-        // support for IDisposable in https://github.com/dotnet/roslyn/pull/47951.
-        if (Services.GetService<IRemoteHostClientProvider>() is IDisposable disposableService)
-        {
-            disposableService.Dispose();
-        }
+        // Dispose per-instance services created for this workspace (direct MEF exports, including factories, will
+        // be disposed when the MEF catalog is disposed).
+        Services.Dispose();
 
         // We're disposing this workspace.  Stop any work to update SG docs in the background.
         _updateSourceGeneratorsQueueTokenSource.Cancel();
