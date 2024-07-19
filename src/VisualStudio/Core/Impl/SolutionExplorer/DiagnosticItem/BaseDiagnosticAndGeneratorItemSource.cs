@@ -123,7 +123,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             collection.AddRange(
                 AnalyzerReference.GetGenerators(language)
-                .Select(g => new SourceGeneratorItem(projectId, g, AnalyzerReference)));
+                .Select(g => new SourceGeneratorItem(projectId, SourceGeneratorIdentity.Create(g, AnalyzerReference), AnalyzerReference.FullPath)));
 
             return collection;
         }

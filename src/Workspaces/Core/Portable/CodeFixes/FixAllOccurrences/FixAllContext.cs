@@ -164,8 +164,7 @@ public partial class FixAllContext : IFixAllContext
                 scope,
                 codeActionEquivalenceKey,
                 PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
-                fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
-                CodeActionOptions.DefaultProvider),
+                fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider))),
               CodeAnalysisProgress.None, cancellationToken)
     {
     }
@@ -200,8 +199,7 @@ public partial class FixAllContext : IFixAllContext
                 scope,
                 codeActionEquivalenceKey,
                 PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
-                fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
-                CodeActionOptions.DefaultProvider),
+                fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider))),
               CodeAnalysisProgress.None, cancellationToken)
     {
         if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)

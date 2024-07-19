@@ -61,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // d = Use site diagnostic flag. 1 bit
             // o = Obsolete flag. 1 bit
             // c = Custom attributes flag. 1 bit
+            // p = Overload resolution priority populated. 1 bit
             private const int IsSpecialNameFlag = 1 << 0;
             private const int IsRuntimeSpecialNameFlag = 1 << 1;
             private const int CallMethodsDirectlyFlag = 1 << 2;
@@ -71,6 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             private const int IsUseSiteDiagnosticPopulatedBit = 1 << 8;
             private const int IsObsoleteAttributePopulatedBit = 1 << 9;
             private const int IsCustomAttributesPopulatedBit = 1 << 10;
+            private const int IsOverloadResolutionPriorityPopulatedBit = 1 << 11;
 
             private int _bits;
 
@@ -141,14 +143,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             public readonly bool IsCustomAttributesPopulated => (_bits & IsCustomAttributesPopulatedBit) != 0;
+
+            public void SetOverloadResolutionPriorityPopulated()
+            {
+                ThreadSafeFlagOperations.Set(ref _bits, IsOverloadResolutionPriorityPopulatedBit);
+            }
+
+            public readonly bool IsOverloadResolutionPriorityPopulated => (_bits & IsOverloadResolutionPriorityPopulatedBit) != 0;
         }
 
+        /// <summary>
+        /// This type is used to hold lazily-initialized fields that many properties will not need. We avoid creating it unless one of the fields is needed;
+        /// unfortunately, this means that we need to be careful of data races. The general pattern that we use is to check for a flag in <see cref="_flags"/>.
+        /// If the flag for that field is set, and there was a positive result (ie, there are indeed custom attributes, or there is obsolete data), then it
+        /// is safe to rely on the data in the field. If the flag for a field is set but the result is empty (ie, there is no obsolete data), then we can be in
+        /// one of 3 scenarios:
+        /// <list type="number">
+        /// <item><see cref="_uncommonFields"/> is itself null. In this case, no race has occurred, and the consuming code can safely handle the lack of
+        /// <see cref="_uncommonFields"/> however it chooses.</item>
+        /// <item><see cref="_uncommonFields"/> is not null, and the backing field has been initialized to some empty value, such as
+        /// <see cref="ImmutableArray{T}.Empty"/>. In this case, again, no race has occurred, and the consuming code can simply trust the empty value.</item>
+        /// <item><see cref="_uncommonFields"/> is not null, and the backing field is uninitialized, either being <see langword="default" />, or is some
+        /// kind of sentinel value. In this case, a data race has occurred, and the consuming code must initialize the field to empty to bring it back
+        /// into scenario 2.</item>
+        /// </list>
+        /// </summary>
+        /// <remarks>
+        /// The initialization pattern for this type <b>must</b> follow the following pattern to make the safety guarantees above:
+        /// If the field initialization code determines that the backing field needs to be set to some non-empty value, it <b>must</b> first call <see cref="AccessUncommonFields"/>,
+        /// set the backing field using an atomic operation, and then set the flag in <see cref="_flags"/>. This ensures that the field is always set before the flag is set.
+        /// If this order is reversed, the consuming code may see the flag set, but the field not initialized, and incorrectly assume that there is no data.
+        /// </remarks>
         private sealed class UncommonFields
         {
             public ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
             public Tuple<CultureInfo, string> _lazyDocComment;
             public CachedUseSiteInfo<AssemblySymbol> _lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
             public ObsoleteAttributeData _lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+            public int _lazyOverloadResolutionPriority;
         }
 
         internal static PEPropertySymbol Create(
@@ -312,31 +344,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        private UncommonFields CreateUncommonFields()
-        {
-            var retVal = new UncommonFields();
-            if (!_flags.IsObsoleteAttributePopulated)
-            {
-                retVal._lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
-            }
-
-            if (!_flags.IsUseSiteDiagnosticPopulated)
-            {
-                retVal._lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
-            }
-
-            if (_flags.IsCustomAttributesPopulated)
-            {
-                retVal._lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
-            }
-
-            return retVal;
-        }
-
         private UncommonFields AccessUncommonFields()
         {
             var retVal = _uncommonFields;
-            return retVal ?? InterlockedOperations.Initialize(ref _uncommonFields, CreateUncommonFields());
+            return retVal ?? InterlockedOperations.Initialize(ref _uncommonFields, createUncommonFields());
+
+            UncommonFields createUncommonFields()
+            {
+                var retVal = new UncommonFields();
+                if (!_flags.IsObsoleteAttributePopulated)
+                {
+                    retVal._lazyObsoleteAttributeData = ObsoleteAttributeData.Uninitialized;
+                }
+
+                if (!_flags.IsUseSiteDiagnosticPopulated)
+                {
+                    retVal._lazyCachedUseSiteInfo = CachedUseSiteInfo<AssemblySymbol>.Uninitialized;
+                }
+
+                if (_flags.IsCustomAttributesPopulated)
+                {
+                    retVal._lazyCustomAttributes = ImmutableArray<CSharpAttributeData>.Empty;
+                }
+
+                return retVal;
+            }
         }
 
         private bool MustCallMethodsDirectlyCore()
@@ -1009,6 +1041,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }
+        }
+
+        internal override int? TryGetOverloadResolutionPriority()
+        {
+            Debug.Assert(IsIndexer || IsIndexedProperty);
+            if (!_flags.IsOverloadResolutionPriorityPopulated)
+            {
+                if (_containingType.ContainingPEModule.Module.TryGetOverloadResolutionPriorityValue(_handle, out int priority))
+                {
+                    Interlocked.CompareExchange(ref AccessUncommonFields()._lazyOverloadResolutionPriority, priority, 0);
+                }
+#if DEBUG
+                else
+                {
+                    // 0 is the default if nothing is present in metadata, and we don't care about preserving the difference between "not present" and "set to the default value".
+                    Debug.Assert(_uncommonFields is null or { _lazyOverloadResolutionPriority: 0 });
+                }
+#endif
+
+                _flags.SetOverloadResolutionPriorityPopulated();
+            }
+
+            return _uncommonFields?._lazyOverloadResolutionPriority;
         }
 
         private sealed class PEPropertySymbolWithCustomModifiers : PEPropertySymbol

@@ -11,14 +11,14 @@ namespace Microsoft.CodeAnalysis.AddImport;
 
 internal static partial class AddImportPlacementOptionsProviders
 {
-    internal static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, IAddImportsService addImportsService, AddImportPlacementOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
+    internal static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, IAddImportsService addImportsService, CancellationToken cancellationToken)
     {
 #if CODE_STYLE
         var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var configOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader();
-        return addImportsService.GetAddImportOptions(configOptions, allowInHiddenRegions: false, fallbackOptions: null);
+        return addImportsService.GetAddImportOptions(configOptions, allowInHiddenRegions: false);
 #else
-        return await document.GetAddImportPlacementOptionsAsync(fallbackOptionsProvider, cancellationToken).ConfigureAwait(false);
+        return await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
 #endif
     }
 }

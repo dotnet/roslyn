@@ -42,7 +42,7 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
             return;
         }
 
-        var result = await AddConstructorParametersFromMembersAsync(document, textSpan, context.Options, cancellationToken).ConfigureAwait(false);
+        var result = await AddConstructorParametersFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
         if (result == null)
         {
             return;
@@ -53,7 +53,7 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
     }
 
     private static async Task<AddConstructorParameterResult?> AddConstructorParametersFromMembersAsync(
-        Document document, TextSpan textSpan, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_AddConstructorParametersFromMembers, cancellationToken))
         {
@@ -65,10 +65,10 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
 
             if (info != null)
             {
-                var state = await State.GenerateAsync(info.SelectedMembers, document, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var state = await State.GenerateAsync(info.SelectedMembers, document, cancellationToken).ConfigureAwait(false);
                 if (state?.ConstructorCandidates != null && !state.ConstructorCandidates.IsEmpty)
                 {
-                    var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
                     return CreateCodeActions(document, contextInfo, state);
                 }
             }
@@ -167,7 +167,7 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
         IntentDataProvider intentDataProvider,
         CancellationToken cancellationToken)
     {
-        var addConstructorParametersResult = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, intentDataProvider.FallbackOptions, cancellationToken).ConfigureAwait(false);
+        var addConstructorParametersResult = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, cancellationToken).ConfigureAwait(false);
         if (addConstructorParametersResult == null)
         {
             return [];

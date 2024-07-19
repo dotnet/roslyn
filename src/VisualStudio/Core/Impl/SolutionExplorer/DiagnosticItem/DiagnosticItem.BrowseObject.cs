@@ -105,12 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Effective_severity))]
             public string EffectiveSeverity
-            {
-                get
-                {
-                    return MapReportDiagnosticToText(_diagnosticItem.EffectiveSeverity);
-                }
-            }
+                => MapReportDiagnosticToText(_diagnosticItem.EffectiveSeverity);
 
             public override string GetClassName()
             {

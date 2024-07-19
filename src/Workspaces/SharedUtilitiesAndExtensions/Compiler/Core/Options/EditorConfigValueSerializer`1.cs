@@ -19,6 +19,7 @@ internal sealed class EditorConfigValueSerializer<T>(
     public static readonly EditorConfigValueSerializer<T> Unsupported = new(
         parseValue: _ => throw new NotSupportedException("Option does not support serialization to editorconfig format"),
         serializeValue: _ => throw new NotSupportedException("Option does not support serialization to editorconfig format"));
+
     private readonly ConcurrentDictionary<string, Optional<T>> _cachedValues = [];
 
     bool IEditorConfigValueSerializer.TryParse(string value, out object? result)
@@ -55,6 +56,9 @@ internal sealed class EditorConfigValueSerializer<T>(
         return editorConfigStringForValue;
     }
 
-    public string Serialize(object? value)
+    public string Serialize(T value)
+        => serializeValue(value);
+
+    string IEditorConfigValueSerializer.Serialize(object? value)
         => GetEditorConfigStringValue((T)value!);
 }

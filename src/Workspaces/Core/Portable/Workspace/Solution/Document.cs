@@ -383,41 +383,37 @@ public class Document : TextDocument
     /// Creates a new instance of this document updated to have the source code kind specified.
     /// </summary>
     public Document WithSourceCodeKind(SourceCodeKind kind)
-        => this.Project.Solution.WithDocumentSourceCodeKind(this.Id, kind).GetDocument(this.Id)!;
+        => this.Project.Solution.WithDocumentSourceCodeKind(this.Id, kind).GetRequiredDocument(Id);
 
     /// <summary>
     /// Creates a new instance of this document updated to have the text specified.
     /// </summary>
     public Document WithText(SourceText text)
-        => this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity).GetDocument(this.Id)!;
+        => this.Project.Solution.WithDocumentText(this.Id, text, PreservationMode.PreserveIdentity).GetRequiredDocument(Id);
 
     /// <summary>
     /// Creates a new instance of this document updated to have a syntax tree rooted by the specified syntax node.
     /// </summary>
     public Document WithSyntaxRoot(SyntaxNode root)
-        => this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetDocument(this.Id)!;
+        => this.Project.Solution.WithDocumentSyntaxRoot(this.Id, root, PreservationMode.PreserveIdentity).GetRequiredDocument(Id);
 
     /// <summary>
     /// Creates a new instance of this document updated to have the specified name.
     /// </summary>
     public Document WithName(string name)
-        => this.Project.Solution.WithDocumentName(this.Id, name).GetDocument(this.Id)!;
+        => this.Project.Solution.WithDocumentName(this.Id, name).GetRequiredDocument(Id);
 
     /// <summary>
     /// Creates a new instance of this document updated to have the specified folders.
     /// </summary>
     public Document WithFolders(IEnumerable<string> folders)
-        => this.Project.Solution.WithDocumentFolders(this.Id, folders).GetDocument(this.Id)!;
+        => this.Project.Solution.WithDocumentFolders(this.Id, folders).GetRequiredDocument(Id);
 
     /// <summary>
     /// Creates a new instance of this document updated to have the specified file path.
     /// </summary>
-    /// <param name="filePath"></param>
-    // TODO (https://github.com/dotnet/roslyn/issues/37125): Solution.WithDocumentFilePath will throw if
-    // filePath is null, but it's odd because we *do* support null file paths. Why can't you switch a
-    // document back to null?
-    public Document WithFilePath(string filePath)
-        => this.Project.Solution.WithDocumentFilePath(this.Id, filePath).GetDocument(this.Id)!;
+    public Document WithFilePath(string? filePath)
+        => this.Project.Solution.WithDocumentFilePath(this.Id, filePath).GetRequiredDocument(Id);
 
     /// <summary>
     /// Get the text changes between this document and a prior version of the same document.

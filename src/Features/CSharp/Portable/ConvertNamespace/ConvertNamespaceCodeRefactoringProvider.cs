@@ -47,7 +47,7 @@ internal class ConvertNamespaceCodeRefactoringProvider() : SyntaxEditorBasedCode
         if (!IsValidPosition(namespaceDecl, position))
             return;
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
         if (!CanOfferRefactoring(namespaceDecl, root, options, out var info))
             return;
 
@@ -87,12 +87,11 @@ internal class ConvertNamespaceCodeRefactoringProvider() : SyntaxEditorBasedCode
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,
-        CodeActionOptionsProvider optionsProvider,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {
         var root = (CompilationUnitSyntax)await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(optionsProvider, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
         var namespaceDecl = root.DescendantNodes().OfType<BaseNamespaceDeclarationSyntax>().FirstOrDefault();
         if (!CanOfferRefactoring(namespaceDecl, root, options, out var info)
             || info.Value.equivalenceKey != equivalenceKey)

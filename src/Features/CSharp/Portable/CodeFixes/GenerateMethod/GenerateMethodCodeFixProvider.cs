@@ -83,9 +83,9 @@ internal sealed class GenerateMethodCodeFixProvider : AbstractGenerateMemberCode
     }
 
     protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-        Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
         var service = document.GetRequiredLanguageService<IGenerateParameterizedMemberService>();
-        return service.GenerateMethodAsync(document, node, fallbackOptions, cancellationToken);
+        return service.GenerateMethodAsync(document, node, cancellationToken);
     }
 }

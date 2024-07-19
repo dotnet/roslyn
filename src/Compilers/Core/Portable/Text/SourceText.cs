@@ -966,12 +966,12 @@ namespace Microsoft.CodeAnalysis.Text
                     int start = _lineStarts[index];
                     if (index == _lineStarts.Count - 1)
                     {
-                        return TextLine.FromSpan(_text, TextSpan.FromBounds(start, _text.Length));
+                        return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, _text.Length));
                     }
                     else
                     {
                         int end = _lineStarts[index + 1];
-                        return TextLine.FromSpan(_text, TextSpan.FromBounds(start, end));
+                        return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, end));
                     }
                 }
             }

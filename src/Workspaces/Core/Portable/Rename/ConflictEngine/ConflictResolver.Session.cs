@@ -49,14 +49,12 @@ internal static partial class ConflictResolver
 
         public Session(
             SymbolicRenameLocations renameLocationSet,
-            CodeCleanupOptionsProvider fallbackOptions,
             Location renameSymbolDeclarationLocation,
             string replacementText,
             ImmutableArray<SymbolKey> nonConflictSymbolKeys,
             CancellationToken cancellationToken)
         {
             _renameLocationSet = renameLocationSet;
-            this.FallbackOptions = fallbackOptions;
             _renameSymbolDeclarationLocation = renameSymbolDeclarationLocation;
             _originalText = renameLocationSet.Symbol.Name;
             _replacementText = replacementText;
@@ -72,7 +70,6 @@ internal static partial class ConflictResolver
         }
 
         private SymbolRenameOptions RenameOptions => _renameLocationSet.Options;
-        private CodeCleanupOptionsProvider FallbackOptions { get; }
 
         private readonly struct ConflictLocationInfo
         {
@@ -206,7 +203,7 @@ internal static partial class ConflictResolver
                     }
 
                     // Step 3: Simplify the project
-                    conflictResolution.UpdateCurrentSolution(await renamedSpansTracker.SimplifyAsync(conflictResolution.CurrentSolution, documentsByProject, _replacementTextValid, _renameAnnotations, FallbackOptions, _cancellationToken).ConfigureAwait(false));
+                    conflictResolution.UpdateCurrentSolution(await renamedSpansTracker.SimplifyAsync(conflictResolution.CurrentSolution, documentsByProject, _replacementTextValid, _renameAnnotations, _cancellationToken).ConfigureAwait(false));
                     intermediateSolution = await conflictResolution.RemoveAllRenameAnnotationsAsync(
                         intermediateSolution, documentsByProject, _renameAnnotations, _cancellationToken).ConfigureAwait(false);
                     conflictResolution.UpdateCurrentSolution(intermediateSolution);

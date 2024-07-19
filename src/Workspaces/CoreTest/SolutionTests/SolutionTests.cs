@@ -226,19 +226,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var path = "new path";
 
             var newSolution1 = solution.WithDocumentFilePath(documentId, path);
-            Assert.Equal(path, newSolution1.GetDocument(documentId)!.FilePath);
+            Assert.Equal(path, newSolution1.GetRequiredDocument(documentId).FilePath);
             AssertEx.Equal(new[] { documentId }, newSolution1.GetDocumentIdsWithFilePath(path));
 
             var newSolution2 = newSolution1.WithDocumentFilePath(documentId, path);
             Assert.Same(newSolution1, newSolution2);
 
-            // empty path (TODO https://github.com/dotnet/roslyn/issues/37125):
             var newSolution3 = solution.WithDocumentFilePath(documentId, "");
-            Assert.Equal("", newSolution3.GetDocument(documentId)!.FilePath);
+            Assert.Equal("", newSolution3.GetRequiredDocument(documentId).FilePath);
             Assert.Empty(newSolution3.GetDocumentIdsWithFilePath(""));
 
-            // TODO: https://github.com/dotnet/roslyn/issues/37125
-            Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFilePath(documentId, filePath: null!));
+            var newSolution4 = solution.WithDocumentFilePath(documentId, null);
+            Assert.Null(newSolution4.GetRequiredDocument(documentId).FilePath);
+            Assert.Empty(newSolution4.GetDocumentIdsWithFilePath(null));
 
             Assert.Throws<ArgumentNullException>(() => solution.WithDocumentFilePath(null!, path));
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentFilePath(s_unrelatedDocumentId, path));
@@ -254,12 +254,32 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(solution, solution.WithDocumentSourceCodeKind(documentId, SourceCodeKind.Regular));
 
             var newSolution1 = solution.WithDocumentSourceCodeKind(documentId, SourceCodeKind.Script);
-            Assert.Equal(SourceCodeKind.Script, newSolution1.GetDocument(documentId)!.SourceCodeKind);
+            Assert.Equal(SourceCodeKind.Script, newSolution1.GetRequiredDocument(documentId).SourceCodeKind);
 
             Assert.Throws<ArgumentOutOfRangeException>(() => solution.WithDocumentSourceCodeKind(documentId, (SourceCodeKind)(-1)));
 
             Assert.Throws<ArgumentNullException>(() => solution.WithDocumentSourceCodeKind(null!, SourceCodeKind.Script));
             Assert.Throws<InvalidOperationException>(() => solution.WithDocumentSourceCodeKind(s_unrelatedDocumentId, SourceCodeKind.Script));
+        }
+
+        [Fact]
+        public void WithSourceCodeKind_ParseOptions()
+        {
+            using var workspace = CreateWorkspaceWithProjectAndDocuments();
+
+            var solution = workspace.CurrentSolution;
+            var documentId = solution.Projects.Single().DocumentIds.Single();
+            var projectId = documentId.ProjectId;
+
+            solution = solution.WithProjectParseOptions(projectId, CSharpParseOptions.Default.WithKind(SourceCodeKind.Script));
+
+            var document1 = solution.GetRequiredDocument(documentId);
+            Assert.Equal(SourceCodeKind.Script, document1.DocumentState.ParseOptions?.Kind);
+            Assert.Equal(SourceCodeKind.Script, document1.SourceCodeKind);
+
+            var document2 = document1.WithSourceCodeKind(SourceCodeKind.Regular);
+            Assert.Equal(SourceCodeKind.Regular, document2.DocumentState.ParseOptions?.Kind);
+            Assert.Equal(SourceCodeKind.Regular, document2.SourceCodeKind);
         }
 
         [Fact, Obsolete("Testing obsolete API")]
@@ -1339,6 +1359,67 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(document.Project.ParseOptions, newTree.Options);
 
             Assert.Equal(expectReuse, oldRoot.IsIncrementallyIdenticalTo(newTree.GetRoot()));
+        }
+
+        [Theory]
+        [InlineData(null, "test.cs")]
+        [InlineData("test.cs", null)]
+        [InlineData("", null)]
+        [InlineData("test.cs", "")]
+        public async Task ChangingFilePathReparses(string oldPath, string newPath)
+        {
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            using var workspace = CreateWorkspace();
+            var document = workspace.CurrentSolution
+                            .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
+                            .AddDocument(documentId, name: "Test.cs", text: "// File", filePath: oldPath)
+                            .GetRequiredDocument(documentId);
+
+            var oldTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+            var newDocument = document.WithFilePath(newPath);
+            var newTree = await newDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+
+            Assert.False(oldTree.GetRoot().IsIncrementallyIdenticalTo(newTree.GetRoot()));
+        }
+
+        [Fact]
+        public async Task ChangingName_ReparsesWhenPathIsNull()
+        {
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            using var workspace = CreateWorkspace();
+            var document = workspace.CurrentSolution
+                            .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
+                            .AddDocument(documentId, name: "name1", text: "// File", filePath: null)
+                            .GetRequiredDocument(documentId);
+
+            var oldTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+            var newDocument = document.WithName("name2");
+            var newTree = await newDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+
+            Assert.False(oldTree.GetRoot().IsIncrementallyIdenticalTo(newTree.GetRoot()));
+        }
+
+        [Fact]
+        public async Task ChangingName_NoReparse()
+        {
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            using var workspace = CreateWorkspace();
+            var document = workspace.CurrentSolution
+                            .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
+                            .AddDocument(documentId, name: "name1", text: "// File", filePath: "")
+                            .GetRequiredDocument(documentId);
+
+            var oldTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+            var newDocument = document.WithName("name2");
+            var newTree = await newDocument.GetRequiredSyntaxTreeAsync(CancellationToken.None);
+
+            Assert.True(oldTree.GetRoot().IsIncrementallyIdenticalTo(newTree.GetRoot()));
         }
 
         [Fact]
@@ -4304,6 +4385,26 @@ class C
 
             Assert.False(document.TryGetSemanticModel(out _));
             Assert.Null(document.GetSemanticModelAsync().Result);
+        }
+
+        [Fact]
+        public void NoCompilation_SourceCodeKind()
+        {
+            using var workspace = CreateWorkspace([typeof(NoCompilationLanguageService)]);
+            var projectId = ProjectId.CreateNewId();
+            var documentId = DocumentId.CreateNewId(projectId);
+
+            var solution = workspace.CurrentSolution
+                .AddProject(projectId, "Test", "Test.dll", NoCompilationConstants.LanguageName)
+                .AddDocument(DocumentInfo.Create(documentId, "Test", sourceCodeKind: SourceCodeKind.Script));
+
+            var document1 = solution.GetRequiredDocument(documentId);
+            Assert.Equal(SourceCodeKind.Script, document1.SourceCodeKind);
+            Assert.Null(document1.DocumentState.ParseOptions);
+
+            var document2 = document1.WithSourceCodeKind(SourceCodeKind.Regular);
+            Assert.Equal(SourceCodeKind.Regular, document2.SourceCodeKind);
+            Assert.Null(document2.DocumentState.ParseOptions);
         }
 
         [Fact]

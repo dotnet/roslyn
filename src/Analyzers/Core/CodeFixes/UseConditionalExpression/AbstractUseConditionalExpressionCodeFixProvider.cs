@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,12 +14,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-
-#if CODE_STYLE
-using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
-#else
-using Formatter = Microsoft.CodeAnalysis.Formatting.Formatter;
-#endif
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression;
 
@@ -40,7 +33,7 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
     protected abstract ISyntaxFacts SyntaxFacts { get; }
     protected abstract AbstractFormattingRule GetMultiLineFormattingRule();
 
-    protected abstract ISyntaxFormatting GetSyntaxFormatting();
+    protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
     protected abstract TExpressionSyntax ConvertToExpression(IThrowOperation throwOperation);
     protected abstract TStatementSyntax WrapWithBlockIfAppropriate(TIfStatementSyntax ifStatement, TStatementSyntax statement);
@@ -51,17 +44,12 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-#if CODE_STYLE
-        var provider = GetSyntaxFormatting();
-#else
-        var provider = document.Project.Solution.Services;
-#endif
-        var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-        var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());
+        var options = await document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var formattingOptions = options.GetFormattingOptions(SyntaxFormatting);
 
         // Defer to our callback to actually make the edits for each diagnostic. In turn, it
         // will return 'true' if it made a multi-line conditional expression. In that case,
@@ -81,9 +69,9 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         // conditional expression as that's the only node that has the appropriate
         // annotation on it.
         var rules = ImmutableArray.Create(GetMultiLineFormattingRule());
+        var spansToFormat = FormattingExtensions.GetAnnotatedSpans(changedRoot, SpecializedFormattingAnnotation);
 
-        var formattedRoot = Formatter.Format(changedRoot, SpecializedFormattingAnnotation, provider, formattingOptions, rules, cancellationToken);
-
+        var formattedRoot = SyntaxFormatting.GetFormattingResult(changedRoot, spansToFormat, formattingOptions, rules, cancellationToken).GetFormattedRoot(cancellationToken);
         changedRoot = formattedRoot;
 
         editor.ReplaceNode(root, changedRoot);

@@ -12,11 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.MatchFolderAndNamespace;
 
 [Export(typeof(CSharpChangeNamespaceToMatchFolderCodeFixProvider))]
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ChangeNamespaceToMatchFolder), Shared]
-internal class CSharpChangeNamespaceToMatchFolderCodeFixProvider : AbstractChangeNamespaceToMatchFolderCodeFixProvider
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpChangeNamespaceToMatchFolderCodeFixProvider()
-    {
-    }
-}
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpChangeNamespaceToMatchFolderCodeFixProvider() : AbstractChangeNamespaceToMatchFolderCodeFixProvider;

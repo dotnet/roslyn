@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
             Return expression.Span.Contains(token.SpanStart) AndAlso token <> expression.CloseBraceToken
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As SignatureHelpOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As MemberDisplayOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Dim collectionInitializer As CollectionInitializerSyntax = Nothing
             If Not TryGetInitializerExpression(root, position, document.GetLanguageService(Of ISyntaxFactsService)(), triggerInfo.TriggerReason, cancellationToken, collectionInitializer) Then

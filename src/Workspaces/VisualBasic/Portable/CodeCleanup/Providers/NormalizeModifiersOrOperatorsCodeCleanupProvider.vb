@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Private ReadOnly _cancellationToken As CancellationToken
 
             Shared Sub New()
-                Debug.Assert(String.Join(",", s_modifierKindsInOrder.Select(AddressOf SyntaxFacts.GetText)) = VisualBasicIdeCodeStyleOptions.Default.PreferredModifierOrder.Value)
+                Debug.Assert(String.Join(",", s_modifierKindsInOrder.Select(AddressOf SyntaxFacts.GetText)) = VisualBasicCodeStyleOptions.PreferredModifierOrder.DefaultValue.Value)
             End Sub
 
             Public Sub New(spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken)
