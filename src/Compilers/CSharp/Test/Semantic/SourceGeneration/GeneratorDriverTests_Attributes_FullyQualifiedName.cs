@@ -1304,6 +1304,52 @@ class YAttribute : System.Attribute { }
         }
     }
 
+    [Fact, WorkItem("https://github.com/dotnet/runtime/issues/105137")]
+    public void LocalFileAlias_AttributeUsedMultipleTimes()
+    {
+        var source = """
+            using System.Runtime.InteropServices;
+
+            namespace NetPlayground
+            {
+                using Import = LibraryImportAttribute;
+
+                internal partial class TestImport
+                {
+                    [Import("somedll.dll")]
+                    partial void SomeFunction(int a);
+
+                    [Import("somedll.dll")]
+                    partial void SomeFunction2(int a);
+                }
+            }
+
+            namespace System.Runtime.InteropServices
+            {
+                class LibraryImportAttribute(string s) : System.Attribute { }
+            }
+            """;
+        var parseOptions = TestOptions.RegularPreview;
+        var compilation = CreateCompilation(source, options: TestOptions.DebugDllThrowing, parseOptions: parseOptions);
+
+        Assert.Single(compilation.SyntaxTrees);
+
+        var generator = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx =>
+        {
+            var input = ctx.ForAttributeWithMetadataName<MethodDeclarationSyntax>("System.Runtime.InteropServices.LibraryImportAttribute");
+            ctx.RegisterSourceOutput(input, (spc, node) => { });
+        }));
+
+        var driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps: true));
+        var runResult = driver.RunGenerators(compilation).GetRunResult().Results[0];
+
+        Assert.Collection(runResult.TrackedSteps["result_ForAttributeWithMetadataName"],
+            step => Assert.True(
+                step.Outputs is [
+                { Value: MethodDeclarationSyntax { Identifier.ValueText: "SomeFunction" } },
+                { Value: MethodDeclarationSyntax { Identifier.ValueText: "SomeFunction2" } }]));
+    }
+
     #endregion
 
     #region Incremental tests
