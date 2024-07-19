@@ -144,6 +144,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                if (_containingMethod is not null &&
+                    ContainingType.OriginalDefinition.TryGetCorrespondingStaticMetadataExtensionMember(_containingMethod.OriginalDefinition) is MethodSymbol staticMetadataSymbol)
+                {
+                    // PROTOTYPE(roles): It looks like SemanticModel and probably some other consumers might create this symbol without a method.
+                    //                   Figure out what the scenarios and what RefKind will be appropriate for extension types extending
+                    //                   types not known to be a reference type.
+                    return staticMetadataSymbol.Parameters[0].RefKind;
+                }
+
                 if (ContainingType?.TypeKind != TypeKind.Struct)
                 {
                     return RefKind.None;
