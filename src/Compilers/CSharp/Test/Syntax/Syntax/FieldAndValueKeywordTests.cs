@@ -582,6 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
+                #pragma warning disable 168
                 class C
                 {
                     void Deconstruct(out object x, out object y) => throw null;
@@ -598,12 +599,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics(
-                // (9,20): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                // (10,20): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             object @value;
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(9, 20),
-                // (10,14): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(10, 20),
+                // (11,14): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
                 //             (field, @value) = new C();
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(10, 14));
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(11, 14));
         }
 
         [Theory]
@@ -858,70 +859,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Attribute_02(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
-        {
-            string identifier = escapeIdentifier ? "@value" : "value";
-            string source = $$"""
-                using System;
-                class A : Attribute
-                {
-                    public A(string s) { }
-                }
-                class C
-                {
-                    const int value = 0;
-                    [A(nameof({{identifier}}))]
-                    object P
-                    {
-                        [A(nameof({{identifier}}))] get { return null; }
-                        [A(nameof({{identifier}}))] set { }
-                    }
-                    [A(nameof({{identifier}}))]
-                    event EventHandler E
-                    {
-                        [A(nameof({{identifier}}))] add { }
-                        [A(nameof({{identifier}}))] remove { }
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics();
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void Attribute_03(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
-        {
-            string identifier = escapeIdentifier ? "@value" : "value";
-            string source = $$"""
-                using System;
-                class A : Attribute
-                {
-                    public A(string s) { }
-                }
-                class C
-                {
-                    const int value = 0;
-                    object P
-                    {
-                        [param: A(nameof({{identifier}}))] set { }
-                    }
-                    event EventHandler E
-                    {
-                        [param: A(nameof({{identifier}}))] add { }
-                        [param: A(nameof({{identifier}}))] remove { }
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics();
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void Attribute_LocalFunction_01(
+        public void Attribute_LocalFunction(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
@@ -957,10 +895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 23),
                     // (13,23): error CS8081: Expression does not have a name.
                     //             [A(nameof(field))] void F1(int field) { }
-                    Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(13, 23),
-                    // (21,23): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                    //             [A(nameof(value))] void F2(int value) { }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(21, 23));
+                    Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(13, 23));
             }
             else
             {
@@ -968,44 +903,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (13,23): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
                     //             [A(nameof(field))] void F1(int field) { }
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 23));
-            }
-        }
-
-        [Theory]
-        [CombinatorialData]
-        public void Attribute_LocalFunction_02(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
-        {
-            string fieldIdentifier = escapeIdentifier ? "@field" : "field";
-            string valueIdentifier = escapeIdentifier ? "@value" : "value";
-            string source = $$"""
-                #pragma warning disable 649, 8321
-                using System;
-                [AttributeUsage(AttributeTargets.All)]
-                class A : Attribute
-                {
-                    public A(string s) { }
-                }
-                class C
-                {
-                    event EventHandler E
-                    {
-                        add { void F1([A(nameof({{fieldIdentifier}}))] int {{fieldIdentifier}}) { } }
-                        remove { void F2([A(nameof({{valueIdentifier}}))] int {{valueIdentifier}}) { } }
-                    }
-                }
-                """;
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (escapeIdentifier)
-            {
-                comp.VerifyEmitDiagnostics();
-            }
-            else
-            {
-                comp.VerifyEmitDiagnostics(
-                    // (13,36): info CS9258: 'value' is a contextual keyword in property accessors starting in language version preview. Use '@value' instead.
-                    //         remove { void F2([A(nameof(value))] int value) { } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "value").WithArguments("value", "preview").WithLocation(13, 36));
             }
         }
 

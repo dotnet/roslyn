@@ -13,13 +13,12 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    // PROTOTYPE: Merge with FieldKeywordTests from Syntax test assembly.
     public class FieldKeywordTests : CSharpTestBase
     {
         private static string IncludeExpectedOutput(string expectedOutput) => ExecutionConditionUtil.IsMonoOrCoreClr ? expectedOutput : null;
 
         [Fact]
-        public void Field_02()
+        public void Field_01()
         {
             string source = """
                 using System;
@@ -78,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Field_03()
+        public void Field_02()
         {
             string source = """
                 using System;
@@ -129,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Field_04()
+        public void Field_03()
         {
             string source = """
                 using System;
@@ -231,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Attribute_04()
+        public void Attribute_01()
         {
             string source = """
                 using System;
@@ -261,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Attribute_05()
+        public void Attribute_02()
         {
             string source = """
                 using System;
