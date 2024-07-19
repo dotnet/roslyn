@@ -2397,9 +2397,9 @@
         <target state="translated">vzory rozšířených vlastností</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureFieldAndValueKeywords">
-        <source>field and value keywords</source>
-        <target state="translated">klíčová slova pole a hodnoty</target>
+      <trans-unit id="IDS_FeatureFieldKeyword">
+        <source>field keyword</source>
+        <target state="new">field keyword</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
