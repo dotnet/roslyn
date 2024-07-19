@@ -53,6 +53,7 @@ variables:
   - group: DotNet-Versions-Publish
   - group: DotNet-VSTS-Infra-Access
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
+  - group: AzureDevOps-Artifact-Feeds-Pats
   - name: _DevDivDropAccessToken
     value: $(dn-bot-devdiv-drop-rw-code-rw)
   - name: ArtifactServices.Drop.PAT
