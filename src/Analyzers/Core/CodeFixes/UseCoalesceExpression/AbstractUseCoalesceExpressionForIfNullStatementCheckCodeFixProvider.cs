@@ -2,27 +2,20 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
-using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseCoalesceExpression;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.UseCoalesceExpressionForIfNullStatementCheck), Shared]
-[ExtensionOrder(Before = PredefinedCodeFixProviderNames.AddBraces)]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseCoalesceExpressionForIfNullCheckDiagnosticId];
@@ -33,10 +26,17 @@ internal class UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider() : S
         return Task.CompletedTask;
     }
 
-    protected override Task FixAllAsync(
+    protected abstract bool ShouldAddExplicitCast(
+        ISyntaxFactsService syntaxFacts, SemanticModel semanticModel,
+        SyntaxNode expressionToCoalesce, SyntaxNode whenTrueStatement,
+        [NotNullWhen(true)] out ITypeSymbol? castTo,
+        CancellationToken cancellationToken);
+
+    protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor, CancellationToken cancellationToken)
     {
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var generator = editor.Generator;
 
@@ -46,15 +46,23 @@ internal class UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider() : S
             var ifStatement = diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
             var whenTrueStatement = diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
+            var left = expressionToCoalesce.WithoutTrivia();
+
+            if (ShouldAddExplicitCast(syntaxFacts, semanticModel, expressionToCoalesce,
+                whenTrueStatement, out var castTo, cancellationToken))
+            {
+                left = generator.CastExpression(castTo, left);
+            }
+
             editor.RemoveNode(ifStatement);
             editor.ReplaceNode(
                 expressionToCoalesce,
                 generator.CoalesceExpression(
-                    expressionToCoalesce.WithoutTrivia(),
+                    left,
                     GetWhenNullExpression(whenTrueStatement).WithoutTrailingTrivia()).WithTriviaFrom(expressionToCoalesce));
         }
 
-        return Task.CompletedTask;
+        return;
 
         SyntaxNode GetWhenNullExpression(SyntaxNode whenTrueStatement)
         {
