@@ -13,7 +13,7 @@ internal static class SimplifierOptionsProviders
 {
 #if !CODE_STYLE
     public static SimplifierOptions GetSimplifierOptions(this IOptionsReader options, Host.LanguageServices languageServices)
-        => languageServices.GetRequiredService<ISimplificationService>().GetSimplifierOptions(options);
+        => languageServices.GetService<ISimplificationService>()?.GetSimplifierOptions(options) ?? SimplifierOptions.CommonDefaults;
 
     public static ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, CancellationToken cancellationToken)
         => GetSimplifierOptionsAsync(document, document.Project.Services.GetRequiredService<ISimplificationService>(), cancellationToken);
