@@ -150,12 +150,13 @@
   <!--
     Workaround for missing dependency publishing feature in the VS SDK.
     
-    When a project reference publishing outputs need to be packaged into a VSIX,
+    Relies on the following convention: When a project reference publish outputs (i.e. more than standard build outputs) need to be packaged into a VSIX,
     the project should define VsixItemsOutputGroup target and include it in ProjectRefrence.IncludeOutputGroupsInVSIX.
-    
-    VsixItemsOutputGroup target should gather all the publishing items to be packaged into the VSIX using PublishVsixItems target,
-    but should not depend on Publish targets (i.e. invoking VsixItemsOutputGroup target should not trigger actual publishing).
-    PublishProjectReferencesForVsixCreation below will take care of publishing for all ProjectReferences with VsixItemsOutputGroup.
+
+    VsixItemsOutputGroup target may gather all the publishing items to be packaged into the VSIX using PublishItemsOutputGroup target,
+    but should not depend on Publish target (i.e. invoking VsixItemsOutputGroup target should not trigger actual publishing).
+
+    Target PublishProjectReferencesForVsixCreation will take care of publishing for all ProjectReferences with VsixItemsOutputGroup.
   -->
   
   <PropertyGroup>
