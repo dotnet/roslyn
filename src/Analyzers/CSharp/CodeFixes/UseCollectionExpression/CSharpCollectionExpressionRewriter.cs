@@ -46,7 +46,7 @@ internal static class CSharpCollectionExpressionRewriter
 
         var document = await ParsedDocument.CreateAsync(workspaceDocument, cancellationToken).ConfigureAwait(false);
 
-        var formattingOptions = (CSharpSyntaxFormattingOptions)await workspaceDocument.GetSyntaxFormattingOptionsAsync(CSharpSyntaxFormatting.Instance, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await workspaceDocument.GetCSharpSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var indentationOptions = new IndentationOptions(formattingOptions);
 
         var wrappingLength = formattingOptions.CollectionExpressionWrappingLength;
