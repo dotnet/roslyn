@@ -22,22 +22,25 @@
 
   <!--
     InteractiveHost32 is deployed to the same directory as InteractiveHost64 as it shares the same dependencies.
-    
-    Ideally this would just return @(BuiltProjectOutputGroupOutput) but that does not reliably include the generated App.config file.
-    See https://github.com/microsoft/msbuild/issues/5433.
-
-    Use BuiltProjectOutputGroup as the dependend target to ensure the targets has all dependencies that BuiltProjectOutputGroupOutput would have.
   -->
-  <Target Name="PublishProjectOutputGroup" DependsOnTargets="Build;BuiltProjectOutputGroup" Returns="@(_PublishProjectOutputGroup)">
+  <Target Name="VsixItemsOutputGroup" Returns="@(_VsixItem)">
     <ItemGroup>
-      <_PublishProjectOutputGroup Include="$(TargetPath)">
+      <_VsixItem Include="$(TargetPath)">
         <TargetPath>$(TargetFileName)</TargetPath>
         <Ngen>true</Ngen>
         <NgenPriority>3</NgenPriority>
         <NgenArchitecture>X86</NgenArchitecture>
         <NgenApplication>[installDir]\Common7\IDE\$(CommonExtensionInstallationRoot)\$(LanguageServicesExtensionInstallationFolder)\InteractiveHost\Desktop\InteractiveHost32.exe</NgenApplication>
-      </_PublishProjectOutputGroup>
-      <_PublishProjectOutputGroup Include="$(TargetPath).config" TargetPath="$(TargetFileName).config"/>
+      </_VsixItem>
+      <_VsixItem Include="$(TargetPath).config" TargetPath="$(TargetFileName).config"/>
     </ItemGroup>
   </Target>
+
+  <!--
+    Ideally this would just return @(BuiltProjectOutputGroupOutput) but that does not reliably include the generated App.config file.
+    See https://github.com/microsoft/msbuild/issues/5433.
+
+    Use BuiltProjectOutputGroup as the dependend target to ensure the targets has all dependencies that BuiltProjectOutputGroupOutput would have.
+  -->
+  <Target Name="PublishVsixItems" DependsOnTargets="Build;BuiltProjectOutputGroup;VsixItemsOutputGroup" Returns="@(_VsixItem)" />
 </Project>

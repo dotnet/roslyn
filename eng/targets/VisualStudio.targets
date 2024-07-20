@@ -144,6 +144,33 @@
 
   <Import Project="GeneratePkgDef.targets" Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(GeneratePkgDefFile)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
 
-    <!-- Workaround to fix https://github.com/dotnet/msbuild/issues/10306 -->
+  <!-- Workaround to fix https://github.com/dotnet/msbuild/issues/10306 -->
   <Target Name="ExtensionJsonOutputGroupFixed" Returns="@(ExtensionJsonOutputGroupOutput)" DependsOnTargets="PrepareResources;ExtensionJsonOutputGroup" />
+
+  <!--
+    Workaround for missing dependency publishing feature in the VS SDK.
+    
+    When a project reference publishing outputs need to be packaged into a VSIX,
+    the project should define VsixItemsOutputGroup target and include it in ProjectRefrence.IncludeOutputGroupsInVSIX.
+    
+    VsixItemsOutputGroup target should gather all the publishing items to be packaged into the VSIX using PublishVsixItems target,
+    but should not depend on Publish targets (i.e. invoking VsixItemsOutputGroup target should not trigger actual publishing).
+    PublishProjectReferencesForVsixCreation below will take care of publishing for all ProjectReferences with VsixItemsOutputGroup.
+  -->
+  
+  <PropertyGroup>
+    <CreateVsixContainerDependsOn>$(CreateVsixContainerDependsOn);PublishProjectReferencesForVsixCreation</CreateVsixContainerDependsOn>
+  </PropertyGroup>
+
+  <Target Name="PublishProjectReferencesForVsixCreation">
+    <ItemGroup>
+      <_ProjectsToPublish Include="@(ProjectReference)" Condition="$([MSBuild]::ValueOrDefault('%(IncludeOutputGroupsInVSIX)', '').Contains('VsixItemsOutputGroup'))"/>
+    </ItemGroup>
+
+    <MSBuild Projects="@(_ProjectsToPublish)"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="%(_ProjectsToPublish.SetConfiguration);%(_ProjectsToPublish.SetPlatform);%(_ProjectsToPublish.SetTargetFramework)"
+             Targets="PublishVsixItems"
+             RebaseOutputs="true" />
+  </Target>
 </Project>
