@@ -374,7 +374,6 @@
   <ItemGroup>
     <EmbeddedResource Include="NetFX\ValueTuple\ValueTuple.cs" />
     <EmbeddedResource Include="NetFX\ValueTuple\TupleElementNamesAttribute.cs" />
-    <Content Include="SymbolsTests\CustomModifiers\GenericMethodWithModifiers.cpp" />
     <None Include="SymbolsTests\Metadata\public-and-private.cs" />
   </ItemGroup>
   <ItemGroup>
