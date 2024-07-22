@@ -30,6 +30,28 @@ To reference prerelease packages, add a **NuGet.Config** file to your solution d
   * Microsoft.CodeAnalysis.VisualBasic.CodeRefactoring.Testing
   * Microsoft.CodeAnalysis.VisualBasic.SourceGenerators.Testing
 
+### Obsolete Packages
+
+This collection of packages previously included a number of packages for testing with specific test frameworks, such as
+MSTest, NUnit, and xUnit. These packages have been marked obsolete, and users are encouraged to migrate to the generic
+test packages. The migration process shown here is specific to MSTest; other frameworks can substitute `NUnit` or `XUnit`
+as appropriate.
+
+* Remove the **.MSTest** suffix from all referenced packages. For example:
+
+    Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.MSTest &rarr; Microsoft.CodeAnalysis.CSharp.Analyzer.Testing
+
+* Remove the **.MSTest** suffix from namespaces. For example:
+
+    ```patch
+    -using Microsoft.CodeAnalysis.CSharp.Testing.MSTest;
+    +using Microsoft.CodeAnalysis.CSharp.Testing;
+    ```
+
+* Use `CSharpAnalyzerVerifier<TAnalyzer, DefaultVerifier>` instead of `AnalyzerVerifier<TAnalyzer>`. A similar change
+  should be applied for each of the other types impacted by this change (remove the language prefix, and add the
+  `DefaultVerifier` generic argument).
+
 ## Verifier overview
 
 Testing analyzers and code fixes starts with the selection of a *verifier* helper type. A default analyzer and code fix
@@ -176,77 +198,7 @@ verifier and test types. For example, [Microsoft/vs-threading](https://github.co
 Additional Files and metadata references in most of its tests, so it uses custom verifier and test types to allow the
 use of "basic use cases" for test scenarios that would otherwise be considered advanced.
 
-```csharp
-public static class CSharpAnalyzerVerifier<TAnalyzer>
-    where TAnalyzer : DiagnosticAnalyzer, new()
-{
-    public static DiagnosticResult Diagnostic(string diagnosticId = null)
-        => CSharpAnalyzerVerifier<TAnalyzer, DefaultVerifier>.Diagnostic(diagnosticId);
-
-    public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
-        => new DiagnosticResult(descriptor);
-
-    public static Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
-    {
-        var test = new Test { TestCode = source };
-        test.ExpectedDiagnostics.AddRange(expected);
-        return test.RunAsync();
-    }
-
-    // Code fix tests support both analyzer and code fix testing. This test class is derived from the code fix test
-    // to avoid the need to maintain duplicate copies of the customization work.
-    public class Test : CSharpCodeFixVerifier.Test<TAnalyzer, EmptyCodeFixProvider>
-    {
-    }
-}
-
-public static class CSharpCodeFixVerifier<TAnalyzer, TCodeFix>
-    where TAnalyzer : DiagnosticAnalyzer, new()
-    where TCodeFix : CodeFixProvider, new()
-{
-    public static DiagnosticResult Diagnostic(string diagnosticId = null)
-        => CSharpCodeFixVerifier<TAnalyzer, TCodeFix, DefaultVerifier>.Diagnostic(diagnosticId);
-
-    public static DiagnosticResult Diagnostic(DiagnosticDescriptor descriptor)
-        => new DiagnosticResult(descriptor);
-
-    public static Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
-    {
-        var test = new CSharpAnalyzerVerifier<TAnalyzer>.Test { TestCode = source };
-        test.ExpectedDiagnostics.AddRange(expected);
-        return test.RunAsync();
-    }
-
-    public static Task VerifyCodeFixAsync(string source, string fixedSource)
-        => VerifyCodeFixAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
-
-    public static Task VerifyCodeFixAsync(string source, DiagnosticResult expected, string fixedSource)
-        => VerifyCodeFixAsync(source, new[] { expected }, fixedSource);
-
-    public static Task VerifyCodeFixAsync(string source, DiagnosticResult[] expected, string fixedSource)
-    {
-        var test = new Test
-        {
-            TestCode = source,
-            FixedCode = fixedSource,
-        };
-
-        test.ExpectedDiagnostics.AddRange(expected);
-        return test.RunAsync();
-    }
-
-    public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, DefaultVerifier>
-        where TAnalyzer : DiagnosticAnalyzer, new()
-        where TCodeFix : CodeFixProvider, new()
-    {
-        public CSharpCodeFixTest()
-        {
-            // Custom initialization logic here
-        }
-
-        // Custom analyzers and/or code fix properties here
-    }
-}
-
-```
-
+To create a custom verifier, add your test setup or configuration to the corresponding `Test` class provided by the
+[analyzer template](../VisualStudio.Roslyn.SDK/Roslyn.SDK/ProjectTemplates/CSharp/Diagnostic/Test/Verifiers). See
+https://learn.microsoft.com/en-us/dotnet/csharp/roslyn-sdk/tutorials/how-to-write-csharp-analyzer-code-fix for
+instructions on using the analyzer template.
