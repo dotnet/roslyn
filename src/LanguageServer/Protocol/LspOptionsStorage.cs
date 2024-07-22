@@ -32,6 +32,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer
 
         private static readonly OptionGroup s_codeLensOptionGroup = new(name: "code_lens", description: "");
 
+        private static readonly OptionGroup s_onAutoInsertOptionGroup = new(name: "on_auto_insert", description: "");
+
         /// <summary>
         /// Flag indicating whether or not references should be returned in LSP codelens.
         /// </summary>
@@ -45,6 +47,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// <summary>
         /// Flag indicating whether or not auto-insert should be abled by default in LSP.
         /// </summary>
-        public static readonly PerLanguageOption2<bool> LspEnableOnAutoInsert = new("dotnet_enable_on_auto_insert", defaultValue: true);
+        public static readonly PerLanguageOption2<bool> LspEnableOnAutoInsert = new("dotnet_enable_on_auto_insert", defaultValue: true, group: s_onAutoInsertOptionGroup);
     }
 }
