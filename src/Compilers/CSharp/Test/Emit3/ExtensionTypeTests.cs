@@ -41268,6 +41268,84 @@ public interface I1
     }
 
     [Fact]
+    public void InstanceMethod_Metadata_25_LambdaCapturing()
+    {
+        var src1 = """
+public implicit extension E<T> for T where T : class, I1
+{
+    public void Method()
+    {
+        var d1 = () => this.Increment();
+        d1();
+        var d2 = () => this.EIncrement();
+        d2();
+    }
+
+    public void EIncrement()
+    {
+        this.Increment();
+    }
+}
+
+public interface I1
+{
+    public void Increment();
+}
+
+public class C : I1
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        Test1();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        c.Method();
+        System.Console.WriteLine(c.F);
+    }
+}
+""";
+        var comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+
+        verifier.VerifyIL("E<T>.Method(T)",
+"""
+{
+  // Code size       46 (0x2e)
+  .maxstack  3
+  IL_0000:  newobj     "E<T>.<>c__DisplayClass0_0..ctor()"
+  IL_0005:  dup
+  IL_0006:  ldarg.0
+  IL_0007:  stfld      "T E<T>.<>c__DisplayClass0_0.<>4__this"
+  IL_000c:  dup
+  IL_000d:  ldftn      "void E<T>.<>c__DisplayClass0_0.<Method>b__0()"
+  IL_0013:  newobj     "System.Action..ctor(object, nint)"
+  IL_0018:  callvirt   "void System.Action.Invoke()"
+  IL_001d:  ldftn      "void E<T>.<>c__DisplayClass0_0.<Method>b__1()"
+  IL_0023:  newobj     "System.Action..ctor(object, nint)"
+  IL_0028:  callvirt   "void System.Action.Invoke()"
+  IL_002d:  ret
+}
+""");
+
+        comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
+    }
+
+    [Fact]
     public void InstanceProperty_Metadata_01()
     {
         var src1 = """
