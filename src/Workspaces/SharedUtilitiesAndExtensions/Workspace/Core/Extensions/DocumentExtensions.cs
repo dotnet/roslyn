@@ -17,7 +17,6 @@ using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Options;
 
-
 #if DEBUG
 using System.Collections.Immutable;
 using System.Diagnostics;
