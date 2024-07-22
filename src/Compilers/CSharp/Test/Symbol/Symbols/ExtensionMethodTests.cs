@@ -4139,5 +4139,26 @@ public static class C
                 //     public A(int x, A a = new A().M(1)) { }
                 Diagnostic(ErrorCode.ERR_BadArgRef, "1").WithArguments("2", "ref").WithLocation(8, 37));
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74404")]
+        public void Repro_74404()
+        {
+            var source = """
+                #nullable enable
+                class Foo<T>;
+                static class FooExt
+                {
+                    public static void Bar<T>(this Foo<T> foo)
+                    {
+                        foo.Bar = 42;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,9): error CS1656: Cannot assign to 'Bar' because it is a 'method group'
+                //         foo.Bar = 42;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "foo.Bar").WithArguments("Bar", "method group").WithLocation(7, 9));
+        }
     }
 }
