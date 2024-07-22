@@ -5,7 +5,6 @@
 using System;
 using System.Collections;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +26,6 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
     private static readonly DiagnosticDescriptorComparer s_comparer = new();
 
     private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
-    private readonly IAsynchronousOperationListener _listener;
     private readonly BulkObservableCollection<BaseItem> _items = new();
 
     private readonly CancellationTokenSource _cancellationTokenSource = new();
@@ -58,11 +56,10 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
         CommandHandler = commandHandler;
         _diagnosticAnalyzerService = diagnosticAnalyzerService;
 
-        _listener = listenerProvider.GetListener(FeatureAttribute.SourceGenerators);
         _workQueue = new AsyncBatchingWorkQueue(
             DelayTimeSpan.Idle,
             ProcessQueueAsync,
-            _listener,
+            listenerProvider.GetListener(FeatureAttribute.SourceGenerators),
             _cancellationTokenSource.Token);
     }
 
@@ -86,7 +83,6 @@ internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttached
 
     public abstract object SourceItem { get; }
 
-    [MemberNotNullWhen(true, nameof(AnalyzerReference))]
     // Defer actual determination and computation of the items until later.
     public bool HasItems => !_cancellationTokenSource.IsCancellationRequested;
 
