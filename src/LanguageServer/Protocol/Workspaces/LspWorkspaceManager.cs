@@ -256,7 +256,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         {
             var miscDocument = _lspMiscellaneousFilesWorkspace?.AddMiscellaneousDocument(uri, trackedDocument.Text, trackedDocument.LanguageId, _logger);
             if (miscDocument is not null)
-                return (_lspMiscellaneousFilesWorkspace, miscDocument.Project.Solution, miscDocument);
+                return (miscDocument.Project.Solution.Workspace, miscDocument.Project.Solution, miscDocument);
         }
 
         return default;
