@@ -12598,7 +12598,7 @@ $$
         End Function
 
         <WpfTheory, CombinatorialData>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/72392")>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/74484")>
         Public Async Function ReferenceToMethodThatFollow(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                 <Document>
