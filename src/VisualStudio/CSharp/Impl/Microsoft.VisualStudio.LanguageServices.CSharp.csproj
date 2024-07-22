@@ -16,6 +16,7 @@
     <DeployExtension>false</DeployExtension>
     <VssdkCompatibleExtension>true</VssdkCompatibleExtension>
   </PropertyGroup>
+  <Target Name="ExtensionJsonOutputGroupFixed" Returns="@(ExtensionJsonOutputGroupOutput)" DependsOnTargets="PrepareResources;ExtensionJsonOutputGroup" />
   <ItemGroup>
     <Content Update=".vsextension/string-resources.json" XlfPreserveFileName="true" />
     <Content Include="UnifiedSettings/csharpSettings.registration.json" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
