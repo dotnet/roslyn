@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.SemanticModelReuse;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Options;
 
 #if DEBUG
 using System.Collections.Immutable;
@@ -222,10 +223,10 @@ internal static partial class DocumentExtensions
     }
 
 #if CODE_STYLE
-    public static async ValueTask<AnalyzerConfigOptions> GetAnalyzerConfigOptionsAsync(this Document document, CancellationToken cancellationToken)
+    public static async ValueTask<IOptionsReader> GetAnalyzerConfigOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        return document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
+        return document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader();
     }
 #endif
 }
