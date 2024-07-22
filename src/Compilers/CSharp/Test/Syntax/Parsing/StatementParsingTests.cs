@@ -3556,21 +3556,19 @@ System.Console.WriteLine(true)";
             Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, statement.Errors()[0].Code);
         }
 
-        [WorkItem(266237, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=266237")]
-        [Fact]
+        [Fact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=266237")]
         public void NullExceptionInLabeledStatement()
         {
             UsingStatement(@"{ label: public",
-                // (1,1): error CS1073: Unexpected token 'public'
-                // { label: public
-                Diagnostic(ErrorCode.ERR_UnexpectedToken, "{ label: ").WithArguments("public").WithLocation(1, 1),
                 // (1,10): error CS1002: ; expected
                 // { label: public
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, "public").WithLocation(1, 10),
                 // (1,10): error CS1513: } expected
                 // { label: public
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 10)
-                );
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "public").WithLocation(1, 10),
+                // (1,16): error CS1513: } expected
+                // { label: public
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(1, 16));
 
             N(SyntaxKind.Block);
             {
@@ -3586,6 +3584,7 @@ System.Console.WriteLine(true)";
                 }
                 M(SyntaxKind.CloseBraceToken);
             }
+            EOF();
             EOF();
         }
 
