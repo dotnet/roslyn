@@ -259,7 +259,7 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
-        if (_fileTrackingMetadataAsSourceService.TryAddDocumentToWorkspace(moniker, textBuffer.AsTextContainer()))
+        if (_fileTrackingMetadataAsSourceService.TryAddDocumentToWorkspace(moniker, textBuffer.AsTextContainer(), out var _))
         {
             // We already added it, so we will keep it excluded from the misc files workspace
             return;
