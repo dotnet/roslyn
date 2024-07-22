@@ -4058,30 +4058,39 @@ class Program
                     public S2() { }
                     string this[[UnscopedRef] in int x] { get => default; set { } }
 
-                    static void Test(int[] array, int x)
+                    static void Test(int x, in int y, [UnscopedRef] in int z)
                     {
-                        int y = 0;
-                        S2 local;
-
-                        local = new() { [in array[0]] = "" };
-                        local = new() { [in x] = "" }; // 1
-                        local = new() { [in y] = "" }; // 2
-                        local = new() { [0] = "" }; // 3
+                        S2 local = default;
+                        local = new() { [x] = "" }; // 1
+                        local = new() { [y] = "" }; // 2
+                        local = new() { [z] = "" };
+                        local[x] = ""; // 3
+                        local[y] = ""; // 4
+                        local[z] = "";
                     }
                 }
                 """;
 
             var comp = CreateCompilationWithSpan([code, UnscopedRefAttributeDefinition], TestOptions.UnsafeDebugDll, TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
-                // (32,23): error CS8352: Cannot use variable '[in x] = ""' in this context because it may expose referenced variables outside of their declaration scope
-                //         local = new() { [in x] = "" }; // 1
-                Diagnostic(ErrorCode.ERR_EscapeVariable, @"{ [in x] = """" }").WithArguments(@"[in x] = """"").WithLocation(32, 23),
-                // (33,23): error CS8352: Cannot use variable '[in y] = ""' in this context because it may expose referenced variables outside of their declaration scope
-                //         local = new() { [in y] = "" }; // 2
-                Diagnostic(ErrorCode.ERR_EscapeVariable, @"{ [in y] = """" }").WithArguments(@"[in y] = """"").WithLocation(33, 23),
-                // (34,23): error CS8352: Cannot use variable '[0] = ""' in this context because it may expose referenced variables outside of their declaration scope
-                //         local = new() { [0] = "" }; // 3
-                Diagnostic(ErrorCode.ERR_EscapeVariable, @"{ [0] = """" }").WithArguments(@"[0] = """"").WithLocation(34, 23)
+                // (29,23): error CS8352: Cannot use variable '[x] = ""' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new() { [x] = "" }; // 1
+                Diagnostic(ErrorCode.ERR_EscapeVariable, @"{ [x] = """" }").WithArguments(@"[x] = """"").WithLocation(29, 23),
+                // (30,23): error CS8352: Cannot use variable '[y] = ""' in this context because it may expose referenced variables outside of their declaration scope
+                //         local = new() { [y] = "" }; // 2
+                Diagnostic(ErrorCode.ERR_EscapeVariable, @"{ [y] = """" }").WithArguments(@"[y] = """"").WithLocation(30, 23),
+                // (32,9): error CS8350: This combination of arguments to 'S2.this[in int]' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         local[x] = ""; // 3
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[x]").WithArguments("S2.this[in int]", "x").WithLocation(32, 9),
+                // (32,15): error CS8166: Cannot return a parameter by reference 'x' because it is not a ref parameter
+                //         local[x] = ""; // 3
+                Diagnostic(ErrorCode.ERR_RefReturnParameter, "x").WithArguments("x").WithLocation(32, 15),
+                // (33,9): error CS8350: This combination of arguments to 'S2.this[in int]' is disallowed because it may expose variables referenced by parameter 'x' outside of their declaration scope
+                //         local[y] = ""; // 4
+                Diagnostic(ErrorCode.ERR_CallArgMixing, "local[y]").WithArguments("S2.this[in int]", "x").WithLocation(33, 9),
+                // (33,15): error CS9077: Cannot return a parameter by reference 'y' through a ref parameter; it can only be returned in a return statement
+                //         local[y] = ""; // 4
+                Diagnostic(ErrorCode.ERR_RefReturnOnlyParameter, "y").WithArguments("y").WithLocation(33, 15)
                 );
         }
 
@@ -4101,7 +4110,7 @@ class Program
                     static S1 Test1(int x) => new S1() { [in x] = "" }; // 1
                     static S1 Test2(in int x) => new S1() { [in x] = "" };
                     static S1 Test3(scoped in int x) => new S1() { [in x] = "" }; // 2
-                    static S1 Test3(int[] x) => new S1() { [in x[0]] = "" }; // 2
+                    static S1 Test3(int[] x) => new S1() { [in x[0]] = "" };
                 }
 
                 """;
