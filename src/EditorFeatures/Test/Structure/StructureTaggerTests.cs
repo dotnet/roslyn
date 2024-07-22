@@ -326,38 +326,38 @@ End Module";
             hints.Do(v => v.TextView_TestOnly.Close());
         }
 
-    [WpfFact]
-    [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2094051")]
-    public async Task IfShouldBeCollapsed()
-    {
-        var code = @"
-Module Program
-    Sub Main(args As String())
-        Dim str = """"
-        If str.Contains(""foo"") Then
+        [WpfFact]
+        [WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2094051")]
+        public async Task IfShouldBeCollapsed()
+        {
+            var code = @"
+    Module Program
+        Sub Main(args As String())
+            Dim str = """"
+            If str.Contains(""foo"") Then
 
-        End If
-    End Sub
-End Module";
+            End If
+        End Sub
+    End Module";
 
-        using var workspace = EditorTestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeaturesWpf);
-        var tags = await GetTagsFromWorkspaceAsync(workspace);
-        Assert.Collection(tags, programTag =>
-        {
-            Assert.Equal("Module Program", GetHeaderText(programTag));
-            Assert.Equal(8, GetCollapsedHintLineCount(programTag));
-        },
-        mainTag =>
-        {
-            Assert.Equal("Sub Main(args As String())", GetHeaderText(mainTag));
-            Assert.Equal(6, GetCollapsedHintLineCount(mainTag));
-        },
-        IfTag =>
-        {
-            Assert.Equal("If str.Contains(\"foo\") Then", GetHeaderText(IfTag));
-            Assert.Equal(3, GetCollapsedHintLineCount(IfTag));
-        });
-    }
+            using var workspace = EditorTestWorkspace.CreateVisualBasic(code, composition: EditorTestCompositions.EditorFeaturesWpf);
+            var tags = await GetTagsFromWorkspaceAsync(workspace);
+            Assert.Collection(tags, programTag =>
+            {
+                Assert.Equal("Module Program", GetHeaderText(programTag));
+                Assert.Equal(8, GetCollapsedHintLineCount(programTag));
+            },
+            mainTag =>
+            {
+                Assert.Equal("Sub Main(args As String())", GetHeaderText(mainTag));
+                Assert.Equal(6, GetCollapsedHintLineCount(mainTag));
+            },
+            IfTag =>
+            {
+                Assert.Equal("If str.Contains(\"foo\") Then", GetHeaderText(IfTag));
+                Assert.Equal(3, GetCollapsedHintLineCount(IfTag));
+            });
+        }
 
 #pragma warning disable CS0618 // Type or member is obsolete
         private static async Task<List<IContainerStructureTag>> GetTagsFromWorkspaceAsync(EditorTestWorkspace workspace)
