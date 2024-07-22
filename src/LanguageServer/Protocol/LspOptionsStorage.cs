@@ -41,5 +41,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// Flag indicating whether or not test and debug code lens items should be returned.
         /// </summary>
         public static readonly PerLanguageOption2<bool> LspEnableTestsCodeLens = new("dotnet_enable_tests_code_lens", defaultValue: true, group: s_codeLensOptionGroup);
+
+        /// <summary>
+        /// Flag indicating whether or not auto-insert should be abled by default in LSP.
+        /// </summary>
+        public static readonly PerLanguageOption2<bool> LspEnableOnAutoInsert = new("dotnet_enable_on_auto_insert", defaultValue: true);
     }
 }
