@@ -53,6 +53,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption,
             LspOptionsStorage.LspEnableReferencesCodeLens,
             LspOptionsStorage.LspEnableTestsCodeLens,
+            LspOptionsStorage.LspEnableOnAutoInsert,
             LanguageServerProjectSystemOptionsStorage.BinaryLogPath,
             LanguageServerProjectSystemOptionsStorage.EnableAutomaticRestore,
         ];
