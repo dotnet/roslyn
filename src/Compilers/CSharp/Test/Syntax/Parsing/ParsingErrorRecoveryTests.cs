@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData("internal")]
         [InlineData("protected")]
         [InlineData("private")]
+        [WorkItem("https://github.com/dotnet/roslyn/pull/74484")]
         public void AccessibilityModifierErrorRecovery(string accessibility)
         {
             var file = ParseTree($$"""
