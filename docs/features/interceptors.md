@@ -195,7 +195,7 @@ struct S
 
 static class Program
 {
-    public static void Interceptor()
+    public static void Main()
     {
         new S().Original(); // L1: interception is valid, no errors.
         new S().Interceptor(); // error CS1510: A ref or out value must be an assignable variable
