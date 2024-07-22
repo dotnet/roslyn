@@ -4624,7 +4624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 uint receiverEscapeScope = CallingMethodScope;
                 foreach (var escapeValue in escapeValues)
                 {
-                    // This is a call to an indexer so the ref escape scope can only impact the escape value if it 
+                    // This is a call to an indexer so the ref escape scope can only impact the escape value if it
                     // can be assigned to `this`. Return Only can't do this.
                     if (escapeValue.IsRefEscape && escapeValue.EscapeLevel != EscapeLevel.CallingMethod)
                     {
