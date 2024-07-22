@@ -9788,7 +9788,6 @@ done:;
             var mods = _pool.Allocate();
             this.ParseDeclarationModifiers(mods, isUsingDeclaration: usingKeyword is not null);
 
-
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             try
             {
