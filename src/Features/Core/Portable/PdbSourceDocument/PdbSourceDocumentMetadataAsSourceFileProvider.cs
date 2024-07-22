@@ -7,6 +7,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata.Ecma335;
@@ -355,23 +356,23 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
         return _fileToDocumentInfoMap.TryGetValue(filePath, out _) && blockStructureOptions.CollapseMetadataImplementationsWhenFirstOpened;
     }
 
-    public bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, SourceTextContainer sourceTextContainer)
+    public bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, SourceTextContainer sourceTextContainer, [NotNullWhen(true)] out DocumentId? documentId)
     {
-        AssertIsMainThread(workspace);
-
+        // Serial access is guaranteed by the caller.
         if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
         {
             workspace.OnDocumentOpened(info.DocumentId, sourceTextContainer);
+            documentId = info.DocumentId;
             return true;
         }
 
+        documentId = null;
         return false;
     }
 
     public bool TryRemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, string filePath)
     {
-        AssertIsMainThread(workspace);
-
+        // Serial access is guaranteed by the caller.
         if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
         {
             workspace.OnDocumentClosed(info.DocumentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, filePath, info.Encoding));

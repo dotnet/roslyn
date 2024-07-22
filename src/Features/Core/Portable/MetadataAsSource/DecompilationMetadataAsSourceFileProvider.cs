@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -292,32 +293,30 @@ internal class DecompilationMetadataAsSourceFileProvider(IImplementationAssembly
         return false;
     }
 
-    public bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, SourceTextContainer sourceTextContainer)
+    public bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, SourceTextContainer sourceTextContainer, [NotNullWhen(true)] out DocumentId? documentId)
     {
-        AssertIsMainThread(workspace);
-
+        // Serial access is guaranteed by the caller.
         if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
         {
             Contract.ThrowIfTrue(_openedDocumentIds.ContainsKey(fileInfo));
 
             // We do own the file, so let's open it up in our workspace
-            var (projectInfo, documentId) = fileInfo.GetProjectInfoAndDocumentId(workspace.Services.SolutionServices, loadFileFromDisk: true);
+            (var projectInfo, documentId) = fileInfo.GetProjectInfoAndDocumentId(workspace.Services.SolutionServices, loadFileFromDisk: true);
 
             workspace.OnProjectAdded(projectInfo);
             workspace.OnDocumentOpened(documentId, sourceTextContainer);
 
             _openedDocumentIds = _openedDocumentIds.Add(fileInfo, documentId);
-
             return true;
         }
 
+        documentId = null;
         return false;
     }
 
     public bool TryRemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, string filePath)
     {
-        AssertIsMainThread(workspace);
-
+        // Serial access is guaranteed by the caller.
         if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
         {
             if (_openedDocumentIds.ContainsKey(fileInfo))
@@ -329,8 +328,7 @@ internal class DecompilationMetadataAsSourceFileProvider(IImplementationAssembly
 
     private bool RemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, MetadataAsSourceGeneratedFileInfo fileInfo)
     {
-        AssertIsMainThread(workspace);
-
+        // Serial access is guaranteed by the caller.
         var documentId = _openedDocumentIds.GetValueOrDefault(fileInfo);
         Contract.ThrowIfNull(documentId);
 

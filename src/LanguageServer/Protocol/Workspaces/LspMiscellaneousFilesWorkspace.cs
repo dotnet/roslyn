@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Features.Workspaces;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -24,27 +25,31 @@ namespace Microsoft.CodeAnalysis.LanguageServer
     /// Future work for this workspace includes supporting basic metadata references (mscorlib, System dlls, etc),
     /// but that is dependent on having a x-plat mechanism for retrieving those references from the framework / sdk.
     /// </summary>
-    internal sealed class LspMiscellaneousFilesWorkspace : Workspace, ILspService, ILspWorkspace
+    internal sealed class LspMiscellaneousFilesWorkspace(ILspServices lspServices, IMetadataAsSourceFileService metadataAsSourceFileService, HostServices hostServices)
+        : Workspace(hostServices, WorkspaceKind.MiscellaneousFiles), ILspService, ILspWorkspace
     {
-        private readonly ILspServices _lspServices;
-
-        public LspMiscellaneousFilesWorkspace(ILspServices lspServices, HostServices hostServices) : base(hostServices, WorkspaceKind.MiscellaneousFiles)
-        {
-            _lspServices = lspServices;
-        }
-
         public bool SupportsMutation => true;
 
         /// <summary>
         /// Takes in a file URI and text and creates a misc project and document for the file.
         /// 
-        /// Calls to this method and <see cref="TryRemoveMiscellaneousDocument(Uri)"/> are made
+        /// Calls to this method and <see cref="TryRemoveMiscellaneousDocument(Uri, bool)"/> are made
         /// from LSP text sync request handling which do not run concurrently.
         /// </summary>
         public Document? AddMiscellaneousDocument(Uri uri, SourceText documentText, string languageId, ILspLogger logger)
         {
             var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
-            var languageInfoProvider = _lspServices.GetRequiredService<ILanguageInfoProvider>();
+
+            var container = new StaticSourceTextContainer(documentText);
+            if (metadataAsSourceFileService.TryAddDocumentToWorkspace(documentFilePath, container, out var documentId))
+            {
+                var metadataWorkspace = metadataAsSourceFileService.TryGetWorkspace();
+                Contract.ThrowIfNull(metadataWorkspace);
+                var document = metadataWorkspace.CurrentSolution.GetRequiredDocument(documentId);
+                return document;
+            }
+
+            var languageInfoProvider = lspServices.GetRequiredService<ILanguageInfoProvider>();
             var languageInformation = languageInfoProvider.GetLanguageInformation(documentFilePath, languageId);
             if (languageInformation == null)
             {
@@ -69,8 +74,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// Calls to this method and <see cref="AddMiscellaneousDocument(Uri, SourceText, string, ILspLogger)"/> are made
         /// from LSP text sync request handling which do not run concurrently.
         /// </summary>
-        public void TryRemoveMiscellaneousDocument(Uri uri)
+        public void TryRemoveMiscellaneousDocument(Uri uri, bool removeFromMetadata)
         {
+            var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
+            if (removeFromMetadata && metadataAsSourceFileService.TryRemoveDocumentFromWorkspace(documentFilePath))
+            {
+                return;
+            }
+
             // We'll only ever have a single document matching this URI in the misc solution.
             var matchingDocument = CurrentSolution.GetDocumentIds(uri).SingleOrDefault();
             if (matchingDocument != null)
@@ -95,6 +106,20 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         {
             this.OnDocumentTextChanged(documentId, sourceText, PreservationMode.PreserveIdentity, requireDocumentPresent: false);
             return ValueTaskFactory.CompletedTask;
+        }
+
+        private class StaticSourceTextContainer(SourceText text) : SourceTextContainer
+        {
+            public override SourceText CurrentText => text;
+
+            /// <summary>
+            /// Text changes are handled by LSP forking the document, we don't need to actually update anything here.
+            /// </summary>
+            public override event EventHandler<TextChangeEventArgs> TextChanged
+            {
+                add { }
+                remove { }
+            }
         }
     }
 }
