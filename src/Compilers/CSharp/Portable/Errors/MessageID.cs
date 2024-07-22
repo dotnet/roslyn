@@ -288,7 +288,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRefStructInterfaces = MessageBase + 12844,
 
         IDS_FeaturePartialProperties = MessageBase + 12845,
-        IDS_FeatureFieldAndValueKeywords = MessageBase + 12846,
+        IDS_FeatureFieldKeyword = MessageBase + 12846,
 
         IDS_FeatureAllowsRefStructConstraint = MessageBase + 12847,
         IDS_OverloadResolutionPriority = MessageBase + 12848,
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // C# preview features.
                 case MessageID.IDS_FeatureRefStructInterfaces:
-                case MessageID.IDS_FeatureFieldAndValueKeywords:
+                case MessageID.IDS_FeatureFieldKeyword:
                     return LanguageVersion.Preview;
 
                 // C# 13.0 features.

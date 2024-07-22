@@ -1549,10 +1549,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var members = ArrayBuilder<Symbol>.GetInstance();
                 Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, name, node.Arity, members, diagnostics, out isError, qualifierOpt: null);  // reports diagnostics in result.
 
-                if (symbol is not SynthesizedAccessorValueParameterSymbol { Name: "value" })
-                {
-                    ReportFieldOrValueContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
-                }
+                ReportFieldContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
 
                 if ((object)symbol == null)
                 {
@@ -1738,21 +1735,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #nullable enable
         /// <summary>
-        /// Report a diagnostic for a 'field' or 'value' identifier that the meaning will
+        /// Report a diagnostic for a 'field' identifier that the meaning will
         /// change when the identifier is considered a contextual keyword.
         /// </summary>
-        internal void ReportFieldOrValueContextualKeywordConflictIfAny(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
+        internal void ReportFieldContextualKeywordConflictIfAny(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
         {
             string name = identifier.Text;
-            switch (name)
+            if (name == "field" &&
+                ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: PropertySymbol { IsIndexer: false } })
             {
-                case "field" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: PropertySymbol { IsIndexer: false } }:
-                case "value" when ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertySet or MethodKind.EventAdd or MethodKind.EventRemove }:
-                    {
-                        var requiredVersion = MessageID.IDS_FeatureFieldAndValueKeywords.RequiredVersion();
-                        diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
-                    }
-                    break;
+                var requiredVersion = MessageID.IDS_FeatureFieldKeyword.RequiredVersion();
+                diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
             }
         }
 #nullable disable
