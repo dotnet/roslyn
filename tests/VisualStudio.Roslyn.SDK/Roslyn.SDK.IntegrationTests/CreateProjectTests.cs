@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Testing
 
             // Verify that intentional errors get validated by the test
             var errors = await TestServices.ErrorList.GetBuildErrorsAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken);
-            var expected = "(Compiler) Class1.cs(1, 13): error CS1002: ; expected";
+            var expected = "(Csc) Class1.cs(1, 13): error CS1002: ; expected";
             s_verifier.EqualOrDiff(expected, string.Join(Environment.NewLine, errors));
             Assert.Equal(1, await TestServices.ErrorList.GetErrorCountAsync(__VSERRORCATEGORY.EC_ERROR, HangMitigatingCancellationToken));
         }
