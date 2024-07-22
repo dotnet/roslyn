@@ -2474,7 +2474,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         this.Reset(ref afterAttributesPoint);
 
                         if (this.CurrentToken.Kind is not SyntaxKind.CloseBraceToken and not SyntaxKind.EndOfFileToken &&
-                            this.IsPossibleStatement(acceptAccessibilityMods: true))
+                            this.IsPossibleStatement())
                         {
                             var saveTerm = _termState;
                             _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
@@ -2654,7 +2654,7 @@ parse_member_name:;
 
                 this.Reset(ref afterAttributesPoint);
 
-                if (this.IsPossibleStatement(acceptAccessibilityMods: false))
+                if (this.IsPossibleStatement())
                 {
                     var saveTerm = _termState;
                     _termState |= TerminatorState.IsPossibleStatementStartOrStop; // partial statements can abort if a new statement starts
@@ -8540,7 +8540,7 @@ done:;
                 && !(stopOnSwitchSections && this.IsPossibleSwitchSection())
                 && IsMakingProgress(ref lastTokenPosition))
             {
-                if (this.IsPossibleStatement(acceptAccessibilityMods: true))
+                if (this.IsPossibleStatement())
                 {
                     var statement = this.ParsePossiblyAttributedStatement();
                     if (statement != null)
@@ -8569,7 +8569,7 @@ done:;
         private bool IsPossibleStatementStartOrStop()
         {
             return this.CurrentToken.Kind == SyntaxKind.SemicolonToken
-                || this.IsPossibleStatement(acceptAccessibilityMods: true);
+                || this.IsPossibleStatement();
         }
 
         private PostSkipAction SkipBadStatementListTokens(SyntaxListBuilder<StatementSyntax> statements, SyntaxKind expected, out GreenNode trailingTrivia)
@@ -8579,14 +8579,14 @@ done:;
                 // We know we have a bad statement, so it can't be a local
                 // function, meaning we shouldn't consider accessibility
                 // modifiers to be the start of a statement
-                static p => !p.IsPossibleStatement(acceptAccessibilityMods: false),
+                static p => !p.IsPossibleStatement(),
                 static (p, _) => p.CurrentToken.Kind == SyntaxKind.CloseBraceToken,
                 expected,
                 closeKind: SyntaxKind.None,
                 out trailingTrivia);
         }
 
-        private bool IsPossibleStatement(bool acceptAccessibilityMods)
+        private bool IsPossibleStatement()
         {
             var tk = this.CurrentToken.Kind;
             switch (tk)
@@ -8625,14 +8625,6 @@ done:;
                 case SyntaxKind.IdentifierToken:
                     return IsTrueIdentifier();
 
-                // Accessibility modifiers are not legal in a statement,
-                // but a common mistake for local functions. Parse to give a
-                // better error message.
-                case SyntaxKind.PublicKeyword:
-                case SyntaxKind.InternalKeyword:
-                case SyntaxKind.ProtectedKeyword:
-                case SyntaxKind.PrivateKeyword:
-                    return acceptAccessibilityMods;
                 default:
                     return IsPredefinedType(tk)
                         || IsPossibleExpression();
@@ -9795,6 +9787,7 @@ done:;
 
             var mods = _pool.Allocate();
             this.ParseDeclarationModifiers(mods, isUsingDeclaration: usingKeyword is not null);
+
 
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             try
