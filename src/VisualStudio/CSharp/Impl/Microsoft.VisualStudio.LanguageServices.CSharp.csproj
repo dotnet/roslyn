@@ -16,8 +16,6 @@
     <DeployExtension>false</DeployExtension>
     <VssdkCompatibleExtension>true</VssdkCompatibleExtension>
   </PropertyGroup>
-    <!-- Workaround to fix https://github.com/dotnet/msbuild/issues/10306 -->
-  <Target Name="ExtensionJsonOutputGroupFixed" Returns="@(ExtensionJsonOutputGroupOutput)" DependsOnTargets="PrepareResources;ExtensionJsonOutputGroup" />
   <ItemGroup>
     <Content Update=".vsextension/string-resources.json" XlfPreserveFileName="true" />
     <Content Include="UnifiedSettings/csharpSettings.registration.json" IncludeInVSIX="true" CopyToOutputDirectory="PreserveNewest" />
