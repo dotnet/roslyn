@@ -10120,6 +10120,7 @@ class C
                 ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
                 {
                     sourceCallbackCount++;
+                    spc.AddSource("output.cs", "");
                 });
             });
 
@@ -10245,6 +10246,7 @@ class C
                 ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
                 {
                     sourceCallbackCount++;
+                    spc.AddSource("output.cs", "");
                 });
             });
 
@@ -10253,6 +10255,7 @@ class C
                 ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
                 {
                     sourceCallbackCount2++;
+                    spc.AddSource("output.cs", "");
                 });
             });
 
@@ -10358,6 +10361,7 @@ a = globalA");
                 ctx.RegisterSourceOutput(ctx.ParseOptionsProvider, (spc, po) =>
                 {
                     sourceCallbackCount++;
+                    spc.AddSource("output.cs", "");
                 });
 
                 ctx.RegisterSourceOutput(ctx.AnalyzerConfigOptionsProvider, (spc, po) =>
@@ -10443,6 +10447,7 @@ class C
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, po) =>
                 {
                     sourceCallbackCount++;
+                    spc.AddSource("output.cs", "");
                 });
             });
 
