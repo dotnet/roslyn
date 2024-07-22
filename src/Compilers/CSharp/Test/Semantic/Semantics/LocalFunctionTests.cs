@@ -2485,43 +2485,29 @@ class C
         [Fact]
         public void ForgotSemicolonLocalFunctionsMistake()
         {
-            var src = @"
-class C
-{
-    public void M1()
-    {
-    // forget closing brace
+            var src = """
+                class C
+                {
+                    public void M1()
+                    {
+                    // forget closing brace
 
-    public void BadLocal1()
-    {
-        this.BadLocal2();
-    }
+                    public void BadLocal1()
+                    {
+                        this.BadLocal2();
+                    }
 
-    public void BadLocal2()
-    {
-    }
+                    public void BadLocal2()
+                    {
+                    }
 
-    public int P => 0;
-}";
+                    public int P => 0;
+                }
+                """;
             VerifyDiagnostics(src,
-                // (8,5): error CS0106: The modifier 'public' is not valid for this item
-                //     public void BadLocal1()
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(8, 5),
-                // (13,5): error CS0106: The modifier 'public' is not valid for this item
-                //     public void BadLocal2()
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(13, 5),
-                // (15,6): error CS1513: } expected
-                //     }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(15, 6),
-                // (10,14): error CS1061: 'C' does not contain a definition for 'BadLocal2' and no extension method 'BadLocal2' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-                //         this.BadLocal2();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "BadLocal2").WithArguments("C", "BadLocal2").WithLocation(10, 14),
-                // (8,17): warning CS8321: The local function 'BadLocal1' is declared but never used
-                //     public void BadLocal1()
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "BadLocal1").WithArguments("BadLocal1").WithLocation(8, 17),
-                // (13,17): warning CS8321: The local function 'BadLocal2' is declared but never used
-                //     public void BadLocal2()
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "BadLocal2").WithArguments("BadLocal2").WithLocation(13, 17));
+                // (5,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 6));
         }
 
         [Fact]
