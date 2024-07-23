@@ -48,7 +48,7 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         (items, selectedItemIndex) = Filter(items, state.Value.ArgumentNames, selectedItemIndex);
 
         // If the caller provided a preferred parameter for us to be on then override whatever we found syntactically.
-        var argumentIndex = state.Value.ArgumentIndex;
+        var preferredParameterIndex = state.Value.SemanticParameterIndex;
         if (parameterIndexOverride >= 0)
         {
             // However, in the case where the overridden index is to a variadic member, and the syntactic index goes
@@ -56,16 +56,16 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
             // variadic member, and we still want to remember where we are syntactically so that if the user picks
             // another member that we correctly pick the right parameter for it.
             var keepSyntacticIndex =
-                argumentIndex > parameterIndexOverride &&
+                preferredParameterIndex > parameterIndexOverride &&
                 selectedItemIndex != null &&
                 items[selectedItemIndex.Value].IsVariadic &&
-                argumentIndex >= items[selectedItemIndex.Value].Parameters.Length;
+                preferredParameterIndex >= items[selectedItemIndex.Value].Parameters.Length;
 
             if (!keepSyntacticIndex)
-                argumentIndex = parameterIndexOverride;
+                preferredParameterIndex = parameterIndexOverride;
         }
 
-        return new SignatureHelpItems(items, applicableSpan, argumentIndex, state.Value.ArgumentCount, state.Value.ArgumentName, selectedItemIndex);
+        return new SignatureHelpItems(items, applicableSpan, preferredParameterIndex, state.Value.SyntacticArgumentCount, state.Value.ArgumentName, selectedItemIndex);
     }
 
     protected static SignatureHelpItems? CreateCollectionInitializerSignatureHelpItems(

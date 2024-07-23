@@ -26,7 +26,7 @@ internal class SignatureHelpItems
     public TextSpan ApplicableSpan { get; }
 
     /// <summary>
-    /// Returns the specified argument index that the provided position is at in the current document.  This 
+    /// Returns the specified <em>parameter</em> index that the provided position is at in the current document.  This 
     /// index may be greater than the number of actual syntactic arguments in the selected <see cref="SignatureHelpItem"/>.
     /// </summary>
     /// <remarks>

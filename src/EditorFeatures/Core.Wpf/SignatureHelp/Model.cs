@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             ISignatureHelpProvider provider,
             IList<SignatureHelpItem> items,
             SignatureHelpItem selectedItem,
-            int semanticArgumentIndex,
+            int semanticParameterIndex,
             int syntacticArgumentCount,
             string argumentName,
             int? selectedParameter,
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             this.Provider = provider;
             this.SelectedItem = selectedItem;
             this.UserSelected = userSelected;
-            this.SemanticParameterIndex = semanticArgumentIndex;
+            this.SemanticParameterIndex = semanticParameterIndex;
             this.SyntacticArgumentCount = syntacticArgumentCount;
             this.ArgumentName = argumentName;
             this.SelectedParameter = selectedParameter;
