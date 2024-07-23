@@ -2981,7 +2981,7 @@ class A
                 // (4,32): error CS1041: Identifier expected; 'operator' is a keyword
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 32),
-                // (4,41): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
+                // (4,42): error CS8124: Tuple must contain at least two elements.
                 //     public static int explicit operator ()
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, ")").WithLocation(4, 42),
                 // (4,43): error CS1001: Identifier expected
@@ -2993,6 +2993,9 @@ class A
                 // (6,17): error CS1026: ) expected
                 //         return 0;
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(6, 17),
+                // (7,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(7, 5),
                 // (8,30): error CS1037: Overloadable operator expected
                 //     public static A operator ()
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(8, 30),
@@ -3001,7 +3004,10 @@ class A
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(8, 31),
                 // (12,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 1));
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 1),
+                // (12,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 2));
         }
 
         // Preprocessor:
