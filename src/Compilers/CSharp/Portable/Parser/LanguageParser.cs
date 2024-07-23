@@ -421,8 +421,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             //
             // If we do see errant type-only members (like a method/property/constructor/etc.), then see if they follow
             // some normal type declaration.  If so, it's likely there was a misplaced close curly that preemptively
-            // ended the type declaration, and the member declaration was supposed to go in it instead. 
+            // ended the type declaration, and the member declaration was supposed to go in it instead.
             if (!sawMemberDeclarationOnlyValidWithinTypeDeclaration)
+                return;
+
+            // In a script file, it can be ok to have these members at the top level.  For example, a field is actually
+            // ok to parse out at the top level as it will become a field on the script global object.
+            if (IsScript && parentKind == SyntaxKind.CompilationUnit)
                 return;
 
             var finalMembers = _pool.Allocate<MemberDeclarationSyntax>();
