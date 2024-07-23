@@ -4145,20 +4145,20 @@ public static class C
         {
             var source = """
                 #nullable enable
-                class Foo<T>;
-                static class FooExt
+                class C<T>;
+                static class CExt
                 {
-                    public static void Bar<T>(this Foo<T> foo)
+                    public static void M<T>(this C<T> c)
                     {
-                        foo.Bar = 42;
+                        c.M = 42;
                     }
                 }
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (7,9): error CS1656: Cannot assign to 'Bar' because it is a 'method group'
-                //         foo.Bar = 42;
-                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "foo.Bar").WithArguments("Bar", "method group").WithLocation(7, 9));
+                // (7,9): error CS1656: Cannot assign to 'M' because it is a 'method group'
+                //         c.M = 42;
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "c.M").WithArguments("M", "method group").WithLocation(7, 9));
         }
     }
 }
