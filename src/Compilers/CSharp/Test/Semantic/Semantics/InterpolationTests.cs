@@ -18913,5 +18913,75 @@ literal:literal
 }
 """);
         }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74427")]
+        public void InterpolatedStringAsInputToUserDefinedConversion_01()
+        {
+            var source = $$"""
+                class C
+                {
+                    static void Main()
+                    {
+                        var y = (C1)$"dog"; // works
+                        System.Console.WriteLine(y);
+                    }
+                }
+
+                class C1
+                {
+                    System.FormattableString x;
+                    public C1(System.FormattableString x)
+                    {
+                        this.x = x;
+                    }
+
+                    public static implicit operator C1(System.FormattableString x) => new C1(x);
+
+                    public override string ToString()
+                    {
+                        return ("C1:") + x.ToString();
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, expectedOutput: "C1:dog");
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74427")]
+        public void InterpolatedStringAsInputToUserDefinedConversion_02()
+        {
+            var source = $$"""
+                class C
+                {
+                    static void Main()
+                    {
+                        var y = (C1)$"dog"; // works
+                        System.Console.WriteLine(y);
+                    }
+                }
+
+                class C1
+                {
+                    System.IFormattable x;
+                    public C1(System.IFormattable x)
+                    {
+                        this.x = x;
+                    }
+
+                    public static implicit operator C1(System.IFormattable x) => new C1(x);
+
+                    public override string ToString()
+                    {
+                        return ("C1:") + x.ToString();
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics(
+                // (18,37): error CS0552: 'C1.implicit operator C1(IFormattable)': user-defined conversions to or from an interface are not allowed
+                //     public static implicit operator C1(System.IFormattable x) => new C1(x);
+                Diagnostic(ErrorCode.ERR_ConversionWithInterface, "C1").WithArguments("C1.implicit operator C1(System.IFormattable)").WithLocation(18, 37)
+            );
+        }
     }
 }

@@ -671,9 +671,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                // See comment in ClassifyStandardImplicitConversion(BoundExpression, ...)
-                // where the set of standard implicit conversions is extended from the spec
-                // to include conversions from expression.
                 switch (kind)
                 {
                     case ConversionKind.NullLiteral:
@@ -686,6 +683,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.StackAllocToPointerType:
                     case ConversionKind.StackAllocToSpanType:
                     case ConversionKind.InlineArray:
+                    case ConversionKind.InterpolatedString:
                         return true;
                     default:
                         return false;
