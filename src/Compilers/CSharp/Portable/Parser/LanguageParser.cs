@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var currentMember = body.Members[currentBodyMemberIndex];
 
                 // If we have a suitable type declaration that ended without problem (has a real close curly and no
-                // trailing semicolon).  Then see if there are any type-only members following it that should be moved
+                // trailing semicolon),  then see if there are any type-only members following it that should be moved
                 // into it.
                 if (currentMember is TypeDeclarationSyntax
                     {
