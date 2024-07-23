@@ -187,12 +187,7 @@ internal static partial class Extensions
     /// Returns a partial implementation part of a partial member, or the member itself if it's not partial.
     /// </summary>
     public static ISymbol PartialAsImplementation(this ISymbol symbol)
-        => symbol switch
-        {
-            IMethodSymbol { PartialImplementationPart: { } impl } => impl,
-            IPropertySymbol { PartialImplementationPart: { } impl } => impl,
-            _ => symbol
-        };
+        => PartialImplementationPart(symbol) ?? symbol;
 
     public static bool IsPartialDefinition(this ISymbol symbol)
         => symbol is IMethodSymbol { IsPartialDefinition: true } or IPropertySymbol { IsPartialDefinition: true };
