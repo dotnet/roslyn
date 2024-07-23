@@ -62,8 +62,7 @@ internal partial class CSharpRemoveUnnecessaryImportsService :
             var spansToFormat = new List<TextSpan>();
             AddFormattingSpans(newRoot, spansToFormat, cancellationToken);
 
-            var options = await document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
-            var formattingOptions = options.GetFormattingOptions(SyntaxFormatting);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, cancellationToken).ConfigureAwait(false);
             var formattedRoot = SyntaxFormatting.GetFormattingResult(newRoot, spansToFormat, formattingOptions, rules: default, cancellationToken).GetFormattedRoot(cancellationToken);
 
             return document.WithSyntaxRoot(formattedRoot);

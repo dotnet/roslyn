@@ -48,8 +48,7 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        var options = await document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var formattingOptions = options.GetFormattingOptions(SyntaxFormatting);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, cancellationToken).ConfigureAwait(false);
 
         // Defer to our callback to actually make the edits for each diagnostic. In turn, it
         // will return 'true' if it made a multi-line conditional expression. In that case,
