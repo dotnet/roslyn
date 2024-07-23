@@ -924,7 +924,7 @@ public partial class C
             Assert.True(propDefinition.IsPartialDefinition);
 
             var propImplementation = propDefinition.PartialImplementationPart!;
-            Assert.True(propImplementation.IsPartialImplementation);
+            Assert.True(propImplementation.IsPartialImplementation());
 
             Assert.Same(propDefinition, propImplementation.PartialDefinitionPart);
             Assert.Null(propImplementation.PartialImplementationPart);
@@ -998,7 +998,7 @@ public partial class C
             Assert.True(propDefinition.IsPartialDefinition);
 
             var propImplementation = propDefinition.PartialImplementationPart!;
-            Assert.True(propImplementation.IsPartialImplementation);
+            Assert.True(propImplementation.IsPartialImplementation());
 
             Assert.Same(propDefinition, propImplementation.PartialDefinitionPart);
             Assert.Null(propImplementation.PartialImplementationPart);
@@ -1084,7 +1084,7 @@ public partial class C
             Assert.True(propDefinition.IsPartialDefinition);
 
             var propImplementation = propDefinition.PartialImplementationPart!;
-            Assert.True(propImplementation.IsPartialImplementation);
+            Assert.True(propImplementation.IsPartialImplementation());
 
             Assert.Same(propDefinition, propImplementation.PartialDefinitionPart);
             Assert.Null(propImplementation.PartialImplementationPart);
