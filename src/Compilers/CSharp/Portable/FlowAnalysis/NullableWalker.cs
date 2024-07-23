@@ -5781,7 +5781,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Join(ref this.State, ref consequenceState);
 
                 TypeSymbol? refResultType = node.Type?.SetUnknownNullabilityForReferenceTypes();
-                if (IsNullabilityMismatch(consequenceLValue, alternativeLValue))
+                if (!originalConsequence.IsSuppressed && !originalAlternative.IsSuppressed &&
+                    IsNullabilityMismatch(consequenceLValue, alternativeLValue))
                 {
                     // l-value types must match
                     ReportNullabilityMismatchInAssignment(node.Syntax, consequenceLValue, alternativeLValue);
