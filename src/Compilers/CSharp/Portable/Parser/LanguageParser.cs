@@ -415,12 +415,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             ParseNamespaceBodyWorker(
                 ref openBraceOrSemicolon, ref body, ref initialBadNodes, parentKind, out var sawMemberDeclarationOnlyValidWithinTypeDeclaration);
+
+            // In the common case, we will not see errant type-only member declarations in the namespace itself.  In
+            // that case, we have no extra work to do and can return immediately.
+            //
+            // If we do see errant type-only members (like a method/property/constructor/etc.), then see if they follow
+            // some normal type declaration.  If so, it's likely there was a misplaced close curly that preemptively
+            // ended the type declaration, and the member declaration was supposed to go in it instead. 
             if (!sawMemberDeclarationOnlyValidWithinTypeDeclaration)
                 return;
 
-            // If we saw a type-only member declaration (like a method/property/constructor/etc.), then see if they
-            // follow some normal type declaration.  If so, it's likely there was a misplaced close curly that
-            // preemptively ended the type declaration, and the member declaration was supposed to go in it instead.
             var finalMembers = _pool.Allocate<MemberDeclarationSyntax>();
 
             for (var currentBodyMemberIndex = 0; currentBodyMemberIndex < body.Members.Count;)
