@@ -556,6 +556,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 or SyntaxKind.EventDeclaration
                 or SyntaxKind.EventFieldDeclaration
                 or SyntaxKind.FieldDeclaration
+                or SyntaxKind.IndexerDeclaration
                 or SyntaxKind.MethodDeclaration
                 or SyntaxKind.OperatorDeclaration
                 or SyntaxKind.PropertyDeclaration;
