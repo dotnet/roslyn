@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override void EnterParameter(ParameterSymbol parameter)
         {
             // Async and iterators should never have ref parameters aside from `this`
-            Debug.Assert(parameter.IsThis || parameter.RefKind == RefKind.None);
+            Debug.Assert(parameter.IsThis || parameter is SynthesizedExtensionThisParameterMetadataSymbol || parameter.RefKind == RefKind.None);
 
             // parameters are NOT initially assigned here - if that is a problem, then
             // the parameters must be captured.

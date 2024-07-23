@@ -41079,6 +41079,234 @@ class Program
     }
 
     [Fact]
+    public void InstanceMethod_Metadata_19_Iterator_On_Struct()
+    {
+        var src1 = """
+using System.Collections.Generic;
+
+public implicit extension E for C
+{
+    public IEnumerable<int> Iterator2()
+    {
+        this.Increment();
+        yield return 2;
+        System.Console.Write(this.F);
+    }
+}
+
+public struct C
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+    
+    public IEnumerable<int> Iterator1()
+    {
+        this.Increment();
+        yield return 1;
+        System.Console.Write(this.F);
+    }
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        System.Console.Write("-");
+        Test2();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        
+        foreach (var x in c.Iterator1())
+        {
+            System.Console.Write(x);
+        }
+        
+        System.Console.Write(c.F);
+    }
+
+    static void Test2()
+    {
+        var c = new C();
+        
+        foreach (var x in c.Iterator2())
+        {
+            System.Console.Write(x);
+        }
+        
+        System.Console.Write(c.F);
+    }
+}
+""";
+        var comp = CreateCompilation(src1 + src2, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "110-210").VerifyDiagnostics();
+
+        verifier.VerifyIL("C.Iterator1()",
+"""
+{
+  // Code size       20 (0x14)
+  .maxstack  3
+  IL_0000:  ldc.i4.s   -2
+  IL_0002:  newobj     "C.<Iterator1>d__2..ctor(int)"
+  IL_0007:  dup
+  IL_0008:  ldarg.0
+  IL_0009:  ldobj      "C"
+  IL_000e:  stfld      "C C.<Iterator1>d__2.<>3__<>4__this"
+  IL_0013:  ret
+}
+""");
+
+        verifier.VerifyIL("E.Iterator2(ref C)",
+"""
+{
+  // Code size       20 (0x14)
+  .maxstack  3
+  IL_0000:  ldc.i4.s   -2
+  IL_0002:  newobj     "E.<Iterator2>d__0..ctor(int)"
+  IL_0007:  dup
+  IL_0008:  ldarg.0
+  IL_0009:  ldobj      "C"
+  IL_000e:  stfld      "C E.<Iterator2>d__0.<>3__<>4__this"
+  IL_0013:  ret
+}
+""");
+
+        var comp1 = CreateCompilation(src1, options: TestOptions.ReleaseDll);
+
+        var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp2, expectedOutput: "110-210").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_20_Async_On_Struct()
+    {
+        var src1 = """
+public implicit extension E for C
+{
+    public async System.Threading.Tasks.Task Async2()
+    {
+        this.Increment();
+        await System.Threading.Tasks.Task.Yield();
+        System.Console.Write(2);
+        System.Console.Write(this.F);
+    }
+}
+
+public struct C
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+
+    public async System.Threading.Tasks.Task Async1()
+    {
+        this.Increment();
+        await System.Threading.Tasks.Task.Yield();
+        System.Console.Write(1);
+        System.Console.Write(this.F);
+    }
+}
+""";
+        var src2 = """
+class Program
+{
+    static async System.Threading.Tasks.Task Main()
+    {
+        await Test1();
+        System.Console.Write("-");
+        await Test2();
+    }
+
+    static async System.Threading.Tasks.Task Test1()
+    {
+        var c = new C();
+        await c.Async1();
+        System.Console.Write(c.F);
+    }
+
+    static async System.Threading.Tasks.Task Test2()
+    {
+        var c = new C();
+        await c.Async2();
+        System.Console.Write(c.F);
+    }
+}
+""";
+        var comp = CreateCompilation(src1 + src2, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "110-210").VerifyDiagnostics();
+
+        verifier.VerifyIL("C.Async1()",
+"""
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (C.<Async1>d__2 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       "System.Runtime.CompilerServices.AsyncTaskMethodBuilder System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create()"
+  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Async1>d__2.<>t__builder"
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldarg.0
+  IL_000f:  ldobj      "C"
+  IL_0014:  stfld      "C C.<Async1>d__2.<>4__this"
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  ldc.i4.m1
+  IL_001c:  stfld      "int C.<Async1>d__2.<>1__state"
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Async1>d__2.<>t__builder"
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<C.<Async1>d__2>(ref C.<Async1>d__2)"
+  IL_002f:  ldloca.s   V_0
+  IL_0031:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder C.<Async1>d__2.<>t__builder"
+  IL_0036:  call       "System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get"
+  IL_003b:  ret
+}
+""");
+
+        verifier.VerifyIL("E.Async2(ref C)",
+"""
+{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  .locals init (E.<Async2>d__0 V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  call       "System.Runtime.CompilerServices.AsyncTaskMethodBuilder System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Create()"
+  IL_0007:  stfld      "System.Runtime.CompilerServices.AsyncTaskMethodBuilder E.<Async2>d__0.<>t__builder"
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldarg.0
+  IL_000f:  ldobj      "C"
+  IL_0014:  stfld      "C E.<Async2>d__0.<>4__this"
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  ldc.i4.m1
+  IL_001c:  stfld      "int E.<Async2>d__0.<>1__state"
+  IL_0021:  ldloca.s   V_0
+  IL_0023:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder E.<Async2>d__0.<>t__builder"
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  call       "void System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Start<E.<Async2>d__0>(ref E.<Async2>d__0)"
+  IL_002f:  ldloca.s   V_0
+  IL_0031:  ldflda     "System.Runtime.CompilerServices.AsyncTaskMethodBuilder E.<Async2>d__0.<>t__builder"
+  IL_0036:  call       "System.Threading.Tasks.Task System.Runtime.CompilerServices.AsyncTaskMethodBuilder.Task.get"
+  IL_003b:  ret
+}
+""");
+
+        var comp1 = CreateCompilation(src1, options: TestOptions.ReleaseDll);
+
+        var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp2, expectedOutput: "110-210").VerifyDiagnostics();
+    }
+
+    [Fact]
     public void InstanceMethod_Metadata_21()
     {
         var src1 = """
@@ -41530,6 +41758,226 @@ class Program
         verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1", test1IL);
+    }
+
+    [Fact]
+    public void InstanceProperty_Metadata_03_Iterator_On_Struct()
+    {
+        var src1 = """
+using System.Collections.Generic;
+
+public implicit extension E for C
+{
+    public IEnumerable<int> Iterator2
+    {
+        get
+        {
+            this.Increment();
+            yield return 2;
+            System.Console.Write(this.F);
+        }
+    }
+}
+
+public struct C
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+    
+    public IEnumerable<int> Iterator1
+    {
+        get
+        {
+            this.Increment();
+            yield return 1;
+            System.Console.Write(this.F);
+        }
+    }
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        System.Console.Write("-");
+        Test2();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        
+        foreach (var x in c.Iterator1)
+        {
+            System.Console.Write(x);
+        }
+        
+        System.Console.Write(c.F);
+    }
+
+    static void Test2()
+    {
+        var c = new C();
+        
+        foreach (var x in c.Iterator2)
+        {
+            System.Console.Write(x);
+        }
+        
+        System.Console.Write(c.F);
+    }
+}
+""";
+        var comp = CreateCompilation(src1 + src2, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "110-210").VerifyDiagnostics();
+
+        verifier.VerifyIL("C.Iterator1.get",
+"""
+{
+  // Code size       20 (0x14)
+  .maxstack  3
+  IL_0000:  ldc.i4.s   -2
+  IL_0002:  newobj     "C.<get_Iterator1>d__3..ctor(int)"
+  IL_0007:  dup
+  IL_0008:  ldarg.0
+  IL_0009:  ldobj      "C"
+  IL_000e:  stfld      "C C.<get_Iterator1>d__3.<>3__<>4__this"
+  IL_0013:  ret
+}
+""");
+
+        verifier.VerifyIL("E.Iterator2[ref C].get",
+"""
+{
+  // Code size       20 (0x14)
+  .maxstack  3
+  IL_0000:  ldc.i4.s   -2
+  IL_0002:  newobj     "E.<get_Iterator2>d__1..ctor(int)"
+  IL_0007:  dup
+  IL_0008:  ldarg.0
+  IL_0009:  ldobj      "C"
+  IL_000e:  stfld      "C E.<get_Iterator2>d__1.<>3__<>4__this"
+  IL_0013:  ret
+}
+""");
+
+        var comp1 = CreateCompilation(src1, options: TestOptions.ReleaseDll);
+
+        var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp2, expectedOutput: "110-210").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceProperty_Metadata_04_Iterator_On_Struct_With_Set()
+    {
+        var src1 = """
+using System.Collections.Generic;
+
+public implicit extension E for C
+{
+    public IEnumerable<int> Iterator2
+    {
+        get
+        {
+            yield return 2;
+        }
+        set
+        {
+            this.Increment();
+            System.Console.Write(this.F);
+        }
+    }
+}
+
+public struct C
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+    
+    public IEnumerable<int> Iterator1
+    {
+        get
+        {
+            yield return 1;
+        }
+        set
+        {
+            this.Increment();
+            System.Console.Write(this.F);
+        }
+    }
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        System.Console.Write("-");
+        Test2();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        c.Iterator1 = null;
+        System.Console.Write(c.F);
+    }
+
+    static void Test2()
+    {
+        var c = new C();
+        c.Iterator2 = null;
+        System.Console.Write(c.F);
+    }
+}
+""";
+        var comp = CreateCompilation(src1 + src2, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "11-11").VerifyDiagnostics();
+
+        verifier.VerifyIL("C.Iterator1.set",
+"""
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "void C.Increment()"
+  IL_0006:  ldarg.0
+  IL_0007:  ldfld      "int C.F"
+  IL_000c:  call       "void System.Console.Write(int)"
+  IL_0011:  ret
+}
+""");
+
+        verifier.VerifyIL("E.Iterator2[ref C].set",
+"""
+{
+  // Code size       18 (0x12)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "void C.Increment()"
+  IL_0006:  ldarg.0
+  IL_0007:  ldfld      "int C.F"
+  IL_000c:  call       "void System.Console.Write(int)"
+  IL_0011:  ret
+}
+""");
+
+        var comp1 = CreateCompilation(src1, options: TestOptions.ReleaseDll);
+
+        var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
+        CompileAndVerify(comp2, expectedOutput: "11-11").VerifyDiagnostics();
     }
 
     [Fact]
