@@ -11762,6 +11762,37 @@ public class Class
                             }
                             N(SyntaxKind.SemicolonToken);
                         }
+                        N(SyntaxKind.IndexerDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.ThisKeyword);
+                            N(SyntaxKind.BracketedParameterList);
+                            {
+                                N(SyntaxKind.OpenBracketToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.PredefinedType);
+                                    {
+                                        N(SyntaxKind.IntKeyword);
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "i");
+                                }
+                                N(SyntaxKind.CloseBracketToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
                         N(SyntaxKind.MethodDeclaration);
                         {
                             N(SyntaxKind.PrivateKeyword);
