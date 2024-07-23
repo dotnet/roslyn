@@ -50,10 +50,10 @@ internal class TupleConstructionSignatureHelpProvider : AbstractCSharpSignatureH
             if (currentSpan.Start == parenthesizedExpression.SpanStart)
             {
                 return new SignatureHelpState(
-                    argumentIndex: 0,
-                    argumentCount: 0,
-                    argumentName: string.Empty,
-                    argumentNames: default);
+                    SemanticParameterIndex: 0,
+                    SyntacticArgumentCount: 0,
+                    ArgumentName: string.Empty,
+                    ArgumentNames: default);
             }
         }
 
