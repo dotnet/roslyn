@@ -51,7 +51,8 @@
       <_VsixItem Include="$(MSBuildProjectDirectory)\.editorconfig" />
 
       <!-- Set TargetPath -->
-      <_PublishedFiles Update="@(_PublishedFiles)" TargetPath="%(Filename)%(Extension)" Condition="'%(TargetPath)' == ''" />
+      <_VsixItem Update="@(_VsixItem)" TargetPath="%(Filename)%(Extension)" Condition="'%(_VsixItem.TargetPath)' == ''" />
+
       <!-- Set NGEN metadata -->
       <_VsixItem Update="@(_VsixItem)" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework' and ('%(Extension)' == '.dll' or '%(Extension)' == '.exe')">
         <Ngen>true</Ngen>

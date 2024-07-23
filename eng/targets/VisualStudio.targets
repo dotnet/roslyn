@@ -165,7 +165,7 @@
 
   <Target Name="PublishProjectReferencesForVsixCreation">
     <ItemGroup>
-      <_ProjectsToPublish Include="@(ProjectReference)" Condition="$([MSBuild]::ValueOrDefault('%(IncludeOutputGroupsInVSIX)', '').Contains('VsixItemsOutputGroup'))"/>
+      <_ProjectsToPublish Include="@(ProjectReference)" Condition="$([MSBuild]::ValueOrDefault('%(ProjectReference.IncludeOutputGroupsInVSIX)', '').Contains('VsixItemsOutputGroup'))"/>
     </ItemGroup>
 
     <MSBuild Projects="@(_ProjectsToPublish)"
