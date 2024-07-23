@@ -35,7 +35,7 @@ public partial class ProjectDependencyGraph
     private readonly ImmutableDictionary<ProjectId, ImmutableHashSet<ProjectId>> _referencesMap;
 
     // guards lazy computed data
-    private readonly NonReentrantLock _dataLock = new();
+    private readonly SemaphoreSlim _dataLock = new(initialCount: 1);
 
     /// <summary>
     /// The lazily-initialized map of projects to projects which reference them. This field is either null, or
@@ -219,7 +219,7 @@ public partial class ProjectDependencyGraph
         }
 
         return reverseReferencesMap
-            .Select(kvp => new KeyValuePair<ProjectId, ImmutableHashSet<ProjectId>>(kvp.Key, kvp.Value.ToImmutableHashSet()))
+            .Select(kvp => KeyValuePairUtil.Create(kvp.Key, kvp.Value.ToImmutableHashSet()))
             .ToImmutableDictionary();
     }
 
@@ -270,7 +270,7 @@ public partial class ProjectDependencyGraph
             using var pooledObject = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
             var results = pooledObject.Object;
             this.ComputeTransitiveReferences(projectId, results);
-            transitiveReferences = results.ToImmutableHashSet();
+            transitiveReferences = [.. results];
             _transitiveReferencesMap = _transitiveReferencesMap.Add(projectId, transitiveReferences);
         }
 
@@ -323,7 +323,7 @@ public partial class ProjectDependencyGraph
             var results = pooledObject.Object;
 
             ComputeReverseTransitiveReferences(projectId, results);
-            reverseTransitiveReferences = results.ToImmutableHashSet();
+            reverseTransitiveReferences = [.. results];
             _reverseTransitiveReferencesMap = _reverseTransitiveReferencesMap.Add(projectId, reverseTransitiveReferences);
         }
 
@@ -367,7 +367,7 @@ public partial class ProjectDependencyGraph
             using var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
             using var resultList = SharedPools.Default<List<ProjectId>>().GetPooledObject();
             this.TopologicalSort(_projectIds, seenProjects.Object, resultList.Object, cancellationToken);
-            _lazyTopologicallySortedProjects = resultList.Object.ToImmutableArray();
+            _lazyTopologicallySortedProjects = [.. resultList.Object];
         }
     }
 
@@ -419,7 +419,7 @@ public partial class ProjectDependencyGraph
             using var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject();
             using var results = SharedPools.Default<List<IEnumerable<ProjectId>>>().GetPooledObject();
             this.ComputeDependencySets(seenProjects.Object, results.Object, cancellationToken);
-            _lazyDependencySets = results.Object.ToImmutableArray();
+            _lazyDependencySets = [.. results.Object];
         }
 
         return _lazyDependencySets;

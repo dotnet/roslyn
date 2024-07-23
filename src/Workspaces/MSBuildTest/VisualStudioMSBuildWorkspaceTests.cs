@@ -17,7 +17,6 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -2432,7 +2431,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        public async Task TestProjectReferenceWithReferenceOutputAssemblyFalse()
+        public async Task TestProjectReferenceWithReferenceOutputAssemblyFalse_SolutionRoot()
         {
             var files = GetProjectReferenceSolutionFiles();
             files = VisitProjectReferences(
@@ -2449,6 +2448,29 @@ class C1
             {
                 Assert.Empty(project.ProjectReferences);
             }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestProjectReferenceWithReferenceOutputAssemblyFalse_ProjectRoot()
+        {
+            var files = GetProjectReferenceSolutionFiles();
+            files = VisitProjectReferences(
+                files,
+                r => r.Add(new XElement(XName.Get("ReferenceOutputAssembly", MSBuildNamespace), "false")));
+
+            CreateFiles(files);
+
+            var referencingProjectPath = GetSolutionFileName(@"CSharpProject\CSharpProject_ProjectReference.csproj");
+            var referencedProjectPath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var project = await workspace.OpenProjectAsync(referencingProjectPath);
+
+            Assert.Empty(project.ProjectReferences);
+
+            // Project referenced through ProjectReference with ReferenceOutputAssembly=false
+            // should be present in the solution.
+            Assert.NotNull(project.Solution.GetProjectsByName("CSharpProject").SingleOrDefault());
         }
 
         private static FileSet VisitProjectReferences(FileSet files, Action<XElement> visitProjectReference)
@@ -3093,7 +3115,6 @@ class C { }";
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
             using var workspace = CreateMSBuildWorkspace();
-            var loader = new CSharpProjectFileLoader();
 
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
@@ -3104,7 +3125,7 @@ class C { }";
             var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
 
             var commandLineParser = workspace.Services
-                .GetLanguageServices(loader.Language)
+                .GetLanguageServices(LanguageNames.CSharp)
                 .GetRequiredService<ICommandLineParserService>();
 
             var projectDirectory = Path.GetDirectoryName(projectFilePath);

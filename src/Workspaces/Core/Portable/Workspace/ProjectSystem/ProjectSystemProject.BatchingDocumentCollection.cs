@@ -425,7 +425,7 @@ internal sealed partial class ProjectSystemProject
                             solutionChanges.UpdateSolutionForDocumentAction(
                                 _documentTextLoaderChangedAction(solutionChanges.Solution, documentId, textLoader),
                                 _documentChangedWorkspaceKind,
-                                SpecializedCollections.SingletonEnumerable(documentId));
+                                [documentId]);
                         }
                     }
                 }).ConfigureAwait(false);
@@ -557,7 +557,7 @@ internal sealed partial class ProjectSystemProject
             ClearAndZeroCapacity(_documentsAddedInBatch);
 
             // Document removing...
-            solutionChanges.UpdateSolutionForRemovedDocumentAction(removeDocuments(solutionChanges.Solution, _documentsRemovedInBatch.ToImmutableArray()),
+            solutionChanges.UpdateSolutionForRemovedDocumentAction(removeDocuments(solutionChanges.Solution, [.. _documentsRemovedInBatch]),
                 removeDocumentChangeKind,
                 _documentsRemovedInBatch);
 

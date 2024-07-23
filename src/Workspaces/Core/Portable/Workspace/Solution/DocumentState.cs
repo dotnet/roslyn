@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
@@ -31,7 +32,9 @@ internal partial class DocumentState : TextDocumentState
     private readonly ParseOptions? _options;
 
     // null if the document doesn't support syntax trees:
-    private readonly AsyncLazy<TreeAndVersion>? _treeSource;
+    private readonly ITreeAndVersionSource? _treeSource;
+
+    private ImmutableArray<byte> _contentHash;
 
     protected DocumentState(
         LanguageServices languageServices,
@@ -40,7 +43,7 @@ internal partial class DocumentState : TextDocumentState
         ParseOptions? options,
         ITextAndVersionSource textSource,
         LoadTextOptions loadTextOptions,
-        AsyncLazy<TreeAndVersion>? treeSource)
+        ITreeAndVersionSource? treeSource)
         : base(languageServices.SolutionServices, documentServiceProvider, attributes, textSource, loadTextOptions)
     {
         Contract.ThrowIfFalse(_options is null == _treeSource is null);
@@ -79,7 +82,7 @@ internal partial class DocumentState : TextDocumentState
         }
     }
 
-    public AsyncLazy<TreeAndVersion>? TreeSource => _treeSource;
+    public ITreeAndVersionSource? TreeSource => _treeSource;
 
     [MemberNotNullWhen(true, nameof(_treeSource))]
     [MemberNotNullWhen(true, nameof(TreeSource))]
@@ -97,7 +100,18 @@ internal partial class DocumentState : TextDocumentState
     public bool IsGenerated
         => Attributes.IsGenerated;
 
-    protected static AsyncLazy<TreeAndVersion> CreateLazyFullyParsedTree(
+    public async ValueTask<ImmutableArray<byte>> GetContentHashAsync(CancellationToken cancellationToken)
+    {
+        if (_contentHash.IsDefault)
+        {
+            var text = await this.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            ImmutableInterlocked.InterlockedCompareExchange(ref _contentHash, text.GetContentHash(), default);
+        }
+
+        return _contentHash;
+    }
+
+    protected static ITreeAndVersionSource CreateLazyFullyParsedTree(
         ITextAndVersionSource newTextSource,
         LoadTextOptions loadTextOptions,
         string? filePath,
@@ -105,7 +119,7 @@ internal partial class DocumentState : TextDocumentState
         LanguageServices languageServices,
         PreservationMode mode = PreservationMode.PreserveValue)
     {
-        return AsyncLazy.Create(
+        return SimpleTreeAndVersionSource.Create(
             static (arg, c) => FullyParseTreeAsync(arg.newTextSource, arg.loadTextOptions, arg.filePath, arg.options, arg.languageServices, arg.mode, c),
             static (arg, c) => FullyParseTree(arg.newTextSource, arg.loadTextOptions, arg.filePath, arg.options, arg.languageServices, arg.mode, c),
             arg: (newTextSource, loadTextOptions, filePath, options, languageServices, mode));
@@ -163,19 +177,19 @@ internal partial class DocumentState : TextDocumentState
         return new TreeAndVersion(tree, textAndVersion.Version);
     }
 
-    private static AsyncLazy<TreeAndVersion> CreateLazyIncrementallyParsedTree(
-        AsyncLazy<TreeAndVersion> oldTreeSource,
+    private static ITreeAndVersionSource CreateLazyIncrementallyParsedTree(
+        ITreeAndVersionSource oldTreeSource,
         ITextAndVersionSource newTextSource,
         LoadTextOptions loadTextOptions)
     {
-        return AsyncLazy.Create(
+        return SimpleTreeAndVersionSource.Create(
             static (arg, c) => IncrementallyParseTreeAsync(arg.oldTreeSource, arg.newTextSource, arg.loadTextOptions, c),
             static (arg, c) => IncrementallyParseTree(arg.oldTreeSource, arg.newTextSource, arg.loadTextOptions, c),
             arg: (oldTreeSource, newTextSource, loadTextOptions));
     }
 
     private static async Task<TreeAndVersion> IncrementallyParseTreeAsync(
-        AsyncLazy<TreeAndVersion> oldTreeSource,
+        ITreeAndVersionSource oldTreeSource,
         ITextAndVersionSource newTextSource,
         LoadTextOptions loadTextOptions,
         CancellationToken cancellationToken)
@@ -197,7 +211,7 @@ internal partial class DocumentState : TextDocumentState
     }
 
     private static TreeAndVersion IncrementallyParseTree(
-        AsyncLazy<TreeAndVersion> oldTreeSource,
+        ITreeAndVersionSource oldTreeSource,
         ITextAndVersionSource newTextSource,
         LoadTextOptions loadTextOptions,
         CancellationToken cancellationToken)
@@ -346,7 +360,7 @@ internal partial class DocumentState : TextDocumentState
             throw new InvalidOperationException();
         }
 
-        AsyncLazy<TreeAndVersion>? newTreeSource = null;
+        ITreeAndVersionSource? newTreeSource = null;
 
         // Optimization: if we are only changing preprocessor directives, and we've already parsed the existing tree
         // and it didn't have any, we can avoid a reparse since the tree will be parsed the same.
@@ -368,7 +382,7 @@ internal partial class DocumentState : TextDocumentState
             }
 
             if (newTree is not null)
-                newTreeSource = AsyncLazy.Create(new TreeAndVersion(newTree, existingTreeAndVersion.Version));
+                newTreeSource = SimpleTreeAndVersionSource.Create(new TreeAndVersion(newTree, existingTreeAndVersion.Version));
         }
 
         // If we weren't able to reuse in a smart way, just reparse
@@ -457,7 +471,7 @@ internal partial class DocumentState : TextDocumentState
 
     protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
     {
-        AsyncLazy<TreeAndVersion>? newTreeSource;
+        ITreeAndVersionSource? newTreeSource;
 
         if (!SupportsSyntaxTree)
         {
@@ -528,7 +542,7 @@ internal partial class DocumentState : TextDocumentState
             _options,
             textSource: text,
             LoadTextOptions,
-            treeSource: AsyncLazy.Create(treeAndVersion));
+            treeSource: SimpleTreeAndVersionSource.Create(treeAndVersion));
 
         // use static method so we don't capture references to this
         static (ITextAndVersionSource, TreeAndVersion) CreateTreeWithLazyText(

@@ -636,6 +636,32 @@ namespace Microsoft.CodeAnalysis
             return default;
         }
 
+        public static TValue? Single<TValue, TArg>(this ImmutableArray<TValue> array, Func<TValue, TArg, bool> predicate, TArg arg)
+        {
+            var hasValue = false;
+            TValue? value = default;
+            foreach (var item in array)
+            {
+                if (predicate(item, arg))
+                {
+                    if (hasValue)
+                    {
+                        throw ExceptionUtilities.Unreachable();
+                    }
+
+                    value = item;
+                    hasValue = true;
+                }
+            }
+
+            if (!hasValue)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            return value;
+        }
+
         /// <summary>
         /// Casts the immutable array of a Type to an immutable array of its base type.
         /// </summary>
@@ -736,19 +762,6 @@ namespace Microsoft.CodeAnalysis
             var result = (builder.Count == array.Length) ? array : builder.ToImmutable();
             builder.Free();
             return result;
-        }
-
-        internal static bool HasAnyErrors<T>(this ImmutableArray<T> diagnostics) where T : Diagnostic
-        {
-            foreach (var diagnostic in diagnostics)
-            {
-                if (diagnostic.Severity == DiagnosticSeverity.Error)
-                {
-                    return true;
-                }
-            }
-
-            return false;
         }
 
         // In DEBUG, swap the first and last elements of a read-only array, yielding a new read only array.
@@ -1008,8 +1021,8 @@ namespace Microsoft.CodeAnalysis
             where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
             where TNamespaceSymbol : class, TNamespaceOrTypeSymbol
         {
-            foreach (var (name, value) in dictionary)
-                result.Add(name, createMembers(value));
+            foreach (var entry in dictionary)
+                result.Add(entry.Key, createMembers(entry.Value));
 
             return;
 
@@ -1050,11 +1063,11 @@ namespace Microsoft.CodeAnalysis
 
             var dictionary = new Dictionary<TKey, ImmutableArray<TNamedTypeSymbol>>(capacity, comparer);
 
-            foreach (var (name, members) in map)
+            foreach (var entry in map)
             {
-                var namedTypes = getOrCreateNamedTypes(members);
+                var namedTypes = getOrCreateNamedTypes(entry.Value);
                 if (namedTypes.Length > 0)
-                    dictionary.Add(name, namedTypes);
+                    dictionary.Add(entry.Key, namedTypes);
             }
 
             return dictionary;

@@ -11,7 +11,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
@@ -23,6 +22,8 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp;
+
+using static SyntaxFactory;
 
 [ExportSignatureHelpProvider("ElementAccessExpressionSignatureHelpProvider", LanguageNames.CSharp), Shared]
 internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSharpSignatureHelpProvider
@@ -153,12 +154,12 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
         // and then we need to account for this and offset the position check accordingly.
         int offset;
         BracketedArgumentListSyntax argumentList;
-        var newBracketedArgumentList = SyntaxFactory.ParseBracketedArgumentList(openBracket.Parent!.ToString());
+        var newBracketedArgumentList = ParseBracketedArgumentList(openBracket.Parent!.ToString());
         if (expression.Parent is ConditionalAccessExpressionSyntax)
         {
             // The typed code looks like: <expression>?[
-            var elementBinding = SyntaxFactory.ElementBindingExpression(newBracketedArgumentList);
-            var conditionalAccessExpression = SyntaxFactory.ConditionalAccessExpression(expression, elementBinding);
+            var elementBinding = ElementBindingExpression(newBracketedArgumentList);
+            var conditionalAccessExpression = ConditionalAccessExpression(expression, elementBinding);
             offset = expression.SpanStart - conditionalAccessExpression.SpanStart;
             argumentList = ((ElementBindingExpressionSyntax)conditionalAccessExpression.WhenNotNull).ArgumentList;
         }
@@ -168,7 +169,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
             //   <expression>[
             // or
             //   <identifier>?[
-            var elementAccessExpression = SyntaxFactory.ElementAccessExpression(expression, newBracketedArgumentList);
+            var elementAccessExpression = ElementAccessExpression(expression, newBracketedArgumentList);
             offset = expression.SpanStart - elementAccessExpression.SpanStart;
             argumentList = elementAccessExpression.ArgumentList;
         }
@@ -276,10 +277,7 @@ internal sealed class ElementAccessExpressionSignatureHelpProvider : AbstractCSh
     }
 
     private static IList<SymbolDisplayPart> GetPostambleParts()
-    {
-        return SpecializedCollections.SingletonList(
-            Punctuation(SyntaxKind.CloseBracketToken));
-    }
+        => [Punctuation(SyntaxKind.CloseBracketToken)];
 
     private static class CompleteElementAccessExpression
     {

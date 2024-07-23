@@ -28,7 +28,7 @@ internal partial class DefinitionItem
         ImmutableArray<ClassifiedSpansAndHighlightSpan?> classifiedSpans,
         ImmutableArray<AssemblyLocation> metadataLocations,
         ImmutableDictionary<string, string>? properties,
-        ImmutableDictionary<string, string>? displayableProperties,
+        ImmutableArray<(string key, string value)> displayableProperties,
         bool displayIfNoReferences) : DefinitionItem(
             tags, displayParts, nameDisplayParts,
             sourceSpans, classifiedSpans, metadataLocations, properties, displayableProperties, displayIfNoReferences)

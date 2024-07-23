@@ -11,7 +11,6 @@ using Microsoft.CodeAnalysis.BraceCompletion;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -117,7 +116,7 @@ internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractC
             // Handling syntax tree directly to avoid parsing in potentially UI blocking code-path
             var closingToken = FindClosingBraceToken(document.Root, closingPoint);
             var annotatedNewline = SyntaxFactory.EndOfLine(options.FormattingOptions.NewLine).WithAdditionalAnnotations(s_closingBraceNewlineAnnotation);
-            var newClosingToken = closingToken.WithPrependedLeadingTrivia(SpecializedCollections.SingletonEnumerable(annotatedNewline));
+            var newClosingToken = closingToken.WithPrependedLeadingTrivia(annotatedNewline);
 
             var rootToFormat = document.Root.ReplaceToken(closingToken, newClosingToken);
             annotatedNewline = rootToFormat.GetAnnotatedTrivia(s_closingBraceNewlineAnnotation).Single();
@@ -183,7 +182,7 @@ internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractC
                 [newLineEdit.Value.ToTextChangeRange()],
                 formattingChanges.SelectAsArray(f => f.ToTextChangeRange()));
 
-            using var _ = ArrayBuilder<TextChange>.GetInstance(out var mergedChanges);
+            var mergedChanges = new FixedSizeArrayBuilder<TextChange>(newRanges.Length);
             var amountToShift = 0;
             foreach (var newRange in newRanges)
             {
@@ -200,7 +199,7 @@ internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractC
                 mergedChanges.Add(new TextChange(newTextChangeSpan, newTextChangeText));
             }
 
-            return mergedChanges.ToImmutable();
+            return mergedChanges.MoveToImmutable();
         }
     }
 
@@ -245,7 +244,7 @@ internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractC
         var annotatedRoot = GetSyntaxRootWithAnnotatedClosingBrace(document.Root, closingPoint);
 
         var result = Formatter.GetFormattingResult(
-            annotatedRoot, SpecializedCollections.SingletonEnumerable(spanToFormat), document.SolutionServices, options.FormattingOptions, rules, cancellationToken);
+            annotatedRoot, [spanToFormat], document.SolutionServices, options.FormattingOptions, rules, cancellationToken);
 
         if (result == null)
         {

@@ -132,6 +132,6 @@ internal static class EditAndContinueCapabilitiesParser
         if (capabilities.HasFlag(EditAndContinueCapabilities.AddExplicitInterfaceImplementation))
             builder.Add(nameof(EditAndContinueCapabilities.AddExplicitInterfaceImplementation));
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 }

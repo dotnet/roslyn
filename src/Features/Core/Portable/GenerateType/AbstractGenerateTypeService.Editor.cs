@@ -313,7 +313,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                 ? folders
                 : _state.SimpleName != _state.NameOrMemberAccessExpression
                     ? containers.ToList()
-                    : _semanticDocument.Document.Folders.ToList();
+                    : [.. _semanticDocument.Document.Folders];
 
             if (newDocument.Project.Language == _semanticDocument.Document.Project.Language)
             {
@@ -480,9 +480,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         {
             string includeUsingsOrImports = null;
             if (!areFoldersValidIdentifiers)
-            {
-                folders = SpecializedCollections.EmptyList<string>();
-            }
+                folders = [];
 
             // Now actually create the symbol that we want to add to the root namespace.  The
             // symbol may either be a named type (if we're not generating into a namespace) or
@@ -526,8 +524,8 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                     // Populate the ContainerList
                     AddFoldersToNamespaceContainers(containerList, folders);
 
-                    containers = containerList.ToArray();
-                    includeUsingsOrImports = string.Join(".", containerList.ToArray());
+                    containers = [.. containerList];
+                    includeUsingsOrImports = string.Join(".", containers);
                 }
 
                 // Case 4 : If the type is generated into the same VB project or
@@ -540,8 +538,8 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                 {
                     // Populate the ContainerList
                     AddFoldersToNamespaceContainers(containerList, folders);
-                    containers = containerList.ToArray();
-                    includeUsingsOrImports = string.Join(".", containerList.ToArray());
+                    containers = [.. containerList];
+                    includeUsingsOrImports = string.Join(".", containers);
                     if (!string.IsNullOrWhiteSpace(rootNamespaceOfTheProjectGeneratedInto))
                     {
                         includeUsingsOrImports = string.IsNullOrEmpty(includeUsingsOrImports)

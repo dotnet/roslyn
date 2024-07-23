@@ -98,16 +98,14 @@ internal partial class AutomaticLineEnderCommandHandler(
         var endToken = root.FindToken(position);
         var span = GetFormattedTextSpan(root, endToken);
         if (span == null)
-        {
-            return SpecializedCollections.EmptyList<TextChange>();
-        }
+            return [];
 
         var formatter = document.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
         return formatter.GetFormattingResult(
             root,
-            SpecializedCollections.SingletonCollection(CommonFormattingHelpers.GetFormattingSpan(root, span.Value)),
+            [CommonFormattingHelpers.GetFormattingSpan(root, span.Value)],
             options,
-            rules: null,
+            rules: default,
             cancellationToken).GetTextChanges(cancellationToken);
     }
 
@@ -287,7 +285,7 @@ internal partial class AutomaticLineEnderCommandHandler(
         var token = root.FindTokenFromEnd(position);
         if (token.Kind() == SyntaxKind.None)
         {
-            return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+            return [];
         }
 
         return token.GetAncestors<SyntaxNode>()

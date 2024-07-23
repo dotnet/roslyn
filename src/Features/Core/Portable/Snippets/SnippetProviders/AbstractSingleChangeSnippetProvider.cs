@@ -9,7 +9,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 
-internal abstract class AbstractSingleChangeSnippetProvider : AbstractSnippetProvider
+internal abstract class AbstractSingleChangeSnippetProvider<TSnippetSyntax> : AbstractSnippetProvider<TSnippetSyntax>
+    where TSnippetSyntax : SyntaxNode
 {
     protected abstract Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken);
 

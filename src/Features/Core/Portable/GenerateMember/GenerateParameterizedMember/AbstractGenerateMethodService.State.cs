@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -242,7 +241,7 @@ internal partial class AbstractGenerateMethodService<TService, TSimpleNameSyntax
             }
 
             NameGenerator.EnsureUniquenessInPlace(names, isFixed);
-            return names.ToImmutable();
+            return names.ToImmutableAndClear();
         }
 
         private static IMethodSymbol CreateMethodSymbolWithReturnType(

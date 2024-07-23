@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.ValueTracking;
 
@@ -186,10 +187,10 @@ internal static partial class ValueTracker
                 .Select(argument => (collector: Clone(), argument))
                 .ToImmutableArray();
 
-            var tasks = collectorsAndArgumentMap
-                .Select(pair => Task.Run(() => pair.collector.VisitAsync(pair.argument, cancellationToken)));
-
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            await RoslynParallel.ForEachAsync(
+                collectorsAndArgumentMap,
+                cancellationToken,
+                async (pair, cancellationToken) => await pair.collector.VisitAsync(pair.argument.Value, cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
 
             var items = collectorsAndArgumentMap
                 .Select(pair => pair.collector.ProgressCollector)

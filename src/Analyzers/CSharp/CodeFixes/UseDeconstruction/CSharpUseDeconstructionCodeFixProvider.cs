@@ -21,6 +21,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseDeconstruction;
 
+using static SyntaxFactory;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseDeconstruction), Shared]
 internal sealed class CSharpUseDeconstructionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
 {
@@ -121,7 +123,7 @@ internal sealed class CSharpUseDeconstructionCodeFixProvider : SyntaxEditorBased
         // Copy all the tokens/nodes from the existing foreach statement to the new foreach statement.
         // However, convert the existing declaration over to a "var (x, y)" declaration or (int x, int y)
         // tuple expression.
-        return SyntaxFactory.ForEachVariableStatement(
+        return ForEachVariableStatement(
             forEachStatement.AttributeLists,
             forEachStatement.AwaitKeyword,
             forEachStatement.ForEachKeyword,
@@ -139,8 +141,8 @@ internal sealed class CSharpUseDeconstructionCodeFixProvider : SyntaxEditorBased
         // Copy all the tokens/nodes from the existing declaration statement to the new assignment
         // statement. However, convert the existing declaration over to a "var (x, y)" declaration 
         // or (int x, int y) tuple expression.
-        return SyntaxFactory.ExpressionStatement(
-            SyntaxFactory.AssignmentExpression(
+        return ExpressionStatement(
+            AssignmentExpression(
                 SyntaxKind.SimpleAssignmentExpression,
                 CreateTupleOrDeclarationExpression(tupleType, declarationStatement.Declaration.Type),
                 variableDeclarator.Initializer.EqualsToken,
@@ -160,15 +162,15 @@ internal sealed class CSharpUseDeconstructionCodeFixProvider : SyntaxEditorBased
     }
 
     private static DeclarationExpressionSyntax CreateDeclarationExpression(INamedTypeSymbol tupleType, TypeSyntax typeNode)
-        => SyntaxFactory.DeclarationExpression(
-            typeNode, SyntaxFactory.ParenthesizedVariableDesignation(
+        => DeclarationExpression(
+            typeNode, ParenthesizedVariableDesignation(
                 [.. tupleType.TupleElements.Select(
-                    e => SyntaxFactory.SingleVariableDesignation(SyntaxFactory.Identifier(e.Name.EscapeIdentifier())))]));
+                    e => SingleVariableDesignation(Identifier(e.Name.EscapeIdentifier())))]));
 
     private TupleExpressionSyntax CreateTupleExpression(TupleTypeSyntax typeNode)
-        => SyntaxFactory.TupleExpression(
+        => TupleExpression(
             typeNode.OpenParenToken,
-            SyntaxFactory.SeparatedList<ArgumentSyntax>(new SyntaxNodeOrTokenList(typeNode.Elements.GetWithSeparators().Select(ConvertTupleTypeElementComponent))),
+            SeparatedList<ArgumentSyntax>(new SyntaxNodeOrTokenList(typeNode.Elements.GetWithSeparators().Select(ConvertTupleTypeElementComponent))),
             typeNode.CloseParenToken);
 
     private SyntaxNodeOrToken ConvertTupleTypeElementComponent(SyntaxNodeOrToken nodeOrToken)
@@ -182,9 +184,9 @@ internal sealed class CSharpUseDeconstructionCodeFixProvider : SyntaxEditorBased
         // "int x" as a tuple element directly translates to "int x" (a declaration expression
         // with a variable designation 'x').
         var node = (TupleElementSyntax)nodeOrToken.AsNode();
-        return SyntaxFactory.Argument(
-            SyntaxFactory.DeclarationExpression(
+        return Argument(
+            DeclarationExpression(
                 node.Type,
-                SyntaxFactory.SingleVariableDesignation(node.Identifier)));
+                SingleVariableDesignation(node.Identifier)));
     }
 }

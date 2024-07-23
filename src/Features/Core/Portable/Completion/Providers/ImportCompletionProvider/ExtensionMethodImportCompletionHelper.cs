@@ -72,7 +72,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
             var remoteResult = await client.TryInvokeAsync<IRemoteExtensionMethodImportCompletionService, SerializableUnimportedExtensionMethods?>(
                  project,
                  (service, solutionInfo, cancellationToken) => service.GetUnimportedExtensionMethodsAsync(
-                     solutionInfo, document.Id, position, receiverTypeSymbolKeyData, namespaceInScope.ToImmutableArray(),
+                     solutionInfo, document.Id, position, receiverTypeSymbolKeyData, [.. namespaceInScope],
                      targetTypesSymbolKeyData, forceCacheCreation, hideAdvancedMembers, cancellationToken),
                  cancellationToken).ConfigureAwait(false);
 
@@ -188,7 +188,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
         }
 
         // Then convert symbols into completion items
-        using var _3 = ArrayBuilder<SerializableImportCompletionItem>.GetInstance(out var itemsBuilder);
+        var itemsBuilder = new FixedSizeArrayBuilder<SerializableImportCompletionItem>(overloadMap.Count);
 
         foreach (var ((containingNamespace, _, _), (bestSymbol, overloadCount, includeInTargetTypedCompletion)) in overloadMap)
         {
@@ -205,7 +205,7 @@ internal static partial class ExtensionMethodImportCompletionHelper
             itemsBuilder.Add(item);
         }
 
-        return itemsBuilder.ToImmutable();
+        return itemsBuilder.MoveToImmutable();
     }
 
     private static bool ShouldIncludeInTargetTypedCompletion(

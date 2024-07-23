@@ -7,10 +7,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InheritanceMargin;
 using Microsoft.CodeAnalysis.Options;
@@ -24,11 +23,12 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMargin;
 
-internal class InheritanceMarginViewMargin : ForegroundThreadAffinitizedObject, IWpfTextViewMargin
+internal sealed class InheritanceMarginViewMargin : IWpfTextViewMargin
 {
     // 16 (width of the crisp image) + 2 * 1 (width of the border) = 18
     private const double HeightAndWidthOfMargin = 18;
     private readonly IWpfTextView _textView;
+    private readonly IThreadingContext _threadingContext;
     private readonly ITagAggregator<InheritanceMarginTag> _tagAggregator;
     private readonly IGlobalOptionService _globalOptions;
     private readonly InheritanceGlyphManager _glyphManager;
@@ -54,9 +54,10 @@ internal class InheritanceMarginViewMargin : ForegroundThreadAffinitizedObject, 
         IEditorFormatMap editorFormatMap,
         IGlobalOptionService globalOptions,
         IAsynchronousOperationListener listener,
-        string languageName) : base(threadingContext)
+        string languageName)
     {
         _textView = textView;
+        _threadingContext = threadingContext;
         _tagAggregator = tagAggregator;
         _globalOptions = globalOptions;
         _languageName = languageName;
@@ -86,7 +87,7 @@ internal class InheritanceMarginViewMargin : ForegroundThreadAffinitizedObject, 
 
     void IDisposable.Dispose()
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
         if (!_disposed)
         {
             _disposed = true;
@@ -123,8 +124,9 @@ internal class InheritanceMarginViewMargin : ForegroundThreadAffinitizedObject, 
 
     private void OnGlobalOptionChanged(object sender, OptionChangedEventArgs e)
     {
-        if (e.Option.Equals(InheritanceMarginOptionsStorage.ShowInheritanceMargin) ||
-            e.Option.Equals(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin))
+        if (e.HasOption(option =>
+                option.Equals(InheritanceMarginOptionsStorage.ShowInheritanceMargin) ||
+                option.Equals(InheritanceMarginOptionsStorage.InheritanceMarginCombinedWithIndicatorMargin)))
         {
             UpdateMarginVisibility();
         }

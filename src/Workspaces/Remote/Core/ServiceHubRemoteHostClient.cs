@@ -105,7 +105,6 @@ namespace Microsoft.CodeAnalysis.Remote
                     (service, cancellationToken) => service.EnableAsync(AsynchronousOperationListenerProvider.IsEnabled, listenerProvider.DiagnosticTokensEnabled, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
-                client.Started();
                 return client;
             }
         }
@@ -141,8 +140,6 @@ namespace Microsoft.CodeAnalysis.Remote
             _hubClient.Dispose();
 
             _serviceBrokerClient.Dispose();
-
-            base.Dispose();
         }
     }
 }

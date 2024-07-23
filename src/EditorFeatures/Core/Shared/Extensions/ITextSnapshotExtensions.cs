@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -15,9 +13,7 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 
@@ -44,7 +40,7 @@ internal static partial class ITextSnapshotExtensions
         var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
 
         var options = textBuffer.GetSyntaxFormattingOptions(editorOptionsService, document.Project.Services, explicitFormat: false);
-        var result = formatter.GetFormattingResult(documentSyntax.Root, SpecializedCollections.SingletonEnumerable(span), options, rules, cancellationToken);
+        var result = formatter.GetFormattingResult(documentSyntax.Root, [span], options, rules, cancellationToken);
         var changes = result.GetTextChanges(cancellationToken);
 
         using (Logger.LogBlock(FunctionId.Formatting_ApplyResultToBuffer, cancellationToken))

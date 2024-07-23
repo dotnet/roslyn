@@ -112,7 +112,7 @@ internal abstract class AbstractAddImportsService<TCompilationUnitSyntax, TNames
 
         switch (import)
         {
-            case TExternSyntax _:
+            case TExternSyntax:
                 return externContainer;
             case TUsingOrAliasSyntax u:
                 if (IsAlias(u))

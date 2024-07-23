@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -19,6 +20,9 @@ using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.UseAutoProperty;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
+
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseAutoProperty), Shared]
 internal class CSharpUseAutoPropertyCodeFixProvider
@@ -49,14 +53,14 @@ internal class CSharpUseAutoPropertyCodeFixProvider
 
         var updatedProperty = propertyDeclaration.WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList))
                                                  .WithExpressionBody(null)
-                                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None));
+                                                 .WithSemicolonToken(Token(SyntaxKind.None));
 
         // We may need to add a setter if the field is written to outside of the constructor
         // of it's class.
         if (NeedsSetter(compilation, propertyDeclaration, isWrittenOutsideOfConstructor))
         {
-            var accessor = SyntaxFactory.AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                           .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            var accessor = AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
+                           .WithSemicolonToken(SemicolonToken);
             var generator = SyntaxGenerator.GetGenerator(project);
 
             if (fieldSymbol.DeclaredAccessibility != propertySymbol.DeclaredAccessibility)
@@ -64,7 +68,7 @@ internal class CSharpUseAutoPropertyCodeFixProvider
                 accessor = (AccessorDeclarationSyntax)generator.WithAccessibility(accessor, fieldSymbol.DeclaredAccessibility);
             }
 
-            var modifiers = SyntaxFactory.TokenList(
+            var modifiers = TokenList(
                 updatedProperty.Modifiers.Where(token => !token.IsKind(SyntaxKind.ReadOnlyKeyword)));
 
             updatedProperty = updatedProperty.WithModifiers(modifiers)
@@ -74,20 +78,15 @@ internal class CSharpUseAutoPropertyCodeFixProvider
         var fieldInitializer = await GetFieldInitializerAsync(fieldSymbol, cancellationToken).ConfigureAwait(false);
         if (fieldInitializer != null)
         {
-            updatedProperty = updatedProperty.WithInitializer(SyntaxFactory.EqualsValueClause(fieldInitializer))
-                                             .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+            updatedProperty = updatedProperty.WithInitializer(EqualsValueClause(fieldInitializer))
+                                             .WithSemicolonToken(SemicolonToken);
         }
 
         return updatedProperty.WithTrailingTrivia(trailingTrivia).WithAdditionalAnnotations(SpecializedFormattingAnnotation);
     }
 
-    protected override IEnumerable<AbstractFormattingRule> GetFormattingRules(Document document)
-    {
-        var rules = new List<AbstractFormattingRule> { new SingleLinePropertyFormattingRule() };
-        rules.AddRange(Formatter.GetDefaultFormattingRules(document));
-
-        return rules;
-    }
+    protected override ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
+        => [new SingleLinePropertyFormattingRule(), .. Formatter.GetDefaultFormattingRules(document)];
 
     private class SingleLinePropertyFormattingRule : AbstractFormattingRule
     {
@@ -164,9 +163,9 @@ internal class CSharpUseAutoPropertyCodeFixProvider
     {
         if (accessorList == null)
         {
-            var getter = SyntaxFactory.AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                                      .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
-            return SyntaxFactory.AccessorList([getter]);
+            var getter = AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                                      .WithSemicolonToken(SemicolonToken);
+            return AccessorList([getter]);
         }
 
         return accessorList.WithAccessors([.. GetAccessors(accessorList.Accessors)]);
@@ -178,7 +177,7 @@ internal class CSharpUseAutoPropertyCodeFixProvider
         {
             yield return accessor.WithBody(null)
                                  .WithExpressionBody(null)
-                                 .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                                 .WithSemicolonToken(SemicolonToken);
         }
     }
 }

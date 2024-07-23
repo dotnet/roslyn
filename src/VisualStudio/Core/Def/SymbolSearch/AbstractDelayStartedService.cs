@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -22,8 +21,9 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 /// to run the <see cref="VisualStudioSymbolSearchService"/> core codepath if the user has not enabled the features
 /// that need it.  That helps us avoid loading dlls unnecessarily and bloating the VS memory space.
 /// </summary>
-internal abstract class AbstractDelayStartedService : ForegroundThreadAffinitizedObject
+internal abstract class AbstractDelayStartedService
 {
+    protected readonly IThreadingContext ThreadingContext;
     private readonly IGlobalOptionService _globalOptions;
     protected readonly VisualStudioWorkspaceImpl Workspace;
 
@@ -56,8 +56,8 @@ internal abstract class AbstractDelayStartedService : ForegroundThreadAffinitize
         IAsynchronousOperationListenerProvider listenerProvider,
         Option2<bool> featureEnabledOption,
         ImmutableArray<PerLanguageOption2<bool>> perLanguageOptions)
-        : base(threadingContext)
     {
+        ThreadingContext = threadingContext;
         _globalOptions = globalOptions;
         Workspace = workspace;
         _featureEnabledOption = featureEnabledOption;

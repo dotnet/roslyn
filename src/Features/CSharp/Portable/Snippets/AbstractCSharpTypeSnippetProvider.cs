@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -15,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
@@ -24,7 +22,8 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
-internal abstract class AbstractCSharpTypeSnippetProvider : AbstractTypeSnippetProvider
+internal abstract class AbstractCSharpTypeSnippetProvider<TTypeDeclarationSyntax> : AbstractTypeSnippetProvider<TTypeDeclarationSyntax>
+    where TTypeDeclarationSyntax : BaseTypeDeclarationSyntax
 {
     protected abstract ISet<SyntaxKind> ValidModifiers { get; }
 
@@ -78,42 +77,34 @@ internal abstract class AbstractCSharpTypeSnippetProvider : AbstractTypeSnippetP
         return new TextChange(TextSpan.FromBounds(targetPosition, targetPosition), SyntaxFacts.GetText(SyntaxKind.PublicKeyword) + " ");
     }
 
-    protected override int GetTargetCaretPosition(ISyntaxFactsService syntaxFacts, SyntaxNode caretTarget, SourceText sourceText)
+    protected override int GetTargetCaretPosition(TTypeDeclarationSyntax typeDeclaration, SourceText sourceText)
     {
-        var typeDeclaration = (BaseTypeDeclarationSyntax)caretTarget;
         var triviaSpan = typeDeclaration.CloseBraceToken.LeadingTrivia.Span;
         var line = sourceText.Lines.GetLineFromPosition(triviaSpan.Start);
         // Getting the location at the end of the line before the newline.
         return line.Span.End;
     }
 
-    protected override SyntaxNode? FindAddedSnippetSyntaxNode(SyntaxNode root, int position, Func<SyntaxNode?, bool> isCorrectContainer)
+    protected override TTypeDeclarationSyntax? FindAddedSnippetSyntaxNode(SyntaxNode root, int position)
     {
         var node = root.FindNode(TextSpan.FromBounds(position, position));
-        return node.GetAncestorOrThis<BaseTypeDeclarationSyntax>();
+        return node.GetAncestorOrThis<TTypeDeclarationSyntax>();
     }
 
-    protected override async Task<Document> AddIndentationToDocumentAsync(Document document, CancellationToken cancellationToken)
+    protected override async Task<Document> AddIndentationToDocumentAsync(Document document, TTypeDeclarationSyntax typeDeclaration, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-        var snippet = root.GetAnnotatedNodes(FindSnippetAnnotation).FirstOrDefault();
-
-        if (snippet is not BaseTypeDeclarationSyntax originalTypeDeclaration)
-            return document;
 
         var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
-        var indentationString = CSharpSnippetHelpers.GetBlockLikeIndentationString(document, originalTypeDeclaration.OpenBraceToken.SpanStart, syntaxFormattingOptions, cancellationToken);
+        var indentationString = CSharpSnippetHelpers.GetBlockLikeIndentationString(document, typeDeclaration.OpenBraceToken.SpanStart, syntaxFormattingOptions, cancellationToken);
 
-        var newTypeDeclaration = originalTypeDeclaration.WithCloseBraceToken(
-            originalTypeDeclaration.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
+        var newTypeDeclaration = typeDeclaration.WithCloseBraceToken(
+            typeDeclaration.CloseBraceToken.WithPrependedLeadingTrivia(SyntaxFactory.SyntaxTrivia(SyntaxKind.WhitespaceTrivia, indentationString)));
 
-        var newRoot = root.ReplaceNode(originalTypeDeclaration, newTypeDeclaration.WithAdditionalAnnotations(CursorAnnotation, FindSnippetAnnotation));
+        var newRoot = root.ReplaceNode(typeDeclaration, newTypeDeclaration.WithAdditionalAnnotations(FindSnippetAnnotation));
         return document.WithSyntaxRoot(newRoot);
     }
 
-    protected override void GetTypeDeclarationIdentifier(SyntaxNode node, out SyntaxToken identifier)
-    {
-        var typeDeclaration = (BaseTypeDeclarationSyntax)node;
-        identifier = typeDeclaration.Identifier;
-    }
+    protected sealed override SyntaxToken GetTypeDeclarationIdentifier(TTypeDeclarationSyntax baseTypeDeclaration)
+        => baseTypeDeclaration.Identifier;
 }

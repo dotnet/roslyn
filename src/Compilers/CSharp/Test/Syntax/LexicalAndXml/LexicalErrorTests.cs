@@ -572,6 +572,51 @@ public class MainClass
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(5, 25));
         }
 
+        [Fact]
+        public void CS1035AtColonParsedAsBadRazorContent_01()
+        {
+            var test = """
+                var x = @:;
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (1,9): error CS1525: Invalid expression term ''
+                // var x = @:;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "@:;").WithArguments("").WithLocation(1, 9),
+                // (1,10): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                // var x = @:;
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, ":").WithLocation(1, 10),
+                // (1,12): error CS1002: ; expected
+                // var x = @:;
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(1, 12));
+        }
+
+        [Fact]
+        public void CS1035AtColonParsedAsBadRazorContent_02()
+        {
+            var test = """
+                @:<div>test</div>
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (1,2): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                // @:<div>test</div>
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, ":").WithLocation(1, 2));
+        }
+
+        [Fact]
+        public void CS1035AtColonParsedAsBadRazorContent_03()
+        {
+            var test = """
+                @: M() {}
+                """;
+
+            ParsingTests.ParseAndValidate(test,
+                // (1,2): error CS1646: Keyword, identifier, or string expected after verbatim specifier: @
+                // @: M() {}
+                Diagnostic(ErrorCode.ERR_ExpectedVerbatimLiteral, ":").WithLocation(1, 2));
+        }
+
         [Fact, WorkItem(526993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/526993")]
         public void CS1039ERR_UnterminatedStringLit()
         {

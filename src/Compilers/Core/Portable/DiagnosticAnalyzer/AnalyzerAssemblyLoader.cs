@@ -20,6 +20,13 @@ namespace Microsoft.CodeAnalysis
         /// process. Either part of the compiler itself or the process hosting the compiler.
         /// </summary>
         bool IsHostAssembly(Assembly assembly);
+
+        /// <summary>
+        /// For a given <see cref="AssemblyName"/> return the location it was originally added 
+        /// from. This will return null for any value that was not directly added through the 
+        /// loader.
+        /// </summary>
+        string? GetOriginalDependencyLocation(AssemblyName assembly);
     }
 
     /// <summary>
@@ -60,6 +67,14 @@ namespace Microsoft.CodeAnalysis
         /// Access must be guarded by <see cref="_guard"/>
         /// </remarks>
         private readonly Dictionary<string, ImmutableHashSet<string>> _knownAssemblyPathsBySimpleName = new(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// A collection of <see cref="IAnalyzerAssemblyResolver"/>s that can be used to override the assembly resolution process.
+        /// </summary>
+        /// <remarks>
+        /// When multiple resolvers are present they are consulted in-order, with the first resolver to return a non-null
+        /// <see cref="Assembly"/> winning.</remarks>
+        private readonly ImmutableArray<IAnalyzerAssemblyResolver> _externalResolvers;
 
         /// <summary>
         /// The implementation needs to load an <see cref="Assembly"/> with the specified <see cref="AssemblyName"/>. The
@@ -235,6 +250,9 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public string? GetOriginalDependencyLocation(AssemblyName assemblyName) =>
+            GetBestPath(assemblyName).BestOriginalPath;
+
         /// <summary>
         /// Return the best (original, real) path information for loading an assembly with the specified <see cref="AssemblyName"/>.
         /// </summary>
@@ -329,6 +347,34 @@ namespace Microsoft.CodeAnalysis
                     .OrderBy(x => x.Key)
                     .ToArray();
             }
+        }
+
+        /// <summary>
+        /// Iterates the <see cref="_externalResolvers"/> if any, to see if any of them can resolve
+        /// the given <see cref="AssemblyName"/> to an <see cref="Assembly"/>.
+        /// </summary>
+        /// <param name="assemblyName">The name of the assembly to resolve</param>
+        /// <returns>An <see langword="assembly"/> if one of the resolvers is successful, or <see langword="null"/></returns>
+        internal Assembly? ResolveAssemblyExternally(AssemblyName assemblyName)
+        {
+            if (!_externalResolvers.IsDefaultOrEmpty)
+            {
+                foreach (var resolver in _externalResolvers)
+                {
+                    try
+                    {
+                        if (resolver.ResolveAssembly(assemblyName) is { } resolvedAssembly)
+                        {
+                            return resolvedAssembly;
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore if the external resolver throws
+                    }
+                }
+            }
+            return null;
         }
     }
 }

@@ -21,6 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static UseCollectionExpressionHelpers;
+using static SyntaxFactory;
 using FluentState = UpdateExpressionState<ExpressionSyntax, StatementSyntax>;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -42,7 +43,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         nameof(Array),
         nameof(Span<int>),
         nameof(ReadOnlySpan<int>),
-        nameof(List<int>),
+        nameof(System.Collections.Generic.List<int>),
         nameof(HashSet<int>),
         nameof(LinkedList<int>),
         nameof(Queue<int>),
@@ -178,10 +179,9 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
         var copiedData = false;
 
-        while (stack.Count > 0)
+        while (stack.TryPop(out var current))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var current = stack.Pop();
 
             // Methods of the form Add(...)/AddRange(...) or `ToXXX()` count as something to continue recursing down the
             // left hand side of the expression.  In the inner expressions we can have things like `.Concat/.Append`
@@ -293,7 +293,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             {
                 // Remove any whitespace around the `.`, making the singly-wrapped fluent expression into a single line.
                 matchesInReverse.Add(new CollectionExpressionMatch<ArgumentSyntax>(
-                    SyntaxFactory.Argument(innerInvocation.WithExpression(
+                    Argument(innerInvocation.WithExpression(
                         memberAccess.Update(
                             memberAccess.Expression.WithoutTrailingTrivia(),
                             memberAccess.OperatorToken.WithoutTrivia(),
@@ -302,7 +302,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 return;
             }
 
-            matchesInReverse.Add(new CollectionExpressionMatch<ArgumentSyntax>(SyntaxFactory.Argument(expression), UseSpread: true));
+            matchesInReverse.Add(new CollectionExpressionMatch<ArgumentSyntax>(Argument(expression), UseSpread: true));
         }
 
         // We only want to offer this feature when the original collection was list-like (as opposed to being something

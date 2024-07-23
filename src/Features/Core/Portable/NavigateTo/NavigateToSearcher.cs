@@ -22,21 +22,30 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
 [Flags]
-internal enum NavigateToSearchScope
+internal enum NavigateToDocumentSupport
 {
     RegularDocuments = 0b01,
     GeneratedDocuments = 0b10,
     AllDocuments = RegularDocuments | GeneratedDocuments
 }
 
+internal enum NavigateToSearchScope
+{
+    // Intentionally first so that no value indicates searching the entire solution.
+    Solution,
+    Project,
+    Document,
+}
+
 internal sealed class NavigateToSearcher
 {
+    private static readonly ObjectPool<HashSet<INavigateToSearchResult>> s_searchResultPool = new(() => new(NavigateToSearchResultComparer.Instance));
+
     private readonly INavigateToSearcherHost _host;
     private readonly Solution _solution;
     private readonly INavigateToSearchCallback _callback;
     private readonly string _searchPattern;
     private readonly IImmutableSet<string> _kinds;
-    private readonly IAsynchronousOperationListener _listener;
     private readonly IStreamingProgressTracker _progress_doNotAccessDirectly;
 
     private readonly Document? _activeDocument;
@@ -49,15 +58,13 @@ internal sealed class NavigateToSearcher
         Solution solution,
         INavigateToSearchCallback callback,
         string searchPattern,
-        IImmutableSet<string> kinds,
-        IAsynchronousOperationListener listener)
+        IImmutableSet<string> kinds)
     {
         _host = host;
         _solution = solution;
         _callback = callback;
         _searchPattern = searchPattern;
         _kinds = kinds;
-        _listener = listener;
         _progress_doNotAccessDirectly = new StreamingProgressTracker((current, maximum, ct) =>
         {
             callback.ReportProgress(current, maximum);
@@ -91,18 +98,17 @@ internal sealed class NavigateToSearcher
         CancellationToken disposalToken)
     {
         var host = new DefaultNavigateToSearchHost(solution, asyncListener, disposalToken);
-        return Create(solution, asyncListener, callback, searchPattern, kinds, host);
+        return Create(solution, callback, searchPattern, kinds, host);
     }
 
     public static NavigateToSearcher Create(
         Solution solution,
-        IAsynchronousOperationListener asyncListener,
         INavigateToSearchCallback callback,
         string searchPattern,
         IImmutableSet<string> kinds,
         INavigateToSearcherHost host)
     {
-        return new NavigateToSearcher(host, solution, callback, searchPattern, kinds, asyncListener);
+        return new NavigateToSearcher(host, solution, callback, searchPattern, kinds);
     }
 
     private async Task AddProgressItemsAsync(int count, CancellationToken cancellationToken)
@@ -122,12 +128,12 @@ internal sealed class NavigateToSearcher
         await _progress_doNotAccessDirectly.ItemsCompletedAsync(count, cancellationToken).ConfigureAwait(false);
     }
 
-    public Task SearchAsync(bool searchCurrentDocument, CancellationToken cancellationToken)
-        => SearchAsync(searchCurrentDocument, NavigateToSearchScope.AllDocuments, cancellationToken);
+    public Task SearchAsync(NavigateToSearchScope searchScope, CancellationToken cancellationToken)
+        => SearchAsync(searchScope, NavigateToDocumentSupport.AllDocuments, cancellationToken);
 
     public async Task SearchAsync(
-        bool searchCurrentDocument,
-        NavigateToSearchScope scope,
+        NavigateToSearchScope searchScope,
+        NavigateToDocumentSupport documentSupport,
         CancellationToken cancellationToken)
     {
         var isFullyLoaded = true;
@@ -136,22 +142,31 @@ internal sealed class NavigateToSearcher
         {
             using var navigateToSearch = Logger.LogBlock(FunctionId.NavigateTo_Search, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken);
 
-            if (searchCurrentDocument)
+            switch (searchScope)
             {
-                await SearchCurrentDocumentAsync(cancellationToken).ConfigureAwait(false);
-            }
-            else
-            {
-                // We consider ourselves fully loaded when both the project system has completed loaded us, and we've
-                // totally hydrated the oop side.  Until that happens, we'll attempt to return cached data from languages
-                // that support that.
-                isFullyLoaded = await _host.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                case NavigateToSearchScope.Document:
+                    await SearchCurrentDocumentAsync(cancellationToken).ConfigureAwait(false);
+                    return;
 
-                // Let the UI know if we're not fully loaded (and then might be reporting cached results).
-                if (!isFullyLoaded)
-                    _callback.ReportIncomplete();
+                case NavigateToSearchScope.Project:
+                    await SearchCurrentProjectAsync(documentSupport, cancellationToken).ConfigureAwait(false);
+                    return;
 
-                await SearchAllProjectsAsync(isFullyLoaded, scope, cancellationToken).ConfigureAwait(false);
+                case NavigateToSearchScope.Solution:
+                    // We consider ourselves fully loaded when both the project system has completed loaded us, and we've
+                    // totally hydrated the oop side.  Until that happens, we'll attempt to return cached data from languages
+                    // that support that.
+                    isFullyLoaded = await _host.IsFullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+
+                    // Let the UI know if we're not fully loaded (and then might be reporting cached results).
+                    if (!isFullyLoaded)
+                        _callback.ReportIncomplete();
+
+                    await SearchAllProjectsAsync(isFullyLoaded, documentSupport, cancellationToken).ConfigureAwait(false);
+                    return;
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(searchScope);
             }
         }
         finally
@@ -176,8 +191,26 @@ internal sealed class NavigateToSearcher
         await AddProgressItemsAsync(1, cancellationToken).ConfigureAwait(false);
         await service.SearchDocumentAsync(
             _activeDocument, _searchPattern, _kinds,
-            r => _callback.AddItemAsync(project, r, cancellationToken),
+            r => _callback.AddResultsAsync(r, cancellationToken),
             cancellationToken).ConfigureAwait(false);
+    }
+
+    private Task SearchCurrentProjectAsync(
+        NavigateToDocumentSupport documentSupport,
+        CancellationToken cancellationToken)
+    {
+        if (_activeDocument == null)
+            return Task.CompletedTask;
+
+        var activeProject = _activeDocument.Project;
+        return SearchSpecificProjectsAsync(
+            // Because we're only searching the current project, it's fine to bring that project fully up to date before
+            // searching it.  We only do the work to search cached files when doing the initial load of something huge
+            // (the full solution).
+            isFullyLoaded: true,
+            documentSupport,
+            [[activeProject]],
+            cancellationToken);
     }
 
     private INavigateToSearchService GetNavigateToSearchService(Project project)
@@ -185,14 +218,23 @@ internal sealed class NavigateToSearcher
 
     private async Task SearchAllProjectsAsync(
         bool isFullyLoaded,
-        NavigateToSearchScope scope,
+        NavigateToDocumentSupport documentSupport,
         CancellationToken cancellationToken)
     {
-        var seenItems = new HashSet<INavigateToSearchResult>(NavigateToSearchResultComparer.Instance);
         var orderedProjects = GetOrderedProjectsToProcess();
+        await SearchSpecificProjectsAsync(isFullyLoaded, documentSupport, orderedProjects, cancellationToken).ConfigureAwait(false);
+    }
 
-        var searchRegularDocuments = scope.HasFlag(NavigateToSearchScope.RegularDocuments);
-        var searchGeneratedDocuments = scope.HasFlag(NavigateToSearchScope.GeneratedDocuments);
+    private async Task SearchSpecificProjectsAsync(
+        bool isFullyLoaded,
+        NavigateToDocumentSupport documentSupport,
+        ImmutableArray<ImmutableArray<Project>> orderedProjects,
+        CancellationToken cancellationToken)
+    {
+        using var _1 = s_searchResultPool.GetPooledObject(out var seenItems);
+
+        var searchRegularDocuments = documentSupport.HasFlag(NavigateToDocumentSupport.RegularDocuments);
+        var searchGeneratedDocuments = documentSupport.HasFlag(NavigateToDocumentSupport.GeneratedDocuments);
         Debug.Assert(searchRegularDocuments || searchGeneratedDocuments);
 
         var projectCount = orderedProjects.Sum(g => g.Length);
@@ -201,7 +243,7 @@ internal sealed class NavigateToSearcher
         {
             // We're potentially about to make many calls over to our OOP service to perform searches.  Ensure the
             // solution we're searching stays pinned between us and it while this is happening.
-            using var _ = RemoteKeepAliveSession.Create(_solution, _listener);
+            using var _2 = await RemoteKeepAliveSession.CreateAsync(_solution, cancellationToken).ConfigureAwait(false);
 
             // We may do up to two passes.  One for loaded docs.  One for source generated docs.
             await AddProgressItemsAsync(
@@ -212,7 +254,7 @@ internal sealed class NavigateToSearcher
                 await SearchFullyLoadedProjectsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
 
             if (searchGeneratedDocuments)
-                await SearchGeneratedDocumentsAsync(seenItems, cancellationToken).ConfigureAwait(false);
+                await SearchGeneratedDocumentsAsync(orderedProjects, seenItems, cancellationToken).ConfigureAwait(false);
         }
         else
         {
@@ -297,14 +339,14 @@ internal sealed class NavigateToSearcher
         }
 
         result.RemoveDuplicates();
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private async Task ProcessOrderedProjectsAsync(
         bool parallel,
         ImmutableArray<ImmutableArray<Project>> orderedProjects,
-        HashSet<INavigateToSearchResult> seenItems,
-        Func<INavigateToSearchService, ImmutableArray<Project>, Func<Project, INavigateToSearchResult, Task>, Func<Task>, Task> processProjectAsync,
+        HashSet<INavigateToSearchResult> seenResults,
+        Func<INavigateToSearchService, ImmutableArray<Project>, Func<ImmutableArray<INavigateToSearchResult>, Task>, Func<Task>, Task> processProjectAsync,
         CancellationToken cancellationToken)
     {
         // Process each group one at a time.  However, in each group process all projects in parallel to get results
@@ -320,38 +362,47 @@ internal sealed class NavigateToSearcher
             if (!parallel)
             {
                 foreach (var group in groups)
-                    await SearchCoreAsync(group).ConfigureAwait(false);
+                    await SearchCoreAsync(group, cancellationToken).ConfigureAwait(false);
             }
             else
             {
-                var allTasks = groups.Select(SearchCoreAsync);
-                await Task.WhenAll(allTasks).ConfigureAwait(false);
+                await RoslynParallel.ForEachAsync(
+                    source: groups,
+                    cancellationToken,
+                    SearchCoreAsync).ConfigureAwait(false);
             }
         }
 
         return;
 
-        async Task SearchCoreAsync(IGrouping<INavigateToSearchService, Project> grouping)
+        async ValueTask SearchCoreAsync(IGrouping<INavigateToSearchService, Project> grouping, CancellationToken cancellationToken)
         {
-            await Task.Yield().ConfigureAwait(false);
             cancellationToken.ThrowIfCancellationRequested();
 
             var searchService = grouping.Key;
             await processProjectAsync(
                 searchService,
-                grouping.ToImmutableArray(),
-                (project, result) =>
+                [.. grouping],
+                results =>
                 {
+                    using var _ = ArrayBuilder<INavigateToSearchResult>.GetInstance(results.Length, out var nonDuplicates);
+
                     // If we're seeing a dupe in another project, then filter it out here.  The results from
                     // the individual projects will already contain the information about all the projects
                     // leading to a better condensed view that doesn't look like it contains duplicate info.
-                    lock (seenItems)
+                    lock (seenResults)
                     {
-                        if (!seenItems.Add(result))
-                            return Task.CompletedTask;
+                        foreach (var result in results)
+                        {
+                            if (seenResults.Add(result))
+                                nonDuplicates.Add(result);
+                        }
                     }
 
-                    return _callback.AddItemAsync(project, result, cancellationToken);
+                    if (nonDuplicates.Count > 0)
+                        _callback.AddResultsAsync(nonDuplicates.ToImmutableAndClear(), cancellationToken);
+
+                    return Task.CompletedTask;
                 },
                 () => this.ProgressItemsCompletedAsync(count: 1, cancellationToken)).ConfigureAwait(false);
         }
@@ -388,7 +439,7 @@ internal sealed class NavigateToSearcher
             parallel: true,
             orderedProjects,
             seenItems,
-            async (service, projects, onItemFound, onProjectCompleted) =>
+            async (service, projects, onResultsFound, onProjectCompleted) =>
             {
                 // if the language doesn't support searching cached docs, immediately transition the project to the
                 // completed state.
@@ -401,16 +452,20 @@ internal sealed class NavigateToSearcher
                 {
                     await advancedService.SearchCachedDocumentsAsync(
                         _solution, projects, GetPriorityDocuments(projects), _searchPattern, _kinds, _activeDocument,
-                        onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
+                        onResultsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
                 }
             },
             cancellationToken);
     }
 
     private Task SearchGeneratedDocumentsAsync(
+        ImmutableArray<ImmutableArray<Project>> orderedProjects,
         HashSet<INavigateToSearchResult> seenItems,
         CancellationToken cancellationToken)
     {
+        using var _ = PooledHashSet<ProjectId>.GetInstance(out var allProjectIdSet);
+        allProjectIdSet.AddRange(orderedProjects.SelectMany(x => x).Select(p => p.Id));
+
         // Process all projects, serially, in topological order.  Generating source can be expensive.  It requires
         // creating and processing the entire compilation for a project, which itself may require dependent
         // compilations as references.  These dependents might also be skeleton references in the case of cross
@@ -422,18 +477,26 @@ internal sealed class NavigateToSearcher
         // the dependency tree, which then pulls on N other projects, forcing results for this single project to pay
         // that full price (that would be paid when we hit these through a normal topological walk).
         //
-        // Note the projects in each 'dependency set' are already sorted in topological order.  So they will process
-        // in the desired order if we process serially.
-        var allProjects = _solution
+        // Note: the projects in each 'dependency set' are already sorted in topological order.  So they will process in
+        // the desired order if we process serially.
+        //
+        // Note: we should only process the projects that are in the ordered-list of projects the searcher is searching
+        // as a whole.
+        var filteredProjects = _solution
             .GetProjectDependencyGraph()
             .GetDependencySets(cancellationToken)
-            .SelectAsArray(s => s.SelectAsArray(_solution.GetRequiredProject));
+            .SelectAsArray(projectIdSet =>
+                projectIdSet.Where(id => allProjectIdSet.Contains(id))
+                            .Select(id => _solution.GetRequiredProject(id))
+                            .ToImmutableArray());
+
+        Contract.ThrowIfFalse(orderedProjects.SelectMany(s => s).Count() == filteredProjects.SelectMany(s => s).Count());
 
         return ProcessOrderedProjectsAsync(
             parallel: false,
-            allProjects,
+            filteredProjects,
             seenItems,
-            async (service, projects, onItemFound, onProjectCompleted) =>
+            async (service, projects, onResultsFound, onProjectCompleted) =>
             {
                 // if the language doesn't support searching generated docs, immediately transition the project to the
                 // completed state.
@@ -445,7 +508,7 @@ internal sealed class NavigateToSearcher
                 else
                 {
                     await advancedService.SearchGeneratedDocumentsAsync(
-                        _solution, projects, _searchPattern, _kinds, _activeDocument, onItemFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
+                        _solution, projects, _searchPattern, _kinds, _activeDocument, onResultsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
                 }
             },
             cancellationToken);
@@ -465,10 +528,10 @@ internal sealed class NavigateToSearcher
         public bool CanFilter
             => false;
 
-        public Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<INavigateToSearchResult, Task> onResultFound, CancellationToken cancellationToken)
+        public Task SearchDocumentAsync(Document document, string searchPattern, IImmutableSet<string> kinds, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, CancellationToken cancellationToken)
             => Task.CompletedTask;
 
-        public async Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<Project, INavigateToSearchResult, Task> onResultFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
+        public async Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
         {
             foreach (var _ in projects)
                 await onProjectCompleted().ConfigureAwait(false);

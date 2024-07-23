@@ -18,6 +18,8 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable;
 
+using static SyntaxFactory;
+
 [ExportLanguageService(typeof(IGenerateVariableService), LanguageNames.CSharp), Shared]
 internal partial class CSharpGenerateVariableService :
     AbstractGenerateVariableService<CSharpGenerateVariableService, SimpleNameSyntax, ExpressionSyntax>
@@ -151,7 +153,7 @@ internal partial class CSharpGenerateVariableService :
         var localText = localRoot.ToString();
         var startIndex = identifierName.Span.Start - localRoot.Span.Start;
 
-        var parsedType = SyntaxFactory.ParseTypeName(localText, startIndex, consumeFullText: false);
+        var parsedType = ParseTypeName(localText, startIndex, consumeFullText: false);
 
         return parsedType.IsKind(SyntaxKind.GenericName) && !parsedType.ContainsDiagnostics;
     }
@@ -202,10 +204,10 @@ internal partial class CSharpGenerateVariableService :
             var assignExpression = (AssignmentExpressionSyntax)node.Parent;
             var expressionStatement = (StatementSyntax)assignExpression.Parent;
 
-            var declarationStatement = SyntaxFactory.LocalDeclarationStatement(
-                SyntaxFactory.VariableDeclaration(
+            var declarationStatement = LocalDeclarationStatement(
+                VariableDeclaration(
                     type.GenerateTypeSyntax(),
-                    [SyntaxFactory.VariableDeclarator(token, null, SyntaxFactory.EqualsValueClause(
+                    [VariableDeclarator(token, null, EqualsValueClause(
                         assignExpression.OperatorToken, assignExpression.Right))]));
             declarationStatement = declarationStatement.WithAdditionalAnnotations(Formatter.Annotation);
 

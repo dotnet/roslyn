@@ -2,12 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers;
 
@@ -23,17 +22,15 @@ internal class MemberInsertionCompletionItem
         int descriptionPosition,
         CompletionItemRules rules)
     {
-        var props = ImmutableArray.Create(
-            new KeyValuePair<string, string>("Line", line.ToString()),
-            new KeyValuePair<string, string>("Modifiers", modifiers.ToString()),
-            new KeyValuePair<string, string>("TokenSpanEnd", token.Span.End.ToString()));
-
         return SymbolCompletionItem.CreateWithSymbolId(
             displayText: displayText,
             displayTextSuffix: displayTextSuffix,
-            symbols: ImmutableArray.Create(symbol),
+            symbols: [symbol],
             contextPosition: descriptionPosition,
-            properties: props,
+            properties: [
+                KeyValuePairUtil.Create("Line", line.ToString()),
+                KeyValuePairUtil.Create("Modifiers", modifiers.ToString()),
+                KeyValuePairUtil.Create("TokenSpanEnd", token.Span.End.ToString())],
             rules: rules,
             isComplexTextEdit: true);
     }

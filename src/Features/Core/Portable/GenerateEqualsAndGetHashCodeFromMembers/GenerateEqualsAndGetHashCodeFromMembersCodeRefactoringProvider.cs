@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
@@ -236,7 +235,7 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
         }
 
         var codeActions = await Task.WhenAll(tasks).ConfigureAwait(false);
-        return codeActions.ToImmutableArray();
+        return [.. codeActions];
 
     }
 

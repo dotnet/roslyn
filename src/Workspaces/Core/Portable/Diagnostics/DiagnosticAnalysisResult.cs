@@ -221,29 +221,21 @@ internal readonly struct DiagnosticAnalysisResult
         Contract.ThrowIfNull(_nonLocals);
         Contract.ThrowIfTrue(_others.IsDefault);
 
-        var builder = ArrayBuilder<DiagnosticData>.GetInstance();
+        using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var builder);
 
         foreach (var data in _syntaxLocals.Values)
-        {
             builder.AddRange(data);
-        }
 
         foreach (var data in _semanticLocals.Values)
-        {
             builder.AddRange(data);
-        }
 
         foreach (var data in _nonLocals.Values)
-        {
             builder.AddRange(data);
-        }
 
         foreach (var data in _others)
-        {
             builder.AddRange(data);
-        }
 
-        return builder.ToImmutableAndFree();
+        return builder.ToImmutableAndClear();
     }
 
     public ImmutableArray<DiagnosticData> GetDocumentDiagnostics(DocumentId documentId, AnalysisKind kind)

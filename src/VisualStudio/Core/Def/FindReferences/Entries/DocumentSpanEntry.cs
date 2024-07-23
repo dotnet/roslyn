@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media;
 using Microsoft.CodeAnalysis;
@@ -19,11 +18,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.PlatformUI;
-using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.TableControl;
 using Microsoft.VisualStudio.Shell.TableManager;
 using Microsoft.VisualStudio.Text;
@@ -43,35 +40,26 @@ internal partial class StreamingFindUsagesPresenter
         private readonly HighlightSpanKind _spanKind;
         private readonly ExcerptResult _excerptResult;
         private readonly SymbolReferenceKinds _symbolReferenceKinds;
-        private readonly ImmutableDictionary<string, string> _customColumnsData;
-        private readonly string _rawProjectName;
-        private readonly List<string> _projectFlavors = [];
-
-        private string? _cachedProjectName;
+        private readonly ImmutableArray<(string key, string value)> _customColumnsData;
 
         private DocumentSpanEntry(
             AbstractTableDataSourceFindUsagesContext context,
             RoslynDefinitionBucket definitionBucket,
-            string rawProjectName,
-            string? projectFlavor,
             Guid projectGuid,
+            string projectName,
             HighlightSpanKind spanKind,
             MappedSpanResult mappedSpanResult,
             ExcerptResult excerptResult,
             SourceText lineText,
             SymbolUsageInfo symbolUsageInfo,
-            ImmutableDictionary<string, string> customColumnsData,
+            ImmutableArray<(string key, string value)> customColumnsData,
             IThreadingContext threadingContext)
-            : base(context, definitionBucket, projectGuid, lineText, mappedSpanResult, threadingContext)
+            : base(context, definitionBucket, projectGuid, projectName, lineText, mappedSpanResult, threadingContext)
         {
             _spanKind = spanKind;
             _excerptResult = excerptResult;
             _symbolReferenceKinds = symbolUsageInfo.ToSymbolReferenceKinds();
             _customColumnsData = customColumnsData;
-            _rawProjectName = rawProjectName;
-
-            if (projectFlavor != null)
-                _projectFlavors.Add(projectFlavor);
         }
 
         protected override Document Document
@@ -80,42 +68,11 @@ internal partial class StreamingFindUsagesPresenter
         protected override TextSpan NavigateToTargetSpan
             => _excerptResult.Span;
 
-        protected override string GetProjectName()
-        {
-            // Check if we have any flavors.  If we have at least 2, combine with the project name
-            // so the user can know htat in the UI.
-            lock (_projectFlavors)
-            {
-                _cachedProjectName ??= _projectFlavors.Count < 2
-                        ? _rawProjectName
-                        : $"{_rawProjectName} ({string.Join(", ", _projectFlavors)})";
-
-                return _cachedProjectName;
-            }
-        }
-
-        private void AddFlavor(string? projectFlavor)
-        {
-            if (projectFlavor == null)
-                return;
-
-            lock (_projectFlavors)
-            {
-                if (_projectFlavors.Contains(projectFlavor))
-                    return;
-
-                _projectFlavors.Add(projectFlavor);
-                _projectFlavors.Sort();
-                _cachedProjectName = null;
-            }
-        }
-
         public static DocumentSpanEntry? TryCreate(
             AbstractTableDataSourceFindUsagesContext context,
             RoslynDefinitionBucket definitionBucket,
             Guid guid,
             string projectName,
-            string? projectFlavor,
             string? filePath,
             TextSpan sourceSpan,
             HighlightSpanKind spanKind,
@@ -123,31 +80,25 @@ internal partial class StreamingFindUsagesPresenter
             ExcerptResult excerptResult,
             SourceText lineText,
             SymbolUsageInfo symbolUsageInfo,
-            ImmutableDictionary<string, string> customColumnsData,
+            ImmutableArray<(string key, string value)> customColumnsData,
             IThreadingContext threadingContext)
         {
             var entry = new DocumentSpanEntry(
-                context, definitionBucket,
-                projectName, projectFlavor, guid,
-                spanKind, mappedSpanResult, excerptResult,
-                lineText, symbolUsageInfo, customColumnsData,
-                threadingContext);
+                context, definitionBucket, guid, projectName, spanKind, mappedSpanResult, excerptResult,
+                lineText, symbolUsageInfo, customColumnsData, threadingContext);
 
-            // Because of things like linked files, we may have a reference up in multiple
-            // different locations that are effectively at the exact same navigation location
-            // for the user. i.e. they're the same file/span.  Showing multiple entries for these
-            // is just noisy and gets worse and worse with shared projects and whatnot.  So, we
-            // collapse things down to only show a single entry for each unique file/span pair.
+            // Because of things like linked files, we may have a reference up in multiple different locations that are
+            // effectively at the exact same navigation location for the user. i.e. they're the same file/span.  Showing
+            // multiple entries for these is just noisy and gets worse and worse with shared projects and whatnot.  So,
+            // we collapse things down to only show a single entry for each unique file/span pair.
             var winningEntry = definitionBucket.GetOrAddEntry(filePath, sourceSpan, entry);
 
-            // If we were the one that successfully added this entry to the bucket, then pass us
-            // back out to be put in the ui.
+            // If we were the one that successfully added this entry to the bucket, then pass us back out to be put in
+            // the ui.
             if (winningEntry == entry)
                 return entry;
 
-            // We were not the winner.  Add our flavor to the entry that already exists, but throw
-            // away the item we created as we do not want to add it to the ui.
-            winningEntry.AddFlavor(projectFlavor);
+            // We were not the winner.  Throw away the item we created as we do not want to add it to the ui.
             return null;
         }
 
@@ -216,9 +167,10 @@ internal partial class StreamingFindUsagesPresenter
                 return _symbolReferenceKinds;
             }
 
-            if (_customColumnsData.TryGetValue(keyName, out var value))
+            foreach (var (key, value) in _customColumnsData)
             {
-                return value;
+                if (key == keyName)
+                    return value;
             }
 
             return base.GetValueWorker(keyName);
@@ -226,7 +178,7 @@ internal partial class StreamingFindUsagesPresenter
 
         private DisposableToolTip CreateDisposableToolTip(Document document, TextSpan sourceSpan)
         {
-            Presenter.AssertIsForeground();
+            this.Presenter.ThreadingContext.ThrowIfNotOnUIThread();
 
             var controlService = document.Project.Solution.Services.GetRequiredService<IContentControlService>();
             var sourceText = document.GetTextSynchronously(CancellationToken.None);
@@ -235,7 +187,7 @@ internal partial class StreamingFindUsagesPresenter
             if (excerptService != null)
             {
                 var classificationOptions = Presenter._globalOptions.GetClassificationOptions(document.Project.Language);
-                var excerpt = Presenter.ThreadingContext.JoinableTaskFactory.Run(() => excerptService.TryExcerptAsync(document, sourceSpan, ExcerptMode.Tooltip, classificationOptions, CancellationToken.None));
+                var excerpt = this.Presenter.ThreadingContext.JoinableTaskFactory.Run(() => excerptService.TryExcerptAsync(document, sourceSpan, ExcerptMode.Tooltip, classificationOptions, CancellationToken.None));
                 if (excerpt != null)
                 {
                     // get tooltip from excerpt service

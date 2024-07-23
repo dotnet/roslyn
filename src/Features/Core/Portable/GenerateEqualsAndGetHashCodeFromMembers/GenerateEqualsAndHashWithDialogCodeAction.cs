@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers;
@@ -56,7 +55,7 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
         {
             var result = (PickMembersResult)options;
             if (result.IsCanceled)
-                return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
+                return [];
 
             var solution = _document.Project.Solution;
 

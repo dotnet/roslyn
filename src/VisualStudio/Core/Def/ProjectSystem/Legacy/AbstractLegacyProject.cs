@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.ComponentModelHost;
@@ -27,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.L
 /// Base type for legacy C# and VB project system shim implementations.
 /// These legacy shims are based on legacy project system interfaces defined in csproj/msvbprj.
 /// </summary>
-internal abstract partial class AbstractLegacyProject : ForegroundThreadAffinitizedObject
+internal abstract partial class AbstractLegacyProject
 {
     public IVsHierarchy Hierarchy { get; }
     protected ProjectSystemProject ProjectSystemProject { get; }
@@ -65,8 +66,9 @@ internal abstract partial class AbstractLegacyProject : ForegroundThreadAffiniti
         IServiceProvider serviceProvider,
         IThreadingContext threadingContext,
         string externalErrorReportingPrefix)
-        : base(threadingContext, assertIsForeground: true)
     {
+        _threadingContext = threadingContext;
+        _threadingContext.ThrowIfNotOnUIThread();
         Contract.ThrowIfNull(hierarchy);
 
         var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
@@ -175,7 +177,7 @@ internal abstract partial class AbstractLegacyProject : ForegroundThreadAffiniti
         string filename,
         SourceCodeKind sourceCodeKind)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         // We have tests that assert that XOML files should not get added; this was similar
         // behavior to how ASP.NET projects would add .aspx files even though we ultimately ignored
@@ -304,6 +306,7 @@ internal abstract partial class AbstractLegacyProject : ForegroundThreadAffiniti
     /// <remarks>Using item IDs as a key like this in a long-lived way is considered unsupported by CPS and other
     /// IVsHierarchy providers, but this code (which is fairly old) still makes the assumptions anyways.</remarks>
     private readonly Dictionary<uint, ImmutableArray<string>> _folderNameMap = [];
+    private readonly IThreadingContext _threadingContext;
 
     private ImmutableArray<string> GetFolderNamesForDocument(string filename)
     {
@@ -318,7 +321,7 @@ internal abstract partial class AbstractLegacyProject : ForegroundThreadAffiniti
 
     private ImmutableArray<string> GetFolderNamesForDocument(uint documentItemID)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (documentItemID != (uint)VSConstants.VSITEMID.Nil && Hierarchy.GetProperty(documentItemID, (int)VsHierarchyPropID.Parent, out var parentObj) == VSConstants.S_OK)
         {
@@ -334,7 +337,7 @@ internal abstract partial class AbstractLegacyProject : ForegroundThreadAffiniti
 
     private ImmutableArray<string> GetFolderNamesForFolder(uint folderItemID)
     {
-        AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         using var pooledObject = SharedPools.Default<List<string>>().GetPooledObject();
 

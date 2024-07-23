@@ -3,10 +3,9 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics;
-using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Logging
+namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal class MSBuildDiagnosticLogger : MSB.Framework.ILogger
     {
@@ -25,14 +24,14 @@ namespace Microsoft.CodeAnalysis.MSBuild.Logging
 
         private void OnErrorRaised(object sender, MSB.Framework.BuildErrorEventArgs e)
         {
-            RoslynDebug.AssertNotNull(_projectFilePath);
-            _log?.Add(new MSBuildDiagnosticLogItem(WorkspaceDiagnosticKind.Failure, _projectFilePath, e.Message ?? "", e.File, e.LineNumber, e.ColumnNumber));
+            Debug.Assert(_projectFilePath != null);
+            _log?.Add(new MSBuildDiagnosticLogItem(DiagnosticLogItemKind.Error, _projectFilePath, e.Message ?? "", e.File, e.LineNumber, e.ColumnNumber));
         }
 
         private void OnWarningRaised(object sender, MSB.Framework.BuildWarningEventArgs e)
         {
-            RoslynDebug.AssertNotNull(_projectFilePath);
-            _log?.Add(new MSBuildDiagnosticLogItem(WorkspaceDiagnosticKind.Warning, _projectFilePath, e.Message ?? "", e.File, e.LineNumber, e.ColumnNumber));
+            Debug.Assert(_projectFilePath != null);
+            _log?.Add(new MSBuildDiagnosticLogItem(DiagnosticLogItemKind.Warning, _projectFilePath, e.Message ?? "", e.File, e.LineNumber, e.ColumnNumber));
         }
 
         public void Initialize(MSB.Framework.IEventSource eventSource)

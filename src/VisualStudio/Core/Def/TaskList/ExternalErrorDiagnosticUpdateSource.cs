@@ -26,8 +26,6 @@ using Microsoft.VisualStudio.Shell.ServiceBroker;
 using Roslyn.Utilities;
 using static Microsoft.ServiceHub.Framework.ServiceBrokerClient;
 
-#pragma warning disable CA1200 // Avoid using cref tags with a prefix
-
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 /// <summary>
 /// Diagnostic source for warnings and errors reported from explicit build command invocations in Visual Studio.

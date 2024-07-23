@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -21,9 +20,10 @@ internal sealed class UseExpressionBodyForLambdaDiagnosticAnalyzer : AbstractBui
     private static readonly DiagnosticDescriptor s_useBlockBodyForLambda = CreateDescriptorWithId(UseExpressionBodyForLambdaHelpers.UseBlockBodyTitle, UseExpressionBodyForLambdaHelpers.UseBlockBodyTitle);
 
     public UseExpressionBodyForLambdaDiagnosticAnalyzer() : base(
-        ImmutableDictionary<DiagnosticDescriptor, Options.IOption2>.Empty
-            .Add(s_useExpressionBodyForLambda, CSharpCodeStyleOptions.PreferExpressionBodiedLambdas)
-            .Add(s_useBlockBodyForLambda, CSharpCodeStyleOptions.PreferExpressionBodiedLambdas))
+        [
+            (s_useExpressionBodyForLambda, CSharpCodeStyleOptions.PreferExpressionBodiedLambdas),
+            (s_useBlockBodyForLambda, CSharpCodeStyleOptions.PreferExpressionBodiedLambdas)
+        ])
     {
     }
 

@@ -67,13 +67,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(on_the_right_edge_of_the_editor_window, InlineDiagnosticsOptionsStorage.Location, InlineDiagnosticsLocations.PlacedAtEndOfEditor, LanguageNames.CSharp);
 
             BindToOption(Run_code_analysis_in_separate_process, RemoteHostOptionsStorage.OOP64Bit);
-            BindToOption(Run_code_analysis_on_dotnet, RemoteHostOptionsStorage.OOPCoreClr);
-
-            BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, () =>
-            {
-                // If the option has not been set by the user, check if the option is enabled from experimentation. If so, default to that.
-                return optionStore.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag);
-            });
 
             BindToOption(Enable_file_logging_for_diagnostics, VisualStudioLoggingOptionsStorage.EnableFileLoggingForDiagnostics);
             BindToOption(Skip_analyzers_for_implicitly_triggered_builds, FeatureOnOffOptions.SkipAnalyzersForImplicitlyTriggeredBuilds);
@@ -82,6 +75,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 // If the option has not been set by the user, check if the option to remove unused references
                 // is enabled from experimentation. If so, default to that.
                 return optionStore.GetOption(FeatureOnOffOptions.OfferRemoveUnusedReferencesFeatureFlag);
+            });
+
+            // Source Generators
+            BindToOption(Automatic_Run_generators_after_any_change, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Automatic, () =>
+            {
+                // If the option hasn't been set by the user, then check the feature flag.  If the feature flag has set
+                // us to only run when builds complete, then we're not in automatic mode.  So we `!` the result.
+                return !optionStore.GetOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag);
+            });
+            BindToOption(Balanced_Run_generators_after_saving_or_building, WorkspaceConfigurationOptionsStorage.SourceGeneratorExecution, SourceGeneratorExecutionPreference.Balanced, () =>
+            {
+                // If the option hasn't been set by the user, then check the feature flag.  If the feature flag has set
+                // us to only run when builds complete, then we're in `Balanced_Run_generators_after_saving_or_building` mode and directly return it.
+                return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.SourceGeneratorExecutionBalancedFeatureFlag);
+            });
+            BindToOption(Analyze_source_generated_files, SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFiles, () =>
+            {
+                // If the option has not been set by the user, check if the option is enabled from experimentation. If so, default to that.
+                return optionStore.GetOption(SolutionCrawlerOptionsStorage.EnableDiagnosticsInSourceGeneratedFilesFeatureFlag);
             });
 
             // Go To Definition
@@ -124,6 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             // Block Structure Guides
             BindToOption(Show_guides_for_declaration_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForDeclarationLevelConstructs, LanguageNames.CSharp);
             BindToOption(Show_guides_for_code_level_constructs, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCodeLevelConstructs, LanguageNames.CSharp);
+            BindToOption(Show_guides_for_comments_and_preprocessor_regions, BlockStructureOptionsStorage.ShowBlockStructureGuidesForCommentsAndPreprocessorRegions, LanguageNames.CSharp);
 
             // Comments
             BindToOption(GenerateXmlDocCommentsForTripleSlash, DocumentationCommentOptionsStorage.AutoXmlDocCommentGeneration, LanguageNames.CSharp);
@@ -137,12 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(Fix_text_pasted_into_string_literals_experimental, StringCopyPasteOptionsStorage.AutomaticallyFixStringContentsOnPaste, LanguageNames.CSharp);
             BindToOption(Report_invalid_placeholders_in_string_dot_format_calls, IdeAnalyzerOptionsStorage.ReportInvalidPlaceholdersInStringDotFormatCalls, LanguageNames.CSharp);
             BindToOption(Underline_reassigned_variables, ClassificationOptionsStorage.ClassifyReassignedVariables, LanguageNames.CSharp);
-            BindToOption(Enable_all_features_in_opened_files_from_source_generators, WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspace, () =>
-            {
-                // If the option has not been set by the user, check if the option is enabled from experimentation.
-                // If so, default to that.
-                return optionStore.GetOption(WorkspaceConfigurationOptionsStorage.EnableOpeningSourceGeneratedFilesInWorkspaceFeatureFlag);
-            });
+            BindToOption(Strike_out_obsolete_symbols, ClassificationOptionsStorage.ClassifyObsoleteSymbols, LanguageNames.CSharp);
 
             // Regular Expressions
             BindToOption(Colorize_regular_expressions, ClassificationOptionsStorage.ColorizeRegexPatterns, LanguageNames.CSharp);
@@ -184,6 +192,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ShowHintsForVariablesWithInferredTypes, InlineHintsOptionsStorage.ForImplicitVariableTypes, LanguageNames.CSharp);
             BindToOption(ShowHintsForLambdaParameterTypes, InlineHintsOptionsStorage.ForLambdaParameterTypes, LanguageNames.CSharp);
             BindToOption(ShowHintsForImplicitObjectCreation, InlineHintsOptionsStorage.ForImplicitObjectCreation, LanguageNames.CSharp);
+            BindToOption(ShowHintsForCollectionExpressions, InlineHintsOptionsStorage.ForCollectionExpressions, LanguageNames.CSharp);
 
             // Inheritance Margin
             // Leave the null converter here to make sure if the option value is get from the storage (if it is null), the feature will be enabled
@@ -236,6 +245,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             ShowHintsForVariablesWithInferredTypes.IsEnabled = enabledForTypes;
             ShowHintsForLambdaParameterTypes.IsEnabled = enabledForTypes;
             ShowHintsForImplicitObjectCreation.IsEnabled = enabledForTypes;
+            ShowHintsForCollectionExpressions.IsEnabled = enabledForTypes;
         }
 
         private void DisplayInlineParameterNameHints_Checked(object sender, RoutedEventArgs e)
@@ -276,16 +286,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             Collapse_usings_on_file_open.IsEnabled = false;
             Collapse_metadata_signature_files_on_open.IsEnabled = false;
             Collapse_sourcelink_embedded_decompiled_files_on_open.IsEnabled = false;
-        }
-
-        private void Run_code_analysis_in_separate_process_Checked(object sender, RoutedEventArgs e)
-        {
-            Run_code_analysis_on_dotnet.IsEnabled = true;
-        }
-
-        private void Run_code_analysis_in_separate_process_Unchecked(object sender, RoutedEventArgs e)
-        {
-            Run_code_analysis_on_dotnet.IsEnabled = false;
         }
     }
 }

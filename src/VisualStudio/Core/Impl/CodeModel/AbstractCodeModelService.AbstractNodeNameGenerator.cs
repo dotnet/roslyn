@@ -23,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             protected static void AppendDotIfNeeded(StringBuilder builder)
             {
                 if (builder.Length > 0 &&
-                    char.IsLetterOrDigit(builder[builder.Length - 1]))
+                    char.IsLetterOrDigit(builder[^1]))
                 {
                     builder.Append('.');
                 }

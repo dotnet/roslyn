@@ -2,11 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -148,18 +148,15 @@ internal partial class FindReferencesSearchEngine
             FindReferencesSearchEngine engine, MetadataUnifyingSymbolHashSet symbols, CancellationToken cancellationToken)
         {
             var result = new MetadataUnifyingSymbolHashSet();
-            var workQueue = new Stack<ISymbol>();
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var workQueue);
 
             // Start with the initial symbols we're searching for.
             foreach (var symbol in symbols)
                 workQueue.Push(symbol);
 
             // As long as there's work in the queue, keep going.
-            while (workQueue.Count > 0)
-            {
-                var currentSymbol = workQueue.Pop();
+            while (workQueue.TryPop(out var currentSymbol))
                 await AddCascadedAndLinkedSymbolsToAsync(engine, currentSymbol, result, workQueue, cancellationToken).ConfigureAwait(false);
-            }
 
             return result;
         }
@@ -171,14 +168,13 @@ internal partial class FindReferencesSearchEngine
             CancellationToken cancellationToken)
         {
             var upSymbols = new MetadataUnifyingSymbolHashSet();
-            var workQueue = new Stack<ISymbol>();
-            workQueue.Push(initialSymbols);
+            using var _ = ArrayBuilder<ISymbol>.GetInstance(out var workQueue);
+            workQueue.AddRange(initialSymbols);
 
             var solution = engine._solution;
             var allProjects = solution.Projects.ToImmutableHashSet();
-            while (workQueue.Count > 0)
+            while (workQueue.TryPop(out var currentSymbol))
             {
-                var currentSymbol = workQueue.Pop();
                 await AddUpSymbolsAsync(
                     engine, currentSymbol, upSymbols, workQueue, allProjects, includeImplementationsThroughDerivedTypes, cancellationToken).ConfigureAwait(false);
             }
@@ -187,14 +183,14 @@ internal partial class FindReferencesSearchEngine
         }
 
         protected static async Task AddCascadedAndLinkedSymbolsToAsync(
-            FindReferencesSearchEngine engine, ImmutableArray<ISymbol> symbols, MetadataUnifyingSymbolHashSet seenSymbols, Stack<ISymbol> workQueue, CancellationToken cancellationToken)
+            FindReferencesSearchEngine engine, ImmutableArray<ISymbol> symbols, MetadataUnifyingSymbolHashSet seenSymbols, ArrayBuilder<ISymbol> workQueue, CancellationToken cancellationToken)
         {
             foreach (var symbol in symbols)
                 await AddCascadedAndLinkedSymbolsToAsync(engine, symbol, seenSymbols, workQueue, cancellationToken).ConfigureAwait(false);
         }
 
         protected static async Task AddCascadedAndLinkedSymbolsToAsync(
-            FindReferencesSearchEngine engine, ISymbol symbol, MetadataUnifyingSymbolHashSet seenSymbols, Stack<ISymbol> workQueue, CancellationToken cancellationToken)
+            FindReferencesSearchEngine engine, ISymbol symbol, MetadataUnifyingSymbolHashSet seenSymbols, ArrayBuilder<ISymbol> workQueue, CancellationToken cancellationToken)
         {
             var solution = engine._solution;
             var mapped = await TryMapAndAddLinkedSymbolsAsync(symbol).ConfigureAwait(false);
@@ -240,7 +236,7 @@ internal partial class FindReferencesSearchEngine
         /// </remarks>
         protected static async Task AddDownSymbolsAsync(
             FindReferencesSearchEngine engine, ISymbol symbol,
-            MetadataUnifyingSymbolHashSet seenSymbols, Stack<ISymbol> workQueue,
+            MetadataUnifyingSymbolHashSet seenSymbols, ArrayBuilder<ISymbol> workQueue,
             ImmutableHashSet<Project> projects, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(projects.Count == 1, "Only a single project should be passed in");
@@ -275,7 +271,7 @@ internal partial class FindReferencesSearchEngine
             FindReferencesSearchEngine engine,
             ISymbol symbol,
             MetadataUnifyingSymbolHashSet seenSymbols,
-            Stack<ISymbol> workQueue,
+            ArrayBuilder<ISymbol> workQueue,
             ImmutableHashSet<Project> projects,
             bool includeImplementationsThroughDerivedTypes,
             CancellationToken cancellationToken)

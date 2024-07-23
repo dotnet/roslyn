@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Rpc;
+namespace Microsoft.CodeAnalysis.MSBuild;
 
 /// <summary>
 /// Implements the server side of the RPC channel used to communicate with the build host.

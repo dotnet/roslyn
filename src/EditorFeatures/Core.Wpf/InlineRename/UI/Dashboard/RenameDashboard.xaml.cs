@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             _model = model;
             InitializeComponent();
 
-            _tabNavigableChildren = new UIElement[] { this.OverloadsCheckbox, this.CommentsCheckbox, this.StringsCheckbox, this.FileRenameCheckbox, this.PreviewChangesCheckbox, this.ApplyButton, this.CloseButton }.ToList();
+            _tabNavigableChildren = [this.OverloadsCheckbox, this.CommentsCheckbox, this.StringsCheckbox, this.FileRenameCheckbox, this.PreviewChangesCheckbox, this.ApplyButton, this.CloseButton];
 
             _textView = textView;
             this.DataContext = model;

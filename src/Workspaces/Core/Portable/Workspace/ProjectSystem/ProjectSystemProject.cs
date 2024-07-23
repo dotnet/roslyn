@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -32,6 +31,7 @@ internal sealed partial class ProjectSystemProject
 
     private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
     private readonly ProjectSystemHostInfo _hostInfo;
+    private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader;
 
     /// <summary>
     /// A semaphore taken for all mutation of any mutable field in this type.
@@ -157,6 +157,12 @@ internal sealed partial class ProjectSystemProject
         Language = language;
         _displayName = displayName;
 
+        var provider = _projectSystemProjectFactory.Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+        // Shadow copy analyzer files coming from packages to avoid locking the files in NuGet cache.
+        // NOTE: The provider will always return the same singleton analyzer loader instance, which is important to
+        // ensure that shadow copied analyzer dependencies are correctly loaded.
+        _analyzerAssemblyLoader = provider.GetLoader(shadowCopy: true);
+
         _sourceFiles = new BatchingDocumentCollection(
             this,
             documentAlreadyInWorkspace: (s, d) => s.ContainsDocument(d),
@@ -191,21 +197,30 @@ internal sealed partial class ProjectSystemProject
         _filePath = filePath;
         _parseOptions = parseOptions;
 
-        var fileExtensionToWatch = language switch { LanguageNames.CSharp => ".cs", LanguageNames.VisualBasic => ".vb", _ => null };
-
-        if (filePath != null && fileExtensionToWatch != null)
-        {
-            // Since we have a project directory, we'll just watch all the files under that path; that'll avoid extra overhead of
-            // having to add explicit file watches everywhere.
-            var projectDirectoryToWatch = new WatchedDirectory(Path.GetDirectoryName(filePath)!, fileExtensionToWatch);
-            _documentFileChangeContext = _projectSystemProjectFactory.FileChangeWatcher.CreateContext(projectDirectoryToWatch);
-        }
-        else
-        {
-            _documentFileChangeContext = _projectSystemProjectFactory.FileChangeWatcher.CreateContext();
-        }
-
+        var watchedDirectories = GetWatchedDirectories(language, filePath);
+        _documentFileChangeContext = _projectSystemProjectFactory.FileChangeWatcher.CreateContext(watchedDirectories);
         _documentFileChangeContext.FileChanged += DocumentFileChangeContext_FileChanged;
+
+        static WatchedDirectory[] GetWatchedDirectories(string? language, string? filePath)
+        {
+            if (filePath is null)
+            {
+                return [];
+            }
+
+            var rootPath = Path.GetDirectoryName(filePath);
+            if (rootPath is null)
+            {
+                return [];
+            }
+
+            return language switch
+            {
+                LanguageNames.VisualBasic => [new(rootPath, ".vb")],
+                LanguageNames.CSharp => [new(rootPath, ".cs"), new(rootPath, ".razor"), new(rootPath, ".cshtml")],
+                _ => []
+            };
+        }
     }
 
     private void ChangeProjectProperty<T>(ref T field, T newValue, Func<Solution, Solution> updateSolution, bool logThrowAwayTelemetry = false)
@@ -527,41 +542,35 @@ internal sealed partial class ProjectSystemProject
             var additionalDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
             var analyzerConfigDocumentsToOpen = new List<(DocumentId documentId, SourceTextContainer textContainer)>();
 
+            var hasAnalyzerChanges = _analyzersAddedInBatch.Count > 0 || _analyzersRemovedInBatch.Count > 0;
+
             await _projectSystemProjectFactory.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync, solutionChanges =>
             {
                 _sourceFiles.UpdateSolutionForBatch(
                     solutionChanges,
                     documentFileNamesAdded,
                     documentsToOpen,
-                    (s, documents) => s.AddDocuments(documents),
+                    static (s, documents) => s.AddDocuments(documents),
                     WorkspaceChangeKind.DocumentAdded,
-                    (s, ids) => s.RemoveDocuments(ids),
+                    static (s, ids) => s.RemoveDocuments(ids),
                     WorkspaceChangeKind.DocumentRemoved);
 
                 _additionalFiles.UpdateSolutionForBatch(
                     solutionChanges,
                     documentFileNamesAdded,
                     additionalDocumentsToOpen,
-                    (s, documents) =>
-                    {
-                        foreach (var document in documents)
-                        {
-                            s = s.AddAdditionalDocument(document);
-                        }
-
-                        return s;
-                    },
+                    static (s, documents) => s.AddAdditionalDocuments(documents),
                     WorkspaceChangeKind.AdditionalDocumentAdded,
-                    (s, ids) => s.RemoveAdditionalDocuments(ids),
+                    static (s, ids) => s.RemoveAdditionalDocuments(ids),
                     WorkspaceChangeKind.AdditionalDocumentRemoved);
 
                 _analyzerConfigFiles.UpdateSolutionForBatch(
                     solutionChanges,
                     documentFileNamesAdded,
                     analyzerConfigDocumentsToOpen,
-                    (s, documents) => s.AddAnalyzerConfigDocuments(documents),
+                    static (s, documents) => s.AddAnalyzerConfigDocuments(documents),
                     WorkspaceChangeKind.AnalyzerConfigDocumentAdded,
-                    (s, ids) => s.RemoveAnalyzerConfigDocuments(ids),
+                    static (s, ids) => s.RemoveAnalyzerConfigDocuments(ids),
                     WorkspaceChangeKind.AnalyzerConfigDocumentRemoved);
 
                 // Metadata reference removing. Do this before adding in case this removes a project reference that
@@ -666,25 +675,21 @@ internal sealed partial class ProjectSystemProject
             }).ConfigureAwait(false);
 
             foreach (var (documentId, textContainer) in documentsToOpen)
-            {
                 await _projectSystemProjectFactory.ApplyChangeToWorkspaceMaybeAsync(useAsync, w => w.OnDocumentOpened(documentId, textContainer)).ConfigureAwait(false);
-            }
 
             foreach (var (documentId, textContainer) in additionalDocumentsToOpen)
-            {
                 await _projectSystemProjectFactory.ApplyChangeToWorkspaceMaybeAsync(useAsync, w => w.OnAdditionalDocumentOpened(documentId, textContainer)).ConfigureAwait(false);
-            }
 
             foreach (var (documentId, textContainer) in analyzerConfigDocumentsToOpen)
-            {
                 await _projectSystemProjectFactory.ApplyChangeToWorkspaceMaybeAsync(useAsync, w => w.OnAnalyzerConfigDocumentOpened(documentId, textContainer)).ConfigureAwait(false);
-            }
 
             // Give the host the opportunity to check if those files are open
             if (documentFileNamesAdded.Count > 0)
-            {
                 await _projectSystemProjectFactory.RaiseOnDocumentsAddedMaybeAsync(useAsync, documentFileNamesAdded.ToImmutable()).ConfigureAwait(false);
-            }
+
+            // If we added or removed analyzers, then re-run all generators to bring them up to date.
+            if (hasAnalyzerChanges)
+                _projectSystemProjectFactory.Workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
         }
     }
 
@@ -920,6 +925,7 @@ internal sealed partial class ProjectSystemProject
                     // Nope, we actually need to make a new one.
                     var visualStudioAnalyzer = new ProjectAnalyzerReference(
                         mappedFullPath,
+                        _analyzerAssemblyLoader,
                         _hostInfo.DiagnosticSource,
                         Id,
                         Language);

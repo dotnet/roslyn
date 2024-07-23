@@ -14,8 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.MSBuild.Rpc;
-using Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
 using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
@@ -149,7 +147,7 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         // may try to mutate the list while we're enumerating.
         using (await _gate.DisposableWaitAsync().ConfigureAwait(false))
         {
-            processesToDispose = _processes.Values.ToList();
+            processesToDispose = [.. _processes.Values];
             _processes.Clear();
         }
 
@@ -292,9 +290,9 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
         try
         {
             // Read the XML, prohibiting DTD processing due the the usual security concerns there.
-            using (var fileStream = FileUtilities.OpenRead(projectFilePath))
-            using (var xmlReader = XmlReader.Create(fileStream, s_xmlSettings))
-                document = XDocument.Load(xmlReader);
+            using var fileStream = FileUtilities.OpenRead(projectFilePath);
+            using var xmlReader = XmlReader.Create(fileStream, s_xmlSettings);
+            document = XDocument.Load(xmlReader);
         }
         catch (Exception e) when (e is IOException or XmlException)
         {

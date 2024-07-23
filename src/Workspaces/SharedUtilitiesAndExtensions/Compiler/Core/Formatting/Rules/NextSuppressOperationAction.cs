@@ -4,6 +4,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting.Rules;
@@ -13,7 +14,7 @@ internal readonly struct NextSuppressOperationAction(
     ImmutableArray<AbstractFormattingRule> formattingRules,
     int index,
     SyntaxNode node,
-    List<SuppressOperation> list)
+    ArrayBuilder<SuppressOperation> list)
 {
     private NextSuppressOperationAction NextAction
         => new(formattingRules, index + 1, node, list);

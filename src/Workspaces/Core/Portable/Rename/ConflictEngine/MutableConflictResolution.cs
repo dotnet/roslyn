@@ -80,7 +80,7 @@ internal sealed class MutableConflictResolution(
                     computeReplacementNode: (original, updated) => annotationSet.WithoutAnnotations(updated, annotationSet.GetAnnotations(updated).ToArray()),
                     tokens: annotationSet.GetAnnotatedTokens(root),
                     computeReplacementToken: (original, updated) => annotationSet.WithoutAnnotations(updated, annotationSet.GetAnnotations(updated).ToArray()),
-                    trivia: SpecializedCollections.EmptyEnumerable<SyntaxTrivia>(),
+                    trivia: [],
                     computeReplacementTrivia: null);
 
                 intermediateSolution = intermediateSolution.WithDocumentSyntaxRoot(documentId, newRoot, PreservationMode.PreserveIdentity);

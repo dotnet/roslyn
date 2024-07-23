@@ -57,6 +57,16 @@
         <target state="translated">C# 互動</target>
         <note />
       </trans-unit>
+      <trans-unit id="CancelQuery">
+        <source>Cancel Query</source>
+        <target state="translated">取消查詢</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="CancelQueryCommandToolTip">
+        <source>Cancel (Escape)</source>
+        <target state="translated">取消 (Esc)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Collapse_usings_on_file_open">
         <source>Collapse usings on file open</source>
         <target state="translated">在檔案開啟時折疊使用</target>
@@ -170,6 +180,21 @@
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
         <target state="translated">移除不必要的 Using</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RunQuery">
+        <source>Run Query</source>
+        <target state="translated">執行查詢</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="RunQueryCommandToolTip">
+        <source>Run (Ctrl+Enter)</source>
+        <target state="translated">執行 (Ctrl+Enter)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="SemanticSearch">
+        <source>Semantic Search</source>
+        <target state="translated">語意搜尋</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_new_expressions">

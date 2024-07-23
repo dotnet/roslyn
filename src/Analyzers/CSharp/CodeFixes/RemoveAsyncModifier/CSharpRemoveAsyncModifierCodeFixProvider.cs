@@ -15,6 +15,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RemoveAsyncModifier;
 
+using static CSharpSyntaxTokens;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveAsyncModifier), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.MakeMethodSynchronous)]
 internal partial class CSharpRemoveAsyncModifierCodeFixProvider : AbstractRemoveAsyncModifierCodeFixProvider<ReturnStatementSyntax, ExpressionSyntax>
@@ -34,7 +36,7 @@ internal partial class CSharpRemoveAsyncModifierCodeFixProvider : AbstractRemove
 
     protected override SyntaxNode? ConvertToBlockBody(SyntaxNode node, ExpressionSyntax expressionBody)
     {
-        var semicolonToken = SyntaxFactory.Token(SyntaxKind.SemicolonToken);
+        var semicolonToken = SemicolonToken;
         if (expressionBody.TryConvertToStatement(semicolonToken, createReturnStatementForExpression: false, out var statement))
         {
             var block = SyntaxFactory.Block(statement);

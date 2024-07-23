@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -14,20 +13,19 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InlineDeclaration;
+
+using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.InlineDeclaration), Shared]
 internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBasedCodeFixProvider
@@ -72,14 +70,7 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
         await editor.ApplyExpressionLevelSemanticEditsAsync(
             document,
             originalNodes,
-            t =>
-            {
-                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(capacity: 2, out var additionalNodesToTrack);
-                additionalNodesToTrack.Add(t.identifier);
-                additionalNodesToTrack.Add(t.declarator);
-
-                return (t.invocationOrCreation, additionalNodesToTrack.ToImmutable());
-            },
+            static t => (t.invocationOrCreation, ImmutableArray.Create<SyntaxNode>(t.identifier, t.declarator)),
             (_, _, _) => true,
             (semanticModel, currentRoot, t, currentNode)
                 => ReplaceIdentifierWithInlineDeclaration(
@@ -215,7 +206,7 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
                 {
                     editor.ReplaceNode(
                         declaration.Type,
-                        (t, g) => t.WithTrailingTrivia(SyntaxFactory.ElasticSpace).WithoutAnnotations(Formatter.Annotation));
+                        (t, g) => t.WithTrailingTrivia(ElasticSpace).WithoutAnnotations(Formatter.Annotation));
                 }
             }
         }
@@ -243,7 +234,7 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
             // If the user originally wrote it something other than 'var', then use what they
             // wrote.  Otherwise, synthesize the actual type of the local.
             var explicitType = declaration.Type.IsVar ? local.Type?.GenerateTypeSyntax() : declaration.Type;
-            declarationExpression = SyntaxFactory.DeclarationExpression(explicitType, declarationExpression.Designation);
+            declarationExpression = DeclarationExpression(explicitType, declarationExpression.Designation);
         }
 
         editor.ReplaceNode(identifier, declarationExpression);
@@ -261,7 +252,7 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
         // analyze those due to limitations between how it uses Speculative SemanticModels
         // and how those don't handle new declarations well.
         return useVar
-            ? SyntaxFactory.IdentifierName("var")
+            ? IdentifierName("var")
             : symbol.GenerateTypeSyntax();
     }
 
@@ -281,7 +272,7 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
         SourceText sourceText, IdentifierNameSyntax identifier,
         TypeSyntax newType, VariableDeclaratorSyntax declaratorOpt)
     {
-        var designation = SyntaxFactory.SingleVariableDesignation(identifier.Identifier);
+        var designation = SingleVariableDesignation(identifier.Identifier);
 
         if (declaratorOpt != null)
         {
@@ -308,10 +299,10 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
         // designation and in those cases adding elastic trivia will break formatting.
         if (!designation.HasLeadingTrivia)
         {
-            newType = newType.WithAppendedTrailingTrivia(SyntaxFactory.ElasticSpace);
+            newType = newType.WithAppendedTrailingTrivia(ElasticSpace);
         }
 
-        return SyntaxFactory.DeclarationExpression(newType, designation);
+        return DeclarationExpression(newType, designation);
     }
 
     private static IEnumerable<SyntaxTrivia> MassageTrivia(IEnumerable<SyntaxTrivia> triviaList)
@@ -328,7 +319,7 @@ internal partial class CSharpInlineDeclarationCodeFixProvider : SyntaxEditorBase
                 // indentation spaces to be inserted in the out-var location.  It is appropriate
                 // though to have single spaces to help separate out things like comments and
                 // tokens though.
-                yield return SyntaxFactory.Space;
+                yield return Space;
             }
         }
     }

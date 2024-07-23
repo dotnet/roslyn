@@ -4,6 +4,7 @@
 
 using System;
 using System.Composition;
+using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -14,28 +15,24 @@ using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
-internal sealed class CSharpPropSnippetProvider : AbstractCSharpAutoPropertySnippetProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpPropSnippetProvider() : AbstractCSharpAutoPropertySnippetProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpPropSnippetProvider()
-    {
-    }
-
-    public override string Identifier => "prop";
+    public override string Identifier => CommonSnippetIdentifiers.Property;
 
     public override string Description => FeaturesResources.property_;
 
-    protected override AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
+    protected override AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator, CancellationToken cancellationToken)
     {
         // Having a property with `set` accessor in a readonly struct leads to a compiler error.
         // So if user executes snippet inside a readonly struct the right thing to do is to not generate `set` accessor at all
         if (syntaxContext.ContainingTypeDeclaration is StructDeclarationSyntax structDeclaration &&
-            structDeclaration.Modifiers.Any(SyntaxKind.ReadOnlyKeyword))
+            syntaxContext.SemanticModel.GetDeclaredSymbol(structDeclaration, cancellationToken) is { IsReadOnly: true })
         {
             return null;
         }
 
-        return base.GenerateSetAccessorDeclaration(syntaxContext, generator);
+        return base.GenerateSetAccessorDeclaration(syntaxContext, generator, cancellationToken);
     }
 }

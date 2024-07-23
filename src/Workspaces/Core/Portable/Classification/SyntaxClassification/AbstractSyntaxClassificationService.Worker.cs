@@ -9,6 +9,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Classification.Classifiers;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Classification;
@@ -28,6 +29,7 @@ internal partial class AbstractSyntaxClassificationService
         private readonly ClassificationOptions _options;
 
         private static readonly ObjectPool<SegmentedList<ClassifiedSpan>> s_listPool = new(() => []);
+        private static readonly ObjectPool<Stack<SyntaxNodeOrToken>> s_stackPool = new(() => new(), trimOnFree: false);
 
         private Worker(
             SemanticModel semanticModel,
@@ -48,7 +50,7 @@ internal partial class AbstractSyntaxClassificationService
 
             // get one from pool
             _set = SharedPools.Default<SegmentedHashSet<ClassifiedSpan>>().AllocateAndClear();
-            _pendingNodes = SharedPools.Default<Stack<SyntaxNodeOrToken>>().AllocateAndClear();
+            _pendingNodes = s_stackPool.Allocate();
         }
 
         internal static void Classify(
@@ -76,8 +78,8 @@ internal partial class AbstractSyntaxClassificationService
             // threshold simply with a single classified screen.  This allows reuse of those sets without causing
             // lots of garbage.
             _set.Clear();
+            s_stackPool.ClearAndFree(_pendingNodes);
             SharedPools.Default<SegmentedHashSet<ClassifiedSpan>>().Free(_set);
-            SharedPools.Default<Stack<SyntaxNodeOrToken>>().ClearAndFree(this._pendingNodes);
         }
 
         private void AddClassification(TextSpan textSpan, string type)
@@ -95,34 +97,27 @@ internal partial class AbstractSyntaxClassificationService
 
         private void ProcessNodes()
         {
-            while (_pendingNodes.Count > 0)
+            while (_pendingNodes.TryPop(out var nodeOrToken))
             {
                 _cancellationToken.ThrowIfCancellationRequested();
-                var nodeOrToken = _pendingNodes.Pop();
 
-                if (nodeOrToken.FullSpan.IntersectsWith(_textSpan))
+                ClassifyNodeOrToken(nodeOrToken);
+
+                foreach (var child in nodeOrToken.ChildNodesAndTokens())
                 {
-                    ClassifyNodeOrToken(nodeOrToken);
-
-                    foreach (var child in nodeOrToken.ChildNodesAndTokens())
-                    {
+                    // Only push children that intersect the span we're classifying.  This way we keep the stack size small.
+                    if (child.FullSpan.IntersectsWith(_textSpan))
                         _pendingNodes.Push(child);
-                    }
                 }
             }
         }
 
         private void ClassifyNodeOrToken(SyntaxNodeOrToken nodeOrToken)
         {
-            var node = nodeOrToken.AsNode();
-            if (node != null)
-            {
+            if (nodeOrToken.AsNode(out var node))
                 ClassifyNode(node);
-            }
             else
-            {
                 ClassifyToken(nodeOrToken.AsToken());
-            }
         }
 
         private void ClassifyNode(SyntaxNode syntax)
@@ -149,9 +144,7 @@ internal partial class AbstractSyntaxClassificationService
         private void AddClassification(ClassifiedSpan classification)
         {
             if (classification.ClassificationType != null)
-            {
                 AddClassification(classification.TextSpan, classification.ClassificationType);
-            }
         }
 
         private void ClassifyToken(SyntaxToken syntax)
@@ -179,10 +172,8 @@ internal partial class AbstractSyntaxClassificationService
             {
                 _cancellationToken.ThrowIfCancellationRequested();
 
-                if (trivia.HasStructure)
-                {
+                if (trivia.HasStructure && trivia.FullSpan.IntersectsWith(_textSpan))
                     _pendingNodes.Push(trivia.GetStructure());
-                }
             }
         }
     }

@@ -4,10 +4,8 @@
 
 using System;
 using System.Composition;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.InlineHints;
 
 namespace Microsoft.CodeAnalysis.Options;
 

@@ -10,6 +10,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -133,8 +134,9 @@ internal sealed class ProjectSystemProjectFactory
                             analyzerReferences: w.CurrentSolution.AnalyzerReferences).WithTelemetryId(SolutionTelemetryId);
                         var newSolution = w.CreateSolution(solutionInfo);
 
-                        foreach (var project in solutionInfo.Projects)
-                            newSolution = newSolution.AddProject(project);
+                        using var _ = ArrayBuilder<ProjectInfo>.GetInstance(out var projectInfos);
+                        projectInfos.AddRange(solutionInfo.Projects);
+                        newSolution = newSolution.AddProjects(projectInfos);
 
                         return newSolution;
                     }

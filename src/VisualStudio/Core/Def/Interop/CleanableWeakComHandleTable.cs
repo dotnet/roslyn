@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
@@ -21,14 +22,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 /// logic for cleaning up dead references in a time-sliced way. Public members of this
 /// collection are affinitized to the foreground thread.
 /// </summary>
-internal class CleanableWeakComHandleTable<TKey, TValue> : ForegroundThreadAffinitizedObject
-    where TValue : class
+internal sealed class CleanableWeakComHandleTable<TKey, TValue> where TValue : class
 {
     private const int DefaultCleanUpThreshold = 25;
     private static readonly TimeSpan s_defaultCleanUpTimeSlice = TimeSpan.FromMilliseconds(15);
 
     private readonly Dictionary<TKey, WeakComHandle<TValue, TValue>> _table;
     private readonly HashSet<TKey> _deadKeySet;
+    private readonly IThreadingContext _threadingContext;
 
     /// <summary>
     /// The upper limit of items that the collection will store before clean up is recommended.
@@ -46,11 +47,10 @@ internal class CleanableWeakComHandleTable<TKey, TValue> : ForegroundThreadAffin
     public bool NeedsCleanUp => _needsCleanUp;
 
     public CleanableWeakComHandleTable(IThreadingContext threadingContext, int? cleanUpThreshold = null, TimeSpan? cleanUpTimeSlice = null)
-        : base(threadingContext)
     {
         _table = [];
         _deadKeySet = [];
-
+        _threadingContext = threadingContext;
         CleanUpThreshold = cleanUpThreshold ?? DefaultCleanUpThreshold;
         CleanUpTimeSlice = cleanUpTimeSlice ?? s_defaultCleanUpTimeSlice;
     }
@@ -63,9 +63,9 @@ internal class CleanableWeakComHandleTable<TKey, TValue> : ForegroundThreadAffin
     {
         using var _ = listener.BeginAsyncOperation(nameof(CleanUpDeadObjectsAsync));
 
-        Debug.Assert(ThreadingContext.JoinableTaskContext.IsOnMainThread, "This method is optimized for cases where calls do not yield before checking _needsCleanUp.");
+        Debug.Assert(_threadingContext.JoinableTaskContext.IsOnMainThread, "This method is optimized for cases where calls do not yield before checking _needsCleanUp.");
 
-        await ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(ThreadingContext.DisposalToken);
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(_threadingContext.DisposalToken);
 
         if (!_needsCleanUp)
         {
@@ -137,14 +137,14 @@ internal class CleanableWeakComHandleTable<TKey, TValue> : ForegroundThreadAffin
 
         async Task ResetTimeSliceAsync()
         {
-            await listener.Delay(DelayTimeSpan.NearImmediate, ThreadingContext.DisposalToken).ConfigureAwait(true);
+            await listener.Delay(DelayTimeSpan.NearImmediate, _threadingContext.DisposalToken).ConfigureAwait(true);
             timeSlice = new TimeSlice(CleanUpTimeSlice);
         }
     }
 
     public void Add(TKey key, TValue value)
     {
-        this.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         if (value == null)
         {
@@ -168,7 +168,7 @@ internal class CleanableWeakComHandleTable<TKey, TValue> : ForegroundThreadAffin
 
     public TValue Remove(TKey key)
     {
-        this.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         _deadKeySet.Remove(key);
 
@@ -183,14 +183,14 @@ internal class CleanableWeakComHandleTable<TKey, TValue> : ForegroundThreadAffin
 
     public bool ContainsKey(TKey key)
     {
-        this.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
 
         return _table.ContainsKey(key);
     }
 
     public bool TryGetValue(TKey key, out TValue value)
     {
-        this.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
         if (_table.TryGetValue(key, out var handle))
         {
             value = handle.ComAggregateObject;

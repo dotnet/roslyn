@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
@@ -24,25 +23,22 @@ internal sealed class VisualStudioWorkspaceTelemetryService : AbstractWorkspaceT
 {
     private readonly VisualStudioWorkspace _workspace;
     private readonly IGlobalOptionService _globalOptions;
-    private readonly IAsynchronousOperationListenerProvider _asyncListenerProvider;
 
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     public VisualStudioWorkspaceTelemetryService(
         VisualStudioWorkspace workspace,
-        IGlobalOptionService globalOptions,
-        IAsynchronousOperationListenerProvider asyncListenerProvider)
+        IGlobalOptionService globalOptions)
     {
         _workspace = workspace;
         _globalOptions = globalOptions;
-        _asyncListenerProvider = asyncListenerProvider;
     }
 
     protected override ILogger CreateLogger(TelemetrySession telemetrySession, bool logDelta)
         => AggregateLogger.Create(
             CodeMarkerLogger.Instance,
             new EtwLogger(FunctionIdOptions.CreateFunctionIsEnabledPredicate(_globalOptions)),
-            TelemetryLogger.Create(telemetrySession, logDelta, _asyncListenerProvider),
+            TelemetryLogger.Create(telemetrySession, logDelta),
             new FileLogger(_globalOptions),
             Logger.GetLogger());
 

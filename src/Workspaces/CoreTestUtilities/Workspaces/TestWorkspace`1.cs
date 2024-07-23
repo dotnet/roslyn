@@ -19,9 +19,9 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -53,8 +53,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         internal IGlobalOptionService GlobalOptions { get; }
 
         internal override bool IgnoreUnchangeableDocumentsWhenApplyingChanges { get; }
-
-        private readonly IMetadataAsSourceFileService? _metadataAsSourceFileService;
 
         private readonly string _workspaceKind;
         private readonly bool _supportsLspMutation;
@@ -115,8 +113,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     throw new InvalidOperationException($"{severityText} {fullMessage}");
                 };
             }
-
-            _metadataAsSourceFileService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
         }
 
         private static HostServices GetHostServices([NotNull] ref TestComposition? composition, bool hasWorkspaceConfigurationOptions)
@@ -201,12 +197,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public new void RegisterText(SourceTextContainer text)
             => base.RegisterText(text);
-
-        protected override void Dispose(bool finalize)
-        {
-            _metadataAsSourceFileService?.CleanupGeneratedFiles();
-            base.Dispose(finalize);
-        }
 
         internal void AddTestSolution(TSolution solution)
             => this.OnSolutionAdded(SolutionInfo.Create(solution.Id, solution.Version, solution.FilePath, projects: solution.Projects.Select(p => p.ToProjectInfo())));
@@ -347,6 +337,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             {
                 WorkspaceKind.MiscellaneousFiles => false,
                 WorkspaceKind.Interactive => false,
+                WorkspaceKind.SemanticSearch => false,
                 _ => true
             };
 
@@ -637,7 +628,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 Documents.Add(submission.Documents.Single());
             }
 
-            var solution = CreateSolution(projectNameToTestHostProject.Values.ToArray());
+            var solution = CreateSolution([.. projectNameToTestHostProject.Values]);
             AddTestSolution(solution);
 
             foreach (var projectElement in workspaceElement.Elements(ProjectElementName))
@@ -755,6 +746,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             }
 
             return submissions;
+        }
+
+        public override bool TryApplyChanges(Solution newSolution)
+        {
+            var result = base.TryApplyChanges(newSolution);
+
+            // Ensure that any in-memory analyzer references in this test workspace are known by the serializer service
+            // so that we can validate OOP scenarios involving analyzers.
+            foreach (var analyzer in this.CurrentSolution.AnalyzerReferences)
+            {
+                if (analyzer is AnalyzerImageReference analyzerImageReference)
+                {
+#pragma warning disable CA1416 // Validate platform compatibility
+                    SerializerService.TestAccessor.AddAnalyzerImageReference(analyzerImageReference);
+#pragma warning restore CA1416 // Validate platform compatibility
+                }
+            }
+
+            return result;
         }
     }
 }

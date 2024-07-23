@@ -59,7 +59,7 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
                 type.GetReferencedTypeParameters(result);
             }
 
-            return result.ToImmutableArray();
+            return [.. result];
         }
 
         protected override ImmutableArray<ITypeParameterSymbol> GenerateTypeParameters(CancellationToken cancellationToken)
@@ -84,9 +84,10 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
             }
             else
             {
-                using var _ = ArrayBuilder<ITypeParameterSymbol>.GetInstance(out var list);
+                var list = new FixedSizeArrayBuilder<ITypeParameterSymbol>(genericName.TypeArgumentList.Arguments.Count);
 
-                var usedIdentifiers = new HashSet<string> { "T" };
+                using var _ = PooledHashSet<string>.GetInstance(out var usedIdentifiers);
+                usedIdentifiers.Add("T");
                 foreach (var type in genericName.TypeArgumentList.Arguments)
                 {
                     var typeParameter = GetUniqueTypeParameter(
@@ -99,7 +100,7 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
                     list.Add(typeParameter);
                 }
 
-                return list.ToImmutable();
+                return list.MoveToImmutable();
             }
         }
 
@@ -147,18 +148,18 @@ internal abstract class CSharpGenerateParameterizedMemberService<TService> : Abs
 
         protected override ImmutableArray<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken)
         {
-            using var _ = ArrayBuilder<ITypeSymbol>.GetInstance(out var result);
 
-            if (State.SimpleNameOpt is GenericNameSyntax genericName)
+            if (State.SimpleNameOpt is not GenericNameSyntax genericName)
+                return [];
+
+            var result = new FixedSizeArrayBuilder<ITypeSymbol>(genericName.TypeArgumentList.Arguments.Count);
+            foreach (var typeArgument in genericName.TypeArgumentList.Arguments)
             {
-                foreach (var typeArgument in genericName.TypeArgumentList.Arguments)
-                {
-                    var typeInfo = Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken);
-                    result.Add(typeInfo.Type);
-                }
+                var typeInfo = Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken);
+                result.Add(typeInfo.Type);
             }
 
-            return result.ToImmutable();
+            return result.MoveToImmutable();
         }
     }
 }

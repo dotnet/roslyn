@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.GenerateFromMembers;
 using Microsoft.CodeAnalysis.Internal.Log;
@@ -18,8 +17,8 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PickMembers;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -88,7 +87,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
             intentDataProvider.FallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
-        if (actions.IsEmpty())
+        if (actions.IsEmpty)
         {
             return [];
         }
@@ -104,7 +103,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
             results.AddIfNotNull(intentResult);
         }
 
-        return results.ToImmutable();
+        return results.ToImmutableAndClear();
 
         static async Task<IntentProcessorResult?> GetIntentProcessorResultAsync(
             Document priorDocument, CodeAction codeAction, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
@@ -274,13 +273,13 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
 
     private ImmutableArray<CodeAction> GetCodeActions(Document document, State state, bool addNullChecks, CleanCodeGenerationOptionsProvider fallbackOptions)
     {
-        using var _ = ArrayBuilder<CodeAction>.GetInstance(out var result);
+        using var result = TemporaryArray<CodeAction>.Empty;
 
         result.Add(new FieldDelegatingCodeAction(this, document, state, addNullChecks, fallbackOptions));
         if (state.DelegatedConstructor != null)
             result.Add(new ConstructorDelegatingCodeAction(this, document, state, addNullChecks, fallbackOptions));
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static async Task<Document> AddNavigationAnnotationAsync(Document document, CancellationToken cancellationToken)

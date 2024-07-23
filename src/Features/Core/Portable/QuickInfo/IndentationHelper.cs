@@ -73,7 +73,7 @@ internal static class IndentationHelper
                 }
             }
 
-            return adjustedClassifiedSpans.ToImmutableArray();
+            return [.. adjustedClassifiedSpans];
         }
         else
         {

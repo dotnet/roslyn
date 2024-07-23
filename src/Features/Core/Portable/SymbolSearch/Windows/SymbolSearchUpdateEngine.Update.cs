@@ -18,7 +18,6 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 using static System.FormattableString;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch;

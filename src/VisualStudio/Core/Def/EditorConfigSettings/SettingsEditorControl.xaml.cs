@@ -66,7 +66,7 @@ internal partial class SettingsEditorControl : UserControl
             analyzerView
         ];
 
-        _tableControls = _views.SelectAsArray(view => view.TableControl).ToArray();
+        _tableControls = [.. _views.SelectAsArray(view => view.TableControl)];
 
         InitializeComponent();
     }

@@ -52,8 +52,8 @@ internal class NavigationBarClient :
 
         _workspace = workspace;
         _imageService = (IVsImageService2)serviceProvider.GetService(typeof(SVsImageService));
-        _projectItems = SpecializedCollections.EmptyList<NavigationBarProjectItem>();
-        _currentTypeItems = SpecializedCollections.EmptyList<NavigationBarItem>();
+        _projectItems = [];
+        _currentTypeItems = [];
     }
 
     private NavigationBarItem? GetCurrentTypeItem()

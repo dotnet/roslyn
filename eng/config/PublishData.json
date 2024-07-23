@@ -79,6 +79,7 @@
       "Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.TypeScript": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.UnitTesting": "vs-impl",
+      "Microsoft.CodeAnalysis.ExternalAccess.VisualDiagnostics": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Xamarin.Remote": "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.Xaml":  "vs-impl",
       "Microsoft.CodeAnalysis.ExternalAccess.DotNetWatch": "vs-impl",
@@ -203,8 +204,16 @@
       ],
       "vsBranch": "rel/d17.10",
       "vsMajorVersion": 17,
-      "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.10 P2]"
+      "insertionTitlePrefix": "[d17.10]"
+    },
+    "release/dev17.11": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "rel/d17.11",
+      "vsMajorVersion": 17,
+      "insertionTitlePrefix": "[d17.11 P2]"
     },
     "main": {
       "nugetKind": [
@@ -214,17 +223,7 @@
       "vsBranch": "main",
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": false,
-      "insertionTitlePrefix": "[d17.10 P3]"
-    },
-    "features/vscode_net8": {
-      "nugetKind": [
-        "Shipping",
-        "NonShipping"
-      ],
-      "vsBranch": "main",
-      "vsMajorVersion": 17,
-      "insertionCreateDraftPR": true,
-      "insertionTitlePrefix": "[Validation]"
+      "insertionTitlePrefix": "[d17.11 P3]"
     },
     "dev/andrha/telemetry": {
       "nugetKind": [
@@ -235,6 +234,16 @@
       "vsMajorVersion": 17,
       "insertionCreateDraftPR": true,
       "insertionTitlePrefix": "[Telemetry Validation]"
+    },
+    "dev/jorobich/pr-val-v3-publishing": {
+      "nugetKind": [
+        "Shipping",
+        "NonShipping"
+      ],
+      "vsBranch": "main",
+      "vsMajorVersion": 17,
+      "insertionCreateDraftPR": true,
+      "insertionTitlePrefix": "[PR Validation]"
     },
     "demo/razor-lexer": {
       "nugetKind": [

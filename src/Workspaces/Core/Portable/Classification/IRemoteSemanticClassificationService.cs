@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using System.Threading;
@@ -72,14 +71,9 @@ internal sealed class SerializableClassifiedSpans(ImmutableArray<string> classif
 
     internal static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans)
     {
-        using var _ = PooledDictionary<string, int>.GetInstance(out var classificationTypeToId);
-        return Dehydrate(classifiedSpans, classificationTypeToId);
-    }
-
-    private static SerializableClassifiedSpans Dehydrate(ImmutableArray<ClassifiedSpan> classifiedSpans, Dictionary<string, int> classificationTypeToId)
-    {
-        using var _1 = ArrayBuilder<string>.GetInstance(out var classificationTypes);
-        using var _2 = ArrayBuilder<int>.GetInstance(capacity: classifiedSpans.Length * 3, out var classificationTriples);
+        using var _1 = PooledDictionary<string, int>.GetInstance(out var classificationTypeToId);
+        using var _2 = ArrayBuilder<string>.GetInstance(out var classificationTypes);
+        var classificationTriples = new FixedSizeArrayBuilder<int>(classifiedSpans.Length * 3);
 
         foreach (var classifiedSpan in classifiedSpans)
         {
@@ -99,18 +93,30 @@ internal sealed class SerializableClassifiedSpans(ImmutableArray<string> classif
 
         return new SerializableClassifiedSpans(
             classificationTypes.ToImmutableAndClear(),
-            classificationTriples.ToImmutableAndClear());
+            classificationTriples.MoveToImmutable());
     }
 
     internal void Rehydrate(SegmentedList<ClassifiedSpan> classifiedSpans)
     {
+        classifiedSpans.EnsureCapacity(classifiedSpans.Count + (ClassificationTriples.Length / 3));
         for (int i = 0, n = ClassificationTriples.Length; i < n; i += 3)
-        {
-            classifiedSpans.Add(new ClassifiedSpan(
-                ClassificationTypes[ClassificationTriples[i + 0]],
-                new TextSpan(
-                    ClassificationTriples[i + 1],
-                    ClassificationTriples[i + 2])));
-        }
+            classifiedSpans.Add(GetClassifiedSpanAt(i));
     }
+
+    internal ImmutableArray<ClassifiedSpan> Rehydrate()
+    {
+        var classifiedSpans = new FixedSizeArrayBuilder<ClassifiedSpan>(this.ClassificationTriples.Length / 3);
+
+        for (int i = 0, n = ClassificationTriples.Length; i < n; i += 3)
+            classifiedSpans.Add(GetClassifiedSpanAt(i));
+
+        return classifiedSpans.MoveToImmutable();
+    }
+
+    private ClassifiedSpan GetClassifiedSpanAt(int index)
+        => new(
+            ClassificationTypes[ClassificationTriples[index + 0]],
+            new TextSpan(
+                ClassificationTriples[index + 1],
+                ClassificationTriples[index + 2]));
 }

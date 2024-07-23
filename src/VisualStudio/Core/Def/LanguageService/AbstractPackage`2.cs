@@ -51,14 +51,16 @@ internal abstract partial class AbstractPackage<TPackage, TLanguageService> : Ab
             RegisterEditorFactory(editorFactory);
         }
 
-        RegisterLanguageService(typeof(TLanguageService), async ct =>
+        RegisterLanguageService(typeof(TLanguageService), async cancellationToken =>
         {
-            await JoinableTaskFactory.SwitchToMainThreadAsync(ct);
+            // Ensure we're on the BG when creating the language service.
+            await TaskScheduler.Default;
 
             // Create the language service, tell it to set itself up, then store it in a field
             // so we can notify it that it's time to clean up.
             _languageService = CreateLanguageService();
-            _languageService.Setup();
+            await _languageService.SetupAsync(cancellationToken).ConfigureAwait(false);
+
             return _languageService.ComAggregate;
         });
 

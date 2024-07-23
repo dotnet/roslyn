@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var binary = (BoundBinaryOperator)node.Left;
 
+            BeforeVisitingSkippedBoundBinaryOperatorChildren(binary);
             rightOperands.Push(binary.Right);
 
             BoundExpression current = binary.Left;
@@ -121,6 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (current.Kind == BoundKind.BinaryOperator)
             {
                 binary = (BoundBinaryOperator)current;
+                BeforeVisitingSkippedBoundBinaryOperatorChildren(binary);
                 rightOperands.Push(binary.Right);
                 current = binary.Left;
             }
@@ -136,6 +138,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        protected virtual void BeforeVisitingSkippedBoundBinaryOperatorChildren(BoundBinaryOperator node)
+        {
+        }
+
         public sealed override BoundNode? VisitCall(BoundCall node)
         {
             if (node.ReceiverOpt is BoundCall receiver1)
@@ -147,9 +153,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node = receiver1;
                 while (node.ReceiverOpt is BoundCall receiver2)
                 {
+                    BeforeVisitingSkippedBoundCallChildren(node);
                     calls.Push(node);
                     node = receiver2;
                 }
+
+                BeforeVisitingSkippedBoundCallChildren(node);
 
                 VisitReceiver(node);
 
@@ -168,6 +177,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return null;
+        }
+
+        protected virtual void BeforeVisitingSkippedBoundCallChildren(BoundCall node)
+        {
         }
 
         /// <summary>

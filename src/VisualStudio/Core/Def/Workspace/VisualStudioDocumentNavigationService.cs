@@ -41,7 +41,7 @@ internal sealed class VisualStudioDocumentNavigationService(
     IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
     // lazy to avoid circularities
     Lazy<SourceGeneratedFileManager> sourceGeneratedFileManager)
-    : ForegroundThreadAffinitizedObject(threadingContext), IDocumentNavigationService
+    : IDocumentNavigationService
 {
     private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService = editorAdaptersFactoryService;
@@ -313,7 +313,7 @@ internal sealed class VisualStudioDocumentNavigationService(
         ISpanMappingService spanMappingService, Document generatedDocument, TextSpan textSpan, CancellationToken cancellationToken)
     {
         var results = await spanMappingService.MapSpansAsync(
-            generatedDocument, SpecializedCollections.SingletonEnumerable(textSpan), cancellationToken).ConfigureAwait(false);
+            generatedDocument, [textSpan], cancellationToken).ConfigureAwait(false);
 
         if (!results.IsDefaultOrEmpty)
         {

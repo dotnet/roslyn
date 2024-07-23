@@ -3,12 +3,10 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using System.Threading.Tasks;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 

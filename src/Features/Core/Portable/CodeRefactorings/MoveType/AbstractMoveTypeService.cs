@@ -14,7 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -160,7 +159,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
         Debug.Assert(actions.Count != 0, "No code actions found for MoveType Refactoring");
 
-        return actions.ToImmutable();
+        return actions.ToImmutableAndClear();
     }
 
     private static bool ClassNextToGlobalStatements(SyntaxNode root, ISyntaxFactsService syntaxFacts)

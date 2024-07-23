@@ -5,12 +5,9 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Reflection.Metadata;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -19,11 +16,33 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
+using static TemporaryStorageService;
+
 internal partial class SerializerService
 {
     private const int MetadataFailed = int.MaxValue;
 
-    private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
+    /// <summary>
+    /// Allow analyzer tests to exercise the oop codepaths, even though they're referring to in-memory instances of
+    /// DiagnosticAnalyzers.  In that case, we'll just share the in-memory instance of the analyzer across the OOP
+    /// boundary (which still runs in proc in tests), but we will still exercise all codepaths that use the RemoteClient
+    /// as well as exercising all codepaths that send data across the OOP boundary.  Effectively, this allows us to
+    /// pretend that a <see cref="AnalyzerImageReference"/> is a <see cref="AnalyzerFileReference"/> during tests.
+    /// </summary>
+    private static readonly object s_analyzerImageReferenceMapGate = new();
+    private static IBidirectionalMap<AnalyzerImageReference, Guid> s_analyzerImageReferenceMap = BidirectionalMap<AnalyzerImageReference, Guid>.Empty;
+
+    private static bool TryGetAnalyzerImageReferenceGuid(AnalyzerImageReference imageReference, out Guid guid)
+    {
+        lock (s_analyzerImageReferenceMapGate)
+            return s_analyzerImageReferenceMap.TryGetValue(imageReference, out guid);
+    }
+
+    private static bool TryGetAnalyzerImageReferenceFromGuid(Guid guid, [NotNullWhen(true)] out AnalyzerImageReference? imageReference)
+    {
+        lock (s_analyzerImageReferenceMapGate)
+            return s_analyzerImageReferenceMap.TryGetKey(guid, out imageReference);
+    }
 
     public static Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
     {
@@ -44,13 +63,18 @@ internal partial class SerializerService
 
         using var stream = SerializableBytes.CreateWritableStream();
 
-        using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+        using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
             switch (reference)
             {
                 case AnalyzerFileReference file:
                     writer.WriteString(file.FullPath);
                     writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
+                    break;
+
+                case AnalyzerImageReference analyzerImageReference:
+                    Contract.ThrowIfFalse(TryGetAnalyzerImageReferenceGuid(analyzerImageReference, out var guid), "AnalyzerImageReferences are only supported during testing");
+                    writer.WriteGuid(guid);
                     break;
 
                 default:
@@ -62,16 +86,15 @@ internal partial class SerializerService
         return Checksum.Create(stream);
     }
 
-    public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+    public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
         if (reference is PortableExecutableReference portable)
         {
-            if (portable is ISupportTemporaryStorage supportTemporaryStorage)
+            if (portable is ISupportTemporaryStorage { StorageHandles: { Count: > 0 } handles } &&
+                TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
+                    portable, handles, writer, cancellationToken))
             {
-                if (TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(supportTemporaryStorage, writer, context, cancellationToken))
-                {
-                    return;
-                }
+                return;
             }
 
             WritePortableExecutableReferenceTo(portable, writer, cancellationToken);
@@ -104,6 +127,12 @@ internal partial class SerializerService
                 writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
                 break;
 
+            case AnalyzerImageReference analyzerImageReference:
+                Contract.ThrowIfFalse(TryGetAnalyzerImageReferenceGuid(analyzerImageReference, out var guid), "AnalyzerImageReferences are only supported during testing");
+                writer.WriteString(nameof(AnalyzerImageReference));
+                writer.WriteGuid(guid);
+                break;
+
             default:
                 throw ExceptionUtilities.UnexpectedValue(reference);
         }
@@ -114,11 +143,17 @@ internal partial class SerializerService
         cancellationToken.ThrowIfCancellationRequested();
 
         var type = reader.ReadString();
-        if (type == nameof(AnalyzerFileReference))
+        switch (type)
         {
-            var fullPath = reader.ReadRequiredString();
-            var shadowCopy = reader.ReadBoolean();
-            return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(new AnalyzerAssemblyLoaderOptions(shadowCopy)));
+            case nameof(AnalyzerFileReference):
+                var fullPath = reader.ReadRequiredString();
+                var shadowCopy = reader.ReadBoolean();
+                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(shadowCopy));
+
+            case nameof(AnalyzerImageReference):
+                var guid = reader.ReadGuid();
+                Contract.ThrowIfFalse(TryGetAnalyzerImageReferenceFromGuid(guid, out var analyzerImageReference));
+                return analyzerImageReference;
         }
 
         throw ExceptionUtilities.UnexpectedValue(type);
@@ -143,7 +178,7 @@ internal partial class SerializerService
     {
         using var stream = SerializableBytes.CreateWritableStream();
 
-        using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+        using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
             WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
             WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
@@ -207,13 +242,15 @@ internal partial class SerializerService
         cancellationToken.ThrowIfCancellationRequested();
 
         writer.WriteInt32((int)metadata.Kind);
+        writer.WriteGuid(GetMetadataGuid(metadata));
+    }
 
+    private static Guid GetMetadataGuid(ModuleMetadata metadata)
+    {
         var metadataReader = metadata.GetMetadataReader();
-
         var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
         var guid = metadataReader.GetGuid(mvidHandle);
-
-        writer.WriteGuid(guid);
+        return guid;
     }
 
     private static void WritePortableExecutableReferenceTo(
@@ -235,8 +272,7 @@ internal partial class SerializerService
 
         var filePath = reader.ReadString();
 
-        var tuple = TryReadMetadataFrom(reader, kind, cancellationToken);
-        if (tuple == null)
+        if (TryReadMetadataFrom(reader, kind, cancellationToken) is not (var metadata, var storageHandles))
         {
             // TODO: deal with xml document provider properly
             //       should we shadow copy xml doc comment?
@@ -256,7 +292,7 @@ internal partial class SerializerService
             _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
 
         return new SerializedMetadataReference(
-            properties, filePath, tuple.Value.metadata, tuple.Value.storages, documentProvider);
+            properties, filePath, metadata, storageHandles, documentProvider);
     }
 
     private static void WriteTo(MetadataReferenceProperties properties, ObjectWriter writer, CancellationToken cancellationToken)
@@ -313,46 +349,28 @@ internal partial class SerializerService
     }
 
     private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
-        ISupportTemporaryStorage reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+        PortableExecutableReference reference,
+        IReadOnlyList<ITemporaryStorageStreamHandle> handles,
+        ObjectWriter writer,
+        CancellationToken cancellationToken)
     {
-        var storages = reference.GetStorages();
-        if (storages == null)
-        {
-            return false;
-        }
+        Contract.ThrowIfTrue(handles.Count == 0);
 
-        // Not clear if name should be allowed to be null here (https://github.com/dotnet/roslyn/issues/43037)
-        using var pooled = Creator.CreateList<(string? name, long offset, long size)>();
-
-        foreach (var storage in storages)
-        {
-            if (storage is not ITemporaryStorageWithName storage2)
-            {
-                return false;
-            }
-
-            context.AddResource(storage);
-
-            pooled.Object.Add((storage2.Name, storage2.Offset, storage2.Size));
-        }
-
-        WritePortableExecutableReferenceHeaderTo((PortableExecutableReference)reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
+        WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
 
         writer.WriteInt32((int)MetadataImageKind.Assembly);
-        writer.WriteInt32(pooled.Object.Count);
+        writer.WriteInt32(handles.Count);
 
-        foreach (var (name, offset, size) in pooled.Object)
+        foreach (var handle in handles)
         {
             writer.WriteInt32((int)MetadataImageKind.Module);
-            writer.WriteString(name);
-            writer.WriteInt64(offset);
-            writer.WriteInt64(size);
+            handle.Identifier.WriteTo(writer);
         }
 
         return true;
     }
 
-    private (Metadata metadata, ImmutableArray<ITemporaryStreamStorageInternal> storages)? TryReadMetadataFrom(
+    private (Metadata metadata, ImmutableArray<TemporaryStorageStreamHandle> storageHandles)? TryReadMetadataFrom(
         ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
     {
         var imageKind = reader.ReadInt32();
@@ -363,158 +381,87 @@ internal partial class SerializerService
         }
 
         var metadataKind = (MetadataImageKind)imageKind;
-        if (_storageService == null)
-        {
-            if (metadataKind == MetadataImageKind.Assembly)
-            {
-                using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
-
-                var count = reader.ReadInt32();
-                for (var i = 0; i < count; i++)
-                {
-                    metadataKind = (MetadataImageKind)reader.ReadInt32();
-                    Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
-
-#pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
-                    pooledMetadata.Object.Add(ReadModuleMetadataFrom(reader, kind));
-#pragma warning restore CA2016 
-                }
-
-                return (AssemblyMetadata.Create(pooledMetadata.Object), storages: default);
-            }
-
-            Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
-#pragma warning disable CA2016 // https://github.com/dotnet/roslyn-analyzers/issues/4985
-            return (ReadModuleMetadataFrom(reader, kind), storages: default);
-#pragma warning restore CA2016
-        }
-
         if (metadataKind == MetadataImageKind.Assembly)
         {
-            using var pooledMetadata = Creator.CreateList<ModuleMetadata>();
-            using var pooledStorage = Creator.CreateList<ITemporaryStreamStorageInternal>();
-
             var count = reader.ReadInt32();
+
+            var allMetadata = new FixedSizeArrayBuilder<ModuleMetadata>(count);
+            var allHandles = new FixedSizeArrayBuilder<TemporaryStorageStreamHandle>(count);
+
             for (var i = 0; i < count; i++)
             {
                 metadataKind = (MetadataImageKind)reader.ReadInt32();
                 Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
-                var (metadata, storage) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
+                var (metadata, storageHandle) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
 
-                pooledMetadata.Object.Add(metadata);
-                pooledStorage.Object.Add(storage);
+                allMetadata.Add(metadata);
+                allHandles.Add(storageHandle);
             }
 
-            return (AssemblyMetadata.Create(pooledMetadata.Object), pooledStorage.Object.ToImmutableArrayOrEmpty());
+            return (AssemblyMetadata.Create(allMetadata.MoveToImmutable()), allHandles.MoveToImmutable());
         }
+        else
+        {
+            Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
-        Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
-
-        var moduleInfo = ReadModuleMetadataFrom(reader, kind, cancellationToken);
-        return (moduleInfo.metadata, ImmutableArray.Create(moduleInfo.storage));
+            var moduleInfo = ReadModuleMetadataFrom(reader, kind, cancellationToken);
+            return (moduleInfo.metadata, [moduleInfo.storageHandle]);
+        }
     }
 
-    private (ModuleMetadata metadata, ITemporaryStreamStorageInternal storage) ReadModuleMetadataFrom(
+    private (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFrom(
         ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var (storage, length) = GetTemporaryStorage(reader, kind, cancellationToken);
-
-        var storageStream = storage.ReadStream(cancellationToken);
-        Contract.ThrowIfFalse(length == storageStream.Length);
-
-        GetMetadata(storageStream, length, out var metadata, out var lifeTimeObject);
-
-        // make sure we keep storageStream alive while Metadata is alive
-        // we use conditional weak table since we can't control metadata liftetime
-        if (lifeTimeObject != null)
-            s_lifetimeMap.Add(metadata, lifeTimeObject);
-
-        return (metadata, storage);
-    }
-
-    private static ModuleMetadata ReadModuleMetadataFrom(ObjectReader reader, SerializationKinds kind)
-    {
-        Contract.ThrowIfFalse(SerializationKinds.Bits == kind);
-
-        var array = reader.ReadByteArray();
-        var pinnedObject = new PinnedObject(array);
-
-        var metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), array.Length);
-
-        // make sure we keep storageStream alive while Metadata is alive
-        // we use conditional weak table since we can't control metadata liftetime
-        s_lifetimeMap.Add(metadata, pinnedObject);
-
-        return metadata;
-    }
-
-    private (ITemporaryStreamStorageInternal storage, long length) GetTemporaryStorage(
-        ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
-    {
         Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
 
-        if (kind == SerializationKinds.Bits)
-        {
-            var storage = _storageService.CreateTemporaryStreamStorage();
-            using var stream = SerializableBytes.CreateWritableStream();
+        return kind == SerializationKinds.Bits
+            ? ReadModuleMetadataFromBits()
+            : ReadModuleMetadataFromMemoryMappedFile();
 
+        (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromMemoryMappedFile()
+        {
+            // Host passed us a segment of its own memory mapped file.  We can just refer to that segment directly as it
+            // will not be released by the host.
+            var storageIdentifier = TemporaryStorageIdentifier.ReadFrom(reader);
+            var storageHandle = TemporaryStorageService.GetStreamHandle(storageIdentifier);
+            return ReadModuleMetadataFromStorage(storageHandle);
+        }
+
+        (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromBits()
+        {
+            // Host is sending us all the data as bytes.  Take that and write that out to a memory mapped file on the
+            // server side so that we can refer to this data uniformly.
+            using var stream = SerializableBytes.CreateWritableStream();
             CopyByteArrayToStream(reader, stream, cancellationToken);
 
             var length = stream.Length;
-
-            stream.Position = 0;
-            storage.WriteStream(stream, cancellationToken);
-
-            return (storage, length);
+            var storageHandle = _storageService.WriteToTemporaryStorage(stream, cancellationToken);
+            Contract.ThrowIfTrue(length != storageHandle.Identifier.Size);
+            return ReadModuleMetadataFromStorage(storageHandle);
         }
-        else
+
+        (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFromStorage(
+            TemporaryStorageStreamHandle storageHandle)
         {
-            var service2 = (ITemporaryStorageService2)_storageService;
+            // Now read in the module data using that identifier.  This will either be reading from the host's memory if
+            // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
+            // sent us the full contents.
+            var unmanagedStream = storageHandle.ReadFromTemporaryStorage(cancellationToken);
+            Contract.ThrowIfFalse(storageHandle.Identifier.Size == unmanagedStream.Length);
 
-            var name = reader.ReadRequiredString();
-            var offset = reader.ReadInt64();
-            var size = reader.ReadInt64();
-
-            var storage = service2.AttachTemporaryStreamStorage(name, offset, size);
-            var length = size;
-
-            return (storage, length);
-        }
-    }
-
-    private static void GetMetadata(Stream stream, long length, out ModuleMetadata metadata, out object? lifeTimeObject)
-    {
-        if (stream is UnmanagedMemoryStream unmanagedStream)
-        {
-            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
+            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
+            // long as the ModuleMetadata is alive due to passing its .Dispose method in as the onDispose callback of
+            // the metadata.
             unsafe
             {
-                metadata = ModuleMetadata.CreateFromMetadata(
+                var metadata = ModuleMetadata.CreateFromMetadata(
                     (IntPtr)unmanagedStream.PositionPointer, (int)unmanagedStream.Length, unmanagedStream.Dispose);
-                lifeTimeObject = null;
-                return;
+                return (metadata, storageHandle);
             }
         }
-
-        PinnedObject pinnedObject;
-        if (stream is MemoryStream memory &&
-            memory.TryGetBuffer(out var buffer) &&
-            buffer.Offset == 0)
-        {
-            pinnedObject = new PinnedObject(buffer.Array!);
-        }
-        else
-        {
-            var array = new byte[length];
-            stream.Read(array, 0, (int)length);
-            pinnedObject = new PinnedObject(array);
-        }
-
-        metadata = ModuleMetadata.CreateFromMetadata(pinnedObject.GetPointer(), (int)length);
-        lifeTimeObject = pinnedObject;
     }
 
     private static void CopyByteArrayToStream(ObjectReader reader, Stream stream, CancellationToken cancellationToken)
@@ -561,35 +508,6 @@ internal partial class SerializerService
         }
     }
 
-    private sealed class PinnedObject : IDisposable
-    {
-        // shouldn't be read-only since GCHandle is a mutable struct
-        private GCHandle _gcHandle;
-
-        public PinnedObject(byte[] array)
-            => _gcHandle = GCHandle.Alloc(array, GCHandleType.Pinned);
-
-        internal IntPtr GetPointer()
-            => _gcHandle.AddrOfPinnedObject();
-
-        private void OnDispose()
-        {
-            if (_gcHandle.IsAllocated)
-            {
-                _gcHandle.Free();
-            }
-        }
-
-        ~PinnedObject()
-            => OnDispose();
-
-        public void Dispose()
-        {
-            GC.SuppressFinalize(this);
-            OnDispose();
-        }
-    }
-
     private sealed class MissingMetadataReference : PortableExecutableReference
     {
         private readonly DocumentationProvider _provider;
@@ -623,37 +541,15 @@ internal partial class SerializerService
             => new MissingMetadataReference(properties, FilePath, _provider);
     }
 
-    [DebuggerDisplay("{" + nameof(Display) + ",nq}")]
-    private sealed class SerializedMetadataReference : PortableExecutableReference, ISupportTemporaryStorage
+    public static class TestAccessor
     {
-        private readonly Metadata _metadata;
-        private readonly ImmutableArray<ITemporaryStreamStorageInternal> _storagesOpt;
-        private readonly DocumentationProvider _provider;
-
-        public SerializedMetadataReference(
-            MetadataReferenceProperties properties, string? fullPath,
-            Metadata metadata, ImmutableArray<ITemporaryStreamStorageInternal> storagesOpt, DocumentationProvider initialDocumentation)
-            : base(properties, fullPath, initialDocumentation)
+        public static void AddAnalyzerImageReference(AnalyzerImageReference analyzerImageReference)
         {
-            _metadata = metadata;
-            _storagesOpt = storagesOpt;
-
-            _provider = initialDocumentation;
+            lock (s_analyzerImageReferenceMapGate)
+            {
+                if (!s_analyzerImageReferenceMap.ContainsKey(analyzerImageReference))
+                    s_analyzerImageReferenceMap = s_analyzerImageReferenceMap.Add(analyzerImageReference, Guid.NewGuid());
+            }
         }
-
-        protected override DocumentationProvider CreateDocumentationProvider()
-        {
-            // this uses documentation provider given at the constructor
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        protected override Metadata GetMetadataImpl()
-            => _metadata;
-
-        protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            => new SerializedMetadataReference(properties, FilePath, _metadata, _storagesOpt, _provider);
-
-        public IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages()
-            => _storagesOpt.IsDefault ? null : _storagesOpt;
     }
 }
