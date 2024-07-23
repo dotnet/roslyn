@@ -1150,7 +1150,10 @@ public partial class Solution
             throw new ArgumentNullException(nameof(name));
         }
 
-        return WithCompilationState(_compilationState.WithDocumentName(documentId, name));
+        return WithCompilationState(_compilationState.WithDocumentAttributes(
+            documentId,
+            name,
+            static (attributes, value) => attributes.With(name: value)));
     }
 
     /// <summary>
@@ -1163,7 +1166,10 @@ public partial class Solution
 
         var collection = PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders));
 
-        return WithCompilationState(_compilationState.WithDocumentFolders(documentId, collection));
+        return WithCompilationState(_compilationState.WithDocumentAttributes(
+            documentId,
+            collection,
+            static (attributes, value) => attributes.With(folders: value)));
     }
 
     /// <summary>
@@ -1172,7 +1178,11 @@ public partial class Solution
     public Solution WithDocumentFilePath(DocumentId documentId, string? filePath)
     {
         CheckContainsDocument(documentId);
-        return WithCompilationState(_compilationState.WithDocumentFilePath(documentId, filePath));
+
+        return WithCompilationState(_compilationState.WithDocumentAttributes(
+            documentId,
+            filePath,
+            static (attributes, value) => attributes.With(filePath: value)));
     }
 
     /// <summary>
