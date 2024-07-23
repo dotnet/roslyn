@@ -414,8 +414,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             SyntaxKind parentKind)
         {
             ParseNamespaceBodyWorker(
-                ref openBraceOrSemicolon, ref body, ref initialBadNodes, parentKind, out var sawTypeOnlyMemberDeclaration);
-            if (!sawTypeOnlyMemberDeclaration)
+                ref openBraceOrSemicolon, ref body, ref initialBadNodes, parentKind, out var sawMemberDeclarationOnlyValidWithinTypeDeclaration);
+            if (!sawMemberDeclarationOnlyValidWithinTypeDeclaration)
                 return;
 
             // If we saw a type-only member declaration (like a method/property/constructor/etc.), then see if they
@@ -443,11 +443,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         finalTypeDeclarationMembers.AddRange(currentTypeDeclaration.Members);
 
                         for (var j = firstSiblingToMoveInclusive; j < lastSiblingToMoveExclusive; j++)
-                            finalTypeDeclarationMembers.Add(body.Members[j]);
+                        {
+                            var currentSibling = body.Members[j];
+                            if (j == firstSiblingToMoveInclusive)
+                            {
+                                // Move the existing close brace token to the first member as a skipped token, with a
+                                // diagnostic saying that it was unexpected.
+
+                            }
+                            else
+                            {
+                                finalTypeDeclarationMembers.Add(currentSibling);
+                            }
+                        }
 
                         var finalTypeDeclaration = MoveMembersAndUpdateCloseBraceToken(
                             currentTypeDeclaration,
-                            addMembers(currentTypeDeclaration.Members, body.Members, firstSiblingToMoveInclusive, lastSiblingToMoveExclusive));
+                            _pool.ToListAndFree(finalTypeDeclarationMembers));
 
                         finalMembers.Add(finalTypeDeclaration);
 
@@ -471,13 +483,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 ref NamespaceBodyBuilder body)
             {
                 if (index < body.Members.Count &&
-                    IsTypeOnlyMemberDeclaration(body.Members[index]))
+                    IsMemberDeclarationOnlyValidWithinTypeDeclaration(body.Members[index]))
                 {
                     var start = index;
                     var end = index + 1;
 
                     while (end < body.Members.Count &&
-                           IsTypeOnlyMemberDeclaration(body.Members[end]))
+                           IsMemberDeclarationOnlyValidWithinTypeDeclaration(body.Members[end]))
                     {
                         end++;
                     }
@@ -489,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private static TypeDeclarationSyntax MoveMembersAndUpdateCloseBraceToken(
+        private TypeDeclarationSyntax MoveMembersAndUpdateCloseBraceToken(
             TypeDeclarationSyntax typeDeclaration,
             SyntaxList<MemberDeclarationSyntax> newMembers)
         {
@@ -516,7 +528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             };
         }
 
-        private static bool IsTypeOnlyMemberDeclaration(MemberDeclarationSyntax memberDeclaration)
+        private static bool IsMemberDeclarationOnlyValidWithinTypeDeclaration(MemberDeclarationSyntax memberDeclaration)
         {
             return memberDeclaration.Kind
                 is SyntaxKind.ConstructorDeclaration
@@ -534,7 +546,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             ref NamespaceBodyBuilder body,
             ref SyntaxListBuilder? initialBadNodes,
             SyntaxKind parentKind,
-            out bool sawTypeOnlyMemberDeclaration)
+            out bool sawMemberDeclarationOnlyValidWithinTypeDeclaration)
         {
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
@@ -547,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var pendingIncompleteMembers = _pool.Allocate<MemberDeclarationSyntax>();
             bool reportUnexpectedToken = true;
 
-            sawTypeOnlyMemberDeclaration = false;
+            sawMemberDeclarationOnlyValidWithinTypeDeclaration = false;
 
             try
             {
@@ -690,7 +702,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 ? this.ParseMemberDeclarationOrStatement(parentKind)
                                 : this.ParseMemberDeclaration(parentKind);
 
-                            sawTypeOnlyMemberDeclaration |= IsTypeOnlyMemberDeclaration(memberOrStatement);
+                            sawMemberDeclarationOnlyValidWithinTypeDeclaration |= IsMemberDeclarationOnlyValidWithinTypeDeclaration(memberOrStatement);
                             if (memberOrStatement == null)
                             {
                                 // incomplete members must be processed before we add any nodes to the body:
