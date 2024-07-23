@@ -3777,7 +3777,8 @@ parse_member_name:;
             // We can get here after seeing `explicit` or `implicit` or `operator`.  `ret-type explicit op ...` is not
             // legal though.
             var firstToken = this.CurrentToken;
-            if (firstToken.Kind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword)
+            if (firstToken.Kind is SyntaxKind.ExplicitKeyword or SyntaxKind.ImplicitKeyword &&
+                this.PeekToken(1).Kind is SyntaxKind.OperatorKeyword)
             {
                 var conversionOperator = TryParseConversionOperatorDeclaration(attributes, modifiers);
                 if (conversionOperator is not null)

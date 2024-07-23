@@ -7270,6 +7270,7 @@ class C { }
 
             SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(text);
             Assert.Equal(text, syntaxTree.GetCompilationUnitRoot().ToFullString());
+            UsingTree(text);
 
             // 9553: Several of the locations were incorrect and one was negative
             Assert.True(syntaxTree.GetDiagnostics().Select(d => ((IFormattable)d).ToString(null, EnsureEnglishUICulture.PreferredOrNull)).SequenceEqual(new[]
