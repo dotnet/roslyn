@@ -344,6 +344,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 hasErrors = true;
                             }
                         }
+                        else if (IsInstanceExtensionUnsupportedForDelegateCreation(method))
+                        {
+                            // Extension method '{0}' defined on value type '{1}' cannot be used to create delegates
+                            diagnostics.Add(
+                                ErrorCode.ERR_ValueTypeExtDelegate,
+                                expr.Syntax.Location,
+                                method,
+                                method.ContainingSymbol.OriginalDefinition); // PROTOTYPE(roles): Refine the message? 
+                            hasErrors = true;
+                        }
                         else if (method.ContainingType.IsNullableType() && !method.IsOverride)
                         {
                             // CS1728: Cannot bind delegate to '{0}' because it is a member of 'System.Nullable<T>'
@@ -376,6 +386,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             resolution.Free();
             return hasErrors;
+        }
+
+        private static bool IsInstanceExtensionUnsupportedForDelegateCreation(MethodSymbol method)
+        {
+            return !method.IsStatic && method.ContainingSymbol.OriginalDefinition is NamedTypeSymbol container &&
+                   container.GetExtendedTypeNoUseSiteDiagnostics(null)?.IsReferenceType == false;
         }
 
         public Conversion MethodGroupConversion(SyntaxNode syntax, MethodGroup methodGroup, NamedTypeSymbol delegateType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
@@ -454,7 +470,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol method = result.BestResult.Member;
 
-            if (methodGroup.IsExtensionMethodGroup && !method.Parameters[0].Type.IsReferenceType)
+            if ((methodGroup.IsExtensionMethodGroup && !method.Parameters[0].Type.IsReferenceType) ||
+                IsInstanceExtensionUnsupportedForDelegateCreation(method))
             {
                 return Conversion.NoConversion;
             }

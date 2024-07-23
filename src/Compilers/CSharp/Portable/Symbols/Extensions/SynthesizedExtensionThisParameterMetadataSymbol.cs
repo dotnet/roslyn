@@ -44,8 +44,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return RefKind.None;
                 }
 
-                // PROTOTYPE(roles): State machine operates on a copy of a struct type, therefore capturing that
-                //                   parameter by value for 'async'/iterator methods should probably work.
+                // Regular 'async'/iterator methods are not allowed to have 'ref' parameters,
+                // because a 'ref' parameter cannot be captured in a state machine by reference.
+                // However, we do not need to capture this parameter by reference because 
+                // state machines for regular struct methods operate on a copy of a struct type.
+                // Therefore, capturing this parameter by value for 'async'/iterator methods
+                // will result in a consistent behavior.
                 return RefKind.Ref;
             }
         }
