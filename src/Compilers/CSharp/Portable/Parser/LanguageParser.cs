@@ -442,10 +442,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         var finalTypeDeclarationMembers = _pool.Allocate<MemberDeclarationSyntax>();
                         finalTypeDeclarationMembers.AddRange(currentTypeDeclaration.Members);
 
-                        for (var j = firstSiblingToMoveInclusive; j < lastSiblingToMoveExclusive; j++)
+                        for (var memberToMoveIndex = firstSiblingToMoveInclusive; memberToMoveIndex < lastSiblingToMoveExclusive; memberToMoveIndex++)
                         {
-                            var currentSibling = body.Members[j];
-                            if (j == firstSiblingToMoveInclusive)
+                            var currentSibling = body.Members[memberToMoveIndex];
+                            if (memberToMoveIndex == firstSiblingToMoveInclusive)
                             {
                                 // Move the existing close brace token to the first member as a skipped token, with a
                                 // diagnostic saying that it was unexpected.
@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 int typeDeclarationIndex,
                 ref NamespaceBodyBuilder body)
             {
-                var startInclusive = typeDeclarationIndex = 1;
+                var startInclusive = typeDeclarationIndex + 1;
                 if (startInclusive < body.Members.Count &&
                     IsMemberDeclarationOnlyValidWithinTypeDeclaration(body.Members[startInclusive]))
                 {

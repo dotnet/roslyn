@@ -10688,9 +10688,9 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS1022: Type or namespace definition, or end-of-file expected
+                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 //     }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(5, 5),
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
                 // (12,26): error CS1513: } expected
                 //     public int Prop => 0;
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 26));
@@ -10807,18 +10807,18 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS1022: Type or namespace definition, or end-of-file expected
+                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 //     }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(5, 5),
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
                 // (12,26): error CS1513: } expected
                 //     public int Prop => 0;
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 26),
-                // (17,5): error CS1022: Type or namespace definition, or end-of-file expected
+                // (17,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 //     }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(17, 5),
-                // (21,23): error CS1513: } expected
-                //     private int field;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(21, 23));
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(17, 5),
+                // (22,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(22, 2));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -10920,9 +10920,9 @@ public class Class
                             }
                             N(SyntaxKind.SemicolonToken);
                         }
-                        M(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
-                    N(SyntaxKind.CloseBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -10966,18 +10966,18 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (8,5): error CS1022: Type or namespace definition, or end-of-file expected
+                // (8,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 //     }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 5),
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(8, 5),
                 // (15,26): error CS1513: } expected
                 //     public int Prop => 0;
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(15, 26),
-                // (20,5): error CS1022: Type or namespace definition, or end-of-file expected
+                // (20,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 //     }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(20, 5),
-                // (24,23): error CS1513: } expected
-                //     private int field;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(24, 23));
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(20, 5),
+                // (25,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(25, 2));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -11095,9 +11095,9 @@ public class Class
                             }
                             N(SyntaxKind.SemicolonToken);
                         }
-                        M(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
-                    N(SyntaxKind.CloseBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -11140,15 +11140,15 @@ public class Class
                 private int field;
                 """;
             UsingTree(text,
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // (8,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(8, 1),
                 // (16,1): error CS1513: } expected
                 // 
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(16, 1),
-                // (20,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // (20,1): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(20, 1),
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(20, 1),
                 // (24,19): error CS1513: } expected
                 // private int field;
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(24, 19));
@@ -11311,8 +11311,98 @@ public class Class
                     }
                 }
                 """;
-            UsingTree(text);
+            UsingTree(text,
+                // (7,9): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //         }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(7, 9),
+                // (15,10): error CS1513: } expected
+                //         }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(15, 10),
+                // (18,25): error CS1002: ; expected
+                //         private void N()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(18, 25),
+                // (22,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(22, 5),
+                // (23,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(23, 1));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N1");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.NamespaceDeclaration);
+                    {
+                        N(SyntaxKind.NamespaceKeyword);
+                        N(SyntaxKind.IdentifierName);
+                        {
+                            N(SyntaxKind.IdentifierToken, "N2");
+                        }
+                        N(SyntaxKind.OpenBraceToken);
+                        N(typeSyntaxKind);
+                        {
+                            N(keywordKind);
+
+                            if (text.Contains("record struct"))
+                            {
+                                N(SyntaxKind.StructKeyword);
+                            }
+                            else if (text.Contains("record class"))
+                            {
+                                N(SyntaxKind.ClassKeyword);
+                            }
+
+                            N(SyntaxKind.IdentifierToken, "Type");
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.MethodDeclaration);
+                            {
+                                N(SyntaxKind.PrivateKeyword);
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.VoidKeyword);
+                                }
+                                N(SyntaxKind.IdentifierToken, "M");
+                                N(SyntaxKind.ParameterList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
+                                }
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "N");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        M(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
