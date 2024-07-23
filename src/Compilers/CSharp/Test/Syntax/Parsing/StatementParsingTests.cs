@@ -3585,7 +3585,6 @@ System.Console.WriteLine(true)";
                 M(SyntaxKind.CloseBraceToken);
             }
             EOF();
-            EOF();
         }
 
         [WorkItem(27866, "https://github.com/dotnet/roslyn/issues/27866")]
