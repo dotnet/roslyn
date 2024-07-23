@@ -11600,7 +11600,7 @@ public class Class
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
         [InlineData("")]
         [InlineData("// Errant close curly")]
-        public void ExtraCloseCurly9(string closeCurlyTrailingTrivia)
+        public void ExtraCloseCurly_AllTypeDeclarationOnlyMembers(string closeCurlyTrailingTrivia)
         {
             // Test all the different type-only member forms.
             var text = $$"""
@@ -11881,6 +11881,32 @@ public class Class
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("")]
+        [InlineData("#if true")]
+        [InlineData("// comment")]
+        [InlineData("/// <summary></summary>")]
+        public void ExtraCloseCurly_LeadingTriviaCases(string closeCurlyLeadingTrivia)
+        {
+            // Test all the different type-only member forms.
+            var text = $$"""
+                namespace N
+                {
+                    class Type
+                    {
+                        {{closeCurlyLeadingTrivia}}
+                        }
+
+                        private Constructor() { }
+                    }
+                }
+                """;
+            UsingTree(text,
+                // (6,9): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //         }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(6, 9));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
