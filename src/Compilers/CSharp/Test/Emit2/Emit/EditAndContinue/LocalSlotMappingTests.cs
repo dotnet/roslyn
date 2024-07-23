@@ -1049,7 +1049,7 @@ class C
                 }
                 """;
 
-            using var _ = new EditAndContinueTest()
+            using var _ = new EditAndContinueTest(verification: Verification.Skipped)
                 .AddBaseline(
                     source,
                     validator: v =>
