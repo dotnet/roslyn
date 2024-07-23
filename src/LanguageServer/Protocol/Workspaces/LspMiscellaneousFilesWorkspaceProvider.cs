@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 [ExportCSharpVisualBasicStatelessLspService(typeof(LspMiscellaneousFilesWorkspaceProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal class LspMiscellaneousFilesWorkspaceProvider(IMetadataAsSourceFileService metadataAsSourceFileService) : ILspService
+internal sealed class LspMiscellaneousFilesWorkspaceProvider(IMetadataAsSourceFileService metadataAsSourceFileService) : ILspService
 {
     public LspMiscellaneousFilesWorkspace CreateLspMiscellaneousFilesWorkspace(ILspServices lspServices, HostServices hostServices)
     {

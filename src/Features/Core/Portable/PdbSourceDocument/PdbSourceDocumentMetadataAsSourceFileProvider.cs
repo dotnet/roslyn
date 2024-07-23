@@ -45,6 +45,11 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
     private readonly IPdbSourceDocumentLogger? _logger = logger;
 
     /// <summary>
+    /// Lock to guard access to workspace updates when opening / closing documents.
+    /// </summary>
+    private readonly object _gate = new();
+
+    /// <summary>
     /// Accessed only in <see cref="GetGeneratedFileAsync"/> and <see cref="CleanupGeneratedFiles"/>, both of which
     /// are called under a lock in <see cref="MetadataAsSourceFileService"/>.  So this is safe as a plain
     /// dictionary.
@@ -343,43 +348,39 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
         return documents.ToImmutableAndClear();
     }
 
-    private static void AssertIsMainThread(MetadataAsSourceWorkspace workspace)
-    {
-        Contract.ThrowIfNull(workspace);
-        var threadingService = workspace.Services.GetRequiredService<IWorkspaceThreadingServiceProvider>().Service;
-        Contract.ThrowIfFalse(threadingService.IsOnMainThread);
-    }
-
     public bool ShouldCollapseOnOpen(MetadataAsSourceWorkspace workspace, string filePath, BlockStructureOptions blockStructureOptions)
     {
-        AssertIsMainThread(workspace);
         return _fileToDocumentInfoMap.TryGetValue(filePath, out _) && blockStructureOptions.CollapseMetadataImplementationsWhenFirstOpened;
     }
 
     public bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, SourceTextContainer sourceTextContainer, [NotNullWhen(true)] out DocumentId? documentId)
     {
-        // Serial access is guaranteed by the caller.
-        if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
+        lock (_gate)
         {
-            workspace.OnDocumentOpened(info.DocumentId, sourceTextContainer);
-            documentId = info.DocumentId;
-            return true;
-        }
+            if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
+            {
+                workspace.OnDocumentOpened(info.DocumentId, sourceTextContainer);
+                documentId = info.DocumentId;
+                return true;
+            }
 
-        documentId = null;
-        return false;
+            documentId = null;
+            return false;
+        }
     }
 
     public bool TryRemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, string filePath)
     {
-        // Serial access is guaranteed by the caller.
-        if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
+        lock (_gate)
         {
-            workspace.OnDocumentClosed(info.DocumentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, filePath, info.Encoding));
-            return true;
-        }
+            if (_fileToDocumentInfoMap.TryGetValue(filePath, out var info))
+            {
+                workspace.OnDocumentClosed(info.DocumentId, new WorkspaceFileTextLoader(workspace.Services.SolutionServices, filePath, info.Encoding));
+                return true;
+            }
 
-        return false;
+            return false;
+        }
     }
 
     public Project? MapDocument(Document document)

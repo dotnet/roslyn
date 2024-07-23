@@ -15,7 +15,7 @@ using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Metadata;
 
-public class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerProtocolTests
+public sealed class LspMetadataAsSourceWorkspaceTests : AbstractLanguageServerProtocolTests
 {
     public LspMetadataAsSourceWorkspaceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
     {

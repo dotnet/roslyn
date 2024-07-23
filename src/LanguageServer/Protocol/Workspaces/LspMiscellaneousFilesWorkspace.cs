@@ -74,10 +74,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         /// Calls to this method and <see cref="AddMiscellaneousDocument(Uri, SourceText, string, ILspLogger)"/> are made
         /// from LSP text sync request handling which do not run concurrently.
         /// </summary>
-        public void TryRemoveMiscellaneousDocument(Uri uri, bool removeFromMetadata)
+        public void TryRemoveMiscellaneousDocument(Uri uri, bool removeFromMetadataWorkspace)
         {
             var documentFilePath = ProtocolConversions.GetDocumentFilePathFromUri(uri);
-            if (removeFromMetadata && metadataAsSourceFileService.TryRemoveDocumentFromWorkspace(documentFilePath))
+            if (removeFromMetadataWorkspace && metadataAsSourceFileService.TryRemoveDocumentFromWorkspace(documentFilePath))
             {
                 return;
             }

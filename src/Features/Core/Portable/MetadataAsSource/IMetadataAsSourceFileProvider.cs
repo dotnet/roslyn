@@ -36,16 +36,12 @@ internal interface IMetadataAsSourceFileProvider
     /// <summary>
     /// Called when the file returned from <see cref="GetGeneratedFileAsync"/> needs to be added to the workspace,
     /// to be opened.  Will be called on the main thread of the workspace host.
-    /// 
-    /// Callers of this must guarantee serial access.
     /// </summary>
     bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, SourceTextContainer sourceTextContainer, [NotNullWhen(true)] out DocumentId? documentId);
 
     /// <summary>
     /// Called when the file is being closed, and so needs to be removed from the workspace.  Will be called on the
     /// main thread of the workspace host.
-    /// 
-    /// Callers of this must guarantee serial access.
     /// </summary>
     bool TryRemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, string filePath);
 
