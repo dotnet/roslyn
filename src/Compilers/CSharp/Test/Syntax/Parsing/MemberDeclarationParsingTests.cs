@@ -11611,6 +11611,7 @@ public class Class
                         } {{closeCurlyTrailingTrivia}}
 
                         private Constructor() { }
+                        ~Destructor() { }
                         private static implicit operator int(Type t) => 0;
                         event Action E1 { add { } remove { } }
                         event Action E2, E3;

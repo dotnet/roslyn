@@ -549,6 +549,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return memberDeclaration?.Kind
                 is SyntaxKind.ConstructorDeclaration
                 or SyntaxKind.ConversionOperatorDeclaration
+                or SyntaxKind.DestructorDeclaration
                 or SyntaxKind.EventDeclaration
                 or SyntaxKind.EventFieldDeclaration
                 or SyntaxKind.FieldDeclaration
