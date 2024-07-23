@@ -2880,6 +2880,9 @@ class A
                 // (6,17): error CS1026: ) expected
                 //         return 0;
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(6, 17),
+                // (7,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(7, 5),
                 // (8,30): error CS1037: Overloadable operator expected
                 //     public static A operator ()
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(8, 30),
@@ -2888,8 +2891,10 @@ class A
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(8, 31),
                 // (12,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 1)
-                );
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 1),
+                // (12,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 2));
         }
 
         [Fact]
@@ -2944,6 +2949,9 @@ class A
                 // (6,17): error CS1026: ) expected
                 //         return 0;
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(6, 17),
+                // (7,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(7, 5),
                 // (8,30): error CS1037: Overloadable operator expected
                 //     public static A operator ()
                 Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "(").WithLocation(8, 30),
@@ -2952,7 +2960,10 @@ class A
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("(").WithLocation(8, 31),
                 // (12,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 1));
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(12, 1),
+                // (12,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 2));
 
             ParseAndValidate(test, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6),
                 // (4,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
