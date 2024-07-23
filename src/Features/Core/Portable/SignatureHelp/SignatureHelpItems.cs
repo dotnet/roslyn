@@ -61,7 +61,7 @@ internal class SignatureHelpItems
     public SignatureHelpItems(
         IList<SignatureHelpItem> items,
         TextSpan applicableSpan,
-        int semanticArgumentIndex,
+        int semanticParameterIndex,
         int syntacticArgumentCount,
         string? argumentName,
         int? selectedItem = null)
@@ -70,8 +70,8 @@ internal class SignatureHelpItems
         Contract.ThrowIfTrue(items.IsEmpty());
         Contract.ThrowIfTrue(selectedItem.HasValue && selectedItem.Value >= items.Count);
 
-        if (semanticArgumentIndex < 0)
-            throw new ArgumentException($"{nameof(semanticArgumentIndex)} < 0. {semanticArgumentIndex} < 0", nameof(semanticArgumentIndex));
+        if (semanticParameterIndex < 0)
+            throw new ArgumentException($"{nameof(semanticParameterIndex)} < 0. {semanticParameterIndex} < 0", nameof(semanticParameterIndex));
 
         // Adjust the `selectedItem` index if duplicates are able to be removed.
         var distinctItems = items.Distinct().ToList();
@@ -93,7 +93,7 @@ internal class SignatureHelpItems
 
         Items = distinctItems;
         ApplicableSpan = applicableSpan;
-        SemanticParameterIndex = semanticArgumentIndex;
+        SemanticParameterIndex = semanticParameterIndex;
         SyntacticArgumentCount = syntacticArgumentCount;
         SelectedItemIndex = selectedItem;
         ArgumentName = argumentName;
