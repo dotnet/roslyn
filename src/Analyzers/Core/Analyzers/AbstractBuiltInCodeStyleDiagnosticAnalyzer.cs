@@ -117,7 +117,4 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer
         => IDEDiagnosticIdToOptionMappingHelper.AddOptionMapping(diagnosticId, options);
 
     public abstract DiagnosticAnalyzerCategory GetAnalyzerCategory();
-
-    public virtual bool OpenFileOnly(SimplifierOptions? options)
-        => false;
 }

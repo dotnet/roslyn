@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                     name: "project",
                     assemblyName: "project",
                     language: LanguageName,
-                    compilationOutputFilePaths: default,
+                    compilationOutputInfo: default,
                     filePath: Path.Combine(TempRoot.Root, "project" + ProjectFileExtension),
                     checksumAlgorithm: SourceHashAlgorithms.Default));
 

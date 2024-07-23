@@ -155,7 +155,6 @@ End Class
                 Dim handler = New EncapsulateFieldCommandHandler(
                     workspace.GetService(Of IThreadingContext),
                     workspace.GetService(Of ITextBufferUndoManagerProvider),
-                    workspace.GlobalOptions,
                     workspace.GetService(Of IAsynchronousOperationListenerProvider)())
 
                 Dim state = handler.GetCommandState(New EncapsulateFieldCommandArgs(textView, textView.TextBuffer))

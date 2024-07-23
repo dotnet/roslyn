@@ -9,7 +9,6 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.CSharp.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CSharpCodeFixOptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ArgumentGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\AttributeGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ConstructorGenerator.cs" />
@@ -87,6 +86,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NullableHelpers\NullableExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SyntaxKindSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\NullableHelpers\NullableHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\CSharpSyntaxFormattingOptionsProviders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\CSharpSimplifierOptionsProviders.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CSharpWorkspaceExtensionsResources.resx" GenerateSource="true" Link="CSharpWorkspaceExtensionsResources.resx" />

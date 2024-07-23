@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -25,16 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
         End Function
 
         Protected Overrides ReadOnly Property CanImplementImplicitly As Boolean
-            Get
-                Return False
-            End Get
-        End Property
-
         Protected Overrides ReadOnly Property HasHiddenExplicitImplementation As Boolean
-            Get
-                Return False
-            End Get
-        End Property
 
         Protected Overrides Function AllowDelegateAndEnumConstraints(options As ParseOptions) As Boolean
             Return False
@@ -42,7 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
         Protected Overrides Function TryInitializeState(
                 document As Document, model As SemanticModel, node As SyntaxNode, cancellationToken As CancellationToken,
-                ByRef classOrStructDecl As SyntaxNode, ByRef classOrStructType As INamedTypeSymbol, ByRef interfaceTypes As IEnumerable(Of INamedTypeSymbol)) As Boolean
+                ByRef classOrStructDecl As SyntaxNode, ByRef classOrStructType As INamedTypeSymbol,
+                ByRef interfaceTypes As ImmutableArray(Of INamedTypeSymbol)) As Boolean
             If cancellationToken.IsCancellationRequested Then
                 Return False
             End If
@@ -63,13 +56,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
                implementsStatement.IsParentKind(SyntaxKind.StructureBlock) Then
 
                 If interfaceNode IsNot Nothing Then
-                    interfaceTypes = {GetInterfaceType(model, interfaceNode, cancellationToken)}
+                    interfaceTypes = ImmutableArray.Create(GetInterfaceType(model, interfaceNode, cancellationToken))
                 Else
-                    interfaceTypes = implementsStatement.Types.Select(
+                    interfaceTypes = implementsStatement.Types.SelectAsArray(
                         Function(t) GetInterfaceType(model, t, cancellationToken))
                 End If
 
-                interfaceTypes = interfaceTypes.WhereNotNull().Where(Function(t) t.TypeKind = TypeKind.Interface).ToList()
+                interfaceTypes = interfaceTypes.WhereNotNull().Where(Function(t) t.TypeKind = TypeKind.Interface).ToImmutableArray()
                 If interfaceTypes.Any() Then
                     cancellationToken.ThrowIfCancellationRequested()
 

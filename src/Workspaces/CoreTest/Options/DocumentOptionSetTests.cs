@@ -22,8 +22,9 @@ public sealed class DocumentOptionSetTests
             new OptionKey(CodeStyleOptions2.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, LanguageNames.CSharp),
             new CodeStyleOption2<bool>(true, NotificationOption2.Error)));
 
-        var configOptions = StructuredAnalyzerConfigOptions.Create(ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer).Add(
-            "dotnet_style_qualification_for_event", "true:warning"));
+        var configOptions = StructuredAnalyzerConfigOptions.Create(
+            new DictionaryAnalyzerConfigOptions(ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer).Add(
+                "dotnet_style_qualification_for_event", "true:warning")));
 
         var set = new DocumentOptionSet(configOptions, underlyingSet, LanguageNames.CSharp);
 
@@ -123,8 +124,9 @@ public sealed class DocumentOptionSetTests
             .Add(new OptionKey(CSharpFormattingOptions.NewLinesForBracesInAccessors), true)
             .Add(new OptionKey(CSharpFormattingOptions.NewLinesForBracesInAnonymousMethods), false));
 
-        var configOptions = StructuredAnalyzerConfigOptions.Create(ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer).Add(
-            "csharp_new_line_before_open_brace", "types,methods"));
+        var configOptions = StructuredAnalyzerConfigOptions.Create(new DictionaryAnalyzerConfigOptions(
+            ImmutableDictionary.Create<string, string>(AnalyzerConfigOptions.KeyComparer).Add(
+                "csharp_new_line_before_open_brace", "types,methods")));
 
         var set = new DocumentOptionSet(configOptions, underlyingSet, LanguageNames.CSharp);
 

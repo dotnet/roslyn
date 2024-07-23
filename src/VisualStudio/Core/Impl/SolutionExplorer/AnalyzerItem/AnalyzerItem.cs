@@ -9,83 +9,42 @@ using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
+
+internal partial class AnalyzerItem(
+    AnalyzersFolderItem analyzersFolder,
+    AnalyzerReference analyzerReference,
+    IContextMenuController contextMenuController) : BaseItem(GetNameText(analyzerReference))
 {
-    internal partial class AnalyzerItem : BaseItem
+    public AnalyzersFolderItem AnalyzersFolder { get; } = analyzersFolder;
+    public AnalyzerReference AnalyzerReference { get; } = analyzerReference;
+    public override IContextMenuController ContextMenuController { get; } = contextMenuController;
+
+    public override ImageMoniker IconMoniker => KnownMonikers.CodeInformation;
+
+    public override ImageMoniker OverlayIconMoniker
+        => this.AnalyzerReference is UnresolvedAnalyzerReference
+            ? KnownMonikers.OverlayWarning
+            : default;
+
+    public override object GetBrowseObject()
+        => new BrowseObject(this);
+
+    /// <summary>
+    /// Remove this AnalyzerItem from it's folder.
+    /// </summary>
+    public void Remove()
+        => this.AnalyzersFolder.RemoveAnalyzer(this.AnalyzerReference.FullPath);
+
+    private static string GetNameText(AnalyzerReference analyzerReference)
     {
-        private readonly AnalyzersFolderItem _analyzersFolder;
-        private readonly AnalyzerReference _analyzerReference;
-        private readonly IContextMenuController _contextMenuController;
-
-        public AnalyzerItem(AnalyzersFolderItem analyzersFolder, AnalyzerReference analyzerReference, IContextMenuController contextMenuController)
-            : base(GetNameText(analyzerReference))
+        if (analyzerReference is UnresolvedAnalyzerReference)
         {
-            _analyzersFolder = analyzersFolder;
-            _analyzerReference = analyzerReference;
-            _contextMenuController = contextMenuController;
+            return analyzerReference.FullPath;
         }
-
-        public override ImageMoniker IconMoniker
+        else
         {
-            get
-            {
-                return KnownMonikers.CodeInformation;
-            }
-        }
-
-        public override ImageMoniker OverlayIconMoniker
-        {
-            get
-            {
-                if (_analyzerReference is UnresolvedAnalyzerReference)
-                {
-                    return KnownMonikers.OverlayWarning;
-                }
-                else
-                {
-                    return default;
-                }
-            }
-        }
-
-        public override object GetBrowseObject()
-        {
-            return new BrowseObject(this);
-        }
-
-        public AnalyzerReference AnalyzerReference
-        {
-            get { return _analyzerReference; }
-        }
-
-        public override IContextMenuController ContextMenuController
-        {
-            get { return _contextMenuController; }
-        }
-
-        public AnalyzersFolderItem AnalyzersFolder
-        {
-            get { return _analyzersFolder; }
-        }
-
-        /// <summary>
-        /// Remove this AnalyzerItem from it's folder.
-        /// </summary>
-        public void Remove()
-        {
-            _analyzersFolder.RemoveAnalyzer(_analyzerReference.FullPath);
-        }
-
-        private static string GetNameText(AnalyzerReference analyzerReference)
-        {
-            if (analyzerReference is UnresolvedAnalyzerReference)
-            {
-                return analyzerReference.FullPath;
-            }
-            else
-            {
-                return analyzerReference.Display;
-            }
+            return analyzerReference.Display;
         }
     }
 }

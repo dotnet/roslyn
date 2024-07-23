@@ -24,9 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.InlineRename;
 [ExportLanguageService(typeof(IEditorInlineRenameService), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpEditorInlineRenameService(
-    [ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices,
-    IGlobalOptionService globalOptions) : AbstractEditorInlineRenameService(refactorNotifyServices, globalOptions)
+internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<IRefactorNotifyService> refactorNotifyServices)
+    : AbstractEditorInlineRenameService(refactorNotifyServices)
 {
     private const int NumberOfContextLines = 20;
     private const int MaxDefinitionCount = 10;

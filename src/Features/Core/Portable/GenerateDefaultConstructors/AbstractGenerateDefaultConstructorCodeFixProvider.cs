@@ -36,7 +36,7 @@ internal abstract class AbstractGenerateDefaultConstructorCodeFixProvider : Code
 
         var service = document.GetRequiredLanguageService<IGenerateDefaultConstructorsService>();
         var actions = await service.GenerateDefaultConstructorsAsync(
-            document, new TextSpan(typeName.Value.Span.Start, 0), context.Options, forRefactoring: false, cancellationToken).ConfigureAwait(false);
+            document, new TextSpan(typeName.Value.Span.Start, 0), forRefactoring: false, cancellationToken).ConfigureAwait(false);
         context.RegisterFixes(actions, diagnostic);
     }
 }

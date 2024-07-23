@@ -95,7 +95,7 @@ internal abstract class AbstractCSharpTypeSnippetProvider<TTypeDeclarationSyntax
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions: null, cancellationToken).ConfigureAwait(false);
+        var syntaxFormattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var indentationString = CSharpSnippetHelpers.GetBlockLikeIndentationString(document, typeDeclaration.OpenBraceToken.SpanStart, syntaxFormattingOptions, cancellationToken);
 
         var newTypeDeclaration = typeDeclaration.WithCloseBraceToken(

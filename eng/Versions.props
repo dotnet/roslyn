@@ -6,9 +6,9 @@
   -->
   <PropertyGroup>
     <MajorVersion>4</MajorVersion>
-    <MinorVersion>11</MinorVersion>
+    <MinorVersion>12</MinorVersion>
     <PatchVersion>0</PatchVersion>
-    <PreReleaseVersionLabel>3</PreReleaseVersionLabel>
+    <PreReleaseVersionLabel>1</PreReleaseVersionLabel>
     <VersionPrefix>$(MajorVersion).$(MinorVersion).$(PatchVersion)</VersionPrefix>
     <!--
       By default the assembly version in official builds is "$(MajorVersion).$(MinorVersion).0.0".
@@ -20,7 +20,7 @@
     Versions managed by Arcade (see Versions.Details.xml)
   -->
   <PropertyGroup>
-    <SystemCommandLineVersion>2.0.0-beta4.24209.3</SystemCommandLineVersion>
+    <SystemCommandLineVersion>2.0.0-beta4.24324.3</SystemCommandLineVersion>
     <SystemCompositionVersion>8.0.0</SystemCompositionVersion>
     <SystemConfigurationConfigurationManagerVersion>8.0.0</SystemConfigurationConfigurationManagerVersion>
     <SystemDiagnosticsEventLogVersion>8.0.0</SystemDiagnosticsEventLogVersion>
@@ -59,7 +59,7 @@
       So it's not affected by our central package management
     -->
     <MicrosoftIdentityClientVersion>4.61.3</MicrosoftIdentityClientVersion>
-    <MicrosoftDevDivOptimizationDataPowerShellVersion>1.0.803</MicrosoftDevDivOptimizationDataPowerShellVersion>
+    <MicrosoftDevDivOptimizationDataPowerShellVersion>1.0.865</MicrosoftDevDivOptimizationDataPowerShellVersion>
     <MicrosoftIdentityModelJsonWebTokensVersion>6.34.0</MicrosoftIdentityModelJsonWebTokensVersion>
     <NewtonsoftJsonVersion>13.0.3</NewtonsoftJsonVersion>
     <SystemIdentityModelTokensJwtVersion>6.34.0</SystemIdentityModelTokensJwtVersion>

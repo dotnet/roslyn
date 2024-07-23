@@ -28,6 +28,7 @@ using Microsoft.VisualStudio.Text.Operations;
 using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
 
@@ -313,9 +314,10 @@ internal partial class AutomaticLineEnderCommandHandler(
         SyntaxNode selectedNode,
         bool addBrace,
         int caretPosition,
+        StructuredAnalyzerConfigOptions fallbackOptions,
         CancellationToken cancellationToken)
     {
-        var formattingOptions = args.SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.LanguageServices, explicitFormat: false);
+        var formattingOptions = args.SubjectBuffer.GetSyntaxFormattingOptions(EditorOptionsService, fallbackOptions, document.LanguageServices, explicitFormat: false);
 
         // Add braces for the selected node
         if (addBrace)

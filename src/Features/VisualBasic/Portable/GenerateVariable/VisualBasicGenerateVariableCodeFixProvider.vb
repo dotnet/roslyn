@@ -35,9 +35,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateVariable
             End Get
         End Property
 
-        Protected Overrides Function GetCodeActionsAsync(document As Document, node As SyntaxNode, fallbackOptions As CleanCodeGenerationOptionsProvider, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CodeAction))
+        Protected Overrides Function GetCodeActionsAsync(document As Document, node As SyntaxNode, cancellationToken As CancellationToken) As Task(Of ImmutableArray(Of CodeAction))
             Dim service = document.GetLanguageService(Of IGenerateVariableService)()
-            Return service.GenerateVariableAsync(document, node, fallbackOptions, cancellationToken)
+            Return service.GenerateVariableAsync(document, node, cancellationToken)
         End Function
 
         Protected Overrides Function IsCandidate(node As SyntaxNode, token As SyntaxToken, diagnostic As Diagnostic) As Boolean

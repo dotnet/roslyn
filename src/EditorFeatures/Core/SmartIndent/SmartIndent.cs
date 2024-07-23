@@ -42,7 +42,7 @@ internal partial class SmartIndent(ITextView textView, EditorOptionsService edit
             if (newService == null)
                 return null;
 
-            var indentationOptions = line.Snapshot.TextBuffer.GetIndentationOptions(_editorOptionsService, document.Project.Services, explicitFormat: false);
+            var indentationOptions = line.Snapshot.TextBuffer.GetIndentationOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), document.Project.Services, explicitFormat: false);
             var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
             var result = newService.GetIndentation(parsedDocument, line.LineNumber, indentationOptions, cancellationToken);
             return result.GetIndentation(_textView, line);

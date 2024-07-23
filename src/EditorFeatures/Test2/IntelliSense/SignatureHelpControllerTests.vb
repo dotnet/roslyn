@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/985007")>
         Public Sub UpKeyShouldNotCrashWhenSessionIsDismissed()
-            Dim options = New SignatureHelpOptions()
+            Dim options = New MemberDisplayOptions()
 
             ' Create a provider that will return an empty state when queried the second time
             Dim slowProvider = New Mock(Of ISignatureHelpProvider)(MockBehavior.Strict)
@@ -108,7 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
         Public Sub DownKeyShouldNotBlockOnModelComputation()
-            Dim options = New SignatureHelpOptions()
+            Dim options = New MemberDisplayOptions()
             Dim mre = New ManualResetEvent(False)
             Dim controller = CreateController(CreateWorkspace(), items:=CreateItems(2), waitForPresentation:=False)
             Dim slowProvider = New Mock(Of ISignatureHelpProvider)(MockBehavior.Strict)
@@ -128,7 +128,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
         Public Sub UpKeyShouldNotBlockOnModelComputation()
-            Dim options = New SignatureHelpOptions()
+            Dim options = New MemberDisplayOptions()
             Dim mre = New ManualResetEvent(False)
             Dim controller = CreateController(CreateWorkspace(), items:=CreateItems(2), waitForPresentation:=False)
             Dim slowProvider = New Mock(Of ISignatureHelpProvider)(MockBehavior.Strict)
@@ -148,7 +148,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         <WpfFact, WorkItem("https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workItems?id=179726&_a=edit")>
         Public Async Function UpKeyShouldBlockOnRecomputationAfterPresentation() As Task
-            Dim options = New SignatureHelpOptions()
+            Dim options = New MemberDisplayOptions()
             Dim workspace = CreateWorkspace()
             Dim threadingContext = workspace.GetService(Of IThreadingContext)()
 
@@ -352,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Public Property GetItemsCount As Integer
 
-            Public Function GetItemsAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As SignatureHelpOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems) Implements ISignatureHelpProvider.GetItemsAsync
+            Public Function GetItemsAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, options As MemberDisplayOptions, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems) Implements ISignatureHelpProvider.GetItemsAsync
                 GetItemsCount += 1
                 Return Task.FromResult(If(_items.Any(),
                                        New SignatureHelpItems(_items, TextSpan.FromBounds(position, position), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing),

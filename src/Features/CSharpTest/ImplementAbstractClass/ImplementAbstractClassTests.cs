@@ -5,7 +5,6 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass;
@@ -1713,7 +1712,7 @@ public partial class ImplementAbstractClassTests(ITestOutputHelper logger) : Abs
 
                 public override int Prop => throw new System.NotImplementedException();
             }
-            """, globalOptions: options);
+            """, options: options);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/17274")]
@@ -1880,7 +1879,7 @@ public partial class ImplementAbstractClassTests(ITestOutputHelper logger) : Abs
         var options = new OptionsCollection(GetLanguage())
         {
             Option(ImplementTypeOptionsStorage.PropertyGenerationBehavior, ImplementTypePropertyGenerationBehavior.PreferAutoProperties),
-            Option(CompletionOptionsStorage.HideAdvancedMembers, true),
+            Option(MemberDisplayOptionsStorage.HideAdvancedMembers, true),
         };
 
         await TestInRegularAndScript1Async(
@@ -1910,7 +1909,7 @@ public partial class ImplementAbstractClassTests(ITestOutputHelper logger) : Abs
                 public override int ReadWriteProp { get; set; }
                 public override int WriteOnlyProp { set => throw new System.NotImplementedException(); }
             }
-            """, parameters: new TestParameters(globalOptions: options));
+            """, parameters: new TestParameters(options: options));
     }
 
     [Theory, CombinatorialData]

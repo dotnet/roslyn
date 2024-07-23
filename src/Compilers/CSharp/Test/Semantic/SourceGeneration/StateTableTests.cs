@@ -1353,8 +1353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests.SourceGeneration
                     previous,
                     SyntaxStore.Empty,
                     driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.None, trackIncrementalGeneratorSteps),
-                    runtime: TimeSpan.Zero,
-                    parseOptionsChanged: false);
+                    runtime: TimeSpan.Zero);
 
             return new DriverStateTable.Builder(c, state, SyntaxStore.Empty.ToBuilder(c, ImmutableArray<SyntaxInputNode>.Empty, trackIncrementalGeneratorSteps, cancellationToken: default));
         }

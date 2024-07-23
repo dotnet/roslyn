@@ -1285,6 +1285,11 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">移动 {0} 要求重启应用程序。</target>
         <note />
       </trans-unit>
+      <trans-unit id="NET_Code_Actions">
+        <source>.NET Code Actions</source>
+        <target state="new">.NET Code Actions</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Name_expected">
         <source>Name expected</source>
         <target state="translated">预期名称</target>
@@ -2720,6 +2725,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">在程序集路径 "{0}" 中找到符号</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_search">
+        <source>Symbol search</source>
+        <target state="new">Symbol search</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbols">
         <source>Symbols</source>
         <target state="translated">符号</target>
@@ -2803,6 +2813,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">不允许使用尾随逗号</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="new">Type members</target>
         <note />
       </trans-unit>
       <trans-unit id="Types_colon">
