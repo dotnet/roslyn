@@ -3790,9 +3790,10 @@ parse_member_name:;
                     return conversionOperator.Update(
                         conversionOperator.AttributeLists,
                         conversionOperator.Modifiers,
-                        conversionOperator.ExplicitInterfaceSpecifier,
                         newImplicitOrExplicitKeyword,
+                        conversionOperator.ExplicitInterfaceSpecifier,
                         conversionOperator.OperatorKeyword,
+                        conversionOperator.CheckedKeyword,
                         conversionOperator.Type,
                         conversionOperator.ParameterList,
                         conversionOperator.Body,
