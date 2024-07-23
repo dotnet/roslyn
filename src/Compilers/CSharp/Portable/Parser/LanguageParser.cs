@@ -526,64 +526,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     : AddError(
                         SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken), ErrorCode.ERR_RbraceExpected);
 
-                // Very unpleasant.  But 
-                return typeDeclaration switch
-                {
-                    ClassDeclarationSyntax declaration => declaration.Update(
+                return typeDeclaration.UpdateCore(
                         typeDeclaration.AttributeLists,
                         typeDeclaration.Modifiers,
                         typeDeclaration.Keyword,
                         typeDeclaration.Identifier,
-                        typeDeclaration.TypeParameterList!,
-                        typeDeclaration.ParameterList!,
-                        typeDeclaration.BaseList!,
+                        typeDeclaration.TypeParameterList,
+                        typeDeclaration.ParameterList,
+                        typeDeclaration.BaseList,
                         typeDeclaration.ConstraintClauses,
-                        typeDeclaration.OpenBraceToken!,
+                        typeDeclaration.OpenBraceToken,
                         newMembers,
                         finalCloseBraceToken,
-                        typeDeclaration.SemicolonToken!),
-                    InterfaceDeclarationSyntax declaration => declaration.Update(
-                        typeDeclaration.AttributeLists,
-                        typeDeclaration.Modifiers,
-                        typeDeclaration.Keyword,
-                        typeDeclaration.Identifier,
-                        typeDeclaration.TypeParameterList!,
-                        typeDeclaration.ParameterList!,
-                        typeDeclaration.BaseList!,
-                        typeDeclaration.ConstraintClauses,
-                        typeDeclaration.OpenBraceToken!,
-                        newMembers,
-                        finalCloseBraceToken,
-                        typeDeclaration.SemicolonToken!),
-                    RecordDeclarationSyntax declaration => declaration.Update(
-                        typeDeclaration.AttributeLists,
-                        typeDeclaration.Modifiers,
-                        typeDeclaration.Keyword,
-                        declaration.ClassOrStructKeyword!,
-                        typeDeclaration.Identifier,
-                        typeDeclaration.TypeParameterList!,
-                        typeDeclaration.ParameterList!,
-                        typeDeclaration.BaseList!,
-                        typeDeclaration.ConstraintClauses,
-                        typeDeclaration.OpenBraceToken!,
-                        newMembers,
-                        finalCloseBraceToken,
-                        typeDeclaration.SemicolonToken!),
-                    StructDeclarationSyntax declaration => declaration.Update(
-                        typeDeclaration.AttributeLists,
-                        typeDeclaration.Modifiers,
-                        typeDeclaration.Keyword,
-                        typeDeclaration.Identifier,
-                        typeDeclaration.TypeParameterList!,
-                        typeDeclaration.ParameterList!,
-                        typeDeclaration.BaseList!,
-                        typeDeclaration.ConstraintClauses,
-                        typeDeclaration.OpenBraceToken!,
-                        newMembers,
-                        finalCloseBraceToken,
-                        typeDeclaration.SemicolonToken!),
-                    _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.GetType()),
-                };
+                        typeDeclaration.SemicolonToken);
             }
         }
 
