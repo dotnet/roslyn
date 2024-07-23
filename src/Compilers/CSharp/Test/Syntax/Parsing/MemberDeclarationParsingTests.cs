@@ -10479,7 +10479,7 @@ public class Class
         [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
         [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
         [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
-        public void ExtraCloseCurly1(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        public void ExtraCloseCurly_TypeWithSingleInvalidMemberFollowing(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
         {
             var text = $$"""
                 namespace N
@@ -10562,7 +10562,7 @@ public class Class
         [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
         [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
         [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
-        public void ExtraCloseCurly2(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        public void ExtraCloseCurly_TypeWithMultipleInvalidMembersFollowing(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
         {
             var text = $$"""
                 namespace N
@@ -10665,7 +10665,7 @@ public class Class
         [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
         [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
         [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
-        public void ExtraCloseCurly3(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        public void ExtraCloseCurly_TypeWithInvalidMembersFollowing_FollowedByType(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
         {
             var text = $$"""
                 namespace N
@@ -10780,7 +10780,7 @@ public class Class
         [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
         [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
         [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
-        public void ExtraCloseCurly4(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        public void ExtraCloseCurly_MultipleTypesEachWithMultipleInvalidMembersFollowing(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
         {
             var text = $$"""
                 namespace N
@@ -10936,7 +10936,7 @@ public class Class
         [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
         [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
         [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
-        public void ExtraCloseCurly5(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        public void ExtraCloseCurly_InitialInvalidMemberWithoutPrecedingType(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
         {
             var text = $$"""
                 namespace N
@@ -11111,7 +11111,7 @@ public class Class
         [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
         [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
         [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
-        public void ExtraCloseCurly6(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        public void ExtraCloseCurly_FileScopeNamespace(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
         {
             var text = $$"""
                 namespace N;
@@ -11284,7 +11284,7 @@ public class Class
         [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
         [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
         [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
-        public void ExtraCloseCurly7(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        public void ExtraCloseCurly_NestedNamespaces_EachWithInvalidMembers(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
         {
             var text = $$"""
                 namespace N1
@@ -11413,7 +11413,7 @@ public class Class
         [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
         [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
         [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
-        public void ExtraCloseCurly8(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        public void ExtraCloseCurly_Operators(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
         {
             var text = $$"""
                 namespace N
@@ -11600,7 +11600,7 @@ public class Class
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
         [InlineData("")]
         [InlineData("// Errant close curly")]
-        public void ExtraCloseCurly_AllTypeDeclarationOnlyMembers(string closeCurlyTrailingTrivia)
+        public void ExtraCloseCurly_AllTypeDeclarationOnlyMembers_VaryingTrailingTrivia(string closeCurlyTrailingTrivia)
         {
             // Test all the different type-only member forms.
             var text = $$"""
@@ -11940,6 +11940,129 @@ public class Class
                             }
                         }
                         N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        public void ExtraCloseCurly_WithSemicolon()
+        {
+            var text = $$"""
+                namespace N
+                {
+                    class Type
+                    {
+                        };
+
+                        // Will not move into type
+                        private Constructor() { }
+                    }
+                }
+                """;
+            UsingTree(text,
+                    // (10,1): error CS1022: Type or namespace definition, or end-of-file expected
+                    // }
+                    Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.ConstructorDeclaration);
+                    {
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.IdentifierToken, "Constructor");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        public void ExtraCloseCurly_WithExistingSkippedText()
+        {
+            var text = $$"""
+                namespace N
+                {
+                    class Type
+                    {
+                        } \
+
+                        // Will not move into type
+                        private Constructor() { }
+                    }
+                }
+                """;
+            UsingTree(text,
+                // (5,11): error CS1056: Unexpected character '\'
+                //         } \
+                Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "").WithArguments("\\").WithLocation(5, 11),
+                // (10,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1));
+
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ConstructorDeclaration);
+                    {
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.IdentifierToken, "Constructor");
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.CloseBraceToken);
+                        }
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
