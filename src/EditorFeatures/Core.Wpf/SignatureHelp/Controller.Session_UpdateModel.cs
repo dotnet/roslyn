@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     // selected parameter was outside the bounds of all methods.  i.e. all methods only
                     // went up to 3 parameters, and selected parameter is 3 or higher.  In that case,
                     // just pick the very last item as it is closest in parameter count.
-                    var result = filteredItems.FirstOrDefault(i => IsApplicable(i, semanticParameterIndex, name, isCaseSensitive));
+                    var result = filteredItems.FirstOrDefault(i => IsApplicable(i, syntacticArgumentCount, name, isCaseSensitive));
                     if (result != null)
                     {
                         currentItem = result;
