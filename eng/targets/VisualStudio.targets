@@ -151,12 +151,12 @@
     Workaround for missing dependency publishing feature in the VS SDK.
     
     Relies on the following convention: When a project reference publish outputs (i.e. more than standard build outputs) need to be packaged into a VSIX,
-    the project should define VsixItemsOutputGroup target and include it in ProjectRefrence.IncludeOutputGroupsInVSIX.
+    the project should define PublishedProjectOutputGroup target and include it in ProjectRefrence.IncludeOutputGroupsInVSIX.
 
-    VsixItemsOutputGroup target may gather all the publishing items to be packaged into the VSIX using PublishItemsOutputGroup target,
-    but should not depend on Publish target (i.e. invoking VsixItemsOutputGroup target should not trigger actual publishing).
+    PublishedProjectOutputGroup target may gather all the publishing items to be packaged into the VSIX using PublishItemsOutputGroup target,
+    but should not depend on Publish target (i.e. invoking PublishedProjectOutputGroup target should not trigger actual publishing).
 
-    Target PublishProjectReferencesForVsixCreation will take care of publishing for all ProjectReferences with VsixItemsOutputGroup.
+    Target PublishProjectReferencesForVsixCreation will take care of publishing for all ProjectReferences with PublishedProjectOutputGroup.
   -->
   
   <PropertyGroup>
@@ -165,7 +165,7 @@
 
   <Target Name="PublishProjectReferencesForVsixCreation">
     <ItemGroup>
-      <_ProjectsToPublish Include="@(ProjectReference)" Condition="$([MSBuild]::ValueOrDefault('%(ProjectReference.IncludeOutputGroupsInVSIX)', '').Contains('VsixItemsOutputGroup'))"/>
+      <_ProjectsToPublish Include="@(ProjectReference)" Condition="$([MSBuild]::ValueOrDefault('%(ProjectReference.IncludeOutputGroupsInVSIX)', '').Contains('PublishedProjectOutputGroup'))"/>
     </ItemGroup>
 
     <MSBuild Projects="@(_ProjectsToPublish)"

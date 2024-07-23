@@ -61,8 +61,8 @@
   </Target>
 
   <!-- Used from Setup and test projects to fetch the list of generated ref assemblies -->
-  <Target Name="VsixItemsOutputGroup" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Returns="@(_OutputFile)"  />
+  <Target Name="PublishedProjectOutputGroup" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Returns="@(_OutputFile)"  />
 
   <!-- Generates ref assemblies -->
-  <Target Name="PublishVsixItems" DependsOnTargets="VsixItemsOutputGroup;GenerateFilteredReferenceAssemblies" Returns="@(_OutputFile)" />
+  <Target Name="PublishVsixItems" DependsOnTargets="PublishedProjectOutputGroup;GenerateFilteredReferenceAssemblies" Returns="@(_OutputFile)" />
 </Project>

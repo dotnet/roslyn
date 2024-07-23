@@ -278,7 +278,7 @@
 
       <Private>false</Private>
       <VSIXSubPath>InteractiveHost\Core</VSIXSubPath>
-      <IncludeOutputGroupsInVSIX>VsixItemsOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>PublishedProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
 
       <!-- Disable NGEN. Core assemblies are crossgened. -->
@@ -293,7 +293,7 @@
 
       <Private>false</Private>
       <VSIXSubPath>InteractiveHost\Desktop</VSIXSubPath>
-      <IncludeOutputGroupsInVSIX>VsixItemsOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>PublishedProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\..\Interactive\HostProcess\x86\InteractiveHost32.csproj">
@@ -308,7 +308,7 @@
 
       <Private>false</Private>
       <VSIXSubPath>InteractiveHost\Desktop</VSIXSubPath>
-      <IncludeOutputGroupsInVSIX>VsixItemsOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>PublishedProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\..\Tools\SemanticSearch\ReferenceAssemblies\SemanticSearch.ReferenceAssemblies.csproj">
@@ -317,7 +317,7 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <Private>false</Private>
       <VSIXSubPath>SemanticSearchRefs</VSIXSubPath>
-      <IncludeOutputGroupsInVSIX>VsixItemsOutputGroup</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>PublishedProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly></IncludeOutputGroupsInVSIXLocalOnly>
       <Ngen>false</Ngen>
     </ProjectReference>
