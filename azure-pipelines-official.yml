@@ -79,6 +79,10 @@ variables:
   - name: Insertion.TitleSuffix
     value: ''
 
+  - ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
+    - name: enableSourceIndex
+      value: true
+
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
   parameters:
@@ -339,6 +343,15 @@ extends:
           pool:
             name: NetCore1ESPool-Svc-Internal
             demands: ImageOverride -equals windows.vs2022.amd64
+
+      - ${{ if eq(variables.enableSourceIndex, 'true') }}:
+        - template: /eng/common/templates-official/job/source-index-stage1.yml@self
+          parameters:
+            sourceIndexBuildCommand: powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "eng\build.ps1 -configuration Release -prepareMachine -ci -restore -build -binaryLogName Build.binlog -skipDocumentation -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false"
+            binlogPath: artifacts/log/$(BuildConfiguration)/Build.binlog
+            pool:
+              name: $(DncEngInternalBuildPool)
+              demands: ImageOverride -equals 1es-windows-2022
 
     - stage: insert
       dependsOn:
