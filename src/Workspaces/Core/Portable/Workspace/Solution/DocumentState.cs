@@ -387,21 +387,15 @@ internal partial class DocumentState : TextDocumentState
             return UpdateParseOptionsAndSourceCodeKind(ParseOptions.WithKind(kind), onlyPreprocessorDirectiveChange: false);
         }
 
-        return UpdateAttributes(Attributes.With(sourceCodeKind: kind));
+        return WithAttributes(Attributes.With(sourceCodeKind: kind));
     }
 
-    public DocumentState UpdateName(string name)
-        => UpdateAttributes(Attributes.With(name: name));
-
-    public DocumentState UpdateFilePath(string? path)
-        => UpdateAttributes(Attributes.With(filePath: path));
-
-    public DocumentState UpdateFolders(IReadOnlyList<string> folders)
-        => UpdateAttributes(Attributes.With(folders: folders));
-
-    private DocumentState UpdateAttributes(DocumentInfo.DocumentAttributes newAttributes)
+    public DocumentState WithAttributes(DocumentInfo.DocumentAttributes newAttributes)
     {
-        Debug.Assert(newAttributes != Attributes);
+        if (ReferenceEquals(newAttributes, Attributes))
+        {
+            return this;
+        }
 
         ITreeAndVersionSource? newTreeSource;
 
