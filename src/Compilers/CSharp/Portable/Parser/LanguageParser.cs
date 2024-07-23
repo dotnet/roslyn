@@ -494,13 +494,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             TypeDeclarationSyntax moveSiblingMembersIntoPrecedingType(
-                TypeDeclarationSyntax currentTypeDeclaration,
+                TypeDeclarationSyntax typeDeclaration,
                 NamespaceBodyBuilder body,
                 int firstSiblingToMoveInclusive,
                 int lastSiblingToMoveExclusive)
             {
                 var finalTypeDeclarationMembers = _pool.Allocate<MemberDeclarationSyntax>();
-                finalTypeDeclarationMembers.AddRange(currentTypeDeclaration.Members);
+                finalTypeDeclarationMembers.AddRange(typeDeclaration.Members);
 
                 for (var memberToMoveIndex = firstSiblingToMoveInclusive; memberToMoveIndex < lastSiblingToMoveExclusive; memberToMoveIndex++)
                 {
@@ -511,24 +511,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         // diagnostic saying that it was unexpected.
                         currentSibling = AddLeadingSkippedSyntax(
                             currentSibling,
-                            AddError(currentTypeDeclaration.CloseBraceToken, ErrorCode.ERR_InvalidMemberDecl, "}"));
+                            AddError(typeDeclaration.CloseBraceToken, ErrorCode.ERR_InvalidMemberDecl, "}"));
                     }
 
                     finalTypeDeclarationMembers.Add(currentSibling);
                 }
 
-                var finalTypeDeclaration = updateMembersAndAddCloseBraceToken(
-                    currentTypeDeclaration,
-                    _pool.ToListAndFree(finalTypeDeclarationMembers),
-                    isLast: lastSiblingToMoveExclusive == body.Members.Count);
-                return finalTypeDeclaration;
-            }
+                var isLast = lastSiblingToMoveExclusive == body.Members.Count;
 
-            TypeDeclarationSyntax updateMembersAndAddCloseBraceToken(
-                TypeDeclarationSyntax typeDeclaration,
-                SyntaxList<MemberDeclarationSyntax> newMembers,
-                bool isLast)
-            {
                 // The existing close brace token is moved to the first member as a skipped token, with a diagnostic saying
                 // it was unexpected.  The type decl will then get a missing close brace token if there are still members
                 // following.  If not, we'll try to eat an actual close brace token.
@@ -536,26 +526,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     ? EatToken(SyntaxKind.CloseBraceToken)
                     : AddError(
                         SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken), ErrorCode.ERR_RbraceExpected);
+                var newMembers = _pool.ToListAndFree(finalTypeDeclarationMembers);
 
                 return typeDeclaration.UpdateCore(
-                        typeDeclaration.AttributeLists,
-                        typeDeclaration.Modifiers,
-                        typeDeclaration.Keyword,
-                        typeDeclaration.Identifier,
-                        typeDeclaration.TypeParameterList,
-                        typeDeclaration.ParameterList,
-                        typeDeclaration.BaseList,
-                        typeDeclaration.ConstraintClauses,
-                        typeDeclaration.OpenBraceToken,
-                        newMembers,
-                        finalCloseBraceToken,
-                        typeDeclaration.SemicolonToken);
+                    typeDeclaration.AttributeLists,
+                    typeDeclaration.Modifiers,
+                    typeDeclaration.Keyword,
+                    typeDeclaration.Identifier,
+                    typeDeclaration.TypeParameterList,
+                    typeDeclaration.ParameterList,
+                    typeDeclaration.BaseList,
+                    typeDeclaration.ConstraintClauses,
+                    typeDeclaration.OpenBraceToken,
+                    newMembers,
+                    finalCloseBraceToken,
+                    typeDeclaration.SemicolonToken);
             }
         }
 
         private static bool IsMemberDeclarationOnlyValidWithinTypeDeclaration(MemberDeclarationSyntax memberDeclaration)
         {
-            return memberDeclaration != null && memberDeclaration.Kind
+            return memberDeclaration?.Kind
                 is SyntaxKind.ConstructorDeclaration
                 or SyntaxKind.ConversionOperatorDeclaration
                 or SyntaxKind.EventDeclaration
