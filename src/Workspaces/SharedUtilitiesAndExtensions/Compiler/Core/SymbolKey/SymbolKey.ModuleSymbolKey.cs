@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
+
 namespace Microsoft.CodeAnalysis;
 
 internal partial struct SymbolKey
@@ -24,12 +26,27 @@ internal partial struct SymbolKey
                 return default;
             }
 
-            using var result = PooledArrayBuilder<IModuleSymbol>.GetInstance();
-            foreach (var assembly in containingSymbolResolution.OfType<IAssemblySymbol>())
+            using var result = PooledArrayBuilder<IModuleSymbol>.GetInstance(containingSymbolResolution.SymbolCount);
+            foreach (var symbol in containingSymbolResolution)
             {
+                if (symbol is not IAssemblySymbol assembly)
+                    continue;
+
                 // Don't check ModuleIds for equality because in practice, no-one uses them,
                 // and there is no way to set netmodule name programmatically using Roslyn
-                result.AddValuesIfNotNull(assembly.Modules);
+                var assemblyModules = assembly.Modules;
+                if (assemblyModules is ImmutableArray<IModuleSymbol> modules)
+                {
+                    // Avoid allocations if possible
+                    // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2136177
+                    result.AddValuesIfNotNull(modules);
+                }
+                else
+                {
+                    // Visual Basic implementation of IAssemblySymbol.Modules relies on covariance of IEnumerable<T>, so
+                    // the preceding concrete type check will fail.
+                    result.AddValuesIfNotNull(assemblyModules);
+                }
             }
 
             return CreateResolution(result, $"({nameof(ModuleSymbolKey)} failed)", out failureReason);
