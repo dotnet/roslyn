@@ -10174,7 +10174,13 @@ int P
                 .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.Attribute)))
                 .Single();
 
-            Assert.Null(model.GetSymbolInfo(node).Symbol);
+            // int P ... should be pulled into MyAttribute as it's more likely that there's an errant close curly in the
+            // type, versus a property in a compilation unit.
+            var symbol = model.GetSymbolInfo(node).Symbol;
+            Assert.NotNull(symbol);
+            var property = (PropertySymbol)symbol;
+            Assert.Equal("P", property.Name);
+            Assert.Equal("MyAttribute", property.ContainingType.Name);
         }
 
         [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]
