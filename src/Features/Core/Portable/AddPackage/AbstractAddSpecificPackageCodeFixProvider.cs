@@ -17,10 +17,7 @@ internal abstract partial class AbstractAddSpecificPackageCodeFixProvider : Abst
     /// <summary>
     /// Values for these parameters can be provided (during testing) for mocking purposes.
     /// </summary> 
-    protected AbstractAddSpecificPackageCodeFixProvider(
-        IPackageInstallerService packageInstallerService = null,
-        ISymbolSearchService symbolSearchService = null)
-        : base(packageInstallerService, symbolSearchService)
+    protected AbstractAddSpecificPackageCodeFixProvider()
     {
     }
 

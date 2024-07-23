@@ -10,5 +10,5 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify;
 
 internal interface IRemoteFullyQualifyService
 {
-    ValueTask<FullyQualifyFixData?> GetFixDataAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan span, bool hideAdvancedMembers, CancellationToken cancellationToken);
+    ValueTask<FullyQualifyFixData?> GetFixDataAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan span, CancellationToken cancellationToken);
 }

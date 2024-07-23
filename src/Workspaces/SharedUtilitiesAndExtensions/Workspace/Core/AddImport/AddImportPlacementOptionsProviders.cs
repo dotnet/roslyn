@@ -4,21 +4,32 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.AddImport;
 
-internal static partial class AddImportPlacementOptionsProviders
+internal static class AddImportPlacementOptionsProviders
 {
-    internal static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, IAddImportsService addImportsService, AddImportPlacementOptionsProvider fallbackOptionsProvider, CancellationToken cancellationToken)
-    {
+    // Normally we don't allow generation into a hidden region in the file.  However, if we have a
+    // modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
+    // our edit to their domain appropriate.
+    public static bool AllowImportsInHiddenRegions(this Document document)
 #if CODE_STYLE
-        var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-        var configOptions = document.Project.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree).GetOptionsReader();
-        return addImportsService.GetAddImportOptions(configOptions, allowInHiddenRegions: false, fallbackOptions: null);
+        => AddImportPlacementOptions.Default.AllowInHiddenRegions;
 #else
-        return await document.GetAddImportPlacementOptionsAsync(fallbackOptionsProvider, cancellationToken).ConfigureAwait(false);
+        => document.Services.GetService<Host.ISpanMappingService>()?.SupportsMappingImportDirectives == true;
 #endif
+
+#if !CODE_STYLE
+    public static AddImportPlacementOptions GetAddImportPlacementOptions(this IOptionsReader options, Host.LanguageServices languageServices, bool? allowInHiddenRegions)
+        => languageServices.GetRequiredService<IAddImportsService>().GetAddImportOptions(options, allowInHiddenRegions ?? AddImportPlacementOptions.Default.AllowInHiddenRegions);
+#endif
+
+    public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, CancellationToken cancellationToken)
+    {
+        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var service = document.GetRequiredLanguageService<IAddImportsService>();
+        return service.GetAddImportOptions(configOptions, document.AllowImportsInHiddenRegions());
     }
 }

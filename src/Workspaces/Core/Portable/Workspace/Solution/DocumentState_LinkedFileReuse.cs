@@ -53,7 +53,7 @@ internal partial class DocumentState
                 LanguageServices,
                 Services,
                 Attributes,
-                _options,
+                ParseOptions,
                 siblingTextSource,
                 LoadTextOptions,
                 treeSource: null);

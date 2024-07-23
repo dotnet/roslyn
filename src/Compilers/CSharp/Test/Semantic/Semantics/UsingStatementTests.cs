@@ -92,7 +92,7 @@ class C
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,16): error CS1674: 'method group': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (6,16): error CS1674: 'method group': type used in a using statement must implement 'System.IDisposable'.
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "Main").WithArguments("method group"));
         }
 
@@ -136,7 +136,7 @@ class C2
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (11,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (11,16): error CS1674: 'C1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (C1 c1 = new C1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c1 = new C1()").WithArguments("C1").WithLocation(11, 16)
                 );
@@ -165,7 +165,7 @@ class C2
                 // (5,17): error CS0111: Type 'S1' already defines a member called 'Dispose' with the same parameter types
                 //     public void Dispose() { }
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dispose").WithArguments("Dispose", "S1").WithLocation(5, 17),
-                // (12,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (12,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (S1 c = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(12, 16)
                 );
@@ -196,10 +196,10 @@ class C2
                 // (5,17): error CS0111: Type 'S1' already defines a member called 'Dispose' with the same parameter types
                 //     public bool Dispose() { return false; }
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dispose").WithArguments("Dispose", "S1").WithLocation(5, 17),
-                // (12,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (12,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (S1 c = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(12, 16),
-                // (16,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (16,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (c1b) { }
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "s1b").WithArguments("S1").WithLocation(16, 16)
                 );
@@ -255,10 +255,10 @@ class C2
                 // (5,19): error CS0111: Type 'S1' already defines a member called 'Dispose' with the same parameter types
                 //     internal void Dispose() { }
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "Dispose").WithArguments("Dispose", "S1").WithLocation(5, 19),
-                // (12,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (12,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (S1 c = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(12, 16),
-                // (16,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (16,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (c1b) { }
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "s1b").WithArguments("S1").WithLocation(16, 16)
                 );
@@ -320,10 +320,10 @@ class C3
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (15,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (15,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(15, 16),
-                // (19,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (19,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (s1b) { }
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "s1b").WithArguments("S1").WithLocation(19, 16)
                 );
@@ -355,10 +355,10 @@ class C3
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (16,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (16,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(16, 16),
-                // (20,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (20,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (s1b) { }
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "s1b").WithArguments("S1").WithLocation(20, 16)
                 );
@@ -383,7 +383,7 @@ class C2
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (11,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (11,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(11, 16)
                 );
@@ -420,7 +420,7 @@ class C4
             // Tracked by https://github.com/dotnet/roslyn/issues/32767
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (20,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (20,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (S1 c = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(20, 16)
                 );
@@ -545,22 +545,22 @@ namespace N4
             // Tracked by https://github.com/dotnet/roslyn/issues/32767
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (37,20): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (37,20): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //             using (S1 s = new S1()) // error 1
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(37, 20),
-                // (50,20): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (50,20): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //             using (S1 s = new S1()) // error 2
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(50, 20),
-                // (63,20): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (63,20): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //             using (S1 s = new S1()) // error 3
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(63, 20),
-                // (77,20): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (77,20): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //             using (S1 s = new S1())  // error 4
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(77, 20),
-                // (92,24): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (92,24): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //                 using (S1 s = new S1())  // error 5
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(92, 24),
-                // (105,28): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (105,28): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //                     using (S1 s = new S1())  // error 6
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(105, 28)
                 );
@@ -604,16 +604,16 @@ class C4
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (22,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (22,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(22, 16),
-                // (26,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (26,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (s1b) { }
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "s1b").WithArguments("S1").WithLocation(26, 16),
-                // (28,16): error CS1674: 'S2': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (28,16): error CS1674: 'S2': type used in a using statement must implement 'System.IDisposable'.
                 //         using (S2 s = new S2())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S2 s = new S2()").WithArguments("S2").WithLocation(28, 16),
-                // (32,16): error CS1674: 'S2': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (32,16): error CS1674: 'S2': type used in a using statement must implement 'System.IDisposable'.
                 //         using (s2b) { }
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "s2b").WithArguments("S2").WithLocation(32, 16)
                 );
@@ -651,7 +651,7 @@ class C4
             // Tracked by https://github.com/dotnet/roslyn/issues/32767
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (21,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (21,15): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //        using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(21, 15)
                 );
@@ -682,10 +682,10 @@ class C3
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (15,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (15,15): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //        using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(15, 15),
-                // (19,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (19,15): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //        using (s1b) { }
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "s1b").WithArguments("S1").WithLocation(19, 15)
                 );
@@ -718,7 +718,7 @@ class C3
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (19,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (19,15): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //        using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(19, 15)
                 );
@@ -748,7 +748,7 @@ class C3
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (16,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (16,15): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //        using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(16, 15)
                 );
@@ -779,10 +779,10 @@ class C3
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (15,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (15,15): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //        using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(15, 15),
-                // (19,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (19,15): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //        using (s1b) { }
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "s1b").WithArguments("S1").WithLocation(19, 15)
                 );
@@ -811,7 +811,7 @@ class C2
     }
 }";
             var compilation = CreateCompilation(source).VerifyDiagnostics(
-                // (15,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (15,15): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //        using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(15, 15)
                 );
@@ -841,7 +841,7 @@ class C2
 }";
 
             var compilation = CreateCompilation(source).VerifyDiagnostics(
-                // (15,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (15,15): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //        using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(15, 15)
                 );
@@ -914,10 +914,10 @@ class C2
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (11,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (11,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (S1 c = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 c = new S1()").WithArguments("S1").WithLocation(11, 16),
-                // (15,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (15,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (c1b) { }
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "c1b").WithArguments("S1").WithLocation(15, 16)
                 );
@@ -944,10 +944,10 @@ class C2
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (11,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (11,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (S1 c = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 c = new S1()").WithArguments("S1").WithLocation(11, 16),
-                // (15,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (15,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (c1b) { }
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "c1b").WithArguments("S1").WithLocation(15, 16)
                 );
@@ -996,7 +996,7 @@ class C2
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (11,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (11,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (S1 c1 = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 c1 = new S1()").WithArguments("S1").WithLocation(11, 16)
                 );
@@ -1021,7 +1021,7 @@ class C2
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (11,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (11,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (S1 c = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 c = new S1()").WithArguments("S1").WithLocation(11, 16)
                 );
@@ -1047,7 +1047,7 @@ class C2
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (11,16): error CS1674: 'C1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (11,16): error CS1674: 'C1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (C1 c1 = new C1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "C1 c1 = new C1()").WithArguments("C1").WithLocation(11, 16)
                 );
@@ -1190,13 +1190,13 @@ class C2
 }
 ";
             CreateCompilation(source, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
-                // (11,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                // (11,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable' or implement a suitable 'Dispose' method.
                 //         using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(11, 16)
             );
 
             CreateCompilation(source, parseOptions: TestOptions.Regular8).VerifyDiagnostics(
-                // (11,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable' or implement a suitable 'Dispose' method.
+                // (11,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable' or implement a suitable 'Dispose' method.
                 //         using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(11, 16)
                 );
@@ -1218,7 +1218,7 @@ class C
 ";
 
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,16): error CS1674: 'lambda expression': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (6,16): error CS1674: 'lambda expression': type used in a using statement must implement 'System.IDisposable'.
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "x => x").WithArguments("lambda expression"));
         }
 
@@ -1697,7 +1697,7 @@ class C
     }
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (16,16): error CS1674: 'T0': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (16,16): error CS1674: 'T0': type used in a using statement must implement 'System.IDisposable'.
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "t0").WithArguments("T0").WithLocation(16, 16));
         }
 

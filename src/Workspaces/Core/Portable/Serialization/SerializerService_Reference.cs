@@ -438,7 +438,7 @@ internal partial class SerializerService
             CopyByteArrayToStream(reader, stream, cancellationToken);
 
             var length = stream.Length;
-            var storageHandle = _storageService.WriteToTemporaryStorage(stream, cancellationToken);
+            var storageHandle = _storageService.Value.WriteToTemporaryStorage(stream, cancellationToken);
             Contract.ThrowIfTrue(length != storageHandle.Identifier.Size);
             return ReadModuleMetadataFromStorage(storageHandle);
         }
@@ -449,7 +449,10 @@ internal partial class SerializerService
             // Now read in the module data using that identifier.  This will either be reading from the host's memory if
             // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
             // sent us the full contents.
-            var unmanagedStream = storageHandle.ReadFromTemporaryStorage(cancellationToken);
+            //
+            // The ITemporaryStorageStreamHandle should have given us an UnmanagedMemoryStream
+            // since this only runs on Windows for VS.
+            var unmanagedStream = (UnmanagedMemoryStream)storageHandle.ReadFromTemporaryStorage(cancellationToken);
             Contract.ThrowIfFalse(storageHandle.Identifier.Size == unmanagedStream.Length);
 
             // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as

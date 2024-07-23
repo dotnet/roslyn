@@ -5,40 +5,33 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
+
+[Export(typeof(IAttachedCollectionSourceProvider))]
+[Name(nameof(LegacyDiagnosticItemSourceProvider))]
+[Order]
+[AppliesToProject("(CSharp | VB) & !CPS")]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class LegacyDiagnosticItemSourceProvider(
+    [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler,
+    IDiagnosticAnalyzerService diagnosticAnalyzerService) : AttachedCollectionSourceProvider<AnalyzerItem>
 {
-    [Export(typeof(IAttachedCollectionSourceProvider))]
-    [Name(nameof(LegacyDiagnosticItemSourceProvider))]
-    [Order]
-    [AppliesToProject("(CSharp | VB) & !CPS")]
-    internal sealed class LegacyDiagnosticItemSourceProvider : AttachedCollectionSourceProvider<AnalyzerItem>
+    protected override IAttachedCollectionSource? CreateCollectionSource(AnalyzerItem item, string relationshipName)
     {
-        private readonly IAnalyzersCommandHandler _commandHandler;
-        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
-
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public LegacyDiagnosticItemSourceProvider(
-            [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler,
-            IDiagnosticAnalyzerService diagnosticAnalyzerService)
+        if (relationshipName == KnownRelationships.Contains)
         {
-            _commandHandler = commandHandler;
-            _diagnosticAnalyzerService = diagnosticAnalyzerService;
+            return new LegacyDiagnosticItemSource(
+                item, commandHandler, diagnosticAnalyzerService);
         }
 
-        protected override IAttachedCollectionSource? CreateCollectionSource(AnalyzerItem item, string relationshipName)
-        {
-            if (relationshipName == KnownRelationships.Contains)
-            {
-                return new LegacyDiagnosticItemSource(item, _commandHandler, _diagnosticAnalyzerService);
-            }
-
-            return null;
-        }
+        return null;
     }
 }

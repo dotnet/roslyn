@@ -47,7 +47,7 @@ internal sealed class CSharpGenerateConstructorFromMembersCodeRefactoringProvide
     protected override string ToDisplayString(IParameterSymbol parameter, SymbolDisplayFormat format)
         => SymbolDisplay.ToDisplayString(parameter, format);
 
-    protected override async ValueTask<bool> PrefersThrowExpressionAsync(Document document, SimplifierOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override async ValueTask<bool> PrefersThrowExpressionAsync(Document document, CancellationToken cancellationToken)
     {
         var options = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
         return options.PreferThrowExpression.Value;

@@ -1150,7 +1150,10 @@ public partial class Solution
             throw new ArgumentNullException(nameof(name));
         }
 
-        return WithCompilationState(_compilationState.WithDocumentName(documentId, name));
+        return WithCompilationState(_compilationState.WithDocumentAttributes(
+            documentId,
+            name,
+            static (attributes, value) => attributes.With(name: value)));
     }
 
     /// <summary>
@@ -1163,25 +1166,23 @@ public partial class Solution
 
         var collection = PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders));
 
-        return WithCompilationState(_compilationState.WithDocumentFolders(documentId, collection));
+        return WithCompilationState(_compilationState.WithDocumentAttributes(
+            documentId,
+            collection,
+            static (attributes, value) => attributes.With(folders: value)));
     }
 
     /// <summary>
     /// Creates a new solution instance with the document specified updated to have the specified file path.
     /// </summary>
-    public Solution WithDocumentFilePath(DocumentId documentId, string filePath)
+    public Solution WithDocumentFilePath(DocumentId documentId, string? filePath)
     {
         CheckContainsDocument(documentId);
 
-        // TODO (https://github.com/dotnet/roslyn/issues/37125): 
-        // We *do* support null file paths. Why can't you switch a document back to null?
-        // See DocumentState.GetSyntaxTreeFilePath
-        if (filePath == null)
-        {
-            throw new ArgumentNullException(nameof(filePath));
-        }
-
-        return WithCompilationState(_compilationState.WithDocumentFilePath(documentId, filePath));
+        return WithCompilationState(_compilationState.WithDocumentAttributes(
+            documentId,
+            filePath,
+            static (attributes, value) => attributes.With(filePath: value)));
     }
 
     /// <summary>

@@ -66,10 +66,10 @@ class Program
         var commandLine = $"\"{pathToSolution}\" /Rebuild Debug /Out \"{logFileName}\" /rootsuffix RoslynDev /log";
 
         var process = Process.Start(pathToDevenv, commandLine);
-        Assert.Equal(0, await process.WaitForExitAsync(HangMitigatingCancellationToken));
+        var exitCode = await process.WaitForExitAsync(HangMitigatingCancellationToken);
 
         Assert.Contains("Rebuild All: 1 succeeded, 0 failed, 0 skipped", File.ReadAllText(logFileName));
-
+        Assert.Equal(0, exitCode);
         Assert.Equal(0, process.ExitCode);
     }
 }

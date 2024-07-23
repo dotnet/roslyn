@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Composition;
-using System.Text;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ForEachCast;
@@ -15,14 +13,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.ForEachCast;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ForEachCast), Shared]
-internal class CSharpForEachCastCodeFixProvider : AbstractForEachCastCodeFixProvider<CommonForEachStatementSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpForEachCastCodeFixProvider() : AbstractForEachCastCodeFixProvider<CommonForEachStatementSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpForEachCastCodeFixProvider()
-    {
-    }
-
     protected override ITypeSymbol GetForEachElementType(
         SemanticModel semanticModel, CommonForEachStatementSyntax forEachStatement)
     {

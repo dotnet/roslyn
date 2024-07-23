@@ -24,12 +24,12 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass;
 
 internal sealed class ImplementAbstractClassData(
-    Document document, ImplementTypeGenerationOptions options, SyntaxNode classNode, SyntaxToken classIdentifier,
+    Document document, ImplementTypeOptions options, SyntaxNode classNode, SyntaxToken classIdentifier,
     INamedTypeSymbol classType, INamedTypeSymbol abstractClassType,
     ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> unimplementedMembers)
 {
     private readonly Document _document = document;
-    private readonly ImplementTypeGenerationOptions _options = options;
+    private readonly ImplementTypeOptions _options = options;
     private readonly SyntaxNode _classNode = classNode;
     private readonly SyntaxToken _classIdentifier = classIdentifier;
     private readonly ImmutableArray<(INamedTypeSymbol type, ImmutableArray<ISymbol> members)> _unimplementedMembers = unimplementedMembers;
@@ -38,7 +38,7 @@ internal sealed class ImplementAbstractClassData(
     public readonly INamedTypeSymbol AbstractClassType = abstractClassType;
 
     public static async Task<ImplementAbstractClassData?> TryGetDataAsync(
-        Document document, SyntaxNode classNode, SyntaxToken classIdentifier, ImplementTypeGenerationOptions options, CancellationToken cancellationToken)
+        Document document, SyntaxNode classNode, SyntaxToken classIdentifier, CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         if (semanticModel.GetDeclaredSymbol(classNode, cancellationToken) is not INamedTypeSymbol classType)
@@ -62,15 +62,17 @@ internal sealed class ImplementAbstractClassData(
         if (unimplementedMembers.IsEmpty)
             return null;
 
+        var options = await document.GetImplementTypeOptionsAsync(cancellationToken).ConfigureAwait(false);
+
         return new ImplementAbstractClassData(
             document, options, classNode, classIdentifier,
             classType, abstractClassType, unimplementedMembers);
     }
 
     public static async Task<Document?> TryImplementAbstractClassAsync(
-        Document document, SyntaxNode classNode, SyntaxToken classIdentifier, ImplementTypeGenerationOptions options, CancellationToken cancellationToken)
+        Document document, SyntaxNode classNode, SyntaxToken classIdentifier, CancellationToken cancellationToken)
     {
-        var data = await TryGetDataAsync(document, classNode, classIdentifier, options, cancellationToken).ConfigureAwait(false);
+        var data = await TryGetDataAsync(document, classNode, classIdentifier, cancellationToken).ConfigureAwait(false);
         if (data == null)
             return null;
 
@@ -81,8 +83,8 @@ internal sealed class ImplementAbstractClassData(
         ISymbol? throughMember, bool? canDelegateAllMembers, CancellationToken cancellationToken)
     {
         var compilation = await _document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
-        var memberDefinitions = GenerateMembers(compilation, throughMember, _options.ImplementTypeOptions.PropertyGenerationBehavior, cancellationToken);
-        var groupMembers = _options.ImplementTypeOptions.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
+        var memberDefinitions = GenerateMembers(compilation, throughMember, _options.PropertyGenerationBehavior, cancellationToken);
+        var groupMembers = _options.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
         // If we're implementing through one of our members, but we can't delegate all members
         // through it, then give an error message on the class decl letting the user know.
@@ -101,7 +103,7 @@ internal sealed class ImplementAbstractClassData(
             autoInsertionLocation: groupMembers,
             sortMembers: groupMembers);
 
-        var info = await _document.GetCodeGenerationInfoAsync(context, _options.FallbackOptions, cancellationToken).ConfigureAwait(false);
+        var info = await _document.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
 
         var updatedClassNode = info.Service.AddMembers(
             classNodeToAddMembersTo,

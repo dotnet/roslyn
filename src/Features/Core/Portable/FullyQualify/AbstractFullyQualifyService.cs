@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -37,14 +38,14 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
     protected abstract Task<SyntaxNode> ReplaceNodeAsync(TSimpleNameSyntax simpleName, string containerName, bool resultingSymbolIsType, CancellationToken cancellationToken);
 
     public async Task<FullyQualifyFixData?> GetFixDataAsync(
-        Document document, TextSpan span, bool hideAdvancedMembers, CancellationToken cancellationToken)
+        Document document, TextSpan span, CancellationToken cancellationToken)
     {
         var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
         if (client != null)
         {
             var result = await client.TryInvokeAsync<IRemoteFullyQualifyService, FullyQualifyFixData?>(
                 document.Project,
-                (service, solutionChecksum, cancellationToken) => service.GetFixDataAsync(solutionChecksum, document.Id, span, hideAdvancedMembers, cancellationToken),
+                (service, solutionChecksum, cancellationToken) => service.GetFixDataAsync(solutionChecksum, document.Id, span, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
             if (!result.HasValue)
@@ -53,11 +54,11 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
             return result.Value;
         }
 
-        return await GetFixDataInCurrentProcessAsync(document, span, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
+        return await GetFixDataInCurrentProcessAsync(document, span, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<FullyQualifyFixData?> GetFixDataInCurrentProcessAsync(
-        Document document, TextSpan span, bool hideAdvancedMembers, CancellationToken cancellationToken)
+        Document document, TextSpan span, CancellationToken cancellationToken)
     {
         var project = document.Project;
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -84,8 +85,9 @@ internal abstract partial class AbstractFullyQualifyService<TSimpleNameSyntax> :
 
             // We found some matches for the name alone.  Do some more checks to see if those matches are applicable in this location.
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var options = await document.GetMemberDisplayOptionsAsync(cancellationToken).ConfigureAwait(false);
 
-            var matchingTypeSearchResults = GetTypeSearchResults(semanticModel, simpleName, hideAdvancedMembers, matchingTypes.Concat(matchingAttributeTypes));
+            var matchingTypeSearchResults = GetTypeSearchResults(semanticModel, simpleName, options.HideAdvancedMembers, matchingTypes.Concat(matchingAttributeTypes));
             var matchingNamespaceSearchResults = GetNamespaceSearchResults(semanticModel, simpleName, matchingNamespaces);
             if (matchingTypeSearchResults.IsEmpty && matchingNamespaceSearchResults.IsEmpty)
                 return null;

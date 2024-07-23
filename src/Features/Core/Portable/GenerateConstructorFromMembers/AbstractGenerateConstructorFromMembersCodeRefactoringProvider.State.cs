@@ -38,11 +38,10 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
             INamedTypeSymbol containingType,
             Accessibility? desiredAccessibility,
             ImmutableArray<ISymbol> selectedMembers,
-            NamingStylePreferencesProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var state = new State();
-            if (!await state.TryInitializeAsync(service, document, textSpan, containingType, desiredAccessibility, selectedMembers, fallbackOptions, cancellationToken).ConfigureAwait(false))
+            if (!await state.TryInitializeAsync(service, document, textSpan, containingType, desiredAccessibility, selectedMembers, cancellationToken).ConfigureAwait(false))
                 return null;
 
             return state;
@@ -55,7 +54,6 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
             INamedTypeSymbol containingType,
             Accessibility? desiredAccessibility,
             ImmutableArray<ISymbol> selectedMembers,
-            NamingStylePreferencesProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var mappedMembers = selectedMembers.Select(m => TryMapToWritableInstanceFieldOrProperty(service, m, cancellationToken)).Distinct().ToImmutableArray();
@@ -72,7 +70,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
 
             IsContainedInUnsafeType = service.ContainingTypesOrSelfHasUnsafeKeyword(containingType);
 
-            var rules = await document.GetNamingRulesAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
             Parameters = DetermineParameters(SelectedMembers, rules);
             MatchingConstructor = GetMatchingConstructorBasedOnParameterTypes(ContainingType, Parameters);
             // We are going to create a new contructor and pass part of the parameters into DelegatedConstructor, so

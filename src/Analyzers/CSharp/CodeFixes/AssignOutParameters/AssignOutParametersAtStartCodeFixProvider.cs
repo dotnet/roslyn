@@ -17,14 +17,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.AssignOutParameters;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AssignOutParametersAtStart), Shared]
-internal class AssignOutParametersAtStartCodeFixProvider : AbstractAssignOutParametersCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class AssignOutParametersAtStartCodeFixProvider() : AbstractAssignOutParametersCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public AssignOutParametersAtStartCodeFixProvider()
-    {
-    }
-
     protected override void TryRegisterFix(CodeFixContext context, Document document, SyntaxNode container, SyntaxNode location)
     {
         // Don't offer if we're already the starting statement of the container. This case will

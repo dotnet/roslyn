@@ -162,9 +162,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             ' Editor color scheme
             BindToOption(Editor_color_scheme, ColorSchemeOptionsStorage.ColorScheme)
 
-            ' Extract method
-            BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptionsStorage.DoNotPutOutOrRefOnStruct, LanguageNames.VisualBasic)
-
             ' Implement Interface or Abstract Class
             BindToOption(with_other_members_of_the_same_kind, ImplementTypeOptionsStorage.InsertionBehavior, ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind, LanguageNames.VisualBasic)
             BindToOption(at_the_end, ImplementTypeOptionsStorage.InsertionBehavior, ImplementTypeInsertionBehavior.AtTheEnd, LanguageNames.VisualBasic)
@@ -211,7 +208,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             Dim isSupportedTheme = values.isSupportedTheme
             Dim isCustomized = values.isCustomized
-            Editor_color_scheme.Visibility = If(isSupportedTheme, Visibility.Visible, Visibility.Collapsed)
+            Editor_color_scheme.IsEnabled = isSupportedTheme
             Customized_Theme_Warning.Visibility = If(isSupportedTheme AndAlso isCustomized, Visibility.Visible, Visibility.Collapsed)
             Custom_VS_Theme_Warning.Visibility = If(isSupportedTheme, Visibility.Collapsed, Visibility.Visible)
 
