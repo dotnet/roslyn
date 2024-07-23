@@ -27,8 +27,6 @@ internal abstract class AbstractPackage : AsyncPackage
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
-        await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
-
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
         _componentModel_doNotAccessDirectly = (IComponentModel)await GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
