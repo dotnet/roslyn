@@ -10472,6 +10472,257 @@ public class Class
             EOF();
         }
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("class", SyntaxKind.ClassDeclaration)]
+        [InlineData("struct", SyntaxKind.StructDeclaration)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration)]
+        [InlineData("record", SyntaxKind.RecordDeclaration)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration)]
+        public void ExtraCloseCurly1(string typeKind, SyntaxKind typeSyntaxKind)
+        {
+            var text = $$"""
+                namespace N
+                {
+                    {{typeKind}} Type
+                    {
+                    }
+
+                    // One method that will move into the type above.
+                    private void M()
+                    {
+                    }
+                }
+                """;
+            UsingTree(text,
+                // (5,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(5, 5),
+                // (10,6): error CS1513: } expected
+                //     }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(10, 6));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(typeSyntaxKind);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("class", SyntaxKind.ClassDeclaration)]
+        [InlineData("struct", SyntaxKind.StructDeclaration)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration)]
+        [InlineData("record", SyntaxKind.RecordDeclaration)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration)]
+        public void ExtraCloseCurly2(string typeKind, SyntaxKind typeSyntaxKind)
+        {
+            var text = $$"""
+                namespace N
+                {
+                    {{typeKind}} Type
+                    {
+                    }
+
+                    // Two members that will move into the type above.
+                    private void M()
+                    {
+                    }
+
+                    public int Prop => 0;
+                }
+                """;
+            UsingTree(text,
+                // (5,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(5, 5),
+                // (12,26): error CS1513: } expected
+                //     public int Prop => 0;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 26));
+
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("class", SyntaxKind.ClassDeclaration)]
+        [InlineData("struct", SyntaxKind.StructDeclaration)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration)]
+        [InlineData("record", SyntaxKind.RecordDeclaration)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration)]
+        public void ExtraCloseCurly3(string typeKind, SyntaxKind typeSyntaxKind)
+        {
+            var text = $$"""
+                namespace N
+                {
+                    {{typeKind}} Type
+                    {
+                    }
+
+                    // Two members that will move into the type above.
+                    private void M()
+                    {
+                    }
+
+                    public int Prop => 0;
+                
+                    // Following type declaration
+                    {{typeKind}} Type
+                    {
+                    }
+                }
+                """;
+            UsingTree(text,
+                // (5,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(5, 5),
+                // (12,26): error CS1513: } expected
+                //     public int Prop => 0;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 26));
+
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("class", SyntaxKind.ClassDeclaration)]
+        [InlineData("struct", SyntaxKind.StructDeclaration)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration)]
+        [InlineData("record", SyntaxKind.RecordDeclaration)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration)]
+        public void ExtraCloseCurly4(string typeKind, SyntaxKind typeSyntaxKind)
+        {
+            var text = $$"""
+                namespace N
+                {
+                    {{typeKind}} Type
+                    {
+                    }
+
+                    // Two members that will move into the type above.
+                    private void M()
+                    {
+                    }
+
+                    public int Prop => 0;
+                
+                    // Following type declaration
+                    {{typeKind}} Type
+                    {
+                    }
+
+                    private Constructor() { }
+
+                    private int field;
+                }
+                """;
+            UsingTree(text,
+                // (5,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(5, 5),
+                // (12,26): error CS1513: } expected
+                //     public int Prop => 0;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 26),
+                // (17,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(17, 5),
+                // (21,23): error CS1513: } expected
+                //     private int field;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(21, 23));
+
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("class", SyntaxKind.ClassDeclaration)]
+        [InlineData("struct", SyntaxKind.StructDeclaration)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration)]
+        [InlineData("record", SyntaxKind.RecordDeclaration)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration)]
+        public void ExtraCloseCurly5(string typeKind, SyntaxKind typeSyntaxKind)
+        {
+            var text = $$"""
+                namespace N
+                {
+                    // This has no type to go into.
+                    event Action BeforeTypeEvent;
+
+                    {{typeKind}} Type
+                    {
+                    }
+
+                    // Two members that will move into the type above.
+                    private void M()
+                    {
+                    }
+
+                    public int Prop => 0;
+                
+                    // Following type declaration
+                    {{typeKind}} Type
+                    {
+                    }
+
+                    private Constructor() { }
+
+                    private int field;
+                }
+                """;
+            UsingTree(text,
+                // (8,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 5),
+                // (15,26): error CS1513: } expected
+                //     public int Prop => 0;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(15, 26),
+                // (20,5): error CS1022: Type or namespace definition, or end-of-file expected
+                //     }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(20, 5),
+                // (24,23): error CS1513: } expected
+                //     private int field;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(24, 23));
+
+            EOF();
+        }
+
         #region Missing > after generic
 
         [Fact]

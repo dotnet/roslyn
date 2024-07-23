@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         CloseBraceToken: { IsMissing: false, ContainsDiagnostics: false }
                     } currentTypeDeclaration)
                 {
-                    var siblingsToMoveIntoType = determineSiblingsToMoveIntoType(i, ref body);
+                    var siblingsToMoveIntoType = determineSiblingsToMoveIntoType(i + 1, ref body);
                     if (siblingsToMoveIntoType is (var firstSiblingToMoveInclusive, var lastSiblingToMoveExclusive))
                     {
                         var finalTypeDeclarationMembers = _pool.Allocate<MemberDeclarationSyntax>();
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private static bool IsMemberDeclarationOnlyValidWithinTypeDeclaration(MemberDeclarationSyntax memberDeclaration)
         {
-            return memberDeclaration.Kind
+            return memberDeclaration != null && memberDeclaration.Kind
                 is SyntaxKind.ConstructorDeclaration
                 or SyntaxKind.ConversionOperatorDeclaration
                 or SyntaxKind.EventDeclaration
