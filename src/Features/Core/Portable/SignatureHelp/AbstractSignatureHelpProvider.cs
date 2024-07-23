@@ -294,9 +294,10 @@ internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpPr
         }
 
         return new SignatureHelpItems(
-            finalItems, itemsForCurrentDocument.ApplicableSpan,
-            itemsForCurrentDocument.ArgumentIndex,
-            itemsForCurrentDocument.ArgumentCount,
+            finalItems,
+            itemsForCurrentDocument.ApplicableSpan,
+            itemsForCurrentDocument.SemanticParameterIndex,
+            itemsForCurrentDocument.SyntacticArgumentCount,
             itemsForCurrentDocument.ArgumentName,
             itemsForCurrentDocument.SelectedItemIndex);
     }
