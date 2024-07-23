@@ -10473,13 +10473,13 @@ public class Class
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
-        [InlineData("class", SyntaxKind.ClassDeclaration)]
-        [InlineData("struct", SyntaxKind.StructDeclaration)]
-        [InlineData("interface", SyntaxKind.InterfaceDeclaration)]
-        [InlineData("record", SyntaxKind.RecordDeclaration)]
-        [InlineData("record struct", SyntaxKind.RecordStructDeclaration)]
-        [InlineData("record class", SyntaxKind.RecordDeclaration)]
-        public void ExtraCloseCurly1(string typeKind, SyntaxKind typeSyntaxKind)
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        public void ExtraCloseCurly1(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
         {
             var text = $$"""
                 namespace N
@@ -10514,7 +10514,17 @@ public class Class
                     N(SyntaxKind.OpenBraceToken);
                     N(typeSyntaxKind);
                     {
-                        N(SyntaxKind.ClassKeyword);
+                        N(keywordKind);
+
+                        if (text.Contains("record struct"))
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        else if (text.Contains("record class"))
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+
                         N(SyntaxKind.IdentifierToken, "Type");
                         N(SyntaxKind.OpenBraceToken);
                         N(SyntaxKind.MethodDeclaration);
@@ -10546,13 +10556,13 @@ public class Class
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
-        [InlineData("class", SyntaxKind.ClassDeclaration)]
-        [InlineData("struct", SyntaxKind.StructDeclaration)]
-        [InlineData("interface", SyntaxKind.InterfaceDeclaration)]
-        [InlineData("record", SyntaxKind.RecordDeclaration)]
-        [InlineData("record struct", SyntaxKind.RecordStructDeclaration)]
-        [InlineData("record class", SyntaxKind.RecordDeclaration)]
-        public void ExtraCloseCurly2(string typeKind, SyntaxKind typeSyntaxKind)
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        public void ExtraCloseCurly2(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
         {
             var text = $$"""
                 namespace N
@@ -10577,17 +10587,85 @@ public class Class
                 //     public int Prop => 0;
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 26));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(typeSyntaxKind);
+                    {
+                        N(keywordKind);
+
+                        if (text.Contains("record struct"))
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        else if (text.Contains("record class"))
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.PropertyDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Prop");
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
-        [InlineData("class", SyntaxKind.ClassDeclaration)]
-        [InlineData("struct", SyntaxKind.StructDeclaration)]
-        [InlineData("interface", SyntaxKind.InterfaceDeclaration)]
-        [InlineData("record", SyntaxKind.RecordDeclaration)]
-        [InlineData("record struct", SyntaxKind.RecordStructDeclaration)]
-        [InlineData("record class", SyntaxKind.RecordDeclaration)]
-        public void ExtraCloseCurly3(string typeKind, SyntaxKind typeSyntaxKind)
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        public void ExtraCloseCurly3(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
         {
             var text = $$"""
                 namespace N
@@ -10604,7 +10682,7 @@ public class Class
                     public int Prop => 0;
                 
                     // Following type declaration
-                    {{typeKind}} Type
+                    class Type
                     {
                     }
                 }
@@ -10617,17 +10695,92 @@ public class Class
                 //     public int Prop => 0;
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 26));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(typeSyntaxKind);
+                    {
+                        N(keywordKind);
+
+                        if (text.Contains("record struct"))
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        else if (text.Contains("record class"))
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.PropertyDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Prop");
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
-        [InlineData("class", SyntaxKind.ClassDeclaration)]
-        [InlineData("struct", SyntaxKind.StructDeclaration)]
-        [InlineData("interface", SyntaxKind.InterfaceDeclaration)]
-        [InlineData("record", SyntaxKind.RecordDeclaration)]
-        [InlineData("record struct", SyntaxKind.RecordStructDeclaration)]
-        [InlineData("record class", SyntaxKind.RecordDeclaration)]
-        public void ExtraCloseCurly4(string typeKind, SyntaxKind typeSyntaxKind)
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        public void ExtraCloseCurly4(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
         {
             var text = $$"""
                 namespace N
@@ -10644,7 +10797,7 @@ public class Class
                     public int Prop => 0;
                 
                     // Following type declaration
-                    {{typeKind}} Type
+                    class Type
                     {
                     }
 
@@ -10667,17 +10820,123 @@ public class Class
                 //     private int field;
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(21, 23));
 
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(typeSyntaxKind);
+                    {
+                        N(keywordKind);
+
+                        if (text.Contains("record struct"))
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        else if (text.Contains("record class"))
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.PropertyDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Prop");
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ConstructorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.IdentifierToken, "Constructor");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.FieldDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "field");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
             EOF();
         }
 
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
-        [InlineData("class", SyntaxKind.ClassDeclaration)]
-        [InlineData("struct", SyntaxKind.StructDeclaration)]
-        [InlineData("interface", SyntaxKind.InterfaceDeclaration)]
-        [InlineData("record", SyntaxKind.RecordDeclaration)]
-        [InlineData("record struct", SyntaxKind.RecordStructDeclaration)]
-        [InlineData("record class", SyntaxKind.RecordDeclaration)]
-        public void ExtraCloseCurly5(string typeKind, SyntaxKind typeSyntaxKind)
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        public void ExtraCloseCurly5(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
         {
             var text = $$"""
                 namespace N
@@ -10697,7 +10956,7 @@ public class Class
                     public int Prop => 0;
                 
                     // Following type declaration
-                    {{typeKind}} Type
+                    class Type
                     {
                     }
 
@@ -10719,6 +10978,351 @@ public class Class
                 // (24,23): error CS1513: } expected
                 //     private int field;
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(24, 23));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.EventFieldDeclaration);
+                    {
+                        N(SyntaxKind.EventKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "BeforeTypeEvent");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(typeSyntaxKind);
+                    {
+                        N(keywordKind);
+
+                        if (text.Contains("record struct"))
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        else if (text.Contains("record class"))
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.PropertyDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Prop");
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ConstructorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.IdentifierToken, "Constructor");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.FieldDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "field");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        public void ExtraCloseCurly6(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        {
+            var text = $$"""
+                namespace N;
+
+                // This has no type to go into.
+                event Action BeforeTypeEvent;
+
+                {{typeKind}} Type
+                {
+                }
+
+                // Two members that will move into the type above.
+                private void M()
+                {
+                }
+
+                public int Prop => 0;
+                
+                // Following type declaration
+                class Type
+                {
+                }
+
+                private Constructor() { }
+
+                private int field;
+                """;
+            UsingTree(text,
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
+                // (16,1): error CS1513: } expected
+                // 
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(16, 1),
+                // (20,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(20, 1),
+                // (24,19): error CS1513: } expected
+                // private int field;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(24, 19));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.FileScopedNamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.SemicolonToken);
+                    N(SyntaxKind.EventFieldDeclaration);
+                    {
+                        N(SyntaxKind.EventKeyword);
+                        N(SyntaxKind.VariableDeclaration);
+                        {
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                            }
+                            N(SyntaxKind.VariableDeclarator);
+                            {
+                                N(SyntaxKind.IdentifierToken, "BeforeTypeEvent");
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(typeSyntaxKind);
+                    {
+                        N(keywordKind);
+
+                        if (text.Contains("record struct"))
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        else if (text.Contains("record class"))
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.PropertyDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Prop");
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ConstructorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.IdentifierToken, "Constructor");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.FieldDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "field");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        public void ExtraCloseCurly7(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        {
+            var text = $$"""
+                // This has no type to go into.
+                event Action BeforeTypeEvent;
+
+                {{typeKind}} Type
+                {
+                }
+
+                // Two members that will move into the type above.
+                private void M()
+                {
+                }
+
+                public int Prop => 0;
+                
+                // Following type declaration
+                class Type
+                {
+                }
+
+                private Constructor() { }
+
+                private int field;
+                """;
+            UsingTree(text,
+                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
+                // (16,1): error CS1513: } expected
+                // 
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(16, 1),
+                // (20,1): error CS1022: Type or namespace definition, or end-of-file expected
+                // }
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(20, 1),
+                // (24,19): error CS1513: } expected
+                // private int field;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(24, 19));
 
             EOF();
         }
