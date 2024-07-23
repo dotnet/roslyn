@@ -143,4 +143,7 @@
   </Target>
 
   <Import Project="GeneratePkgDef.targets" Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(GeneratePkgDefFile)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
+
+    <!-- Workaround to fix https://github.com/dotnet/msbuild/issues/10306 -->
+  <Target Name="ExtensionJsonOutputGroupFixed" Returns="@(ExtensionJsonOutputGroupOutput)" DependsOnTargets="PrepareResources;ExtensionJsonOutputGroup" />
 </Project>
