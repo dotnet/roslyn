@@ -145,25 +145,14 @@ internal sealed class RoslynPackage : AbstractPackage
     {
         await base.InitializeAsync(cancellationToken, progress).ConfigureAwait(true);
 
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
         // Ensure the options persisters are loaded since we have to fetch options from the shell
         LoadOptionPersistersAsync(this.ComponentModel, cancellationToken).Forget();
 
         await InitializeColorsAsync(cancellationToken).ConfigureAwait(true);
 
-        // load some services that have to be loaded in UI thread
-        LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
-
         // We are at the VS layer, so we know we must be able to get the IGlobalOperationNotificationService here.
         var globalNotificationService = this.ComponentModel.GetService<IGlobalOperationNotificationService>();
         Assumes.Present(globalNotificationService);
-
-        _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
-        TrackBulkFileOperations(globalNotificationService);
-
-        var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
-        RegisterEditorFactory(settingsEditorFactory);
 
         // Misc workspace has to be up and running by the time our package is usable so that it can track running
         // doc events and appropriately map files to/from it and other relevant workspaces (like the
@@ -181,6 +170,17 @@ internal sealed class RoslynPackage : AbstractPackage
         serviceBrokerContainer.Proffer(
             ManagedHotReloadLanguageServiceDescriptor.Descriptor,
             (_, _, _, _) => ValueTaskFactory.FromResult<object?>(new ManagedEditAndContinueLanguageServiceBridge(this.ComponentModel.GetService<EditAndContinueLanguageService>())));
+
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        // load some services that have to be loaded in UI thread
+        LoadComponentsInUIContextOnceSolutionFullyLoadedAsync(cancellationToken).Forget();
+
+        _solutionEventMonitor = new SolutionEventMonitor(globalNotificationService);
+        TrackBulkFileOperations(globalNotificationService);
+
+        var settingsEditorFactory = this.ComponentModel.GetService<SettingsEditorFactory>();
+        RegisterEditorFactory(settingsEditorFactory);
     }
 
     private async Task LoadOptionPersistersAsync(IComponentModel componentModel, CancellationToken cancellationToken)
