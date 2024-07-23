@@ -40907,99 +40907,60 @@ class Program
 """;
         var comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
 
-        // PROTOTYPE(roles): Probably should report ErrorCode.ERR_ValueTypeExtDelegate instead, like we do for a legacy extension method 
-        Verification verify = Verification.Fails.WithILVerifyMessage(
-"""
-[Method]: Unrecognized arguments for delegate .ctor. { Offset = 0x11 }
-[Test1]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
-[Test2]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
-""");
-        var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("00"), verify: verify).VerifyDiagnostics();
-
-        var test1IL =
-"""
-{
-  // Code size       42 (0x2a)
-  .maxstack  3
-  .locals init (C V_0)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  initobj    "C"
-  IL_0008:  ldloc.0
-  IL_0009:  dup
-  IL_000a:  box        "C"
-  IL_000f:  ldftn      "void E.Method(ref C)"
-  IL_0015:  newobj     "System.Action..ctor(object, nint)"
-  IL_001a:  callvirt   "void System.Action.Invoke()"
-  IL_001f:  ldfld      "int C.F"
-  IL_0024:  call       "void System.Console.Write(int)"
-  IL_0029:  ret
-}
-""";
-        verifier.VerifyIL("Program.Test1", test1IL);
-        verifier.VerifyIL("Program.Test2", test1IL);
-
-        verifier.VerifyIL("E.Method(ref C)", """
-{
-  // Code size       28 (0x1c)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldobj      "C"
-  IL_0006:  box        "C"
-  IL_000b:  ldftn      "void E.Method2(ref C)"
-  IL_0011:  newobj     "System.Action..ctor(object, nint)"
-  IL_0016:  callvirt   "void System.Action.Invoke()"
-  IL_001b:  ret
-}
-""");
-
-        verifier.VerifyIL("E.Method2(ref C)", """
-{
-  // Code size       28 (0x1c)
-  .maxstack  2
-  IL_0000:  ldarg.0
-  IL_0001:  ldobj      "C"
-  IL_0006:  box        "C"
-  IL_000b:  ldftn      "void C.Increment()"
-  IL_0011:  newobj     "System.Action..ctor(object, nint)"
-  IL_0016:  callvirt   "void System.Action.Invoke()"
-  IL_001b:  ret
-}
-""");
-
-        comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.DebugExe);
-
-        // PROTOTYPE(roles): Probably should report ErrorCode.ERR_ValueTypeExtDelegate instead, like we do for a legacy extension method 
-        Verification debugVerify = Verification.Fails.WithILVerifyMessage(
-"""
-[Method]: Unrecognized arguments for delegate .ctor. { Offset = 0x12 }
-[Test1]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
-[Test2]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
-""");
-
-        CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("00"), verify: debugVerify).VerifyDiagnostics();
+        comp.VerifyDiagnostics(
+            // (5,27): error CS1113: Extension method 'E.Method2()' defined on value type 'E' cannot be used to create delegates
+            //         System.Action d = this.Method2;
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "this.Method2").WithArguments("E.Method2()", "E").WithLocation(5, 27),
+            // (35,27): error CS1113: Extension method 'E.Method()' defined on value type 'E' cannot be used to create delegates
+            //         System.Action d = c.Method;
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "c.Method").WithArguments("E.Method()", "E").WithLocation(35, 27),
+            // (43,35): error CS1113: Extension method 'E.Method()' defined on value type 'E' cannot be used to create delegates
+            //         var d = new System.Action(c.Method);
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "c.Method").WithArguments("E.Method()", "E").WithLocation(43, 35)
+            );
 
         var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetStandard20, options: TestOptions.ReleaseDll);
 
         var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80,
             options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)); // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by '512c7a1c-7c4e-4467-84af-5b75683f75fb' matches identity 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
-        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("00"), verify: Verification.Skipped).VerifyDiagnostics();
+        comp2.VerifyDiagnostics(
+            // (12,27): error CS1113: Extension method 'E.Method()' defined on value type 'E' cannot be used to create delegates
+            //         System.Action d = c.Method;
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "c.Method").WithArguments("E.Method()", "E").WithLocation(12, 27),
+            // (20,35): error CS1113: Extension method 'E.Method()' defined on value type 'E' cannot be used to create delegates
+            //         var d = new System.Action(c.Method);
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "c.Method").WithArguments("E.Method()", "E").WithLocation(20, 35)
+            );
 
-        verifier.VerifyIL("Program.Test1", test1IL);
-        verifier.VerifyIL("Program.Test2", test1IL);
+        var src3 = """
+public implicit extension E for C
+{
+    public void Method()
+    {
+    }
+}
 
-        comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+public struct C
+{
+    public int F;
 
-        // PROTOTYPE(roles): Probably should report ErrorCode.ERR_ValueTypeExtDelegate instead, like we do for a legacy extension method 
-        verify = Verification.Fails.WithILVerifyMessage(
-"""
-[Test1]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
-[Test2]: Unrecognized arguments for delegate .ctor. { Offset = 0x15 }
-""");
+    public void Increment()
+    {
+        F++;
+    }
+}
+""";
+        var comp3 = CreateCompilation(src3, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
 
-        verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("00"), verify: verify).VerifyDiagnostics();
-
-        verifier.VerifyIL("Program.Test1", test1IL);
-        verifier.VerifyIL("Program.Test2", test1IL);
+        comp2 = CreateCompilation(src2, references: [comp3.EmitToImageReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        comp2.VerifyDiagnostics(
+            // (12,27): error CS1113: Extension method 'E.Method()' defined on value type 'E' cannot be used to create delegates
+            //         System.Action d = c.Method;
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "c.Method").WithArguments("E.Method()", "E").WithLocation(12, 27),
+            // (20,35): error CS1113: Extension method 'E.Method()' defined on value type 'E' cannot be used to create delegates
+            //         var d = new System.Action(c.Method);
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "c.Method").WithArguments("E.Method()", "E").WithLocation(20, 35)
+            );
     }
 
     [Fact]
@@ -41343,6 +41304,129 @@ class Program
 
         var comp2 = CreateCompilation(src2, references: [comp1.EmitToImageReference()], options: TestOptions.ReleaseExe);
         CompileAndVerify(comp2, expectedOutput: "110-210").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_21()
+    {
+        var src1 = """
+public implicit extension E<T> for T where T : I1 
+{
+    public void Method()
+    {
+        System.Action d = this.Method2;
+        d();
+    }
+
+    public void Method2()
+    {
+        System.Action d = this.Increment;
+        d();
+    }
+}
+
+public interface I1
+{
+    public void Increment();
+}
+
+public class C : I1
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+}
+""";
+        var src2 = """
+class Program
+{
+    static void Main()
+    {
+        Test1();
+        Test2();
+    }
+
+    static void Test1()
+    {
+        var c = new C();
+        System.Action d = c.Method;
+        d();
+        System.Console.Write(c.F);
+    }
+
+    static void Test2()
+    {
+        var c = new C();
+        var d = new System.Action(c.Method);
+        d();
+        System.Console.Write(c.F);
+    }
+}
+""";
+        var comp = CreateCompilation(src1 + src2, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+
+        comp.VerifyDiagnostics(
+            // (5,27): error CS1113: Extension method 'E<T>.Method2()' defined on value type 'E<T>' cannot be used to create delegates
+            //         System.Action d = this.Method2;
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "this.Method2").WithArguments("E<T>.Method2()", "E<T>").WithLocation(5, 27),
+            // (40,27): error CS1113: Extension method 'E<C>.Method()' defined on value type 'E<T>' cannot be used to create delegates
+            //         System.Action d = c.Method;
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "c.Method").WithArguments("E<C>.Method()", "E<T>").WithLocation(40, 27),
+            // (48,35): error CS1113: Extension method 'E<C>.Method()' defined on value type 'E<T>' cannot be used to create delegates
+            //         var d = new System.Action(c.Method);
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "c.Method").WithArguments("E<C>.Method()", "E<T>").WithLocation(48, 35)
+            );
+
+        var comp1 = CreateCompilation(src1, targetFramework: TargetFramework.NetStandard20, options: TestOptions.ReleaseDll);
+
+        var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: TargetFramework.Net80,
+            options: TestOptions.ReleaseExe.WithSpecificDiagnosticOptions("CS1701", ReportDiagnostic.Suppress)); // warning CS1701: Assuming assembly reference 'System.Runtime, Version=4.1.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' used by '512c7a1c-7c4e-4467-84af-5b75683f75fb' matches identity 'System.Runtime, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a' of 'System.Runtime', you may need to supply runtime policy
+        comp2.VerifyDiagnostics(
+            // (12,27): error CS1113: Extension method 'E<C>.Method()' defined on value type 'E<T>' cannot be used to create delegates
+            //         System.Action d = c.Method;
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "c.Method").WithArguments("E<C>.Method()", "E<T>").WithLocation(12, 27),
+            // (20,35): error CS1113: Extension method 'E<C>.Method()' defined on value type 'E<T>' cannot be used to create delegates
+            //         var d = new System.Action(c.Method);
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "c.Method").WithArguments("E<C>.Method()", "E<T>").WithLocation(20, 35)
+            );
+
+        var src3 = """
+public implicit extension E<T> for T where T : I1 
+{
+    public void Method()
+    {
+    }
+}
+
+public interface I1
+{
+    public void Increment();
+}
+
+public class C : I1
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+}
+""";
+        var comp3 = CreateCompilation(src3, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseDll);
+
+        comp2 = CreateCompilation(src2, references: [comp3.EmitToImageReference()], targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+        comp2.VerifyDiagnostics(
+            // (12,27): error CS1113: Extension method 'E<C>.Method()' defined on value type 'E<T>' cannot be used to create delegates
+            //         System.Action d = c.Method;
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "c.Method").WithArguments("E<C>.Method()", "E<T>").WithLocation(12, 27),
+            // (20,35): error CS1113: Extension method 'E<C>.Method()' defined on value type 'E<T>' cannot be used to create delegates
+            //         var d = new System.Action(c.Method);
+            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "c.Method").WithArguments("E<C>.Method()", "E<T>").WithLocation(20, 35)
+            );
     }
 
     [Fact]
