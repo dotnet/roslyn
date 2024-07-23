@@ -12030,8 +12030,6 @@ public class Class
                 // (10,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(10, 1));
-
-
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.NamespaceDeclaration);
