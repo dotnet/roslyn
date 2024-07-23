@@ -449,12 +449,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 // Move the existing close brace token to the first member as a skipped token, with a
                                 // diagnostic saying that it was unexpected.
+                                currentSibling = AddLeadingSkippedSyntax(
+                                    currentSibling,
+                                    AddError(currentTypeDeclaration.CloseBraceToken, ErrorCode.ERR_EOFExpected));
+                            }
 
-                            }
-                            else
-                            {
-                                finalTypeDeclarationMembers.Add(currentSibling);
-                            }
+                            finalTypeDeclarationMembers.Add(currentSibling);
                         }
 
                         var finalTypeDeclaration = MoveMembersAndUpdateCloseBraceToken(
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             return typeDeclaration switch
             {
-                ClassDeclarationSyntax classDeclaration => classDeclaration.Update(
+                ClassDeclarationSyntax declaration => declaration.Update(
                     typeDeclaration.AttributeLists,
                     typeDeclaration.Modifiers,
                     typeDeclaration.Keyword,
@@ -525,6 +525,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     newMembers,
                     finalCloseBraceToken,
                     typeDeclaration.SemicolonToken!),
+                InterfaceDeclarationSyntax declaration => declaration.Update(
+                    typeDeclaration.AttributeLists,
+                    typeDeclaration.Modifiers,
+                    typeDeclaration.Keyword,
+                    typeDeclaration.Identifier,
+                    typeDeclaration.TypeParameterList!,
+                    typeDeclaration.ParameterList!,
+                    typeDeclaration.BaseList!,
+                    typeDeclaration.ConstraintClauses,
+                    typeDeclaration.OpenBraceToken!,
+                    newMembers,
+                    finalCloseBraceToken,
+                    typeDeclaration.SemicolonToken!),
+                RecordDeclarationSyntax declaration => declaration.Update(
+                    typeDeclaration.AttributeLists,
+                    typeDeclaration.Modifiers,
+                    typeDeclaration.Keyword,
+                    declaration.ClassOrStructKeyword!,
+                    typeDeclaration.Identifier,
+                    typeDeclaration.TypeParameterList!,
+                    typeDeclaration.ParameterList!,
+                    typeDeclaration.BaseList!,
+                    typeDeclaration.ConstraintClauses,
+                    typeDeclaration.OpenBraceToken!,
+                    newMembers,
+                    finalCloseBraceToken,
+                    typeDeclaration.SemicolonToken!),
+                StructDeclarationSyntax declaration => declaration.Update(
+                    typeDeclaration.AttributeLists,
+                    typeDeclaration.Modifiers,
+                    typeDeclaration.Keyword,
+                    typeDeclaration.Identifier,
+                    typeDeclaration.TypeParameterList!,
+                    typeDeclaration.ParameterList!,
+                    typeDeclaration.BaseList!,
+                    typeDeclaration.ConstraintClauses,
+                    typeDeclaration.OpenBraceToken!,
+                    newMembers,
+                    finalCloseBraceToken,
+                    typeDeclaration.SemicolonToken!),
+                _ => throw ExceptionUtilities.UnexpectedValue(typeDeclaration.GetType()),
             };
         }
 
