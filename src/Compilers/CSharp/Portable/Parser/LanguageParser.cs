@@ -427,13 +427,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             var finalMembers = _pool.Allocate<MemberDeclarationSyntax>();
 
+            // Do a single linear sweep, examining each type declaration we run into within the namespace.
             for (var currentBodyMemberIndex = 0; currentBodyMemberIndex < body.Members.Count;)
             {
                 var currentMember = body.Members[currentBodyMemberIndex];
 
-                // Look for a normal type declaration that ended without problem (has a real close curly and no trailing
-                // semicolon).  Then see if there are any type-only members following it that should be moved into it.
-
+                // If we have a suitable type declaration that ended without problem (has a real close curly and no
+                // trailing semicolon).  Then see if there are any type-only members following it that should be moved
+                // into it.
                 if (currentMember is TypeDeclarationSyntax
                     {
                         SemicolonToken: null,
@@ -443,6 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var siblingsToMoveIntoType = determineSiblingsToMoveIntoType(typeDeclarationIndex: currentBodyMemberIndex, ref body);
                     if (siblingsToMoveIntoType is (var firstSiblingToMoveInclusive, var lastSiblingToMoveExclusive))
                     {
+                        // We found sibling type-only members.  Move them into the preceding type declaration.
                         var finalTypeDeclaration = moveSiblingMembersIntoPrecedingType(
                             currentTypeDeclaration, body, firstSiblingToMoveInclusive, lastSiblingToMoveExclusive);
                         finalMembers.Add(finalTypeDeclaration);
