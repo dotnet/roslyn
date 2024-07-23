@@ -202,7 +202,9 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension R for UnderlyingClas
     public R(int i) { }
     public static implicit operator R(int i) => throw null;
     public static implicit operator R(UnderlyingClass c) => throw null;
-    public static implicit operator UnderlyingClass(R r) => throw null;
+
+    // PROTOTYPE we need to detect signature collisions factoring type erasure in
+    //public static implicit operator UnderlyingClass(R r) => throw null;
     public static int operator+(R r, UnderlyingClass c) => throw null;
     public static int operator-(UnderlyingClass c, R r) => throw null;
 }
@@ -212,10 +214,6 @@ public {{(isExplicit ? "explicit" : "implicit")}} extension R for UnderlyingClas
         // PROTOTYPE constructor and destructor
         comp.VerifyDiagnostics();
 
-        // TODO2
-        // PEVerify failed for assembly '':
-        // Error: Method has a duplicate, token = 0x0600000e.
-        // Error: Method has a duplicate, token = 0x0600000d.
         var verifier = CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate);
         verifier.VerifyIL($$"""R.{{ExtensionMarkerName(isExplicit)}}(UnderlyingClass)""", """
 {
