@@ -10495,12 +10495,12 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS1022: Type or namespace definition, or end-of-file expected
+                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 //     }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(5, 5),
-                // (10,6): error CS1513: } expected
-                //     }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(10, 6));
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
+                // (11,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(11, 2));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -10546,9 +10546,9 @@ public class Class
                                 N(SyntaxKind.CloseBraceToken);
                             }
                         }
-                        M(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
-                    N(SyntaxKind.CloseBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -10580,12 +10580,12 @@ public class Class
                 }
                 """;
             UsingTree(text,
-                // (5,5): error CS1022: Type or namespace definition, or end-of-file expected
+                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 //     }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(5, 5),
-                // (12,26): error CS1513: } expected
-                //     public int Prop => 0;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 26));
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
+                // (13,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(13, 2));
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -10649,9 +10649,9 @@ public class Class
                             }
                             N(SyntaxKind.SemicolonToken);
                         }
-                        M(SyntaxKind.CloseBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
                     }
-                    N(SyntaxKind.CloseBraceToken);
+                    M(SyntaxKind.CloseBraceToken);
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
@@ -11287,42 +11287,31 @@ public class Class
         public void ExtraCloseCurly7(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
         {
             var text = $$"""
-                // This has no type to go into.
-                event Action BeforeTypeEvent;
-
-                {{typeKind}} Type
+                namespace N1
                 {
+                    namespace N2
+                    {
+                        {{typeKind}} Type
+                        {
+                        }
+
+                        // Should go into type
+                        private void M()
+                        {
+                        }
+
+                        // Should become the close curly of Type initially.
+                        }
+
+                        // Should go into Type as well.
+                        private void N()
+
+                        // Should become the close curly of Type next.
+                        }
+                    }
                 }
-
-                // Two members that will move into the type above.
-                private void M()
-                {
-                }
-
-                public int Prop => 0;
-                
-                // Following type declaration
-                class Type
-                {
-                }
-
-                private Constructor() { }
-
-                private int field;
                 """;
-            UsingTree(text,
-                // (8,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(8, 1),
-                // (16,1): error CS1513: } expected
-                // 
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(16, 1),
-                // (20,1): error CS1022: Type or namespace definition, or end-of-file expected
-                // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(20, 1),
-                // (24,19): error CS1513: } expected
-                // private int field;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(24, 19));
+            UsingTree(text);
 
             EOF();
         }

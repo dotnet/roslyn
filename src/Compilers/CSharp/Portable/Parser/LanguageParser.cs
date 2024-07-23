@@ -423,9 +423,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // preemptively ended the type declaration, and the member declaration was supposed to go in it instead.
             var finalMembers = _pool.Allocate<MemberDeclarationSyntax>();
 
-            for (var i = 0; i < body.Members.Count;)
+            for (var currentBodyMemberIndex = 0; currentBodyMemberIndex < body.Members.Count;)
             {
-                var currentMember = body.Members[i];
+                var currentMember = body.Members[currentBodyMemberIndex];
 
                 // Look for a normal type declaration that ended without problem (has a real close curly and no trailing
                 // semicolon).  Then see if 
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         CloseBraceToken: { IsMissing: false, ContainsDiagnostics: false }
                     } currentTypeDeclaration)
                 {
-                    var siblingsToMoveIntoType = determineSiblingsToMoveIntoType(i + 1, ref body);
+                    var siblingsToMoveIntoType = determineSiblingsToMoveIntoType(typeDeclarationIndex: currentBodyMemberIndex, ref body);
                     if (siblingsToMoveIntoType is (var firstSiblingToMoveInclusive, var lastSiblingToMoveExclusive))
                     {
                         var finalTypeDeclarationMembers = _pool.Allocate<MemberDeclarationSyntax>();
@@ -451,26 +451,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 // diagnostic saying that it was unexpected.
                                 currentSibling = AddLeadingSkippedSyntax(
                                     currentSibling,
-                                    AddError(currentTypeDeclaration.CloseBraceToken, ErrorCode.ERR_EOFExpected));
+                                    AddError(currentTypeDeclaration.CloseBraceToken, ErrorCode.ERR_InvalidMemberDecl, "}"));
                             }
 
                             finalTypeDeclarationMembers.Add(currentSibling);
                         }
 
-                        var finalTypeDeclaration = MoveMembersAndUpdateCloseBraceToken(
+                        var finalTypeDeclaration = MoveMembersAndAddCloseBraceToken(
                             currentTypeDeclaration,
-                            _pool.ToListAndFree(finalTypeDeclarationMembers));
+                            _pool.ToListAndFree(finalTypeDeclarationMembers),
+                            isLast: lastSiblingToMoveExclusive == body.Members.Count);
 
                         finalMembers.Add(finalTypeDeclaration);
 
-                        i = lastSiblingToMoveExclusive;
+                        currentBodyMemberIndex = lastSiblingToMoveExclusive;
                         continue;
                     }
                 }
 
                 // Simple case.  A normal namespace member we don't need to do anything with.
                 finalMembers.Add(currentMember);
-                i++;
+                currentBodyMemberIndex++;
             }
 
             _pool.Free(body.Members);
@@ -501,14 +502,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private TypeDeclarationSyntax MoveMembersAndUpdateCloseBraceToken(
+        private TypeDeclarationSyntax MoveMembersAndAddCloseBraceToken(
             TypeDeclarationSyntax typeDeclaration,
-            SyntaxList<MemberDeclarationSyntax> newMembers)
+            SyntaxList<MemberDeclarationSyntax> newMembers,
+            bool isLast)
         {
             // The existing close brace token is moved to the first member as a skipped token, with a diagnostic saying
-            // it was unexpected.  The type decl will then get a missing close brace token.
-            var finalCloseBraceToken = AddError(
-                SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken), ErrorCode.ERR_RbraceExpected);
+            // it was unexpected.  The type decl will then get a missing close brace token if there are still members
+            // following.  If not, we'll try to eat an actual close brace token.
+            var finalCloseBraceToken = isLast
+                ? EatToken(SyntaxKind.CloseBraceToken)
+                : AddError(
+                    SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken), ErrorCode.ERR_RbraceExpected);
 
             return typeDeclaration switch
             {
