@@ -122,6 +122,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (receiverOpt is not null && method.OriginalDefinition.ContainingSymbol is NamedTypeSymbol declaringTypeDefinition &&
                 declaringTypeDefinition.TryGetCorrespondingStaticMetadataExtensionMember(method.OriginalDefinition) is MethodSymbol metadataMethod)
             {
+                Debug.Assert(receiverOpt.Type is not null);
+
                 method = metadataMethod.AsMember(method.ContainingType).ConstructIfGeneric(method.TypeArgumentsWithAnnotations);
 
                 var thisRefKind = method.Parameters[0].RefKind;
@@ -146,7 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Debug.Assert(thisRefKind == RefKind.Ref);
 
-                    if (!Binder.HasHome(receiverOpt,
+                    if ((receiverOpt.Type.IsReferenceType &&
+                         receiverOpt is not BoundLocal { LocalSymbol.SynthesizedKind: SynthesizedLocalKind.LoweringTemp, LocalSymbol.RefKind: RefKind.None }) || // If receiver is already captured by value, user's code shouldn't be able to change its value
+                        !Binder.HasHome(receiverOpt,
                                         Binder.AddressKind.Writeable,
                                         containingMethod,
                                         peVerifyCompatEnabled: true,

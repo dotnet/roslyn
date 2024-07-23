@@ -40052,13 +40052,13 @@ struct S : I1
 """
 {
   // Code size       25 (0x19)
-  .maxstack  1
-  .locals init (C V_0) //c
+  .maxstack  2
+  .locals init (C V_0)
   IL_0000:  newobj     "C..ctor()"
-  IL_0005:  stloc.0
-  IL_0006:  ldloca.s   V_0
-  IL_0008:  call       "void E<C>.Method(ref C)"
-  IL_000d:  ldloc.0
+  IL_0005:  dup
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "void E<C>.Method(ref C)"
   IL_000e:  ldfld      "int C.F"
   IL_0013:  call       "void System.Console.Write(int)"
   IL_0018:  ret
@@ -41658,6 +41658,558 @@ class Program
     }
 
     [Fact]
+    public void InstanceMethod_Metadata_26_Prevent_This_Mutation()
+    {
+        var src = """
+public implicit extension E<T> for T where T : I1
+{
+    public void Method()
+    {
+        Program._c1 = null;
+        this.Increment();
+    }
+}
+
+public interface I1
+{
+    public void Increment();
+}
+
+public class C : I1
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        Test1(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.F);
+        Test2(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.F);
+    }
+
+    public static C _c1;
+
+    static void Test1(C c1)
+    {
+        _c1 = c1;
+        _c1.Method();
+    }
+
+    static void Test2(C c1)
+    {
+        _c1 = c1;
+        _c1?.Method();
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "12").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+"""
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       "void E<C>.Method(ref C)"
+  IL_0013:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2",
+"""
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  dup
+  IL_000c:  brtrue.s   IL_0010
+  IL_000e:  pop
+  IL_000f:  ret
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  call       "void E<C>.Method(ref C)"
+  IL_0018:  ret
+}
+""");
+
+        comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "12").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_27_Prevent_This_Mutation()
+    {
+        var src = """
+public implicit extension E<T> for T where T : I1
+{
+    public void Method()
+    {
+        Helper<T>._c1 = default;
+        this.Increment();
+    }
+}
+
+public interface I1
+{
+    public void Increment();
+}
+
+public class C : I1
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+}
+
+class Helper<T> where T : I1
+{
+    public static T _c1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        Test1(c);
+        System.Console.Write(Helper<C>._c1);
+        System.Console.Write(c.F);
+        Test2(c);
+        System.Console.Write(Helper<C>._c1);
+        System.Console.Write(c.F);
+    }
+
+    static void Test1<T>(T c1) where T : I1
+    {
+        Helper<T>._c1 = c1;
+        Helper<T>._c1.Method();
+    }
+
+    static void Test2<T>(T c1) where T : I1
+    {
+        Helper<T>._c1 = c1;
+        Helper<T>._c1?.Method();
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+
+        // If this scenario becomes a success, the expectations should be cloned from InstanceMethod_Metadata_25_Prevent_This_Mutation
+        // and other test scenarios targeting 'this' mutation should be cloned accordingly. 
+        comp.VerifyDiagnostics(
+            // (46,23): error CS1061: 'T' does not contain a definition for 'Method' and no accessible extension method 'Method' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
+            //         Helper<T>._c1.Method();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "Method").WithArguments("T", "Method").WithLocation(46, 23),
+            // (52,23): error CS1061: 'T' does not contain a definition for 'Method' and no accessible extension method 'Method' accepting a first argument of type 'T' could be found (are you missing a using directive or an assembly reference?)
+            //         Helper<T>._c1?.Method();
+            Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, ".Method").WithArguments("T", "Method").WithLocation(52, 23)
+            );
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_28_Prevent_This_Mutation()
+    {
+        var src = """
+public implicit extension E<T> for T where T : I1
+{
+    public void Method(C x)
+    {
+        this.Increment();
+    }
+}
+
+public interface I1
+{
+    public void Increment();
+}
+
+public class C : I1
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        Test1(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.F);
+        Test2(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.F);
+    }
+
+    public static C _c1;
+
+    static void Test1(C c1)
+    {
+        _c1 = c1;
+        _c1.Method(_c1 = null);
+    }
+
+    static void Test2(C c1)
+    {
+        _c1 = c1;
+        _c1?.Method(_c1 = null);
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "12").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+"""
+{
+  // Code size       27 (0x1b)
+  .maxstack  3
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldnull
+  IL_000f:  dup
+  IL_0010:  stsfld     "C Program._c1"
+  IL_0015:  call       "void E<C>.Method(ref C, C)"
+  IL_001a:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2",
+"""
+{
+  // Code size       32 (0x20)
+  .maxstack  3
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  dup
+  IL_000c:  brtrue.s   IL_0010
+  IL_000e:  pop
+  IL_000f:  ret
+  IL_0010:  stloc.0
+  IL_0011:  ldloca.s   V_0
+  IL_0013:  ldnull
+  IL_0014:  dup
+  IL_0015:  stsfld     "C Program._c1"
+  IL_001a:  call       "void E<C>.Method(ref C, C)"
+  IL_001f:  ret
+}
+""");
+
+        comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "12").VerifyDiagnostics();
+    }
+
+    [Theory]
+    [CombinatorialData]
+    public void InstanceMethod_Metadata_29_Prevent_This_Mutation(bool addClassConstraint)
+    {
+        var src = $$$"""
+public implicit extension E<T> for T where T : {{{(addClassConstraint ? "class, " : "")}}}I1
+{
+    public void Test1()
+    {
+        this.Method1();
+    }
+
+    public void Test2()
+    {
+        this.Method2(Program._c1 = null);
+    }
+
+    public void Method1()
+    {
+        Program._c1 = null;
+        this.Increment();
+    }
+
+    public void Method2(C x)
+    {
+        this.Increment();
+    }
+}
+
+public interface I1
+{
+    public void Increment();
+}
+
+public class C : I1
+{
+    public int F;
+
+    public void Increment()
+    {
+        F++;
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+        Test1(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.F);
+        Test2(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.F);
+    }
+
+    public static C _c1;
+
+    static void Test1(C c1)
+    {
+        _c1 = c1;
+        _c1.Test1();
+    }
+
+    static void Test2(C c1)
+    {
+        _c1 = c1;
+        _c1.Test2();
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "12").VerifyDiagnostics();
+
+        // PROTOTYPE(roles): Note, we are not cloning a possible reference type receiver when invoking an instance extension 
+        //                   method "Method" on 'this' within another instance extension method "Test1". Even when 'this' is passed by ref.
+        //                   This should be fine because the caller of "Test1" is expected to clone the receiver at the call site and
+        //                   cloning it again within "Test1" would be redundant. Need to confirm that it is fine to rely on consumer of "Test1"
+        //                   to do the right thing (the cloning).
+        verifier.VerifyIL("E<T>.Test1",
+$$$"""
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "void E<T>.Method1({{{(addClassConstraint ? "" : "ref ")}}}T)"
+  IL_0006:  ret
+}
+""");
+
+        verifier.VerifyIL("E<T>.Test2",
+$$$"""
+{
+  // Code size       14 (0xe)
+  .maxstack  3
+  IL_0000:  ldarg.0
+  IL_0001:  ldnull
+  IL_0002:  dup
+  IL_0003:  stsfld     "C Program._c1"
+  IL_0008:  call       "void E<T>.Method2({{{(addClassConstraint ? "" : "ref ")}}}T, C)"
+  IL_000d:  ret
+}
+""");
+
+        comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "12").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_30_Prevent_This_Mutation()
+    {
+        var src = $$$"""
+public implicit extension E for string
+{
+    public void Method()
+    {
+        this = default;
+        Test1(ref this);
+        Test2(out this);
+    }
+
+    static void Test1(ref string x) {}
+    static void Test2(out string x) { x = default; }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (5,9): error CS1604: Cannot assign to 'this' because it is read-only
+            //         this = default;
+            Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(5, 9),
+            // (6,19): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+            //         Test1(ref this);
+            Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(6, 19),
+            // (7,19): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+            //         Test2(out this);
+            Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(7, 19)
+            );
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_31_Prevent_This_Mutation()
+    {
+        var src = $$$"""
+public implicit extension E for int
+{
+    public void Method()
+    {
+        this = default;
+        Test1(ref this);
+        Test2(out this);
+    }
+
+    static void Test1(ref int x) {}
+    static void Test2(out int x) { x = default; }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        // PROTOTYPE(roles): Are the errors expected? Regular struct instance members are allowed to
+        //                   modify 'this'.
+        comp.VerifyDiagnostics(
+            // (5,9): error CS1604: Cannot assign to 'this' because it is read-only
+            //         this = default;
+            Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(5, 9),
+            // (6,19): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+            //         Test1(ref this);
+            Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(6, 19),
+            // (7,19): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+            //         Test2(out this);
+            Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(7, 19)
+            );
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_32_Prevent_This_Mutation()
+    {
+        var src = $$$"""
+public implicit extension E<T> for T
+{
+    public void Method()
+    {
+        this = default;
+        Test1(ref this);
+        Test2(out this);
+    }
+
+    static void Test1(ref T x) {}
+    static void Test2(out T x) { x = default; }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (5,9): error CS1604: Cannot assign to 'this' because it is read-only
+            //         this = default;
+            Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(5, 9),
+            // (6,19): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+            //         Test1(ref this);
+            Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(6, 19),
+            // (7,19): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+            //         Test2(out this);
+            Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(7, 19)
+            );
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_33_Prevent_This_Mutation()
+    {
+        var src = $$$"""
+public implicit extension E<T> for T where T : class
+{
+    public void Method()
+    {
+        this = default;
+        Test1(ref this);
+        Test2(out this);
+    }
+
+    static void Test1(ref T x) {}
+    static void Test2(out T x) { x = default; }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyDiagnostics(
+            // (5,9): error CS1604: Cannot assign to 'this' because it is read-only
+            //         this = default;
+            Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(5, 9),
+            // (6,19): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+            //         Test1(ref this);
+            Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(6, 19),
+            // (7,19): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+            //         Test2(out this);
+            Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(7, 19)
+            );
+    }
+
+    [Fact]
+    public void InstanceMethod_Metadata_34_Prevent_This_Mutation()
+    {
+        var src = $$$"""
+public implicit extension E<T> for T where T : struct
+{
+    public void Method()
+    {
+        this = default;
+        Test1(ref this);
+        Test2(out this);
+    }
+
+    static void Test1(ref T x) {}
+    static void Test2(out T x) { x = default; }
+}
+""";
+        var comp = CreateCompilation(src);
+
+        // PROTOTYPE(roles): Are the errors expected? Regular struct instance members are allowed to
+        //                   modify 'this'.
+        comp.VerifyDiagnostics(
+            // (5,9): error CS1604: Cannot assign to 'this' because it is read-only
+            //         this = default;
+            Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "this").WithArguments("this").WithLocation(5, 9),
+            // (6,19): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+            //         Test1(ref this);
+            Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(6, 19),
+            // (7,19): error CS1605: Cannot use 'this' as a ref or out value because it is read-only
+            //         Test2(out this);
+            Diagnostic(ErrorCode.ERR_RefReadonlyLocal, "this").WithArguments("this").WithLocation(7, 19)
+            );
+    }
+
+    // PROTOTYPE(roles): Note conditional access on an instance of an extension type is not working. Most likely binding needs an adjustment too.
+    //                   This includes conditional access on 'this' within instance extension members. It is not even clear whether
+    //                   conditional access on 'this' within instance extension members should be allowed if a null check for it will be
+    //                   added on entry or at the member's call site.
+    //                   Once this is figured out, a set of appropriate "Prevent_This_Mutation" should be added. 
+
+    [Fact]
     public void InstanceProperty_Metadata_01()
     {
         var src1 = """
@@ -42209,6 +42761,556 @@ class Program
     }
 
     [Fact]
+    public void InstanceProperty_Metadata_05_Prevent_This_Mutation()
+    {
+        var src = """
+public implicit extension E<T> for T where T : I1
+{
+    public int P1
+    {
+        get
+        {
+            Program._c1 = null;
+            return this.P;
+        }
+        set
+        {
+            Program._c1 = null;
+            this.P = value;
+        }
+    }
+}
+
+public interface I1
+{
+    public int P { get; set; }
+}
+
+public class C : I1
+{
+    public int P { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C() { P = -11 };
+        System.Console.Write(Test1(c));
+        System.Console.Write(Test2(c));
+
+        Test3(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+
+        Test4(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+
+        Test5(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+
+        Test6(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+    }
+
+    public static C _c1;
+
+    static int Test1(C c1)
+    {
+        _c1 = c1;
+        return _c1.P1;
+    }
+
+    static int? Test2(C c1)
+    {
+        _c1 = c1;
+        return _c1?.P1;
+    }
+
+    static void Test3(C c1)
+    {
+        _c1 = c1;
+        _c1.P1 = -10;
+    }
+
+    static void Test4(C c1)
+    {
+        _c1 = c1;
+        _c1.P1++;
+    }
+
+    static void Test5(C c1)
+    {
+        _c1 = c1;
+        _c1.P1 += 2;
+    }
+
+    static void Test6(C c1)
+    {
+        _c1 = c1;
+        (_c1.P1, _) = (-12, 0);
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "-11-11-10-9-7-12").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+"""
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       "int E<C>.P1[ref C].get"
+  IL_0013:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2",
+"""
+{
+  // Code size       39 (0x27)
+  .maxstack  2
+  .locals init (int? V_0,
+                C V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  dup
+  IL_000c:  brtrue.s   IL_0019
+  IL_000e:  pop
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    "int?"
+  IL_0017:  ldloc.0
+  IL_0018:  ret
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  call       "int E<C>.P1[ref C].get"
+  IL_0021:  newobj     "int?..ctor(int)"
+  IL_0026:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test3",
+"""
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.s   -10
+  IL_0010:  call       "void E<C>.P1[ref C].set"
+  IL_0015:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test4",
+"""
+{
+  // Code size       31 (0x1f)
+  .maxstack  3
+  .locals init (C V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       "int E<C>.P1[ref C].get"
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_0
+  IL_0016:  ldloc.1
+  IL_0017:  ldc.i4.1
+  IL_0018:  add
+  IL_0019:  call       "void E<C>.P1[ref C].set"
+  IL_001e:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test5",
+"""
+{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  call       "int E<C>.P1[ref C].get"
+  IL_0015:  ldc.i4.2
+  IL_0016:  add
+  IL_0017:  call       "void E<C>.P1[ref C].set"
+  IL_001c:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test6",
+"""
+{
+  // Code size       22 (0x16)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.s   -12
+  IL_0010:  call       "void E<C>.P1[ref C].set"
+  IL_0015:  ret
+}
+""");
+
+        comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "-11-11-10-9-7-12").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceProperty_Metadata_06_Prevent_This_Mutation()
+    {
+        var src = """
+public implicit extension E<T> for T where T : I1
+{
+    public int P1
+    {
+        get
+        {
+            return this.P;
+        }
+        set
+        {
+            this.P = value;
+        }
+    }
+}
+
+public interface I1
+{
+    public int P { get; set; }
+}
+
+public class C : I1
+{
+    public int P { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C() { P = -11 };
+
+        Test3(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+
+        Test5(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+
+        Test6(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+    }
+
+    public static C _c1;
+
+    static void Test3(C c1)
+    {
+        _c1 = c1;
+        _c1.P1 = GetInt(-10);
+    }
+
+    static void Test5(C c1)
+    {
+        _c1 = c1;
+        _c1.P1 += GetInt(2);
+    }
+
+    static void Test6(C c1)
+    {
+        _c1 = c1;
+        (_c1.P1, _) = (-12, GetInt(0));
+    }
+
+    static int GetInt(int x)
+    {
+        _c1 = null;
+        return x;
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "-10-8-12").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test3",
+"""
+{
+  // Code size       27 (0x1b)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.s   -10
+  IL_0010:  call       "int Program.GetInt(int)"
+  IL_0015:  call       "void E<C>.P1[ref C].set"
+  IL_001a:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test5",
+"""
+{
+  // Code size       34 (0x22)
+  .maxstack  3
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  call       "int E<C>.P1[ref C].get"
+  IL_0015:  ldc.i4.2
+  IL_0016:  call       "int Program.GetInt(int)"
+  IL_001b:  add
+  IL_001c:  call       "void E<C>.P1[ref C].set"
+  IL_0021:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test6",
+"""
+{
+  // Code size       29 (0x1d)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  call       "int Program.GetInt(int)"
+  IL_0012:  pop
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  ldc.i4.s   -12
+  IL_0017:  call       "void E<C>.P1[ref C].set"
+  IL_001c:  ret
+}
+""");
+
+        comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "-10-8-12").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceProperty_Metadata_07_Prevent_This_Mutation()
+    {
+        var src = """
+public implicit extension E<T> for T where T : I1
+{
+    public int? P1
+    {
+        get
+        {
+            Program._c1 = null;
+            return this.P;
+        }
+        set
+        {
+            Program._c1 = null;
+            this.P = value;
+        }
+    }
+}
+
+public interface I1
+{
+    public int? P { get; set; }
+}
+
+public class C : I1
+{
+    public int? P { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+
+        Test3(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+    }
+
+    public static C _c1;
+
+    static void Test3(C c1)
+    {
+        _c1 = c1;
+        _c1.P1 ??= -10;
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "-10").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test3",
+"""
+{
+  // Code size       57 (0x39)
+  .maxstack  3
+  .locals init (C V_0,
+            int? V_1,
+            int V_2,
+            int? V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       "int? E<C>.P1[ref C].get"
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       "int int?.GetValueOrDefault()"
+  IL_001b:  stloc.2
+  IL_001c:  ldloca.s   V_1
+  IL_001e:  call       "bool int?.HasValue.get"
+  IL_0023:  brtrue.s   IL_0038
+  IL_0025:  ldc.i4.s   -10
+  IL_0027:  stloc.2
+  IL_0028:  ldloca.s   V_0
+  IL_002a:  ldloca.s   V_3
+  IL_002c:  ldloc.2
+  IL_002d:  call       "int?..ctor(int)"
+  IL_0032:  ldloc.3
+  IL_0033:  call       "void E<C>.P1[ref C].set"
+  IL_0038:  ret
+}
+""");
+
+        comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "-10").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceProperty_Metadata_08_Prevent_This_Mutation()
+    {
+        var src = """
+public implicit extension E<T> for T where T : I1
+{
+    public int? P1
+    {
+        get
+        {
+            return this.P;
+        }
+        set
+        {
+            this.P = value;
+        }
+    }
+}
+
+public interface I1
+{
+    public int? P { get; set; }
+}
+
+public class C : I1
+{
+    public int? P { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+
+        Test3(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+    }
+
+    public static C _c1;
+
+    static void Test3(C c1)
+    {
+        _c1 = c1;
+        _c1.P1 ??= GetInt(-10);
+    }
+
+    static int GetInt(int x)
+    {
+        _c1 = null;
+        return x;
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "-10").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test3",
+"""
+{
+  // Code size       62 (0x3e)
+  .maxstack  3
+  .locals init (C V_0,
+                int? V_1,
+                int V_2,
+                int? V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       "int? E<C>.P1[ref C].get"
+  IL_0013:  stloc.1
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       "int int?.GetValueOrDefault()"
+  IL_001b:  stloc.2
+  IL_001c:  ldloca.s   V_1
+  IL_001e:  call       "bool int?.HasValue.get"
+  IL_0023:  brtrue.s   IL_003d
+  IL_0025:  ldc.i4.s   -10
+  IL_0027:  call       "int Program.GetInt(int)"
+  IL_002c:  stloc.2
+  IL_002d:  ldloca.s   V_0
+  IL_002f:  ldloca.s   V_3
+  IL_0031:  ldloc.2
+  IL_0032:  call       "int?..ctor(int)"
+  IL_0037:  ldloc.3
+  IL_0038:  call       "void E<C>.P1[ref C].set"
+  IL_003d:  ret
+}
+""");
+
+        comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "-10").VerifyDiagnostics();
+    }
+
+    [Fact]
     public void InstanceIndexer_Metadata_01()
     {
         var src1 = """
@@ -42477,6 +43579,921 @@ class Program
         verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("2"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1", test1IL);
+    }
+
+    [Fact]
+    public void InstanceIndexer_Metadata_03_Prevent_This_Mutation()
+    {
+        var src = """
+public implicit extension E<T> for T where T : I1
+{
+    public int this[int i]
+    {
+        get
+        {
+            Program._c1 = null;
+            return this.P;
+        }
+        set
+        {
+            Program._c1 = null;
+            this.P = value;
+        }
+    }
+}
+
+public interface I1
+{
+    public int P { get; set; }
+}
+
+public class C : I1
+{
+    public int P { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C() { P = -11 };
+        System.Console.Write(Test1(c));
+        System.Console.Write(Test2(c));
+
+        Test3(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+
+        Test4(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+
+        Test5(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+
+        Test6(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+    }
+
+    public static C _c1;
+
+    static int Test1(C c1)
+    {
+        _c1 = c1;
+        return _c1[1];
+    }
+
+    static int? Test2(C c1)
+    {
+        _c1 = c1;
+        return _c1?[1];
+    }
+
+    static void Test3(C c1)
+    {
+        _c1 = c1;
+        _c1[1] = -10;
+    }
+
+    static void Test4(C c1)
+    {
+        _c1 = c1;
+        _c1[1]++;
+    }
+
+    static void Test5(C c1)
+    {
+        _c1 = c1;
+        _c1[1] += 2;
+    }
+
+    static void Test6(C c1)
+    {
+        _c1 = c1;
+        (_c1[1], _) = (-12, 0);
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "-11-11-10-9-7-12").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+"""
+{
+  // Code size       21 (0x15)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.1
+  IL_000f:  call       "int E<C>.this[ref C, int].get"
+  IL_0014:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2",
+"""
+{
+  // Code size       40 (0x28)
+  .maxstack  2
+  .locals init (int? V_0,
+                C V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  dup
+  IL_000c:  brtrue.s   IL_0019
+  IL_000e:  pop
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    "int?"
+  IL_0017:  ldloc.0
+  IL_0018:  ret
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  ldc.i4.1
+  IL_001d:  call       "int E<C>.this[ref C, int].get"
+  IL_0022:  newobj     "int?..ctor(int)"
+  IL_0027:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test3",
+"""
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.1
+  IL_000f:  ldc.i4.s   -10
+  IL_0011:  call       "void E<C>.this[ref C, int].set"
+  IL_0016:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test4",
+"""
+{
+  // Code size       33 (0x21)
+  .maxstack  4
+  .locals init (C V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.1
+  IL_000f:  call       "int E<C>.this[ref C, int].get"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_0
+  IL_0017:  ldc.i4.1
+  IL_0018:  ldloc.1
+  IL_0019:  ldc.i4.1
+  IL_001a:  add
+  IL_001b:  call       "void E<C>.this[ref C, int].set"
+  IL_0020:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test5",
+"""
+{
+  // Code size       31 (0x1f)
+  .maxstack  4
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.1
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  ldc.i4.1
+  IL_0012:  call       "int E<C>.this[ref C, int].get"
+  IL_0017:  ldc.i4.2
+  IL_0018:  add
+  IL_0019:  call       "void E<C>.this[ref C, int].set"
+  IL_001e:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test6",
+"""
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.1
+  IL_000f:  ldc.i4.s   -12
+  IL_0011:  call       "void E<C>.this[ref C, int].set"
+  IL_0016:  ret
+}
+""");
+
+        comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "-11-11-10-9-7-12").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceIndexer_Metadata_04_Prevent_This_Mutation()
+    {
+        var src = """
+public implicit extension E<T> for T where T : I1
+{
+    public int this[int i]
+    {
+        get
+        {
+            return this.P;
+        }
+        set
+        {
+            this.P = value;
+        }
+    }
+}
+
+public interface I1
+{
+    public int P { get; set; }
+}
+
+public class C : I1
+{
+    public int P { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C() { P = -11 };
+        System.Console.Write(Test1(c));
+        System.Console.Write(Test2(c));
+
+        Test3(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+
+        Test4(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+
+        Test5(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+
+        Test6(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+    }
+
+    public static C _c1;
+
+    static int Test1(C c1)
+    {
+        _c1 = c1;
+        return _c1[GetInt(1)];
+    }
+
+    static int? Test2(C c1)
+    {
+        _c1 = c1;
+        return _c1?[GetInt(1)];
+    }
+
+    static void Test3(C c1)
+    {
+        _c1 = c1;
+        _c1[GetInt(1)] = -10;
+    }
+
+    static void Test4(C c1)
+    {
+        _c1 = c1;
+        _c1[GetInt(1)]++;
+    }
+
+    static void Test5(C c1)
+    {
+        _c1 = c1;
+        _c1[GetInt(1)] += 2;
+    }
+
+    static void Test6(C c1)
+    {
+        _c1 = c1;
+        (_c1[GetInt(1)], _) = (-12, 0);
+    }
+
+    static int GetInt(int x)
+    {
+        _c1 = null;
+        return x;
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "-11-11-10-9-7-12").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test1",
+"""
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.1
+  IL_000f:  call       "int Program.GetInt(int)"
+  IL_0014:  call       "int E<C>.this[ref C, int].get"
+  IL_0019:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test2",
+"""
+{
+  // Code size       45 (0x2d)
+  .maxstack  2
+  .locals init (int? V_0,
+                C V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  dup
+  IL_000c:  brtrue.s   IL_0019
+  IL_000e:  pop
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  initobj    "int?"
+  IL_0017:  ldloc.0
+  IL_0018:  ret
+  IL_0019:  stloc.1
+  IL_001a:  ldloca.s   V_1
+  IL_001c:  ldc.i4.1
+  IL_001d:  call       "int Program.GetInt(int)"
+  IL_0022:  call       "int E<C>.this[ref C, int].get"
+  IL_0027:  newobj     "int?..ctor(int)"
+  IL_002c:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test3",
+"""
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.1
+  IL_000f:  call       "int Program.GetInt(int)"
+  IL_0014:  ldc.i4.s   -10
+  IL_0016:  call       "void E<C>.this[ref C, int].set"
+  IL_001b:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test4",
+"""
+{
+  // Code size       40 (0x28)
+  .maxstack  4
+  .locals init (C V_0,
+            int V_1,
+            int V_2)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  call       "int Program.GetInt(int)"
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  ldloc.1
+  IL_0016:  call       "int E<C>.this[ref C, int].get"
+  IL_001b:  stloc.2
+  IL_001c:  ldloca.s   V_0
+  IL_001e:  ldloc.1
+  IL_001f:  ldloc.2
+  IL_0020:  ldc.i4.1
+  IL_0021:  add
+  IL_0022:  call       "void E<C>.this[ref C, int].set"
+  IL_0027:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test5",
+"""
+{
+  // Code size       38 (0x26)
+  .maxstack  4
+  .locals init (C V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  call       "int Program.GetInt(int)"
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  ldloc.1
+  IL_0016:  ldloca.s   V_0
+  IL_0018:  ldloc.1
+  IL_0019:  call       "int E<C>.this[ref C, int].get"
+  IL_001e:  ldc.i4.2
+  IL_001f:  add
+  IL_0020:  call       "void E<C>.this[ref C, int].set"
+  IL_0025:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test6",
+"""
+{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  .locals init (C V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  call       "int Program.GetInt(int)"
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  ldloc.1
+  IL_0016:  ldc.i4.s   -12
+  IL_0018:  call       "void E<C>.this[ref C, int].set"
+  IL_001d:  ret
+}
+""");
+
+        comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "-11-11-10-9-7-12").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceIndexer_Metadata_05_Prevent_This_Mutation()
+    {
+        var src = """
+public implicit extension E<T> for T where T : I1
+{
+    public int this[int i]
+    {
+        get
+        {
+            return this.P;
+        }
+        set
+        {
+            this.P = value;
+        }
+    }
+}
+
+public interface I1
+{
+    public int P { get; set; }
+}
+
+public class C : I1
+{
+    public int P { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C() { P = -11 };
+
+        Test3(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+
+        Test5(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+
+        Test6(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+    }
+
+    public static C _c1;
+
+    static void Test3(C c1)
+    {
+        _c1 = c1;
+        _c1[1] = GetInt(-10);
+    }
+
+    static void Test5(C c1)
+    {
+        _c1 = c1;
+        _c1[1] += GetInt(2);
+    }
+
+    static void Test6(C c1)
+    {
+        _c1 = c1;
+        (_c1[1], _) = (-12, GetInt(0));
+    }
+
+    static int GetInt(int x)
+    {
+        _c1 = null;
+        return x;
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "-10-8-12").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test3",
+"""
+{
+  // Code size       28 (0x1c)
+  .maxstack  3
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.1
+  IL_000f:  ldc.i4.s   -10
+  IL_0011:  call       "int Program.GetInt(int)"
+  IL_0016:  call       "void E<C>.this[ref C, int].set"
+  IL_001b:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test5",
+"""
+{
+  // Code size       36 (0x24)
+  .maxstack  4
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.1
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  ldc.i4.1
+  IL_0012:  call       "int E<C>.this[ref C, int].get"
+  IL_0017:  ldc.i4.2
+  IL_0018:  call       "int Program.GetInt(int)"
+  IL_001d:  add
+  IL_001e:  call       "void E<C>.this[ref C, int].set"
+  IL_0023:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test6",
+"""
+{
+  // Code size       30 (0x1e)
+  .maxstack  3
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  call       "int Program.GetInt(int)"
+  IL_0012:  pop
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  ldc.i4.1
+  IL_0016:  ldc.i4.s   -12
+  IL_0018:  call       "void E<C>.this[ref C, int].set"
+  IL_001d:  ret
+}
+""");
+
+        comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "-10-8-12").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceIndexer_Metadata_06_Prevent_This_Mutation()
+    {
+        var src = """
+public implicit extension E<T> for T where T : I1
+{
+    public int? this[int i]
+    {
+        get
+        {
+            Program._c1 = null;
+            return this.P;
+        }
+        set
+        {
+            Program._c1 = null;
+            this.P = value;
+        }
+    }
+}
+
+public interface I1
+{
+    public int? P { get; set; }
+}
+
+public class C : I1
+{
+    public int? P { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+
+        Test3(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+    }
+
+    public static C _c1;
+
+    static void Test3(C c1)
+    {
+        _c1 = c1;
+        _c1[1] ??= -10;
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "-10").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test3",
+"""
+{
+  // Code size       59 (0x3b)
+  .maxstack  4
+  .locals init (C V_0,
+            int? V_1,
+            int V_2,
+            int? V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.1
+  IL_000f:  call       "int? E<C>.this[ref C, int].get"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       "int int?.GetValueOrDefault()"
+  IL_001c:  stloc.2
+  IL_001d:  ldloca.s   V_1
+  IL_001f:  call       "bool int?.HasValue.get"
+  IL_0024:  brtrue.s   IL_003a
+  IL_0026:  ldc.i4.s   -10
+  IL_0028:  stloc.2
+  IL_0029:  ldloca.s   V_0
+  IL_002b:  ldc.i4.1
+  IL_002c:  ldloca.s   V_3
+  IL_002e:  ldloc.2
+  IL_002f:  call       "int?..ctor(int)"
+  IL_0034:  ldloc.3
+  IL_0035:  call       "void E<C>.this[ref C, int].set"
+  IL_003a:  ret
+}
+""");
+
+        comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "-10").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceIndexer_Metadata_07_Prevent_This_Mutation()
+    {
+        var src = """
+public implicit extension E<T> for T where T : I1
+{
+    public int? this[int i]
+    {
+        get
+        {
+            return this.P;
+        }
+        set
+        {
+            this.P = value;
+        }
+    }
+}
+
+public interface I1
+{
+    public int? P { get; set; }
+}
+
+public class C : I1
+{
+    public int? P { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+
+        Test3(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+    }
+
+    public static C _c1;
+
+    static void Test3(C c1)
+    {
+        _c1 = c1;
+        _c1[GetInt(1)] ??= -10;
+    }
+
+    static int GetInt(int x)
+    {
+        _c1 = null;
+        return x;
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "-10").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test3",
+"""
+{
+  // Code size       67 (0x43)
+  .maxstack  4
+  .locals init (C V_0,
+                int V_1,
+                int? V_2,
+                int V_3,
+                int? V_4)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  call       "int Program.GetInt(int)"
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_0
+  IL_0015:  ldloc.1
+  IL_0016:  call       "int? E<C>.this[ref C, int].get"
+  IL_001b:  stloc.2
+  IL_001c:  ldloca.s   V_2
+  IL_001e:  call       "int int?.GetValueOrDefault()"
+  IL_0023:  stloc.3
+  IL_0024:  ldloca.s   V_2
+  IL_0026:  call       "bool int?.HasValue.get"
+  IL_002b:  brtrue.s   IL_0042
+  IL_002d:  ldc.i4.s   -10
+  IL_002f:  stloc.3
+  IL_0030:  ldloca.s   V_0
+  IL_0032:  ldloc.1
+  IL_0033:  ldloca.s   V_4
+  IL_0035:  ldloc.3
+  IL_0036:  call       "int?..ctor(int)"
+  IL_003b:  ldloc.s    V_4
+  IL_003d:  call       "void E<C>.this[ref C, int].set"
+  IL_0042:  ret
+}
+""");
+
+        comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "-10").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceIndexer_Metadata_08_Prevent_This_Mutation()
+    {
+        var src = """
+public implicit extension E<T> for T where T : I1
+{
+    public int? this[int i]
+    {
+        get
+        {
+            return this.P;
+        }
+        set
+        {
+            this.P = value;
+        }
+    }
+}
+
+public interface I1
+{
+    public int? P { get; set; }
+}
+
+public class C : I1
+{
+    public int? P { get; set; }
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+
+        Test3(c);
+        System.Console.Write(_c1);
+        System.Console.Write(c.P);
+    }
+
+    public static C _c1;
+
+    static void Test3(C c1)
+    {
+        _c1 = c1;
+        _c1[1] ??= GetInt(-10);
+    }
+
+    static int GetInt(int x)
+    {
+        _c1 = null;
+        return x;
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "-10").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test3",
+"""
+{
+  // Code size       64 (0x40)
+  .maxstack  4
+  .locals init (C V_0,
+                int? V_1,
+                int V_2,
+                int? V_3)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  ldc.i4.1
+  IL_000f:  call       "int? E<C>.this[ref C, int].get"
+  IL_0014:  stloc.1
+  IL_0015:  ldloca.s   V_1
+  IL_0017:  call       "int int?.GetValueOrDefault()"
+  IL_001c:  stloc.2
+  IL_001d:  ldloca.s   V_1
+  IL_001f:  call       "bool int?.HasValue.get"
+  IL_0024:  brtrue.s   IL_003f
+  IL_0026:  ldc.i4.s   -10
+  IL_0028:  call       "int Program.GetInt(int)"
+  IL_002d:  stloc.2
+  IL_002e:  ldloca.s   V_0
+  IL_0030:  ldc.i4.1
+  IL_0031:  ldloca.s   V_3
+  IL_0033:  ldloc.2
+  IL_0034:  call       "int?..ctor(int)"
+  IL_0039:  ldloc.3
+  IL_003a:  call       "void E<C>.this[ref C, int].set"
+  IL_003f:  ret
+}
+""");
+
+        comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "-10").VerifyDiagnostics();
     }
 
     [Fact]
@@ -42838,6 +44855,227 @@ class Program
         verifier = CompileAndVerify(comp2, expectedOutput: IncludeExpectedOutput("23"), verify: ExecutionConditionUtil.IsMonoOrCoreClr ? Verification.Passes : Verification.Skipped).VerifyDiagnostics();
 
         verifier.VerifyIL("Program.Test1", test1IL);
+    }
+
+    [Fact]
+    public void InstanceEvent_Metadata_03_Prevent_This_Mutation()
+    {
+        var src = """
+public implicit extension E<T> for T where T : I1
+{
+    public event System.Action E1
+    {
+        add
+        {
+            Program._c1 = null;
+            this.E += value;
+        }
+        remove
+        {
+            Program._c1 = null;
+            this.E -= value; 
+        }
+    }
+}
+
+public interface I1
+{
+    public event System.Action E;
+}
+
+public class C : I1
+{
+    public event System.Action E;
+
+    public void Fire() => E();
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+
+        Test5(c);
+        System.Console.Write(_c1);
+        c.Fire();
+        c.E1 += M3();
+        Test6(c);
+        System.Console.Write(_c1);
+        c.Fire();
+    }
+
+    public static C _c1;
+
+    static void Test5(C c1)
+    {
+        _c1 = c1;
+        _c1.E1 += M2();
+    }
+
+    static void Test6(C c1)
+    {
+        _c1 = c1;
+        _c1.E1 -= M2();
+    }
+
+    static System.Action M2() => (() => System.Console.Write(2));
+    static System.Action M3() => (() => System.Console.Write(3));
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test5",
+"""
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       "System.Action Program.M2()"
+  IL_0013:  call       "void E<C>.E1.add"
+  IL_0018:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test6",
+"""
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       "System.Action Program.M2()"
+  IL_0013:  call       "void E<C>.E1.remove"
+  IL_0018:  ret
+}
+""");
+
+        comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void InstanceEvent_Metadata_04_Prevent_This_Mutation()
+    {
+        var src = """
+public implicit extension E<T> for T where T : I1
+{
+    public event System.Action E1
+    {
+        add
+        {
+            this.E += value;
+        }
+        remove
+        {
+            this.E -= value; 
+        }
+    }
+}
+
+public interface I1
+{
+    public event System.Action E;
+}
+
+public class C : I1
+{
+    public event System.Action E;
+
+    public void Fire() => E();
+}
+
+class Program
+{
+    static void Main()
+    {
+        var c = new C();
+
+        Test5(c);
+        System.Console.Write(_c1);
+        c.Fire();
+        c.E1 += M3();
+        Test6(c);
+        System.Console.Write(_c1);
+        c.Fire();
+    }
+
+    public static C _c1;
+
+    static void Test5(C c1)
+    {
+        _c1 = c1;
+        _c1.E1 += M2();
+    }
+
+    static void Test6(C c1)
+    {
+        _c1 = c1;
+        _c1.E1 -= M2();
+    }
+
+    static System.Action M2()
+    {
+        _c1 = null;
+        return () => System.Console.Write(2);
+    }
+
+    static System.Action M3()
+    {
+        _c1 = null;
+        return () => System.Console.Write(3);
+    }
+}
+""";
+        var comp = CreateCompilation(src, options: TestOptions.ReleaseExe);
+        var verifier = CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
+
+        verifier.VerifyIL("Program.Test5",
+"""
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       "System.Action Program.M2()"
+  IL_0013:  call       "void E<C>.E1.add"
+  IL_0018:  ret
+}
+""");
+
+        verifier.VerifyIL("Program.Test6",
+"""
+{
+  // Code size       25 (0x19)
+  .maxstack  2
+  .locals init (C V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stsfld     "C Program._c1"
+  IL_0006:  ldsfld     "C Program._c1"
+  IL_000b:  stloc.0
+  IL_000c:  ldloca.s   V_0
+  IL_000e:  call       "System.Action Program.M2()"
+  IL_0013:  call       "void E<C>.E1.remove"
+  IL_0018:  ret
+}
+""");
+
+        comp = CreateCompilation(src, options: TestOptions.DebugExe);
+        CompileAndVerify(comp, expectedOutput: "23").VerifyDiagnostics();
     }
 
     // PROTOTYPE(roles): Add flavors of "_Metadata" tests for an underlying type a type parameter known/unknown to be a reference type
