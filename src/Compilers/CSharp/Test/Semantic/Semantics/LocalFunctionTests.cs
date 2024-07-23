@@ -10178,7 +10178,7 @@ int P
             // type, versus a property in a compilation unit.
             var symbol = model.GetSymbolInfo(node).Symbol;
             Assert.NotNull(symbol);
-            var property = (PropertySymbol)symbol;
+            var property = (IPropertySymbol)symbol;
             Assert.Equal("P", property.Name);
             Assert.Equal("MyAttribute", property.ContainingType.Name);
         }

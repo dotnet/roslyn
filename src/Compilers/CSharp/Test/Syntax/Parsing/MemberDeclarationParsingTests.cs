@@ -11597,8 +11597,10 @@ public class Class
             EOF();
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
-        public void ExtraCloseCurly9()
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("")]
+        [InlineData("// Errant close curly")]
+        public void ExtraCloseCurly9(string closeCurlyTrailingTrivia)
         {
             // Test all the different type-only member forms.
             var text = $$"""
@@ -11606,7 +11608,7 @@ public class Class
                 {
                     class Type
                     {
-                        }
+                        } {{closeCurlyTrailingTrivia}}
 
                         private Constructor() { }
                         private static implicit operator int(Type t) => 0;
