@@ -439,6 +439,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     var siblingsToMoveIntoType = determineSiblingsToMoveIntoType(i, ref body);
                     if (siblingsToMoveIntoType is (var firstSiblingToMoveInclusive, var lastSiblingToMoveExclusive))
                     {
+                        var finalTypeDeclarationMembers = _pool.Allocate<MemberDeclarationSyntax>();
+                        finalTypeDeclarationMembers.AddRange(currentTypeDeclaration.Members);
+
+                        for (var j = firstSiblingToMoveInclusive; j < lastSiblingToMoveExclusive; j++)
+                            finalTypeDeclarationMembers.Add(body.Members[j]);
+
                         var finalTypeDeclaration = MoveMembersAndUpdateCloseBraceToken(
                             currentTypeDeclaration,
                             addMembers(currentTypeDeclaration.Members, body.Members, firstSiblingToMoveInclusive, lastSiblingToMoveExclusive));
@@ -481,26 +487,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                 return null;
             }
-
-            SyntaxList<MemberDeclarationSyntax> addMembers(
-                SyntaxList<MemberDeclarationSyntax> members,
-                SyntaxListBuilder<MemberDeclarationSyntax> membersToMove,
-                int firstSiblingToMoveInclusive,
-                int lastSiblingToMoveExclusive)
-            {
-                var result = _pool.Allocate<MemberDeclarationSyntax>();
-                result.AddRange(members);
-
-                for (var i = firstSiblingToMoveInclusive; i < lastSiblingToMoveExclusive; i++)
-                    result.Add(membersToMove[i]);
-
-                return _pool.ToListAndFree(result);
-            }
         }
 
-        private MemberDeclarationSyntax? MoveMembersAndUpdateCloseBraceToken(TypeDeclarationSyntax currentTypeDeclaration, SyntaxList<MemberDeclarationSyntax> syntaxList)
+        private static TypeDeclarationSyntax MoveMembersAndUpdateCloseBraceToken(
+            TypeDeclarationSyntax typeDeclaration,
+            SyntaxList<MemberDeclarationSyntax> newMembers)
         {
-            throw new NotImplementedException();
+            // The existing close brace token is moved to the first member as a skipped token, with a diagnostic saying
+            // it was unexpected.  The type decl will then get a missing close brace token.
+            var finalCloseBraceToken = AddError(
+                SyntaxFactory.MissingToken(SyntaxKind.CloseBraceToken), ErrorCode.ERR_RbraceExpected);
+
+            return typeDeclaration switch
+            {
+                ClassDeclarationSyntax classDeclaration => classDeclaration.Update(
+                    typeDeclaration.AttributeLists,
+                    typeDeclaration.Modifiers,
+                    typeDeclaration.Keyword,
+                    typeDeclaration.Identifier,
+                    typeDeclaration.TypeParameterList!,
+                    typeDeclaration.ParameterList!,
+                    typeDeclaration.BaseList!,
+                    typeDeclaration.ConstraintClauses,
+                    typeDeclaration.OpenBraceToken!,
+                    newMembers,
+                    finalCloseBraceToken,
+                    typeDeclaration.SemicolonToken!),
+            };
         }
 
         private static bool IsTypeOnlyMemberDeclaration(MemberDeclarationSyntax memberDeclaration)
