@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 var currentMember = body.Members[currentBodyMemberIndex];
 
                 // Look for a normal type declaration that ended without problem (has a real close curly and no trailing
-                // semicolon).  Then see if 
+                // semicolon).  Then see if there are any type-only members following it that should be moved into it.
 
                 if (currentMember is TypeDeclarationSyntax
                     {
@@ -443,6 +443,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             currentTypeDeclaration, body, firstSiblingToMoveInclusive, lastSiblingToMoveExclusive);
                         finalMembers.Add(finalTypeDeclaration);
 
+                        // We moved a sequence of type-only-members into the preceding type declaration.  We need to
+                        // continue processing from the end of that sequence.
                         currentBodyMemberIndex = lastSiblingToMoveExclusive;
                         continue;
                     }
