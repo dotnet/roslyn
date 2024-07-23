@@ -11904,7 +11904,7 @@ public class Class
                     }
                 }
                 """;
-            UsingTree(text,
+            UsingTree(text, options: CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Parse),
                 // (6,9): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
                 //         }
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(6, 9));
