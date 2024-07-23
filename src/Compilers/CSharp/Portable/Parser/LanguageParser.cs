@@ -413,6 +413,116 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             ref SyntaxListBuilder? initialBadNodes,
             SyntaxKind parentKind)
         {
+            ParseNamespaceBodyWorker(
+                ref openBraceOrSemicolon, ref body, ref initialBadNodes, parentKind, out var sawTypeOnlyMemberDeclaration);
+            if (!sawTypeOnlyMemberDeclaration)
+                return;
+
+            // If we saw a type-only member declaration (like a method/property/constructor/etc.), then see if they
+            // follow some normal type declaration.  If so, it's likely there was a misplaced close curly that
+            // preemptively ended the type declaration, and the member declaration was supposed to go in it instead.
+            var finalMembers = _pool.Allocate<MemberDeclarationSyntax>();
+
+            for (var i = 0; i < body.Members.Count;)
+            {
+                var currentMember = body.Members[i];
+
+                // Look for a normal type declaration that ended without problem (has a real close curly and no trailing
+                // semicolon).  Then see if 
+
+                if (currentMember is TypeDeclarationSyntax
+                    {
+                        SemicolonToken: null,
+                        CloseBraceToken: { IsMissing: false, ContainsDiagnostics: false }
+                    } currentTypeDeclaration)
+                {
+                    var siblingsToMoveIntoType = determineSiblingsToMoveIntoType(i, ref body);
+                    if (siblingsToMoveIntoType is (var firstSiblingToMoveInclusive, var lastSiblingToMoveExclusive))
+                    {
+                        var finalTypeDeclaration = MoveMembersAndUpdateCloseBraceToken(
+                            currentTypeDeclaration,
+                            addMembers(currentTypeDeclaration.Members, body.Members, firstSiblingToMoveInclusive, lastSiblingToMoveExclusive));
+
+                        finalMembers.Add(finalTypeDeclaration);
+
+                        i = lastSiblingToMoveExclusive;
+                        continue;
+                    }
+                }
+
+                // Simple case.  A normal namespace member we don't need to do anything with.
+                finalMembers.Add(currentMember);
+                i++;
+            }
+
+            _pool.Free(body.Members);
+            body.Members = finalMembers;
+
+            return;
+
+            (int firstSiblingToMoveInclusive, int lastSiblingToMoveExclusive)? determineSiblingsToMoveIntoType(
+                int index,
+                ref NamespaceBodyBuilder body)
+            {
+                if (index < body.Members.Count &&
+                    IsTypeOnlyMemberDeclaration(body.Members[index]))
+                {
+                    var start = index;
+                    var end = index + 1;
+
+                    while (end < body.Members.Count &&
+                           IsTypeOnlyMemberDeclaration(body.Members[end]))
+                    {
+                        end++;
+                    }
+
+                    return (start, end);
+                }
+
+                return null;
+            }
+
+            SyntaxList<MemberDeclarationSyntax> addMembers(
+                SyntaxList<MemberDeclarationSyntax> members,
+                SyntaxListBuilder<MemberDeclarationSyntax> membersToMove,
+                int firstSiblingToMoveInclusive,
+                int lastSiblingToMoveExclusive)
+            {
+                var result = _pool.Allocate<MemberDeclarationSyntax>();
+                result.AddRange(members);
+
+                for (var i = firstSiblingToMoveInclusive; i < lastSiblingToMoveExclusive; i++)
+                    result.Add(membersToMove[i]);
+
+                return _pool.ToListAndFree(result);
+            }
+        }
+
+        private MemberDeclarationSyntax? MoveMembersAndUpdateCloseBraceToken(TypeDeclarationSyntax currentTypeDeclaration, SyntaxList<MemberDeclarationSyntax> syntaxList)
+        {
+            throw new NotImplementedException();
+        }
+
+        private static bool IsTypeOnlyMemberDeclaration(MemberDeclarationSyntax memberDeclaration)
+        {
+            return memberDeclaration.Kind
+                is SyntaxKind.ConstructorDeclaration
+                or SyntaxKind.ConversionOperatorDeclaration
+                or SyntaxKind.EventDeclaration
+                or SyntaxKind.EventFieldDeclaration
+                or SyntaxKind.FieldDeclaration
+                or SyntaxKind.MethodDeclaration
+                or SyntaxKind.OperatorDeclaration
+                or SyntaxKind.PropertyDeclaration;
+        }
+
+        private void ParseNamespaceBodyWorker(
+            [NotNullIfNotNull(nameof(openBraceOrSemicolon))] ref SyntaxToken? openBraceOrSemicolon,
+            ref NamespaceBodyBuilder body,
+            ref SyntaxListBuilder? initialBadNodes,
+            SyntaxKind parentKind,
+            out bool sawTypeOnlyMemberDeclaration)
+        {
             // "top-level" expressions and statements should never occur inside an asynchronous context
             Debug.Assert(!IsInAsync);
 
@@ -423,6 +533,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             NamespaceParts seen = NamespaceParts.None;
             var pendingIncompleteMembers = _pool.Allocate<MemberDeclarationSyntax>();
             bool reportUnexpectedToken = true;
+
+            sawTypeOnlyMemberDeclaration = false;
 
             try
             {
@@ -561,7 +673,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             goto default;
 
                         default:
-                            var memberOrStatement = isGlobal ? this.ParseMemberDeclarationOrStatement(parentKind) : this.ParseMemberDeclaration(parentKind);
+                            var memberOrStatement = isGlobal
+                                ? this.ParseMemberDeclarationOrStatement(parentKind)
+                                : this.ParseMemberDeclaration(parentKind);
+
+                            sawTypeOnlyMemberDeclaration |= IsTypeOnlyMemberDeclaration(memberOrStatement);
                             if (memberOrStatement == null)
                             {
                                 // incomplete members must be processed before we add any nodes to the body:
