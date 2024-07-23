@@ -11406,6 +11406,449 @@ public class Class
             EOF();
         }
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        [InlineData("class", SyntaxKind.ClassDeclaration, SyntaxKind.ClassKeyword)]
+        [InlineData("struct", SyntaxKind.StructDeclaration, SyntaxKind.StructKeyword)]
+        [InlineData("interface", SyntaxKind.InterfaceDeclaration, SyntaxKind.InterfaceKeyword)]
+        [InlineData("record", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record struct", SyntaxKind.RecordStructDeclaration, SyntaxKind.RecordKeyword)]
+        [InlineData("record class", SyntaxKind.RecordDeclaration, SyntaxKind.RecordKeyword)]
+        public void ExtraCloseCurly8(string typeKind, SyntaxKind typeSyntaxKind, SyntaxKind keywordKind)
+        {
+            var text = $$"""
+                namespace N
+                {
+                    // This type should be unaffected
+                    class C
+                    {
+                    }
+
+                    {{typeKind}} Type
+                    {
+                    }
+
+                    // Two members that will move into the type above.
+                    private void M()
+                    {
+                    }
+
+                    public static Type operator+(Type t1, Type t2) => default;
+                
+                    // Following type declaration
+                    class Type2
+                    {
+                    }
+
+                    private static implicit operator int(Type2 t) => 0;
+                }
+                """;
+            UsingTree(text,
+                // (10,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(10, 5),
+                // (17,63): error CS1513: } expected
+                //     public static Type operator+(Type t1, Type t2) => default;
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(17, 63),
+                // (22,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(22, 5),
+                // (25,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(25, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(typeSyntaxKind);
+                    {
+                        N(keywordKind);
+
+                        if (text.Contains("record struct"))
+                        {
+                            N(SyntaxKind.StructKeyword);
+                        }
+                        else if (text.Contains("record class"))
+                        {
+                            N(SyntaxKind.ClassKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "M");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.OperatorDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.StaticKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.OperatorKeyword);
+                            N(SyntaxKind.PlusToken);
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "t1");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "t2");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.DefaultLiteralExpression);
+                                {
+                                    N(SyntaxKind.DefaultKeyword);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type2");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ConversionOperatorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.StaticKeyword);
+                            N(SyntaxKind.ImplicitKeyword);
+                            N(SyntaxKind.OperatorKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type2");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "t");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        public void ExtraCloseCurly9()
+        {
+            // Test all the different type-only member forms.
+            var text = $$"""
+                namespace N
+                {
+                    class Type
+                    {
+                        }
+
+                        private Constructor() { }
+                        private static implicit operator int(Type t) => 0;
+                        event Action E1 { add { } remove { } }
+                        event Action E2, E3;
+                        private int field1, field2;
+                        private void Method() { }
+                        public static Type operator+(Type t1, Type t2) => default;
+                        private int Prop => 0;
+                    }
+                }
+                """;
+            UsingTree(text,
+                // (5,9): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //         }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 9));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "Type");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.ConstructorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.IdentifierToken, "Constructor");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.ConversionOperatorDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.StaticKeyword);
+                            N(SyntaxKind.ImplicitKeyword);
+                            N(SyntaxKind.OperatorKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "t");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.EventDeclaration);
+                        {
+                            N(SyntaxKind.EventKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Action");
+                            }
+                            N(SyntaxKind.IdentifierToken, "E1");
+                            N(SyntaxKind.AccessorList);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.AddAccessorDeclaration);
+                                {
+                                    N(SyntaxKind.AddKeyword);
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.RemoveAccessorDeclaration);
+                                {
+                                    N(SyntaxKind.RemoveKeyword);
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.EventFieldDeclaration);
+                        {
+                            N(SyntaxKind.EventKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "Action");
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "E2");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "E3");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.FieldDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.VariableDeclaration);
+                            {
+                                N(SyntaxKind.PredefinedType);
+                                {
+                                    N(SyntaxKind.IntKeyword);
+                                }
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "field1");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.VariableDeclarator);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "field2");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Method");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.OperatorDeclaration);
+                        {
+                            N(SyntaxKind.PublicKeyword);
+                            N(SyntaxKind.StaticKeyword);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "Type");
+                            }
+                            N(SyntaxKind.OperatorKeyword);
+                            N(SyntaxKind.PlusToken);
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "t1");
+                                }
+                                N(SyntaxKind.CommaToken);
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "Type");
+                                    }
+                                    N(SyntaxKind.IdentifierToken, "t2");
+                                }
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.DefaultLiteralExpression);
+                                {
+                                    N(SyntaxKind.DefaultKeyword);
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.PropertyDeclaration);
+                        {
+                            N(SyntaxKind.PrivateKeyword);
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.IntKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Prop");
+                            N(SyntaxKind.ArrowExpressionClause);
+                            {
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                N(SyntaxKind.NumericLiteralExpression);
+                                {
+                                    N(SyntaxKind.NumericLiteralToken, "0");
+                                }
+                            }
+                            N(SyntaxKind.SemicolonToken);
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         #region Missing > after generic
 
         [Fact]
