@@ -479,22 +479,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return;
 
             (int firstSiblingToMoveInclusive, int lastSiblingToMoveExclusive)? determineSiblingsToMoveIntoType(
-                int index,
+                int typeDeclarationIndex,
                 ref NamespaceBodyBuilder body)
             {
-                if (index < body.Members.Count &&
-                    IsMemberDeclarationOnlyValidWithinTypeDeclaration(body.Members[index]))
+                var startInclusive = typeDeclarationIndex = 1;
+                if (startInclusive < body.Members.Count &&
+                    IsMemberDeclarationOnlyValidWithinTypeDeclaration(body.Members[startInclusive]))
                 {
-                    var start = index;
-                    var end = index + 1;
+                    var endExclusive = startInclusive + 1;
 
-                    while (end < body.Members.Count &&
-                           IsMemberDeclarationOnlyValidWithinTypeDeclaration(body.Members[end]))
+                    while (endExclusive < body.Members.Count &&
+                           IsMemberDeclarationOnlyValidWithinTypeDeclaration(body.Members[endExclusive]))
                     {
-                        end++;
+                        endExclusive++;
                     }
 
-                    return (start, end);
+                    return (startInclusive, endExclusive);
                 }
 
                 return null;
