@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -51,6 +52,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.PublicModel
             foreach (var n in _underlying.GetMembers(name))
             {
                 yield return ((Symbols.NamespaceOrTypeSymbol)n).GetPublicSymbol();
+            }
+        }
+
+        void INamespaceSymbol.GetMembers<TArg>(string name, Action<INamespaceOrTypeSymbol, TArg> callback, TArg argument)
+        {
+            foreach (var n in _underlying.GetMembers(name))
+            {
+                callback(((Symbols.NamespaceOrTypeSymbol)n).GetPublicSymbol(), argument);
             }
         }
 

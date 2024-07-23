@@ -100,13 +100,16 @@ internal partial struct SymbolKey
                         result.AddIfNotNull(module.GlobalNamespace);
                         break;
                     case INamespaceSymbol namespaceSymbol:
-                        foreach (var member in namespaceSymbol.GetMembers(metadataName))
-                        {
-                            if (member is INamespaceSymbol childNamespace)
+                        namespaceSymbol.GetMembers(
+                            metadataName,
+                            static (member, result) =>
                             {
-                                result.AddIfNotNull(childNamespace);
-                            }
-                        }
+                                if (member is INamespaceSymbol childNamespace)
+                                {
+                                    result.AddIfNotNull(childNamespace);
+                                }
+                            },
+                            result.Builder);
 
                         break;
                 }

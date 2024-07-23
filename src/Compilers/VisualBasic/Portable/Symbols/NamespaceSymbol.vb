@@ -544,6 +544,12 @@ Done:
             Return Me.GetMembers(name).OfType(Of INamespaceOrTypeSymbol)()
         End Function
 
+        Private Sub INamespaceSymbol_GetMembers(Of TArg)(name As String, callback As Action(Of INamespaceOrTypeSymbol, TArg), argument As TArg) Implements INamespaceSymbol.GetMembers
+            For Each member In DirectCast(Me, INamespaceSymbol).GetMembers(name)
+                callback(member, argument)
+            Next
+        End Sub
+
         Private Function INamespaceSymbol_GetNamespaceMembers() As IEnumerable(Of INamespaceSymbol) Implements INamespaceSymbol.GetNamespaceMembers
             Return Me.GetNamespaceMembers()
         End Function
