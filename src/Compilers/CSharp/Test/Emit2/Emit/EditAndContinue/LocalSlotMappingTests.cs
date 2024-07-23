@@ -906,95 +906,222 @@ class C
         [Fact]
         public void Lock()
         {
-            var source =
-@"class C
-{
-    static object F()
-    {
-        return null;
-    }
-    static void M()
-    {
-        lock (F())
-        {
-            lock (F())
-            {
-            }
+            var source = """
+                class C
+                {
+                    static object F() => null;
+
+                    static void M()
+                    {
+                        lock (F())
+                        {
+                            lock (F())
+                            {
+                            }
+                        }
+                    }
+                }
+                """;
+
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source,
+                    validator: v =>
+                    {
+                        v.VerifyCustomDebugInformation("C.M", """
+                            <symbols>
+                              <methods>
+                                <method containingType="C" name="M">
+                                  <customDebugInfo>
+                                    <forward declaringType="C" methodName="F" />
+                                    <encLocalSlotMap>
+                                      <slot kind="3" offset="11" />
+                                      <slot kind="2" offset="11" />
+                                      <slot kind="3" offset="46" />
+                                      <slot kind="2" offset="46" />
+                                    </encLocalSlotMap>
+                                  </customDebugInfo>
+                                </method>
+                              </methods>
+                            </symbols>
+                            """);
+                    })
+                .AddGeneration(
+                    source,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true),
+                    ],
+                    validator: v =>
+                    {
+                        v.VerifyMethodBody("C.M", """
+                        {
+                          // Code size       66 (0x42)
+                          .maxstack  2
+                          .locals init (object V_0,
+                                        bool V_1,
+                                        object V_2,
+                                        bool V_3)
+                         -IL_0000:  nop
+                         -IL_0001:  call       "object C.F()"
+                          IL_0006:  stloc.0
+                          IL_0007:  ldc.i4.0
+                          IL_0008:  stloc.1
+                          .try
+                          {
+                            IL_0009:  ldloc.0
+                            IL_000a:  ldloca.s   V_1
+                            IL_000c:  call       "void System.Threading.Monitor.Enter(object, ref bool)"
+                            IL_0011:  nop
+                           -IL_0012:  nop
+                           -IL_0013:  call       "object C.F()"
+                            IL_0018:  stloc.2
+                            IL_0019:  ldc.i4.0
+                            IL_001a:  stloc.3
+                            .try
+                            {
+                              IL_001b:  ldloc.2
+                              IL_001c:  ldloca.s   V_3
+                              IL_001e:  call       "void System.Threading.Monitor.Enter(object, ref bool)"
+                              IL_0023:  nop
+                             -IL_0024:  nop
+                             -IL_0025:  nop
+                              IL_0026:  leave.s    IL_0033
+                            }
+                            finally
+                            {
+                             ~IL_0028:  ldloc.3
+                              IL_0029:  brfalse.s  IL_0032
+                              IL_002b:  ldloc.2
+                              IL_002c:  call       "void System.Threading.Monitor.Exit(object)"
+                              IL_0031:  nop
+                             ~IL_0032:  endfinally
+                            }
+                           -IL_0033:  nop
+                            IL_0034:  leave.s    IL_0041
+                          }
+                          finally
+                          {
+                           ~IL_0036:  ldloc.1
+                            IL_0037:  brfalse.s  IL_0040
+                            IL_0039:  ldloc.0
+                            IL_003a:  call       "void System.Threading.Monitor.Exit(object)"
+                            IL_003f:  nop
+                           ~IL_0040:  endfinally
+                          }
+                         -IL_0041:  ret
+                        }
+                        """);
+                    })
+                .Verify();
         }
-    }
-}";
-            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
 
-            var testData0 = new CompilationTestData();
-            var bytes0 = compilation0.EmitToArray(testData: testData0);
-            var methodData0 = testData0.GetMethodData("C.M");
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M");
-            var generation0 = CreateInitialBaseline(compilation0, ModuleMetadata.CreateFromImage(bytes0), methodData0.EncDebugInfoProvider());
+        [Fact]
+        public void Lock_SystemThreadingLock()
+        {
+            var source = """
+                namespace System.Threading
+                {
+                    public sealed class Lock
+                    {
+                        public Scope EnterScope() => new();
 
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M");
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1, GetEquivalentNodesMap(method1, method0))));
+                        public ref struct Scope
+                        {
+                            public void Dispose() { }
+                        }
+                    }
+                }
 
-            diff1.VerifyIL("C.M", @"
-{
-  // Code size       66 (0x42)
-  .maxstack  2
-  .locals init (object V_0,
-                bool V_1,
-                object V_2,
-                bool V_3)
- -IL_0000:  nop
- -IL_0001:  call       ""object C.F()""
-  IL_0006:  stloc.0
-  IL_0007:  ldc.i4.0
-  IL_0008:  stloc.1
-  .try
-  {
-    IL_0009:  ldloc.0
-    IL_000a:  ldloca.s   V_1
-    IL_000c:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-    IL_0011:  nop
-   -IL_0012:  nop
-   -IL_0013:  call       ""object C.F()""
-    IL_0018:  stloc.2
-    IL_0019:  ldc.i4.0
-    IL_001a:  stloc.3
-    .try
-    {
-      IL_001b:  ldloc.2
-      IL_001c:  ldloca.s   V_3
-      IL_001e:  call       ""void System.Threading.Monitor.Enter(object, ref bool)""
-      IL_0023:  nop
-     -IL_0024:  nop
-     -IL_0025:  nop
-      IL_0026:  leave.s    IL_0033
-    }
-    finally
-    {
-     ~IL_0028:  ldloc.3
-      IL_0029:  brfalse.s  IL_0032
-      IL_002b:  ldloc.2
-      IL_002c:  call       ""void System.Threading.Monitor.Exit(object)""
-      IL_0031:  nop
-     ~IL_0032:  endfinally
-    }
-   -IL_0033:  nop
-    IL_0034:  leave.s    IL_0041
-  }
-  finally
-  {
-   ~IL_0036:  ldloc.1
-    IL_0037:  brfalse.s  IL_0040
-    IL_0039:  ldloc.0
-    IL_003a:  call       ""void System.Threading.Monitor.Exit(object)""
-    IL_003f:  nop
-   ~IL_0040:  endfinally
-  }
- -IL_0041:  ret
-}
-", methodToken: diff1.EmitResult.UpdatedMethods.Single());
+                class C
+                {
+                    static System.Threading.Lock F() => new();
+
+                    static void M()
+                    {
+                        lock (F())
+                        {
+                            lock (F())
+                            {
+                            }
+                        }
+                    }
+                }
+                """;
+
+            using var _ = new EditAndContinueTest()
+                .AddBaseline(
+                    source,
+                    validator: v =>
+                    {
+                        v.VerifyCustomDebugInformation("C.M", """
+                            <symbols>
+                              <methods>
+                                <method containingType="C" name="M">
+                                  <customDebugInfo>
+                                    <forward declaringType="C" methodName="F" />
+                                    <encLocalSlotMap>
+                                      <slot kind="4" offset="11" />
+                                      <slot kind="4" offset="46" />
+                                    </encLocalSlotMap>
+                                  </customDebugInfo>
+                                </method>
+                              </methods>
+                            </symbols>
+                            """);
+                    })
+                .AddGeneration(
+                    source,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember("C.M"), preserveLocalVariables: true),
+                    ],
+                    validator: g =>
+                    {
+                        g.VerifyMethodBody("C.M", """
+                        {
+                          // Code size       50 (0x32)
+                          .maxstack  1
+                          .locals init (System.Threading.Lock.Scope V_0,
+                                        System.Threading.Lock.Scope V_1)
+                         -IL_0000:  nop
+                          IL_0001:  call       "System.Threading.Lock C.F()"
+                          IL_0006:  callvirt   "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                          IL_000b:  stloc.0
+                          .try
+                          {
+                           -IL_000c:  nop
+                            IL_000d:  call       "System.Threading.Lock C.F()"
+                            IL_0012:  callvirt   "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+                            IL_0017:  stloc.1
+                            .try
+                            {
+                             -IL_0018:  nop
+                             -IL_0019:  nop
+                              IL_001a:  leave.s    IL_0025
+                            }
+                            finally
+                            {
+                             ~IL_001c:  ldloca.s   V_1
+                              IL_001e:  call       "void System.Threading.Lock.Scope.Dispose()"
+                              IL_0023:  nop
+                              IL_0024:  endfinally
+                            }
+                           -IL_0025:  nop
+                            IL_0026:  leave.s    IL_0031
+                          }
+                          finally
+                          {
+                           ~IL_0028:  ldloca.s   V_0
+                            IL_002a:  call       "void System.Threading.Lock.Scope.Dispose()"
+                            IL_002f:  nop
+                            IL_0030:  endfinally
+                          }
+                         -IL_0031:  ret
+                        }
+                        """);
+                    })
+                .Verify();
         }
 
         /// <summary>
