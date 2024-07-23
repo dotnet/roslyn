@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.ComponentModel;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -30,28 +29,15 @@ internal sealed partial class DiagnosticItem(
 
     public ProjectId ProjectId { get; } = projectId;
     public DiagnosticDescriptor Descriptor { get; } = descriptor;
-    public ReportDiagnostic EffectiveSeverity { get; private set; } = effectiveSeverity;
-
-    public override event PropertyChangedEventHandler? PropertyChanged;
+    private readonly ReportDiagnostic _effectiveSeverity = effectiveSeverity;
 
     public override ImageMoniker IconMoniker
-        => MapEffectiveSeverityToIconMoniker(this.EffectiveSeverity);
+        => MapEffectiveSeverityToIconMoniker(_effectiveSeverity);
 
     public override IContextMenuController ContextMenuController => _commandHandler.DiagnosticContextMenuController;
 
     public override object GetBrowseObject()
         => new BrowseObject(this);
-
-    internal void UpdateEffectiveSeverity(ReportDiagnostic newEffectiveSeverity)
-    {
-        if (EffectiveSeverity != newEffectiveSeverity)
-        {
-            EffectiveSeverity = newEffectiveSeverity;
-
-            NotifyPropertyChanged(nameof(EffectiveSeverity));
-            NotifyPropertyChanged(nameof(IconMoniker));
-        }
-    }
 
     private static ImageMoniker MapEffectiveSeverityToIconMoniker(ReportDiagnostic effectiveSeverity)
         => effectiveSeverity switch
@@ -63,11 +49,6 @@ internal sealed partial class DiagnosticItem(
             ReportDiagnostic.Suppress => KnownMonikers.CodeSuppressedRule,
             _ => default,
         };
-
-    private void NotifyPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
 
     internal void SetRuleSetSeverity(ReportDiagnostic value, string pathToRuleSet)
     {
@@ -88,7 +69,7 @@ internal sealed partial class DiagnosticItem(
     public override int GetHashCode()
         => Hash.Combine(this.Name,
             Hash.Combine(this.ProjectId,
-            Hash.Combine(this.Descriptor.GetHashCode(), (int)this.EffectiveSeverity)));
+            Hash.Combine(this.Descriptor.GetHashCode(), (int)_effectiveSeverity)));
 
     public override bool Equals(object obj)
         => Equals(obj as DiagnosticItem);
@@ -102,6 +83,6 @@ internal sealed partial class DiagnosticItem(
             this.Name == other.Name &&
             this.ProjectId == other.ProjectId &&
             this.Descriptor.Equals(other.Descriptor) &&
-            this.EffectiveSeverity == other.EffectiveSeverity;
+            _effectiveSeverity == other._effectiveSeverity;
     }
 }

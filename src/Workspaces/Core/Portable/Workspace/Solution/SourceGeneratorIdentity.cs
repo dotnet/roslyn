@@ -3,8 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -31,5 +34,15 @@ internal readonly record struct SourceGeneratorIdentity(
         var assemblyName = assembly.GetName();
         return new SourceGeneratorIdentity(
             assemblyName.Name!, analyzerReference.FullPath, assemblyName.Version!, generatorType.FullName!);
+    }
+
+    public static ImmutableArray<SourceGeneratorIdentity> GetIdentities(
+        AnalyzerReference analyzerReference, string language)
+    {
+        using var _ = ArrayBuilder<SourceGeneratorIdentity>.GetInstance(out var result);
+        foreach (var generator in analyzerReference.GetGenerators(language))
+            result.Add(Create(generator, analyzerReference));
+
+        return result.ToImmutableAndClear();
     }
 }
