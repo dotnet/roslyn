@@ -12299,6 +12299,115 @@ public class Class
             EOF();
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74482")]
+        public void ExtraTypeOnlyMembers_DoNotPullNextClassInEvenIfPrivate_PullLaterMembersIntoIt()
+        {
+            // Test all the different type-only member forms.
+            var text = $$"""
+                namespace N
+                {
+                    class C
+                    {
+                    }
+
+                    // Will get pulled into C
+                    void Method()
+                    {
+                    }
+
+                    // Not currently pulled in.  But could consider it in the future.
+                    private class T
+                    {
+                    }
+                
+                    // Will get pulled into T
+                    void Method2()
+                    {
+                    }
+                }
+                """;
+            UsingTree(text,
+                // (5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(5, 5),
+                // (10,6): error CS1513: } expected
+                //     }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(10, 6),
+                // (15,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                //     }
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(15, 5),
+                // (21,2): error CS1513: } expected
+                // }
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(21, 2));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.NamespaceDeclaration);
+                {
+                    N(SyntaxKind.NamespaceKeyword);
+                    N(SyntaxKind.IdentifierName);
+                    {
+                        N(SyntaxKind.IdentifierToken, "N");
+                    }
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "C");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Method");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        M(SyntaxKind.CloseBraceToken);
+                    }
+                    N(SyntaxKind.ClassDeclaration);
+                    {
+                        N(SyntaxKind.PrivateKeyword);
+                        N(SyntaxKind.ClassKeyword);
+                        N(SyntaxKind.IdentifierToken, "T");
+                        N(SyntaxKind.OpenBraceToken);
+                        N(SyntaxKind.MethodDeclaration);
+                        {
+                            N(SyntaxKind.PredefinedType);
+                            {
+                                N(SyntaxKind.VoidKeyword);
+                            }
+                            N(SyntaxKind.IdentifierToken, "Method2");
+                            N(SyntaxKind.ParameterList);
+                            {
+                                N(SyntaxKind.OpenParenToken);
+                                N(SyntaxKind.CloseParenToken);
+                            }
+                            N(SyntaxKind.Block);
+                            {
+                                N(SyntaxKind.OpenBraceToken);
+                                N(SyntaxKind.CloseBraceToken);
+                            }
+                        }
+                        N(SyntaxKind.CloseBraceToken);
+                    }
+                    M(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
         #region Missing > after generic
 
         [Fact]
