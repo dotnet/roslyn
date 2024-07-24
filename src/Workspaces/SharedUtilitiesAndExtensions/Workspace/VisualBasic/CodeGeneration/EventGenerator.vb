@@ -111,7 +111,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 invoke.Parameters.Select(Function(p) generator.ParameterDeclaration(p)),
                 Nothing)
 
-            Dim result = DirectCast(VisualBasicSyntaxGeneratorInternal.Instance.CustomEventDeclarationWithRaise(
+            Dim result = DirectCast(VisualBasicSyntaxGeneratorInternal.CustomEventDeclarationWithRaise(
                 [event].Name,
                 generator.TypeExpression([event].Type),
                 [event].DeclaredAccessibility,
