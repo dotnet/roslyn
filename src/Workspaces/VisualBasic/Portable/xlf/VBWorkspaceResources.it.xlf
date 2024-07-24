@@ -2,11 +2,6 @@
 <xliff xmlns="urn:oasis:names:tc:xliff:document:1.2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="1.2" xsi:schemaLocation="urn:oasis:names:tc:xliff:document:1.2 xliff-core-1.2-transitional.xsd">
   <file datatype="xml" source-language="en" target-language="it" original="../VBWorkspaceResources.resx">
     <body>
-      <trans-unit id="Namespace_can_not_be_added_in_this_destination">
-        <source>Namespace can not be added in this destination.</source>
-        <target state="translated">Non è possibile aggiungere lo spazio dei nomi in questa destinazione.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Only_attributes_expressions_or_statements_can_be_made_explicit">
         <source>Only attributes, expressions or statements can be made explicit</source>
         <target state="translated">È possibile rendere espliciti solo attributi, espressioni o istruzioni</target>

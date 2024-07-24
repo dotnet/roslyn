@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                     cancellationToken As CancellationToken) As CompilationUnitSyntax
             Dim declaration = GenerateNamespaceDeclaration(service, [namespace], options, cancellationToken)
             If Not TypeOf declaration Is NamespaceBlockSyntax Then
-                Throw New ArgumentException(VBWorkspaceResources.Namespace_can_not_be_added_in_this_destination)
+                Throw New ArgumentException(WorkspaceExtensionsResources.Namespace_can_not_be_added_in_this_destination)
             End If
 
             Dim members = Insert(destination.Members, DirectCast(declaration, StatementSyntax), options, availableIndices)
@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                                     cancellationToken As CancellationToken) As NamespaceBlockSyntax
             Dim declaration = GenerateNamespaceDeclaration(service, [namespace], options, cancellationToken)
             If Not TypeOf declaration Is NamespaceBlockSyntax Then
-                Throw New ArgumentException(VBWorkspaceResources.Namespace_can_not_be_added_in_this_destination)
+                Throw New ArgumentException(WorkspaceExtensionsResources.Namespace_can_not_be_added_in_this_destination)
             End If
 
             Dim members = Insert(destination.Members, DirectCast(declaration, StatementSyntax), options, availableIndices)
