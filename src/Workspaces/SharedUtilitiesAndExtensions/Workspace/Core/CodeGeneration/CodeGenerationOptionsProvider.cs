@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration;
@@ -34,7 +35,7 @@ internal static class CodeGenerationOptionsProviders
     public static async ValueTask<CodeGenerationOptions> GetCodeGenerationOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
         var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeGenerationOptions(document.Project.Services);
+        return configOptions.GetCodeGenerationOptions(document.Project.GetExtendedLanguageServices().LanguageServices);
     }
 
     public static async ValueTask<CodeGenerationContextInfo> GetCodeGenerationInfoAsync(this Document document, CodeGenerationContext context, CancellationToken cancellationToken)
@@ -42,7 +43,7 @@ internal static class CodeGenerationOptionsProviders
         Contract.ThrowIfNull(document.Project.ParseOptions);
 
         var options = await GetCodeGenerationOptionsAsync(document, cancellationToken).ConfigureAwait(false);
-        var service = document.Project.Services.GetRequiredService<ICodeGenerationService>();
+        var service = document.GetRequiredLanguageService<ICodeGenerationService>();
         return service.GetInfo(context, options, document.Project.ParseOptions);
     }
 }
