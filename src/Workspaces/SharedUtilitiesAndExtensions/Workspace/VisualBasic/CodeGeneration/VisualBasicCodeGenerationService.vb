@@ -17,7 +17,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-    Friend Class VisualBasicCodeGenerationService
+    Friend NotInheritable Class VisualBasicCodeGenerationService
         Inherits AbstractCodeGenerationService(Of VisualBasicCodeGenerationContextInfo)
 
         Public Sub New(languageServices As LanguageServices)
