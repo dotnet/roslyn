@@ -12,7 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeCleanup\CodeCleanupOptionsProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationOptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)extensions\IParameterSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IParameterSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.CompilationTypeGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.SubstituteTypesVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\ISyntaxFormattingService.cs" />
