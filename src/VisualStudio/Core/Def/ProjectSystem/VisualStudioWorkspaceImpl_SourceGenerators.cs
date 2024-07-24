@@ -84,10 +84,14 @@ internal abstract partial class VisualStudioWorkspaceImpl
         {
             nextCommandHandler();
 
+            // Try to find a roslyn workspace and document corresponding to the text buffer.
             var container = args.SubjectBuffer.AsTextContainer();
             if (TryGetWorkspace(container, out var workspace) &&
                 workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
             {
+                // Note: this will work, even if the text buffer is a Document/AdditionalDoc/AnalyzerConfigDoc. We want
+                // that so that saving things like an additional file will still rerun generators for the projects the
+                // additional file is in.
                 var documentId = workspace.GetDocumentIdInCurrentContext(container);
                 if (documentId != null)
                 {
