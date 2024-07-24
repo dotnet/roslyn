@@ -18917,7 +18917,7 @@ literal:literal
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74427")]
         public void InterpolatedStringAsInputToUserDefinedConversion_01()
         {
-            var source = $$"""
+            var source = """
                 class C
                 {
                     static void Main()
@@ -18950,12 +18950,12 @@ literal:literal
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74427")]
         public void InterpolatedStringAsInputToUserDefinedConversion_02()
         {
-            var source = $$"""
+            var source = """
                 class C
                 {
                     static void Main()
                     {
-                        var y = (C1)$"dog"; // works
+                        var y = (C1)$"dog";
                         System.Console.WriteLine(y);
                     }
                 }
