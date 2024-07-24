@@ -11,15 +11,15 @@ namespace Test.Utilities
         where TRefactoring : CodeRefactoringProvider, new()
     {
         /// <inheritdoc cref="CodeRefactoringVerifier{TCodeRefactoring, TTest, TVerifier}.VerifyRefactoringAsync(string, string)"/>
-        public static async Task VerifyRefactoringAsync([StringSyntax("C#-test")] string source, string fixedSource)
+        public static async Task VerifyRefactoringAsync([StringSyntax("C#-test")] string source, [StringSyntax("C#-test")] string fixedSource)
             => await VerifyRefactoringAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
 
         /// <inheritdoc cref="CodeRefactoringVerifier{TCodeRefactoring, TTest, TVerifier}.VerifyRefactoringAsync(string, DiagnosticResult, string)"/>
-        public static async Task VerifyRefactoringAsync([StringSyntax("C#-test")] string source, DiagnosticResult expected, string fixedSource)
+        public static async Task VerifyRefactoringAsync([StringSyntax("C#-test")] string source, DiagnosticResult expected, [StringSyntax("C#-test")] string fixedSource)
             => await VerifyRefactoringAsync(source, new[] { expected }, fixedSource);
 
         /// <inheritdoc cref="CodeRefactoringVerifier{TCodeRefactoring, TTest, TVerifier}.VerifyRefactoringAsync(string, DiagnosticResult[], string)"/>
-        public static async Task VerifyRefactoringAsync([StringSyntax("C#-test")] string source, DiagnosticResult[] expected, string fixedSource)
+        public static async Task VerifyRefactoringAsync([StringSyntax("C#-test")] string source, DiagnosticResult[] expected, [StringSyntax("C#-test")] string fixedSource)
         {
             var test = new Test
             {

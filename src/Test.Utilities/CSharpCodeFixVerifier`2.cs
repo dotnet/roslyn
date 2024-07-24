@@ -34,13 +34,13 @@ namespace Test.Utilities
             await test.RunAsync();
         }
 
-        public static async Task VerifyCodeFixAsync([StringSyntax("C#-test")] string source, string fixedSource)
+        public static async Task VerifyCodeFixAsync([StringSyntax("C#-test")] string source, [StringSyntax("C#-test")] string fixedSource)
             => await VerifyCodeFixAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
 
-        public static async Task VerifyCodeFixAsync([StringSyntax("C#-test")] string source, DiagnosticResult expected, string fixedSource)
+        public static async Task VerifyCodeFixAsync([StringSyntax("C#-test")] string source, DiagnosticResult expected, [StringSyntax("C#-test")] string fixedSource)
             => await VerifyCodeFixAsync(source, new[] { expected }, fixedSource);
 
-        public static async Task VerifyCodeFixAsync([StringSyntax("C#-test")] string source, DiagnosticResult[] expected, string fixedSource)
+        public static async Task VerifyCodeFixAsync([StringSyntax("C#-test")] string source, DiagnosticResult[] expected, [StringSyntax("C#-test")] string fixedSource)
         {
             var test = new Test
             {
