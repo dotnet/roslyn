@@ -2097,8 +2097,8 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("int[]", "System.ReadOnlySpan<string>").WithLocation(3, 49));
     }
 
-    [Fact]
-    public void Conversion_Span_Array_Implicit_UserDefined()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Span_Array_Implicit_UserDefined(LanguageVersion langVersion)
     {
         var source = """
             using System;
@@ -2114,8 +2114,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 }
             }
             """;
-
-        CompileAndVerify(source, parseOptions: TestOptions.Regular13)
+        CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion))
             .VerifyDiagnostics()
             .VerifyIL("C.M", """
             {
@@ -2126,16 +2125,6 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0006:  ret
             }
             """);
-
-        var expectedDiagnostics = new[]
-        {
-            // (4,37): error CS0029: Cannot implicitly convert type 'System.Span<string>' to 'string[]'
-            //     string[] M(Span<string> arg) => arg;
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.Span<string>", "string[]").WithLocation(4, 37)
-        };
-
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -2315,8 +2304,8 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.ReadOnlySpan<S<string>>", "System.ReadOnlySpan<S<string?>>").WithLocation(5, 64));
     }
 
-    [Fact]
-    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_UserDefined()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_UserDefined_01(LanguageVersion langVersion)
     {
         var source = """
             using System;
@@ -2332,8 +2321,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 }
             }
             """;
-
-        CompileAndVerify(source, parseOptions: TestOptions.Regular13, verify: Verification.FailsILVerify)
+        CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion), verify: Verification.FailsILVerify)
             .VerifyDiagnostics()
             .VerifyIL("C.M", """
             {
@@ -2344,16 +2332,53 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0006:  ret
             }
             """);
+    }
 
-        var expectedDiagnostics = new[]
-        {
-            // (4,57): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<object>' to 'System.ReadOnlySpan<string>'
-            //     ReadOnlySpan<string> M(ReadOnlySpan<object> arg) => arg;
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.ReadOnlySpan<object>", "System.ReadOnlySpan<string>").WithLocation(4, 57)
-        };
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_UserDefined_02()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                ReadOnlySpan<object> M(ReadOnlySpan<string> arg) => arg;
+            }
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static implicit operator ReadOnlySpan<object>(ReadOnlySpan<T> span) => default;
+                    public static ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> s) where TDerived : class, T => throw null;
+                }
+            }
+            """;
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+        CompileAndVerify(source, parseOptions: TestOptions.Regular13, verify: Verification.FailsILVerify)
+            .VerifyDiagnostics()
+            .VerifyIL("C.M", """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.1
+              IL_0001:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<string>.op_Implicit(System.ReadOnlySpan<string>)"
+              IL_0006:  ret
+            }
+            """);
+
+        var expectedIl = """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.1
+              IL_0001:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+              IL_0006:  ret
+            }
+            """;
+
+        CompileAndVerify(source, parseOptions: TestOptions.RegularNext, verify: Verification.FailsILVerify)
+            .VerifyDiagnostics().VerifyIL("C.M", expectedIl);
+        CompileAndVerify(source, verify: Verification.FailsILVerify)
+            .VerifyDiagnostics().VerifyIL("C.M", expectedIl);
     }
 
     [Theory, CombinatorialData]
@@ -2392,8 +2417,8 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoExplicitConv, $"(Span<{type}>)arg").WithArguments("System.ReadOnlySpan<string>", $"System.Span<{type}>").WithLocation(4, 49));
     }
 
-    [Fact]
-    public void Conversion_ReadOnlySpan_Span_Implicit_UserDefined()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_Span_Implicit_UserDefined(LanguageVersion langVersion)
     {
         var source = """
             using System;
@@ -2410,8 +2435,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 }
             }
             """;
-
-        CompileAndVerify(source, parseOptions: TestOptions.Regular13, verify: Verification.FailsILVerify)
+        CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion), verify: Verification.FailsILVerify)
             .VerifyDiagnostics()
             .VerifyIL("C.M", """
             {
@@ -2422,20 +2446,10 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0006:  ret
             }
             """);
-
-        var expectedDiagnostics = new[]
-        {
-            // (4,49): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<string>' to 'System.Span<string>'
-            //     Span<string> M(ReadOnlySpan<string> arg) => arg;
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.ReadOnlySpan<string>", "System.Span<string>").WithLocation(4, 49)
-        };
-
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
-    [Fact]
-    public void Conversion_ReadOnlySpan_Span_Explicit_UserDefined()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_Span_Explicit_UserDefined(LanguageVersion langVersion)
     {
         var source = """
             using System;
@@ -2452,8 +2466,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 }
             }
             """;
-
-        CompileAndVerify(source, parseOptions: TestOptions.Regular13, verify: Verification.FailsILVerify)
+        CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion), verify: Verification.FailsILVerify)
             .VerifyDiagnostics()
             .VerifyIL("C.M", """
             {
@@ -2464,20 +2477,10 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0006:  ret
             }
             """);
-
-        var expectedDiagnostics = new[]
-        {
-            // (4,49): error CS0030: Cannot convert type 'System.ReadOnlySpan<string>' to 'System.Span<string>'
-            //     Span<string> M(ReadOnlySpan<string> arg) => (Span<string>)arg;
-            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Span<string>)arg").WithArguments("System.ReadOnlySpan<string>", "System.Span<string>").WithLocation(4, 49)
-        };
-
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
-    [Fact]
-    public void Conversion_ReadOnlySpan_Span_Explicit_UserDefined_Covariant()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_Span_Explicit_UserDefined_Covariant(LanguageVersion langVersion)
     {
         var source = """
             using System;
@@ -2494,8 +2497,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 }
             }
             """;
-
-        CompileAndVerify(source, parseOptions: TestOptions.Regular13, verify: Verification.FailsILVerify)
+        CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion), verify: Verification.FailsILVerify)
             .VerifyDiagnostics()
             .VerifyIL("C.M", """
             {
@@ -2506,16 +2508,6 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0006:  ret
             }
             """);
-
-        var expectedDiagnostics = new[]
-        {
-            // (4,49): error CS0030: Cannot convert type 'System.ReadOnlySpan<object>' to 'System.Span<string>'
-            //     Span<string> M(ReadOnlySpan<object> arg) => (Span<string>)arg;
-            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Span<string>)arg").WithArguments("System.ReadOnlySpan<object>", "System.Span<string>").WithLocation(4, 49)
-        };
-
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -2601,8 +2593,8 @@ public class FirstClassSpanTests : CSharpTestBase
             """);
     }
 
-    [Fact]
-    public void Conversion_ReadOnlySpan_string_Implicit_UserDefined()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_string_Implicit_UserDefined(LanguageVersion langVersion)
     {
         var source = """
             using System;
@@ -2618,8 +2610,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 }
             }
             """;
-
-        CompileAndVerify(source, parseOptions: TestOptions.Regular13)
+        CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion))
             .VerifyDiagnostics()
             .VerifyIL("C.M", """
             {
@@ -2630,16 +2621,6 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0006:  ret
             }
             """);
-
-        var expectedDiagnostics = new[]
-        {
-            // (4,41): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<char>' to 'string'
-            //     string M(ReadOnlySpan<char> arg) => arg;
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.ReadOnlySpan<char>", "string").WithLocation(4, 41)
-        };
-
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Fact]
@@ -3655,8 +3636,8 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoExplicitConv, "(string)arg").WithArguments("System.ReadOnlySpan<char>", "string").WithLocation(4, 43));
     }
 
-    [Fact]
-    public void Conversion_Array_Span_Opposite_Explicit_UserDefined()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Opposite_Explicit_UserDefined(LanguageVersion langVersion)
     {
         var source = """
             class C
@@ -3672,7 +3653,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular13);
+        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         verifier.VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
@@ -3683,20 +3664,10 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0006:  ret
             }
             """);
-
-        var expectedDiagnostics = new[]
-        {
-            // (3,39): error CS0030: Cannot convert type 'System.Span<int>' to 'int[]'
-            //      int[] M(System.Span<int> arg) => (int[])arg;
-            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int[])arg").WithArguments("System.Span<int>", "int[]").WithLocation(3, 39)
-        };
-
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
-    [Fact]
-    public void Conversion_Span_ReadOnlySpan_Opposite_Explicit_UserDefined()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Span_ReadOnlySpan_Opposite_Explicit_UserDefined(LanguageVersion langVersion)
     {
         var source = """
             using System;
@@ -3714,7 +3685,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular13, verify: Verification.FailsILVerify);
+        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion), verify: Verification.FailsILVerify);
         verifier.VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
@@ -3725,20 +3696,10 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0006:  ret
             }
             """);
-
-        var expectedDiagnostics = new[]
-        {
-            // (4,44): error CS0030: Cannot convert type 'System.ReadOnlySpan<int>' to 'System.Span<int>'
-            //      Span<int> M(ReadOnlySpan<int> arg) => (Span<int>)arg;
-            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Span<int>)arg").WithArguments("System.ReadOnlySpan<int>", "System.Span<int>").WithLocation(4, 44)
-        };
-
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
-    [Fact]
-    public void Conversion_string_ReadOnlySpan_Opposite_Explicit_UserDefined()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_string_ReadOnlySpan_Opposite_Explicit_UserDefined(LanguageVersion langVersion)
     {
         var source = """
             using System;
@@ -3755,7 +3716,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular13);
+        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         verifier.VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
@@ -3766,16 +3727,6 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0006:  ret
             }
             """);
-
-        var expectedDiagnostics = new[]
-        {
-            // (4,42): error CS0030: Cannot convert type 'System.ReadOnlySpan<char>' to 'string'
-            //      string M(ReadOnlySpan<char> arg) => (string)arg;
-            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(string)arg").WithArguments("System.ReadOnlySpan<char>", "string").WithLocation(4, 42)
-        };
-
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -6275,8 +6226,8 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoExplicitConv, "(string[])arg").WithArguments("System.ReadOnlySpan<object>", "string[]").WithLocation(6, 57));
     }
 
-    [Fact]
-    public void Conversion_Array_Span_ExtensionMethodReceiver_Opposite_Explicit_UserDefined()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_ExtensionMethodReceiver_Opposite_Explicit_UserDefined(LanguageVersion langVersion)
     {
         var source = """
             static class C
@@ -6293,7 +6244,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular13);
+        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         verifier.VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
@@ -6305,16 +6256,6 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_000b:  ret
             }
             """);
-
-        var expectedDiagnostics = new[]
-        {
-            // (3,45): error CS0030: Cannot convert type 'System.Span<int>' to 'int[]'
-            //     static void M(System.Span<int> arg) => ((int[])arg).E();
-            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int[])arg").WithArguments("System.Span<int>", "int[]").WithLocation(3, 45)
-        };
-
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory]

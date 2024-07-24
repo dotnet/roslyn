@@ -4037,37 +4037,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IgnoreUserDefinedSpanConversions(TypeSymbol? source, TypeSymbol? target)
         {
+            // SPEC: User-defined conversions are not considered when converting between types
+            //       for which an implicit or an explicit span conversion exists.
+            var discarded = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
             return source is not null && target is not null &&
-                IsFeatureFirstClassSpanEnabled &&
-                (ignoreUserDefinedSpanConversionsInAnyDirection(source, target) ||
-                ignoreUserDefinedSpanConversionsInOneDirection(source, target) ||
-                ignoreUserDefinedSpanConversionsInOneDirection(target, source));
-
-            static bool ignoreUserDefinedSpanConversionsInOneDirection(TypeSymbol a, TypeSymbol b)
-            {
-                // SPEC: User-defined conversions are not considered when converting between
-                // SPEC: - any single-dimensional `array_type` and `System.Span<T>`/`System.ReadOnlySpan<T>`
-                if (a is ArrayTypeSymbol { IsSZArray: true } &&
-                    (b.OriginalDefinition.IsSpan() || b.OriginalDefinition.IsReadOnlySpan()))
-                {
-                    return true;
-                }
-
-                // SPEC: - `string` and `System.ReadOnlySpan<char>`
-                if (a.IsStringType() && b.IsReadOnlySpanChar())
-                {
-                    return true;
-                }
-
-                return false;
-            }
-
-            static bool ignoreUserDefinedSpanConversionsInAnyDirection(TypeSymbol a, TypeSymbol b)
-            {
-                // SPEC: - any combination of `System.Span<T>`/`System.ReadOnlySpan<T>`
-                return (a.OriginalDefinition.IsSpan() || a.OriginalDefinition.IsReadOnlySpan()) &&
-                    (b.OriginalDefinition.IsSpan() || b.OriginalDefinition.IsReadOnlySpan());
-            }
+                (HasImplicitSpanConversion(source, target, ref discarded) ||
+                HasExplicitSpanConversion(source, target, ref discarded));
         }
     }
 }

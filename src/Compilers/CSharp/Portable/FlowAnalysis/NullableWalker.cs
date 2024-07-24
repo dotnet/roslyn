@@ -8904,8 +8904,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var previousKind = conversion.Kind;
                         conversion = GenerateConversion(_conversions, conversionOperand, operandType.Type, targetType, fromExplicitCast, extensionMethodThisArgument, isChecked: conversionOpt?.Checked ?? false);
-                        Debug.Assert(!conversion.Exists || conversion.Kind == previousKind);
-                        canConvertNestedNullability = conversion.Exists;
+                        // We do not want user-defined conversions to relax nullability, so we consider only span conversions.
+                        canConvertNestedNullability = conversion.Exists && conversion.IsSpan;
                     }
                     break;
 
