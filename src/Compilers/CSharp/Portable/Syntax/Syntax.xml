@@ -5,7 +5,7 @@
  To re-generate source from this file, run eng/generate-compiler-code.cmd
 -->
 
-<Tree Root="SyntaxNode">
+<Tree Root="SyntaxNode"> 
   <PredefinedNode Name="CSharpSyntaxNode" Base="SyntaxNode"/>
   <PredefinedNode Name="SyntaxToken" Base="CSharpSyntaxNode"/>
   <PredefinedNode Name="StructuredTriviaSyntax" Base="CSharpSyntaxNode"/>
