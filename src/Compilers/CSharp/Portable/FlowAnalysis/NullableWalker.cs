@@ -10891,7 +10891,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (iterationVariable.IsRef)
                         {
                             // foreach (ref DestinationType variable in collection)
-                            if (IsNullabilityMismatch(sourceType, destinationType))
+                            if (node.Expression is not BoundConversion { Operand.IsSuppressed: true } &&
+                                IsNullabilityMismatch(sourceType, destinationType))
                             {
                                 var foreachSyntax = (ForEachStatementSyntax)node.Syntax;
                                 ReportNullabilityMismatchInAssignment(foreachSyntax.Type, sourceType, destinationType);
