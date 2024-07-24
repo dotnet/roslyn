@@ -1443,6 +1443,10 @@ namespace Microsoft.CodeAnalysis
                 var analyzerConfigProvider =
                     GetCompilerAnalyzerConfigOptionsProvider(analyzerConfigSet, additionalTextFiles, diagnostics, compilation, sourceFileAnalyzerConfigOptions);
 
+                // <Metalama>
+                string? generatorsBaseDirectory = null;
+                // </Metalama>
+
                 if (!generators.IsEmpty)
                 {
                     // At this point we have a compilation with nothing yet computed.
@@ -1450,6 +1454,9 @@ namespace Microsoft.CodeAnalysis
                     var explicitGeneratedOutDir = Arguments.GeneratedFilesOutputDirectory;
                     var hasExplicitGeneratedOutDir = !string.IsNullOrWhiteSpace(explicitGeneratedOutDir);
                     var baseDirectory = hasExplicitGeneratedOutDir ? explicitGeneratedOutDir! : Arguments.OutputDirectory;
+                    // <Metalama>
+                    generatorsBaseDirectory = baseDirectory;
+                    // </Metalama>
                     (compilation, generatorTimingInfo) = RunGenerators(compilation, baseDirectory, Arguments.ParseOptions, generators, analyzerConfigProvider, additionalTextFiles, diagnostics);
 
                     bool hasAnalyzerConfigs = !Arguments.AnalyzerConfigPaths.IsEmpty;
@@ -1623,7 +1630,7 @@ namespace Microsoft.CodeAnalysis
                         var projectFullPath = GetMsBuildProjectFullPath(analyzerConfigProvider);
                         var projectDirectory = Path.GetDirectoryName(projectFullPath);
 
-                        var pathGenerator = new TransformedPathGenerator(projectDirectory, transformedOutputPath, _workingDirectory);
+                        var pathGenerator = new TransformedPathGenerator(projectDirectory, transformedOutputPath, _workingDirectory, generatorsBaseDirectory);
 
                         foreach (var transformedTree in transformersResult.TransformedTrees)
                         {

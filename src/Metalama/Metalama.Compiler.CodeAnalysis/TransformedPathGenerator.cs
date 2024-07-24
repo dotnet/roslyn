@@ -10,17 +10,20 @@ internal class TransformedPathGenerator
 {
     private static readonly string _backwardDirectory = $"..{Path.DirectorySeparatorChar}";
     private readonly HashSet<string> _generatedPaths = new(StringComparer.OrdinalIgnoreCase);
+
+    private readonly string? _projectDirectory;
     private readonly string _outputDirectory;
     private readonly string _workingDirectory;
-    private readonly string? _projectDirectory;
+    private readonly string? _generatorsDirectory;
 
-    public TransformedPathGenerator(string? projectDirectory, string? outputDirectory, string workingDirectory)
+    public TransformedPathGenerator(string? projectDirectory, string? outputDirectory, string workingDirectory, string? generatorsDirectory)
     {
         _projectDirectory = projectDirectory;
 
         // The outputDirectory variable may be null if the code is not to be written to disk.
         _outputDirectory = outputDirectory ?? "(Transformed)";
         _workingDirectory = workingDirectory;
+        _generatorsDirectory = generatorsDirectory;
     }
 
     public string GetOutputPath(string? syntaxTreeFilePath)
@@ -31,7 +34,12 @@ internal class TransformedPathGenerator
         }
 
         string stem;
-        if (_projectDirectory != null)
+
+        if (_generatorsDirectory != null && syntaxTreeFilePath.StartsWith(_generatorsDirectory))
+        {
+            stem = Path.Combine("generated", syntaxTreeFilePath.Substring(_generatorsDirectory.Length + 1));
+        }
+        else if (_projectDirectory != null)
         {
             // We should have a project directory in production.
             var fullPath = Path.GetFullPath(Path.Combine(_workingDirectory, syntaxTreeFilePath));
