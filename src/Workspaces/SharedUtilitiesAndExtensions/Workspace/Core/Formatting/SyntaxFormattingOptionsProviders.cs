@@ -15,7 +15,7 @@ internal static class SyntaxFormattingOptionsProviders
         => languageServices.GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(options);
 
     public static ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
-        => GetSyntaxFormattingOptionsAsync(document, document.Project.Services.GetRequiredService<ISyntaxFormattingService>(), cancellationToken);
+        => GetSyntaxFormattingOptionsAsync(document, document.GetRequiredLanguageService<ISyntaxFormattingService>(), cancellationToken);
 
     public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, ISyntaxFormatting formatting, CancellationToken cancellationToken)
     {
