@@ -930,11 +930,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'{0}' を暗黙的に実装する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_abstract_class">
-        <source>Implement abstract class</source>
-        <target state="translated">抽象クラスの実装</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_all_interfaces_explicitly">
         <source>Implement all interfaces explicitly</source>
         <target state="translated">すべてのインターフェイスを明示的に実装する</target>
@@ -963,11 +958,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Implement_remaining_members_explicitly">
         <source>Implement remaining members explicitly</source>
         <target state="translated">残りのメンバーを明示的に実装する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_through_0">
-        <source>Implement through '{0}'</source>
-        <target state="translated">'{0}' を通じて実装します</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">

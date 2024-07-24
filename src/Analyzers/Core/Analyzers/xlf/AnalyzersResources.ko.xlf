@@ -416,6 +416,11 @@
         <target state="translated">파일 헤더가 없거나 파일 맨 위에 없습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="new">Type members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
         <target state="translated">불필요한 값 할당</target>

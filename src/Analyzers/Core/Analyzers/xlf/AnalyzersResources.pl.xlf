@@ -416,6 +416,11 @@
         <target state="translated">Brak nagłówka pliku lub nie znajduje się on w górnej części pliku</target>
         <note />
       </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="new">Type members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
         <target state="translated">Niepotrzebne przypisanie wartości</target>

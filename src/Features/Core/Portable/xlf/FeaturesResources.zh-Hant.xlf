@@ -930,11 +930,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">隱含實作 '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_abstract_class">
-        <source>Implement abstract class</source>
-        <target state="translated">實作抽象類別</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_all_interfaces_explicitly">
         <source>Implement all interfaces explicitly</source>
         <target state="translated">明確實作所有介面</target>
@@ -963,11 +958,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Implement_remaining_members_explicitly">
         <source>Implement remaining members explicitly</source>
         <target state="translated">明確實作剩餘的成員</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_through_0">
-        <source>Implement through '{0}'</source>
-        <target state="translated">透過 '{0}' 實作</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">

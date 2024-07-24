@@ -416,6 +416,11 @@
         <target state="translated">Falta el encabezado del archivo o no se encuentra en la parte superior del archivo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="new">Type members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
         <target state="translated">Asignación innecesaria de un valor</target>

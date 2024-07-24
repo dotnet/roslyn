@@ -416,6 +416,11 @@
         <target state="translated">缺少檔案標頭或其不在檔案的頂端</target>
         <note />
       </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="new">Type members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
         <target state="translated">指派了不必要的值</target>
