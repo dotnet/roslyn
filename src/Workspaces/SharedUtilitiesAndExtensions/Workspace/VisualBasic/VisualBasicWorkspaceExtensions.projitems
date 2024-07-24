@@ -9,6 +9,30 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.VisualBasic.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ArgumentGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\AttributeGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ConstructorGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ConversionGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\EnumMemberGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\EventGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ExpressionGenerator.StringPiece.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ExpressionGenerator.StringPieceKind.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ExpressionGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\FieldGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\MethodGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\NamedTypeGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\NamespaceGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\OperatorGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ParameterGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\PropertyGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\StatementGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\TypeParameterGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\VisualBasicCodeGenerationContextInfo.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\VisualBasicCodeGenerationHelpers.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\VisualBasicCodeGenerationService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\VisualBasicCodeGenerationServiceFactory.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\VisualBasicDeclarationComparer.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\VisualBasicFlagsEnumGenerator.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VisualBasicVirtualCharLanguageServiceFactory.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentListSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CallStatementSyntaxExtensions.vb" />
