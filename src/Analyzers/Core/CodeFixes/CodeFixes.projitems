@@ -39,6 +39,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\AbstractImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\IImplementInterfaceInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementType\ImplementTypeInsertionBehavior.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementType\ImplementTypeOptions.cs" />
