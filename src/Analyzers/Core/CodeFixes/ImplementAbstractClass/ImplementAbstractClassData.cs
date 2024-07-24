@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.ImplementInterface;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -21,9 +22,9 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 #if CODE_STYLE
-using Microsoft.CodeAnalysis.Internal.Editing;
+using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
 #else
-using Microsoft.CodeAnalysis.Editing;
+using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
 #endif
 
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass;
@@ -177,7 +178,7 @@ internal sealed class ImplementAbstractClassData(
         DeclarationModifiers modifiers, Accessibility accessibility)
     {
         var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var generator = _document.GetRequiredLanguageService<Microsoft.CodeAnalysis.Editing.SyntaxGeneratorInternal>();
+        var generator = SyntaxGenerator.GetGenerator(_document);
         var body = throughMember == null
             ? generator.CreateThrowNotImplementedStatement(compilation)
             : generator.GenerateDelegateThroughMemberStatement(method, throughMember);
