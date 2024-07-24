@@ -2904,22 +2904,20 @@ public class ExtractClassTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/63315")]
     public async Task TestMethodInsideNamespace_NoException()
     {
-        var code = """
-            namespace N
-            {
-                class C
-                {
-                }
-
-                public void $$N
-                {
-                }
-            }
-            """;
-
         await new Test()
         {
-            TestCode = code,
+            TestCode = """
+                namespace N
+                {
+                    class C
+                    {
+                    }
+
+                    public void $$N
+                    {
+                    }
+                }
+                """,
             FixedState =
             {
                 Sources =
