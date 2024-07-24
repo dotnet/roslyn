@@ -2800,11 +2800,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">末尾にコンマは使用できない</target>
         <note />
       </trans-unit>
-      <trans-unit id="Type_members">
-        <source>Type members</source>
-        <target state="new">Type members</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
         <target state="translated">型:</target>

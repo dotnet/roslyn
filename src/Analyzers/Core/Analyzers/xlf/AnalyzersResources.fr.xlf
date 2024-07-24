@@ -416,11 +416,6 @@
         <target state="translated">L'en-tête du fichier est manquant ou ne se trouve pas en haut du fichier</target>
         <note />
       </trans-unit>
-      <trans-unit id="Type_members">
-        <source>Type members</source>
-        <target state="new">Type members</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
         <target state="translated">Assignation inutile d'une valeur</target>

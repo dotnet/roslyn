@@ -2800,11 +2800,6 @@ Les assertions arrière positives de largeur nulle sont généralement utilisée
         <target state="translated">Virgule de fin non autorisée</target>
         <note />
       </trans-unit>
-      <trans-unit id="Type_members">
-        <source>Type members</source>
-        <target state="new">Type members</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
         <target state="translated">Types :</target>

@@ -122,6 +122,11 @@
         <target state="translated">解决方案不包含指定的文档。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="new">Type members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">
         <source>Warning: Declaration changes scope and may change meaning.</source>
         <target state="translated">警告: 声明更改了作用域，并且可能更改含义。</target>

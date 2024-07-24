@@ -417,11 +417,6 @@
         <target state="translated">ファイル ヘッダーが存在しないか、ファイルの先頭にありません</target>
         <note />
       </trans-unit>
-      <trans-unit id="Type_members">
-        <source>Type members</source>
-        <target state="new">Type members</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
         <target state="translated">値の不必要な代入</target>

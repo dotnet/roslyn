@@ -2800,11 +2800,6 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Sona eklenen virgüle izin verilmiyor</target>
         <note />
       </trans-unit>
-      <trans-unit id="Type_members">
-        <source>Type members</source>
-        <target state="new">Type members</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
         <target state="translated">Türler:</target>

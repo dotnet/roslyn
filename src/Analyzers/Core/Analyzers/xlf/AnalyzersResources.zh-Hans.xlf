@@ -416,11 +416,6 @@
         <target state="translated">文件标题缺失或没有位于文件的顶部</target>
         <note />
       </trans-unit>
-      <trans-unit id="Type_members">
-        <source>Type members</source>
-        <target state="new">Type members</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Unnecessary_assignment_of_a_value">
         <source>Unnecessary assignment of a value</source>
         <target state="translated">不需要赋值</target>

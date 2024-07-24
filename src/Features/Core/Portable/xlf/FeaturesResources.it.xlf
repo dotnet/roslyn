@@ -2800,11 +2800,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Virgola finale non consentita</target>
         <note />
       </trans-unit>
-      <trans-unit id="Type_members">
-        <source>Type members</source>
-        <target state="new">Type members</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
         <target state="translated">Tipi:</target>

@@ -2800,11 +2800,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Čárka na konci není povolená</target>
         <note />
       </trans-unit>
-      <trans-unit id="Type_members">
-        <source>Type members</source>
-        <target state="new">Type members</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Types_colon">
         <source>Types:</source>
         <target state="translated">Typy:</target>

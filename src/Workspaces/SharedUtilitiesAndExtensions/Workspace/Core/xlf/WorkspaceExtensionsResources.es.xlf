@@ -122,6 +122,11 @@
         <target state="translated">La solución no contiene el documento especificado.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="new">Type members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">
         <source>Warning: Declaration changes scope and may change meaning.</source>
         <target state="translated">Advertencia: La declaración cambia el ámbito y puede cambiar el significado.</target>
