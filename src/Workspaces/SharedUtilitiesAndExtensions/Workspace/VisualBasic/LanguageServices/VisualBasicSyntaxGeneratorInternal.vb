@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.TypeOfIsNotExpression(DirectCast(expression, ExpressionSyntax), DirectCast(type, TypeSyntax))
         End Function
 
-        Public Function CustomEventDeclarationWithRaise(
+        Public Shared Function CustomEventDeclarationWithRaise(
             name As String,
             type As SyntaxNode,
             Optional accessibility As Accessibility = Accessibility.NotApplicable,
@@ -251,7 +251,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 SyntaxFactory.EndRemoveHandlerStatement())
         End Function
 
-        Friend Function CreateRaiseEventAccessorBlock(parameters As IEnumerable(Of SyntaxNode), statements As IEnumerable(Of SyntaxNode)) As AccessorBlockSyntax
+        Friend Shared Function CreateRaiseEventAccessorBlock(parameters As IEnumerable(Of SyntaxNode), statements As IEnumerable(Of SyntaxNode)) As AccessorBlockSyntax
             Dim parameterList = GetParameterList(parameters)
 
             Return SyntaxFactory.AccessorBlock(

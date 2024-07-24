@@ -1000,7 +1000,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Function AccessorBlock(kind As SyntaxKind, statements As IEnumerable(Of SyntaxNode), type As SyntaxNode) As AccessorBlockSyntax
+        Private Shared Function AccessorBlock(kind As SyntaxKind, statements As IEnumerable(Of SyntaxNode), type As SyntaxNode) As AccessorBlockSyntax
             Select Case kind
                 Case SyntaxKind.GetAccessorBlock
                     Return CreateGetAccessorBlock(statements)
@@ -1573,6 +1573,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return compilationUnit.Attributes(0).AttributeLists
                 End If
             End If
+
             Return Flatten(declaration.GetAttributeLists())
         End Function
 
@@ -1618,6 +1619,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             If Not declaration.IsKind(SyntaxKind.CompilationUnit) Then
                 Return attributes
             End If
+
             Return SyntaxFactory.List(attributes.Select(AddressOf WithAssemblyTargets))
         End Function
 
@@ -3181,7 +3183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 accessor = DirectCast(Me.WithStatements(accessor, statements), AccessorBlockSyntax)
                 Return Me.WithAccessorBlock(declaration, kind, accessor)
             ElseIf CanHaveAccessors(declaration.Kind) Then
-                accessor = Me.AccessorBlock(kind, statements, Me.ClearTrivia(Me.GetType(declaration)))
+                accessor = AccessorBlock(kind, statements, Me.ClearTrivia(Me.GetType(declaration)))
                 Return Me.WithAccessorBlock(declaration, kind, accessor)
             Else
                 Return declaration
@@ -3238,7 +3240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Optional addAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing,
             Optional removeAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
 
-            Return VisualBasicSyntaxGeneratorInternal.Instance.CustomEventDeclarationWithRaise(
+            Return VisualBasicSyntaxGeneratorInternal.CustomEventDeclarationWithRaise(
                 name, type, accessibility, modifiers, parameters, addAccessorStatements, removeAccessorStatements)
         End Function
 
