@@ -81,6 +81,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_CreateGetHashCodeMethod.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_Negate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\AbstractReducer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\AbstractReducer.IExpressionRewriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\AbstractSimplificationService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\ISimplificationService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\NodeOrTokenToReduce.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SimplificationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\AbstractIndentationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IIndentationService.cs" />
@@ -120,6 +125,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Rename\Annotations\RenameNodeSimplificationAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\Annotations\RenameTokenSimplificationAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\MefHostServicesHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\Simplifiers\AbstractMemberAccessExpressionSimplifier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\Simplifiers\AbstractSimplifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ParsedDocument.cs" />

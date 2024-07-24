@@ -11,13 +11,11 @@ namespace Microsoft.CodeAnalysis.Simplification;
 
 internal static class SimplifierOptionsProviders
 {
-#if !CODE_STYLE
     public static SimplifierOptions GetSimplifierOptions(this IOptionsReader options, Host.LanguageServices languageServices)
         => languageServices.GetService<ISimplificationService>()?.GetSimplifierOptions(options) ?? SimplifierOptions.CommonDefaults;
 
     public static ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, CancellationToken cancellationToken)
         => GetSimplifierOptionsAsync(document, document.Project.Services.GetRequiredService<ISimplificationService>(), cancellationToken);
-#endif
 
     public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, ISimplification simplification, CancellationToken cancellationToken)
     {
