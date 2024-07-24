@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis
             return _factory.SubstituteTypeParameters(this.moduleSymbol, genericType, arguments, refersToNoPiaLocalType);
         }
 
-        internal TypeSymbol GetTypeSymbol(MetadataHelpers.AssemblyQualifiedTypeName fullName, out bool refersToNoPiaLocalType, bool allowTypeParameters = false)
+        internal TypeSymbol GetTypeSymbol(MetadataHelpers.AssemblyQualifiedTypeName fullName, out bool refersToNoPiaLocalType, bool allowTypeParameters)
         {
             //
             // Section 23.3 (Custom Attributes) of CLI Spec Partition II:
@@ -163,49 +163,58 @@ namespace Microsoft.CodeAnalysis
                 referencedAssemblyIndex = -1;
             }
 
-            // Find the top level type
-            Debug.Assert(MetadataHelpers.IsValidMetadataIdentifier(fullName.TopLevelType));
-            var mdName = MetadataTypeName.FromFullName(fullName.TopLevelType);
-            TypeSymbol container = LookupTopLevelTypeDefSymbol(ref mdName, referencedAssemblyIndex, out refersToNoPiaLocalType);
-
-            // Process any nested types
-            if (fullName.NestedTypes != null)
+            TypeSymbol container;
+            if (allowTypeParameters && tryResolveTypeParameterReference(fullName.TopLevelType) is { } typeParameter)
             {
-                if (refersToNoPiaLocalType)
-                {
-                    // Types nested into local types are not supported.
-                    refersToNoPiaLocalType = false;
-                    return GetUnsupportedMetadataTypeSymbol();
-                }
-
-                for (int i = 0; i < fullName.NestedTypes.Length; i++)
-                {
-                    Debug.Assert(MetadataHelpers.IsValidMetadataIdentifier(fullName.NestedTypes[i]));
-                    mdName = MetadataTypeName.FromTypeName(fullName.NestedTypes[i]);
-                    // Find nested type in the container
-                    container = LookupNestedTypeDefSymbol(container, ref mdName);
-                }
-            }
-
-            //  Substitute type arguments if any
-            if (fullName.TypeArguments != null)
-            {
-                ImmutableArray<bool> argumentRefersToNoPiaLocalType;
-                var typeArguments = ResolveTypeArguments(fullName.TypeArguments, out argumentRefersToNoPiaLocalType, allowTypeParameters);
-                container = SubstituteTypeParameters(container, typeArguments, argumentRefersToNoPiaLocalType);
-
-                foreach (bool flag in argumentRefersToNoPiaLocalType)
-                {
-                    if (flag)
-                    {
-                        refersToNoPiaLocalType = true;
-                        break;
-                    }
-                }
+                refersToNoPiaLocalType = false;
+                container = typeParameter;
             }
             else
             {
-                container = SubstituteWithUnboundIfGeneric(container);
+                // Find the top level type
+                Debug.Assert(MetadataHelpers.IsValidMetadataIdentifier(fullName.TopLevelType));
+                var mdName = MetadataTypeName.FromFullName(fullName.TopLevelType);
+                container = LookupTopLevelTypeDefSymbol(ref mdName, referencedAssemblyIndex, out refersToNoPiaLocalType);
+
+                // Process any nested types
+                if (fullName.NestedTypes != null)
+                {
+                    if (refersToNoPiaLocalType)
+                    {
+                        // Types nested into local types are not supported.
+                        refersToNoPiaLocalType = false;
+                        return GetUnsupportedMetadataTypeSymbol();
+                    }
+
+                    for (int i = 0; i < fullName.NestedTypes.Length; i++)
+                    {
+                        Debug.Assert(MetadataHelpers.IsValidMetadataIdentifier(fullName.NestedTypes[i]));
+                        mdName = MetadataTypeName.FromTypeName(fullName.NestedTypes[i]);
+                        // Find nested type in the container
+                        container = LookupNestedTypeDefSymbol(container, ref mdName);
+                    }
+                }
+
+                //  Substitute type arguments if any
+                if (fullName.TypeArguments != null)
+                {
+                    ImmutableArray<bool> argumentRefersToNoPiaLocalType;
+                    var typeArguments = ResolveTypeArguments(fullName.TypeArguments, out argumentRefersToNoPiaLocalType, allowTypeParameters);
+                    container = SubstituteTypeParameters(container, typeArguments, argumentRefersToNoPiaLocalType);
+
+                    foreach (bool flag in argumentRefersToNoPiaLocalType)
+                    {
+                        if (flag)
+                        {
+                            refersToNoPiaLocalType = true;
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    container = SubstituteWithUnboundIfGeneric(container);
+                }
             }
 
             for (int i = 0; i < fullName.PointerCount; i++)
@@ -226,38 +235,12 @@ namespace Microsoft.CodeAnalysis
             }
 
             return container;
-        }
-
-        private ImmutableArray<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>> ResolveTypeArguments(MetadataHelpers.AssemblyQualifiedTypeName[] arguments, out ImmutableArray<bool> refersToNoPiaLocalType, bool allowTypeParameters)
-        {
-            int count = arguments.Length;
-            var typeArgumentsBuilder = ArrayBuilder<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>>.GetInstance(count);
-            var refersToNoPiaBuilder = ArrayBuilder<bool>.GetInstance(count);
-
-            foreach (var argument in arguments)
-            {
-                bool refersToNoPia = false;
-                TypeSymbol typeSymbol;
-                if (allowTypeParameters && tryResolveTypeParameterReference(argument) is { } typeParameter)
-                {
-                    typeSymbol = typeParameter;
-                }
-                else
-                {
-                    typeSymbol = GetTypeSymbol(argument, out refersToNoPia);
-                }
-                typeArgumentsBuilder.Add(new KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>(typeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>.Empty));
-                refersToNoPiaBuilder.Add(refersToNoPia);
-            }
-
-            refersToNoPiaLocalType = refersToNoPiaBuilder.ToImmutableAndFree();
-            return typeArgumentsBuilder.ToImmutableAndFree();
 
             // Decode `!n` (or `!!n`) to a type parameter from the current type (or current method).
-            // This is used for decoding extension erasure attributes.
-            TypeSymbol tryResolveTypeParameterReference(MetadataHelpers.AssemblyQualifiedTypeName argument)
+            // This is used for decoding extension erasure attributes
+            TypeSymbol tryResolveTypeParameterReference(string serialized)
             {
-                switch (argument.TopLevelType)
+                switch (serialized)
                 {
                     case ['!', '!', .. var rest] when Int32.TryParse(rest, out int index):
                         return GetGenericMethodTypeParamSymbol(index);
@@ -269,6 +252,24 @@ namespace Microsoft.CodeAnalysis
                         return null;
                 }
             }
+        }
+
+        private ImmutableArray<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>> ResolveTypeArguments(MetadataHelpers.AssemblyQualifiedTypeName[] arguments, out ImmutableArray<bool> refersToNoPiaLocalType, bool allowTypeParameters)
+        {
+            int count = arguments.Length;
+            var typeArgumentsBuilder = ArrayBuilder<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>>.GetInstance(count);
+            var refersToNoPiaBuilder = ArrayBuilder<bool>.GetInstance(count);
+
+            foreach (var argument in arguments)
+            {
+                bool refersToNoPia = false;
+                TypeSymbol typeSymbol = GetTypeSymbol(argument, out refersToNoPia, allowTypeParameters);
+                typeArgumentsBuilder.Add(new KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>(typeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>.Empty));
+                refersToNoPiaBuilder.Add(refersToNoPia);
+            }
+
+            refersToNoPiaLocalType = refersToNoPiaBuilder.ToImmutableAndFree();
+            return typeArgumentsBuilder.ToImmutableAndFree();
         }
 
         private TypeSymbol LookupTopLevelTypeDefSymbol(ref MetadataTypeName emittedName, int referencedAssemblyIndex, out bool isNoPiaLocalType)

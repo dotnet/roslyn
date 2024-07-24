@@ -677,11 +677,6 @@
         <target state="translated">Interpolierte Zeichenfolge erwartet</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitExtensionErasureAttr">
-        <source>Do not use 'System.Runtime.CompilerServices.ExtensionErasureAttribute'. This is reserved for compiler usage.</source>
-        <target state="new">Do not use 'System.Runtime.CompilerServices.ExtensionErasureAttribute'. This is reserved for compiler usage.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">Die explizite Implementierung eines benutzerdefinierten Operators "{0}" muss als statisch deklariert werden.</target>

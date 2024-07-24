@@ -677,11 +677,6 @@
         <target state="translated">預期為差補字串</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExplicitExtensionErasureAttr">
-        <source>Do not use 'System.Runtime.CompilerServices.ExtensionErasureAttribute'. This is reserved for compiler usage.</source>
-        <target state="new">Do not use 'System.Runtime.CompilerServices.ExtensionErasureAttribute'. This is reserved for compiler usage.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ExplicitImplementationOfOperatorsMustBeStatic">
         <source>Explicit implementation of a user-defined operator '{0}' must be declared static</source>
         <target state="translated">使用者定義的運算子 '{0}' 的明確實作必須宣告為靜態</target>

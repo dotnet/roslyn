@@ -43724,9 +43724,9 @@ public class C
 
         var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
         comp.VerifyEmitDiagnostics(
-            // (5,14): error CS9329: Do not use 'System.Runtime.CompilerServices.ExtensionErasureAttribute'. This is reserved for compiler usage.
+            // (5,14): error CS8335: Do not use 'System.Runtime.CompilerServices.ExtensionErasureAttribute'. This is reserved for compiler usage.
             //     [return: System.Runtime.CompilerServices.ExtensionErasureAttribute("E")]
-            Diagnostic(ErrorCode.ERR_ExplicitExtensionErasureAttr, @"System.Runtime.CompilerServices.ExtensionErasureAttribute(""E"")").WithLocation(5, 14));
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, @"System.Runtime.CompilerServices.ExtensionErasureAttribute(""E"")").WithArguments("System.Runtime.CompilerServices.ExtensionErasureAttribute").WithLocation(5, 14));
     }
 
     [Fact]
@@ -44301,6 +44301,115 @@ public explicit extension E<T> for object
                 VerifyMethodInPE("MethodDefinition:Int32 E`1.M(modreq(System.Runtime.CompilerServices.ExtensionAttribute) Object)", peMethod.Handle, peModule);
             }
         }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_MethodTypeParameter_InArray()
+    {
+        var src = """
+public explicit extension E<T> for object
+{
+    public E<V[]> M<V>() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<MethodSymbol>("M");
+            Assert.Equal("E<V[]> E<T>.M<V>()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)((PEExtensionInstanceMethodSymbol)m).UnderlyingMethod;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E`1[!!0[]]", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Object E`1.M(modreq(System.Runtime.CompilerServices.ExtensionAttribute) Object)", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_MethodTypeParameter_InPointer()
+    {
+        var src = """
+public unsafe explicit extension E<T> for int
+{
+    public E<V*[]> M<V>() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], options: TestOptions.UnsafeDebugDll);
+        // PROTOTYPE an extension on an unmanaged type needs to be considered unmanaged (no warning)
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics(
+            // (3,20): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('V')
+            //     public E<V*[]> M<V>() => throw null;
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "M").WithArguments("V").WithLocation(3, 20));
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<MethodSymbol>("M");
+            Assert.Equal("E<V*[]> E<T>.M<V>()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)((PEExtensionInstanceMethodSymbol)m).UnderlyingMethod;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E`1[!!0*[]]", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Int32 E`1.M(modreq(System.Runtime.CompilerServices.ExtensionAttribute) Int32&)", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_MethodTypeParameter_InArray_InContainerType()
+    {
+        var src = """
+public explicit extension E<T> for object
+{
+    public explicit extension NestedE for int { }
+    public E<V[]>.NestedE M<V>() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate).VerifyDiagnostics();
+
+        static void validate(ModuleSymbol module)
+        {
+            var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<MethodSymbol>("M");
+            Assert.Equal("E<V[]>.NestedE E<T>.M<V>()", m.ToTestDisplayString());
+
+            bool inSource = module is SourceModuleSymbol;
+            if (!inSource)
+            {
+                var peMethod = (PEMethodSymbol)((PEExtensionInstanceMethodSymbol)m).UnderlyingMethod;
+                var peModule = (PEModuleSymbol)peMethod.ContainingModule;
+                VerifyExtensionErasureAttribute("E`1+NestedE[!!0[]]", peModule, peMethod.ReturnTypeParameter.Handle);
+                VerifyMethodInPE("MethodDefinition:Int32 E`1.M(modreq(System.Runtime.CompilerServices.ExtensionAttribute) Object)", peMethod.Handle, peModule);
+            }
+        }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_MethodTypeParameter_InPointer_ManagedType()
+    {
+        var src = """
+public unsafe explicit extension E<T> for object
+{
+    public E<V*[]> M<V>() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics(
+            // (3,20): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('V')
+            //     public E<V*[]> M<V>() => throw null;
+            Diagnostic(ErrorCode.WRN_ManagedAddr, "M").WithArguments("V").WithLocation(3, 20));
     }
 
     [Fact]
@@ -45108,6 +45217,33 @@ public class D
     }
 
     [Fact]
+    public void TypeReference_Typeof_InAttribute()
+    {
+        var src = """
+var attr = (MyAttribute)System.Attribute.GetCustomAttribute(typeof(D), typeof(MyAttribute));
+System.Console.Write(attr.Type);
+
+public explicit extension E for U { }
+
+public class U { }
+
+[My(typeof(E))]
+public class D
+{
+}
+
+public class MyAttribute : System.Attribute
+{
+    public System.Type Type;
+    public MyAttribute(System.Type type) { Type = type; }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "U").VerifyDiagnostics();
+    }
+
+    [Fact]
     public void TypeReference_Typeof_Generic()
     {
         var src = """
@@ -45138,6 +45274,34 @@ public class D
   IL_000a:  ret
 }
 """);
+    }
+
+    [Fact]
+    public void TypeReference_Typeof_Generic_InAttribute()
+    {
+        var src = """
+var attr = (MyAttribute)System.Attribute.GetCustomAttribute(typeof(D), typeof(MyAttribute));
+System.Console.Write(attr.Type);
+
+public explicit extension E for U { }
+
+public class U { }
+public class C<T> { }
+
+[My(typeof(C<E>))]
+public class D
+{
+}
+
+public class MyAttribute : System.Attribute
+{
+    public System.Type Type;
+    public MyAttribute(System.Type type) { Type = type; }
+}
+""";
+
+        var comp = CreateCompilation(src);
+        CompileAndVerify(comp, expectedOutput: "C`1[U]").VerifyDiagnostics();
     }
 
     [Fact]
@@ -45402,9 +45566,9 @@ public class C
 
         var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
         comp.VerifyEmitDiagnostics(
-            // (5,20): error CS9329: Do not use 'System.Runtime.CompilerServices.ExtensionErasureAttribute'. This is reserved for compiler usage.
+            // (5,20): error CS8335: Do not use 'System.Runtime.CompilerServices.ExtensionErasureAttribute'. This is reserved for compiler usage.
             //     public void M([System.Runtime.CompilerServices.ExtensionErasureAttribute("E")] object o) { }
-            Diagnostic(ErrorCode.ERR_ExplicitExtensionErasureAttr, @"System.Runtime.CompilerServices.ExtensionErasureAttribute(""E"")").WithLocation(5, 20));
+            Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, @"System.Runtime.CompilerServices.ExtensionErasureAttribute(""E"")").WithArguments("System.Runtime.CompilerServices.ExtensionErasureAttribute").WithLocation(5, 20));
     }
 
     [Fact]

@@ -2557,9 +2557,6 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
   <data name="ERR_ExplicitDynamicAttr" xml:space="preserve">
     <value>Do not use 'System.Runtime.CompilerServices.DynamicAttribute'. Use the 'dynamic' keyword instead.</value>
   </data>
-  <data name="ERR_ExplicitExtensionErasureAttr" xml:space="preserve">
-    <value>Do not use 'System.Runtime.CompilerServices.ExtensionErasureAttribute'. This is reserved for compiler usage.</value>
-  </data>
   <data name="ERR_NoDynamicPhantomOnBaseCtor" xml:space="preserve">
     <value>The constructor call needs to be dynamically dispatched, but cannot be because it is part of a constructor initializer. Consider casting the dynamic arguments.</value>
   </data>

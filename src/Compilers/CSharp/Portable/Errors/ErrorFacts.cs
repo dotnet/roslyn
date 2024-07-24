@@ -2473,7 +2473,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_ExtensionMethodInExtension
                 or ErrorCode.ERR_MalformedExtensionInMetadata
                 or ErrorCode.ERR_UnderspecifiedImplicitExtension
-                or ErrorCode.ERR_ExplicitExtensionErasureAttr
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.

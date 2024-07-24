@@ -17,7 +17,8 @@ namespace Microsoft.Cci
     {
         // Note: for the _alreadySeen set, we use the KeepExtensions flag to differentiate between
         // a visit that erases extension types from one that doesn't.
-        // TODO2
+        // For example, for `C<Extension>` we'll need to collect references from the erased type `C<ExtendedType>`
+        // but also references needed to decode the extension erasure attribute `[ExtensionErasure("C'1[Extension]")]`.
         private readonly HashSet<IReferenceOrISignature> _alreadySeen = new HashSet<IReferenceOrISignature>();
         private readonly HashSet<IReferenceOrISignature> _alreadyHasToken = new HashSet<IReferenceOrISignature>();
 

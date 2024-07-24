@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis
     internal readonly struct IReferenceOrISignature : IEquatable<IReferenceOrISignature>
     {
         private readonly object _item;
-        internal readonly bool KeepExtensions;
+        private readonly bool KeepExtensions;
 
         public IReferenceOrISignature(IReference item, bool keepExtensions = false)
         {

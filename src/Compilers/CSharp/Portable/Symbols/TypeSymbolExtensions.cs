@@ -1248,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static bool ContainsErasedExtensionType(this TypeSymbol type)
         {
-            var result = type.VisitType((type, _, _, asContainer) => !asContainer && type.IsExtension, arg: (object?)null, canDigThroughNullable: true, asContainer: false);
+            var result = type.VisitType((type, _, _, isContainer) => !isContainer && type.IsExtension, arg: (object?)null, canDigThroughNullable: true, asContainer: false);
             return result is object;
         }
 

@@ -2,14 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Diagnostics;
-
 namespace Microsoft.CodeAnalysis.CodeGen
 {
     /// <summary>
-    /// When erasing an extension type E with underlying type U,
+    /// When erasing an extension type E with extended type U,
     /// we need to emit `[ExtensionErasure("E")] U`.
-    /// The serialized type encoding the un-erased extension type is
+    /// The serialized type encoding of the un-erased extension type is
     /// similar to a `typeof` expression in an attribute but adds
     /// support for type parameter references.
     /// For example: `[ExtensionErasure("E'1[!0]")]`.

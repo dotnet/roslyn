@@ -1184,20 +1184,6 @@ namespace Microsoft.CodeAnalysis
             return TryExtractStringArrayValueFromAttribute(info.Handle, out tupleElementNames);
         }
 
-        internal bool HasExtensionErasureAttribute(EntityHandle token, out string serializedType)
-        {
-            var info = FindTargetAttribute(token, AttributeDescription.ExtensionErasureAttribute);
-            Debug.Assert(!info.HasValue || info.SignatureIndex == 0);
-
-            if (!info.HasValue)
-            {
-                serializedType = null;
-                return false;
-            }
-
-            return TryExtractStringValueFromAttribute(info.Handle, out serializedType);
-        }
-
         internal bool HasIsByRefLikeAttribute(EntityHandle token)
         {
             return FindTargetAttribute(token, AttributeDescription.IsByRefLikeAttribute).HasValue;
