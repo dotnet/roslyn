@@ -315,11 +315,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Ожидаемая задача не возвращает значение.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
-        <source>Base classes contain inaccessible unimplemented members</source>
-        <target state="translated">Базовые классы содержат недоступные нереализованные члены</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Built_in_Copilot_analysis">
         <source>Built-in Copilot analysis</source>
         <target state="translated">Встроенный анализ Copilot</target>

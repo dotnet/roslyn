@@ -397,4 +397,7 @@
   <data name="Simplify_check" xml:space="preserve">
     <value>Simplify check</value>
   </data>
+  <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
+    <value>Base classes contain inaccessible unimplemented members</value>
+  </data>
 </root>

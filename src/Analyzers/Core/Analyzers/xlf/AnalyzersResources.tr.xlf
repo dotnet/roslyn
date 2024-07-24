@@ -96,6 +96,11 @@
         <target state="translated">Kodunuzda kullanılmayan parametreler bulundurmamaya çalışın. Parametre kaldırılamıyorsa adını, bir alt çizgiyle başlayacak ve ardından isteğe bağlı olarak bir tamsayı gelecek ('_', '_1', '_2' gibi) şekilde değiştirin. Bu değerler özel atılabilir sembol adı olarak işlenir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
         <source>Blank line required between block and subsequent statement</source>
         <target state="translated">Blok ve sonraki ifade arasında boş satır gerekir</target>

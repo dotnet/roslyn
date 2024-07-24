@@ -315,11 +315,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">대기된 작업에서 값이 반환되지 않음</target>
         <note />
       </trans-unit>
-      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
-        <source>Base classes contain inaccessible unimplemented members</source>
-        <target state="translated">기본 클래스에 구현되지 않아 액세스할 수 없는 멤버가 포함되어 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Built_in_Copilot_analysis">
         <source>Built-in Copilot analysis</source>
         <target state="translated">기본 제공 Copilot 분석</target>

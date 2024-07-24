@@ -1331,9 +1331,6 @@ This version used in: {2}</value>
   <data name="Implement_explicitly" xml:space="preserve">
     <value>Implement explicitly</value>
   </data>
-  <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
-    <value>Base classes contain inaccessible unimplemented members</value>
-  </data>
   <data name="Add_DebuggerDisplay_attribute" xml:space="preserve">
     <value>Add 'DebuggerDisplay' attribute</value>
     <comment>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</comment>
@@ -3244,7 +3241,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>Query</value>
   </data>
   <data name="Semantic_search_only_supported_on_net_core" xml:space="preserve">
-    <value>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools > Options > Text Editor > C# > Advanced).</value>
+    <value>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</value>
   </data>
   <data name="Semantic_search_query_terminated_with_exception" xml:space="preserve">
     <value>Semantic search query terminated with exception</value>

@@ -96,6 +96,11 @@
         <target state="translated">Evite parâmetros não usados no seu código. Se o parâmetro não puder ser removido, altere o nome para que ele comece com um sublinhado e seja seguido opcionalmente por um inteiro, como '_', '_1', '_2' etc. Esses nomes são tratados como nomes de símbolo de descarte especiais.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
+        <source>Base classes contain inaccessible unimplemented members</source>
+        <target state="new">Base classes contain inaccessible unimplemented members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_required_between_block_and_subsequent_statement">
         <source>Blank line required between block and subsequent statement</source>
         <target state="translated">Linha em branco necessária entre o bloco e a próxima instrução</target>
