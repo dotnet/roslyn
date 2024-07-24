@@ -202,14 +202,6 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
     {
         var properties = changesSemantics ? ChangesSemantics : null;
         var locations = ImmutableArray.Create(expression.GetLocation());
-        context.ReportDiagnostic(DiagnosticHelper.Create(
-            Descriptor,
-            expression.GetFirstToken().GetLocation(),
-            notification,
-            context.Options,
-            additionalLocations: locations,
-            properties: properties));
-
         var additionalUnnecessaryLocations = ImmutableArray.Create(
             syntaxTree.GetLocation(TextSpan.FromBounds(
                 expression.SpanStart,
@@ -218,9 +210,9 @@ internal sealed partial class CSharpUseCollectionExpressionForArrayDiagnosticAna
                     : ((ImplicitArrayCreationExpressionSyntax)expression).CloseBracketToken.Span.End)));
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-            UnnecessaryCodeDescriptor,
-            additionalUnnecessaryLocations[0],
-            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+            Descriptor,
+            expression.GetFirstToken().GetLocation(),
+            notification,
             context.Options,
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations,

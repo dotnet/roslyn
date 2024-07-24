@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseThrowExpression;
@@ -26,9 +25,6 @@ internal sealed partial class UseThrowExpressionCodeFixProvider() : SyntaxEditor
 {
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.UseThrowExpressionDiagnosticId];
-
-    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-        => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {

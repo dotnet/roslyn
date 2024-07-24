@@ -41,22 +41,16 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
         TVariableDeclaratorSyntax,
         TAnalyzer>, new()
 {
-    private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptorWithId(
-        IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
-        EnforceOnBuildValues.UseObjectInitializer,
-        hasAnyCodeStyleOption: true,
-        new LocalizableResourceString(nameof(AnalyzersResources.Simplify_object_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        isUnnecessary: false);
-
     protected abstract bool FadeOutOperatorToken { get; }
     protected abstract TAnalyzer GetAnalyzer();
 
     protected AbstractUseObjectInitializerDiagnosticAnalyzer()
         : base(
-            [
-                (s_descriptor, CodeStyleOptions2.PreferObjectInitializer)
-            ])
+            IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
+            EnforceOnBuildValues.UseObjectInitializer,
+            CodeStyleOptions2.PreferObjectInitializer,
+            new LocalizableResourceString(nameof(AnalyzersResources.Simplify_object_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
     {
     }
 
@@ -125,7 +119,7 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
         var unnecessaryLocations = FadeOutCode(context, matches);
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-            s_descriptor,
+            Descriptor,
             objectCreationExpression.GetFirstToken().GetLocation(),
             option.Notification,
             context.Options,
@@ -150,11 +144,14 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
 
             var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
                 match.MemberAccessExpression.SpanStart, end));
-            locations.Add(location1);
 
             if (match.Statement.Span.End > match.Initializer.FullSpan.End)
             {
                 locations.Add(syntaxTree.GetLocation(TextSpan.FromBounds(match.Initializer.FullSpan.End, match.Statement.Span.End)));
+            }
+            else
+            {
+                locations.Add(location1);
             }
         }
 

@@ -4,7 +4,6 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 
 namespace Microsoft.CodeAnalysis.UseCollectionExpression;
@@ -26,10 +25,6 @@ internal abstract class AbstractUseCollectionExpressionCodeFixProvider<TExpressi
 
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
     {
-        // Never try to fix the secondary diagnostics that were produced just to fade out code.
-        if (diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary))
-            return false;
-
         // If we're allowing the changing of semantics, then we can fix any diagnostic.  If we're not allowing the
         // changing of semantics, then we can only fixup diagnostics that don't change semantics.
         if (equivalenceKey == _equivalenceKeyChangesSemantics)

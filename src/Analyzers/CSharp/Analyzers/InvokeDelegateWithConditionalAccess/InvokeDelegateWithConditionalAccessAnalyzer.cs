@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -179,37 +178,31 @@ internal class InvokeDelegateWithConditionalAccessAnalyzer : AbstractBuiltInCode
         var nextToken = expressionStatement.GetLastToken().GetNextToken();
 
         // Fade out the code up to the expression statement.
-        var fadeLocation = Location.Create(tree, TextSpan.FromBounds(firstStatement.SpanStart, previousToken.Span.End));
-        syntaxContext.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-            Descriptor,
-            fadeLocation,
-            NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
-            syntaxContext.Options,
-            additionalLocations,
-            additionalUnnecessaryLocations: [fadeLocation],
-            properties));
+        var firstFadeLocation = Location.Create(tree, TextSpan.FromBounds(firstStatement.SpanStart, previousToken.Span.End));
+        ImmutableArray<Location> fadeLocations;
+        if (nextToken.Span.Start < ifStatement.Span.End)
+        {
+            // If the if-statement extends past the expression statement, then fade out the rest.
+            fadeLocations =
+                [
+                    firstFadeLocation,
+                    Location.Create(tree, TextSpan.FromBounds(nextToken.Span.Start, ifStatement.Span.End))
+                ];
+        }
+        else
+        {
+            fadeLocations = [firstFadeLocation];
+        }
 
         // Put a diagnostic with the appropriate severity on the expression-statement itself.
-        syntaxContext.ReportDiagnostic(DiagnosticHelper.Create(
+        syntaxContext.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
             Descriptor,
             expressionStatement.GetLocation(),
             notificationOption,
             syntaxContext.Options,
-            additionalLocations, properties));
-
-        // If the if-statement extends past the expression statement, then fade out the rest.
-        if (nextToken.Span.Start < ifStatement.Span.End)
-        {
-            fadeLocation = Location.Create(tree, TextSpan.FromBounds(nextToken.Span.Start, ifStatement.Span.End));
-            syntaxContext.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                Descriptor,
-                fadeLocation,
-                NotificationOption2.ForSeverity(Descriptor.DefaultSeverity),
-                syntaxContext.Options,
-                additionalLocations,
-                additionalUnnecessaryLocations: [fadeLocation],
-                properties));
-        }
+            additionalLocations,
+            additionalUnnecessaryLocations: fadeLocations,
+            properties));
     }
 
     private bool TryCheckVariableAndIfStatementForm(

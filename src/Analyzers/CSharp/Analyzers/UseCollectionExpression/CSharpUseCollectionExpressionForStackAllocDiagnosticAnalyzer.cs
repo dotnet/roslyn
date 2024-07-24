@@ -4,7 +4,6 @@
 
 using System.Collections.Immutable;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
@@ -55,26 +54,18 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         }
 
         var locations = ImmutableArray.Create(expression.GetLocation());
-        context.ReportDiagnostic(DiagnosticHelper.Create(
+        var additionalUnnecessaryLocations = ImmutableArray.Create(
+            syntaxTree.GetLocation(TextSpan.FromBounds(
+                expression.SpanStart,
+                expression.CloseBracketToken.Span.End)));
+        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
             Descriptor,
             expression.GetFirstToken().GetLocation(),
             option.Notification,
             context.Options,
             additionalLocations: locations,
+            additionalUnnecessaryLocations: additionalUnnecessaryLocations,
             properties: null));
-
-        var additionalUnnecessaryLocations = ImmutableArray.Create(
-            syntaxTree.GetLocation(TextSpan.FromBounds(
-                expression.SpanStart,
-                expression.CloseBracketToken.Span.End)));
-
-        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-            UnnecessaryCodeDescriptor,
-            additionalUnnecessaryLocations[0],
-            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
-            context.Options,
-            additionalLocations: locations,
-            additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }
 
     private void AnalyzeExplicitStackAllocExpression(SyntaxNodeAnalysisContext context, INamedTypeSymbol? expressionType)
@@ -95,26 +86,18 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
             return;
 
         var locations = ImmutableArray.Create(expression.GetLocation());
-        context.ReportDiagnostic(DiagnosticHelper.Create(
+        var additionalUnnecessaryLocations = ImmutableArray.Create(
+            syntaxTree.GetLocation(TextSpan.FromBounds(
+                expression.SpanStart,
+                expression.Type.Span.End)));
+        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
             Descriptor,
             expression.GetFirstToken().GetLocation(),
             option.Notification,
             context.Options,
             additionalLocations: locations,
+            additionalUnnecessaryLocations: additionalUnnecessaryLocations,
             properties: null));
-
-        var additionalUnnecessaryLocations = ImmutableArray.Create(
-            syntaxTree.GetLocation(TextSpan.FromBounds(
-                expression.SpanStart,
-                expression.Type.Span.End)));
-
-        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-            UnnecessaryCodeDescriptor,
-            additionalUnnecessaryLocations[0],
-            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
-            context.Options,
-            additionalLocations: locations,
-            additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }
 
     public static ImmutableArray<CollectionExpressionMatch<StatementSyntax>> TryGetMatches(
