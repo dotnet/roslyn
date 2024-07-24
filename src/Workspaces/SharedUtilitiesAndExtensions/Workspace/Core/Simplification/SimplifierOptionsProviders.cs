@@ -15,7 +15,7 @@ internal static class SimplifierOptionsProviders
         => languageServices.GetService<ISimplificationService>()?.GetSimplifierOptions(options) ?? SimplifierOptions.CommonDefaults;
 
     public static ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, CancellationToken cancellationToken)
-        => GetSimplifierOptionsAsync(document, document.Project.Services.GetRequiredService<ISimplificationService>(), cancellationToken);
+        => GetSimplifierOptionsAsync(document, document.GetRequiredLanguageService<ISimplificationService>(), cancellationToken);
 
     public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, ISimplification simplification, CancellationToken cancellationToken)
     {
