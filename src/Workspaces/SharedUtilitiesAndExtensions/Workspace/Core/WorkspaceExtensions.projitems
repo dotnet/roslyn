@@ -9,6 +9,9 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)codecleanup\CodeCleanupOptionsProviders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationOptionsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\ISyntaxFormattingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Progress\CodeAnalysisProgressExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\FixAllHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddImport\AddImportPlacementOptionsProviders.cs" />
@@ -157,5 +160,8 @@
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)CodeCleanup\" />
   </ItemGroup>
 </Project>

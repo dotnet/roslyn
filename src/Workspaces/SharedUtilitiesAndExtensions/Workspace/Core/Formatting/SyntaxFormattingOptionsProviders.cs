@@ -11,13 +11,11 @@ namespace Microsoft.CodeAnalysis.Formatting;
 
 internal static class SyntaxFormattingOptionsProviders
 {
-#if !CODE_STYLE
     public static SyntaxFormattingOptions GetSyntaxFormattingOptions(this IOptionsReader options, Host.LanguageServices languageServices)
         => languageServices.GetRequiredService<ISyntaxFormattingService>().GetFormattingOptions(options);
 
     public static ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
         => GetSyntaxFormattingOptionsAsync(document, document.Project.Services.GetRequiredService<ISyntaxFormattingService>(), cancellationToken);
-#endif
 
     public static async ValueTask<SyntaxFormattingOptions> GetSyntaxFormattingOptionsAsync(this Document document, ISyntaxFormatting formatting, CancellationToken cancellationToken)
     {
