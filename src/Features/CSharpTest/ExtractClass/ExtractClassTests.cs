@@ -2920,7 +2920,43 @@ public class ExtractClassTests
         await new Test()
         {
             TestCode = code,
-            FixedCode = code,
+            FixedState =
+            {
+                Sources =
+                {
+                    """
+                    namespace N
+                    {
+                        class C : MyBase
+                        {
+                        }
+                    """,
+                    """
+                    namespace N
+                    {
+                        internal class MyBase
+                        {
+                        }
+                    
+                        public void N
+                            {
+                            }
+                        }
+                    }
+                    """,
+                },
+                ExpectedDiagnostics =
+                {
+                    // /0/Test0.cs(5,6): error CS1513: } expected
+                    DiagnosticResult.CompilerError("CS1513").WithSpan(5, 6, 5, 6),
+                    // /0/Test1.cs(5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
+                    DiagnosticResult.CompilerError("CS1519").WithSpan("/0/Test1.cs", 5, 5, 5, 6).WithArguments("}"),
+                    // /0/Test1.cs(7,17): error CS0547: 'MyBase.N': property or indexer cannot have void type
+                    DiagnosticResult.CompilerError("CS0547").WithSpan("/0/Test1.cs", 7, 17, 7, 18).WithArguments("N.MyBase.N"),
+                    // /0/Test1.cs(7,17): error CS0548: 'MyBase.N': property or indexer must have at least one accessor
+                    DiagnosticResult.CompilerError("CS0548").WithSpan("/0/Test1.cs", 7, 17, 7, 18).WithArguments("N.MyBase.N"),
+                }
+            },
             ExpectedDiagnostics =
             {
                 // /0/Test0.cs(5,5): error CS1519: Invalid token '}' in class, record, struct, or interface member declaration
@@ -2931,7 +2967,8 @@ public class ExtractClassTests
                 DiagnosticResult.CompilerError("CS0548").WithSpan(7, 17, 7, 18).WithArguments("N.C.N"),
                 // /0/Test0.cs(10,2): error CS1513: } expected
                 DiagnosticResult.CompilerError("CS1513").WithSpan(10, 2, 10, 2),
-            }
+            },
+            FileName = "Test1.cs"
         }.RunAsync();
     }
 
