@@ -48,7 +48,7 @@ internal abstract class AbstractImplementAbstractClassCodeFixProvider<TClassNode
         var id = GetCodeActionId(abstractClassType.ContainingAssembly.Name, abstractClassType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat));
         context.RegisterCodeFix(
             CodeAction.Create(
-                FeaturesResources.Implement_abstract_class,
+                AnalyzersResources.Implement_abstract_class,
                 c => data.ImplementAbstractClassAsync(throughMember: null, canDelegateAllMembers: null, c),
                 id),
             context.Diagnostics);
@@ -62,7 +62,7 @@ internal abstract class AbstractImplementAbstractClassCodeFixProvider<TClassNode
 
             context.RegisterCodeFix(
                 CodeAction.Create(
-                    string.Format(FeaturesResources.Implement_through_0, through.Name),
+                    string.Format(AnalyzersResources.Implement_through_0, through.Name),
                     c => data.ImplementAbstractClassAsync(through, canDelegateAllMembers, c),
                     id),
                 context.Diagnostics);
@@ -70,5 +70,5 @@ internal abstract class AbstractImplementAbstractClassCodeFixProvider<TClassNode
     }
 
     private static string GetCodeActionId(string assemblyName, string abstractTypeFullyQualifiedName, string through = "")
-        => FeaturesResources.Implement_abstract_class + ";" + assemblyName + ";" + abstractTypeFullyQualifiedName + ";" + through;
+        => AnalyzersResources.Implement_abstract_class + ";" + assemblyName + ";" + abstractTypeFullyQualifiedName + ";" + through;
 }

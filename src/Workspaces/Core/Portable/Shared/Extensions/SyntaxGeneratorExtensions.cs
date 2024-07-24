@@ -321,7 +321,7 @@ internal static partial class SyntaxGeneratorExtensions
         // Implement an abstract property by throwing not implemented in accessors.
         if (overriddenProperty.IsAbstract)
         {
-            var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var statement = codeFactory.CreateThrowNotImplementedStatement(compilation);
 
             getBody = statement;
@@ -510,7 +510,7 @@ internal static partial class SyntaxGeneratorExtensions
         // Abstract: Throw not implemented
         if (overriddenMethod.IsAbstract)
         {
-            var compilation = await newDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
+            var compilation = await newDocument.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var statement = codeFactory.CreateThrowNotImplementedStatement(compilation);
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(

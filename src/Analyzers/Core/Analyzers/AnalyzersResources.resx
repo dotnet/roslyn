@@ -400,4 +400,10 @@
   <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
     <value>Base classes contain inaccessible unimplemented members</value>
   </data>
+  <data name="Implement_abstract_class" xml:space="preserve">
+    <value>Implement abstract class</value>
+  </data>
+  <data name="Implement_through_0" xml:space="preserve">
+    <value>Implement through '{0}'</value>
+  </data>
 </root>

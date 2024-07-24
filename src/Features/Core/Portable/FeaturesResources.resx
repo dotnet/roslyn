@@ -914,9 +914,6 @@ This version used in: {2}</value>
   <data name="paren_Unknown_paren" xml:space="preserve">
     <value>(Unknown)</value>
   </data>
-  <data name="Implement_abstract_class" xml:space="preserve">
-    <value>Implement abstract class</value>
-  </data>
   <data name="Use_framework_type" xml:space="preserve">
     <value>Use framework type</value>
   </data>
@@ -1321,9 +1318,6 @@ This version used in: {2}</value>
   </data>
   <data name="Value_colon" xml:space="preserve">
     <value>Value:</value>
-  </data>
-  <data name="Implement_through_0" xml:space="preserve">
-    <value>Implement through '{0}'</value>
   </data>
   <data name="Implement_all_interfaces_explicitly" xml:space="preserve">
     <value>Implement all interfaces explicitly</value>
