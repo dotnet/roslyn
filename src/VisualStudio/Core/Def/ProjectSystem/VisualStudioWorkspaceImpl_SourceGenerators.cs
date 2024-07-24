@@ -3,12 +3,15 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Shell;
@@ -70,9 +73,8 @@ internal abstract partial class VisualStudioWorkspaceImpl
     }
 
     [Export(typeof(ICommandHandler))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [ContentType(ContentTypeNames.XamlContentType)]
     [Name(PredefinedCommandHandlerNames.SourceGeneratorSave)]
+    [ContentType(StandardContentTypeNames.Text)]
     [method: ImportingConstructor]
     [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
     internal sealed class SaveCommandHandler() : IChainedCommandHandler<SaveCommandArgs>
@@ -86,12 +88,23 @@ internal abstract partial class VisualStudioWorkspaceImpl
         {
             nextCommandHandler();
 
-            // After a save happens, enqueue a request to run generators on the projects impacted by the save.
-            foreach (var projectGroup in args.SubjectBuffer.GetRelatedDocuments().GroupBy(d => d.Project))
+            var container = args.SubjectBuffer.AsTextContainer();
+            if (TryGetWorkspace(container, out var workspace) &&
+                workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
             {
-                if (projectGroup.Key.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
+                var documentId = workspace.GetDocumentIdInCurrentContext(container);
+                if (documentId != null)
                 {
-                    visualStudioWorkspace.EnqueueUpdateSourceGeneratorVersion(projectGroup.Key.Id, forceRegeneration: false);
+                    // Enqueue for at least the project this document is from.
+                    visualStudioWorkspace.EnqueueUpdateSourceGeneratorVersion(documentId.ProjectId, forceRegeneration: false);
+
+                    // And any links as well.
+                    foreach (var relatedDocument in args.SubjectBuffer.GetRelatedDocuments())
+                    {
+                        var relatedProjectId = relatedDocument.Project.Id;
+                        if (relatedProjectId != documentId.ProjectId)
+                            visualStudioWorkspace.EnqueueUpdateSourceGeneratorVersion(relatedProjectId, forceRegeneration: false);
+                    }
                 }
             }
         }
