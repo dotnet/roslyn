@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ((PEModuleBuilder)context.Module).Translate(AdaptedParameterSymbol.Type,
                                                       syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                                       diagnostics: context.Diagnostics,
-                                                      keepExtension: context.KeepExtensions);
+                                                      keepExtension: false);
         }
 
         ushort Cci.IParameterListEntry.Index

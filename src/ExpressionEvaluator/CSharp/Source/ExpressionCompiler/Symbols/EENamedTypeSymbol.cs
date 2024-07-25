@@ -362,6 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         internal override bool IsExtension => false;
         internal override bool IsExplicitExtension => false;
         internal override TypeSymbol GetDeclaredExtensionUnderlyingType() => throw ExceptionUtilities.Unreachable();
+        // PROTOTYPE test extensions in EE
         internal override TypeSymbol GetExtendedTypeNoUseSiteDiagnostics(ConsList<TypeSymbol> basesBeingResolved) => null;
 
         [Conditional("DEBUG")]

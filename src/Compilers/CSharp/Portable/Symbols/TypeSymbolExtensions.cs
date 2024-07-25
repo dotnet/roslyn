@@ -1246,9 +1246,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.Type?.ContainsNativeIntegerWrapperType() == true;
         }
 
-        internal static bool ContainsErasedExtensionType(this TypeSymbol type)
+        internal static bool ContainsExtensionTypeToErase(this TypeSymbol type)
         {
-            var result = type.VisitType((type, _, _, isContainer) => !isContainer && type.IsExtension, arg: (object?)null, canDigThroughNullable: true, asContainer: false);
+            // Extension types in containing type position don't need to be erased
+            var result = type.VisitType(
+                (type, _, _, isContainer) => !isContainer && type.IsExtension,
+                arg: (object?)null, canDigThroughNullable: true, asContainer: false, visitCustomModifiers: false);
+
             return result is object;
         }
 

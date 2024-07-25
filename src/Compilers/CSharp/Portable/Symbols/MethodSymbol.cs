@@ -1178,7 +1178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeNullableAttributeIfNecessary(this, GetNullableContextValue(), type));
             }
 
-            if (type.Type.ContainsErasedExtensionType())
+            if (type.Type.ContainsExtensionTypeToErase())
             {
                 AddSynthesizedAttribute(ref attributes, compilation.SynthesizeExtensionErasureAttribute(type.Type));
             }

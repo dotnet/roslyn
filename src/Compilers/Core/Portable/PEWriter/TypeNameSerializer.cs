@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using System.Text;
 using System.Diagnostics;
 using System.Linq;
+using System.Globalization;
 
 namespace Microsoft.Cci
 {
@@ -95,14 +96,14 @@ namespace Microsoft.Cci
                     {
                         sb.Append("!");
                         var index = MetadataWriter.GetNumberOfInheritedTypeParameters(genericTypeParameter.DefiningType, context) + genericTypeParameter.Index;
-                        sb.Append(index);
+                        sb.Append(index.ToString(CultureInfo.InvariantCulture));
                         goto done;
                     }
                     else if (typeReference.AsGenericMethodParameterReference is { } genericMethodParameter)
                     {
                         sb.Append("!!");
                         var index = genericMethodParameter.Index;
-                        sb.Append(index);
+                        sb.Append(index.ToString(CultureInfo.InvariantCulture));
                         goto done;
                     }
                 }

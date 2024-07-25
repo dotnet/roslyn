@@ -7,9 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.Cci;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Microsoft.CodeAnalysis.Symbols;
@@ -814,11 +812,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal SynthesizedAttributeData? SynthesizeExtensionErasureAttribute(TypeSymbol type)
         {
             Debug.Assert(type is not null);
-            Debug.Assert(type.ContainsErasedExtensionType());
+            Debug.Assert(type.ContainsExtensionTypeToErase());
 
             var stringType = GetSpecialType(SpecialType.System_String);
             Debug.Assert(stringType is not null);
 
+            // Note: The value is a TypeSymbol despite the type being System.String.
+            //   We'll use the TypeSymbol to index references and to serialize a string for the attribute.
+            //   This odd-shaped TypedConstant is not visible outside the compiler.
             var args = ImmutableArray.Create(new TypedConstant(stringType, TypedConstantKind.Primitive, type));
             return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_ExtensionErasureAttribute__ctorEncodedType, args);
         }

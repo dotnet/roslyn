@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -164,7 +165,10 @@ namespace Microsoft.CodeAnalysis
             }
 
             TypeSymbol container;
-            if (allowTypeParameters && tryResolveTypeParameterReference(fullName.TopLevelType) is { } typeParameter)
+            if (allowTypeParameters
+                && fullName.NestedTypes == null
+                && fullName.TypeArguments == null
+                && tryResolveTypeParameterReference(fullName.TopLevelType) is { } typeParameter)
             {
                 refersToNoPiaLocalType = false;
                 container = typeParameter;
@@ -242,15 +246,31 @@ namespace Microsoft.CodeAnalysis
             {
                 switch (serialized)
                 {
-                    case ['!', '!', .. var rest] when Int32.TryParse(rest, out int index):
+                    case ['!', '!', .. var rest] when tryParse(rest, out int index):
                         return GetGenericMethodTypeParamSymbol(index);
 
-                    case ['!', .. var rest] when Int32.TryParse(rest, out int index):
+                    case ['!', .. var rest] when tryParse(rest, out int index):
                         return GetGenericTypeParamSymbol(index);
 
                     default:
                         return null;
                 }
+            }
+
+            static bool tryParse(string s, out int value)
+            {
+                value = -1;
+                if (!s.All(c => c >= '0' && c <= '9'))
+                {
+                    return false;
+                }
+
+                if (!Int32.TryParse(s, out value))
+                {
+                    return false;
+                }
+
+                return value >= 0;
             }
         }
 
@@ -262,10 +282,8 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var argument in arguments)
             {
-                bool refersToNoPia = false;
-                TypeSymbol typeSymbol = GetTypeSymbol(argument, out refersToNoPia, allowTypeParameters);
-                typeArgumentsBuilder.Add(new KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>(typeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>.Empty));
-                refersToNoPiaBuilder.Add(refersToNoPia);
+                bool refersToNoPia;
+                typeArgumentsBuilder.Add(new KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>(GetTypeSymbol(argument, out refersToNoPia, allowTypeParameters), ImmutableArray<ModifierInfo<TypeSymbol>>.Empty));
             }
 
             refersToNoPiaLocalType = refersToNoPiaBuilder.ToImmutableAndFree();
