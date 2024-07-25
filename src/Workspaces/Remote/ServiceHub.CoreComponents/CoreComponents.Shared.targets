@@ -97,7 +97,7 @@
     </Move>
     <ItemGroup>
       <_CrossgenTargetsAsDependencies Include="$(OriginalAssemblyDir)*.dll" />
-      <_NonCrossgenTargetsAsDependencies Include="@(_NonRuntimeAssembliesInPublishDir)" Exclude="@(_R2RAssemblyPaths)" />      
+      <_NonCrossgenTargetsAsDependencies Include="@(_NonRuntimeAssembliesInPublishDir)" Exclude="@(_R2RAssemblyPaths)" />
       <_CrossgenTargetPaths Include="@(_CrossgenTargetsAsDependencies)">      
         <OutputPath>$(PublishDir)%(_CrossgenTargetsAsDependencies.Filename)%(_CrossgenTargetsAsDependencies.Extension)</OutputPath>
       </_CrossgenTargetPaths>
@@ -105,14 +105,14 @@
   </Target>
 
   <Target Name="CompileReadyToRun"
-          DependsOnTargets="Publish;PrepareCrossgenTargets"
+          DependsOnTargets="PrepareCrossgenTargets"
           Condition="'$(GenerateReadyToRun)' == 'true'"
           Inputs="%(_CrossgenTargetPaths.FullPath)"
-          Outputs="%(_CrossgenTargetPaths.OutputPath)">    
+          Outputs="%(_CrossgenTargetPaths.OutputPath)">
     <PropertyGroup>
       <_Crossgen2ExePath>$(PkgMicrosoft_NETCore_App_crossgen2_win-x64)\tools\crossgen2.exe</_Crossgen2ExePath>
       <_R2ROptimizeAssemblyPath>%(_CrossgenTargetPaths.FullPath)</_R2ROptimizeAssemblyPath>
-      <_R2ROptimizeAssemblyOutputPath>$(PublishDir)%(_CrossgenTargetPaths.Filename)%(_CrossgenTargetPaths.Extension)</_R2ROptimizeAssemblyOutputPath>      
+      <_R2ROptimizeAssemblyOutputPath>$(PublishDir)%(_CrossgenTargetPaths.Filename)%(_CrossgenTargetPaths.Extension)</_R2ROptimizeAssemblyOutputPath>
       <_RspFilePath>$(CrossgenWorkDir)%(_CrossgenTargetPaths.Filename).CrossgenArgs.rsp</_RspFilePath>
     </PropertyGroup>
     <ItemGroup>
@@ -133,11 +133,11 @@
       <Output TaskParameter="ConsoleOutput" PropertyName="_Crossgen2Output" />
       <Output TaskParameter="ExitCode" PropertyName="_Crossgen2ErrorCode" />
     </Exec>
-    <Message Text="$(_Crossgen2Output)" />             
+    <Message Text="$(_Crossgen2Output)" />
     <Error Text="Crossgen2 failed with exit code $(_Crossgen2ErrorCode)." Condition="'$(_Crossgen2ErrorCode)' != '0'" />
   </Target>
 
-  <Target Name="PublishedProjectOutputGroup" DependsOnTargets="CalculateCrossgenInputs" Returns="@(_VsixItem)" Condition="'$(GenerateReadyToRun)' == 'true'">
+  <Target Name="PublishedProjectOutputGroup" DependsOnTargets="CalculateCrossgenInputs" Returns="@(_VsixItem)">
     <PropertyGroup>
       <!-- 
         For BCL, we want to use the version provided by the runtime in VS, not the ones from the NuGet packages. 
@@ -159,7 +159,7 @@
 
       <!-- Exclude dummy build outputs compiled for this setup project -->
       <_VsixItem Remove="@(_VsixItem)" Condition="$([MSBuild]::ValueOrDefault('%(FileName)', '').StartsWith('$(TargetName)'))" />
-      
+
       <!-- the only assembly we need under runtime folder (runtimes\win-x64\native\e_sqlite3.dll) is handled by the vsix project directly -->
       <_VsixItem Remove="@(_VsixItem)" Condition="$([MSBuild]::ValueOrDefault('%(FullPath)', '').StartsWith('$(PublishDir)runtimes'))" />
 
@@ -167,5 +167,5 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="PublishVsixItems" DependsOnTargets="PublishedProjectOutputGroup;CompileReadyToRun" Returns="@(_VsixItem)" />
+  <Target Name="PublishVsixItems" DependsOnTargets="Publish;PublishedProjectOutputGroup;CompileReadyToRun" Returns="@(_VsixItem)" />
 </Project>
