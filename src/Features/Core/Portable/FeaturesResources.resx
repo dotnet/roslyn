@@ -249,12 +249,6 @@
   <data name="Generate_nested_0_1" xml:space="preserve">
     <value>Generate nested {0} '{1}'</value>
   </data>
-  <data name="Implement_all_members_explicitly" xml:space="preserve">
-    <value>Implement all members explicitly</value>
-  </data>
-  <data name="Implement_interface" xml:space="preserve">
-    <value>Implement interface</value>
-  </data>
   <data name="Introduce_field_for_0" xml:space="preserve">
     <value>Introduce field for '{0}'</value>
   </data>

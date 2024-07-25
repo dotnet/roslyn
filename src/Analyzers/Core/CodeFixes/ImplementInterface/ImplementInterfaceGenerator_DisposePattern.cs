@@ -85,7 +85,7 @@ internal abstract partial class AbstractImplementInterfaceService
             return await AddFinalizerCommentAsync(docWithAllMembers, finalizer, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<Document> AddFinalizerCommentAsync(
+        private async Task<Document> AddFinalizerCommentAsync(
             Document document, SyntaxNode finalizer, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);

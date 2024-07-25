@@ -940,11 +940,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">모든 인터페이스를 암시적으로 구현</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_all_members_explicitly">
-        <source>Implement all members explicitly</source>
-        <target state="translated">모든 멤버를 명시적으로 구현</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="translated">명시적으로 구현</target>
@@ -3948,11 +3943,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Generate_nested_0_1">
         <source>Generate nested {0} '{1}'</source>
         <target state="translated">중첩된 {0} '{1}' 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface">
-        <source>Implement interface</source>
-        <target state="translated">인터페이스 구현</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_field_for_0">

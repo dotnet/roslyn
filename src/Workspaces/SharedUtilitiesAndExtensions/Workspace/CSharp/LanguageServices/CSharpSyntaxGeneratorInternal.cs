@@ -33,6 +33,12 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
     public override ISyntaxFacts SyntaxFacts
         => CSharpSyntaxFacts.Instance;
 
+    public override SyntaxTrivia CarriageReturnLineFeed
+        => SyntaxFactory.CarriageReturnLineFeed;
+
+    public override SyntaxTrivia ElasticCarriageReturnLineFeed
+        => SyntaxFactory.ElasticCarriageReturnLineFeed;
+
     public override SyntaxTrivia EndOfLine(string text)
         => SyntaxFactory.EndOfLine(text);
 

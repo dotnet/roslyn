@@ -39,8 +39,6 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     {
     }
 
-    internal override SyntaxTrivia ElasticCarriageReturnLineFeed => SyntaxFactory.ElasticCarriageReturnLineFeed;
-    internal override SyntaxTrivia CarriageReturnLineFeed => SyntaxFactory.CarriageReturnLineFeed;
     internal override SyntaxTrivia ElasticMarker => SyntaxFactory.ElasticMarker;
 
     internal override bool RequiresExplicitImplementationForInterfaceMembers => false;

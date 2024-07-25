@@ -228,4 +228,10 @@
   <data name="Implement_remaining_members_explicitly" xml:space="preserve">
     <value>Implement remaining members explicitly</value>
   </data>
+  <data name="Implement_interface" xml:space="preserve">
+    <value>Implement interface</value>
+  </data>
+  <data name="Implement_all_members_explicitly" xml:space="preserve">
+    <value>Implement all members explicitly</value>
+  </data>
 </root>

@@ -75,7 +75,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         foreach (var comment in comments)
         {
             trivia.Add(this.SyntaxGeneratorInternal.SingleLineComment(" " + comment));
-            trivia.Add(generator.ElasticCarriageReturnLineFeed);
+            trivia.Add(this.SyntaxGeneratorInternal.ElasticCarriageReturnLineFeed);
         }
 
         return new SyntaxTriviaList(trivia);

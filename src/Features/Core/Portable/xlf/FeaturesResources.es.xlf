@@ -940,11 +940,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Implementar todas las interfaces de forma implícita</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_all_members_explicitly">
-        <source>Implement all members explicitly</source>
-        <target state="translated">Implementar todos los miembros de forma explícita</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="translated">Implementar de forma explícita</target>
@@ -3948,11 +3943,6 @@ Si el especificador de formato "M" se usa sin otros especificadores de formato p
       <trans-unit id="Generate_nested_0_1">
         <source>Generate nested {0} '{1}'</source>
         <target state="translated">Generar {0} anidado '{1}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface">
-        <source>Implement interface</source>
-        <target state="translated">Implementar interfaz</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_field_for_0">

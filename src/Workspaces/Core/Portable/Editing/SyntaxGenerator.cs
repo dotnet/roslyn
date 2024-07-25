@@ -33,8 +33,8 @@ public abstract class SyntaxGenerator : ILanguageService
 {
     public static readonly SyntaxRemoveOptions DefaultRemoveOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
 
-    internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
-    internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
+    internal SyntaxTrivia CarriageReturnLineFeed => this.SyntaxGeneratorInternal.CarriageReturnLineFeed;
+    internal SyntaxTrivia ElasticCarriageReturnLineFeed => this.SyntaxGeneratorInternal.ElasticCarriageReturnLineFeed;
     internal abstract SyntaxTrivia ElasticMarker { get; }
 
     internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
