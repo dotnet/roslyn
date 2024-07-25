@@ -18,8 +18,10 @@ using VerifyCodeFix = CSharpCodeFixVerifier<
     EmptyDiagnosticAnalyzer,
     CSharpGenerateDefaultConstructorsCodeFixProvider>;
 
+#if !CODE_STYLE
 using VerifyRefactoring = CSharpCodeRefactoringVerifier<
     GenerateDefaultConstructorsCodeRefactoringProvider>;
+#endif
 
 [UseExportProvider]
 public class GenerateDefaultConstructorsTests

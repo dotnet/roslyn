@@ -33,6 +33,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\VisualBasicCodeGenerationServiceFactory.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\VisualBasicDeclarationComparer.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\VisualBasicFlagsEnumGenerator.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\VisualBasicRefactoringHelpersService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\VisualBasicVirtualCharLanguageServiceFactory.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ArgumentListSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\CallStatementSyntaxExtensions.vb" />

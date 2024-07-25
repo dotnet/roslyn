@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings
     <ExportLanguageService(GetType(IRefactoringHelpersService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicRefactoringHelpersService
+    Friend NotInheritable Class VisualBasicRefactoringHelpersService
         Inherits AbstractRefactoringHelpersService(Of ExpressionSyntax, ArgumentSyntax, ExpressionStatementSyntax)
 
         <ImportingConstructor>
