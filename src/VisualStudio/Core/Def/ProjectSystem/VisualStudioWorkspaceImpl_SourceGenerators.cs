@@ -2,18 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis.Editor;
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
@@ -68,45 +61,16 @@ internal abstract partial class VisualStudioWorkspaceImpl
         this.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
     }
 
-    [Export(typeof(ICommandHandler))]
-    [Name(PredefinedCommandHandlerNames.SourceGeneratorSave)]
-    [ContentType(StandardContentTypeNames.Text)]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class SaveCommandHandler() : IChainedCommandHandler<SaveCommandArgs>
+    public sealed partial class OpenFileTracker
     {
-        public string DisplayName => ServicesVSResources.Roslyn_save_command_handler;
-
-        public CommandState GetCommandState(SaveCommandArgs args, Func<CommandState> nextCommandHandler)
-            => nextCommandHandler();
-
-        public void ExecuteCommand(SaveCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
+        void IOpenTextBufferEventListener.OnSaveDocument(string moniker)
         {
-            nextCommandHandler();
+            // Note: this will find docs, additional docs, and analyzer config docs.  Thats good. We do want changing
+            // any of those to cause rerunning generators in any affected project.
+            var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
 
-            // Try to find a roslyn workspace and document corresponding to the text buffer.
-            var container = args.SubjectBuffer.AsTextContainer();
-            if (TryGetWorkspace(container, out var workspace) &&
-                workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
-            {
-                // Note: this will work, even if the text buffer is a Document/AdditionalDoc/AnalyzerConfigDoc. We want
-                // that so that saving things like an additional file will still rerun generators for the projects the
-                // additional file is in.
-                var documentId = workspace.GetDocumentIdInCurrentContext(container);
-                if (documentId != null)
-                {
-                    // Enqueue for at least the project this document is from.
-                    visualStudioWorkspace.EnqueueUpdateSourceGeneratorVersion(documentId.ProjectId, forceRegeneration: false);
-
-                    // And any links as well.
-                    foreach (var relatedDocument in args.SubjectBuffer.GetRelatedDocuments())
-                    {
-                        var relatedProjectId = relatedDocument.Project.Id;
-                        if (relatedProjectId != documentId.ProjectId)
-                            visualStudioWorkspace.EnqueueUpdateSourceGeneratorVersion(relatedProjectId, forceRegeneration: false);
-                    }
-                }
-            }
+            foreach (var projectId in documentIds.Select(i => i.ProjectId).Distinct())
+                _workspace.EnqueueUpdateSourceGeneratorVersion(projectId, forceRegeneration: false);
         }
     }
 }

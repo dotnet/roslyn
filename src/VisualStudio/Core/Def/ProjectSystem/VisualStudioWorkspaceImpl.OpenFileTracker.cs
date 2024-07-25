@@ -84,6 +84,12 @@ internal partial class VisualStudioWorkspaceImpl
             TryOpeningDocumentsForMonikerAndSetContextOnUIThread(newMoniker, buffer, hierarchy: _openTextBufferProvider.GetDocumentHierarchy(newMoniker));
         }
 
+        void IOpenTextBufferEventListener.OnSaveDocument(string moniker)
+        {
+            var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
+            _workspace.EnqueueUpdateSourceGeneratorVersion
+        }
+
         public static async Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, ProjectSystemProjectFactory projectSystemProjectFactory, IAsyncServiceProvider asyncServiceProvider)
         {
             var componentModel = (IComponentModel?)await asyncServiceProvider.GetServiceAsync(typeof(SComponentModel)).ConfigureAwait(true);
