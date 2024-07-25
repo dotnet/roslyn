@@ -21,14 +21,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.Editing;
 
 [ExportLanguageService(typeof(ImportAdderService), LanguageNames.CSharp), Shared]
-internal class CSharpImportAdder : ImportAdderService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpImportAdder() : ImportAdderService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpImportAdder()
-    {
-    }
-
     protected override INamespaceSymbol? GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model)
     {
         switch (node)

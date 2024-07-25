@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -251,13 +252,17 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
 
         var newDocument = oldDocument.WithSyntaxRoot(currentRoot);
 
-#if !CODE_STYLE
         if (context.Context.AddImports)
         {
             var addImportsOptions = await newDocument.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
-            newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(newDocument, addImportsOptions, cancellationToken).ConfigureAwait(false);
+            var service = newDocument.GetRequiredLanguageService<ImportAdderService>();
+            newDocument = await service.AddImportsAsync(
+                newDocument,
+                [currentRoot.FullSpan],
+                ImportAdderService.Strategy.AddImportsFromSymbolAnnotations,
+                addImportsOptions,
+                cancellationToken).ConfigureAwait(false);
         }
-#endif
 
         return newDocument;
     }

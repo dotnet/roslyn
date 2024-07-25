@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Editing
     <ExportLanguageService(GetType(ImportAdderService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicImportAdder
+    Partial Friend NotInheritable Class VisualBasicImportAdder
         Inherits ImportAdderService
 
         <ImportingConstructor>
