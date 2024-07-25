@@ -430,12 +430,10 @@ namespace Microsoft.Cci
                 }
 
                 this.typeReferenceNeedsToken = false;
-                // PROTOTYPE note that we don't use a keepExtensions flag for the _alreadyHasToken set.
-                //   This is because we only use un-erased types to produce a string and to record dependencies,
-                //   but we shouldn't need a separate token for them. If serialized in a place that the runtime understands,
-                //   we would run into issues with constraints.
-                //   In upcoming design (using CCI adapters to manage where to keep extensions) we'll need to revisit this
-                //   and make sure we don't emit tokens for un-erased types.
+                // PROTOTYPE note that we don't use a keepExtensions flag for the _alreadyHasToken set yet.
+                //   But in case where a program has both `modopt(C<E>)` and `C<E>` (to be erased), we will need
+                //   tokens for both. This may be solved naturally by the alternative approach for keeping context (keepExtensions flag)
+                //   to support emitting modopts with extension types.
                 if (!_alreadyHasToken.Add(new IReferenceOrISignature(typeReference)))
                 {
                     return false;

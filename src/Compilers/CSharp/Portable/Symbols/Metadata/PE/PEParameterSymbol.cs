@@ -310,6 +310,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     typeWithAnnotations = TypeWithAnnotations.Create(typeWithExtensions);
                     // PROTOTYPE deal with tuple names, dynamic, etc
                     // PROTOTYPE consider checking that the type is the erased version of the decoded type
+                    // PROTOTYPE we should drop the attribute from the symbol
                 }
                 else
                 {
