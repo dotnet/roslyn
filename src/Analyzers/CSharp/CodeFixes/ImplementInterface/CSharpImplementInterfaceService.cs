@@ -11,8 +11,10 @@ using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ImplementInterface;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -24,6 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpImplementInterfaceService() : AbstractImplementInterfaceService
 {
+    protected override ISyntaxFormatting SyntaxFormatting
+        => CSharpSyntaxFormatting.Instance;
+
     protected override SyntaxGeneratorInternal SyntaxGeneratorInternal
         => CSharpSyntaxGeneratorInternal.Instance;
 

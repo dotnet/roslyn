@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.ImplementType;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -19,7 +20,9 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
 {
     protected const string DisposingName = "disposing";
 
+    protected abstract ISyntaxFormatting SyntaxFormatting { get; }
     protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
+
     protected abstract string ToDisplayString(IMethodSymbol disposeImplMethod, SymbolDisplayFormat format);
 
     protected abstract bool CanImplementImplicitly { get; }
