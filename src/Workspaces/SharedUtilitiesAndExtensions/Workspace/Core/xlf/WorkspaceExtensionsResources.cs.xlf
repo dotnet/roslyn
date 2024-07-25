@@ -47,6 +47,11 @@
         <target state="translated">Cílový typ musí být {0} nebo {1}, ale zadaný typ je {2}.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="new">Document does not support syntax trees</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_all_0">
         <source>Fix all '{0}'</source>
         <target state="translated">Opravit vše ({0})</target>
