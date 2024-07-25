@@ -560,7 +560,7 @@ codeAction: ("True;False;False:global::IInterface;Microsoft.CodeAnalysis.Impleme
                     """,
                 },
             },
-            CodeActionEquivalenceKey = "False;False;True:global::IInterface;Assembly1;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionEquivalenceKey = "False;False;True:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 0,
         };
 
@@ -7073,7 +7073,7 @@ codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterfa
                     """,
                 },
             },
-            CodeActionEquivalenceKey = "True;False;False:global::IGoo;Assembly1;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionEquivalenceKey = "True;False;False:global::IGoo;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         };
 
@@ -7136,7 +7136,7 @@ codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterfa
                     """,
                 },
             },
-            CodeActionEquivalenceKey = "False;False;True:global::I;Assembly1;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionEquivalenceKey = "False;False;True:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 0,
         }.RunAsync();
     }
@@ -7205,7 +7205,7 @@ codeAction: ("True;False;False:global::I;Microsoft.CodeAnalysis.ImplementInterfa
                     """,
                 },
             },
-            CodeActionEquivalenceKey = "False;False;True:global::I;Assembly1;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionEquivalenceKey = "False;False;True:global::I;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 0,
         };
 
@@ -9002,7 +9002,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             Options = { AllOptionsOff },
 
             // Specify the code action by equivalence key only to avoid trying to implement the interface explicitly with a second code fix pass.
-            CodeActionEquivalenceKey = "False;False;True:global::IInterface;Assembly1;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionEquivalenceKey = "False;False;True:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
         }.RunAsync();
     }
 
@@ -9058,7 +9058,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                 MarkupHandling = MarkupMode.Allow,
             },
             Options = { AllOptionsOff },
-            CodeActionEquivalenceKey = "True;False;False:global::IInterface;Assembly1;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionEquivalenceKey = "True;False;False:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -9114,7 +9114,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             Options = { AllOptionsOff },
 
             // Specify the code action by equivalence key only to avoid trying to execute a second code fix pass with a different action
-            CodeActionEquivalenceKey = "False;True;True:global::IInterface;Assembly1;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionEquivalenceKey = "False;True;True:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
         }.RunAsync();
     }
 
@@ -9614,7 +9614,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             Options = { AllOptionsOff },
 
             // Specify the code action by equivalence key only to avoid trying to implement the interface explicitly with a second code fix pass.
-            CodeActionEquivalenceKey = "False;False;True:global::IInterface;Assembly1;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionEquivalenceKey = "False;False;True:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
         }.RunAsync();
     }
 
@@ -9670,7 +9670,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
                 MarkupHandling = MarkupMode.Allow,
             },
             Options = { AllOptionsOff },
-            CodeActionEquivalenceKey = "True;False;False:global::IInterface;Assembly1;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionEquivalenceKey = "True;False;False:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
             CodeActionIndex = 1,
         }.RunAsync();
     }
@@ -9726,7 +9726,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             Options = { AllOptionsOff },
 
             // Specify the code action by equivalence key only to avoid trying to execute a second code fix pass with a different action
-            CodeActionEquivalenceKey = "False;True;True:global::IInterface;Assembly1;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
+            CodeActionEquivalenceKey = "False;True;True:global::IInterface;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceCodeAction;",
         }.RunAsync();
     }
 
