@@ -955,11 +955,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Implementar de forma implícita</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_remaining_members_explicitly">
-        <source>Implement remaining members explicitly</source>
-        <target state="translated">Implementar los miembros restantes de forma explícita</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
         <target state="translated">Escape de carácter incompleto \p{X}</target>
@@ -3955,16 +3950,6 @@ Si el especificador de formato "M" se usa sin otros especificadores de formato p
         <target state="translated">Generar {0} anidado '{1}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_abstractly">
-        <source>Implement interface abstractly</source>
-        <target state="translated">Implementar interfaz de forma abstracta</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_through_0">
-        <source>Implement interface through '{0}'</source>
-        <target state="translated">Implementar interfaz a través de '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_interface">
         <source>Implement interface</source>
         <target state="translated">Implementar interfaz</target>
@@ -4248,16 +4233,6 @@ Do you want to continue?</source>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
         <source>Note: Tab twice to insert the '{0}' snippet.</source>
         <target state="translated">Nota: Presione dos veces la tecla Tab para insertar el fragmento de código '{0}'.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
-        <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">Implementar la interfaz de forma explícita con el patrón de Dispose</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_with_Dispose_pattern">
-        <source>Implement interface with Dispose pattern</source>
-        <target state="translated">Implementar la interfaz con el patrón de Dispose</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">

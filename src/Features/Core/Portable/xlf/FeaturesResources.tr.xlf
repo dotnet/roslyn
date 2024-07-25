@@ -955,11 +955,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Örtük olarak uygula</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_remaining_members_explicitly">
-        <source>Implement remaining members explicitly</source>
-        <target state="translated">Kalan üyeleri açıkça uygula</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
         <target state="translated">Tamamlanmamış \p{X} karakter kaçış</target>
@@ -3955,16 +3950,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">İç içe {0} '{1}' oluştur</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_abstractly">
-        <source>Implement interface abstractly</source>
-        <target state="translated">Arabirimi soyut olarak uygula</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_through_0">
-        <source>Implement interface through '{0}'</source>
-        <target state="translated">Arabirimi '{0}' aracılığıyla uygula</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_interface">
         <source>Implement interface</source>
         <target state="translated">Arabirimi uygula</target>
@@ -4248,16 +4233,6 @@ Devam etmek istiyor musunuz?</target>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
         <source>Note: Tab twice to insert the '{0}' snippet.</source>
         <target state="translated">Not: '{0}' kod parçacığını eklemek için iki kez sekme yapın.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
-        <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">Ara birimi açık olarak Dispose düzeniyle uygula</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_with_Dispose_pattern">
-        <source>Implement interface with Dispose pattern</source>
-        <target state="translated">Ara birimi Dispose düzeniyle uygula</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">

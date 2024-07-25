@@ -955,11 +955,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">隱含實作</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_remaining_members_explicitly">
-        <source>Implement remaining members explicitly</source>
-        <target state="translated">明確實作剩餘的成員</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
         <target state="translated">不完整的 \p{X} 字元逸出</target>
@@ -3955,16 +3950,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">產生巢狀 {0} '{1}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_abstractly">
-        <source>Implement interface abstractly</source>
-        <target state="translated">以抽象方式實作介面</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_through_0">
-        <source>Implement interface through '{0}'</source>
-        <target state="translated">透過 '{0}' 實作介面</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_interface">
         <source>Implement interface</source>
         <target state="translated">實作介面</target>
@@ -4248,16 +4233,6 @@ Do you want to continue?</source>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
         <source>Note: Tab twice to insert the '{0}' snippet.</source>
         <target state="translated">注意: 按兩次 Tab 鍵即可插入 '{0}' 程式碼片段。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
-        <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">使用 Dispose 模式明確地實作介面</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_with_Dispose_pattern">
-        <source>Implement interface with Dispose pattern</source>
-        <target state="translated">使用 Dispose 模式實作介面</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">

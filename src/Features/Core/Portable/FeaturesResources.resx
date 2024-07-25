@@ -252,12 +252,6 @@
   <data name="Implement_all_members_explicitly" xml:space="preserve">
     <value>Implement all members explicitly</value>
   </data>
-  <data name="Implement_interface_abstractly" xml:space="preserve">
-    <value>Implement interface abstractly</value>
-  </data>
-  <data name="Implement_interface_through_0" xml:space="preserve">
-    <value>Implement interface through '{0}'</value>
-  </data>
   <data name="Implement_interface" xml:space="preserve">
     <value>Implement interface</value>
   </data>
@@ -657,12 +651,6 @@ Do you want to continue?</value>
   </data>
   <data name="Note_colon_Tab_twice_to_insert_the_0_snippet" xml:space="preserve">
     <value>Note: Tab twice to insert the '{0}' snippet.</value>
-  </data>
-  <data name="Implement_interface_explicitly_with_Dispose_pattern" xml:space="preserve">
-    <value>Implement interface explicitly with Dispose pattern</value>
-  </data>
-  <data name="Implement_interface_with_Dispose_pattern" xml:space="preserve">
-    <value>Implement interface with Dispose pattern</value>
   </data>
   <data name="Suppress_0" xml:space="preserve">
     <value>Suppress {0}</value>
@@ -1794,9 +1782,6 @@ If the "H" format specifier is used without other custom format specifiers, it's
   </data>
   <data name="_24_hour_clock_2_digits_description" xml:space="preserve">
     <value>The "HH" custom format specifier (plus any number of additional "H" specifiers) represents the hour as a number from 00 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted with a leading zero.</value>
-  </data>
-  <data name="Implement_remaining_members_explicitly" xml:space="preserve">
-    <value>Implement remaining members explicitly</value>
   </data>
   <data name="Generate_for_0" xml:space="preserve">
     <value>Generate for '{0}'</value>

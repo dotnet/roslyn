@@ -955,11 +955,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">隐式实现</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_remaining_members_explicitly">
-        <source>Implement remaining members explicitly</source>
-        <target state="translated">显式实现剩余成员</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
         <target state="translated">\p{X} 字符转义不完整</target>
@@ -3955,16 +3950,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">生成嵌套的 {0}“{1}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_abstractly">
-        <source>Implement interface abstractly</source>
-        <target state="translated">以抽象方式实现接口</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_through_0">
-        <source>Implement interface through '{0}'</source>
-        <target state="translated">通过“{0}”实现接口</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_interface">
         <source>Implement interface</source>
         <target state="translated">实现接口</target>
@@ -4248,16 +4233,6 @@ Do you want to continue?</source>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
         <source>Note: Tab twice to insert the '{0}' snippet.</source>
         <target state="translated">注意: 两次 Tab 插入“{0}”片段。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
-        <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">通过释放模式显式实现接口</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_with_Dispose_pattern">
-        <source>Implement interface with Dispose pattern</source>
-        <target state="translated">通过释放模式实现接口</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">

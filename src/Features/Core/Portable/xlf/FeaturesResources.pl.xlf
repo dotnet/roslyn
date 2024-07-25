@@ -955,11 +955,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Zaimplementuj niejawnie</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_remaining_members_explicitly">
-        <source>Implement remaining members explicitly</source>
-        <target state="translated">Jawnie zaimplementuj pozostałe składowe</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
         <target state="translated">Niekompletna sekwencja ucieczki znaku \p{X}</target>
@@ -3955,16 +3950,6 @@ Jeśli specyfikator formatu „M” jest używany bez innych niestandardowych sp
         <target state="translated">Generuj zagnieżdżony element {0} „{1}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_abstractly">
-        <source>Implement interface abstractly</source>
-        <target state="translated">Implementuj interfejs abstrakcyjnie</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_through_0">
-        <source>Implement interface through '{0}'</source>
-        <target state="translated">Implementuj interfejs za pomocą elementu „{0}”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_interface">
         <source>Implement interface</source>
         <target state="translated">Zaimplementuj interfejs</target>
@@ -4248,16 +4233,6 @@ Czy chcesz kontynuować?</target>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
         <source>Note: Tab twice to insert the '{0}' snippet.</source>
         <target state="translated">Uwaga: naciśnij dwa razy klawisz Tab, aby wstawić fragment kodu „{0}”.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
-        <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">Jawnie implementuj interfejs za pomocą wzorca likwidacji</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_with_Dispose_pattern">
-        <source>Implement interface with Dispose pattern</source>
-        <target state="translated">Implementuj interfejs za pomocą wzorca likwidacji</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">

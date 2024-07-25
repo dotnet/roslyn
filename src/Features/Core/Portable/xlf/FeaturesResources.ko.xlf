@@ -955,11 +955,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">암시적으로 구현</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_remaining_members_explicitly">
-        <source>Implement remaining members explicitly</source>
-        <target state="translated">나머지 멤버를 명시적으로 구현</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Incomplete_character_escape">
         <source>Incomplete \p{X} character escape</source>
         <target state="translated">불완전한 \p{X} 문자 이스케이프</target>
@@ -3955,16 +3950,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">중첩된 {0} '{1}' 생성</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_abstractly">
-        <source>Implement interface abstractly</source>
-        <target state="translated">추상적으로 인터페이스 구현</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_through_0">
-        <source>Implement interface through '{0}'</source>
-        <target state="translated">'{0}'을(를) 통해 인터페이스 구현</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_interface">
         <source>Implement interface</source>
         <target state="translated">인터페이스 구현</target>
@@ -4248,16 +4233,6 @@ Do you want to continue?</source>
       <trans-unit id="Note_colon_Tab_twice_to_insert_the_0_snippet">
         <source>Note: Tab twice to insert the '{0}' snippet.</source>
         <target state="translated">참고: '{0}' 코드 조각을 삽입하려면 두 번 탭하세요.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
-        <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">인터페이스를 Dispose 패턴으로 명시적으로 구현</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_with_Dispose_pattern">
-        <source>Implement interface with Dispose pattern</source>
-        <target state="translated">인터페이스를 Dispose 패턴으로 구현</target>
         <note />
       </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">

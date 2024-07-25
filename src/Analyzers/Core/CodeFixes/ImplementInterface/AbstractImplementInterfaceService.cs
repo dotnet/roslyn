@@ -19,6 +19,7 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
 {
     protected const string DisposingName = "disposing";
 
+    protected abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
     protected abstract string ToDisplayString(IMethodSymbol disposeImplMethod, SymbolDisplayFormat format);
 
     protected abstract bool CanImplementImplicitly { get; }
@@ -56,22 +57,24 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         return State.Generate(this, document, model, interfaceType, cancellationToken);
     }
 
-    protected static TNode AddComment<TNode>(SyntaxGenerator g, string comment, TNode node) where TNode : SyntaxNode
+    protected TNode AddComment<TNode>(SyntaxGenerator g, string comment, TNode node) where TNode : SyntaxNode
         => AddComments(g, [comment], node);
 
-    protected static TNode AddComments<TNode>(SyntaxGenerator g, string comment1, string comment2, TNode node) where TNode : SyntaxNode
+    protected TNode AddComments<TNode>(SyntaxGenerator g, string comment1, string comment2, TNode node) where TNode : SyntaxNode
         => AddComments(g, [comment1, comment2], node);
 
-    protected static TNode AddComments<TNode>(SyntaxGenerator g, string[] comments, TNode node) where TNode : SyntaxNode
+    protected TNode AddComments<TNode>(SyntaxGenerator g, string[] comments, TNode node) where TNode : SyntaxNode
         => node.WithPrependedLeadingTrivia(CreateCommentTrivia(g, comments));
 
-    protected static SyntaxTriviaList CreateCommentTrivia(SyntaxGenerator generator, params string[] comments)
+    protected SyntaxTriviaList CreateCommentTrivia(
+        SyntaxGenerator generator,
+        params string[] comments)
     {
         using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var trivia);
 
         foreach (var comment in comments)
         {
-            trivia.Add(generator.SingleLineComment(" " + comment));
+            trivia.Add(this.SyntaxGeneratorInternal.SingleLineComment(" " + comment));
             trivia.Add(generator.ElasticCarriageReturnLineFeed);
         }
 

@@ -75,26 +75,26 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
         if (options.ImplementDisposePattern)
         {
             return options.Explicitly
-                ? FeaturesResources.Implement_interface_explicitly_with_Dispose_pattern
-                : FeaturesResources.Implement_interface_with_Dispose_pattern;
+                ? CodeFixesResources.Implement_interface_explicitly_with_Dispose_pattern
+                : CodeFixesResources.Implement_interface_with_Dispose_pattern;
         }
         else if (options.Explicitly)
         {
             return options.OnlyRemaining
-                ? FeaturesResources.Implement_remaining_members_explicitly
-                : FeaturesResources.Implement_all_members_explicitly;
+                ? CodeFixesResources.Implement_remaining_members_explicitly
+                : CodeFixesResources.Implement_all_members_explicitly;
         }
         else if (options.Abstractly)
         {
-            return FeaturesResources.Implement_interface_abstractly;
+            return CodeFixesResources.Implement_interface_abstractly;
         }
         else if (options.ThroughMember != null)
         {
-            return string.Format(FeaturesResources.Implement_interface_through_0, options.ThroughMember.Name);
+            return string.Format(CodeFixesResources.Implement_interface_through_0, options.ThroughMember.Name);
         }
         else
         {
-            return FeaturesResources.Implement_interface;
+            return CodeFixesResources.Implement_interface;
         }
     }
 

@@ -21,6 +21,7 @@ internal abstract class SyntaxGeneratorInternal : ILanguageService
     public abstract ISyntaxFacts SyntaxFacts { get; }
 
     public abstract SyntaxTrivia EndOfLine(string text);
+    public abstract SyntaxTrivia SingleLineComment(string text);
 
     /// <summary>
     /// Creates a statement that declares a single local variable with an optional initializer.

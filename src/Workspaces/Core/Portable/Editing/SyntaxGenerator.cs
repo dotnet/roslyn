@@ -42,7 +42,9 @@ public abstract class SyntaxGenerator : ILanguageService
     internal abstract SyntaxGeneratorInternal SyntaxGeneratorInternal { get; }
 
     internal abstract SyntaxTrivia Whitespace(string text);
-    internal abstract SyntaxTrivia SingleLineComment(string text);
+
+    internal SyntaxTrivia SingleLineComment(string text)
+        => this.SyntaxGeneratorInternal.SingleLineComment(text);
 
     internal abstract SyntaxToken CreateInterpolatedStringStartToken(bool isVerbatim);
     internal abstract SyntaxToken CreateInterpolatedStringEndToken();

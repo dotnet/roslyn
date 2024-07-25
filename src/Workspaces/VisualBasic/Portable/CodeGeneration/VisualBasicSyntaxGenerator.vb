@@ -37,10 +37,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.Whitespace(text)
         End Function
 
-        Friend Overrides Function SingleLineComment(text As String) As SyntaxTrivia
-            Return SyntaxFactory.CommentTrivia("'" + text)
-        End Function
-
         Friend Overrides Function SeparatedList(Of TElement As SyntaxNode)(list As SyntaxNodeOrTokenList) As SeparatedSyntaxList(Of TElement)
             Return SyntaxFactory.SeparatedList(Of TElement)(list)
         End Function

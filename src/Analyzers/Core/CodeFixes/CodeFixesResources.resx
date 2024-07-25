@@ -213,4 +213,19 @@
   <data name="_0_may_change_semantics" xml:space="preserve">
     <value>{0} (may change semantics)</value>
   </data>
+  <data name="Implement_interface_abstractly" xml:space="preserve">
+    <value>Implement interface abstractly</value>
+  </data>
+  <data name="Implement_interface_through_0" xml:space="preserve">
+    <value>Implement interface through '{0}'</value>
+  </data>
+  <data name="Implement_interface_with_Dispose_pattern" xml:space="preserve">
+    <value>Implement interface with Dispose pattern</value>
+  </data>
+  <data name="Implement_interface_explicitly_with_Dispose_pattern" xml:space="preserve">
+    <value>Implement interface explicitly with Dispose pattern</value>
+  </data>
+  <data name="Implement_remaining_members_explicitly" xml:space="preserve">
+    <value>Implement remaining members explicitly</value>
+  </data>
 </root>

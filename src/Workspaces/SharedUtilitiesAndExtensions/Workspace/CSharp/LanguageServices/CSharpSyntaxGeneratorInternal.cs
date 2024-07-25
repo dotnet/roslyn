@@ -30,10 +30,14 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
 
     public static readonly SyntaxGeneratorInternal Instance = new CSharpSyntaxGeneratorInternal();
 
-    public override ISyntaxFacts SyntaxFacts => CSharpSyntaxFacts.Instance;
+    public override ISyntaxFacts SyntaxFacts
+        => CSharpSyntaxFacts.Instance;
 
     public override SyntaxTrivia EndOfLine(string text)
         => SyntaxFactory.EndOfLine(text);
+
+    public override SyntaxTrivia SingleLineComment(string text)
+        => SyntaxFactory.Comment("//" + text);
 
     public override SyntaxNode LocalDeclarationStatement(SyntaxNode? type, SyntaxToken name, SyntaxNode? initializer, bool isConst)
     {
