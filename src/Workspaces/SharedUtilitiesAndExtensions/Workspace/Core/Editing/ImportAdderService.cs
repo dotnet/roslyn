@@ -174,7 +174,12 @@ internal abstract class ImportAdderService : ILanguageService
         using var _ = PooledDictionary<INamespaceSymbol, SyntaxNode>.GetInstance(out var importToSyntax);
 
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+#if CODE_STYLE
+        var model = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+#else
         var model = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+#endif
 
         SyntaxNode? first = null, last = null;
         var annotatedNodes = syntaxNodes.Where(x => x.HasAnnotations(SymbolAnnotation.Kind));
