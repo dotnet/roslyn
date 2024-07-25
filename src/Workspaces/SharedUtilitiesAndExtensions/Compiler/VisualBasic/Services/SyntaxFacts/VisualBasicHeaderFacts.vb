@@ -17,6 +17,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
 
         Protected Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
+        Public Overrides Function IsHeaderType(Of TSyntaxNode As SyntaxNode)() As Boolean
+            If GetType(TSyntaxNode) Is GetType(TypeBlockSyntax) Then
+                Return True
+            ElseIf GetType(TSyntaxNode) Is GetType(PropertyStatementSyntax) Then
+                Return True
+            ElseIf GetType(TSyntaxNode) Is GetType(ParameterSyntax) Then
+                Return True
+            ElseIf GetType(TSyntaxNode) Is GetType(MethodStatementSyntax) Then
+                Return True
+            ElseIf GetType(TSyntaxNode) Is GetType(LocalDeclarationStatementSyntax) Then
+                Return True
+            ElseIf GetType(TSyntaxNode) Is GetType(MultiLineIfBlockSyntax) Then
+                Return True
+            ElseIf GetType(TSyntaxNode) Is GetType(SingleLineIfStatementSyntax) Then
+                Return True
+            ElseIf GetType(TSyntaxNode) Is GetType(WhileBlockSyntax) Then
+                Return True
+            ElseIf GetType(TSyntaxNode) Is GetType(ForEachBlockSyntax) Then
+                Return True
+            End If
+
+            Return False
+        End Function
+
         Public Overrides Function IsOnTypeHeader(
                 root As SyntaxNode,
                 position As Integer,
