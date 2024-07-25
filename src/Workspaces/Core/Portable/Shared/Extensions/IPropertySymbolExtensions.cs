@@ -12,31 +12,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class IPropertySymbolExtensions
 {
-    public static IPropertySymbol RenameParameters(this IPropertySymbol property, ImmutableArray<string> parameterNames)
-    {
-        var parameterList = property.Parameters;
-        if (parameterList.Select(p => p.Name).SequenceEqual(parameterNames))
-        {
-            return property;
-        }
-
-        var parameters = parameterList.RenameParameters(parameterNames);
-
-        return CodeGenerationSymbolFactory.CreatePropertySymbol(
-            property.ContainingType,
-            property.GetAttributes(),
-            property.DeclaredAccessibility,
-            property.GetSymbolModifiers(),
-            property.Type,
-            property.RefKind,
-            property.ExplicitInterfaceImplementations,
-            property.Name,
-            parameters,
-            property.GetMethod,
-            property.SetMethod,
-            property.IsIndexer);
-    }
-
     public static IPropertySymbol RemoveInaccessibleAttributesAndAttributesOfTypes(
         this IPropertySymbol property, ISymbol accessibleWithin, params INamedTypeSymbol[] attributesToRemove)
     {
