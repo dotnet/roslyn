@@ -91,7 +91,8 @@ internal abstract partial class AbstractImplementInterfaceService
             var groupMembers = !isComImport &&
                 Options.InsertionBehavior == ImplementTypeInsertionBehavior.WithOtherMembersOfTheSameKind;
 
-            return await CodeGenerator.AddMemberDeclarationsAsync(
+            var generator = this.Document.GetRequiredLanguageService<ICodeGenerationService>();
+            return await generator.AddMembersAsync(
                 new CodeGenerationSolutionContext(
                     this.Document.Project.Solution,
                     new CodeGenerationContext(
