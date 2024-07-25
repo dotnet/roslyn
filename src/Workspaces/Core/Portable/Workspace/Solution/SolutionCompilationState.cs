@@ -701,8 +701,7 @@ internal sealed partial class SolutionCompilationState
             texts,
             arg: mode,
             updateDocument: static (oldDocumentState, text, mode) =>
-                SourceTextIsUnchanged(oldDocumentState, text) ? oldDocumentState : oldDocumentState.UpdateText(text, mode),
-            contentChanged: true);
+                SourceTextIsUnchanged(oldDocumentState, text) ? oldDocumentState : oldDocumentState.UpdateText(text, mode));
 
     private static bool SourceTextIsUnchanged(DocumentState oldDocument, SourceText text)
         => oldDocument.TryGetText(out var oldText) && text == oldText;
@@ -711,15 +710,10 @@ internal sealed partial class SolutionCompilationState
     /// Applies an update operation <paramref name="updateDocument"/> to specified <paramref name="documentsToUpdate"/>.
     /// Documents may be in different projects.
     /// </summary>
-    /// <param name="contentChanged">
-    /// True if <paramref name="updateDocument"/> changes the content of the document
-    /// (i.e. document text, not just document attributes).
-    /// </param>
     private SolutionCompilationState UpdateDocumentsInMultipleProjects<TDocumentState, TDocumentData, TArg>(
         ImmutableArray<(DocumentId documentId, TDocumentData documentData)> documentsToUpdate,
         TArg arg,
-        Func<TDocumentState, TDocumentData, TArg, TDocumentState> updateDocument,
-        bool contentChanged)
+        Func<TDocumentState, TDocumentData, TArg, TDocumentState> updateDocument)
         where TDocumentState : TextDocumentState
     {
         return WithDocumentStatesOfMultipleProjects(
@@ -745,7 +739,7 @@ internal sealed partial class SolutionCompilationState
 
                     return (projectId, newDocumentStates.ToImmutableAndClear());
                 }),
-            (oldProjectState, newDocumentStates) => GetUpdateDocumentsTranslationAction(oldProjectState, newDocumentStates, contentChanged));
+            GetUpdateDocumentsTranslationAction);
     }
 
     /// <summary>
@@ -787,28 +781,28 @@ internal sealed partial class SolutionCompilationState
     /// Updates the <paramref name="oldProjectState"/> to a new state with <paramref name="newDocumentStates"/> and returns a <see cref="TranslationAction"/> that 
     /// reflects these changes in the project compilation.
     /// </summary>
-    private static TranslationAction GetUpdateDocumentsTranslationAction<TDocumentState>(ProjectState oldProjectState, ImmutableArray<TDocumentState> newDocumentStates, bool contentChanged)
+    private static TranslationAction GetUpdateDocumentsTranslationAction<TDocumentState>(ProjectState oldProjectState, ImmutableArray<TDocumentState> newDocumentStates)
         where TDocumentState : TextDocumentState
     {
         return newDocumentStates switch
         {
-            ImmutableArray<DocumentState> ordinaryNewDocumentStates => GetUpdateOrdinaryDocumentsTranslationAction(oldProjectState, ordinaryNewDocumentStates, contentChanged),
-            ImmutableArray<AdditionalDocumentState> additionalNewDocumentStates => GetUpdateAdditionalDocumentsTranslationAction(oldProjectState, additionalNewDocumentStates, contentChanged),
+            ImmutableArray<DocumentState> ordinaryNewDocumentStates => GetUpdateOrdinaryDocumentsTranslationAction(oldProjectState, ordinaryNewDocumentStates),
+            ImmutableArray<AdditionalDocumentState> additionalNewDocumentStates => GetUpdateAdditionalDocumentsTranslationAction(oldProjectState, additionalNewDocumentStates),
             ImmutableArray<AnalyzerConfigDocumentState> analyzerConfigNewDocumentStates => GetUpdateAnalyzerConfigDocumentsTranslationAction(oldProjectState, analyzerConfigNewDocumentStates),
             _ => throw ExceptionUtilities.UnexpectedValue(typeof(TDocumentState))
         };
 
-        TranslationAction GetUpdateOrdinaryDocumentsTranslationAction(ProjectState oldProjectState, ImmutableArray<DocumentState> newDocumentStates, bool contentChanged)
+        TranslationAction GetUpdateOrdinaryDocumentsTranslationAction(ProjectState oldProjectState, ImmutableArray<DocumentState> newDocumentStates)
         {
             var oldDocumentStates = newDocumentStates.SelectAsArray(static (s, oldProjectState) => oldProjectState.DocumentStates.GetRequiredState(s.Id), oldProjectState);
-            var newProjectState = oldProjectState.UpdateDocuments(oldDocumentStates, newDocumentStates, contentChanged);
+            var newProjectState = oldProjectState.UpdateDocuments(oldDocumentStates, newDocumentStates);
             return new TranslationAction.TouchDocumentsAction(oldProjectState, newProjectState, oldDocumentStates, newDocumentStates);
         }
 
-        TranslationAction GetUpdateAdditionalDocumentsTranslationAction(ProjectState oldProjectState, ImmutableArray<AdditionalDocumentState> newDocumentStates, bool contentChanged)
+        TranslationAction GetUpdateAdditionalDocumentsTranslationAction(ProjectState oldProjectState, ImmutableArray<AdditionalDocumentState> newDocumentStates)
         {
             var oldDocumentStates = newDocumentStates.SelectAsArray(static (s, oldProjectState) => oldProjectState.AdditionalDocumentStates.GetRequiredState(s.Id), oldProjectState);
-            var newProjectState = oldProjectState.UpdateAdditionalDocuments(oldDocumentStates, newDocumentStates, contentChanged);
+            var newProjectState = oldProjectState.UpdateAdditionalDocuments(oldDocumentStates, newDocumentStates);
             return new TranslationAction.TouchAdditionalDocumentsAction(oldProjectState, newProjectState, oldDocumentStates, newDocumentStates);
         }
 
@@ -879,8 +873,7 @@ internal sealed partial class SolutionCompilationState
             static (oldDocumentState, root, mode) =>
                 oldDocumentState.TryGetSyntaxTree(out var oldTree) && oldTree.TryGetRoot(out var oldRoot) && oldRoot == root
                 ? oldDocumentState
-                : oldDocumentState.UpdateTree(root, mode),
-            contentChanged: true);
+                : oldDocumentState.UpdateTree(root, mode));
     }
 
     public SolutionCompilationState WithDocumentContentsFrom(
@@ -892,8 +885,7 @@ internal sealed partial class SolutionCompilationState
             static (oldDocumentState, documentState, forceEvenIfTreesWouldDiffer) =>
                 oldDocumentState.TextAndVersionSource == documentState.TextAndVersionSource && oldDocumentState.TreeSource == documentState.TreeSource
                 ? oldDocumentState
-                : oldDocumentState.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource, forceEvenIfTreesWouldDiffer),
-            contentChanged: true);
+                : oldDocumentState.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource, forceEvenIfTreesWouldDiffer));
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentSourceCodeKind"/>
