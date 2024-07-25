@@ -192,4 +192,7 @@
   <data name="Namespace_can_not_be_added_in_this_destination" xml:space="preserve">
     <value>Namespace can not be added in this destination.</value>
   </data>
+  <data name="Type_members" xml:space="preserve">
+    <value>Type members</value>
+  </data>
 </root>

@@ -17,8 +17,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.LanguageService
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
-
-    Friend Class VisualBasicCodeGenerationService
+    Friend NotInheritable Class VisualBasicCodeGenerationService
         Inherits AbstractCodeGenerationService(Of VisualBasicCodeGenerationContextInfo)
 
         Public Sub New(languageServices As LanguageServices)
@@ -247,7 +246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Overloads Shared Function AddParametersToMethod(Of TDeclarationNode As SyntaxNode)(
+        Private Overloads Function AddParametersToMethod(Of TDeclarationNode As SyntaxNode)(
                 methodStatement As MethodBaseSyntax,
                 methodBlock As MethodBlockBaseSyntax,
                 parameters As IEnumerable(Of IParameterSymbol),
@@ -282,7 +281,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return DirectCast(DirectCast(result, Object), TDeclarationNode)
         End Function
 
-        Private Overloads Shared Function AddParametersToProperty(Of TDeclarationNode As SyntaxNode)(
+        Private Overloads Function AddParametersToProperty(Of TDeclarationNode As SyntaxNode)(
                 propertyBlock As PropertyBlockSyntax,
                 parameters As IEnumerable(Of IParameterSymbol),
                 options As VisualBasicCodeGenerationContextInfo,
@@ -293,7 +292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return DirectCast(newPropertyBlock, TDeclarationNode)
         End Function
 
-        Private Overloads Shared Function AddParameterToMethodBase(Of TMethodBase As MethodBaseSyntax)(
+        Private Overloads Function AddParameterToMethodBase(Of TMethodBase As MethodBaseSyntax)(
                 methodBase As TMethodBase,
                 parameters As IEnumerable(Of IParameterSymbol),
                 options As VisualBasicCodeGenerationContextInfo,
@@ -304,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim parameterCount = If(parameterList IsNot Nothing, parameterList.Parameters.Count, 0)
             Dim seenOptional = parameterCount > 0 AndAlso parameterList.Parameters(parameterCount - 1).Default IsNot Nothing
 
-            Dim editor = New SyntaxEditor(methodBase, VisualBasicSyntaxGenerator.Instance)
+            Dim editor = New SyntaxEditor(methodBase, Me.LanguageServices.SolutionServices)
             For Each parameter In parameters
                 Dim parameterSyntax = ParameterGenerator.GenerateParameter(parameter, seenOptional, options)
 

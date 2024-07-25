@@ -16,6 +16,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpCodeGenerationContextInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpCodeGenerationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpCodeGenerationService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpCodeGenerationServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpDeclarationComparer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CSharpFlagsEnumGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\DestructorGenerator.cs" />

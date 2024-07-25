@@ -315,11 +315,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Zadanie, na które oczekiwano, nie zwraca wartości</target>
         <note />
       </trans-unit>
-      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
-        <source>Base classes contain inaccessible unimplemented members</source>
-        <target state="translated">Klasy podstawowe zawierają niedostępne niezaimplementowane składowe</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Built_in_Copilot_analysis">
         <source>Built-in Copilot analysis</source>
         <target state="translated">Wbudowana analiza funkcji Copilot</target>
@@ -935,11 +930,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Niejawnie zaimplementuj interfejs „{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_abstract_class">
-        <source>Implement abstract class</source>
-        <target state="translated">Implementuj klasę abstrakcyjną</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_all_interfaces_explicitly">
         <source>Implement all interfaces explicitly</source>
         <target state="translated">Jawnie zaimplementuj wszystkie interfejsy</target>
@@ -968,11 +958,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
       <trans-unit id="Implement_remaining_members_explicitly">
         <source>Implement remaining members explicitly</source>
         <target state="translated">Jawnie zaimplementuj pozostałe składowe</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_through_0">
-        <source>Implement through '{0}'</source>
-        <target state="translated">Implementuj za pomocą elementu „{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -2813,11 +2798,6 @@ Pozytywne asercje wsteczne o zerowej szerokości są zwykle używane na początk
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">Końcowy przecinek jest niedozwolony.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_members">
-        <source>Type members</source>
-        <target state="new">Type members</target>
         <note />
       </trans-unit>
       <trans-unit id="Types_colon">

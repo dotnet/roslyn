@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ImplementAbstractClass;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ImplementAbstractClass), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateType)]
-internal class CSharpImplementAbstractClassCodeFixProvider :
+internal sealed class CSharpImplementAbstractClassCodeFixProvider :
     AbstractImplementAbstractClassCodeFixProvider<TypeDeclarationSyntax>
 {
     private const string CS0534 = nameof(CS0534); // 'Program' does not implement inherited abstract member 'Goo.bar()'

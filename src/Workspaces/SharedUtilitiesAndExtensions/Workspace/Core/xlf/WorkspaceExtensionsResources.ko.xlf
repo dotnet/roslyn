@@ -122,6 +122,11 @@
         <target state="translated">솔루션에 지정한 문서가 포함되어 있지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="new">Type members</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">
         <source>Warning: Declaration changes scope and may change meaning.</source>
         <target state="translated">경고: 선언 시 범위가 변경되고 의미가 변경될 수 있습니다.</target>

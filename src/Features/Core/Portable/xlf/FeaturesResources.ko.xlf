@@ -315,11 +315,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">대기된 작업에서 값이 반환되지 않음</target>
         <note />
       </trans-unit>
-      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
-        <source>Base classes contain inaccessible unimplemented members</source>
-        <target state="translated">기본 클래스에 구현되지 않아 액세스할 수 없는 멤버가 포함되어 있습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Built_in_Copilot_analysis">
         <source>Built-in Copilot analysis</source>
         <target state="translated">기본 제공 Copilot 분석</target>
@@ -935,11 +930,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'{0}'을(를) 암시적으로 구현</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_abstract_class">
-        <source>Implement abstract class</source>
-        <target state="translated">추상 클래스 구현</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_all_interfaces_explicitly">
         <source>Implement all interfaces explicitly</source>
         <target state="translated">모든 인터페이스를 명시적으로 구현</target>
@@ -968,11 +958,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Implement_remaining_members_explicitly">
         <source>Implement remaining members explicitly</source>
         <target state="translated">나머지 멤버를 명시적으로 구현</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_through_0">
-        <source>Implement through '{0}'</source>
-        <target state="translated">'{0}'을(를) 통해 구현</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -2813,11 +2798,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">후행 쉼표는 허용되지 않습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_members">
-        <source>Type members</source>
-        <target state="new">Type members</target>
         <note />
       </trans-unit>
       <trans-unit id="Types_colon">

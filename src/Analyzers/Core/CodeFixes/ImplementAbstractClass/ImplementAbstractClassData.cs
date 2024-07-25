@@ -21,6 +21,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
+#else
+using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
+#endif
+
 namespace Microsoft.CodeAnalysis.ImplementAbstractClass;
 
 internal sealed class ImplementAbstractClassData(
@@ -51,7 +57,8 @@ internal sealed class ImplementAbstractClassData(
         if (abstractClassType == null || !abstractClassType.IsAbstractClass())
             return null;
 
-        if (!CodeGenerator.CanAdd(document.Project.Solution, classType, cancellationToken))
+        var generator = document.GetRequiredLanguageService<ICodeGenerationService>();
+        if (!generator.CanAddTo(classType, document.Project.Solution, cancellationToken))
             return null;
 
         var unimplementedMembers = classType.GetAllUnimplementedMembers(
@@ -95,7 +102,7 @@ internal sealed class ImplementAbstractClassData(
             classNodeToAddMembersTo = _classNode.ReplaceToken(
                 _classIdentifier,
                 _classIdentifier.WithAdditionalAnnotations(ConflictAnnotation.Create(
-                    FeaturesResources.Base_classes_contain_inaccessible_unimplemented_members)));
+                    AnalyzersResources.Base_classes_contain_inaccessible_unimplemented_members)));
         }
 
         var context = new CodeGenerationContext(
@@ -172,7 +179,7 @@ internal sealed class ImplementAbstractClassData(
         DeclarationModifiers modifiers, Accessibility accessibility)
     {
         var syntaxFacts = _document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+        var generator = SyntaxGenerator.GetGenerator(_document);
         var body = throughMember == null
             ? generator.CreateThrowNotImplementedStatement(compilation)
             : generator.GenerateDelegateThroughMemberStatement(method, throughMember);
@@ -200,7 +207,7 @@ internal sealed class ImplementAbstractClassData(
             propertyGenerationBehavior = ImplementTypePropertyGenerationBehavior.PreferThrowingProperties;
         }
 
-        var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+        var generator = _document.GetRequiredLanguageService<Microsoft.CodeAnalysis.Editing.SyntaxGenerator>();
         var preferAutoProperties = propertyGenerationBehavior == ImplementTypePropertyGenerationBehavior.PreferAutoProperties;
 
         var getMethod = ShouldGenerateAccessor(property.GetMethod)
@@ -232,7 +239,7 @@ internal sealed class ImplementAbstractClassData(
     private IEventSymbol GenerateEvent(
         IEventSymbol @event, ISymbol? throughMember, Accessibility accessibility, DeclarationModifiers modifiers)
     {
-        var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+        var generator = _document.GetRequiredLanguageService<Microsoft.CodeAnalysis.Editing.SyntaxGenerator>();
         return CodeGenerationSymbolFactory.CreateEventSymbol(
             @event, accessibility: accessibility, modifiers: modifiers,
             addMethod: GetEventAddOrRemoveMethod(@event, @event.AddMethod, throughMember, generator.AddEventHandler),
@@ -246,7 +253,7 @@ internal sealed class ImplementAbstractClassData(
         if (accessor == null || throughMember == null)
             return null;
 
-        var generator = _document.GetRequiredLanguageService<SyntaxGenerator>();
+        var generator = _document.GetRequiredLanguageService<Microsoft.CodeAnalysis.Editing.SyntaxGenerator>();
         var throughExpression = generator.CreateDelegateThroughExpression(@event, throughMember);
         var statement = generator.ExpressionStatement(createAddOrRemoveHandler(
             generator.MemberAccessExpression(throughExpression, @event.Name),

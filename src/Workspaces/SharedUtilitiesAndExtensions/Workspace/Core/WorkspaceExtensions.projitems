@@ -9,6 +9,14 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeCleanup\CodeCleanupOptionsProviders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationOptionsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IParameterSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.CompilationTypeGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.SubstituteTypesVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\ISyntaxFormattingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\MemberDisplayOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Progress\CodeAnalysisProgressExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\FixAllHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddImport\AddImportPlacementOptionsProviders.cs" />
@@ -78,6 +86,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_CreateGetHashCodeMethod.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_Negate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\AbstractReducer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\AbstractReducer.IExpressionRewriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\AbstractSimplificationService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\ISimplificationService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\NodeOrTokenToReduce.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SimplificationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\AbstractIndentationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IIndentationService.cs" />
@@ -117,9 +130,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)Rename\Annotations\RenameNodeSimplificationAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\Annotations\RenameTokenSimplificationAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\MefHostServicesHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\Simplifiers\AbstractMemberAccessExpressionSimplifier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\Simplifiers\AbstractSimplifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ParsedDocument.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\RoslynParallel.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\RoslynParallel.NetFramework.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SemanticDocument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SyntacticDocument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TextReaderWithLength.cs" />
@@ -157,5 +174,8 @@
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)CodeCleanup\" />
   </ItemGroup>
 </Project>

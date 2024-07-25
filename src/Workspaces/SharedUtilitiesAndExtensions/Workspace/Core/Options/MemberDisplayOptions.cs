@@ -7,6 +7,7 @@ using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis;
 
@@ -24,7 +25,7 @@ internal readonly record struct MemberDisplayOptions()
 /// </summary>
 internal static class MemberDisplayOptionsStorage
 {
-    public static readonly OptionGroup TypeMemberGroup = new(name: "type_members", description: FeaturesResources.Type_members, priority: 3, parent: null);
+    public static readonly OptionGroup TypeMemberGroup = new(name: "type_members", description: WorkspaceExtensionsResources.Type_members, priority: 3, parent: null);
 
     public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new(
         "dotnet_hide_advanced_members",

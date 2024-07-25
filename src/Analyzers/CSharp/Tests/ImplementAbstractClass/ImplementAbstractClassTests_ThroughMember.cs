@@ -72,7 +72,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
             class [|Derived|] : Base
             {
             }
-            """, [FeaturesResources.Implement_abstract_class]);
+            """, [AnalyzersResources.Implement_abstract_class]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -93,7 +93,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
             class [|Derived|] : Base
             {
             }
-            """, [FeaturesResources.Implement_abstract_class]);
+            """, [AnalyzersResources.Implement_abstract_class]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -126,7 +126,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                     inner.Method();
                 }
             }
-            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                     inner.Method(a, ref b, c, in d, out e);
                 }
             }
-            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
     }
 
     [Fact]
@@ -189,7 +189,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
 
                 public override int this[int a, in int b, ref readonly int c, out int d] => inner[a, b, in c, out d];
             }
-            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -224,7 +224,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                     inner.Method1();
                 }
             }
-            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -247,7 +247,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                     inner.Method1();
                 }
             }
-            """, new string[] { FeaturesResources.Implement_abstract_class });
+            """, new string[] { AnalyzersResources.Implement_abstract_class });
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -288,7 +288,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
             class DerivedAgain : Derived
             {
             }
-            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -321,7 +321,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                     inner.Method();
                 }
             }
-            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -347,9 +347,9 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
             }
             """,
             [
-                FeaturesResources.Implement_abstract_class,
-                string.Format(FeaturesResources.Implement_through_0, "Inner"),
-                string.Format(FeaturesResources.Implement_through_0, "IInterface.Inner"),
+                AnalyzersResources.Implement_abstract_class,
+                string.Format(AnalyzersResources.Implement_through_0, "Inner"),
+                string.Format(AnalyzersResources.Implement_through_0, "IInterface.Inner"),
             ]);
     }
 
@@ -367,7 +367,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
             {
                 dynamic inner;
             }
-            """, [FeaturesResources.Implement_abstract_class]);
+            """, [AnalyzersResources.Implement_abstract_class]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -400,7 +400,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                     inner.Method();
                 }
             }
-            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -430,7 +430,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
 
                 public override int Property { get => inner.Property; set => inner.Property = value; }
             }
-            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -505,7 +505,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
 
                 public override int SetOnly { set => inner.SetOnly = value; }
             }
-            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -596,7 +596,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                     }
                 }
             }
-            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -633,7 +633,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                     inner.Method();
                 }
             }
-            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -650,7 +650,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
             {
                 Base inner;
             }
-            """, [FeaturesResources.Implement_abstract_class]);
+            """, [AnalyzersResources.Implement_abstract_class]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -683,7 +683,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                     inner.Method();
                 }
             }
-            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -716,7 +716,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                     inner.Method();
                 }
             }
-            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -749,7 +749,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                     inner.Method();
                 }
             }
-            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -766,7 +766,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
             {
                 Base inner;
             }
-            """, [FeaturesResources.Implement_abstract_class]);
+            """, [AnalyzersResources.Implement_abstract_class]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -799,7 +799,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                     inner.Method();
                 }
             }
-            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/41420")]
@@ -832,7 +832,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
                 public override int InternalGet { internal get => inner.InternalGet; set => inner.InternalGet = value; }
                 public override int InternalSet { get => inner.InternalSet; internal set => inner.InternalSet = value; }
             }
-            """, index: 1, title: string.Format(FeaturesResources.Implement_through_0, "inner"));
+            """, index: 1, title: string.Format(AnalyzersResources.Implement_through_0, "inner"));
     }
 
     [Fact]
@@ -935,7 +935,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
             {
                 private Base _base = base1;
             }
-            """, [FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "_base")]);
+            """, [AnalyzersResources.Implement_abstract_class, string.Format(AnalyzersResources.Implement_through_0, "_base")]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
@@ -953,7 +953,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
             {
                 private Base _base = (base1);
             }
-            """, [FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "_base")]);
+            """, [AnalyzersResources.Implement_abstract_class, string.Format(AnalyzersResources.Implement_through_0, "_base")]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
@@ -971,7 +971,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
             {
                 private Base B { get; } = base1;
             }
-            """, [FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "B")]);
+            """, [AnalyzersResources.Implement_abstract_class, string.Format(AnalyzersResources.Implement_through_0, "B")]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]
@@ -989,7 +989,7 @@ public sealed class ImplementAbstractClassTests_ThroughMemberTests : AbstractCSh
             {
                 private Base B { get; } = (base1);
             }
-            """, [FeaturesResources.Implement_abstract_class, string.Format(FeaturesResources.Implement_through_0, "B")]);
+            """, [AnalyzersResources.Implement_abstract_class, string.Format(AnalyzersResources.Implement_through_0, "B")]);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/69177")]

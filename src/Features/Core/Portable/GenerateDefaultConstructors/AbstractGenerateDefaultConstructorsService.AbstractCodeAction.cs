@@ -54,7 +54,7 @@ internal abstract partial class AbstractGenerateDefaultConstructorsService<TServ
         private IMethodSymbol CreateConstructorDefinition(
             IMethodSymbol baseConstructor)
         {
-            var syntaxFactory = _document.GetLanguageService<SyntaxGenerator>();
+            var syntaxFactory = _document.GetRequiredLanguageService<SyntaxGenerator>();
             var baseConstructorArguments = baseConstructor.Parameters.Length != 0
                 ? syntaxFactory.CreateArguments(baseConstructor.Parameters)
                 : default;

@@ -44,10 +44,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return FirstMethod(members)
         End Function
 
-        Friend Function AddEventTo(destination As TypeBlockSyntax,
-                                    [event] As IEventSymbol,
-                                    options As CodeGenerationContextInfo,
-                                    availableIndices As IList(Of Boolean)) As TypeBlockSyntax
+        Friend Function AddEventTo(
+                destination As TypeBlockSyntax,
+                [event] As IEventSymbol,
+                options As CodeGenerationContextInfo,
+                availableIndices As IList(Of Boolean)) As TypeBlockSyntax
             Dim eventDeclaration = GenerateEventDeclaration([event], GetDestination(destination), options)
 
             Dim members = Insert(destination.Members, eventDeclaration, options, availableIndices,
@@ -59,9 +60,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return FixTerminators(destination.WithMembers(members))
         End Function
 
-        Public Function GenerateEventDeclaration([event] As IEventSymbol,
-                                                 destination As CodeGenerationDestination,
-                                                 options As CodeGenerationContextInfo) As DeclarationStatementSyntax
+        Public Function GenerateEventDeclaration(
+                [event] As IEventSymbol,
+                destination As CodeGenerationDestination,
+                options As CodeGenerationContextInfo) As DeclarationStatementSyntax
             Dim reusableSyntax = GetReuseableSyntaxNodeForSymbol(Of DeclarationStatementSyntax)([event], options)
             If reusableSyntax IsNot Nothing Then
                 Return reusableSyntax
@@ -72,9 +74,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return AddFormatterAndCodeGeneratorAnnotationsTo(ConditionallyAddDocumentationCommentTo(declaration, [event], options))
         End Function
 
-        Private Function GenerateEventDeclarationWorker([event] As IEventSymbol,
-                                                        destination As CodeGenerationDestination,
-                                                        options As CodeGenerationContextInfo) As DeclarationStatementSyntax
+        Private Function GenerateEventDeclarationWorker(
+                [event] As IEventSymbol,
+                destination As CodeGenerationDestination,
+                options As CodeGenerationContextInfo) As DeclarationStatementSyntax
 
             If options.Context.GenerateMethodBodies AndAlso
                 ([event].AddMethod IsNot Nothing OrElse [event].RemoveMethod IsNot Nothing OrElse [event].RaiseMethod IsNot Nothing) Then
@@ -101,29 +104,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 New SyntaxList(Of StatementSyntax),
                 GenerateStatements([event].RaiseMethod))
 
-            Dim generator As VisualBasicSyntaxGenerator = New VisualBasicSyntaxGenerator()
-
+            Dim generator = options.Generator
             Dim invoke = DirectCast([event].Type, INamedTypeSymbol)?.DelegateInvokeMethod
             Dim parameters = If(
                 invoke IsNot Nothing,
                 invoke.Parameters.Select(Function(p) generator.ParameterDeclaration(p)),
                 Nothing)
 
-            Dim result = DirectCast(generator.CustomEventDeclarationWithRaise(
-                                        [event].Name,
-                                        generator.TypeExpression([event].Type),
-                                        [event].DeclaredAccessibility,
-                                        DeclarationModifiers.From([event]),
-                                        parameters,
-                                        addStatements,
-                                        removeStatements,
-                                        raiseStatements), EventBlockSyntax)
+            Dim result = DirectCast(VisualBasicSyntaxGeneratorInternal.CustomEventDeclarationWithRaise(
+                [event].Name,
+                generator.TypeExpression([event].Type),
+                [event].DeclaredAccessibility,
+                DeclarationModifiers.From([event]),
+                parameters,
+                addStatements,
+                removeStatements,
+                raiseStatements), EventBlockSyntax)
             result = DirectCast(
                 result.WithAttributeLists(GenerateAttributeBlocks([event].GetAttributes(), options)),
                 EventBlockSyntax)
             result = DirectCast(result.WithModifiers(GenerateModifiers([event], destination, options)), EventBlockSyntax)
             Dim explicitInterface = [event].ExplicitInterfaceImplementations.FirstOrDefault()
-            If (explicitInterface IsNot Nothing)
+            If (explicitInterface IsNot Nothing) Then
                 result = result.WithEventStatement(
                     result.EventStatement.WithImplementsClause(GenerateImplementsClause(explicitInterface)))
             End If

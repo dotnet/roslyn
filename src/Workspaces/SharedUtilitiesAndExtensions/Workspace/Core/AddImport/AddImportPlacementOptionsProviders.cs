@@ -21,10 +21,8 @@ internal static class AddImportPlacementOptionsProviders
         => document.Services.GetService<Host.ISpanMappingService>()?.SupportsMappingImportDirectives == true;
 #endif
 
-#if !CODE_STYLE
     public static AddImportPlacementOptions GetAddImportPlacementOptions(this IOptionsReader options, Host.LanguageServices languageServices, bool? allowInHiddenRegions)
         => languageServices.GetRequiredService<IAddImportsService>().GetAddImportOptions(options, allowInHiddenRegions ?? AddImportPlacementOptions.Default.AllowInHiddenRegions);
-#endif
 
     public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, CancellationToken cancellationToken)
     {
