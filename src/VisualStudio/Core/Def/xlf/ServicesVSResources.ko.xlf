@@ -1237,11 +1237,6 @@
         <target state="translated">변경 내용 검토</target>
         <note />
       </trans-unit>
-      <trans-unit id="Roslyn_save_command_handler">
-        <source>Roslyn save command handler</source>
-        <target state="translated">Roslyn 저장 명령 처리기</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">{0}에서 코드 분석 실행</target>
