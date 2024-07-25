@@ -660,11 +660,6 @@ Verifique se o especificador "tt" foi usado para idiomas para os quais é necess
         <target state="translated">Ignorar</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
-        <source>Do not change this code. Put cleanup code in '{0}' method</source>
-        <target state="translated">Não altere este código. Coloque o código de limpeza no método '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">O conteúdo atual do arquivo de origem '{0}' não corresponde à origem criada. Todas as alterações feitas neste arquivo durante a depuração não serão aplicadas até que o conteúdo corresponda à origem criada.</target>

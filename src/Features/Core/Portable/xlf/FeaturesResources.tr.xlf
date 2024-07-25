@@ -660,11 +660,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Kapat</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
-        <source>Do not change this code. Put cleanup code in '{0}' method</source>
-        <target state="translated">Bu kodu değiştirmeyin. Temizleme kodunu '{0}' metodunun içine yerleştirin.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">'{0}' kaynak dosyasının geçerli içeriği, derlenen kaynakla eşleşmiyor. Hata ayıklama işlemi sırasında bu dosyada yapılan değişiklikler, dosyanın içeriği derlenen kaynakla eşleşene kadar uygulanmaz.</target>

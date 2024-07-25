@@ -660,11 +660,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">關閉</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
-        <source>Do not change this code. Put cleanup code in '{0}' method</source>
-        <target state="translated">請勿變更此程式碼。請將清除程式碼放入 '{0}' 方法</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">來源檔案 '{0}' 目前的內容與已建置的來源不一致。等到此檔案的內容與已建置的來源一致後，才會套用於偵錯期間對此檔案所做的所有變更。</target>

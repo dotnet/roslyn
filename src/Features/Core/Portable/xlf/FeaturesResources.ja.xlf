@@ -660,11 +660,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">無視</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
-        <source>Do not change this code. Put cleanup code in '{0}' method</source>
-        <target state="translated">このコードを変更しないでください。クリーンアップ コードを '{0}' メソッドに記述します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">ソース ファイル '{0}' の現在のコンテンツが、ビルドされたソースと一致しません。デバッグ中にこのファイルに加えられた変更は、そのコンテンツがビルドされたソースと一致するまで適用されません。</target>
