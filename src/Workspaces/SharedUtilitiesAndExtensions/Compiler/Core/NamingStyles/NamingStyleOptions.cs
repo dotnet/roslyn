@@ -33,12 +33,3 @@ internal interface NamingStylePreferencesProvider
 #endif
 {
 }
-
-internal static class NamingStylePreferencesProviders
-{
-    public static async ValueTask<NamingStylePreferences> GetNamingStylePreferencesAsync(this Document document, CancellationToken cancellationToken)
-    {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetEditorConfigOption(NamingStyleOptions.NamingPreferences, NamingStylePreferences.Default);
-    }
-}

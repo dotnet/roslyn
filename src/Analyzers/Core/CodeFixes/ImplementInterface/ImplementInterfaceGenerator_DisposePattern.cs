@@ -155,7 +155,7 @@ internal abstract partial class AbstractImplementInterfaceService
             var ifDisposingStatement = g.IfStatement(g.IdentifierName(DisposingName), []);
             ifDisposingStatement = Service.AddCommentInsideIfStatement(
                 ifDisposingStatement,
-                CreateCommentTrivia(CodeFixesResources.TODO_colon_dispose_managed_state_managed_objects))
+                this.Service.CreateCommentTrivia(CodeFixesResources.TODO_colon_dispose_managed_state_managed_objects))
                     .WithoutTrivia().WithTrailingTrivia(gi.CarriageReturnLineFeed, gi.CarriageReturnLineFeed);
 
             // TODO: free unmanaged ...
@@ -163,7 +163,7 @@ internal abstract partial class AbstractImplementInterfaceService
             // disposedValue = true
             var disposedValueEqualsTrueStatement = this.Service.AddComments(
                 CodeFixesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer,
-                FeaturesCodeFixesResourcesResources.TODO_colon_set_large_fields_to_null,
+                CodeFixesResources.TODO_colon_set_large_fields_to_null,
                 g.AssignmentStatement(
                     g.IdentifierName(disposedValueField.Name), g.TrueLiteralExpression()));
 
@@ -195,7 +195,7 @@ internal abstract partial class AbstractImplementInterfaceService
 
             // // Do not change...
             // Dispose(true);
-            statements.Add(AddComment(
+            statements.Add(this.Service.AddComment(
                 string.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, disposeMethodDisplayString),
                 g.ExpressionStatement(
                     g.InvocationExpression(
