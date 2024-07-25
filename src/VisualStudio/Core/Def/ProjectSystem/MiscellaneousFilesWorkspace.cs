@@ -113,7 +113,6 @@ internal sealed partial class MiscellaneousFilesWorkspace : Workspace, IOpenText
     /// </summary>
     void IOpenTextBufferEventListener.OnSaveDocument(string moniker) { }
 
-
     public void RegisterLanguage(Guid languageGuid, string languageName, string scriptExtension)
         => _languageInformationByLanguageGuid.Add(languageGuid, new LanguageInformation(languageName, scriptExtension));
 
