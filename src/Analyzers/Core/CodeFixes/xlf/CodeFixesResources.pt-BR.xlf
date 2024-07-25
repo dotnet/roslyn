@@ -77,6 +77,36 @@
         <target state="translated">Corrigir violação de nome: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_all">
+        <source>Generate all</source>
+        <target state="new">Generate all</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_0_1">
+        <source>Generate constructor '{0}({1})'</source>
+        <target state="new">Generate constructor '{0}({1})'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0">
+        <source>Generate constructor in '{0}'</source>
+        <target state="new">Generate constructor in '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0_with_fields">
+        <source>Generate constructor in '{0}' (with fields)</source>
+        <target state="new">Generate constructor in '{0}' (with fields)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0_with_properties">
+        <source>Generate constructor in '{0}' (with properties)</source>
+        <target state="new">Generate constructor in '{0}' (with properties)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_field_assigning_constructor_0_1">
+        <source>Generate field assigning constructor '{0}({1})'</source>
+        <target state="new">Generate field assigning constructor '{0}({1})'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_members_explicitly">
         <source>Implement all members explicitly</source>
         <target state="new">Implement all members explicitly</target>
