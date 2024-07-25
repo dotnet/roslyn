@@ -1237,11 +1237,6 @@
         <target state="translated">Zkontrolovat změny</target>
         <note />
       </trans-unit>
-      <trans-unit id="Roslyn_save_command_handler">
-        <source>Roslyn save command handler</source>
-        <target state="translated">Obslužná rutina příkazu pro uložení v Roslynu</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">Spustit analýzu kódu {0}</target>
