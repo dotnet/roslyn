@@ -129,6 +129,10 @@ internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompl
                 // too aggressive at suggesting tags, so exit early before degrading the experience
                 return null;
             }
+            else if (trigger.Kind == CompletionTriggerKind.Deletion)
+            {
+                return null;
+            }
 
             var items = new List<CompletionItem>();
 

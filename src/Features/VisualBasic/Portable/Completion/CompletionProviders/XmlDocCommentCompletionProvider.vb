@@ -78,6 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
                 ' If the user is typing in xml text, don't trigger on backspace.
                 If token.IsKind(SyntaxKind.XmlTextLiteralToken) AndAlso
+                    Not token.Parent.IsKind(SyntaxKind.XmlString) AndAlso
                     trigger.Kind = CompletionTriggerKind.Deletion Then
                     Return Nothing
                 End If
