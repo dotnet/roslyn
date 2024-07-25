@@ -18,7 +18,7 @@
         <note />
       </trans-unit>
       <trans-unit id="Add_explicit_cast">
-        <source>Add explicit casts</source>
+        <source>Add explicit cast</source>
         <target state="needs-review-translation">明示的なキャストの追加</target>
         <note />
       </trans-unit>
