@@ -20,7 +20,7 @@ internal abstract partial class AbstractGenerateDefaultConstructorsService<TServ
             var parameterString = string.Join(", ", parameters);
 
             Contract.ThrowIfNull(state.ClassType);
-            return string.Format(FeaturesResources.Generate_constructor_0_1,
+            return string.Format(CodeFixesResources.Generate_constructor_0_1,
                 state.ClassType.Name, parameterString);
         }
     }

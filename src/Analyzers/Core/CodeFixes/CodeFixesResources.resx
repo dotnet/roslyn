@@ -213,4 +213,19 @@
   <data name="_0_may_change_semantics" xml:space="preserve">
     <value>{0} (may change semantics)</value>
   </data>
+  <data name="Generate_constructor_in_0" xml:space="preserve">
+    <value>Generate constructor in '{0}'</value>
+  </data>
+  <data name="Generate_constructor_in_0_with_fields" xml:space="preserve">
+    <value>Generate constructor in '{0}' (with fields)</value>
+  </data>
+  <data name="Generate_constructor_in_0_with_properties" xml:space="preserve">
+    <value>Generate constructor in '{0}' (with properties)</value>
+  </data>
+  <data name="Generate_constructor_0_1" xml:space="preserve">
+    <value>Generate constructor '{0}({1})'</value>
+  </data>
+  <data name="Generate_all" xml:space="preserve">
+    <value>Generate all</value>
+  </data>
 </root>

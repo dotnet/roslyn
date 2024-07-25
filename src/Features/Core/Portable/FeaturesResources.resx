@@ -201,9 +201,6 @@
   <data name="Generate_delegating_constructor_0_1" xml:space="preserve">
     <value>Generate delegating constructor '{0}({1})'</value>
   </data>
-  <data name="Generate_constructor_0_1" xml:space="preserve">
-    <value>Generate constructor '{0}({1})'</value>
-  </data>
   <data name="Generate_field_assigning_constructor_0_1" xml:space="preserve">
     <value>Generate field assigning constructor '{0}({1})'</value>
   </data>
@@ -215,12 +212,6 @@
   </data>
   <data name="Generate_GetHashCode" xml:space="preserve">
     <value>Generate GetHashCode()</value>
-  </data>
-  <data name="Generate_constructor_in_0" xml:space="preserve">
-    <value>Generate constructor in '{0}'</value>
-  </data>
-  <data name="Generate_all" xml:space="preserve">
-    <value>Generate all</value>
   </data>
   <data name="Generate_enum_member_0" xml:space="preserve">
     <value>Generate enum member '{0}'</value>
@@ -2617,12 +2608,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Document_must_be_contained_in_the_workspace_that_created_this_service" xml:space="preserve">
     <value>Document must be contained in the workspace that created this service</value>
-  </data>
-  <data name="Generate_constructor_in_0_with_fields" xml:space="preserve">
-    <value>Generate constructor in '{0}' (with fields)</value>
-  </data>
-  <data name="Generate_constructor_in_0_with_properties" xml:space="preserve">
-    <value>Generate constructor in '{0}' (with properties)</value>
   </data>
   <data name="Property_reference_cannot_be_updated" xml:space="preserve">
     <value>Property reference cannot be updated</value>

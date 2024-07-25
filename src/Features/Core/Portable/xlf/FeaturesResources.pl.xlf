@@ -845,16 +845,6 @@ Pamiętaj, aby nie używać specyfikatora „tt” dla wszystkich języków, w k
         <target state="translated">Generuj stałą „{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_fields">
-        <source>Generate constructor in '{0}' (with fields)</source>
-        <target state="translated">Generuj konstruktor w elemencie „{0}” (z polami)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_properties">
-        <source>Generate constructor in '{0}' (with properties)</source>
-        <target state="translated">Generuj konstruktor w elemencie „{0}” (z właściwościami)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
         <target state="translated">Generuj składową wyliczenia „{0}”</target>
@@ -3905,11 +3895,6 @@ Jeśli specyfikator formatu „M” jest używany bez innych niestandardowych sp
         <target state="translated">Generuj konstruktor delegowania „{0}({1})”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_0_1">
-        <source>Generate constructor '{0}({1})'</source>
-        <target state="translated">Generuj konstruktor „{0}({1})”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_field_assigning_constructor_0_1">
         <source>Generate field assigning constructor '{0}({1})'</source>
         <target state="translated">Generuj konstruktor przypisujący pola „{0}({1})”</target>
@@ -3928,16 +3913,6 @@ Jeśli specyfikator formatu „M” jest używany bez innych niestandardowych sp
       <trans-unit id="Generate_GetHashCode">
         <source>Generate GetHashCode()</source>
         <target state="translated">Generuj element GetHashCode()</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0">
-        <source>Generate constructor in '{0}'</source>
-        <target state="translated">Generuj konstruktor w elemencie „{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_all">
-        <source>Generate all</source>
-        <target state="translated">Generuj wszystko</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_local_0">

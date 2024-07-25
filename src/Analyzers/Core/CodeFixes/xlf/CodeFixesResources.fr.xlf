@@ -72,6 +72,31 @@
         <target state="translated">Corrigez la violation de nom : {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_all">
+        <source>Generate all</source>
+        <target state="new">Generate all</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_0_1">
+        <source>Generate constructor '{0}({1})'</source>
+        <target state="new">Generate constructor '{0}({1})'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0">
+        <source>Generate constructor in '{0}'</source>
+        <target state="new">Generate constructor in '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0_with_fields">
+        <source>Generate constructor in '{0}' (with fields)</source>
+        <target state="new">Generate constructor in '{0}' (with fields)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0_with_properties">
+        <source>Generate constructor in '{0}' (with properties)</source>
+        <target state="new">Generate constructor in '{0}' (with properties)</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
         <target state="translated">Rendre la classe 'abstract'</target>

@@ -845,16 +845,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">'{0}' sabitini üret</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_fields">
-        <source>Generate constructor in '{0}' (with fields)</source>
-        <target state="translated">'{0}' içinde oluşturucu üret (alanlarla birlikte)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_properties">
-        <source>Generate constructor in '{0}' (with properties)</source>
-        <target state="translated">'{0}' içinde oluşturucu üret (özelliklerle birlikte)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
         <target state="translated">'{0}' sabit listesi üyesini üret</target>
@@ -3905,11 +3895,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">{0}({1})' temsilci oluşturucusunu üret</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_0_1">
-        <source>Generate constructor '{0}({1})'</source>
-        <target state="translated">{0}({1})' oluşturucusunu üret</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_field_assigning_constructor_0_1">
         <source>Generate field assigning constructor '{0}({1})'</source>
         <target state="translated">{0}({1})' alan atama oluşturucusunu üret</target>
@@ -3928,16 +3913,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Generate_GetHashCode">
         <source>Generate GetHashCode()</source>
         <target state="translated">GetHashCode() oluştur</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0">
-        <source>Generate constructor in '{0}'</source>
-        <target state="translated">'{0}' içinde oluşturucu üretin</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_all">
-        <source>Generate all</source>
-        <target state="translated">Tümünü üret</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_local_0">
