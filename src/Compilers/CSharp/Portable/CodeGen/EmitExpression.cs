@@ -1003,6 +1003,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitArrayElementLoad(BoundArrayAccess arrayAccess, bool used)
         {
+            if (arrayAccess.IsRef)
+            {
+                Debug.Assert(!used);
+                EmitArrayElementAddress(arrayAccess, AddressKind.Writeable);
+                EmitPopIfUnused(used);
+                return;
+            }
+
             EmitExpression(arrayAccess.Expression, used: true);
             EmitArrayIndices(arrayAccess.Indices);
 

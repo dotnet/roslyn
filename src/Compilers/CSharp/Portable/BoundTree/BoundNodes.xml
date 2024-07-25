@@ -659,6 +659,13 @@
 
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="Indices" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+
+    <!--
+      Ref array access has side effects (element type mismatch check)
+      so if it remains standalone (e.g., because the result is discarded)
+      we need to know if the original assignment was ref to emit it correctly.
+    -->
+    <Field Name="IsRef" Type="bool" />
   </Node>
 
   <!--
