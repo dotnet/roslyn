@@ -7545,21 +7545,21 @@ class Program : IDisposable
     public async Task TestDisposePatternWhenAdditionalUsingsAreIntroduced1()
     {
 #if NET9_0_OR_GREATER
-        string extraUsing = """
+        var extraUsing = """
 
             using System.Diagnostics.CodeAnalysis;
             """;
 
-        string equalsMethod = """
+        var equalsMethod = """
                 public bool Equals([AllowNull] int other)
                 {
                     throw new NotImplementedException();
                 }
             """;
 #else
-        string extraUsing = "";
+        var extraUsing = "";
 
-        string equalsMethod = """
+        var equalsMethod = """
                 public bool Equals(int other)
                 {
                     throw new NotImplementedException();
