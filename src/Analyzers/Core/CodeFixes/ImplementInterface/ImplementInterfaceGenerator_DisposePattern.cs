@@ -104,11 +104,11 @@ internal abstract partial class AbstractImplementInterfaceService
             var finalizerLines = finalizer.ToFullString().Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
-            var finalizerComments = CreateCommentTrivia(generator, finalizerLines);
+            var finalizerComments = this.Service.CreateCommentTrivia(finalizerLines);
 
             var lastMemberWithComments = lastGeneratedMember.WithPrependedLeadingTrivia(
-                finalizerComments.Insert(0, generator.CarriageReturnLineFeed)
-                                 .Add(generator.CarriageReturnLineFeed));
+                finalizerComments.Insert(0, this.Service.SyntaxGeneratorInternal.CarriageReturnLineFeed)
+                                 .Add(this.Service.SyntaxGeneratorInternal.CarriageReturnLineFeed));
 
             var finalRoot = root.ReplaceNode(lastGeneratedMember, lastMemberWithComments);
             return document.WithSyntaxRoot(finalRoot);
@@ -146,6 +146,7 @@ internal abstract partial class AbstractImplementInterfaceService
                 : DeclarationModifiers.Virtual;
 
             var g = this.Document.GetRequiredLanguageService<SyntaxGenerator>();
+            var gi = this.Service.SyntaxGeneratorInternal;
 
             // if (disposing)
             // {
@@ -154,15 +155,15 @@ internal abstract partial class AbstractImplementInterfaceService
             var ifDisposingStatement = g.IfStatement(g.IdentifierName(DisposingName), []);
             ifDisposingStatement = Service.AddCommentInsideIfStatement(
                 ifDisposingStatement,
-                CreateCommentTrivia(g, FeaturesResources.TODO_colon_dispose_managed_state_managed_objects))
-                    .WithoutTrivia().WithTrailingTrivia(g.CarriageReturnLineFeed, g.CarriageReturnLineFeed);
+                CreateCommentTrivia(CodeFixesResources.TODO_colon_dispose_managed_state_managed_objects))
+                    .WithoutTrivia().WithTrailingTrivia(gi.CarriageReturnLineFeed, gi.CarriageReturnLineFeed);
 
             // TODO: free unmanaged ...
             // TODO: set large fields...
             // disposedValue = true
-            var disposedValueEqualsTrueStatement = AddComments(g,
-                FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer,
-                FeaturesResources.TODO_colon_set_large_fields_to_null,
+            var disposedValueEqualsTrueStatement = this.Service.AddComments(
+                CodeFixesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer,
+                FeaturesCodeFixesResourcesResources.TODO_colon_set_large_fields_to_null,
                 g.AssignmentStatement(
                     g.IdentifierName(disposedValueField.Name), g.TrueLiteralExpression()));
 
@@ -176,10 +177,9 @@ internal abstract partial class AbstractImplementInterfaceService
                 accessibility: accessibility,
                 modifiers: modifiers,
                 name: disposeMethod.Name,
-                parameters: ImmutableArray.Create(
-                    CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        compilation.GetSpecialType(SpecialType.System_Boolean),
-                        DisposingName)),
+                parameters: [CodeGenerationSymbolFactory.CreateParameterSymbol(
+                    compilation.GetSpecialType(SpecialType.System_Boolean),
+                    DisposingName)],
                 statements: [ifStatement]);
         }
 
@@ -195,7 +195,7 @@ internal abstract partial class AbstractImplementInterfaceService
 
             // // Do not change...
             // Dispose(true);
-            statements.Add(AddComment(g,
+            statements.Add(AddComment(
                 string.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, disposeMethodDisplayString),
                 g.ExpressionStatement(
                     g.InvocationExpression(

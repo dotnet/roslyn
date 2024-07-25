@@ -57,17 +57,16 @@ internal abstract partial class AbstractImplementInterfaceService() : IImplement
         return State.Generate(this, document, model, interfaceType, cancellationToken);
     }
 
-    protected TNode AddComment<TNode>(SyntaxGenerator g, string comment, TNode node) where TNode : SyntaxNode
-        => AddComments(g, [comment], node);
+    protected TNode AddComment<TNode>(string comment, TNode node) where TNode : SyntaxNode
+        => AddComments([comment], node);
 
-    protected TNode AddComments<TNode>(SyntaxGenerator g, string comment1, string comment2, TNode node) where TNode : SyntaxNode
-        => AddComments(g, [comment1, comment2], node);
+    protected TNode AddComments<TNode>(string comment1, string comment2, TNode node) where TNode : SyntaxNode
+        => AddComments([comment1, comment2], node);
 
-    protected TNode AddComments<TNode>(SyntaxGenerator g, string[] comments, TNode node) where TNode : SyntaxNode
-        => node.WithPrependedLeadingTrivia(CreateCommentTrivia(g, comments));
+    protected TNode AddComments<TNode>(string[] comments, TNode node) where TNode : SyntaxNode
+        => node.WithPrependedLeadingTrivia(CreateCommentTrivia(comments));
 
     protected SyntaxTriviaList CreateCommentTrivia(
-        SyntaxGenerator generator,
         params string[] comments)
     {
         using var _ = ArrayBuilder<SyntaxTrivia>.GetInstance(out var trivia);

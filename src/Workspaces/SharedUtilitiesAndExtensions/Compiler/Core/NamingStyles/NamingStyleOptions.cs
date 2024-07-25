@@ -34,7 +34,6 @@ internal interface NamingStylePreferencesProvider
 {
 }
 
-#if !CODE_STYLE
 internal static class NamingStylePreferencesProviders
 {
     public static async ValueTask<NamingStylePreferences> GetNamingStylePreferencesAsync(this Document document, CancellationToken cancellationToken)
@@ -43,4 +42,3 @@ internal static class NamingStylePreferencesProviders
         return configOptions.GetEditorConfigOption(NamingStyleOptions.NamingPreferences, NamingStylePreferences.Default);
     }
 }
-#endif

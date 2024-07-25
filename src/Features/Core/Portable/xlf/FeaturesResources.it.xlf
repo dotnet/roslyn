@@ -2715,16 +2715,6 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Errore di sintassi</target>
         <note />
       </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
-        <target state="translated">TODO: liberare risorse non gestite (oggetti non gestiti) ed eseguire l'override del finalizzatore</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
-        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
-        <target state="translated">TODO: eseguire l'override del finalizzatore solo se '{0}' contiene codice per liberare risorse non gestite</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
         <target state="translated">Imposta destinazione per corrispondenze di tipo</target>
@@ -4248,16 +4238,6 @@ Continuare?</target>
       <trans-unit id="Solution">
         <source>Solution</source>
         <target state="translated">Soluzione</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects)</source>
-        <target state="translated">TODO: eliminare lo stato gestito (oggetti gestiti)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null</source>
-        <target state="translated">TODO: impostare campi di grandi dimensioni su Null</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler2">

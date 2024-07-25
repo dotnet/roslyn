@@ -2715,16 +2715,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">구문 오류</target>
         <note />
       </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
-        <target state="translated">TODO: 비관리형 리소스(비관리형 개체)를 해제하고 종료자를 재정의합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
-        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
-        <target state="translated">TODO: 비관리형 리소스를 해제하는 코드가 '{0}'에 포함된 경우에만 종료자를 재정의합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
         <target state="translated">대상 유형 일치</target>
@@ -4248,16 +4238,6 @@ Do you want to continue?</source>
       <trans-unit id="Solution">
         <source>Solution</source>
         <target state="translated">솔루션</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects)</source>
-        <target state="translated">TODO: 관리형 상태(관리형 개체)를 삭제합니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null</source>
-        <target state="translated">TODO: 큰 필드를 null로 설정합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler2">
