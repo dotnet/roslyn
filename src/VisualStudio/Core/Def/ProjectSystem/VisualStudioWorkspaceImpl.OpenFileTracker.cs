@@ -31,7 +31,7 @@ internal partial class VisualStudioWorkspaceImpl
     /// <summary>
     /// Singleton the updates the workspace in response to files being opened or closed.
     /// </summary>
-    public sealed class OpenFileTracker : IOpenTextBufferEventListener
+    public sealed partial class OpenFileTracker : IOpenTextBufferEventListener
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
@@ -82,12 +82,6 @@ internal partial class VisualStudioWorkspaceImpl
         {
             TryClosingDocumentsForMoniker(oldMoniker);
             TryOpeningDocumentsForMonikerAndSetContextOnUIThread(newMoniker, buffer, hierarchy: _openTextBufferProvider.GetDocumentHierarchy(newMoniker));
-        }
-
-        void IOpenTextBufferEventListener.OnSaveDocument(string moniker)
-        {
-            var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
-            _workspace.EnqueueUpdateSourceGeneratorVersion
         }
 
         public static async Task<OpenFileTracker> CreateAsync(VisualStudioWorkspaceImpl workspace, ProjectSystemProjectFactory projectSystemProjectFactory, IAsyncServiceProvider asyncServiceProvider)
