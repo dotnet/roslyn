@@ -49,6 +49,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseCodeFixProvider.AddNewKeywordAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\CSharpImplementAbstractClassCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\CSharpImplementInterfaceCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\CSharpImplementInterfaceService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\CSharpAddYieldCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\CSharpChangeToIEnumerableCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeAnonymousFunctionStatic\CSharpMakeAnonymousFunctionStaticCodeFixProvider.cs" />
