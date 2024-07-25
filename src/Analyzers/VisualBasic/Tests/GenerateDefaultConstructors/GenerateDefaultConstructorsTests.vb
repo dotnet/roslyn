@@ -6,15 +6,19 @@
 #If NET472 Then
 
 Imports VerifyCodeFix = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeFixVerifier(Of
-        Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
-        Microsoft.CodeAnalysis.VisualBasic.GenerateDefaultConstructors.VisualBasicGenerateDefaultConstructorsCodeFixProvider)
+    Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer,
+    Microsoft.CodeAnalysis.VisualBasic.GenerateDefaultConstructors.VisualBasicGenerateDefaultConstructorsCodeFixProvider)
 
+#If Not CODE_STYLE Then
 Imports VerifyRefactoring = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.VisualBasicCodeRefactoringVerifier(Of
-        Microsoft.CodeAnalysis.GenerateDefaultConstructors.GenerateDefaultConstructorsCodeRefactoringProvider)
+    Microsoft.CodeAnalysis.GenerateDefaultConstructors.GenerateDefaultConstructorsCodeRefactoringProvider)
+#End If
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateDefaultConstructors
     <UseExportProvider>
     Public Class GenerateDefaultConstructorsTests
+
+#If Not CODE_STYLE Then
 
         Private Shared Async Function TestRefactoringAsync(source As String, fixedSource As String, Optional index As Integer = 0) As Task
             Await TestRefactoringOnlyAsync(source, fixedSource, index)
@@ -30,6 +34,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateDefaultCon
             }.RunAsync()
         End Function
 
+#End If
+
         Private Shared Async Function TestCodeFixAsync(source As String, fixedSource As String, Optional index As Integer = 0) As Task
             Await New VerifyCodeFix.Test With
             {
@@ -38,8 +44,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateDefaultCon
                 .CodeActionIndex = index
             }.RunAsync()
 
+#If Not CODE_STYLE Then
             Await TestRefactoringMissingAsync(source)
+#End If
         End Function
+
+#If Not CODE_STYLE Then
 
         Private Shared Async Function TestRefactoringMissingAsync(source As String) As Task
             Await New VerifyRefactoring.Test With
@@ -48,6 +58,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateDefaultCon
                 .FixedCode = source
             }.RunAsync()
         End Function
+
+#End If
 
         Private Shared Async Function TestCodeFixMissingAsync(source As String) As Task
             source = source.Replace("[||]", "")
@@ -58,170 +70,310 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateDefaultCon
             }.RunAsync()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Async Function TestException0() As Task
-            Await TestRefactoringAsync(
-"Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Class Program
-    Inherits [||]Exception
-    Sub Main(args As String())
-    End Sub
-End Class",
-"Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Class Program
-    Inherits Exception
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestGenerateInDerivedType_InvalidClassStatement() As Task
+            Await TestCodeFixAsync(
+"
+Public Class Base
+    Public Sub New(a As Integer, Optional b As String = Nothing)
 
-    Public Sub New()
     End Sub
-
-    Sub Main(args As String())
-    End Sub
-End Class")
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Async Function TestException1() As Task
-            Await TestRefactoringAsync(
-"Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Class Program
-    Inherits [||]Exception
-    Sub Main(args As String())
-    End Sub
-End Class",
-"Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Class Program
-    Inherits Exception
-
-    Public Sub New(message As String)
-        MyBase.New(message)
-    End Sub
-
-    Sub Main(args As String())
-    End Sub
-End Class",
-index:=1)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Async Function TestException2() As Task
-            Await TestRefactoringAsync(
-"Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Class Program
-    Inherits [||]Exception
-    Sub Main(args As String())
-    End Sub
-End Class",
-"Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Class Program
-    Inherits Exception
-
-    Public Sub New(message As String, innerException As Exception)
-        MyBase.New(message, innerException)
-    End Sub
-
-    Sub Main(args As String())
-    End Sub
-End Class",
-index:=2)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Async Function TestException3() As Task
-            Await TestRefactoringAsync(
-"Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Class Program
-    Inherits [||]Exception
-    Sub Main(args As String())
-    End Sub
-End Class",
-"Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Runtime.Serialization
-Class Program
-    Inherits Exception
-
-    Protected Sub New(info As SerializationInfo, context As StreamingContext)
-        MyBase.New(info, context)
-    End Sub
-
-    Sub Main(args As String())
-    End Sub
-End Class",
-index:=3)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        Public Async Function TestException4() As Task
-            Await TestRefactoringAsync(
-"Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Class Program
-    Inherits [||]Exception
-    Sub Main(args As String())
-    End Sub
-End Class",
-"Imports System
-Imports System.Collections.Generic
-Imports System.Linq
-Imports System.Runtime.Serialization
-Class Program
-    Inherits Exception
-
-    Public Sub New()
-    End Sub
-
-    Public Sub New(message As String)
-        MyBase.New(message)
-    End Sub
-
-    Public Sub New(message As String, innerException As Exception)
-        MyBase.New(message, innerException)
-    End Sub
-
-    Protected Sub New(info As SerializationInfo, context As StreamingContext)
-        MyBase.New(info, context)
-    End Sub
-
-    Sub Main(args As String())
-    End Sub
-End Class",
-index:=4)
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539676")>
-        Public Async Function TestNotOfferedOnResolvedBaseClassName() As Task
-            Await TestRefactoringAsync(
-"Class Base
 End Class
-Class Derived
-    Inherits B[||]ase
-End Class",
-"Class Base
-End Class
-Class Derived
+
+Public [||]Class {|BC30203:|}{|BC30387:|}{|BC30037:;|}{|BC30037:;|}Derived
     Inherits Base
 
-    Public Sub New()
+End Class",
+"
+Public Class Base
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+
+    End Sub
+End Class
+
+Public Class {|BC30203:|}{|BC30037:;|}{|BC30037:;|}Derived
+    Inherits Base
+
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+        MyBase.New(a, b)
     End Sub
 End Class")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem("https://github.com/dotnet/Roslyn/issues/6541")>
+        Public Async Function TestGenerateInDerivedType1() As Task
+            Await TestCodeFixAsync(
+"
+Public Class Base
+    Public Sub New(a As String)
+
+    End Sub
+End Class
+
+Public Class [||]{|BC30387:Derived|}
+    Inherits Base
+
+End Class",
+"
+Public Class Base
+    Public Sub New(a As String)
+
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Sub New(a As String)
+        MyBase.New(a)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <WorkItem("https://github.com/dotnet/Roslyn/issues/6541")>
+        Public Async Function TestGenerateInDerivedType2() As Task
+            Await TestCodeFixAsync(
+"
+Public Class Base
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+
+    End Sub
+End Class
+
+Public Class [||]{|BC30387:Derived|}
+    Inherits Base
+
+End Class",
+"
+Public Class Base
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+
+    End Sub
+End Class
+
+Public Class Derived
+    Inherits Base
+
+    Public Sub New(a As Integer, Optional b As String = Nothing)
+        MyBase.New(a, b)
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25238")>
+        Public Async Function TestGenerateConstructorFromFriendConstructor() As Task
+            Await TestCodeFixAsync(
+<Text>Class {|BC30387:C|}
+    Inherits B[||]
+End Class
+
+MustInherit Class B
+    Friend Sub New(x As Integer)
+    End Sub
+End Class</Text>.Value.Replace(vbLf, vbCrLf),
+<Text>Class C
+    Inherits B
+
+    Public Sub New(x As Integer)
+        MyBase.New(x)
+    End Sub
+End Class
+
+MustInherit Class B
+    Friend Sub New(x As Integer)
+    End Sub
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25238")>
+        Public Async Function TestGenerateConstructorFromFriendConstructor2() As Task
+            Await TestCodeFixAsync(
+<Text>MustInherit Class {|BC30387:C|}
+    Inherits B[||]
+End Class
+
+MustInherit Class B
+    Friend Sub New(x As Integer)
+    End Sub
+End Class</Text>.Value.Replace(vbLf, vbCrLf),
+<Text>MustInherit Class C
+    Inherits B
+
+    Friend Sub New(x As Integer)
+        MyBase.New(x)
+    End Sub
+End Class
+
+MustInherit Class B
+    Friend Sub New(x As Integer)
+    End Sub
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25238")>
+        Public Async Function TestGenerateConstructorFromProtectedConstructor() As Task
+            Await TestCodeFixAsync(
+<Text>Class {|BC30387:C|}
+    Inherits B[||]
+End Class
+
+MustInherit Class B
+    Protected Sub New(x As Integer)
+    End Sub
+End Class</Text>.Value.Replace(vbLf, vbCrLf),
+<Text>Class C
+    Inherits B
+
+    Public Sub New(x As Integer)
+        MyBase.New(x)
+    End Sub
+End Class
+
+MustInherit Class B
+    Protected Sub New(x As Integer)
+    End Sub
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25238")>
+        Public Async Function TestGenerateConstructorFromProtectedConstructor2() As Task
+            Await TestCodeFixAsync(
+<Text>MustInherit Class {|BC30387:C|}
+    Inherits B[||]
+End Class
+
+MustInherit Class B
+    Protected Sub New(x As Integer)
+    End Sub
+End Class</Text>.Value.Replace(vbLf, vbCrLf),
+<Text>MustInherit Class C
+    Inherits B
+
+    Protected Sub New(x As Integer)
+        MyBase.New(x)
+    End Sub
+End Class
+
+MustInherit Class B
+    Protected Sub New(x As Integer)
+    End Sub
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25238")>
+        Public Async Function TestGenerateConstructorFromProtectedFriendConstructor() As Task
+            Await TestCodeFixAsync(
+<Text>Class {|BC30387:C|}
+    Inherits B[||]
+End Class
+
+MustInherit Class B
+    Protected Friend Sub New(x As Integer)
+    End Sub
+End Class</Text>.Value.Replace(vbLf, vbCrLf),
+<Text>Class C
+    Inherits B
+
+    Public Sub New(x As Integer)
+        MyBase.New(x)
+    End Sub
+End Class
+
+MustInherit Class B
+    Protected Friend Sub New(x As Integer)
+    End Sub
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25238")>
+        Public Async Function TestGenerateConstructorFromProtectedFriendConstructor2() As Task
+            Await TestCodeFixAsync(
+<Text>MustInherit Class {|BC30387:C|}
+    Inherits B[||]
+End Class
+
+MustInherit Class B
+    Protected Friend Sub New(x As Integer)
+    End Sub
+End Class</Text>.Value.Replace(vbLf, vbCrLf),
+<Text>MustInherit Class C
+    Inherits B
+
+    Protected Friend Sub New(x As Integer)
+        MyBase.New(x)
+    End Sub
+End Class
+
+MustInherit Class B
+    Protected Friend Sub New(x As Integer)
+    End Sub
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25238")>
+        Public Async Function TestGenerateConstructorFromPublicConstructor() As Task
+            Await TestCodeFixAsync(
+<Text>Class {|BC30387:C|}
+    Inherits B[||]
+End Class
+
+MustInherit Class B
+    Public Sub New(x As Integer)
+    End Sub
+End Class</Text>.Value.Replace(vbLf, vbCrLf),
+<Text>Class C
+    Inherits B
+
+    Public Sub New(x As Integer)
+        MyBase.New(x)
+    End Sub
+End Class
+
+MustInherit Class B
+    Public Sub New(x As Integer)
+    End Sub
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/35208")>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/25238")>
+        Public Async Function TestGenerateConstructorInAbstractClassFromPublicConstructor() As Task
+            Await TestCodeFixAsync(
+<Text>MustInherit Class {|BC30387:C|}
+    Inherits B[||]
+End Class
+
+MustInherit Class B
+    Public Sub New(x As Integer)
+    End Sub
+End Class</Text>.Value.Replace(vbLf, vbCrLf),
+<Text>MustInherit Class C
+    Inherits B
+
+    Protected Sub New(x As Integer)
+        MyBase.New(x)
+    End Sub
+End Class
+
+MustInherit Class B
+    Public Sub New(x As Integer)
+    End Sub
+End Class</Text>.Value.Replace(vbLf, vbCrLf))
+        End Function
+
+#If Not CODE_STYLE Then
+
+
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestNotOfferedOnUnresolvedBaseClassName() As Task
@@ -458,6 +610,171 @@ Class B
 End Class</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestException0() As Task
+            Await TestRefactoringAsync(
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class Program
+    Inherits [||]Exception
+    Sub Main(args As String())
+    End Sub
+End Class",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class Program
+    Inherits Exception
+
+    Public Sub New()
+    End Sub
+
+    Sub Main(args As String())
+    End Sub
+End Class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestException1() As Task
+            Await TestRefactoringAsync(
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class Program
+    Inherits [||]Exception
+    Sub Main(args As String())
+    End Sub
+End Class",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class Program
+    Inherits Exception
+
+    Public Sub New(message As String)
+        MyBase.New(message)
+    End Sub
+
+    Sub Main(args As String())
+    End Sub
+End Class",
+index:=1)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestException2() As Task
+            Await TestRefactoringAsync(
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class Program
+    Inherits [||]Exception
+    Sub Main(args As String())
+    End Sub
+End Class",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class Program
+    Inherits Exception
+
+    Public Sub New(message As String, innerException As Exception)
+        MyBase.New(message, innerException)
+    End Sub
+
+    Sub Main(args As String())
+    End Sub
+End Class",
+index:=2)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestException3() As Task
+            Await TestRefactoringAsync(
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class Program
+    Inherits [||]Exception
+    Sub Main(args As String())
+    End Sub
+End Class",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Runtime.Serialization
+Class Program
+    Inherits Exception
+
+    Protected Sub New(info As SerializationInfo, context As StreamingContext)
+        MyBase.New(info, context)
+    End Sub
+
+    Sub Main(args As String())
+    End Sub
+End Class",
+index:=3)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        Public Async Function TestException4() As Task
+            Await TestRefactoringAsync(
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Class Program
+    Inherits [||]Exception
+    Sub Main(args As String())
+    End Sub
+End Class",
+"Imports System
+Imports System.Collections.Generic
+Imports System.Linq
+Imports System.Runtime.Serialization
+Class Program
+    Inherits Exception
+
+    Public Sub New()
+    End Sub
+
+    Public Sub New(message As String)
+        MyBase.New(message)
+    End Sub
+
+    Public Sub New(message As String, innerException As Exception)
+        MyBase.New(message, innerException)
+    End Sub
+
+    Protected Sub New(info As SerializationInfo, context As StreamingContext)
+        MyBase.New(info, context)
+    End Sub
+
+    Sub Main(args As String())
+    End Sub
+End Class",
+index:=4)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
+        <WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539676")>
+        Public Async Function TestNotOfferedOnResolvedBaseClassName() As Task
+            Await TestRefactoringAsync(
+"Class Base
+End Class
+Class Derived
+    Inherits B[||]ase
+End Class",
+"Class Base
+End Class
+Class Derived
+    Inherits Base
+
+    Public Sub New()
+    End Sub
+End Class")
+        End Function
+
         <Fact(Skip:="https://github.com/dotnet/roslyn/issues/15005"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
         Public Async Function TestFixAll() As Task
             Await TestRefactoringAsync(
@@ -584,98 +901,6 @@ index:=2)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        Public Async Function TestGenerateInDerivedType_InvalidClassStatement() As Task
-            Await TestCodeFixAsync(
-"
-Public Class Base
-    Public Sub New(a As Integer, Optional b As String = Nothing)
-
-    End Sub
-End Class
-
-Public [||]Class {|BC30203:|}{|BC30387:|}{|BC30037:;|}{|BC30037:;|}Derived
-    Inherits Base
-
-End Class",
-"
-Public Class Base
-    Public Sub New(a As Integer, Optional b As String = Nothing)
-
-    End Sub
-End Class
-
-Public Class {|BC30203:|}{|BC30037:;|}{|BC30037:;|}Derived
-    Inherits Base
-
-    Public Sub New(a As Integer, Optional b As String = Nothing)
-        MyBase.New(a, b)
-    End Sub
-End Class")
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        <WorkItem("https://github.com/dotnet/Roslyn/issues/6541")>
-        Public Async Function TestGenerateInDerivedType1() As Task
-            Await TestCodeFixAsync(
-"
-Public Class Base
-    Public Sub New(a As String)
-
-    End Sub
-End Class
-
-Public Class [||]{|BC30387:Derived|}
-    Inherits Base
-
-End Class",
-"
-Public Class Base
-    Public Sub New(a As String)
-
-    End Sub
-End Class
-
-Public Class Derived
-    Inherits Base
-
-    Public Sub New(a As String)
-        MyBase.New(a)
-    End Sub
-End Class")
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-        <WorkItem("https://github.com/dotnet/Roslyn/issues/6541")>
-        Public Async Function TestGenerateInDerivedType2() As Task
-            Await TestCodeFixAsync(
-"
-Public Class Base
-    Public Sub New(a As Integer, Optional b As String = Nothing)
-
-    End Sub
-End Class
-
-Public Class [||]{|BC30387:Derived|}
-    Inherits Base
-
-End Class",
-"
-Public Class Base
-    Public Sub New(a As Integer, Optional b As String = Nothing)
-
-    End Sub
-End Class
-
-Public Class Derived
-    Inherits Base
-
-    Public Sub New(a As Integer, Optional b As String = Nothing)
-        MyBase.New(a, b)
-    End Sub
-End Class")
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
         <WorkItem("https://github.com/dotnet/roslyn/issues/19953")>
         Public Async Function TestNotOnEnum() As Task
             Await TestRefactoringMissingAsync(
@@ -685,214 +910,8 @@ Public Enum [||]E
 End Enum")
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/25238")>
-        Public Async Function TestGenerateConstructorFromFriendConstructor() As Task
-            Await TestCodeFixAsync(
-<Text>Class {|BC30387:C|}
-    Inherits B[||]
-End Class
+#End If
 
-MustInherit Class B
-    Friend Sub New(x As Integer)
-    End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-<Text>Class C
-    Inherits B
-
-    Public Sub New(x As Integer)
-        MyBase.New(x)
-    End Sub
-End Class
-
-MustInherit Class B
-    Friend Sub New(x As Integer)
-    End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/25238")>
-        Public Async Function TestGenerateConstructorFromFriendConstructor2() As Task
-            Await TestCodeFixAsync(
-<Text>MustInherit Class {|BC30387:C|}
-    Inherits B[||]
-End Class
-
-MustInherit Class B
-    Friend Sub New(x As Integer)
-    End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-<Text>MustInherit Class C
-    Inherits B
-
-    Friend Sub New(x As Integer)
-        MyBase.New(x)
-    End Sub
-End Class
-
-MustInherit Class B
-    Friend Sub New(x As Integer)
-    End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/25238")>
-        Public Async Function TestGenerateConstructorFromProtectedConstructor() As Task
-            Await TestCodeFixAsync(
-<Text>Class {|BC30387:C|}
-    Inherits B[||]
-End Class
-
-MustInherit Class B
-    Protected Sub New(x As Integer)
-    End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-<Text>Class C
-    Inherits B
-
-    Public Sub New(x As Integer)
-        MyBase.New(x)
-    End Sub
-End Class
-
-MustInherit Class B
-    Protected Sub New(x As Integer)
-    End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/25238")>
-        Public Async Function TestGenerateConstructorFromProtectedConstructor2() As Task
-            Await TestCodeFixAsync(
-<Text>MustInherit Class {|BC30387:C|}
-    Inherits B[||]
-End Class
-
-MustInherit Class B
-    Protected Sub New(x As Integer)
-    End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-<Text>MustInherit Class C
-    Inherits B
-
-    Protected Sub New(x As Integer)
-        MyBase.New(x)
-    End Sub
-End Class
-
-MustInherit Class B
-    Protected Sub New(x As Integer)
-    End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/25238")>
-        Public Async Function TestGenerateConstructorFromProtectedFriendConstructor() As Task
-            Await TestCodeFixAsync(
-<Text>Class {|BC30387:C|}
-    Inherits B[||]
-End Class
-
-MustInherit Class B
-    Protected Friend Sub New(x As Integer)
-    End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-<Text>Class C
-    Inherits B
-
-    Public Sub New(x As Integer)
-        MyBase.New(x)
-    End Sub
-End Class
-
-MustInherit Class B
-    Protected Friend Sub New(x As Integer)
-    End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/25238")>
-        Public Async Function TestGenerateConstructorFromProtectedFriendConstructor2() As Task
-            Await TestCodeFixAsync(
-<Text>MustInherit Class {|BC30387:C|}
-    Inherits B[||]
-End Class
-
-MustInherit Class B
-    Protected Friend Sub New(x As Integer)
-    End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-<Text>MustInherit Class C
-    Inherits B
-
-    Protected Friend Sub New(x As Integer)
-        MyBase.New(x)
-    End Sub
-End Class
-
-MustInherit Class B
-    Protected Friend Sub New(x As Integer)
-    End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/25238")>
-        Public Async Function TestGenerateConstructorFromPublicConstructor() As Task
-            Await TestCodeFixAsync(
-<Text>Class {|BC30387:C|}
-    Inherits B[||]
-End Class
-
-MustInherit Class B
-    Public Sub New(x As Integer)
-    End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-<Text>Class C
-    Inherits B
-
-    Public Sub New(x As Integer)
-        MyBase.New(x)
-    End Sub
-End Class
-
-MustInherit Class B
-    Public Sub New(x As Integer)
-    End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf))
-        End Function
-
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors)>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/35208")>
-        <WorkItem("https://github.com/dotnet/roslyn/issues/25238")>
-        Public Async Function TestGenerateConstructorInAbstractClassFromPublicConstructor() As Task
-            Await TestCodeFixAsync(
-<Text>MustInherit Class {|BC30387:C|}
-    Inherits B[||]
-End Class
-
-MustInherit Class B
-    Public Sub New(x As Integer)
-    End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf),
-<Text>MustInherit Class C
-    Inherits B
-
-    Protected Sub New(x As Integer)
-        MyBase.New(x)
-    End Sub
-End Class
-
-MustInherit Class B
-    Public Sub New(x As Integer)
-    End Sub
-End Class</Text>.Value.Replace(vbLf, vbCrLf))
-        End Function
     End Class
 End Namespace
 #End If
