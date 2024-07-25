@@ -166,6 +166,7 @@ namespace Microsoft.CodeAnalysis
 
             TypeSymbol container;
             if (allowTypeParameters
+                && fullName.AssemblyName == null
                 && fullName.NestedTypes == null
                 && fullName.TypeArguments == null
                 && tryResolveTypeParameterReference(fullName.TopLevelType) is { } typeParameter)
@@ -284,6 +285,7 @@ namespace Microsoft.CodeAnalysis
             {
                 bool refersToNoPia;
                 typeArgumentsBuilder.Add(new KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>(GetTypeSymbol(argument, out refersToNoPia, allowTypeParameters), ImmutableArray<ModifierInfo<TypeSymbol>>.Empty));
+                refersToNoPiaBuilder.Add(refersToNoPia);
             }
 
             refersToNoPiaLocalType = refersToNoPiaBuilder.ToImmutableAndFree();
