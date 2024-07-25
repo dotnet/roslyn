@@ -54,42 +54,6 @@ internal static partial class IMethodSymbolExtensions
         return true;
     }
 
-    public static IMethodSymbol RemoveInaccessibleAttributesAndAttributesOfTypes(
-        this IMethodSymbol method, ISymbol accessibleWithin,
-        params INamedTypeSymbol[] removeAttributeTypes)
-    {
-        // Many static predicates use the same state argument in this method
-        var arg = (removeAttributeTypes, accessibleWithin);
-
-        var methodHasAttribute = method.GetAttributes().Any(shouldRemoveAttribute, arg);
-
-        var someParameterHasAttribute = method.Parameters
-            .Any(static (m, arg) => m.GetAttributes().Any(shouldRemoveAttribute, arg), arg);
-
-        var returnTypeHasAttribute = method.GetReturnTypeAttributes().Any(shouldRemoveAttribute, arg);
-
-        if (!methodHasAttribute && !someParameterHasAttribute && !returnTypeHasAttribute)
-        {
-            return method;
-        }
-
-        return CodeGenerationSymbolFactory.CreateMethodSymbol(
-            method,
-            containingType: method.ContainingType,
-            explicitInterfaceImplementations: method.ExplicitInterfaceImplementations,
-            attributes: method.GetAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg),
-            parameters: method.Parameters.SelectAsArray(static (p, arg) =>
-                CodeGenerationSymbolFactory.CreateParameterSymbol(
-                    p.GetAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg),
-                    p.RefKind, p.IsParams, p.Type, p.Name, p.IsOptional,
-                    p.HasExplicitDefaultValue, p.HasExplicitDefaultValue ? p.ExplicitDefaultValue : null), arg),
-            returnTypeAttributes: method.GetReturnTypeAttributes().WhereAsArray(static (a, arg) => !shouldRemoveAttribute(a, arg), arg));
-
-        static bool shouldRemoveAttribute(AttributeData a, (INamedTypeSymbol[] removeAttributeTypes, ISymbol accessibleWithin) arg)
-            => arg.removeAttributeTypes.Any(attr => attr.Equals(a.AttributeClass)) ||
-            a.AttributeClass?.IsAccessibleWithin(arg.accessibleWithin) == false;
-    }
-
     public static bool? IsMoreSpecificThan(this IMethodSymbol method1, IMethodSymbol method2)
     {
         var p1 = method1.Parameters;
