@@ -400,7 +400,7 @@ internal partial class DocumentState : TextDocumentState
 
     protected override TextDocumentState UpdateAttributes(DocumentInfo.DocumentAttributes newAttributes)
     {
-        Debug.Assert(!ReferenceEquals(newAttributes, Attributes));
+        Contract.ThrowIfTrue(ReferenceEquals(newAttributes, Attributes));
         ITreeAndVersionSource? newTreeSource;
 
         if (newAttributes.SyntaxTreeFilePath != Attributes.SyntaxTreeFilePath)
