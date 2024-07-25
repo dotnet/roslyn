@@ -97,6 +97,11 @@
         <target state="new">Generate constructor in '{0}' (with properties)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_field_assigning_constructor_0_1">
+        <source>Generate field assigning constructor '{0}({1})'</source>
+        <target state="new">Generate field assigning constructor '{0}({1})'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Make_class_abstract">
         <source>Make class 'abstract'</source>
         <target state="translated">Rendi la classe 'abstract'</target>

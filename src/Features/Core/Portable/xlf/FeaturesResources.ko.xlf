@@ -3895,11 +3895,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">위임하는 생성자 '{0}({1})' 생성</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_field_assigning_constructor_0_1">
-        <source>Generate field assigning constructor '{0}({1})'</source>
-        <target state="translated">생성자 '{0}({1})'을(를) 할당하는 필드 생성</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Equals 및 GetHashCode 생성</target>

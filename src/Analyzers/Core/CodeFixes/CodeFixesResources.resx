@@ -228,4 +228,7 @@
   <data name="Generate_all" xml:space="preserve">
     <value>Generate all</value>
   </data>
+  <data name="Generate_field_assigning_constructor_0_1" xml:space="preserve">
+    <value>Generate field assigning constructor '{0}({1})'</value>
+  </data>
 </root>

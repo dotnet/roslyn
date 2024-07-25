@@ -3895,11 +3895,6 @@ Jeśli specyfikator formatu „M” jest używany bez innych niestandardowych sp
         <target state="translated">Generuj konstruktor delegowania „{0}({1})”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_field_assigning_constructor_0_1">
-        <source>Generate field assigning constructor '{0}({1})'</source>
-        <target state="translated">Generuj konstruktor przypisujący pola „{0}({1})”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Generuj element Equals i GetHashCode</target>

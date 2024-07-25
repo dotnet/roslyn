@@ -201,9 +201,6 @@
   <data name="Generate_delegating_constructor_0_1" xml:space="preserve">
     <value>Generate delegating constructor '{0}({1})'</value>
   </data>
-  <data name="Generate_field_assigning_constructor_0_1" xml:space="preserve">
-    <value>Generate field assigning constructor '{0}({1})'</value>
-  </data>
   <data name="Generate_Equals_and_GetHashCode" xml:space="preserve">
     <value>Generate Equals and GetHashCode</value>
   </data>

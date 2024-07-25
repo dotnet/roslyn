@@ -3895,11 +3895,6 @@ Si el especificador de formato "M" se usa sin otros especificadores de formato p
         <target state="translated">Generar el constructor delegado '{0}({1})'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_field_assigning_constructor_0_1">
-        <source>Generate field assigning constructor '{0}({1})'</source>
-        <target state="translated">Generar campo asignando constructor '{0}({1})'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Generar Equals y GetHashCode</target>

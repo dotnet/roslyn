@@ -3895,11 +3895,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">デリゲート コンストラクター '{0}({1})' を生成します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_field_assigning_constructor_0_1">
-        <source>Generate field assigning constructor '{0}({1})'</source>
-        <target state="translated">フィールドを割り当てるコンストラクター '{0}({1})' を生成します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Equals および GetHashCode を生成する</target>

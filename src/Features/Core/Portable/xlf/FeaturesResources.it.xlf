@@ -3895,11 +3895,6 @@ Se l'identificatore di formato "M" viene usato senza altri identificatori di for
         <target state="translated">Genera il costruttore delegante '{0}({1})'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_field_assigning_constructor_0_1">
-        <source>Generate field assigning constructor '{0}({1})'</source>
-        <target state="translated">Genera il costruttore per l'assegnazione dei campi '{0}({1})'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Genera Equals e GetHashCode</target>
