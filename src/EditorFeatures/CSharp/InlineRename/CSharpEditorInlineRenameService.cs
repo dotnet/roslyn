@@ -148,7 +148,7 @@ internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<I
             // expand to select the corresponding lines completely.
             startPosition = documentText.Lines[startLine].Start;
             endPosition = documentText.Lines[endLine].End;
-            var length = endPosition - startPosition + 1;
+            var length = endPosition - startPosition;
 
             surroundingSpanOfInterest = new TextSpan(startPosition, length);
 
