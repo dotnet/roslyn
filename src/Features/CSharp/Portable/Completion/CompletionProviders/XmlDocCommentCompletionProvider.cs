@@ -131,6 +131,9 @@ internal partial class XmlDocCommentCompletionProvider : AbstractDocCommentCompl
             }
             else if (trigger.Kind == CompletionTriggerKind.Deletion)
             {
+                // Do not show completion in xml text or tags when TriggerOnDeletion is true. Attribute
+                // names and values are handled above. This differs slightly from the vb implementation
+                // as it better handles completion in tags.
                 return null;
             }
 
