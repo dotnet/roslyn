@@ -845,16 +845,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Generovat konstantu {0}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_fields">
-        <source>Generate constructor in '{0}' (with fields)</source>
-        <target state="translated">Vygenerovat konstruktor v {0} (s poli)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_properties">
-        <source>Generate constructor in '{0}' (with properties)</source>
-        <target state="translated">Vygenerovat konstruktor v {0} (s vlastnostmi)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
         <target state="translated">Generovat člena výčtu {0}</target>
@@ -3905,16 +3895,6 @@ Pokud se specifikátor formátu M použije bez dalších specifikátorů vlastn�
         <target state="translated">Generovat delegující konstruktor {0}({1})</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_0_1">
-        <source>Generate constructor '{0}({1})'</source>
-        <target state="translated">Generovat konstruktor {0}({1})</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_assigning_constructor_0_1">
-        <source>Generate field assigning constructor '{0}({1})'</source>
-        <target state="translated">Generovat konstruktor přiřazující pole {0}({1})</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Generovat Equals a GetHashCode</target>
@@ -3928,16 +3908,6 @@ Pokud se specifikátor formátu M použije bez dalších specifikátorů vlastn�
       <trans-unit id="Generate_GetHashCode">
         <source>Generate GetHashCode()</source>
         <target state="translated">Generovat GetHashCode()</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0">
-        <source>Generate constructor in '{0}'</source>
-        <target state="translated">Generovat konstruktor v: {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_all">
-        <source>Generate all</source>
-        <target state="translated">Generovat všechno</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_local_0">

@@ -845,16 +845,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">定数 '{0}' を生成する</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_fields">
-        <source>Generate constructor in '{0}' (with fields)</source>
-        <target state="translated">'{0}' にコンストラクターを生成します (フィールドを含む)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_properties">
-        <source>Generate constructor in '{0}' (with properties)</source>
-        <target state="translated">'{0}' にコンストラクターを生成します (プロパティを含む)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
         <target state="translated">列挙型メンバー '{0}' を生成する</target>
@@ -3905,16 +3895,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">デリゲート コンストラクター '{0}({1})' を生成します</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_0_1">
-        <source>Generate constructor '{0}({1})'</source>
-        <target state="translated">コンストラクター '{0}({1})' を生成します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_assigning_constructor_0_1">
-        <source>Generate field assigning constructor '{0}({1})'</source>
-        <target state="translated">フィールドを割り当てるコンストラクター '{0}({1})' を生成します</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Equals および GetHashCode を生成する</target>
@@ -3928,16 +3908,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Generate_GetHashCode">
         <source>Generate GetHashCode()</source>
         <target state="translated">GetHashCode() を生成する</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0">
-        <source>Generate constructor in '{0}'</source>
-        <target state="translated">'{0}' にコンストラクターを生成します</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_all">
-        <source>Generate all</source>
-        <target state="translated">すべてを生成します</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_local_0">

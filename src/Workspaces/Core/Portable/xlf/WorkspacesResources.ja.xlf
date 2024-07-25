@@ -57,11 +57,6 @@
         <target state="translated">DateTimeKind は Utc にする必要があります</target>
         <note />
       </trans-unit>
-      <trans-unit id="Document_does_not_support_syntax_trees">
-        <source>Document does not support syntax trees</source>
-        <target state="translated">ドキュメントでは構文ツリーがサポートされません</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Error_reading_content_of_source_file_0_1">
         <source>Error reading content of source file '{0}' -- '{1}'.</source>
         <target state="translated">ソース ファイル '{0}' のコンテンツの読み取りでエラーが発生しました -- '{1}'。</target>

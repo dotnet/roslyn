@@ -845,16 +845,6 @@ Veillez à utiliser le spécificateur "tt" pour les langues où il est nécessai
         <target state="translated">Générer une constante '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_fields">
-        <source>Generate constructor in '{0}' (with fields)</source>
-        <target state="translated">Générer le constructeur dans '{0}' (avec les champs)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_properties">
-        <source>Generate constructor in '{0}' (with properties)</source>
-        <target state="translated">Générer le constructeur dans '{0}' (avec les propriétés)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
         <target state="translated">Générer le membre enum '{0}'</target>
@@ -3905,16 +3895,6 @@ Si le spécificateur de format "M" est utilisé sans autres spécificateurs de f
         <target state="translated">Générer le constructeur de délégation '{0}({1})'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_0_1">
-        <source>Generate constructor '{0}({1})'</source>
-        <target state="translated">Générer le constructeur '{0}({1})'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_assigning_constructor_0_1">
-        <source>Generate field assigning constructor '{0}({1})'</source>
-        <target state="translated">Générer un constructeur d'assignation de champ '{0}({1})'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Générer Equals et GetHashCode</target>
@@ -3928,16 +3908,6 @@ Si le spécificateur de format "M" est utilisé sans autres spécificateurs de f
       <trans-unit id="Generate_GetHashCode">
         <source>Generate GetHashCode()</source>
         <target state="translated">Générer GetHashCode()</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0">
-        <source>Generate constructor in '{0}'</source>
-        <target state="translated">Générer un constructeur dans '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_all">
-        <source>Generate all</source>
-        <target state="translated">Générer tout</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_local_0">

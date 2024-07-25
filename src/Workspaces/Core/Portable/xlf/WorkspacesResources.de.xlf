@@ -57,11 +57,6 @@
         <target state="translated">"DateTimeKind" muss UTC sein.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Document_does_not_support_syntax_trees">
-        <source>Document does not support syntax trees</source>
-        <target state="translated">Das Dokument unterstützt keine Syntaxstrukturen.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Error_reading_content_of_source_file_0_1">
         <source>Error reading content of source file '{0}' -- '{1}'.</source>
         <target state="translated">Fehler beim Lesen des Inhalts der Quelldatei "{0}": "{1}".</target>

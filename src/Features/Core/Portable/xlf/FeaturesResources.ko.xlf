@@ -845,16 +845,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">'{0}' 상수 생성</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_fields">
-        <source>Generate constructor in '{0}' (with fields)</source>
-        <target state="translated">'{0}'에 생성자 생성(필드 포함)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_properties">
-        <source>Generate constructor in '{0}' (with properties)</source>
-        <target state="translated">'{0}'에 생성자 생성(속성 포함)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
         <target state="translated">'{0}' 열거형 멤버 생성</target>
@@ -3905,16 +3895,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">위임하는 생성자 '{0}({1})' 생성</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_0_1">
-        <source>Generate constructor '{0}({1})'</source>
-        <target state="translated">생성자 '{0}({1})' 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_assigning_constructor_0_1">
-        <source>Generate field assigning constructor '{0}({1})'</source>
-        <target state="translated">생성자 '{0}({1})'을(를) 할당하는 필드 생성</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Equals 및 GetHashCode 생성</target>
@@ -3928,16 +3908,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Generate_GetHashCode">
         <source>Generate GetHashCode()</source>
         <target state="translated">GetHashCode() 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0">
-        <source>Generate constructor in '{0}'</source>
-        <target state="translated">'{0}'에서 생성자 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_all">
-        <source>Generate all</source>
-        <target state="translated">모두 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_local_0">

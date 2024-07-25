@@ -47,6 +47,11 @@
         <target state="translated">目的地類型必須是 {0} 或 {1}，但提供的是 {2}。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="new">Document does not support syntax trees</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_all_0">
         <source>Fix all '{0}'</source>
         <target state="translated">修正所有 '{0}'</target>

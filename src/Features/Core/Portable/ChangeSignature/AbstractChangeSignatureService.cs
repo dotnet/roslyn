@@ -382,7 +382,7 @@ internal abstract class AbstractChangeSignatureService : ILanguageService
             var root = await doc.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             if (root is null)
             {
-                throw new NotSupportedException(WorkspacesResources.Document_does_not_support_syntax_trees);
+                throw new NotSupportedException(WorkspaceExtensionsResources.Document_does_not_support_syntax_trees);
             }
 
             var nodes = nodesToUpdate[docId];

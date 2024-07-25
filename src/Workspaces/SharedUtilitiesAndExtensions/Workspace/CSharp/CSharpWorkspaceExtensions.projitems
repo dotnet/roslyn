@@ -32,6 +32,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\PropertyGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\StatementGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\TypeParameterGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\CSharpRefactoringHelpersService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EmbeddedLanguages\VirtualChars\CSharpVirtualCharLanguageServiceFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BaseParameterListSyntaxExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\BaseArgumentListSyntaxExtensions.cs" />
