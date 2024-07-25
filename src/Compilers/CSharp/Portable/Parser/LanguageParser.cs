@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         CloseBraceToken: { IsMissing: false, ContainsDiagnostics: false }
                     } currentTypeDeclaration)
                 {
-                    var siblingsToMoveIntoType = determineSiblingsToMoveIntoType(typeDeclarationIndex: currentBodyMemberIndex, ref body);
+                    var siblingsToMoveIntoType = determineSiblingsToMoveIntoType(typeDeclarationIndex: currentBodyMemberIndex, body);
                     if (siblingsToMoveIntoType is (var firstSiblingToMoveInclusive, var lastSiblingToMoveExclusive))
                     {
                         // We found sibling type-only members.  Move them into the preceding type declaration.
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
         }
 
-        private static bool IsMemberDeclarationOnlyValidWithinTypeDeclaration(MemberDeclarationSyntax memberDeclaration)
+        private static bool IsMemberDeclarationOnlyValidWithinTypeDeclaration(MemberDeclarationSyntax? memberDeclaration)
         {
             return memberDeclaration?.Kind
                 is SyntaxKind.ConstructorDeclaration
