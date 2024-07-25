@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             (int firstSiblingToMoveInclusive, int lastSiblingToMoveExclusive)? determineSiblingsToMoveIntoType(
                 int typeDeclarationIndex,
-                ref NamespaceBodyBuilder body)
+                in NamespaceBodyBuilder body)
             {
                 var startInclusive = typeDeclarationIndex + 1;
                 if (startInclusive < body.Members.Count &&
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             TypeDeclarationSyntax moveSiblingMembersIntoPrecedingType(
                 TypeDeclarationSyntax typeDeclaration,
-                NamespaceBodyBuilder body,
+                in NamespaceBodyBuilder body,
                 int firstSiblingToMoveInclusive,
                 int lastSiblingToMoveExclusive)
             {
