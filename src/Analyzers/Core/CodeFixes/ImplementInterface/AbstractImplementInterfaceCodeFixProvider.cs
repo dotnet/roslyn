@@ -104,7 +104,6 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
     {
         var interfaceType = state.InterfaceTypes.First();
         var typeName = interfaceType.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-        var assemblyName = interfaceType.ContainingAssembly.Name;
 
         // Legacy part of the equivalence key.  Kept the same to avoid test churn.
         var codeActionTypeName = options.ImplementDisposePattern
@@ -118,7 +117,6 @@ internal abstract class AbstractImplementInterfaceCodeFixProvider<TTypeSyntax> :
            options.Abstractly.ToString() + ";" +
            options.OnlyRemaining.ToString() + ":" +
            typeName + ";" +
-           assemblyName + ";" +
            codeActionTypeName + ";" +
            options.ThroughMember?.Name;
     }
