@@ -491,9 +491,17 @@ Class B3
     Implements I1
     Implements I2
 
+    Public Sub F1() Implements I1.F1
+        Throw New NotImplementedException()
+    End Sub
+
     Private Class C3
         Implements I1
         Implements I2
+
+        Public Sub F1() Implements I1.F1
+            Throw New NotImplementedException()
+        End Sub
     End Class
 End Class]]>
                                    </Document>

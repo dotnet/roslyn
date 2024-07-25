@@ -30,28 +30,32 @@ public class ImplementInterfaceTests_FixAllTests
             {
                 Sources =
                 {
-                    @"public interface I1
-{
-    void F1();
-}
+                    """
+                    public interface I1
+                    {
+                        void F1();
+                    }
 
-public interface I2
-{
-    void F1();
-}
+                    public interface I2
+                    {
+                        void F1();
+                    }
 
-class B1 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C1 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
-                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C2 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
+                    class B1 : {|CS0535:I1|}, {|CS0535:I2|}
+                    {
+                        class C1 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
+                    """
+                    class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    {
+                        class C2 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
                 },
                 AdditionalProjects =
                 {
@@ -59,12 +63,14 @@ class B1 : {|CS0535:I1|}, {|CS0535:I2|}
                     {
                         Sources =
                         {
-                            @"class B3 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C3 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
+                            """
+                            class B3 : {|CS0535:I1|}, {|CS0535:I2|}
+                            {
+                                class C3 : {|CS0535:I1|}, {|CS0535:I2|}
+                                {
+                                }
+                            }
+                            """,
                         },
                         AdditionalProjectReferences = { "TestProject" },
                     },
@@ -74,33 +80,37 @@ class B1 : {|CS0535:I1|}, {|CS0535:I2|}
             {
                 Sources =
                 {
-                    @"public interface I1
-{
-    void F1();
-}
+                    """
+                    public interface I1
+                    {
+                        void F1();
+                    }
 
-public interface I2
-{
-    void F1();
-}
+                    public interface I2
+                    {
+                        void F1();
+                    }
 
-class B1 : I1, I2
-{
-    public void F1()
-    {
-        throw new System.NotImplementedException();
-    }
+                    class B1 : I1, I2
+                    {
+                        public void F1()
+                        {
+                            throw new System.NotImplementedException();
+                        }
 
-    class C1 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
-                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C2 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
+                        class C1 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
+                    """
+                    class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    {
+                        class C2 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
                 },
                 MarkupHandling = MarkupMode.Allow,
             },
@@ -108,37 +118,41 @@ class B1 : I1, I2
             {
                 Sources =
                 {
-                    @"public interface I1
-{
-    void F1();
-}
+                    """
+                    public interface I1
+                    {
+                        void F1();
+                    }
 
-public interface I2
-{
-    void F1();
-}
+                    public interface I2
+                    {
+                        void F1();
+                    }
 
-class B1 : I1, I2
-{
-    public void F1()
-    {
-        throw new System.NotImplementedException();
-    }
+                    class B1 : I1, I2
+                    {
+                        public void F1()
+                        {
+                            throw new System.NotImplementedException();
+                        }
 
-    class C1 : I1, I2
-    {
-        public void F1()
-        {
-            throw new System.NotImplementedException();
-        }
-    }
-}",
-                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C2 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
+                        class C1 : I1, I2
+                        {
+                            public void F1()
+                            {
+                                throw new System.NotImplementedException();
+                            }
+                        }
+                    }
+                    """,
+                    """
+                    class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    {
+                        class C2 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
                 },
                 MarkupHandling = MarkupMode.Allow,
             },
@@ -159,28 +173,32 @@ class B1 : I1, I2
             {
                 Sources =
                 {
-                    @"public interface I1
-{
-    void F1();
-}
+                    """
+                    public interface I1
+                    {
+                        void F1();
+                    }
 
-public interface I2
-{
-    void F1();
-}
+                    public interface I2
+                    {
+                        void F1();
+                    }
 
-class B1 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C1 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
-                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C2 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
+                    class B1 : {|CS0535:I1|}, {|CS0535:I2|}
+                    {
+                        class C1 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
+                    """
+                    class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    {
+                        class C2 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
                 },
                 AdditionalProjects =
                 {
@@ -188,12 +206,14 @@ class B1 : {|CS0535:I1|}, {|CS0535:I2|}
                     {
                         Sources =
                         {
-                            @"class B3 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C3 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
+                            """
+                            class B3 : {|CS0535:I1|}, {|CS0535:I2|}
+                            {
+                                class C3 : {|CS0535:I1|}, {|CS0535:I2|}
+                                {
+                                }
+                            }
+                            """,
                         },
                         AdditionalProjectReferences = { "TestProject" },
                     },
@@ -203,33 +223,37 @@ class B1 : {|CS0535:I1|}, {|CS0535:I2|}
             {
                 Sources =
                 {
-                    @"public interface I1
-{
-    void F1();
-}
+                    """
+                    public interface I1
+                    {
+                        void F1();
+                    }
 
-public interface I2
-{
-    void F1();
-}
+                    public interface I2
+                    {
+                        void F1();
+                    }
 
-class B1 : I1, I2
-{
-    public void F1()
-    {
-        throw new System.NotImplementedException();
-    }
+                    class B1 : I1, I2
+                    {
+                        public void F1()
+                        {
+                            throw new System.NotImplementedException();
+                        }
 
-    class C1 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
-                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C2 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
+                        class C1 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
+                    """
+                    class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    {
+                        class C2 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
                 },
                 MarkupHandling = MarkupMode.Allow,
             },
@@ -237,46 +261,50 @@ class B1 : I1, I2
             {
                 Sources =
                 {
-                    @"public interface I1
-{
-    void F1();
-}
+                    """
+                    public interface I1
+                    {
+                        void F1();
+                    }
 
-public interface I2
-{
-    void F1();
-}
+                    public interface I2
+                    {
+                        void F1();
+                    }
 
-class B1 : I1, I2
-{
-    public void F1()
-    {
-        throw new System.NotImplementedException();
-    }
+                    class B1 : I1, I2
+                    {
+                        public void F1()
+                        {
+                            throw new System.NotImplementedException();
+                        }
 
-    class C1 : I1, I2
-    {
-        public void F1()
-        {
-            throw new System.NotImplementedException();
-        }
-    }
-}",
-                    @"class B2 : I1, I2
-{
-    public void F1()
-    {
-        throw new System.NotImplementedException();
-    }
+                        class C1 : I1, I2
+                        {
+                            public void F1()
+                            {
+                                throw new System.NotImplementedException();
+                            }
+                        }
+                    }
+                    """,
+                    """
+                    class B2 : I1, I2
+                    {
+                        public void F1()
+                        {
+                            throw new System.NotImplementedException();
+                        }
 
-    class C2 : I1, I2
-    {
-        public void F1()
-        {
-            throw new System.NotImplementedException();
-        }
-    }
-}",
+                        class C2 : I1, I2
+                        {
+                            public void F1()
+                            {
+                                throw new System.NotImplementedException();
+                            }
+                        }
+                    }
+                    """,
                 },
                 MarkupHandling = MarkupMode.Allow,
             },
@@ -297,28 +325,32 @@ class B1 : I1, I2
             {
                 Sources =
                 {
-                    @"public interface I1
-{
-    void F1();
-}
+                    """
+                    public interface I1
+                    {
+                        void F1();
+                    }
 
-public interface I2
-{
-    void F1();
-}
+                    public interface I2
+                    {
+                        void F1();
+                    }
 
-class B1 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C1 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
-                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C2 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
+                    class B1 : {|CS0535:I1|}, {|CS0535:I2|}
+                    {
+                        class C1 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
+                    """
+                    class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    {
+                        class C2 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
                 },
                 AdditionalProjects =
                 {
@@ -326,12 +358,14 @@ class B1 : {|CS0535:I1|}, {|CS0535:I2|}
                     {
                         Sources =
                         {
-                            @"class B3 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C3 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
+                            """
+                            class B3 : {|CS0535:I1|}, {|CS0535:I2|}
+                            {
+                                class C3 : {|CS0535:I1|}, {|CS0535:I2|}
+                                {
+                                }
+                            }
+                            """,
                         },
                         AdditionalProjectReferences = { "TestProject" },
                     },
@@ -341,33 +375,37 @@ class B1 : {|CS0535:I1|}, {|CS0535:I2|}
             {
                 Sources =
                 {
-                    @"public interface I1
-{
-    void F1();
-}
+                    """
+                    public interface I1
+                    {
+                        void F1();
+                    }
 
-public interface I2
-{
-    void F1();
-}
+                    public interface I2
+                    {
+                        void F1();
+                    }
 
-class B1 : {|CS0535:I1|}, I2
-{
-    void I2.F1()
-    {
-        throw new System.NotImplementedException();
-    }
+                    class B1 : {|CS0535:I1|}, I2
+                    {
+                        void I2.F1()
+                        {
+                            throw new System.NotImplementedException();
+                        }
 
-    class C1 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
-                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C2 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
+                        class C1 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
+                    """
+                    class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    {
+                        class C2 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
                 },
                 MarkupHandling = MarkupMode.Allow,
             },
@@ -375,46 +413,50 @@ class B1 : {|CS0535:I1|}, I2
             {
                 Sources =
                 {
-                    @"public interface I1
-{
-    void F1();
-}
+                    """
+                    public interface I1
+                    {
+                        void F1();
+                    }
 
-public interface I2
-{
-    void F1();
-}
+                    public interface I2
+                    {
+                        void F1();
+                    }
 
-class B1 : {|CS0535:I1|}, I2
-{
-    void I2.F1()
-    {
-        throw new System.NotImplementedException();
-    }
+                    class B1 : {|CS0535:I1|}, I2
+                    {
+                        void I2.F1()
+                        {
+                            throw new System.NotImplementedException();
+                        }
 
-    class C1 : {|CS0535:I1|}, I2
-    {
-        void I2.F1()
-        {
-            throw new System.NotImplementedException();
-        }
-    }
-}",
-                    @"class B2 : {|CS0535:I1|}, I2
-{
-    void I2.F1()
-    {
-        throw new System.NotImplementedException();
-    }
+                        class C1 : {|CS0535:I1|}, I2
+                        {
+                            void I2.F1()
+                            {
+                                throw new System.NotImplementedException();
+                            }
+                        }
+                    }
+                    """,
+                    """
+                    class B2 : {|CS0535:I1|}, I2
+                    {
+                        void I2.F1()
+                        {
+                            throw new System.NotImplementedException();
+                        }
 
-    class C2 : {|CS0535:I1|}, I2
-    {
-        void I2.F1()
-        {
-            throw new System.NotImplementedException();
-        }
-    }
-}",
+                        class C2 : {|CS0535:I1|}, I2
+                        {
+                            void I2.F1()
+                            {
+                                throw new System.NotImplementedException();
+                            }
+                        }
+                    }
+                    """,
                 },
                 AdditionalProjects =
                 {
@@ -422,21 +464,23 @@ class B1 : {|CS0535:I1|}, I2
                     {
                         Sources =
                         {
-                            @"class B3 : {|CS0535:I1|}, I2
-{
-    void I2.F1()
-    {
-        throw new System.NotImplementedException();
-    }
+                            """
+                            class B3 : {|CS0535:I1|}, I2
+                            {
+                                void I2.F1()
+                                {
+                                    throw new System.NotImplementedException();
+                                }
 
-    class C3 : {|CS0535:I1|}, I2
-    {
-        void I2.F1()
-        {
-            throw new System.NotImplementedException();
-        }
-    }
-}",
+                                class C3 : {|CS0535:I1|}, I2
+                                {
+                                    void I2.F1()
+                                    {
+                                        throw new System.NotImplementedException();
+                                    }
+                                }
+                            }
+                            """,
                         },
                         AdditionalProjectReferences = { "TestProject" },
                     },
@@ -461,28 +505,32 @@ class B1 : {|CS0535:I1|}, I2
             {
                 Sources =
                 {
-                    @"public interface I1
-{
-    void F1();
-}
+                    """
+                    public interface I1
+                    {
+                        void F1();
+                    }
 
-public interface I2
-{
-    void F1();
-}
+                    public interface I2
+                    {
+                        void F1();
+                    }
 
-class B1 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C1 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
-                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C2 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
+                    class B1 : {|CS0535:I1|}, {|CS0535:I2|}
+                    {
+                        class C1 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
+                    """
+                    class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    {
+                        class C2 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
                 },
                 AdditionalProjects =
                 {
@@ -490,22 +538,24 @@ class B1 : {|CS0535:I1|}, {|CS0535:I2|}
                     {
                         Sources =
                         {
-                            @"public interface I1
-{
-    void F1();
-}
+                            """
+                            public interface I1
+                            {
+                                void F1();
+                            }
 
-public interface I2
-{
-    void F1();
-}
+                            public interface I2
+                            {
+                                void F1();
+                            }
 
-class B3 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C3 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
+                            class B3 : {|CS0535:I1|}, {|CS0535:I2|}
+                            {
+                                class C3 : {|CS0535:I1|}, {|CS0535:I2|}
+                                {
+                                }
+                            }
+                            """,
                         },
                     },
                 },
@@ -514,33 +564,37 @@ class B3 : {|CS0535:I1|}, {|CS0535:I2|}
             {
                 Sources =
                 {
-                    @"public interface I1
-{
-    void F1();
-}
+                    """
+                    public interface I1
+                    {
+                        void F1();
+                    }
 
-public interface I2
-{
-    void F1();
-}
+                    public interface I2
+                    {
+                        void F1();
+                    }
 
-class B1 : {|CS0535:I1|}, I2
-{
-    void I2.F1()
-    {
-        throw new System.NotImplementedException();
-    }
+                    class B1 : {|CS0535:I1|}, I2
+                    {
+                        void I2.F1()
+                        {
+                            throw new System.NotImplementedException();
+                        }
 
-    class C1 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
-                    @"class B2 : {|CS0535:I1|}, {|CS0535:I2|}
-{
-    class C2 : {|CS0535:I1|}, {|CS0535:I2|}
-    {
-    }
-}",
+                        class C1 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
+                    """
+                    class B2 : {|CS0535:I1|}, {|CS0535:I2|}
+                    {
+                        class C2 : {|CS0535:I1|}, {|CS0535:I2|}
+                        {
+                        }
+                    }
+                    """,
                 },
                 MarkupHandling = MarkupMode.Allow,
             },
@@ -548,48 +602,88 @@ class B1 : {|CS0535:I1|}, I2
             {
                 Sources =
                 {
-                    @"public interface I1
-{
-    void F1();
-}
+                    """
+                    public interface I1
+                    {
+                        void F1();
+                    }
 
-public interface I2
-{
-    void F1();
-}
+                    public interface I2
+                    {
+                        void F1();
+                    }
 
-class B1 : {|CS0535:I1|}, I2
-{
-    void I2.F1()
-    {
-        throw new System.NotImplementedException();
-    }
+                    class B1 : {|CS0535:I1|}, I2
+                    {
+                        void I2.F1()
+                        {
+                            throw new System.NotImplementedException();
+                        }
 
-    class C1 : {|CS0535:I1|}, I2
-    {
-        void I2.F1()
-        {
-            throw new System.NotImplementedException();
-        }
-    }
-}",
-                    @"class B2 : {|CS0535:I1|}, I2
-{
-    void I2.F1()
-    {
-        throw new System.NotImplementedException();
-    }
+                        class C1 : {|CS0535:I1|}, I2
+                        {
+                            void I2.F1()
+                            {
+                                throw new System.NotImplementedException();
+                            }
+                        }
+                    }
+                    """,
+                    """
+                    class B2 : {|CS0535:I1|}, I2
+                    {
+                        void I2.F1()
+                        {
+                            throw new System.NotImplementedException();
+                        }
 
-    class C2 : {|CS0535:I1|}, I2
-    {
-        void I2.F1()
-        {
-            throw new System.NotImplementedException();
-        }
-    }
-}",
+                        class C2 : {|CS0535:I1|}, I2
+                        {
+                            void I2.F1()
+                            {
+                                throw new System.NotImplementedException();
+                            }
+                        }
+                    }
+                    """,
                 },
                 MarkupHandling = MarkupMode.Allow,
+                AdditionalProjects =
+                {
+                    ["Assembly1"] =
+                    {
+                        Sources =
+                        {
+                            """
+                            public interface I1
+                            {
+                                void F1();
+                            }
+
+                            public interface I2
+                            {
+                                void F1();
+                            }
+
+                            class B3 : {|CS0535:I1|}, I2
+                            {
+                                void I2.F1()
+                                {
+                                    throw new System.NotImplementedException();
+                                }
+
+                                class C3 : {|CS0535:I1|}, I2
+                                {
+                                    void I2.F1()
+                                    {
+                                        throw new System.NotImplementedException();
+                                    }
+                                }
+                            }
+                            """,
+                        },
+                    },
+                },
             },
             CodeFixTestBehaviors = CodeFixTestBehaviors.FixOne | CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeFixTestBehaviors.SkipFixAllInProjectCheck,
             DiagnosticSelector = diagnostics => diagnostics[1],
