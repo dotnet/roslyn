@@ -240,13 +240,13 @@
   <data name="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer" xml:space="preserve">
     <value>TODO: free unmanaged resources (unmanaged objects) and override finalizer</value>
   </data>
-  <data name="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources" xml:space="preserve">
-    <value>TODO: override finalizer only if '{0}' has code to free unmanaged resources</value>
-  </data>
   <data name="TODO_colon_set_large_fields_to_null" xml:space="preserve">
     <value>TODO: set large fields to null</value>
   </data>
   <data name="Do_not_change_this_code_Put_cleanup_code_in_0_method" xml:space="preserve">
     <value>Do not change this code. Put cleanup code in '{0}' method</value>
+  </data>
+  <data name="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources" xml:space="preserve">
+    <value>TODO: override finalizer only if '{0}' has code to free unmanaged resources</value>
   </data>
 </root>

@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.ImplementInterface
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
@@ -20,6 +21,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
+
+        Protected Overrides ReadOnly Property SyntaxGeneratorInternal As SyntaxGeneratorInternal = VisualBasicSyntaxGeneratorInternal.Instance
 
         Protected Overrides Function ToDisplayString(disposeImplMethod As IMethodSymbol, format As SymbolDisplayFormat) As String
             Return SymbolDisplay.ToDisplayString(disposeImplMethod, format)
@@ -104,8 +107,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
 
             ' ' Do not change this code...
             ' Dispose(False)
-            Dim disposeStatement = AddComment(g,
-                String.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, disposeMethodDisplayString),
+            Dim disposeStatement = AddComment(
+                String.Format(CodeFixesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, disposeMethodDisplayString),
                 g.ExpressionStatement(g.InvocationExpression(
                     g.IdentifierName(NameOf(IDisposable.Dispose)),
                     g.Argument(DisposingName, RefKind.None, g.FalseLiteralExpression()))))
@@ -121,8 +124,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
                 modifiers:=DeclarationModifiers.Override,
                 statements:={disposeStatement, finalizeStatement})
 
-            Return AddComment(g,
-                String.Format(FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources, disposeMethodDisplayString),
+            Return AddComment(
+                String.Format(CodeFixesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources, disposeMethodDisplayString),
                 methodDecl)
         End Function
     End Class

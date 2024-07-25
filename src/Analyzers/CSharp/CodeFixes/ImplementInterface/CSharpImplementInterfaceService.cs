@@ -5,11 +5,11 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -20,13 +20,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.ImplementInterface;
 
 [ExportLanguageService(typeof(IImplementInterfaceService), LanguageNames.CSharp), Shared]
-internal class CSharpImplementInterfaceService : AbstractImplementInterfaceService
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpImplementInterfaceService() : AbstractImplementInterfaceService
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpImplementInterfaceService()
-    {
-    }
+    protected override SyntaxGeneratorInternal SyntaxGeneratorInternal
+        => CSharpSyntaxGeneratorInternal.Instance;
 
     protected override string ToDisplayString(IMethodSymbol disposeImplMethod, SymbolDisplayFormat format)
         => SymbolDisplay.ToDisplayString(disposeImplMethod, format);
@@ -90,16 +89,16 @@ internal class CSharpImplementInterfaceService : AbstractImplementInterfaceServi
     {
         // ' Do not change this code...
         // Dispose(false)
-        var disposeStatement = (StatementSyntax)AddComment(g,
-            string.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, disposeMethodDisplayString),
+        var disposeStatement = (StatementSyntax)AddComment(
+            string.Format(CodeFixesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, disposeMethodDisplayString),
             g.ExpressionStatement(g.InvocationExpression(
                 g.IdentifierName(nameof(IDisposable.Dispose)),
                 g.Argument(DisposingName, RefKind.None, g.FalseLiteralExpression()))));
 
         var methodDecl = SyntaxFactory.DestructorDeclaration(classType.Name).AddBodyStatements(disposeStatement);
 
-        return AddComment(g,
-            string.Format(FeaturesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources, disposeMethodDisplayString),
+        return AddComment(
+            string.Format(CodeFixesResources.TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources, disposeMethodDisplayString),
             methodDecl);
     }
 }
