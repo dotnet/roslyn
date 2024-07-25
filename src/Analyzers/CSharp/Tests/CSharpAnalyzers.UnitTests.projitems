@@ -37,6 +37,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests_ThroughMember.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceTests_FixAllTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\AddYieldTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\ChangeToIEnumerableTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeAnonymousFunctionStatic\MakeAnonymousFunctionStaticTests.cs" />
