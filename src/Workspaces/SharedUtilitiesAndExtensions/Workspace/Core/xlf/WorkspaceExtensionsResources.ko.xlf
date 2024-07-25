@@ -47,6 +47,11 @@
         <target state="translated">대상 형식은 {0} 또는 {1}이어야 하지만 지정된 형식은 {2}입니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="new">Document does not support syntax trees</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_all_0">
         <source>Fix all '{0}'</source>
         <target state="translated">모든 '{0}' 수정</target>

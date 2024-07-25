@@ -42,12 +42,12 @@ public interface I
                 Assert.True(m.GlobalNamespace.GetMember<MethodSymbol>("I.M").HasUnscopedRefAttribute);
             }
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                // (6,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,6): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(6, 6)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 6)
                 );
         }
 
@@ -75,12 +75,12 @@ public interface I
                 Assert.True(m.GlobalNamespace.GetMember<MethodSymbol>("I.M").HasUnscopedRefAttribute);
             }
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                // (6,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,6): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(6, 6)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 6)
                 );
         }
 
@@ -157,12 +157,12 @@ public interface I
                 Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
             }
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                // (6,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,6): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(6, 6)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 6)
                 );
         }
 
@@ -189,12 +189,12 @@ public interface I
                 Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
             }
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                // (6,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,6): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(6, 6)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 6)
                 );
         }
 
@@ -274,12 +274,12 @@ public interface I
                 Assert.True(propertySymbol.GetMethod.HasUnscopedRefAttribute);
             }
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                // (8,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (8,10): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(8, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(8, 10)
                 );
         }
 
@@ -312,12 +312,12 @@ public interface I
                 Assert.True(propertySymbol.GetMethod.HasUnscopedRefAttribute);
             }
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                // (8,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (8,10): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(8, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(8, 10)
                 );
         }
 
@@ -404,12 +404,12 @@ public interface I
                 Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
             }
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                // (6,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,6): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(6, 6)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 6)
                 );
         }
 
@@ -436,12 +436,12 @@ public interface I
                 Assert.False(propertySymbol.GetMethod.HasUnscopedRefAttribute);
             }
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                // (6,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,6): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(6, 6)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 6)
                 );
         }
 
@@ -522,12 +522,12 @@ public interface I
                 Assert.True(propertySymbol.GetMethod.HasUnscopedRefAttribute);
             }
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                // (8,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (8,10): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(8, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(8, 10)
                 );
         }
 
@@ -560,12 +560,12 @@ public interface I
                 Assert.True(propertySymbol.GetMethod.HasUnscopedRefAttribute);
             }
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                // (8,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (8,10): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(8, 10)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(8, 10)
                 );
         }
 
@@ -806,12 +806,12 @@ public struct C : I
                     Assert.True(m.GlobalNamespace.GetMember<MethodSymbol>("C.M").HasUnscopedRefAttribute);
                 }
 
-                CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
-                CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                    // (8,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                    // (8,6): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                     //     [UnscopedRef]
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(8, 6)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(8, 6)
                     );
             }
 
@@ -840,12 +840,12 @@ public struct C : I
                     Assert.True(m.GlobalNamespace.GetMember<MethodSymbol>("C.I.M").HasUnscopedRefAttribute);
                 }
 
-                CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
-                CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                    // (8,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                    // (8,6): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                     //     [UnscopedRef]
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(8, 6)
+                    Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(8, 6)
                     );
             }
 
@@ -1030,9 +1030,9 @@ public struct C : I
 ";
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
-                // (100,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (100,6): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     [UnscopedRef]
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(100, 6)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(100, 6)
                 );
         }
 
@@ -1348,23 +1348,23 @@ public struct C : I
                         Assert.Equal(onImplementationGet, propertySymbol.GetMethod.HasUnscopedRefAttribute);
                     }
 
-                    CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                    CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
-                    comp7 = CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13);
+                    comp7 = CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12);
                     if (onImplementationGet)
                     {
                         comp7.VerifyDiagnostics(
-                            // (200,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                            // (200,10): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                             //         [UnscopedRef] 
-                            Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(200, 10)
+                            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(200, 10)
                             );
                     }
                     else
                     {
                         comp7.VerifyDiagnostics(
-                            // (100,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                            // (100,6): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                             //     [UnscopedRef]
-                            Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(100, 6)
+                            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(100, 6)
                             );
                     }
                 }
@@ -1401,37 +1401,37 @@ public struct C : I
                         Assert.Equal(onImplementationGet, propertySymbol.GetMethod.HasUnscopedRefAttribute);
                     }
 
-                    CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                    CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
-                    comp8 = CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13);
+                    comp8 = CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12);
                     if (onImplementationProperty)
                     {
                         if (onImplementationGet)
                         {
                             comp8.VerifyDiagnostics(
-                                // (100,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (100,6): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                                 //     [UnscopedRef]
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(100, 6),
-                                // (200,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(100, 6),
+                                // (200,10): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                                 //         [UnscopedRef] 
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(200, 10)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(200, 10)
                                 );
                         }
                         else
                         {
                             comp8.VerifyDiagnostics(
-                                // (100,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (100,6): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                                 //     [UnscopedRef]
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(100, 6)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(100, 6)
                                 );
                         }
                     }
                     else
                     {
                         comp8.VerifyDiagnostics(
-                            // (200,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                            // (200,10): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                             //         [UnscopedRef] 
-                            Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(200, 10)
+                            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(200, 10)
                             );
                     }
                 }
@@ -1924,23 +1924,23 @@ public struct C : I
                         Assert.Equal(onImplementationGet, propertySymbol.GetMethod.HasUnscopedRefAttribute);
                     }
 
-                    CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                    CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
-                    comp7 = CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13);
+                    comp7 = CreateCompilation(src7, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12);
                     if (onImplementationGet)
                     {
                         comp7.VerifyDiagnostics(
-                            // (200,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                            // (200,10): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                             //         [UnscopedRef] 
-                            Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(200, 10)
+                            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(200, 10)
                             );
                     }
                     else
                     {
                         comp7.VerifyDiagnostics(
-                            // (100,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                            // (100,6): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                             //     [UnscopedRef]
-                            Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(100, 6)
+                            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(100, 6)
                             );
                     }
                 }
@@ -1977,37 +1977,37 @@ public struct C : I
                         Assert.Equal(onImplementationGet, propertySymbol.GetMethod.HasUnscopedRefAttribute);
                     }
 
-                    CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+                    CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
-                    comp8 = CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular13);
+                    comp8 = CreateCompilation(src8, references: [comp1Ref], targetFramework: TargetFramework.Net80, parseOptions: TestOptions.Regular12);
                     if (onImplementationProperty)
                     {
                         if (onImplementationGet)
                         {
                             comp8.VerifyDiagnostics(
-                                // (100,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (100,6): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                                 //     [UnscopedRef]
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(100, 6),
-                                // (200,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(100, 6),
+                                // (200,10): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                                 //         [UnscopedRef] 
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(200, 10)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(200, 10)
                                 );
                         }
                         else
                         {
                             comp8.VerifyDiagnostics(
-                                // (100,6): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                                // (100,6): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                                 //     [UnscopedRef]
-                                Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(100, 6)
+                                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(100, 6)
                                 );
                         }
                     }
                     else
                     {
                         comp8.VerifyDiagnostics(
-                            // (200,10): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                            // (200,10): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                             //         [UnscopedRef] 
-                            Diagnostic(ErrorCode.ERR_FeatureInPreview, "UnscopedRef").WithArguments("ref struct interfaces").WithLocation(200, 10)
+                            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "UnscopedRef").WithArguments("ref struct interfaces", "13.0").WithLocation(200, 10)
                             );
                     }
                 }
@@ -5860,12 +5860,12 @@ struct S2 : I1
                 Assert.Equal("I1", s1.InterfacesNoUseSiteDiagnostics().Single().ToTestDisplayString());
             }
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.RegularNext).VerifyEmitDiagnostics();
+            CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
 
-            CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-                // (5,17): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+            CreateCompilation(src, targetFramework: TargetFramework.Net70, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (5,17): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // ref struct S1 : I1
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1").WithArguments("ref struct interfaces").WithLocation(5, 17)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "I1").WithArguments("ref struct interfaces", "13.0").WithLocation(5, 17)
                 );
         }
 
@@ -7319,32 +7319,22 @@ class C
 ";
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (6,16): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,16): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         using (new S2())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S2()").WithArguments("ref struct interfaces").WithLocation(6, 16),
-                // (10,16): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new S2()").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 16),
+                // (10,16): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         using (var s = new S2())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var s = new S2()").WithArguments("ref struct interfaces").WithLocation(10, 16)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var s = new S2()").WithArguments("ref struct interfaces", "13.0").WithLocation(10, 16)
                 );
 
             comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (2,24): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (2,24): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // public ref struct S2 : System.IDisposable
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.IDisposable").WithArguments("ref struct interfaces").WithLocation(2, 24)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "System.IDisposable").WithArguments("ref struct interfaces", "13.0").WithLocation(2, 24)
                 );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
-            comp2.VerifyEmitDiagnostics(
-                // (6,16): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         using (new S2())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S2()").WithArguments("ref struct interfaces").WithLocation(6, 16),
-                // (10,16): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         using (var s = new S2())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var s = new S2()").WithArguments("ref struct interfaces").WithLocation(10, 16)
-                );
-
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -8740,26 +8730,19 @@ class C
             // Even though semantic analysis didn't produce any errors in C# 12 compiler, an attempt to emit was failing with
             // "Unable to determine specific cause of the failure" error.
             comp2.VerifyEmitDiagnostics(
-                // (6,27): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,27): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         foreach (var i in new S())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S()").WithArguments("ref struct interfaces").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new S()").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 27)
                 );
 
             comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (4,23): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,23): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // public ref struct S : IEnumerable<int>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "IEnumerable<int>").WithArguments("ref struct interfaces").WithLocation(4, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "IEnumerable<int>").WithArguments("ref struct interfaces", "13.0").WithLocation(4, 23)
                 );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
-            comp2.VerifyEmitDiagnostics(
-                // (6,27): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         foreach (var i in new S())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S()").WithArguments("ref struct interfaces").WithLocation(6, 27)
-                );
-
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -11826,21 +11809,21 @@ class C
     }
 }
 ";
-            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (6,9): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         foreach (var i in new S1()) {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "foreach (var i in new S1()) {}").WithArguments("ref struct interfaces").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach (var i in new S1()) {}").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 9)
                 );
 
-            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (10,24): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (10,24): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // public ref struct S2 : System.IDisposable
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "System.IDisposable").WithArguments("ref struct interfaces").WithLocation(10, 24)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "System.IDisposable").WithArguments("ref struct interfaces", "13.0").WithLocation(10, 24)
                 );
 
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -13780,25 +13763,25 @@ class C
 ";
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (6,22): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,22): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (new S2())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S2()").WithArguments("ref struct interfaces").WithLocation(6, 22),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new S2()").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 22),
                 // (6,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (new S2())
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new S2()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 22),
                 // (10,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (var s = new S2())
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 22),
-                // (10,22): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (10,22): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (var s = new S2())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var s = new S2()").WithArguments("ref struct interfaces").WithLocation(10, 22)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "var s = new S2()").WithArguments("ref struct interfaces", "13.0").WithLocation(10, 22)
                 );
 
             comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (5,24): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (5,24): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // public ref struct S2 : IAsyncDisposable
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "IAsyncDisposable").WithArguments("ref struct interfaces").WithLocation(5, 24),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "IAsyncDisposable").WithArguments("ref struct interfaces", "13.0").WithLocation(5, 24),
                 // (25,22): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await using (new S2())
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new S2()").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(25, 22),
@@ -13808,23 +13791,6 @@ class C
                 );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
-            comp2.VerifyEmitDiagnostics(
-                // (6,22): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         await using (new S2())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S2()").WithArguments("ref struct interfaces").WithLocation(6, 22),
-                // (10,22): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         await using (var s = new S2())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "var s = new S2()").WithArguments("ref struct interfaces").WithLocation(10, 22)
-                );
-
-            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
-            comp2.VerifyEmitDiagnostics(
-                // (5,24): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                // public ref struct S2 : IAsyncDisposable
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "IAsyncDisposable").WithArguments("ref struct interfaces").WithLocation(5, 24)
-                );
-
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -16212,24 +16178,24 @@ class C
     }
 }
 ";
-            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
 
             // Even though semantic analysis didn't produce any errors in C# 12 compiler, an attempt to emit was failing with
             // "Unable to determine specific cause of the failure" error.
             comp2.VerifyEmitDiagnostics(
-                // (6,33): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,33): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (var i in new S())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S()").WithArguments("ref struct interfaces").WithLocation(6, 33)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new S()").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 33)
                 );
 
-            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (6,23): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,23): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // public ref struct S : IAsyncEnumerable<int>
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "IAsyncEnumerable<int>").WithArguments("ref struct interfaces").WithLocation(6, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "IAsyncEnumerable<int>").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 23)
                 );
 
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -17458,27 +17424,27 @@ class C
     }
 }
 ";
-            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (6,9): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,9): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (var i in new S1()) {}
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "await foreach (var i in new S1()) {}").WithArguments("ref struct interfaces").WithLocation(6, 9),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "await foreach (var i in new S1()) {}").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 9),
                 // (6,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
                 //         await foreach (var i in new S1()) {}
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(6, 15)
                 );
 
-            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (14,24): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (14,24): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // public ref struct S2 : IAsyncDisposable
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "IAsyncDisposable").WithArguments("ref struct interfaces").WithLocation(14, 24),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "IAsyncDisposable").WithArguments("ref struct interfaces", "13.0").WithLocation(14, 24),
                 // (40,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
                 //         await foreach (var i in new S1()) {}
                 Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(40, 15)
                 );
 
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
                 // (6,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
                 //         await foreach (var i in new S1()) {}
@@ -18934,21 +18900,21 @@ class C
     }
 }
 ";
-            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
+            var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (6,27): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (6,27): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         foreach (var i in new S())
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "new S()").WithArguments("ref struct interfaces").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "new S()").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 27)
                 );
 
-            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
+            comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (4,23): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (4,23): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // public ref struct S : IEnumerable
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "IEnumerable").WithArguments("ref struct interfaces").WithLocation(4, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "IEnumerable").WithArguments("ref struct interfaces", "13.0").WithLocation(4, 23)
                 );
 
-            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
+            comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
@@ -28292,9 +28258,9 @@ namespace System
                 // (5,37): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         where T : I1, new(), allows ref struct
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(5, 37),
-                // (12,39): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (12,39): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         System.Console.Write((new S() { 200, 40, 6 }).P);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "{ 200, 40, 6 }").WithArguments("ref struct interfaces").WithLocation(12, 39),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "{ 200, 40, 6 }").WithArguments("ref struct interfaces", "13.0").WithLocation(12, 39),
                 // (20,62): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         public static T CreateInstance<T>() where T : allows ref struct => default;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(20, 62)
@@ -28308,19 +28274,12 @@ namespace System
                 // (20,62): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         public static T CreateInstance<T>() where T : allows ref struct => default;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(20, 62),
-                // (24,23): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (24,23): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // public ref struct S : I1
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "I1").WithArguments("ref struct interfaces").WithLocation(24, 23)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "I1").WithArguments("ref struct interfaces", "13.0").WithLocation(24, 23)
                 );
 
             comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
-            comp2.VerifyEmitDiagnostics(
-                // (12,39): error CS8652: The feature 'ref struct interfaces' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //         System.Console.Write((new S() { 200, 40, 6 }).P);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "{ 200, 40, 6 }").WithArguments("ref struct interfaces").WithLocation(12, 39)
-                );
-
-            comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.RegularNext);
             comp2.VerifyEmitDiagnostics();
 
             comp2 = CreateCompilation(text2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);

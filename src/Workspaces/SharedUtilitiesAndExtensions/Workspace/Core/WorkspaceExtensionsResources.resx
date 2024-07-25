@@ -195,4 +195,7 @@
   <data name="Type_members" xml:space="preserve">
     <value>Type members</value>
   </data>
+  <data name="Document_does_not_support_syntax_trees" xml:space="preserve">
+    <value>Document does not support syntax trees</value>
+  </data>
 </root>

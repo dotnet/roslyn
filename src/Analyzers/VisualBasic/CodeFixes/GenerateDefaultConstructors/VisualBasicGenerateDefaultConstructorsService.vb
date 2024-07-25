@@ -12,7 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateDefaultConstructors
     <ExportLanguageService(GetType(IGenerateDefaultConstructorsService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicGenerateDefaultConstructorsService
+    Partial Friend NotInheritable Class VisualBasicGenerateDefaultConstructorsService
         Inherits AbstractGenerateDefaultConstructorsService(Of VisualBasicGenerateDefaultConstructorsService)
 
         <ImportingConstructor>

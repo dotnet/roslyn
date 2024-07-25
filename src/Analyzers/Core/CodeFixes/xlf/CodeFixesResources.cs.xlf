@@ -18,8 +18,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">Přidat explicitní přetypování</target>
+        <source>Add explicit casts</source>
+        <target state="needs-review-translation">Přidat explicitní přetypování</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_file_header">

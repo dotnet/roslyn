@@ -12,6 +12,12 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
+#else
+using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
+#endif
+
 namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 
 internal abstract partial class AbstractGenerateDefaultConstructorsService<TService>
@@ -40,7 +46,8 @@ internal abstract partial class AbstractGenerateDefaultConstructorsService<TServ
         protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_state.ClassType);
-            var result = await CodeGenerator.AddMemberDeclarationsAsync(
+            var generator = _document.GetRequiredLanguageService<ICodeGenerationService>();
+            var result = await generator.AddMembersAsync(
                 new CodeGenerationSolutionContext(
                     _document.Project.Solution,
                     CodeGenerationContext.Default),

@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -237,9 +236,7 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
             await FindMostRelevantDeclarationAsync(context.Solution, destination, context.Context.BestLocation, cancellationToken).ConfigureAwait(false);
 
         if (destinationDeclaration == null)
-        {
             throw new ArgumentException(WorkspaceExtensionsResources.Could_not_find_location_to_generation_symbol_into);
-        }
 
         var destinationTree = destinationDeclaration.SyntaxTree;
         var oldDocument = context.Solution.GetRequiredDocument(destinationTree);

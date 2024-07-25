@@ -523,7 +523,7 @@ internal abstract class AbstractRefactoringHelpersService<TExpressionSyntax, TAr
         // -> can simply FindToken -> proceed testing its ancestors
         var root = document.Root;
         if (root is null)
-            throw new NotSupportedException(WorkspacesResources.Document_does_not_support_syntax_trees);
+            throw new NotSupportedException(WorkspaceExtensionsResources.Document_does_not_support_syntax_trees);
 
         var token = root.FindTokenOnRightOfPosition(position, true);
 

@@ -840,16 +840,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">生成常数“{0}”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_fields">
-        <source>Generate constructor in '{0}' (with fields)</source>
-        <target state="translated">在“{0}”中生成构造函数(包含字段)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_properties">
-        <source>Generate constructor in '{0}' (with properties)</source>
-        <target state="translated">在“{0}”中生成构造函数(包含属性)</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
         <target state="translated">生成枚举成员“{0}”</target>
@@ -3880,16 +3870,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">生成委托构造函数“{0}({1})”</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_0_1">
-        <source>Generate constructor '{0}({1})'</source>
-        <target state="translated">生成构造函数 “{0}({1})”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_assigning_constructor_0_1">
-        <source>Generate field assigning constructor '{0}({1})'</source>
-        <target state="translated">生成字段分配构造函数“{0}({1})”</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">生成 Equals 和 GetHashCode</target>
@@ -3903,16 +3883,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Generate_GetHashCode">
         <source>Generate GetHashCode()</source>
         <target state="translated">生成 GetHashCode()</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0">
-        <source>Generate constructor in '{0}'</source>
-        <target state="translated">在“{0}”中生成构造函数</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_all">
-        <source>Generate all</source>
-        <target state="translated">生成所有</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_local_0">

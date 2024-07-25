@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateDefaultConstructors
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateDefaultConstructors), [Shared]>
-    Friend Class VisualBasicGenerateDefaultConstructorsCodeFixProvider
+    Friend NotInheritable Class VisualBasicGenerateDefaultConstructorsCodeFixProvider
         Inherits AbstractGenerateDefaultConstructorCodeFixProvider
 
         Private Const BC30387 As String = NameOf(BC30387) ' Class 'C' must declare a 'Sub New' because its base class 'B' does not have an accessible 'Sub New' that can be called with no arguments.	

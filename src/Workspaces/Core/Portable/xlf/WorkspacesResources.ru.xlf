@@ -57,11 +57,6 @@
         <target state="translated">Параметр DateTimeKind должен содержать время и дату в формате UTC</target>
         <note />
       </trans-unit>
-      <trans-unit id="Document_does_not_support_syntax_trees">
-        <source>Document does not support syntax trees</source>
-        <target state="translated">Документ не поддерживает синтаксические деревья.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Error_reading_content_of_source_file_0_1">
         <source>Error reading content of source file '{0}' -- '{1}'.</source>
         <target state="translated">Ошибка при чтении содержимого исходного файла "{0}" — "{1}".</target>

@@ -18,14 +18,10 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.CSharp.GenerateDefaultConstructors;
 
 [ExportLanguageService(typeof(IGenerateDefaultConstructorsService), LanguageNames.CSharp), Shared]
-internal class CSharpGenerateDefaultConstructorsService : AbstractGenerateDefaultConstructorsService<CSharpGenerateDefaultConstructorsService>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpGenerateDefaultConstructorsService() : AbstractGenerateDefaultConstructorsService<CSharpGenerateDefaultConstructorsService>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpGenerateDefaultConstructorsService()
-    {
-    }
-
     protected override bool TryInitializeState(
         SemanticDocument semanticDocument, TextSpan textSpan, CancellationToken cancellationToken,
         [NotNullWhen(true)] out INamedTypeSymbol? classType)

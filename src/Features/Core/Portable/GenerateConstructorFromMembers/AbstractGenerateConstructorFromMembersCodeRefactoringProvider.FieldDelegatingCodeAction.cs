@@ -87,12 +87,12 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
 
                 if (_state.DelegatedConstructor == null)
                 {
-                    return string.Format(FeaturesResources.Generate_constructor_0_1,
+                    return string.Format(CodeFixesResources.Generate_constructor_0_1,
                         _state.ContainingType.Name, parameterString);
                 }
                 else
                 {
-                    return string.Format(FeaturesResources.Generate_field_assigning_constructor_0_1,
+                    return string.Format(CodeFixesResources.Generate_field_assigning_constructor_0_1,
                         _state.ContainingType.Name, parameterString);
                 }
             }

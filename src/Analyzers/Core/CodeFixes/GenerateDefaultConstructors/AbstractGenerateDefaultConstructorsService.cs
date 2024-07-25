@@ -17,10 +17,6 @@ namespace Microsoft.CodeAnalysis.GenerateDefaultConstructors;
 internal abstract partial class AbstractGenerateDefaultConstructorsService<TService> : IGenerateDefaultConstructorsService
     where TService : AbstractGenerateDefaultConstructorsService<TService>
 {
-    protected AbstractGenerateDefaultConstructorsService()
-    {
-    }
-
     protected abstract bool TryInitializeState(
         SemanticDocument document, TextSpan textSpan, CancellationToken cancellationToken,
         [NotNullWhen(true)] out INamedTypeSymbol? classType);

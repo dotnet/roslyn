@@ -18,8 +18,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">명시적 캐스트 추가</target>
+        <source>Add explicit casts</source>
+        <target state="needs-review-translation">명시적 캐스트 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_file_header">

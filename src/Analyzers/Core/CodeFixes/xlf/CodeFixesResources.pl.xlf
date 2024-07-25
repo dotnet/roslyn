@@ -18,8 +18,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Add_explicit_cast">
-        <source>Add explicit cast</source>
-        <target state="translated">Dodaj rzutowanie jawne</target>
+        <source>Add explicit casts</source>
+        <target state="needs-review-translation">Dodaj rzutowanie jawne</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_file_header">
