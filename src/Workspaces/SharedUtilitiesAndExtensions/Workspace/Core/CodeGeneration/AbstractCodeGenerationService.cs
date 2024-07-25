@@ -243,12 +243,10 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
 
         var destinationTree = destinationDeclaration.SyntaxTree;
         var oldDocument = context.Solution.GetRequiredDocument(destinationTree);
-#if CODE_STYLE
-        var codeGenOptions = CodeGenerationOptions.CommonDefaults;
-#else
+
         var codeGenOptions = await oldDocument.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
-#endif
         var info = GetInfo(context.Context, codeGenOptions, destinationDeclaration.SyntaxTree.Options);
+
         var transformedDeclaration = declarationTransform(destinationDeclaration, info, availableIndices, cancellationToken);
 
         var root = await destinationTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
