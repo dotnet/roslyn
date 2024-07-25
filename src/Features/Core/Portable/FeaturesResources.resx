@@ -1305,9 +1305,6 @@ This version used in: {2}</value>
     <value>Add 'DebuggerDisplay' attribute</value>
     <comment>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</comment>
   </data>
-  <data name="Do_not_change_this_code_Put_cleanup_code_in_0_method" xml:space="preserve">
-    <value>Do not change this code. Put cleanup code in '{0}' method</value>
-  </data>
   <data name="AM_PM_abbreviated" xml:space="preserve">
     <value>AM/PM (abbreviated)</value>
   </data>

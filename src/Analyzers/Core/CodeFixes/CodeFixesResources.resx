@@ -246,4 +246,7 @@
   <data name="TODO_colon_set_large_fields_to_null" xml:space="preserve">
     <value>TODO: set large fields to null</value>
   </data>
+  <data name="Do_not_change_this_code_Put_cleanup_code_in_0_method" xml:space="preserve">
+    <value>Do not change this code. Put cleanup code in '{0}' method</value>
+  </data>
 </root>

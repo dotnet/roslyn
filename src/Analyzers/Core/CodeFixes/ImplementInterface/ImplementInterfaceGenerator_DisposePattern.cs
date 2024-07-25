@@ -196,7 +196,7 @@ internal abstract partial class AbstractImplementInterfaceService
             // // Do not change...
             // Dispose(true);
             statements.Add(this.Service.AddComment(
-                string.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, disposeMethodDisplayString),
+                string.Format(CodeFixesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, disposeMethodDisplayString),
                 g.ExpressionStatement(
                     g.InvocationExpression(
                         g.IdentifierName(nameof(IDisposable.Dispose)),
