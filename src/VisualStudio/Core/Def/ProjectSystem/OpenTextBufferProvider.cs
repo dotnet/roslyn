@@ -131,7 +131,15 @@ internal sealed class OpenTextBufferProvider : IVsRunningDocTableEvents3, IDispo
     }
 
     public int OnAfterSave(uint docCookie)
-        => VSConstants.E_NOTIMPL;
+    {
+        if (_runningDocumentTable.IsDocumentInitialized(docCookie))
+        {
+            var moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
+            RaiseEventForEachListener(l => l.OnSaveDocument(moniker));
+        }
+
+        return VSConstants.S_OK;
+    }
 
     public int OnAfterAttributeChange(uint docCookie, uint grfAttribs)
         => VSConstants.E_NOTIMPL;
