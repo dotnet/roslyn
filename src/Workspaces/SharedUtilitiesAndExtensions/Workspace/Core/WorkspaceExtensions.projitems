@@ -17,7 +17,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Editing\ImportAdderService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IParameterSymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)extensions\IPropertySymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IPropertySymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.CompilationTypeGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.SubstituteTypesVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\ISyntaxFormattingService.cs" />
