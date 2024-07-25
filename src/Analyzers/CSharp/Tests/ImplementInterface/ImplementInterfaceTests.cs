@@ -7561,40 +7561,42 @@ class Program : IDisposable
             {
             }
             """,
-$@"using System;
-using System.Collections.Generic;
+            $$"""
+            using System;
+            using System.Collections.Generic;
 
-interface I<T, U> : System.IDisposable, System.IEquatable<int> where U : T
-{{
-    System.Collections.Generic.List<U> M(System.Collections.Generic.Dictionary<T, System.Collections.Generic.List<U>> a, T b, U c);
-    System.Collections.Generic.List<UU> M<TT, UU>(System.Collections.Generic.Dictionary<TT, System.Collections.Generic.List<UU>> a, TT b, UU c) where UU : TT;
-}}
+            interface I<T, U> : System.IDisposable, System.IEquatable<int> where U : T
+            {
+                System.Collections.Generic.List<U> M(System.Collections.Generic.Dictionary<T, System.Collections.Generic.List<U>> a, T b, U c);
+                System.Collections.Generic.List<UU> M<TT, UU>(System.Collections.Generic.Dictionary<TT, System.Collections.Generic.List<UU>> a, TT b, UU c) where UU : TT;
+            }
 
-partial class C
-{{
-}}
+            partial class C
+            {
+            }
 
-partial class C : I<System.Exception, System.AggregateException>, System.IDisposable
-{{
-    private bool disposedValue;
+            partial class C : I<System.Exception, System.AggregateException>, System.IDisposable
+            {
+                private bool disposedValue;
 
-    public bool Equals(int other)
-    {{
-        throw new NotImplementedException();
-    }}
+                public bool Equals(int other)
+                {
+                    throw new NotImplementedException();
+                }
 
-    public List<AggregateException> M(Dictionary<Exception, List<AggregateException>> a, Exception b, AggregateException c)
-    {{
-        throw new NotImplementedException();
-    }}
+                public List<AggregateException> M(Dictionary<Exception, List<AggregateException>> a, Exception b, AggregateException c)
+                {
+                    throw new NotImplementedException();
+                }
 
-    public List<UU> M<TT, UU>(Dictionary<TT, List<UU>> a, TT b, UU c) where UU : TT
-    {{
-        throw new NotImplementedException();
-    }}
+                public List<UU> M<TT, UU>(Dictionary<TT, List<UU>> a, TT b, UU c) where UU : TT
+                {
+                    throw new NotImplementedException();
+                }
 
-{DisposePattern("protected virtual ", "C", "public void ")}
-}}", codeAction: ("False;False;True:global::I<global::System.Exception, global::System.AggregateException>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 1));
+            {{DisposePattern("protected virtual ", "C", "public void ")}}
+            }
+            """, codeAction: ("False;False;True:global::I<global::System.Exception, global::System.AggregateException>;Microsoft.CodeAnalysis.ImplementInterface.AbstractImplementInterfaceService+ImplementInterfaceWithDisposePatternCodeAction;", 1));
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/994328")]
