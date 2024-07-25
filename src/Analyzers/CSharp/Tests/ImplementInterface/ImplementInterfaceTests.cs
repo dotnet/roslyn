@@ -7555,7 +7555,7 @@ class Program : IDisposable
                 {
                     throw new NotImplementedException();
                 }
-            """
+            """;
 #else
         string extraUsing = "";
 
@@ -7590,9 +7590,6 @@ class Program : IDisposable
 
             interface I<T, U> : System.IDisposable, System.IEquatable<int> where U : T
             {
-
-            {{equalsMethod}}
-
                 System.Collections.Generic.List<U> M(System.Collections.Generic.Dictionary<T, System.Collections.Generic.List<U>> a, T b, U c);
                 System.Collections.Generic.List<UU> M<TT, UU>(System.Collections.Generic.Dictionary<TT, System.Collections.Generic.List<UU>> a, TT b, UU c) where UU : TT;
             }
@@ -7604,6 +7601,8 @@ class Program : IDisposable
             partial class C : I<System.Exception, System.AggregateException>, System.IDisposable
             {
                 private bool disposedValue;
+            
+            {{equalsMethod}}
 
                 public List<AggregateException> M(Dictionary<Exception, List<AggregateException>> a, Exception b, AggregateException c)
                 {
@@ -10044,7 +10043,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
     {
         await TestInRegularAndScriptAsync(
             """
-#nullable enable
+            #nullable enable
 
             public interface ITest
             {
@@ -10055,7 +10054,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             }
             """,
             """
-#nullable enable
+            #nullable enable
 
             public interface ITest
             {
@@ -10073,7 +10072,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
     {
         var code =
             """
-#nullable enable
+            #nullable enable
 
             public interface ITest
             {
@@ -10092,7 +10091,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
     {
         await TestInRegularAndScriptAsync(
             """
-#nullable enable
+            #nullable enable
 
             public interface ITest
             {
@@ -10103,7 +10102,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             }
             """,
             """
-#nullable enable
+            #nullable enable
 
             public interface ITest
             {
@@ -10126,7 +10125,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
         // see https://github.com/dotnet/roslyn/issues/36673 
         await TestInRegularAndScriptAsync(
             """
-#nullable enable
+            #nullable enable
 
             using System;
 
@@ -10139,7 +10138,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             }
             """,
             """
-#nullable enable
+            #nullable enable
 
             using System;
 
@@ -10159,28 +10158,28 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
     {
         await TestInRegularAndScriptAsync(
             """
-#nullable enable
+            #nullable enable
 
             public interface ITest
             {
                 string? P { get; }
             }
 
-#nullable disable
+            #nullable disable
 
             public class Test : {|CS0535:ITest|}
             {
             }
             """,
             """
-#nullable enable
+            #nullable enable
 
             public interface ITest
             {
                 string? P { get; }
             }
 
-#nullable disable
+            #nullable disable
 
             public class Test : ITest
             {
@@ -10196,7 +10195,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
         {
             ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
             TestCode = """
-#nullable enable
+            #nullable enable
 
             using System.Diagnostics.CodeAnalysis;
 
@@ -10214,7 +10213,7 @@ codeAction: ("False;False;False:global::System.Collections.Generic.IList<object>
             }
             """,
             FixedCode = """
-#nullable enable
+            #nullable enable
 
             using System.Diagnostics.CodeAnalysis;
 
@@ -10620,7 +10619,7 @@ interface I
         {
             LanguageVersion = LanguageVersion.CSharp9,
             TestCode = """
-#nullable enable
+            #nullable enable
             interface IGoo<T>
             {
                 void Bar(T? x);
@@ -10631,7 +10630,7 @@ interface I
             }
             """,
             FixedCode = """
-#nullable enable
+            #nullable enable
             interface IGoo<T>
             {
                 void Bar(T? x);
@@ -10686,9 +10685,9 @@ interface I
             TestCode = """
             interface IGoo<T>
             {
-#nullable enable
+            #nullable enable
                 void Bar(T? x);
-#nullable restore
+            #nullable restore
             }
 
             class C : {|CS0535:IGoo<string>|}
@@ -10698,9 +10697,9 @@ interface I
             FixedCode = """
             interface IGoo<T>
             {
-#nullable enable
+            #nullable enable
                 void Bar(T? x);
-#nullable restore
+            #nullable restore
             }
 
             class C : IGoo<string>
@@ -10721,7 +10720,7 @@ interface I
         {
             LanguageVersion = LanguageVersion.CSharp9,
             TestCode = """
-#nullable enable
+            #nullable enable
 
             interface IGoo<T>
             {
@@ -10733,7 +10732,7 @@ interface I
             }
             """,
             FixedCode = """
-#nullable enable
+            #nullable enable
 
             interface IGoo<T>
             {
@@ -10758,7 +10757,7 @@ interface I
         {
             LanguageVersion = LanguageVersion.CSharp9,
             TestCode = """
-#nullable enable
+            #nullable enable
             interface IGoo<T> where T : class
             {
                 void Bar(T? x);
@@ -10769,7 +10768,7 @@ interface I
             }
             """,
             FixedCode = """
-#nullable enable
+            #nullable enable
             interface IGoo<T> where T : class
             {
                 void Bar(T? x);
