@@ -382,7 +382,7 @@ internal abstract class AbstractAddParameterCheckCodeRefactoringProvider<
 
     private TStatementSyntax CreateNullCheckStatement(SemanticModel semanticModel, SyntaxGenerator generator, IParameterSymbol parameter, TSimplifierOptions options)
         => CreateParameterCheckIfStatement(
-            (TExpressionSyntax)generator.CreateNullCheckExpression(semanticModel, parameter.Name),
+            (TExpressionSyntax)generator.CreateNullCheckExpression(generator.SyntaxGeneratorInternal, semanticModel, parameter.Name),
             (TStatementSyntax)generator.CreateThrowArgumentNullExceptionStatement(semanticModel.Compilation, parameter),
             options);
 

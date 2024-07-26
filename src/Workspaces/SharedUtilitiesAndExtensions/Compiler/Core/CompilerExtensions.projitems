@@ -256,8 +256,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DiagnosticSeverityExtensions_Shared.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\DirectiveInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IPropertySymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeParameterSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.AnonymousTypeRemover.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.CollectTypeParameterSymbolsVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.CompilationTypeGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.SubstituteTypesVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.UnavailableTypeParameterRemover.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.UnnamedErrorTypeRemover.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ListExtensions.cs" />
