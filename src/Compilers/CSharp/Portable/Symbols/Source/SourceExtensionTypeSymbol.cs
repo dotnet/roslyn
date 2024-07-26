@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -140,7 +137,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
-            => GetDeclaredExtensionInfo(basesBeingResolved: null).UnderlyingType;
+        {
+            var basesBeingResolved = ConsList<TypeSymbol>.Empty.Prepend(this.OriginalDefinition);
+            return GetDeclaredExtensionInfo(basesBeingResolved).UnderlyingType;
+        }
 
         internal sealed override TypeSymbol? GetExtendedTypeNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved)
         {
@@ -166,7 +166,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             TypeSymbol? makeAcyclicUnderlyingType(ConsList<TypeSymbol>? basesBeingResolved, BindingDiagnosticBag diagnostics)
             {
-                TypeSymbol? declaredUnderlyingType = GetDeclaredExtensionInfo(basesBeingResolved).UnderlyingType;
+                Debug.Assert(basesBeingResolved == null || !basesBeingResolved.ContainsReference(this.OriginalDefinition));
+                var newBasesBeingResolved = basesBeingResolved.Prepend(this.OriginalDefinition);
+                TypeSymbol? declaredUnderlyingType = GetDeclaredExtensionInfo(newBasesBeingResolved).UnderlyingType;
 
                 if (declaredUnderlyingType is null)
                 {
@@ -177,6 +179,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     return new ExtendedErrorTypeSymbol(declaredUnderlyingType, LookupResultKind.NotReferencable,
                         diagnostics.Add(ErrorCode.ERR_CircularBase, Locations[0], declaredUnderlyingType, this));
+                }
+
+                if (hasSelfReference(declaredUnderlyingType, this, newBasesBeingResolved))
+                {
+                    // If erasing extension types in the given extended type involves erasing that extended type
+                    // then the result of erasure would be unbounded
+                    diagnostics.Add(ErrorCode.ERR_CircularBase, Locations[0], declaredUnderlyingType, this);
                 }
 
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
@@ -203,6 +212,88 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return declaredUnderlyingType;
             }
+
+            static bool hasSelfReference(TypeSymbol underlyingType, SourceExtensionTypeSymbol definition, ConsList<TypeSymbol>? basesBeingResolved)
+            {
+                Debug.Assert(definition.IsDefinition);
+                PooledHashSet<TypeSymbol> alreadyVisited = PooledHashSet<TypeSymbol>.GetInstance();
+                var result = foundSelfReferenceInErasure(underlyingType, definition, alreadyVisited: alreadyVisited, basesBeingResolved: basesBeingResolved, isContainer: false);
+                alreadyVisited.Free();
+                return result;
+            }
+
+            // Returns true if any erasure in the visited type is the given definition
+            static bool foundSelfReferenceInErasure(TypeSymbol type, SourceExtensionTypeSymbol definition, PooledHashSet<TypeSymbol> alreadyVisited, ConsList<TypeSymbol>? basesBeingResolved, bool isContainer = false)
+            {
+                Debug.Assert(definition.IsDefinition);
+
+                if (type is NamedTypeSymbol)
+                {
+                    if (!isContainer)
+                    {
+                        if (object.ReferenceEquals(type.OriginalDefinition, definition))
+                        {
+                            return true;
+                        }
+
+                        if (alreadyVisited.Contains(type))
+                        {
+                            return false;
+                        }
+
+                        alreadyVisited.Add(type);
+
+                        if (type.IsExtension)
+                        {
+                            if (type.GetExtendedTypeNoUseSiteDiagnostics(basesBeingResolved) is { } extendedType)
+                            {
+                                return foundSelfReferenceInErasure(extendedType, definition, alreadyVisited, basesBeingResolved);
+                            }
+
+                            return true;
+                        }
+                    }
+
+                    if (type.ContainingType is { } containingType
+                        && foundSelfReferenceInErasure(containingType, definition, alreadyVisited, basesBeingResolved, isContainer: true))
+                    {
+                        return true;
+                    }
+
+                    foreach (var typeArgument in type.GetMemberTypeArgumentsNoUseSiteDiagnostics())
+                    {
+                        if (foundSelfReferenceInErasure(typeArgument, definition, alreadyVisited, basesBeingResolved))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                else if (type is ArrayTypeSymbol arrayType)
+                {
+                    return foundSelfReferenceInErasure(arrayType.ElementType, definition, alreadyVisited, basesBeingResolved);
+                }
+                else if (type is PointerTypeSymbol pointerType)
+                {
+                    return foundSelfReferenceInErasure(pointerType.PointedAtType, definition, alreadyVisited, basesBeingResolved);
+                }
+                else if (type is FunctionPointerTypeSymbol functionPointerType)
+                {
+                    if (foundSelfReferenceInErasure(functionPointerType.Signature.ReturnType, definition, alreadyVisited, basesBeingResolved))
+                    {
+                        return true;
+                    }
+
+                    foreach (var parameter in functionPointerType.Signature.Parameters)
+                    {
+                        if (foundSelfReferenceInErasure(parameter.Type, definition, alreadyVisited, basesBeingResolved))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
+            };
         }
 
         private SourceLocation? FindUnderlyingTypeSyntax(TypeSymbol underlyingType)
@@ -281,13 +372,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeSymbol? underlyingType = null;
             SourceLocation? underlyingTypeLocation = null;
 
-            Debug.Assert(basesBeingResolved == null || !basesBeingResolved.ContainsReference(this.OriginalDefinition));
-            var newBasesBeingResolved = basesBeingResolved.Prepend(this.OriginalDefinition);
-
             for (int i = 0; i < this.declaration.Declarations.Length; i++)
             {
                 var declaration = this.declaration.Declarations[i];
-                ExtensionInfo one = MakeOneDeclaredExtensionInfo(newBasesBeingResolved, declaration, diagnostics, out bool sawPartUnderlyingType, out bool oneExplicit);
+                ExtensionInfo one = MakeOneDeclaredExtensionInfo(basesBeingResolved, declaration, diagnostics, out bool sawPartUnderlyingType, out bool oneExplicit);
                 sawUnderlyingType |= sawPartUnderlyingType;
 
                 if (i == 0)
@@ -373,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// - <see cref="Metadata.PE.PENamedTypeSymbol.EnsureExtensionTypeDecoded"/>
         /// - <see cref="Retargeting.RetargetingNamedTypeSymbol.GetDeclaredExtensionUnderlyingType"/>
         /// </summary>
-        private ExtensionInfo MakeOneDeclaredExtensionInfo(ConsList<TypeSymbol> basesBeingResolved, SingleTypeDeclaration decl, BindingDiagnosticBag diagnostics,
+        private ExtensionInfo MakeOneDeclaredExtensionInfo(ConsList<TypeSymbol>? basesBeingResolved, SingleTypeDeclaration decl, BindingDiagnosticBag diagnostics,
             out bool sawUnderlyingType, out bool isExplicit)
         {
             var syntax = (ExtensionDeclarationSyntax)decl.SyntaxReference.GetSyntax();

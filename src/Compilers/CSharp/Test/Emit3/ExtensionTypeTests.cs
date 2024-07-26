@@ -4154,15 +4154,104 @@ class C2 : C<UseSiteError> { }
 explicit extension R for R { }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics(
+        comp.VerifyEmitDiagnostics(
             // (1,26): error CS9305: The extended type may not be dynamic, a pointer, a ref struct, or an extension.
             // explicit extension R for R { }
-            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "R").WithLocation(1, 26)
-            );
+            Diagnostic(ErrorCode.ERR_BadExtensionUnderlyingType, "R").WithLocation(1, 26));
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
         Assert.Null(r.GetExtendedTypeNoUseSiteDiagnostics(null));
+    }
+
+    [Fact]
+    public void TypeDepends_SelfReference_AsTypeArgument()
+    {
+        var src = """
+class C<T> { }
+explicit extension R for C<R> { } // Would be erased as C<C<C<...>>>
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,20): error CS0146: Circular base type dependency involving 'C<R>' and 'R'
+            // explicit extension R for C<R> { }
+            Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("C<R>", "R").WithLocation(2, 20));
+        var r = comp.GlobalNamespace.GetTypeMember("R");
+        Assert.Equal("C<R>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
+    }
+
+    [Fact]
+    public void TypeDepends_SelfReference_AsTypeArgument_InErasedExtension()
+    {
+        var src = """
+class C<T> { }
+explicit extension R for C<R2<R>> { } // C<int>
+explicit extension R2<T> for int { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics();
+        var r = comp.GlobalNamespace.GetTypeMember("R");
+        Assert.Equal("C<R2<R>>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
+    }
+
+    [Fact]
+    public void TypeDepends_SelfReference_AsTypeArgumentOfContainingType()
+    {
+        var src = """
+class C<T> { }
+explicit extension R for R2<R>.Nested { } // Would be erased as R2<R2<...>.Nested>.Nested
+explicit extension R2<T> for int 
+{
+    public class Nested { }
+}
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,20): error CS0146: Circular base type dependency involving 'R2<R>.Nested' and 'R'
+            // explicit extension R for R2<R>.Nested { } // Would be erased as R2<R2<...>.Nested>.Nested
+            Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("R2<R>.Nested", "R").WithLocation(2, 20));
+        var r = comp.GlobalNamespace.GetTypeMember("R");
+        Assert.Equal("R2<R>.Nested", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
+    }
+
+    [Fact]
+    public void TypeDepends_SelfReference_AsTypeArgument_ReferencedFromAnotherExtension()
+    {
+        var src = """
+class C<T> { }
+explicit extension R for C<R> { }
+explicit extension R2 for C<R> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,20): error CS0146: Circular base type dependency involving 'C<R>' and 'R'
+            // explicit extension R for C<R> { }
+            Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("C<R>", "R").WithLocation(2, 20));
+        var r = comp.GlobalNamespace.GetTypeMember("R");
+        Assert.Equal("C<R>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
+    }
+
+    [Fact]
+    public void TypeDepends_SelfReference_Expanding()
+    {
+        var src = """
+class C<T> { }
+explicit extension E1<T> for C<E2<(T, T)>> { }
+explicit extension E2<U> for C<E1<(U, U)>> { }
+""";
+        var comp = CreateCompilation(src);
+        comp.VerifyEmitDiagnostics(
+            // (2,20): error CS0146: Circular base type dependency involving 'C<E2<(T, T)>>' and 'E1<T>'
+            // explicit extension E1<T> for C<E2<(T, T)>> { }
+            Diagnostic(ErrorCode.ERR_CircularBase, "E1").WithArguments("C<E2<(T, T)>>", "E1<T>").WithLocation(2, 20),
+            // (3,20): error CS0146: Circular base type dependency involving 'C<E1<(U, U)>>' and 'E2<U>'
+            // explicit extension E2<U> for C<E1<(U, U)>> { }
+            Diagnostic(ErrorCode.ERR_CircularBase, "E2").WithArguments("C<E1<(U, U)>>", "E2<U>").WithLocation(3, 20));
+
+        var e1 = comp.GlobalNamespace.GetTypeMember("E1");
+        Assert.Equal("C<E2<(T, T)>>", e1.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
+        var e2 = comp.GlobalNamespace.GetTypeMember("E2");
+        Assert.Equal("C<E1<(U, U)>>", e2.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [ConditionalFact(typeof(NoBaseExtensions))]
@@ -4175,7 +4264,7 @@ public explicit extension One<T> for object : One<int>.Two
 }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics(
+        comp.VerifyEmitDiagnostics(
             // (1,27): error CS9311: Base extension 'One<int>.Two' causes a cycle in the extension hierarchy of 'One<T>'.
             // public explicit extension One<T> for object : One<int>.Two
             Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "One").WithArguments("One<T>", "One<int>.Two").WithLocation(1, 27)
@@ -4194,7 +4283,10 @@ public explicit extension One<T> for object : One<int>.Two
 explicit extension R for R[] { }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (1,20): error CS0146: Circular base type dependency involving 'R[]' and 'R'
+            // explicit extension R for R[] { }
+            Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("R[]", "R").WithLocation(1, 20));
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R[]", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
@@ -4206,9 +4298,71 @@ explicit extension R for R[] { }
 explicit extension R for (R, R) { }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (1,20): error CS0146: Circular base type dependency involving '(R, R)' and 'R'
+            // explicit extension R for (R, R) { }
+            Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("(R, R)", "R").WithLocation(1, 20));
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("(R, R)", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
+    }
+
+    [Fact]
+    public void TypeDepends_SelfReference_WithPointer()
+    {
+        var src = """
+class C<T> { }
+unsafe explicit extension R for C<R*[]> { }
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics(
+            // (2,27): error CS0146: Circular base type dependency involving 'C<R*[]>' and 'R'
+            // unsafe explicit extension R for C<R*[]> { }
+            Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("C<R*[]>", "R").WithLocation(2, 27));
+        var r = comp.GlobalNamespace.GetTypeMember("R");
+        Assert.Equal("C<R*[]>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
+    }
+
+    [Fact]
+    public void TypeDepends_SelfReference_WithFunctionPointer_ReturnType()
+    {
+        var src = """
+unsafe explicit extension E for delegate*<E>[] { }
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics(
+            // (1,27): error CS0146: Circular base type dependency involving 'delegate*<E>[]' and 'E'
+            // unsafe explicit extension E for delegate*<E>[] { }
+            Diagnostic(ErrorCode.ERR_CircularBase, "E").WithArguments("delegate*<E>[]", "E").WithLocation(1, 27));
+        var r = comp.GlobalNamespace.GetTypeMember("E");
+        Assert.Equal("delegate*<E>[]", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
+    }
+
+    [Fact]
+    public void TypeDepends_SelfReference_WithFunctionPointer_ParameterType()
+    {
+        var src = """
+unsafe explicit extension E for delegate*<E, void>[] { }
+""";
+        var comp = CreateCompilation(src, options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics(
+            // (1,27): error CS0146: Circular base type dependency involving 'delegate*<E, void>[]' and 'E'
+            // unsafe explicit extension E for delegate*<E, void>[] { }
+            Diagnostic(ErrorCode.ERR_CircularBase, "E").WithArguments("delegate*<E, void>[]", "E").WithLocation(1, 27));
+        var r = comp.GlobalNamespace.GetTypeMember("E");
+        Assert.Equal("delegate*<E, System.Void>[]", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
+    }
+
+    [Fact]
+    public void TypeDepends_SelfReference_WithDelegate()
+    {
+        var src = """
+delegate E MyDelegate();
+explicit extension E for MyDelegate { }
+""";
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition]);
+        comp.VerifyEmitDiagnostics();
+        var r = comp.GlobalNamespace.GetTypeMember("E");
+        Assert.Equal("MyDelegate", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
     [Fact]
@@ -4219,7 +4373,10 @@ struct S<T> { }
 explicit extension R for S<R> { }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (2,20): error CS0146: Circular base type dependency involving 'S<R>' and 'R'
+            // explicit extension R for S<R> { }
+            Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("S<R>", "R").WithLocation(2, 20));
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("S<R>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
@@ -4236,7 +4393,10 @@ public struct S<T>
 explicit extension R for S<R> { }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (6,20): error CS0146: Circular base type dependency involving 'S<R>' and 'R'
+            // explicit extension R for S<R> { }
+            Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("S<R>", "R").WithLocation(6, 20));
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("S<R>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
         Assert.Equal("R", r.GetExtendedTypeNoUseSiteDiagnostics(null).GetMember("field").GetTypeOrReturnType().ToTestDisplayString());
@@ -4250,7 +4410,10 @@ class C<T> { }
 explicit extension R for C<R> { }
 """;
         var comp = CreateCompilation(src);
-        comp.VerifyDiagnostics();
+        comp.VerifyEmitDiagnostics(
+            // (2,20): error CS0146: Circular base type dependency involving 'C<R>' and 'R'
+            // explicit extension R for C<R> { }
+            Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("C<R>", "R").WithLocation(2, 20));
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("R", r.ToTestDisplayString());
         Assert.True(r.IsExtension);
@@ -4268,7 +4431,7 @@ explicit extension Z for S : X { }
 """;
 
         var comp = CreateCompilation(new[] { src, CompilerFeatureRequiredAttribute }, targetFramework: TargetFramework.Mscorlib40);
-        comp.VerifyDiagnostics(
+        comp.VerifyEmitDiagnostics(
             // (2,20): error CS9311: Base extension 'Y' causes a cycle in the extension hierarchy of 'X'.
             // explicit extension X for S : Y { }
             Diagnostic(ErrorCode.ERR_CycleInBaseExtensions, "X").WithArguments("X", "Y").WithLocation(2, 20),
@@ -4569,7 +4732,7 @@ public explicit extension R1 for R2.Nested2
 """;
         comp1 = CreateCompilation(src1_updated, references: new[] { comp2.EmitToImageReference() },
             assemblyName: "first");
-        comp1.VerifyDiagnostics();
+        comp1.VerifyEmitDiagnostics();
 
         var r1 = comp1.GlobalNamespace.GetTypeMember("R1");
         Assert.True(r1.IsExtension);
@@ -4606,7 +4769,7 @@ public explicit extension R1 for R2.Nested2<R2>
 """;
         comp1 = CreateCompilation(src1_updated, references: new[] { comp2.EmitToImageReference() },
             assemblyName: "first");
-        comp1.VerifyDiagnostics();
+        comp1.VerifyEmitDiagnostics();
     }
 
     [ConditionalFact(typeof(NoBaseExtensions))]
@@ -4639,7 +4802,7 @@ public explicit extension R3 for object : R1 { }
         // PROTOTYPE this test should be updated once we emit erase references to extensions (different metadata format)
         // PROTOTYPE expecting some use-site diagnostics (bad metadata, as underlying type cannot be an extension)
         var comp = CreateCompilationWithIL(src, ilSource);
-        comp.VerifyDiagnostics(
+        comp.VerifyEmitDiagnostics(
             // (1,27): error CS9316: Extension 'R3' extends 'object' but base extension 'R1' extends 'R2'.
             // public explicit extension R3 for object : R1 { }
             Diagnostic(ErrorCode.ERR_UnderlyingTypesMismatch, "R3").WithArguments("R3", "object", "R1", "R2").WithLocation(1, 27)
@@ -43992,6 +44155,42 @@ public class C
                 VerifyMethodInPE("MethodDefinition:Object* C.M()", peMethod.Handle, peModule);
             }
         }
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_FunctionPointer_ReturnType()
+    {
+        var src = """
+public explicit extension E for object { }
+
+public class C
+{
+    public unsafe delegate*<E>[] M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics(
+            // error CS8911: Using a function pointer type in this context is not supported.
+            Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported).WithLocation(1, 1));
+    }
+
+    [Fact]
+    public void TypeReference_MethodReturn_FunctionPointer_ParameterType()
+    {
+        var src = """
+public explicit extension E for object { }
+
+public class C
+{
+    public unsafe delegate*<E, void>[] M() => throw null;
+}
+""";
+
+        var comp = CreateCompilation([src, ExtensionErasureAttributeDefinition], options: TestOptions.UnsafeDebugDll);
+        comp.VerifyEmitDiagnostics(
+            // error CS8911: Using a function pointer type in this context is not supported.
+            Diagnostic(ErrorCode.ERR_FunctionPointerTypesInAttributeNotSupported).WithLocation(1, 1));
     }
 
     [Fact]
