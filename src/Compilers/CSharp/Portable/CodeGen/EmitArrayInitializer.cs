@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 // ensure deterministic behavior.
                 arrayType = arrayType.WithElementType(TypeWithAnnotations.Create(elementType.EnumUnderlyingTypeOrSelf()));
 
-                var cachingField = _builder.module.GetArrayCachingFieldForData(data, _module.Translate(arrayType), wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
+                var cachingField = _builder.module.GetArrayCachingFieldForData(data, _module.Translate(arrayType, eraseExtensions: true), wrappedExpression.Syntax, _diagnostics.DiagnosticBag);
                 var arrayNotNullLabel = new object();
 
                 // T[]? array = PrivateImplementationDetails.cachingField;
@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
 
                 ImmutableArray<ConstantValue> constants = initializers.SelectAsArray(static init => init.ConstantValueOpt!);
-                Cci.IFieldReference cachingField = _builder.module.GetArrayCachingFieldForConstants(constants, _module.Translate(arrayType),
+                Cci.IFieldReference cachingField = _builder.module.GetArrayCachingFieldForConstants(constants, _module.Translate(arrayType, eraseExtensions: true),
                     arrayCreation.Syntax, _diagnostics.DiagnosticBag);
 
                 var arrayNotNullLabel = new object();

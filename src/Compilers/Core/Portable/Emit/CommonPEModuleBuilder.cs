@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.Emit
         internal abstract string ModuleName { get; }
 
         internal abstract Cci.IAssemblyReference Translate(IAssemblySymbolInternal symbol, DiagnosticBag diagnostics);
-        internal abstract Cci.ITypeReference Translate(ITypeSymbolInternal symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
+        internal abstract Cci.ITypeReference TranslateMarshallingTypeReference(ITypeSymbolInternal symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics);
         internal abstract Cci.IMethodReference Translate(IMethodSymbolInternal symbol, DiagnosticBag diagnostics, bool needDeclaration);
         internal abstract Compilation CommonCompilation { get; }
         internal abstract IModuleSymbolInternal CommonSourceModule { get; }
@@ -618,10 +618,7 @@ namespace Microsoft.CodeAnalysis.Emit
             return EncTranslateLocalVariableType((TTypeSymbol)type, diagnostics);
         }
 
-        internal virtual Cci.ITypeReference EncTranslateLocalVariableType(TTypeSymbol type, DiagnosticBag diagnostics)
-        {
-            return Translate(type, null, diagnostics);
-        }
+        internal abstract Cci.ITypeReference EncTranslateLocalVariableType(TTypeSymbol type, DiagnosticBag diagnostics);
 
         protected bool HaveDeterminedTopLevelTypes
         {
@@ -702,17 +699,11 @@ namespace Microsoft.CodeAnalysis.Emit
             => ImmutableArray<TNamedTypeSymbol>.Empty;
 
         internal abstract Cci.IAssemblyReference Translate(TAssemblySymbol symbol, DiagnosticBag diagnostics);
-        internal abstract Cci.ITypeReference Translate(TTypeSymbol symbol, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics, bool keepExtensions = false);
         internal abstract Cci.IMethodReference Translate(TMethodSymbol symbol, DiagnosticBag diagnostics, bool needDeclaration);
 
         internal sealed override Cci.IAssemblyReference Translate(IAssemblySymbolInternal symbol, DiagnosticBag diagnostics)
         {
             return Translate((TAssemblySymbol)symbol, diagnostics);
-        }
-
-        internal sealed override Cci.ITypeReference Translate(ITypeSymbolInternal symbol, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
-        {
-            return Translate((TTypeSymbol)symbol, (TSyntaxNode)syntaxNodeOpt, diagnostics);
         }
 
         internal sealed override Cci.IMethodReference Translate(IMethodSymbolInternal symbol, DiagnosticBag diagnostics, bool needDeclaration)
@@ -725,13 +716,15 @@ namespace Microsoft.CodeAnalysis.Emit
         internal sealed override CommonModuleCompilationState CommonModuleCompilationState => CompilationState;
         internal sealed override CommonEmbeddedTypesManager CommonEmbeddedTypesManagerOpt => EmbeddedTypesManagerOpt;
 
+        internal abstract Cci.ITypeReference TranslateTypeOfConstant(TTypeSymbol symbol, TSyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics);
+
         internal MetadataConstant CreateConstant(
             TTypeSymbol type,
             object value,
             TSyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics)
         {
-            return new MetadataConstant(Translate(type, syntaxNodeOpt, diagnostics), value);
+            return new MetadataConstant(TranslateTypeOfConstant(type, syntaxNodeOpt, diagnostics), value);
         }
 
         private static void VisitTopLevelType(Cci.TypeReferenceIndexer noPiaIndexer, Cci.INamespaceTypeDefinition type)

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var builder = ArrayBuilder<Cci.ITypeReference>.GetInstance();
             foreach (TypeWithAnnotations type in UnderlyingNamedType.TypeArgumentsWithAnnotationsNoUseSiteDiagnostics)
             {
-                builder.Add(moduleBeingBuilt.Translate(type.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics));
+                builder.Add(moduleBeingBuilt.Translate(type.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics, eraseExtensions: false));
             }
 
             return builder.ToImmutableAndFree();
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             return (Cci.INamedTypeReference)moduleBeingBuilt.Translate(
                 UnderlyingNamedType.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
-                diagnostics: context.Diagnostics, keepExtension: true, needDeclaration: true);
+                diagnostics: context.Diagnostics, ExtensionsEraseMode.None, needDeclaration: true);
         }
     }
 }

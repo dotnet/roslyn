@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         var localSymbol = new SynthesizedLocal(_method, _method.ReturnTypeWithAnnotations, SynthesizedLocalKind.FunctionReturnValue, bodySyntax);
 
                         result = _builder.LocalSlotManager.DeclareLocal(
-                            type: _module.Translate(localSymbol.Type, bodySyntax, _diagnostics.DiagnosticBag),
+                            type: _module.Translate(localSymbol.Type, bodySyntax, _diagnostics.DiagnosticBag, eraseExtensions: true),
                             symbol: localSymbol,
                             name: null,
                             kind: localSymbol.SynthesizedKind,
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSymbolToken(TypeSymbol symbol, SyntaxNode syntaxNode)
         {
-            EmitTypeReferenceToken(_module.Translate(symbol, syntaxNode, _diagnostics.DiagnosticBag), syntaxNode);
+            EmitTypeReferenceToken(_module.Translate(symbol, syntaxNode, _diagnostics.DiagnosticBag, eraseExtensions: true), syntaxNode);
         }
 
         private void EmitSymbolToken(MethodSymbol method, SyntaxNode syntaxNode, BoundArgListOperator optArgList, bool encodeAsRawDefinitionToken = false)
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitSignatureToken(FunctionPointerTypeSymbol symbol, SyntaxNode syntaxNode)
         {
-            _builder.EmitToken(_module.Translate(symbol).Signature, syntaxNode, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(_module.Translate(symbol, eraseExtensions: true).Signature, syntaxNode, _diagnostics.DiagnosticBag);
         }
 
         private void EmitSequencePointStatement(BoundSequencePoint node)

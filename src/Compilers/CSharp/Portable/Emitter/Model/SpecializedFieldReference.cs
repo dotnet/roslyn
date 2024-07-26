@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             TypeWithAnnotations oldType = _underlyingField.TypeWithAnnotations;
             var customModifiers = oldType.CustomModifiers;
-            var type = ((PEModuleBuilder)context.Module).Translate(oldType.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
+            var type = ((PEModuleBuilder)context.Module).Translate(oldType.Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics, eraseExtensions: true);
 
             if (customModifiers.Length == 0)
             {

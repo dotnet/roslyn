@@ -26,12 +26,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return Manager.ConstructAnonymousDelegateImplementationSymbol(this, generation: 0);
             }
 
-            internal override AnonymousTypeOrDelegatePublicSymbol SubstituteTypes(AbstractTypeMap map)
+            internal override AnonymousTypeOrDelegatePublicSymbol WithTypeDescriptor(AnonymousTypeDescriptor typeDescr)
             {
-                var typeDescr = TypeDescriptor.SubstituteTypes(map, out bool changed);
-                return changed ?
-                    new AnonymousDelegatePublicSymbol(Manager, typeDescr) :
-                    this;
+                return new AnonymousDelegatePublicSymbol(Manager, typeDescr);
             }
 
             public override TypeKind TypeKind => TypeKind.Delegate;

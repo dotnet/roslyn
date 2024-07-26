@@ -912,7 +912,7 @@ oneMoreTime:
                     {
                         // Ensure the return type has been translated. (Necessary
                         // for cases of untranslated anonymous types.)
-                        _module.Translate(expressionOpt.Type, boundReturnStatement.Syntax, _diagnostics.DiagnosticBag);
+                        _module.Translate(expressionOpt.Type, boundReturnStatement.Syntax, _diagnostics.DiagnosticBag, eraseExtensions: true);
                     }
                     _builder.EmitRet(expressionOpt == null);
                 }
@@ -1046,7 +1046,7 @@ oneMoreTime:
             if (catchBlock.ExceptionFilterOpt == null)
             {
                 var exceptionType = ((object)catchBlock.ExceptionTypeOpt != null) ?
-                    _module.Translate(catchBlock.ExceptionTypeOpt, catchBlock.Syntax, _diagnostics.DiagnosticBag) :
+                    _module.Translate(catchBlock.ExceptionTypeOpt, catchBlock.Syntax, _diagnostics.DiagnosticBag, eraseExtensions: true) :
                     _module.GetSpecialType(SpecialType.System_Object, catchBlock.Syntax, _diagnostics.DiagnosticBag);
 
                 _builder.OpenLocalScope(ScopeType.Catch, exceptionType);
@@ -1093,7 +1093,7 @@ oneMoreTime:
 
                 if ((object)catchBlock.ExceptionTypeOpt != null)
                 {
-                    var exceptionType = _module.Translate(catchBlock.ExceptionTypeOpt, catchBlock.Syntax, _diagnostics.DiagnosticBag);
+                    var exceptionType = _module.Translate(catchBlock.ExceptionTypeOpt, catchBlock.Syntax, _diagnostics.DiagnosticBag, eraseExtensions: true);
 
                     _builder.EmitOpCode(ILOpCode.Isinst);
                     _builder.EmitToken(exceptionType, catchBlock.Syntax, _diagnostics.DiagnosticBag);
@@ -1797,13 +1797,13 @@ oneMoreTime:
                 // (represented here by IntPtr) instead.
                 translatedType = pointedAtType.IsVoidType()
                     ? _module.GetSpecialType(SpecialType.System_IntPtr, syntaxNode, _diagnostics.DiagnosticBag)
-                    : _module.Translate(pointedAtType, syntaxNode, _diagnostics.DiagnosticBag);
+                    : _module.Translate(pointedAtType, syntaxNode, _diagnostics.DiagnosticBag, eraseExtensions: true);
             }
             else
             {
                 constraints = (local.IsPinned ? LocalSlotConstraints.Pinned : LocalSlotConstraints.None) |
                     (local.RefKind != RefKind.None ? LocalSlotConstraints.ByRef : LocalSlotConstraints.None);
-                translatedType = _module.Translate(local.Type, syntaxNode, _diagnostics.DiagnosticBag);
+                translatedType = _module.Translate(local.Type, syntaxNode, _diagnostics.DiagnosticBag, eraseExtensions: true);
             }
 
             // Even though we don't need the token immediately, we will need it later when signature for the local is emitted.
@@ -1900,7 +1900,7 @@ oneMoreTime:
         private LocalDefinition AllocateTemp(TypeSymbol type, SyntaxNode syntaxNode, LocalSlotConstraints slotConstraints = LocalSlotConstraints.None)
         {
             return _builder.LocalSlotManager.AllocateSlot(
-                _module.Translate(type, syntaxNode, _diagnostics.DiagnosticBag),
+                _module.Translate(type, syntaxNode, _diagnostics.DiagnosticBag, eraseExtensions: true),
                 slotConstraints);
         }
 

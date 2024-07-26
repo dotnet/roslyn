@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.Cci;
 
@@ -20,29 +19,15 @@ namespace Microsoft.CodeAnalysis
     internal readonly struct IReferenceOrISignature : IEquatable<IReferenceOrISignature>
     {
         private readonly object _item;
-        private readonly bool KeepExtensions;
 
-        public IReferenceOrISignature(IReference item, bool keepExtensions = false)
-        {
-            Debug.Assert(!keepExtensions || item is ITypeReference);
-            _item = item;
-            KeepExtensions = keepExtensions;
-        }
+        public IReferenceOrISignature(IReference item) => _item = item;
 
-        public IReferenceOrISignature(ISignature item)
-        {
-            _item = item;
-            KeepExtensions = false;
-        }
+        public IReferenceOrISignature(ISignature item) => _item = item;
 
         // Needed to resolve ambiguity for types that implement both IReference and ISignature
-        public IReferenceOrISignature(IMethodReference item)
-        {
-            _item = item;
-            KeepExtensions = false;
-        }
+        public IReferenceOrISignature(IMethodReference item) => _item = item;
 
-        public bool Equals(IReferenceOrISignature other) => ReferenceEquals(_item, other._item) && KeepExtensions == other.KeepExtensions;
+        public bool Equals(IReferenceOrISignature other) => ReferenceEquals(_item, other._item);
 
         public override bool Equals(object? obj) => false;
 

@@ -569,6 +569,14 @@ namespace Microsoft.CodeAnalysis.PooledObjects
             }
         }
 
+        public void AddRange<U>(ImmutableArray<U> items, Func<U, T> selector)
+        {
+            foreach (var item in items)
+            {
+                _builder.Add(selector(item));
+            }
+        }
+
         public void AddRange<U>(ArrayBuilder<U> items) where U : T
         {
             _builder.AddRange(items._builder);

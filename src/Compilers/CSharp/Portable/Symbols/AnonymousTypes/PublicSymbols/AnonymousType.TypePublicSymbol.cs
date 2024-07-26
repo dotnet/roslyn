@@ -66,13 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return Manager.ConstructAnonymousTypeImplementationSymbol(this);
             }
 
-            internal override AnonymousTypeOrDelegatePublicSymbol SubstituteTypes(AbstractTypeMap map)
+            internal override AnonymousTypeOrDelegatePublicSymbol WithTypeDescriptor(AnonymousTypeDescriptor typeDescr)
             {
-                var oldFieldTypes = TypeDescriptor.Fields.SelectAsArray(f => f.TypeWithAnnotations);
-                var newFieldTypes = map.SubstituteTypes(oldFieldTypes);
-                return (oldFieldTypes == newFieldTypes) ?
-                    this :
-                    new AnonymousTypePublicSymbol(Manager, TypeDescriptor.WithNewFieldsTypes(newFieldTypes));
+                return new AnonymousTypePublicSymbol(Manager, typeDescr);
             }
 
             public override TypeKind TypeKind

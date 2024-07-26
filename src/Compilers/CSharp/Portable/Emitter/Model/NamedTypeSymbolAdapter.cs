@@ -305,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ((object)baseType != null) ? moduleBeingBuilt.Translate(baseType,
                                                                    syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                                                    diagnostics: context.Diagnostics,
-                                                                   keepExtension: false) : null;
+                                                                   ExtensionsEraseMode.ExcludeSelf) : null;
         }
 
         IEnumerable<Cci.IEventDefinition> Cci.ITypeDefinition.GetEvents(EmitContext context)
@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     @interface,
                     syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                     diagnostics: context.Diagnostics,
-                    keepExtension: false,
+                    ExtensionsEraseMode.ExcludeSelf,
                     fromImplements: true);
 
                 var type = TypeWithAnnotations.Create(@interface);
@@ -840,7 +840,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return moduleBeingBuilt.Translate(AdaptedNamedTypeSymbol.ContainingType,
                                               syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                               diagnostics: context.Diagnostics,
-                                              keepExtension: true,
+                                              ExtensionsEraseMode.None,
                                               needDeclaration: AdaptedNamedTypeSymbol.IsDefinition);
         }
 
@@ -876,7 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < arguments.Length; i++)
             {
-                var arg = moduleBeingBuilt.Translate(arguments[i].Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics, keepExtension: context.KeepExtensions);
+                var arg = moduleBeingBuilt.Translate(arguments[i].Type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics, eraseExtensions: false);
                 var modifiers = arguments[i].CustomModifiers;
                 if (!modifiers.IsDefaultOrEmpty)
                 {
@@ -901,7 +901,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             return (INamedTypeReference)moduleBeingBuilt.Translate(
                 AdaptedNamedTypeSymbol.OriginalDefinition, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
-                diagnostics: context.Diagnostics, keepExtension: true, needDeclaration: true);
+                diagnostics: context.Diagnostics, ExtensionsEraseMode.None, needDeclaration: true);
         }
 
         Cci.INestedTypeReference Cci.ISpecializedNestedTypeReference.GetUnspecializedVersion(EmitContext context)

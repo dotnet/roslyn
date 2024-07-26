@@ -7,6 +7,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.Cci
 Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer
 
@@ -243,11 +244,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return [param].GetCciAdapter()
         End Function
 
-        Friend NotOverridable Overrides Function Translate(
+        Friend Overrides Function TranslateTypeOfConstant(symbol As TypeSymbol, syntaxNodeOpt As SyntaxNode, diagnostics As DiagnosticBag) As ITypeReference
+            Return Translate(symbol, syntaxNodeOpt, diagnostics)
+        End Function
+
+        Friend Overrides Function EncTranslateLocalVariableType(type As TypeSymbol, diagnostics As DiagnosticBag) As ITypeReference
+            Return Translate(type, syntaxNodeOpt:=Nothing, diagnostics)
+        End Function
+
+        Friend Overrides Function TranslateMarshallingTypeReference(symbol As ITypeSymbolInternal, syntaxOpt As SyntaxNode, diagnostics As DiagnosticBag) As ITypeReference
+            Return Translate(DirectCast(symbol, TypeSymbol), syntaxOpt, diagnostics)
+        End Function
+
+        Friend Overloads Function Translate(
             typeSymbol As TypeSymbol,
             syntaxNodeOpt As SyntaxNode,
-            diagnostics As DiagnosticBag,
-            Optional keepExtensions As Boolean = False) As Microsoft.Cci.ITypeReference
+            diagnostics As DiagnosticBag) As Microsoft.Cci.ITypeReference
             Debug.Assert(diagnostics IsNot Nothing)
 
             Select Case typeSymbol.Kind

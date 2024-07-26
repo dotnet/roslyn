@@ -266,8 +266,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
                 }
                 var typeRef = moduleBeingBuilt.Translate(type.Type,
-                                                            syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
-                                                            diagnostics: context.Diagnostics);
+                                                         syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
+                                                         diagnostics: context.Diagnostics,
+                                                         eraseExtensions: true);
 
                 yield return type.GetTypeRefWithAttributes(
                                                             moduleBeingBuilt,

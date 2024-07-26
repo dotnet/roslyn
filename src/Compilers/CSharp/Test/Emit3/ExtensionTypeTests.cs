@@ -48517,12 +48517,12 @@ public class D
 
         var comp = CreateCompilation(src);
         var verifier = CompileAndVerify(comp, expectedOutput: "C`1[U]").VerifyDiagnostics();
-        // PROTOTYPE VerifyIL should erase extensions when we use SymbolDisplayFormat.ILVisualizationFormat
+
         verifier.VerifyIL("D.M", """
 {
   // Code size       11 (0xb)
   .maxstack  1
-  IL_0000:  ldtoken    "C<E>"
+  IL_0000:  ldtoken    "C<U>"
   IL_0005:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
   IL_000a:  ret
 }
@@ -48582,12 +48582,12 @@ public class D
 
         var comp = CreateCompilation(src);
         var verifier = CompileAndVerify(comp, expectedOutput: "E+C`2[U,E+Nested]").VerifyDiagnostics();
-        // PROTOTYPE VerifyIL should erase extensions when we use SymbolDisplayFormat.ILVisualizationFormat
+
         verifier.VerifyIL("D.M", """
 {
   // Code size       11 (0xb)
   .maxstack  1
-  IL_0000:  ldtoken    "E.C<E.NestedE, E.Nested>"
+  IL_0000:  ldtoken    "E.C<U, E.Nested>"
   IL_0005:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
   IL_000a:  ret
 }
@@ -48663,7 +48663,7 @@ public class Derived : Base
         }
     }
 
-    [Fact(Skip = "PROTOTYPE need to keep un-erased extension types in modifiers")]
+    [Fact]
     public void TypeReference_Modopt_ExtensionAsTypeArgument()
     {
         // public explicit extension E for object { }
@@ -48699,7 +48699,7 @@ public class Derived : Base
 .class public auto ansi beforefieldinit Base
     extends [mscorlib]System.Object
 {
-    .method public hidebysig newslot virtual instance class [mscorlib]System.Object modopt(class C`1<class E>) M() cil managed
+    .method public hidebysig newslot virtual instance class [mscorlib]System.Object modopt(class C`1<valuetype E>) M() cil managed
     {
         IL_0000: ldnull
         IL_0001: throw
@@ -48729,26 +48729,12 @@ public class Derived : Base
 
         var comp = CreateCompilationWithIL(src, ilSource);
         comp.VerifyDiagnostics();
-        // PROTOTYPE need to keep un-erased extension types in modifiers
-        // The problem is that the infrastructure that assigns tokens for type references (GetOrAddTypeSpecificationHandle)
-        // is given a type reference for `C<E>` but doesn't know if it's meant to be erased (to `C<object>`) or kept as-is.
-        // By default we erase extension types, so the token for `C<E>` is really for `C<object>`, which is incorrect in custom modifiers.
-        // Instead of pushing an additional flag (keepExtensions) in that API, we discussed a possible design where the type reference
-        // itself would keep track of whether it is meant to be erased of not.
-        //
-        // The Translate API would still be given a keepExtensions flag, then:
-        // - for a non-generic type, it would either erase or not
-        // - for a generic type that includes an extension type that should not be erased, it would return an adapter that records that fact
-        //   Such adapter, when prompted for its type arguments would repeat that process.
-        //
-        // This design would be pay-for-play. Aside from a check to decide whether this extra allocation is needed,
-        // type references would incur no overhead unless they involve some erasable extension type that needs to be kept as-is.
-        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate/*, expectedOutput: "ran"*/, verify: Verification.Fails);
+        CompileAndVerify(comp, symbolValidator: validate, sourceSymbolValidator: validate, expectedOutput: "ran");
 
         static void validate(ModuleSymbol module)
         {
             var m = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived").GetMember<MethodSymbol>("M");
-            //Assert.Equal("System.Object modopt(C<E>) Derived.M()", m.ToTestDisplayString());
+            Assert.Equal("System.Object modopt(C<E>) Derived.M()", m.ToTestDisplayString());
 
             if (module is not SourceModuleSymbol)
             {

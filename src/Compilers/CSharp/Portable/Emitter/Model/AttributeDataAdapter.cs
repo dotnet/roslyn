@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
             // PROTOTYPE validate once extension types are all allowed in attributes
-            return moduleBeingBuilt.Translate(this.AttributeClass, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics, keepExtension: false);
+            return moduleBeingBuilt.Translate(this.AttributeClass, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics, ExtensionsEraseMode.ExcludeSelf);
         }
 
         bool Cci.ICustomAttribute.AllowMultiple
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(!argument.Values.IsDefault);
             var values = argument.Values;
-            var arrayType = ((PEModuleBuilder)context.Module).Translate((ArrayTypeSymbol)argument.TypeInternal);
+            var arrayType = ((PEModuleBuilder)context.Module).Translate((ArrayTypeSymbol)argument.TypeInternal, eraseExtensions: true);
 
             if (values.Length == 0)
             {
@@ -150,8 +150,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var moduleBeingBuilt = (PEModuleBuilder)context.Module;
             var syntaxNodeOpt = (CSharpSyntaxNode)context.SyntaxNode;
             var diagnostics = context.Diagnostics;
-            return new MetadataTypeOf(moduleBeingBuilt.Translate((TypeSymbol)argument.ValueInternal, syntaxNodeOpt, diagnostics),
-                                      moduleBeingBuilt.Translate((TypeSymbol)argument.TypeInternal, syntaxNodeOpt, diagnostics));
+            return new MetadataTypeOf(moduleBeingBuilt.Translate((TypeSymbol)argument.ValueInternal, syntaxNodeOpt, diagnostics, eraseExtensions: true),
+                                      moduleBeingBuilt.Translate((TypeSymbol)argument.TypeInternal, syntaxNodeOpt, diagnostics, eraseExtensions: true));
         }
 
         private static MetadataSerializedType CreateSerializedType(TypedConstant argument, EmitContext context)
@@ -164,8 +164,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnostics = context.Diagnostics;
 
             return new MetadataSerializedType(
-                moduleBeingBuilt.Translate((TypeSymbol)argument.ValueInternal, syntaxNodeOpt, diagnostics, keepExtension: true),
-                moduleBeingBuilt.Translate((TypeSymbol)argument.TypeInternal, syntaxNodeOpt, diagnostics));
+                moduleBeingBuilt.Translate((TypeSymbol)argument.ValueInternal, syntaxNodeOpt, diagnostics, eraseExtensions: false),
+                moduleBeingBuilt.Translate((NamedTypeSymbol)argument.TypeInternal, syntaxNodeOpt, diagnostics, ExtensionsEraseMode.None));
         }
 
         private static MetadataConstant CreateMetadataConstant(ITypeSymbolInternal type, object value, EmitContext context)
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return new MetadataNamedArgument(symbol, moduleBeingBuilt.Translate(type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics), value);
+            return new MetadataNamedArgument(symbol, moduleBeingBuilt.Translate(type, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics, eraseExtensions: true), value);
         }
 
         private Symbol LookupName(string name)
