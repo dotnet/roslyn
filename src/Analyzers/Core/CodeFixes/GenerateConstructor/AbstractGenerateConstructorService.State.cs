@@ -624,6 +624,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             var assignments = !withFields && !withProperties
                 ? []
                 : provider.GetRequiredService<SyntaxGenerator>().CreateAssignmentStatements(
+                    provider.GetRequiredService<SyntaxGeneratorInternal>(),
                     semanticModel, _parameters,
                     _parameterToExistingMemberMap,
                     withFields ? ParameterToNewFieldMap : ParameterToNewPropertyMap,
@@ -651,6 +652,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
                     new CodeGenerationContext(Token.GetLocation())),
                 TypeToGenerateIn,
                 provider.GetRequiredService<SyntaxGenerator>().CreateMemberDelegatingConstructor(
+                    provider.GetRequiredService<SyntaxGeneratorInternal>(),
                     semanticModel,
                     TypeToGenerateIn.Name,
                     TypeToGenerateIn,
