@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -240,7 +241,11 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         {
             Contract.ThrowIfNull(TypeToGenerateIn);
 
+#if CODE_STYLE
+            var syntaxFacts = _document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(TypeToGenerateIn.Language).GetRequiredService<ISyntaxFactsService>();
+#else
             var syntaxFacts = _document.Project.Solution.Services.GetRequiredLanguageService<ISyntaxFactsService>(TypeToGenerateIn.Language);
+#endif
             return TypeToGenerateIn.InstanceConstructors.Any(static (c, arg) => arg.self.Matches(c, arg.syntaxFacts), (self: this, syntaxFacts));
         }
 
@@ -638,7 +643,11 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         {
             Contract.ThrowIfNull(TypeToGenerateIn);
 
+#if CODE_STYLE
+            var provider = document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(TypeToGenerateIn.Language);
+#else
             var provider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
+#endif
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var newMemberMap =
