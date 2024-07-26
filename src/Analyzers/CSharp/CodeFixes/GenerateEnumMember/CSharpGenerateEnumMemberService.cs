@@ -14,15 +14,11 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateEnumMember;
 
 [ExportLanguageService(typeof(IGenerateEnumMemberService), LanguageNames.CSharp), Shared]
-internal partial class CSharpGenerateEnumMemberService :
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class CSharpGenerateEnumMemberService() :
     AbstractGenerateEnumMemberService<CSharpGenerateEnumMemberService, SimpleNameSyntax, ExpressionSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpGenerateEnumMemberService()
-    {
-    }
-
     protected override bool IsIdentifierNameGeneration(SyntaxNode node)
         => node is IdentifierNameSyntax;
 

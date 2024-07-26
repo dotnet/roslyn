@@ -11,7 +11,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateEnumMember
     <ExportLanguageService(GetType(IGenerateEnumMemberService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicGenerateEnumMemberService
+    Partial Friend NotInheritable Class VisualBasicGenerateEnumMemberService
         Inherits AbstractGenerateEnumMemberService(Of VisualBasicGenerateEnumMemberService, SimpleNameSyntax, ExpressionSyntax)
 
         <ImportingConstructor>
