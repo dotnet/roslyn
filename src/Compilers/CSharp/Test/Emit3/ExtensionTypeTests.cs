@@ -4217,6 +4217,8 @@ explicit extension R2<T> for int
     [Fact]
     public void TypeDepends_SelfReference_AsTypeArgument_ReferencedFromAnotherExtension()
     {
+        // PROTOTYPE what if R and R2 come from metadata and the source references either
+        //   the type erasure is going to be unbounded when we emit
         var src = """
 class C<T> { }
 explicit extension R for C<R> { }

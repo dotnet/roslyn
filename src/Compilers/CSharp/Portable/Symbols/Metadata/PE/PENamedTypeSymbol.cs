@@ -1980,6 +1980,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private void DecodeExtensionType(out bool isExplicit, out TypeSymbol underlyingType)
         {
             // PROTOTYPE consider optimizing/caching
+            // PROTOTYPE we should check that the extended type that we're loading
+            //   does not have a cycle that would create an unbounded erasure. Retargeting
+            //   is similar to PE loading and needs a similar check.
 
             TypeSymbol? foundUnderlyingType;
             if (!tryDecodeExtensionType(out isExplicit, out foundUnderlyingType))
