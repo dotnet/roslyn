@@ -1933,7 +1933,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (this.GetExtendedTypeNoUseSiteDiagnostics(null) is { } extendedType)
             {
-                if (hasSelfReference(extendedType, this))
+                if (foundSelfReferenceInErasure(extendedType, extensionsBeingErased: ConsList<TypeSymbol>.Empty.Prepend(this)))
                 {
                     // If erasing extension types in the extended type involves erasing the extension type
                     // (to the given extended type) then the result of erasure would be unbounded
@@ -1942,40 +1942,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return;
 
-            static bool hasSelfReference(TypeSymbol underlyingType, TypeSymbol definition)
-            {
-                PooledHashSet<TypeSymbol> alreadyVisited = PooledHashSet<TypeSymbol>.GetInstance();
-                var result = foundSelfReferenceInErasure(underlyingType, definition, alreadyVisited);
-                alreadyVisited.Free();
-                return result;
-            }
-
             // Returns true if any type meant to be erased in the visited type is the given definition
-            static bool foundSelfReferenceInErasure(TypeSymbol type, TypeSymbol definition, PooledHashSet<TypeSymbol> alreadyVisited, bool isContainer = false)
+            static bool foundSelfReferenceInErasure(TypeSymbol type, ConsList<TypeSymbol> extensionsBeingErased, bool isContainer = false)
             {
-                Debug.Assert(definition.IsDefinition);
-
                 if (type is NamedTypeSymbol)
                 {
                     if (!isContainer)
                     {
-                        if (object.ReferenceEquals(type.OriginalDefinition, definition))
-                        {
-                            return true;
-                        }
-
-                        if (alreadyVisited.Contains(type))
-                        {
-                            return false;
-                        }
-
-                        alreadyVisited.Add(type);
-
                         if (type.IsExtension)
                         {
+                            if (extensionsBeingErased.Contains(type.OriginalDefinition))
+                            {
+                                return true;
+                            }
+
                             if (type.GetExtendedTypeNoUseSiteDiagnostics(null) is { } extendedType)
                             {
-                                return foundSelfReferenceInErasure(extendedType, definition, alreadyVisited);
+                                var newExtensionsBeingErased = extensionsBeingErased.Prepend(type.OriginalDefinition);
+                                return foundSelfReferenceInErasure(extendedType, newExtensionsBeingErased);
                             }
 
                             return true;
@@ -1983,14 +1967,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     if (type.ContainingType is { } containingType
-                        && foundSelfReferenceInErasure(containingType, definition, alreadyVisited, isContainer: true))
+                        && foundSelfReferenceInErasure(containingType, extensionsBeingErased, isContainer: true))
                     {
                         return true;
                     }
 
                     foreach (var typeArgument in type.GetMemberTypeArgumentsNoUseSiteDiagnostics())
                     {
-                        if (foundSelfReferenceInErasure(typeArgument, definition, alreadyVisited))
+                        if (foundSelfReferenceInErasure(typeArgument, extensionsBeingErased))
                         {
                             return true;
                         }
@@ -1998,22 +1982,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (type is ArrayTypeSymbol arrayType)
                 {
-                    return foundSelfReferenceInErasure(arrayType.ElementType, definition, alreadyVisited);
+                    return foundSelfReferenceInErasure(arrayType.ElementType, extensionsBeingErased);
                 }
                 else if (type is PointerTypeSymbol pointerType)
                 {
-                    return foundSelfReferenceInErasure(pointerType.PointedAtType, definition, alreadyVisited);
+                    return foundSelfReferenceInErasure(pointerType.PointedAtType, extensionsBeingErased);
                 }
                 else if (type is FunctionPointerTypeSymbol functionPointerType)
                 {
-                    if (foundSelfReferenceInErasure(functionPointerType.Signature.ReturnType, definition, alreadyVisited))
+                    if (foundSelfReferenceInErasure(functionPointerType.Signature.ReturnType, extensionsBeingErased))
                     {
                         return true;
                     }
 
                     foreach (var parameter in functionPointerType.Signature.Parameters)
                     {
-                        if (foundSelfReferenceInErasure(parameter.Type, definition, alreadyVisited))
+                        if (foundSelfReferenceInErasure(parameter.Type, extensionsBeingErased))
                         {
                             return true;
                         }

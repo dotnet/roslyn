@@ -4226,7 +4226,10 @@ explicit extension R2 for C<R> { }
         comp.VerifyEmitDiagnostics(
             // (2,20): error CS0146: Circular base type dependency involving 'C<R>' and 'R'
             // explicit extension R for C<R> { }
-            Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("C<R>", "R").WithLocation(2, 20));
+            Diagnostic(ErrorCode.ERR_CircularBase, "R").WithArguments("C<R>", "R").WithLocation(2, 20),
+            // (3,20): error CS0146: Circular base type dependency involving 'C<R>' and 'R2'
+            // explicit extension R2 for C<R> { }
+            Diagnostic(ErrorCode.ERR_CircularBase, "R2").WithArguments("C<R>", "R2").WithLocation(3, 20));
         var r = comp.GlobalNamespace.GetTypeMember("R");
         Assert.Equal("C<R>", r.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
