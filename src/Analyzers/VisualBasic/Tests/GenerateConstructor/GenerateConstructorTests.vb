@@ -1387,55 +1387,6 @@ End Class")
         End Function
 
         <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
-        Public Async Function TestAttributesWithAllValidArguments() As Task
-            Await TestInRegularAndScriptAsync(
-"Enum A
-    A1
-End Enum
-<AttributeUsage(AttributeTargets.Class)>
-Public Class MyAttribute
-    Inherits System.Attribute
-End Class
-[|<MyAttribute(New Short(1) {1, 2, 3}, A.A1, True, 1, ""Z""c, 5S, 1I, 5L, 6.0R, 2.1F, ""abc"")>|]
-Public Class D End Class",
-"Enum A
-    A1
-End Enum
-<AttributeUsage(AttributeTargets.Class)>
-Public Class MyAttribute
-    Inherits System.Attribute
-
-    Private shorts As Short()
-    Private a1 As A
-    Private v1 As Boolean
-    Private v2 As Integer
-    Private v3 As Char
-    Private v4 As Short
-    Private v5 As Integer
-    Private v6 As Long
-    Private v7 As Double
-    Private v8 As Single
-    Private v9 As String
-
-    Public Sub New(shorts() As Short, a1 As A, v1 As Boolean, v2 As Integer, v3 As Char, v4 As Short, v5 As Integer, v6 As Long, v7 As Double, v8 As Single, v9 As String)
-        Me.shorts = shorts
-        Me.a1 = a1
-        Me.v1 = v1
-        Me.v2 = v2
-        Me.v3 = v3
-        Me.v4 = v4
-        Me.v5 = v5
-        Me.v6 = v6
-        Me.v7 = v7
-        Me.v8 = v8
-        Me.v9 = v9
-    End Sub
-End Class
-<MyAttribute(New Short(1) {1, 2, 3}, A.A1, True, 1, ""Z""c, 5S, 1I, 5L, 6.0R, 2.1F, ""abc"")>
-Public Class D End Class")
-        End Function
-
-        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
         Public Async Function TestAttributesWithLambda() As Task
             Await TestMissingInRegularAndScriptAsync(
 "<AttributeUsage(AttributeTargets.Class)>
@@ -1909,94 +1860,6 @@ Public Class B
 End Class")
         End Function
 
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49850")>
-        Public Async Function TestDelegateConstructorCrossLanguage() As Task
-            Await TestInRegularAndScriptAsync(
-<Workspace>
-    <Project Language="C#" Name="CSharpProject" CommonReferences="true">
-        <Document>
-public class BaseType
-{
-    public BaseType(string x) { }
-}</Document>
-    </Project>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <ProjectReference>CSharpProject</ProjectReference>
-        <Document>
-Option Strict On
-
-Public Class B
-    Public Sub M()
-        Dim x = [|New BaseType(42)|]
-    End Sub
-End Class
-        </Document>
-    </Project>
-</Workspace>.ToString(),
-"
-public class BaseType
-{
-    private int v;
-
-    public BaseType(string x) { }
-
-    public BaseType(int v)
-    {
-        this.v = v;
-    }
-}")
-        End Function
-
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50765")>
-        Public Async Function TestDelegateConstructorCrossLanguageWithMissingType() As Task
-            Await TestAsync(
-<Workspace>
-    <Project Language="C#" Name="CSharpProjectWithExtraType" CommonReferences="true">
-        <Document>
-public class ExtraType { }
-        </Document>
-    </Project>
-    <Project Language="C#" Name="CSharpProjectGeneratingInto" CommonReferences="true">
-        <ProjectReference>CSharpProjectWithExtraType</ProjectReference>
-        <Document>
-public class C
-{
-    public C(ExtraType t) { }
-    public C(string s, int i) { }
-}
-        </Document>
-    </Project>
-    <Project Language="Visual Basic" CommonReferences="true">
-        <ProjectReference>CSharpProjectGeneratingInto</ProjectReference>
-        <Document>
-Option Strict On
-
-Public Class B
-    Public Sub M()
-        Dim x = [|New C(42, 42)|]
-    End Sub
-End Class
-        </Document>
-    </Project>
-</Workspace>.ToString(),
-"
-public class C
-{
-    private int v1;
-    private int v2;
-
-    public C(ExtraType t) { }
-    public C(string s, int i) { }
-
-    public C(int v1, int v2)
-    {
-        this.v1 = v1;
-        this.v2 = v2;
-    }
-}
-        ", TestOptions.Regular)
-        End Function
-
         <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/14077")>
         Public Async Function CreateFieldDefaultNamingStyle() As Task
             Await TestInRegularAndScriptAsync(
@@ -2110,39 +1973,6 @@ Class Test
     Public Sub New(v As Integer)
         Me.v = v
     End Sub
-End Class
-")
-        End Function
-
-        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44708")>
-        Public Async Function TestGenerateNameFromTypeArgument() As Task
-            Await TestInRegularAndScriptAsync(
-"Imports System.Collections.Generic
-
-Class Frog
-End Class
-
-Class C
-    Private Function M() As C
-        Return New C([||]New List(Of Frog)())
-    End Function
-End Class
-",
-"Imports System.Collections.Generic
-
-Class Frog
-End Class
-
-Class C
-    Private frogs As List(Of Frog)
-
-    Public Sub New(frogs As List(Of Frog))
-        Me.frogs = frogs
-    End Sub
-
-    Private Function M() As C
-        Return New C(New List(Of Frog)())
-    End Function
 End Class
 ")
         End Function
@@ -2283,6 +2113,180 @@ End Class
 End Class
 ")
         End Function
+
+#If Not CODE_STYLE Then
+
+        <Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")>
+        Public Async Function TestAttributesWithAllValidArguments() As Task
+            Await TestInRegularAndScriptAsync(
+"Enum A
+    A1
+End Enum
+<AttributeUsage(AttributeTargets.Class)>
+Public Class MyAttribute
+    Inherits System.Attribute
+End Class
+[|<MyAttribute(New Short(1) {1, 2, 3}, A.A1, True, 1, ""Z""c, 5S, 1I, 5L, 6.0R, 2.1F, ""abc"")>|]
+Public Class D End Class",
+"Enum A
+    A1
+End Enum
+<AttributeUsage(AttributeTargets.Class)>
+Public Class MyAttribute
+    Inherits System.Attribute
+
+    Private shorts As Short()
+    Private a1 As A
+    Private v1 As Boolean
+    Private v2 As Integer
+    Private v3 As Char
+    Private v4 As Short
+    Private v5 As Integer
+    Private v6 As Long
+    Private v7 As Double
+    Private v8 As Single
+    Private v9 As String
+
+    Public Sub New(shorts() As Short, a1 As A, v1 As Boolean, v2 As Integer, v3 As Char, v4 As Short, v5 As Integer, v6 As Long, v7 As Double, v8 As Single, v9 As String)
+        Me.shorts = shorts
+        Me.a1 = a1
+        Me.v1 = v1
+        Me.v2 = v2
+        Me.v3 = v3
+        Me.v4 = v4
+        Me.v5 = v5
+        Me.v6 = v6
+        Me.v7 = v7
+        Me.v8 = v8
+        Me.v9 = v9
+    End Sub
+End Class
+<MyAttribute(New Short(1) {1, 2, 3}, A.A1, True, 1, ""Z""c, 5S, 1I, 5L, 6.0R, 2.1F, ""abc"")>
+Public Class D End Class")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/49850")>
+        Public Async Function TestDelegateConstructorCrossLanguage() As Task
+            Await TestInRegularAndScriptAsync(
+<Workspace>
+    <Project Language="C#" Name="CSharpProject" CommonReferences="true">
+        <Document>
+public class BaseType
+{
+    public BaseType(string x) { }
+}</Document>
+    </Project>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <ProjectReference>CSharpProject</ProjectReference>
+        <Document>
+Option Strict On
+
+Public Class B
+    Public Sub M()
+        Dim x = [|New BaseType(42)|]
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>.ToString(),
+"
+public class BaseType
+{
+    private int v;
+
+    public BaseType(string x) { }
+
+    public BaseType(int v)
+    {
+        this.v = v;
+    }
+}")
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50765")>
+        Public Async Function TestDelegateConstructorCrossLanguageWithMissingType() As Task
+            Await TestAsync(
+<Workspace>
+    <Project Language="C#" Name="CSharpProjectWithExtraType" CommonReferences="true">
+        <Document>
+public class ExtraType { }
+        </Document>
+    </Project>
+    <Project Language="C#" Name="CSharpProjectGeneratingInto" CommonReferences="true">
+        <ProjectReference>CSharpProjectWithExtraType</ProjectReference>
+        <Document>
+public class C
+{
+    public C(ExtraType t) { }
+    public C(string s, int i) { }
+}
+        </Document>
+    </Project>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <ProjectReference>CSharpProjectGeneratingInto</ProjectReference>
+        <Document>
+Option Strict On
+
+Public Class B
+    Public Sub M()
+        Dim x = [|New C(42, 42)|]
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>.ToString(),
+"
+public class C
+{
+    private int v1;
+    private int v2;
+
+    public C(ExtraType t) { }
+    public C(string s, int i) { }
+
+    public C(int v1, int v2)
+    {
+        this.v1 = v1;
+        this.v2 = v2;
+    }
+}
+        ", TestOptions.Regular)
+        End Function
+
+        <Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44708")>
+        Public Async Function TestGenerateNameFromTypeArgument() As Task
+            Await TestInRegularAndScriptAsync(
+"Imports System.Collections.Generic
+
+Class Frog
+End Class
+
+Class C
+    Private Function M() As C
+        Return New C([||]New List(Of Frog)())
+    End Function
+End Class
+",
+"Imports System.Collections.Generic
+
+Class Frog
+End Class
+
+Class C
+    Private frogs As List(Of Frog)
+
+    Public Sub New(frogs As List(Of Frog))
+        Me.frogs = frogs
+    End Sub
+
+    Private Function M() As C
+        Return New C(New List(Of Frog)())
+    End Function
+End Class
+")
+        End Function
+
+#End If
 
     End Class
 End Namespace

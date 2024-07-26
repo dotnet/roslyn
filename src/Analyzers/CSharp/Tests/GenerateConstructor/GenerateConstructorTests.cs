@@ -2785,74 +2785,6 @@ class C
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
-    public async Task TestAttributesWithAllValidParameters()
-    {
-        await TestInRegularAndScriptAsync(
-            """
-            using System;
-
-            enum A
-            {
-                A1
-            }
-
-            [AttributeUsage(AttributeTargets.Class)]
-            class MyAttrAttribute : Attribute
-            {
-            }
-
-            [|[MyAttrAttribute(new int[] { 1, 2, 3 }, A.A1, true, (byte)1, 'a', (short)12, (int)1, (long)5L, 5D, 3.5F, "hello")]|]
-            class D
-            {
-            }
-            """,
-            """
-            using System;
-
-            enum A
-            {
-                A1
-            }
-
-            [AttributeUsage(AttributeTargets.Class)]
-            class MyAttrAttribute : Attribute
-            {
-                private int[] ints;
-                private A a1;
-                private bool v1;
-                private byte v2;
-                private char v3;
-                private short v4;
-                private int v5;
-                private long v6;
-                private double v7;
-                private float v8;
-                private string v9;
-
-                public MyAttrAttribute(int[] ints, A a1, bool v1, byte v2, char v3, short v4, int v5, long v6, double v7, float v8, string v9)
-                {
-                    this.ints = ints;
-                    this.a1 = a1;
-                    this.v1 = v1;
-                    this.v2 = v2;
-                    this.v3 = v3;
-                    this.v4 = v4;
-                    this.v5 = v5;
-                    this.v6 = v6;
-                    this.v7 = v7;
-                    this.v8 = v8;
-                    this.v9 = v9;
-                }
-            }
-
-            [MyAttrAttribute(new int[] { 1, 2, 3 }, A.A1, true, (byte)1, 'a', (short)12, (int)1, (long)5L, 5D, 3.5F, "hello")]
-            class D
-            {
-            }
-            """);
-    }
-
-    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
     public async Task TestAttributesWithDelegation()
     {
         await TestMissingInRegularAndScriptAsync(
@@ -4572,39 +4504,6 @@ unsafe class C
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44708")]
-    public async Task TestGenerateNameFromTypeArgument()
-    {
-        await TestInRegularAndScriptAsync(
-"""
- using System.Collections.Generic;
-
- class Frog { }
-
- class C
- {
-     C M() => new [||]C(new List<Frog>());
- }
- """,
-"""
- using System.Collections.Generic;
-
- class Frog { }
-
- class C
- {
-     private List<Frog> frogs;
-
-     public C(List<Frog> frogs)
-     {
-         this.frogs = frogs;
-     }
-
-     C M() => new C(new List<Frog>());
- }
- """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44708")]
     public async Task TestDoNotGenerateNameFromTypeArgumentIfNotEnumerable()
     {
         await TestInRegularAndScriptAsync(
@@ -4640,39 +4539,6 @@ unsafe class C
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44708")]
-    public async Task TestGenerateNameFromTypeArgumentForErrorType()
-    {
-        await TestInRegularAndScriptAsync(
-"""
- using System.Collections.Generic;
-
- class Frog { }
-
- class C
- {
-     C M() => new [||]C(new List<>());
- }
- """,
-"""
- using System.Collections.Generic;
-
- class Frog { }
-
- class C
- {
-     private List<T> ts;
-
-     public C(List<T> ts)
-     {
-         this.ts = ts;
-     }
-
-     C M() => new C(new List<>());
- }
- """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44708")]
     public async Task TestGenerateNameFromTypeArgumentForTupleType()
     {
         await TestInRegularAndScriptAsync(
@@ -4701,43 +4567,6 @@ unsafe class C
      }
 
      C M() => new C(new List<(int, string)>());
- }
- """);
-    }
-
-    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44708")]
-    public async Task TestGenerateNameFromTypeArgumentInNamespace()
-    {
-        await TestInRegularAndScriptAsync(
-"""
- using System.Collections.Generic;
-
- namespace N {
-     class Frog { }
-
-     class C
-     {
-         C M() => new [||]C(new List<Frog>());
-     }
- }
- """,
-"""
- using System.Collections.Generic;
-
- namespace N {
-     class Frog { }
-
-     class C
-     {
-         private List<Frog> frogs;
-
-         public C(List<Frog> frogs)
-         {
-             this.frogs = frogs;
-         }
-
-         C M() => new C(new List<Frog>());
-     }
  }
  """);
     }
@@ -5140,4 +4969,179 @@ unsafe class C
             }
             """);
     }
+
+#if !CODE_STYLE
+
+    [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530003")]
+    public async Task TestAttributesWithAllValidParameters()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System;
+
+            enum A
+            {
+                A1
+            }
+
+            [AttributeUsage(AttributeTargets.Class)]
+            class MyAttrAttribute : Attribute
+            {
+            }
+
+            [|[MyAttrAttribute(new int[] { 1, 2, 3 }, A.A1, true, (byte)1, 'a', (short)12, (int)1, (long)5L, 5D, 3.5F, "hello")]|]
+            class D
+            {
+            }
+            """,
+            """
+            using System;
+
+            enum A
+            {
+                A1
+            }
+
+            [AttributeUsage(AttributeTargets.Class)]
+            class MyAttrAttribute : Attribute
+            {
+                private int[] ints;
+                private A a1;
+                private bool v1;
+                private byte v2;
+                private char v3;
+                private short v4;
+                private int v5;
+                private long v6;
+                private double v7;
+                private float v8;
+                private string v9;
+
+                public MyAttrAttribute(int[] ints, A a1, bool v1, byte v2, char v3, short v4, int v5, long v6, double v7, float v8, string v9)
+                {
+                    this.ints = ints;
+                    this.a1 = a1;
+                    this.v1 = v1;
+                    this.v2 = v2;
+                    this.v3 = v3;
+                    this.v4 = v4;
+                    this.v5 = v5;
+                    this.v6 = v6;
+                    this.v7 = v7;
+                    this.v8 = v8;
+                    this.v9 = v9;
+                }
+            }
+
+            [MyAttrAttribute(new int[] { 1, 2, 3 }, A.A1, true, (byte)1, 'a', (short)12, (int)1, (long)5L, 5D, 3.5F, "hello")]
+            class D
+            {
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44708")]
+    public async Task TestGenerateNameFromTypeArgument()
+    {
+        await TestInRegularAndScriptAsync(
+"""
+ using System.Collections.Generic;
+
+ class Frog { }
+
+ class C
+ {
+     C M() => new [||]C(new List<Frog>());
+ }
+ """,
+"""
+ using System.Collections.Generic;
+
+ class Frog { }
+
+ class C
+ {
+     private List<Frog> frogs;
+
+     public C(List<Frog> frogs)
+     {
+         this.frogs = frogs;
+     }
+
+     C M() => new C(new List<Frog>());
+ }
+ """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44708")]
+    public async Task TestGenerateNameFromTypeArgumentForErrorType()
+    {
+        await TestInRegularAndScriptAsync(
+"""
+ using System.Collections.Generic;
+
+ class Frog { }
+
+ class C
+ {
+     C M() => new [||]C(new List<>());
+ }
+ """,
+"""
+ using System.Collections.Generic;
+
+ class Frog { }
+
+ class C
+ {
+     private List<T> ts;
+
+     public C(List<T> ts)
+     {
+         this.ts = ts;
+     }
+
+     C M() => new C(new List<>());
+ }
+ """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/44708")]
+    public async Task TestGenerateNameFromTypeArgumentInNamespace()
+    {
+        await TestInRegularAndScriptAsync(
+"""
+ using System.Collections.Generic;
+
+ namespace N {
+     class Frog { }
+
+     class C
+     {
+         C M() => new [||]C(new List<Frog>());
+     }
+ }
+ """,
+"""
+ using System.Collections.Generic;
+
+ namespace N {
+     class Frog { }
+
+     class C
+     {
+         private List<Frog> frogs;
+
+         public C(List<Frog> frogs)
+         {
+             this.frogs = frogs;
+         }
+
+         C M() => new C(new List<Frog>());
+     }
+ }
+ """);
+    }
+
+#endif
 }
