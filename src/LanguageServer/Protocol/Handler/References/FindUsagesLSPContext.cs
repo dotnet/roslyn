@@ -132,6 +132,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         public override async ValueTask OnReferencesFoundAsync(IAsyncEnumerable<SourceReferenceItem> references, CancellationToken cancellationToken)
         {
             await foreach (var reference in references)
+                await OnSingleReferenceFoundAsync(reference, cancellationToken).ConfigureAwait(false);
+
+            async ValueTask OnSingleReferenceFoundAsync(SourceReferenceItem reference, CancellationToken cancellationToken)
             {
                 using (await _semaphore.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
                 {
