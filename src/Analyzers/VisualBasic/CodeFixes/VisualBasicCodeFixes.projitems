@@ -27,9 +27,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertTypeOfToNameOf\VisualBasicConvertGetTypeToNameOfCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\VisualBasicFileHeaderCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\VisualBasicFormattingCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\GenerateConstructorCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\GenerateConstructorDiagnosticIds.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\VisualBasicGenerateConstructorService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\VisualBasicGenerateDefaultConstructorsCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\VisualBasicGenerateDefaultConstructorsService.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateEnumMember\GenerateEnumMemberCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\GenerateConversionCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\GenerateParameterizedMemberCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\VisualBasicGenerateVariableCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\VisualBasicImplementAbstractClassCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\VisualBasicImplementInterfaceCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\VisualBasicImplementInterfaceService.vb" />

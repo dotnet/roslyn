@@ -34,14 +34,10 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateConstructor;
 /// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateConstructor), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.FullyQualify)]
-internal class GenerateConstructorCodeFixProvider : AbstractGenerateMemberCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class GenerateConstructorCodeFixProvider() : AbstractGenerateMemberCodeFixProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public GenerateConstructorCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds => GenerateConstructorDiagnosticIds.AllDiagnosticIds;
 
     protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(

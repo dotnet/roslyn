@@ -19,16 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateEnumMember;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateEnumMember), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateConstructor)]
-internal class GenerateEnumMemberCodeFixProvider : AbstractGenerateMemberCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class GenerateEnumMemberCodeFixProvider() : AbstractGenerateMemberCodeFixProvider
 {
     private const string CS0117 = nameof(CS0117); // error CS0117: 'Color' does not contain a definition for 'Red'
     private const string CS1061 = nameof(CS1061); // error CS1061: 'Color' does not contain a definition for 'Red' and no accessible extension method 'Red' accepting a first argument of type 'Color' could be found
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public GenerateEnumMemberCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [CS0117, CS1061];

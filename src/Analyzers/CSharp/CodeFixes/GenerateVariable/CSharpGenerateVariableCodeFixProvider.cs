@@ -22,7 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateVariable;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateVariable), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateMethod)]
-internal class CSharpGenerateVariableCodeFixProvider : AbstractGenerateMemberCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpGenerateVariableCodeFixProvider() : AbstractGenerateMemberCodeFixProvider
 {
     private const string CS1061 = nameof(CS1061); // error CS1061: 'C' does not contain a definition for 'Goo' and no extension method 'Goo' accepting a first argument of type 'C' could be found
     private const string CS0103 = nameof(CS0103); // error CS0103: The name 'Goo' does not exist in the current context
@@ -31,12 +33,6 @@ internal class CSharpGenerateVariableCodeFixProvider : AbstractGenerateMemberCod
     private const string CS0246 = nameof(CS0246); // error CS0246: The type or namespace name 'Version' could not be found
     private const string CS0120 = nameof(CS0120); // error CS0120: An object reference is required for the non-static field, method, or property 'A'
     private const string CS0118 = nameof(CS0118); // error CS0118: 'C' is a type but is used like a variable
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpGenerateVariableCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds
         => [CS1061, CS0103, CS0117, CS0539, CS0246, CS0120, CS0118];

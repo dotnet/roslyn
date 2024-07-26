@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateMethod), [Shared]>
     <ExtensionOrder(Before:=PredefinedCodeFixProviderNames.PopulateSwitch, After:=PredefinedCodeFixProviderNames.GenerateEvent)>
-    Friend Class GenerateParameterizedMemberCodeFixProvider
+    Friend NotInheritable Class GenerateParameterizedMemberCodeFixProvider
         Inherits AbstractGenerateMemberCodeFixProvider
 
         Friend Const BC30057 As String = "BC30057" ' error BC30057: Too many arguments to 'Public Sub Baz()'

@@ -46,6 +46,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\AbstractGenerateDefaultConstructorsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\AbstractGenerateDefaultConstructorsService.State.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\IGenerateDefaultConstructorsService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateMember\AbstractGenerateMemberCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\AbstractImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\AbstractImplementInterfaceCodeFixProvider.cs" />

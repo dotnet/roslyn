@@ -44,14 +44,10 @@ internal static class GenerateMethodDiagnosticIds
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember)]
 [ExtensionOrder(Before = PredefinedCodeFixProviderNames.PopulateSwitch)]
 [ExtensionOrder(Before = PredefinedCodeFixProviderNames.GenerateVariable)]
-internal sealed class GenerateMethodCodeFixProvider : AbstractGenerateMemberCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class GenerateMethodCodeFixProvider() : AbstractGenerateMemberCodeFixProvider
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public GenerateMethodCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         GenerateMethodDiagnosticIds.FixableDiagnosticIds;
 

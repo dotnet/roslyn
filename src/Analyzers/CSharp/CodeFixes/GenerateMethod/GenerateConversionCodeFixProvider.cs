@@ -20,16 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateConversion), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember)]
-internal class GenerateConversionCodeFixProvider : AbstractGenerateMemberCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class GenerateConversionCodeFixProvider() : AbstractGenerateMemberCodeFixProvider
 {
     private const string CS0029 = nameof(CS0029); // error CS0029: Cannot implicitly convert type 'type' to 'type'
     private const string CS0030 = nameof(CS0030); // error CS0030: Cannot convert type 'type' to 'type'
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public GenerateConversionCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds
     {

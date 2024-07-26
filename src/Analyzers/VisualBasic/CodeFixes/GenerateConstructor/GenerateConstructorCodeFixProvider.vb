@@ -15,10 +15,9 @@ Imports Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
-
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateConstructor), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.FullyQualify)>
-    Friend Class GenerateConstructorCodeFixProvider
+    Friend NotInheritable Class GenerateConstructorCodeFixProvider
         Inherits AbstractGenerateMemberCodeFixProvider
 
         <ImportingConstructor>

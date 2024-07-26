@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateConversion), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.GenerateEvent)>
-    Friend Class GenerateConversionCodeFixProvider
+    Friend NotInheritable Class GenerateConversionCodeFixProvider
         Inherits AbstractGenerateMemberCodeFixProvider
 
         Friend Const BC30311 As String = "BC30311" ' error BC30311: Cannot convert type 'x' to type 'y'

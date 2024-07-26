@@ -16,7 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateEnumMember
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateEnumMember), [Shared]>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.GenerateConstructor)>
-    Friend Class GenerateEnumMemberCodeFixProvider
+    Friend NotInheritable Class GenerateEnumMemberCodeFixProvider
         Inherits AbstractGenerateMemberCodeFixProvider
 
         Friend Const BC30456 As String = "BC30456" ' error BC30456: 'Red' is not a member of 'Color'.
