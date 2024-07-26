@@ -175,24 +175,6 @@ internal static partial class ITypeSymbolExtensions
     }
 
     [return: NotNullIfNotNull(parameterName: nameof(type))]
-    public static ITypeSymbol? RemoveUnavailableTypeParameters(
-        this ITypeSymbol? type,
-        Compilation compilation,
-        IEnumerable<ITypeParameterSymbol> availableTypeParameters)
-    {
-        return type?.RemoveUnavailableTypeParameters(compilation, availableTypeParameters.Select(t => t.Name).ToSet());
-    }
-
-    [return: NotNullIfNotNull(parameterName: nameof(type))]
-    private static ITypeSymbol? RemoveUnavailableTypeParameters(
-        this ITypeSymbol? type,
-        Compilation compilation,
-        ISet<string> availableTypeParameterNames)
-    {
-        return type?.Accept(new UnavailableTypeParameterRemover(compilation, availableTypeParameterNames));
-    }
-
-    [return: NotNullIfNotNull(parameterName: nameof(type))]
     public static ITypeSymbol? RemoveAnonymousTypes(
         this ITypeSymbol? type,
         Compilation compilation)

@@ -762,4 +762,22 @@ internal static partial class ITypeSymbolExtensions
     public static bool IsInlineArray([NotNullWhen(true)] this ITypeSymbol? type)
         => type is INamedTypeSymbol namedType &&
            namedType.OriginalDefinition.GetAttributes().Any(static a => a.AttributeClass?.SpecialType == SpecialType.System_Runtime_CompilerServices_InlineArrayAttribute);
+
+    [return: NotNullIfNotNull(parameterName: nameof(type))]
+    public static ITypeSymbol? RemoveUnavailableTypeParameters(
+        this ITypeSymbol? type,
+        Compilation compilation,
+        IEnumerable<ITypeParameterSymbol> availableTypeParameters)
+    {
+        return type?.RemoveUnavailableTypeParameters(compilation, availableTypeParameters.Select(t => t.Name).ToSet());
+    }
+
+    [return: NotNullIfNotNull(parameterName: nameof(type))]
+    private static ITypeSymbol? RemoveUnavailableTypeParameters(
+        this ITypeSymbol? type,
+        Compilation compilation,
+        ISet<string> availableTypeParameterNames)
+    {
+        return type?.Accept(new UnavailableTypeParameterRemover(compilation, availableTypeParameterNames));
+    }
 }
