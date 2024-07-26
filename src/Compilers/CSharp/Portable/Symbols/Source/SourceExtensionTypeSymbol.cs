@@ -277,6 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool reportedUnderlyingTypeConflict = false;
             TypeSymbol? underlyingType = null;
             SourceLocation? underlyingTypeLocation = null;
+
             Debug.Assert(basesBeingResolved == null || !basesBeingResolved.ContainsReference(this.OriginalDefinition));
             var newBasesBeingResolved = basesBeingResolved.Prepend(this.OriginalDefinition);
 
