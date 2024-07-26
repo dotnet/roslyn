@@ -55,6 +55,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\NameSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ObjectCreationExpressionExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ParameterSyntaxExtensions.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SemanticModelExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SimpleNameSyntaxExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringExtensions.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SymbolDisplayPartExtensions.vb" />
