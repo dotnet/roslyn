@@ -9,25 +9,6 @@ using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal sealed partial class BoundArrayAccess
-    {
-        public BoundArrayAccess(
-            SyntaxNode syntax,
-            BoundExpression expression,
-            ImmutableArray<BoundExpression> indices,
-            TypeSymbol type,
-            bool hasErrors = false)
-            : this(syntax, expression, indices, isRef: false, type, hasErrors)
-        {
-        }
-
-        public BoundArrayAccess Update(BoundExpression expression, ImmutableArray<BoundExpression> indices, TypeSymbol type)
-            => this.Update(expression, indices, isRef: this.IsRef, type);
-
-        public BoundArrayAccess Update(bool isRef)
-            => this.Update(Expression, Indices, isRef: isRef, Type);
-    }
-
     internal sealed partial class BoundFieldAccess
     {
         public BoundFieldAccess(

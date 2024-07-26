@@ -659,13 +659,15 @@
 
     <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="Indices" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+  </Node>
 
-    <!--
-      Ref array access has side effects (element type mismatch check)
-      so if it remains standalone (e.g., because the result is discarded)
-      we need to know if the original assignment was ref to emit it correctly.
-    -->
-    <Field Name="IsRef" Type="bool" />
+  <!--
+    Represents an array access that comes from the RHS of an unused ref (non-readonly) assignment.
+
+    Needed so we can emit with correct side effects (runtime element type check).
+  -->
+  <Node Name="BoundRefArrayAccess" Base="BoundExpression">
+    <Field Name="ArrayAccess" Type="BoundArrayAccess" Null="disallow"/>
   </Node>
 
   <!--

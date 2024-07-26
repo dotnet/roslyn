@@ -154,6 +154,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitArrayElementLoad((BoundArrayAccess)expression, used);
                     break;
 
+                case BoundKind.RefArrayAccess:
+                    EmitArrayElementRefLoad((BoundRefArrayAccess)expression, used);
+                    break;
+
                 case BoundKind.ArrayLength:
                     EmitArrayLength((BoundArrayLength)expression, used);
                     break;
@@ -1003,14 +1007,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitArrayElementLoad(BoundArrayAccess arrayAccess, bool used)
         {
-            if (arrayAccess.IsRef)
-            {
-                Debug.Assert(!used);
-                EmitArrayElementAddress(arrayAccess, AddressKind.Writeable);
-                EmitPopIfUnused(used);
-                return;
-            }
-
             EmitExpression(arrayAccess.Expression, used: true);
             EmitArrayIndices(arrayAccess.Indices);
 
@@ -1105,6 +1101,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
 
             EmitPopIfUnused(used);
+        }
+
+        private void EmitArrayElementRefLoad(BoundRefArrayAccess refArrayAccess, bool used)
+        {
+            if (used)
+            {
+                throw ExceptionUtilities.Unreachable();
+            }
+
+            EmitArrayElementAddress(refArrayAccess.ArrayAccess, AddressKind.Writeable);
+            _builder.EmitOpCode(ILOpCode.Pop);
         }
 
         private void EmitFieldLoad(BoundFieldAccess fieldAccess, bool used)
