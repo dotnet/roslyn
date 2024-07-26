@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var result in driverRunResult.Results)
                 {
-                    if (!IsGeneratorRunResultToIgnore(result))
+                    if (!result.Diagnostics.IsDefaultOrEmpty && !IsGeneratorRunResultToIgnore(result))
                     {
                         builder.AddRange(result.Diagnostics);
                     }
