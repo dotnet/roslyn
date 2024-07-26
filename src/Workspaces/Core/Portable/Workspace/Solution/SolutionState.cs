@@ -960,7 +960,7 @@ internal sealed partial class SolutionState
             return new(this, oldProject, oldProject);
         }
 
-        return UpdateDocumentState(newDocument, contentChanged: false);
+        return UpdateDocumentState(newDocument);
     }
 
     /// <summary>
@@ -976,7 +976,7 @@ internal sealed partial class SolutionState
             return new(this, oldProject, oldProject);
         }
 
-        return UpdateDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
+        return UpdateDocumentState(oldDocument.UpdateText(text, mode));
     }
 
     public StateChange WithDocumentState(DocumentState newDocument)
@@ -988,7 +988,7 @@ internal sealed partial class SolutionState
             return new(this, oldProject, oldProject);
         }
 
-        return UpdateDocumentState(newDocument, contentChanged: true);
+        return UpdateDocumentState(newDocument);
     }
 
     /// <summary>
@@ -1004,7 +1004,7 @@ internal sealed partial class SolutionState
             return new(this, oldProject, oldProject);
         }
 
-        return UpdateAdditionalDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
+        return UpdateAdditionalDocumentState(oldDocument.UpdateText(text, mode));
     }
 
     /// <summary>
@@ -1036,7 +1036,7 @@ internal sealed partial class SolutionState
             return new(this, oldProject, oldProject);
         }
 
-        return UpdateDocumentState(oldDocument.UpdateText(textAndVersion, mode), contentChanged: true);
+        return UpdateDocumentState(oldDocument.UpdateText(textAndVersion, mode));
     }
 
     /// <summary>
@@ -1052,7 +1052,7 @@ internal sealed partial class SolutionState
             return new(this, oldProject, oldProject);
         }
 
-        return UpdateAdditionalDocumentState(oldDocument.UpdateText(textAndVersion, mode), contentChanged: true);
+        return UpdateAdditionalDocumentState(oldDocument.UpdateText(textAndVersion, mode));
     }
 
     /// <summary>
@@ -1084,7 +1084,7 @@ internal sealed partial class SolutionState
             return new(this, oldProject, oldProject);
         }
 
-        return UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind), contentChanged: true);
+        return UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind));
     }
 
     public StateChange UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
@@ -1093,7 +1093,7 @@ internal sealed partial class SolutionState
 
         // Assumes that content has changed. User could have closed a doc without saving and we are loading text
         // from closed file with old content.
-        return UpdateDocumentState(oldDocument.UpdateText(loader, mode), contentChanged: true);
+        return UpdateDocumentState(oldDocument.UpdateText(loader, mode));
     }
 
     /// <summary>
@@ -1106,7 +1106,7 @@ internal sealed partial class SolutionState
 
         // Assumes that content has changed. User could have closed a doc without saving and we are loading text
         // from closed file with old content.
-        return UpdateAdditionalDocumentState(oldDocument.UpdateText(loader, mode), contentChanged: true);
+        return UpdateAdditionalDocumentState(oldDocument.UpdateText(loader, mode));
     }
 
     /// <summary>
@@ -1122,10 +1122,10 @@ internal sealed partial class SolutionState
         return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(loader, mode));
     }
 
-    private StateChange UpdateDocumentState(DocumentState newDocument, bool contentChanged)
+    private StateChange UpdateDocumentState(DocumentState newDocument)
     {
         var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
-        var newProject = oldProject.UpdateDocument(newDocument, contentChanged);
+        var newProject = oldProject.UpdateDocument(newDocument);
 
         // This method shouldn't have been called if the document has not changed.
         Debug.Assert(oldProject != newProject);
@@ -1135,10 +1135,10 @@ internal sealed partial class SolutionState
             newProject);
     }
 
-    private StateChange UpdateAdditionalDocumentState(AdditionalDocumentState newDocument, bool contentChanged)
+    private StateChange UpdateAdditionalDocumentState(AdditionalDocumentState newDocument)
     {
         var oldProject = GetRequiredProjectState(newDocument.Id.ProjectId);
-        var newProject = oldProject.UpdateAdditionalDocument(newDocument, contentChanged);
+        var newProject = oldProject.UpdateAdditionalDocument(newDocument);
 
         // This method shouldn't have been called if the document has not changed.
         Debug.Assert(oldProject != newProject);

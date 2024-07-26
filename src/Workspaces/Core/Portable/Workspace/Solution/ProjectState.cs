@@ -843,10 +843,10 @@ internal partial class ProjectState
             analyzerConfigOptionsCache: new AnalyzerConfigOptionsCache(AnalyzerConfigDocumentStates, _analyzerConfigOptionsCache.FallbackOptions));
     }
 
-    public ProjectState UpdateDocument(DocumentState newDocument, bool contentChanged)
-        => UpdateDocuments([DocumentStates.GetRequiredState(newDocument.Id)], [newDocument], contentChanged);
+    public ProjectState UpdateDocument(DocumentState newDocument)
+        => UpdateDocuments([DocumentStates.GetRequiredState(newDocument.Id)], [newDocument]);
 
-    public ProjectState UpdateDocuments(ImmutableArray<DocumentState> oldDocuments, ImmutableArray<DocumentState> newDocuments, bool contentChanged)
+    public ProjectState UpdateDocuments(ImmutableArray<DocumentState> oldDocuments, ImmutableArray<DocumentState> newDocuments)
     {
         Contract.ThrowIfTrue(oldDocuments.IsEmpty);
         Contract.ThrowIfFalse(oldDocuments.Length == newDocuments.Length);
@@ -860,7 +860,6 @@ internal partial class ProjectState
             AdditionalDocumentStates,
             oldDocuments.CastArray<TextDocumentState>(),
             newDocuments.CastArray<TextDocumentState>(),
-            contentChanged,
             out var dependentDocumentVersion,
             out var dependentSemanticVersion);
 
@@ -870,10 +869,10 @@ internal partial class ProjectState
             latestDocumentTopLevelChangeVersion: dependentSemanticVersion);
     }
 
-    public ProjectState UpdateAdditionalDocument(AdditionalDocumentState newDocument, bool contentChanged)
-        => UpdateAdditionalDocuments([AdditionalDocumentStates.GetRequiredState(newDocument.Id)], [newDocument], contentChanged);
+    public ProjectState UpdateAdditionalDocument(AdditionalDocumentState newDocument)
+        => UpdateAdditionalDocuments([AdditionalDocumentStates.GetRequiredState(newDocument.Id)], [newDocument]);
 
-    public ProjectState UpdateAdditionalDocuments(ImmutableArray<AdditionalDocumentState> oldDocuments, ImmutableArray<AdditionalDocumentState> newDocuments, bool contentChanged)
+    public ProjectState UpdateAdditionalDocuments(ImmutableArray<AdditionalDocumentState> oldDocuments, ImmutableArray<AdditionalDocumentState> newDocuments)
     {
         Contract.ThrowIfTrue(oldDocuments.IsEmpty);
         Contract.ThrowIfFalse(oldDocuments.Length == newDocuments.Length);
@@ -886,7 +885,6 @@ internal partial class ProjectState
             newDocumentStates,
             oldDocuments.CastArray<TextDocumentState>(),
             newDocuments.CastArray<TextDocumentState>(),
-            contentChanged,
             out var dependentDocumentVersion,
             out var dependentSemanticVersion);
 
@@ -923,12 +921,15 @@ internal partial class ProjectState
         TextDocumentStates<AdditionalDocumentState> newAdditionalDocumentStates,
         ImmutableArray<TextDocumentState> oldDocuments,
         ImmutableArray<TextDocumentState> newDocuments,
-        bool contentChanged,
         out AsyncLazy<VersionStamp> dependentDocumentVersion,
         out AsyncLazy<VersionStamp> dependentSemanticVersion)
     {
         var recalculateDocumentVersion = false;
         var recalculateSemanticVersion = false;
+
+        var contentChanged = !oldDocuments.SequenceEqual(
+            newDocuments,
+            static (oldDocument, newDocument) => oldDocument.TextAndVersionSource == newDocument.TextAndVersionSource);
 
         if (contentChanged)
         {
