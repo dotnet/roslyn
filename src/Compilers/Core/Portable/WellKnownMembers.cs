@@ -3804,6 +3804,14 @@ namespace Microsoft.CodeAnalysis
                  0,                                                                                                                           // Arity
                     0,                                                                                                                        // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32, // Return Type
+                    
+                 // System_Exception__ctorString
+                 (byte)MemberFlags.Constructor,                                                                                               // Flags
+                 (byte)WellKnownType.System_Exception,                                                                                        // DeclaringTypeId
+                 0,                                                                                                                           // Arity
+                    1,                                                                                                                        // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
 
                  // System_InvalidOperationException__ctor
                  (byte)MemberFlags.Constructor,                                                                                               // Flags
@@ -3811,14 +3819,6 @@ namespace Microsoft.CodeAnalysis
                  0,                                                                                                                           // Arity
                     0,                                                                                                                        // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
-
-                 // System_InvalidOperationException__ctorString
-                 (byte)MemberFlags.Constructor,                                                                                               // Flags
-                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_InvalidOperationException - WellKnownType.ExtSentinel),        // DeclaringTypeId
-                 0,                                                                                                                           // Arity
-                    1,                                                                                                                        // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
 
                  // System_Runtime_CompilerServices_SwitchExpressionException__ctor
                  (byte)MemberFlags.Constructor,                                                                                               // Flags
@@ -4033,13 +4033,14 @@ namespace Microsoft.CodeAnalysis
                     0,                                                                                                                       // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
-                // System_MissingMethodException__ctorString
+                // System_Runtime_CompilerServices_HotReloadException_ctorStringInt32
                 (byte)MemberFlags.Constructor,                                                                                               // Flags
-                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_MissingMethodException - WellKnownType.ExtSentinel),            // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_HotReloadException - WellKnownType.ExtSentinel),            // DeclaringTypeId
                 0,                                                                                                                           // Arity
-                    1,                                                                                                                       // Method Signature
+                    2,                                                                                                                       // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                 // MetadataUpdateOriginalTypeAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                                               // Flags
@@ -4821,8 +4822,8 @@ namespace Microsoft.CodeAnalysis
                 "MoveNext",                                 // System_Runtime_CompilerServices_AsyncIteratorMethodBuilder__MoveNext_T
                 "get_Item",                                 // System_Runtime_CompilerServices_ITuple__get_Item
                 "get_Length",                               // System_Runtime_CompilerServices_ITuple__get_Length
+                ".ctor",                                    // System_Exception__ctorString
                 ".ctor",                                    // System_InvalidOperationException__ctor
-                ".ctor",                                    // System_InvalidOperationException__ctorString
                 ".ctor",                                    // System_Runtime_CompilerServices_SwitchExpressionException__ctor
                 ".ctor",                                    // System_Runtime_CompilerServices_SwitchExpressionException__ctorObject
                 "Equals",                                   // System_Threading_CancellationToken__Equals

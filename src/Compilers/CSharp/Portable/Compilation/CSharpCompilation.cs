@@ -3533,6 +3533,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
+        private protected override EmitBaseline MapToCompilation(CommonPEModuleBuilder moduleBeingBuilt)
+            => EmitHelpers.MapToCompilation(this, (PEDeltaAssemblyBuilder)moduleBeingBuilt);
+
         private class DuplicateFilePathsVisitor : CSharpSymbolVisitor
         {
             // note: the default HashSet<string> uses an ordinal comparison

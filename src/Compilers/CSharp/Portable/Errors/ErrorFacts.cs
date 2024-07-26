@@ -1590,7 +1590,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_NoCorrespondingArgument
                 or ErrorCode.ERR_ResourceFileNameNotUnique
                 or ErrorCode.ERR_DllImportOnGenericMethod
-                or ErrorCode.ERR_EncUpdateFailedMissingAttribute
+                or ErrorCode.ERR_EncUpdateFailedMissingSymbol
                 or ErrorCode.ERR_ParameterNotValidForType
                 or ErrorCode.ERR_AttributeParameterRequired1
                 or ErrorCode.ERR_AttributeParameterRequired2

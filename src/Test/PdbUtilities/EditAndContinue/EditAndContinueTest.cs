@@ -45,6 +45,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var verifier = new CompilationVerifier(compilation);
 
+            Debug.WriteLine($"Emitting baseline");
+
             verifier.Emit(
                 expectedOutput: null,
                 trimOutput: false,
@@ -70,6 +72,12 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             => AddGeneration(source, _ => edits, validator);
 
         internal TSelf AddGeneration(string source, Func<SourceWithMarkedNodes, SemanticEditDescription[]> edits, Action<GenerationVerifier> validator)
+            => AddGeneration(source, edits, validator, expectedErrors: []);
+
+        internal TSelf AddGeneration(string source, SemanticEditDescription[] edits, DiagnosticDescription[] expectedErrors)
+            => AddGeneration(source, _ => edits, validator: static _ => { }, expectedErrors);
+
+        private TSelf AddGeneration(string source, Func<SourceWithMarkedNodes, SemanticEditDescription[]> edits, Action<GenerationVerifier> validator, DiagnosticDescription[] expectedErrors)
         {
             _hasVerified = false;
 
@@ -85,9 +93,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 
             var semanticEdits = GetSemanticEdits(edits(markedSource), previousGeneration.Compilation, previousSource, compilation, markedSource, unmappedNodes);
 
+            Debug.WriteLine($"Emitting generation #{_generations.Count}");
+
             CompilationDifference diff = compilation.EmitDifference(previousGeneration.Baseline, semanticEdits);
 
-            Assert.Empty(diff.EmitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
+            diff.EmitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Verify(expectedErrors);
+            if (expectedErrors != null)
+            {
+                return This;
+            }
 
             var md = diff.GetMetadata();
             _disposables.Add(md);

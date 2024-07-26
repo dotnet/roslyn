@@ -18,6 +18,7 @@ internal sealed class EditAndContinueTest(
     CSharpParseOptions? parseOptions = null,
     TargetFramework targetFramework = TargetFramework.Standard,
     IEnumerable<MetadataReference>? references = null,
+    string assemblyName = "",
     Verification? verification = null)
     : EditAndContinueTest<EditAndContinueTest>(verification)
 {
@@ -25,9 +26,10 @@ internal sealed class EditAndContinueTest(
     private readonly CSharpParseOptions _parseOptions = parseOptions ?? TestOptions.Regular.WithNoRefSafetyRulesAttribute();
     private readonly TargetFramework _targetFramework = targetFramework;
     private readonly IEnumerable<MetadataReference>? _references = references;
+    private readonly string? _assemblyName = assemblyName;
 
     protected override Compilation CreateCompilation(SyntaxTree tree)
-        => CSharpTestBase.CreateCompilation(tree, _references, options: _compilationOptions, targetFramework: _targetFramework);
+        => CSharpTestBase.CreateCompilation(tree, _references, options: _compilationOptions, assemblyName: _assemblyName, targetFramework: _targetFramework);
 
     protected override SourceWithMarkedNodes CreateSourceWithMarkedNodes(string source)
         => EditAndContinueTestBase.MarkedSource(source, options: _parseOptions);

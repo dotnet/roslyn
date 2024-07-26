@@ -17,6 +17,11 @@
         <target state="translated">El ensamblado que contiene el tipo "{0}" hace referencia a .NET Framework, lo cual no se admite.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Attribute">
+        <source>attribute</source>
+        <target state="new">attribute</target>
+        <note />
+      </trans-unit>
       <trans-unit id="BadBuiltInOps1">
         <source>Illegal built-in operator name '{0}'</source>
         <target state="translated">Nombre de operador integrado no válido "{0}"</target>
@@ -266,6 +271,11 @@
       <trans-unit id="TupleElementNullableAnnotationCountMismatch">
         <source>If tuple element nullable annotations are specified, the number of annotations must match the cardinality of the tuple.</source>
         <target state="translated">Si se especifican las anotaciones que aceptan valores NULL de los elementos de tupla, el número de anotaciones debe coincidir con la cardinalidad de la tupla.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_0_does_not_have_expected_constructor">
+        <source>'{0}' type does not have the expected constructor</source>
+        <target state="new">'{0}' type does not have the expected constructor</target>
         <note />
       </trans-unit>
       <trans-unit id="UnableToDetermineSpecificCauseOfFailure">

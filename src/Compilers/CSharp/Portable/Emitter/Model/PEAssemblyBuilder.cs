@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// In cases 1 and 2b, we expect (metadataName == sourceAssembly.MetadataName).
         /// </remarks>
         private readonly string _metadataName;
-
+#nullable enable
         public PEAssemblyBuilderBase(
             SourceAssemblySymbol sourceAssembly,
             EmitOptions emitOptions,
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             AssemblyOrModuleSymbolToModuleRefMap.Add(sourceAssembly, this);
         }
-
+#nullable disable
         public sealed override ISourceAssemblySymbolInternal SourceAssemblyOpt
             => _sourceAssembly;
 
@@ -553,7 +553,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             if (symbol is null)
             {
-                AddDiagnosticsForExistingAttribute(description, diagnostics);
+                if (diagnostics.DiagnosticBag != null)
+                {
+                    AddDiagnosticsForUserDefinedReservedType(description.FullName, diagnostics.DiagnosticBag);
+                }
 
                 var containingNamespace = GetOrSynthesizeNamespace(description.Namespace);
 
@@ -569,24 +572,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-#nullable enable
-
-        private void AddDiagnosticsForExistingAttribute(AttributeDescription description, BindingDiagnosticBag diagnostics)
+        protected void AddDiagnosticsForUserDefinedReservedType(string fullName, DiagnosticBag diagnostics)
         {
-            var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
-            var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
-            Debug.Assert(userDefinedAttribute is null || (object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
-            Debug.Assert(userDefinedAttribute?.IsErrorType() != true);
-
-            if (userDefinedAttribute is not null)
+            var metadataName = MetadataTypeName.FromFullName(fullName);
+            var userDefinedType = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref metadataName);
+            if (userDefinedType is { })
             {
-                diagnostics.Add(ErrorCode.ERR_TypeReserved, userDefinedAttribute.GetFirstLocation(), description.FullName);
+                Debug.Assert((object)userDefinedType.ContainingModule == _sourceAssembly.SourceModule);
+                Debug.Assert(!userDefinedType.IsErrorType());
+
+                diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_TypeReserved, [fullName]), userDefinedType.GetFirstLocation());
             }
         }
 
-#nullable disable
-
-        private NamespaceSymbol GetOrSynthesizeNamespace(string namespaceFullName)
+        protected NamespaceSymbol GetOrSynthesizeNamespace(string namespaceFullName)
         {
             var result = SourceModule.GlobalNamespace;
 
@@ -628,19 +627,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
     }
 #nullable enable
-    internal sealed class PEAssemblyBuilder : PEAssemblyBuilderBase
+    internal sealed class PEAssemblyBuilder(
+        SourceAssemblySymbol sourceAssembly,
+        EmitOptions emitOptions,
+        OutputKind outputKind,
+        Cci.ModulePropertiesForSerialization serializationProperties,
+        IEnumerable<ResourceDescription> manifestResources)
+        : PEAssemblyBuilderBase(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes: [])
     {
-        public PEAssemblyBuilder(
-            SourceAssemblySymbol sourceAssembly,
-            EmitOptions emitOptions,
-            OutputKind outputKind,
-            Cci.ModulePropertiesForSerialization serializationProperties,
-            IEnumerable<ResourceDescription> manifestResources)
-            : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, ImmutableArray<NamedTypeSymbol>.Empty)
-        {
-        }
-
         public override EmitBaseline? PreviousGeneration => null;
         public override SymbolChanges? EncSymbolChanges => null;
+
+        public override INamedTypeSymbolInternal? TryGetOrCreateSynthesizedHotReloadExceptionType()
+            => null;
+
+        public override IMethodSymbolInternal GetOrCreateHotReloadExceptionConstructorDefinition()
+            => throw ExceptionUtilities.Unreachable();
+
+        public override INamedTypeSymbolInternal? GetUsedSynthesizedHotReloadExceptionType()
+            => null;
     }
 }

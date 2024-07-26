@@ -416,7 +416,7 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        public override int ERR_EncUpdateFailedMissingAttribute
+        public override int ERR_EncUpdateFailedMissingSymbol
         {
             get
             {
