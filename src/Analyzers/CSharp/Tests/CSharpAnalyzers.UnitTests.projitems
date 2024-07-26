@@ -35,6 +35,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingAnalyzerTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\GenerateConstructorTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateEnumMember\GenerateEnumMemberTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />

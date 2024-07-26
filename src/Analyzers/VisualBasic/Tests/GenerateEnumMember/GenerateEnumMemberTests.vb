@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateEnumMember
     <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEnumMember)>
-    Public Class GenerateEnumMemberTests
+    Public NotInheritable Class GenerateEnumMemberTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
