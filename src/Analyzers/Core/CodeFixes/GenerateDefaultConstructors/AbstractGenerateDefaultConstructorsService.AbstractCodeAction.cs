@@ -46,8 +46,7 @@ internal abstract partial class AbstractGenerateDefaultConstructorsService<TServ
         protected override async Task<Document> GetChangedDocumentAsync(CancellationToken cancellationToken)
         {
             Contract.ThrowIfNull(_state.ClassType);
-            var generator = _document.GetRequiredLanguageService<ICodeGenerationService>();
-            var result = await generator.AddMembersAsync(
+            var result = await CodeGenerator.AddMemberDeclarationsAsync(
                 new CodeGenerationSolutionContext(
                     _document.Project.Solution,
                     CodeGenerationContext.Default),
