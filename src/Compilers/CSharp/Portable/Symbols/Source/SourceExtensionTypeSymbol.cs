@@ -166,7 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             TypeSymbol? makeAcyclicUnderlyingType(ConsList<TypeSymbol>? basesBeingResolved, BindingDiagnosticBag diagnostics)
             {
-                Debug.Assert(basesBeingResolved == null || !basesBeingResolved.ContainsReference(this.OriginalDefinition));
                 var newBasesBeingResolved = basesBeingResolved.Prepend(this.OriginalDefinition);
                 TypeSymbol? declaredUnderlyingType = GetDeclaredExtensionInfo(newBasesBeingResolved).UnderlyingType;
 
@@ -183,8 +182,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (hasSelfReference(declaredUnderlyingType, this, newBasesBeingResolved))
                 {
-                    // If erasing extension types in the given extended type involves erasing that extended type
-                    // then the result of erasure would be unbounded
+                    // If erasing extension types in the extended type involves erasing the extension type
+                    // (to the given extended type) then the result of erasure would be unbounded
                     diagnostics.Add(ErrorCode.ERR_CircularBase, Locations[0], declaredUnderlyingType, this);
                 }
 
@@ -222,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return result;
             }
 
-            // Returns true if any erasure in the visited type is the given definition
+            // Returns true if any type meant to be erased in the visited type is the given definition
             static bool foundSelfReferenceInErasure(TypeSymbol type, SourceExtensionTypeSymbol definition, PooledHashSet<TypeSymbol> alreadyVisited, ConsList<TypeSymbol>? basesBeingResolved, bool isContainer = false)
             {
                 Debug.Assert(definition.IsDefinition);
