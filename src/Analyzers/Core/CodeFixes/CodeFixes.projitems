@@ -47,6 +47,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\AbstractGenerateDefaultConstructorsService.State.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\IGenerateDefaultConstructorsService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateMember\AbstractGenerateMemberCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateMember\AbstractGenerateMemberService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\AbstractGenerateVariableService.CodeAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\AbstractGenerateVariableService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\AbstractGenerateVariableService.GenerateLocalCodeAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\AbstractGenerateVariableService.GenerateParameterCodeAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\AbstractGenerateVariableService.State.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\IGenerateVariableService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\AbstractImplementAbstractClassCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\AbstractImplementInterfaceCodeFixProvider.cs" />

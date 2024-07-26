@@ -15,6 +15,12 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
+#else
+using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
+#endif
+
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateVariable;
 
 internal abstract partial class AbstractGenerateVariableService<TService, TSimpleNameSyntax, TExpressionSyntax>
@@ -177,10 +183,10 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
             get
             {
                 var text = _isConstant
-                    ? FeaturesResources.Generate_constant_0
+                    ? CodeFixesResources.Generate_constant_0
                     : _generateProperty
-                        ? _isReadonly ? FeaturesResources.Generate_read_only_property_0 : FeaturesResources.Generate_property_0
-                        : _isReadonly ? FeaturesResources.Generate_read_only_field_0 : FeaturesResources.Generate_field_0;
+                        ? _isReadonly ? CodeFixesResources.Generate_read_only_property_0 : CodeFixesResources.Generate_property_0
+                        : _isReadonly ? CodeFixesResources.Generate_read_only_field_0 : CodeFixesResources.Generate_field_0;
 
                 return string.Format(
                     text,

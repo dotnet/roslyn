@@ -213,21 +213,6 @@
   <data name="Generate_enum_member_0" xml:space="preserve">
     <value>Generate enum member '{0}'</value>
   </data>
-  <data name="Generate_constant_0" xml:space="preserve">
-    <value>Generate constant '{0}'</value>
-  </data>
-  <data name="Generate_read_only_property_0" xml:space="preserve">
-    <value>Generate read-only property '{0}'</value>
-  </data>
-  <data name="Generate_property_0" xml:space="preserve">
-    <value>Generate property '{0}'</value>
-  </data>
-  <data name="Generate_read_only_field_0" xml:space="preserve">
-    <value>Generate read-only field '{0}'</value>
-  </data>
-  <data name="Generate_field_0" xml:space="preserve">
-    <value>Generate field '{0}'</value>
-  </data>
   <data name="Generate_local_0" xml:space="preserve">
     <value>Generate local '{0}'</value>
   </data>

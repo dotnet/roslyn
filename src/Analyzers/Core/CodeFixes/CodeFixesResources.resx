@@ -267,4 +267,19 @@
   <data name="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources" xml:space="preserve">
     <value>TODO: override finalizer only if '{0}' has code to free unmanaged resources</value>
   </data>
+  <data name="Generate_constant_0" xml:space="preserve">
+    <value>Generate constant '{0}'</value>
+  </data>
+  <data name="Generate_read_only_field_0" xml:space="preserve">
+    <value>Generate read-only field '{0}'</value>
+  </data>
+  <data name="Generate_read_only_property_0" xml:space="preserve">
+    <value>Generate read-only property '{0}'</value>
+  </data>
+  <data name="Generate_property_0" xml:space="preserve">
+    <value>Generate property '{0}'</value>
+  </data>
+  <data name="Generate_field_0" xml:space="preserve">
+    <value>Generate field '{0}'</value>
+  </data>
 </root>
