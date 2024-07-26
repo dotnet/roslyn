@@ -147,6 +147,11 @@
         <target state="new">Generate read-only property '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_variable_0">
+        <source>Generate variable '{0}'</source>
+        <target state="new">Generate variable '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Implement_all_members_explicitly">
         <source>Implement all members explicitly</source>
         <target state="new">Implement all members explicitly</target>

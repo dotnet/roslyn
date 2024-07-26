@@ -512,6 +512,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\InterceptsLocationUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ISpeculationAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\OptionalExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Utilities\ParameterName.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PathMetadataUtilities.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ProducerConsumer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\PublicContract.cs" />
