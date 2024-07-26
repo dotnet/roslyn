@@ -21,15 +21,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod;
 
 [ExportLanguageService(typeof(IGenerateParameterizedMemberService), LanguageNames.CSharp), Shared]
-internal sealed class CSharpGenerateMethodService :
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpGenerateMethodService() :
     AbstractGenerateMethodService<CSharpGenerateMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpGenerateMethodService()
-    {
-    }
-
     protected override bool IsExplicitInterfaceGeneration(SyntaxNode node)
         => node is MethodDeclarationSyntax;
 

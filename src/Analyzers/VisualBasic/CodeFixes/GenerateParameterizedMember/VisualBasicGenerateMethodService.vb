@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
     <ExportLanguageService(GetType(IGenerateParameterizedMemberService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicGenerateMethodService
+    Partial Friend NotInheritable Class VisualBasicGenerateMethodService
         Inherits AbstractGenerateMethodService(Of VisualBasicGenerateMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax)
 
         <ImportingConstructor>
@@ -116,7 +116,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                             invocationExpressionOpt = DirectCast(simpleNameOrMemberAccessExpression.Parent, InvocationExpressionSyntax)
                             Return invocationExpressionOpt.ArgumentList Is Nothing OrElse
                                Not invocationExpressionOpt.ArgumentList.CloseParenToken.IsMissing
-                        ElseIf TryCast(TryCast(TryCast(simpleNameOrMemberAccessExpression, ConditionalAccessExpressionSyntax)?.WhenNotNull, InvocationExpressionSyntax)?.Expression, MemberAccessExpressionSyntax)?.Name Is simpleName
+                        ElseIf TryCast(TryCast(TryCast(simpleNameOrMemberAccessExpression, ConditionalAccessExpressionSyntax)?.WhenNotNull, InvocationExpressionSyntax)?.Expression, MemberAccessExpressionSyntax)?.Name Is simpleName Then
                             invocationExpressionOpt = DirectCast(DirectCast(simpleNameOrMemberAccessExpression, ConditionalAccessExpressionSyntax).WhenNotNull, InvocationExpressionSyntax)
                             Return invocationExpressionOpt.ArgumentList Is Nothing OrElse
                                Not invocationExpressionOpt.ArgumentList.CloseParenToken.IsMissing

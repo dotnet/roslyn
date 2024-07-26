@@ -4,6 +4,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -5300,7 +5301,7 @@ index: 1);
                 }
             }
             """,
-new TestParameters(Options.Regular));
+new TestParameters(new CSharpParseOptions(kind: SourceCodeKind.Regular)));
     }
 
     [Theory]

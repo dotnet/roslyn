@@ -38,6 +38,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)GenerateEnumMember\GenerateEnumMemberTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateMethod\GenerateConversionTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateMethod\GenerateDeconstructMethodTests.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateMethod\GenerateMethodTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />

@@ -58,6 +58,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\CSharpCommonGenerationServiceMethods.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\CSharpGenerateConversionService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\CSharpGenerateDeconstructMethodService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\CSharpGenerateMethodService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\CSharpGenerateParameterizedMemberService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\CSharpGenerateVariableCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseCodeFixProvider.AddNewKeywordAction.cs" />
