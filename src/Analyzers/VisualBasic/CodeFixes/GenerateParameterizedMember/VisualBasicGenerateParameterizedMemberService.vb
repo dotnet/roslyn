@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                         Return Me.Document.SemanticModel.Compilation.GetSpecialType(SpecialType.System_String)
                 End Select
 
-                Dim typeInference = Document.Project.Services.GetService(Of ITypeInferenceService)()
+                Dim typeInference = Document.Document.GetRequiredLanguageService(Of ITypeInferenceService)()
                 Dim inferredType = typeInference.InferType(
                     Document.SemanticModel, Me.InvocationExpression, objectAsDefault:=True,
                     name:=Me.State.IdentifierToken.ValueText, cancellationToken:=cancellationToken)
