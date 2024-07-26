@@ -28,7 +28,7 @@ internal partial class AbstractGenerateVariableService<TService, TSimpleNameSynt
         {
             get
             {
-                var text = FeaturesResources.Generate_local_0;
+                var text = CodeFixesResources.Generate_local_0;
 
                 return string.Format(
                     text,

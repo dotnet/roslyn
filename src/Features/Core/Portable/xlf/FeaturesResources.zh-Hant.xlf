@@ -835,19 +835,9 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">產生比較運算子</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constant_0">
-        <source>Generate constant '{0}'</source>
-        <target state="translated">產生常數 '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_enum_member_0">
         <source>Generate enum member '{0}'</source>
         <target state="translated">產生列舉成員 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_0">
-        <source>Generate field '{0}'</source>
-        <target state="translated">產生欄位 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_for_0">
@@ -858,31 +848,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Generate_method_0">
         <source>Generate method '{0}'</source>
         <target state="translated">產生方法 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_parameter_0">
-        <source>Generate parameter '{0}'</source>
-        <target state="translated">產生參數 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_parameter_0_and_overrides_implementations">
-        <source>Generate parameter '{0}' (and overrides/implementations)</source>
-        <target state="translated">產生參數 '{0}' (以及覆寫/實作)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_property_0">
-        <source>Generate property '{0}'</source>
-        <target state="translated">產生屬性 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_field_0">
-        <source>Generate read-only field '{0}'</source>
-        <target state="translated">產生唯讀欄位 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_property_0">
-        <source>Generate read-only property '{0}'</source>
-        <target state="translated">產生唯讀屬性 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -3885,11 +3850,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">產生 GetHashCode()</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_local_0">
-        <source>Generate local '{0}'</source>
-        <target state="translated">產生區域 '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_0_1_in_new_file">
         <source>Generate {0} '{1}' in new file</source>
         <target state="translated">在新檔案中產生 {0} '{1}'</target>
@@ -4553,11 +4513,6 @@ This version used in: {2}</source>
       <trans-unit id="Install_version_0">
         <source>Install version '{0}'</source>
         <target state="translated">安裝 '{0}' 版</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_variable_0">
-        <source>Generate variable '{0}'</source>
-        <target state="translated">產生變數 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Classes">

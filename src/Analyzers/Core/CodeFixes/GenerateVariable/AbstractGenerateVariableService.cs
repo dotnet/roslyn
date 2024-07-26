@@ -80,7 +80,7 @@ internal abstract partial class AbstractGenerateVariableService<TService, TSimpl
                 // Wrap the generate variable actions into a single top level suggestion
                 // so as to not clutter the list.
                 return [CodeAction.Create(
-                    string.Format(FeaturesResources.Generate_variable_0, state.IdentifierToken.ValueText),
+                    string.Format(CodeFixesResources.Generate_variable_0, state.IdentifierToken.ValueText),
                     actions.ToImmutable(),
                     isInlinable: true)];
             }

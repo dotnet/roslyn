@@ -82,6 +82,11 @@
         <target state="new">Generate all</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_constant_0">
+        <source>Generate constant '{0}'</source>
+        <target state="new">Generate constant '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_constructor_0_1">
         <source>Generate constructor '{0}({1})'</source>
         <target state="new">Generate constructor '{0}({1})'</target>
@@ -102,9 +107,44 @@
         <target state="new">Generate constructor in '{0}' (with properties)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_field_0">
+        <source>Generate field '{0}'</source>
+        <target state="new">Generate field '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_field_assigning_constructor_0_1">
         <source>Generate field assigning constructor '{0}({1})'</source>
         <target state="new">Generate field assigning constructor '{0}({1})'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_local_0">
+        <source>Generate local '{0}'</source>
+        <target state="new">Generate local '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_parameter_0">
+        <source>Generate parameter '{0}'</source>
+        <target state="new">Generate parameter '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_parameter_0_and_overrides_implementations">
+        <source>Generate parameter '{0}' (and overrides/implementations)</source>
+        <target state="new">Generate parameter '{0}' (and overrides/implementations)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_property_0">
+        <source>Generate property '{0}'</source>
+        <target state="new">Generate property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_field_0">
+        <source>Generate read-only field '{0}'</source>
+        <target state="new">Generate read-only field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_property_0">
+        <source>Generate read-only property '{0}'</source>
+        <target state="new">Generate read-only property '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_all_members_explicitly">

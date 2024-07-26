@@ -213,9 +213,6 @@
   <data name="Generate_enum_member_0" xml:space="preserve">
     <value>Generate enum member '{0}'</value>
   </data>
-  <data name="Generate_local_0" xml:space="preserve">
-    <value>Generate local '{0}'</value>
-  </data>
   <data name="Generate_0_1_in_new_file" xml:space="preserve">
     <value>Generate {0} '{1}' in new file</value>
   </data>
@@ -778,9 +775,6 @@ This version used in: {2}</value>
   <data name="Install_version_0" xml:space="preserve">
     <value>Install version '{0}'</value>
   </data>
-  <data name="Generate_variable_0" xml:space="preserve">
-    <value>Generate variable '{0}'</value>
-  </data>
   <data name="Classes" xml:space="preserve">
     <value>Classes</value>
   </data>
@@ -1197,12 +1191,6 @@ This version used in: {2}</value>
   </data>
   <data name="Target_type_matches" xml:space="preserve">
     <value>Target type matches</value>
-  </data>
-  <data name="Generate_parameter_0" xml:space="preserve">
-    <value>Generate parameter '{0}'</value>
-  </data>
-  <data name="Generate_parameter_0_and_overrides_implementations" xml:space="preserve">
-    <value>Generate parameter '{0}' (and overrides/implementations)</value>
   </data>
   <data name="in_Source_attribute" xml:space="preserve">
     <value>in Source (attribute)</value>

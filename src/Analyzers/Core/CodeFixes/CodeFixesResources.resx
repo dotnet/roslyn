@@ -282,4 +282,13 @@
   <data name="Generate_field_0" xml:space="preserve">
     <value>Generate field '{0}'</value>
   </data>
+  <data name="Generate_local_0" xml:space="preserve">
+    <value>Generate local '{0}'</value>
+  </data>
+  <data name="Generate_parameter_0" xml:space="preserve">
+    <value>Generate parameter '{0}'</value>
+  </data>
+  <data name="Generate_parameter_0_and_overrides_implementations" xml:space="preserve">
+    <value>Generate parameter '{0}' (and overrides/implementations)</value>
+  </data>
 </root>

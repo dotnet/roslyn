@@ -25,8 +25,8 @@ internal partial class AbstractGenerateVariableService<TService, TSimpleNameSynt
             get
             {
                 var text = _includeOverridesAndImplementations
-                    ? FeaturesResources.Generate_parameter_0_and_overrides_implementations
-                    : FeaturesResources.Generate_parameter_0;
+                    ? CodeFixesResources.Generate_parameter_0_and_overrides_implementations
+                    : CodeFixesResources.Generate_parameter_0;
 
                 return string.Format(
                     text,
