@@ -229,11 +229,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.DiscardExpression:
                     {
-                        if (isRef && rewrittenRight is BoundArrayAccess arrayAccess)
-                        {
-                            return arrayAccess.Update(isRef: true);
-                        }
-
                         return rewrittenRight;
                     }
 

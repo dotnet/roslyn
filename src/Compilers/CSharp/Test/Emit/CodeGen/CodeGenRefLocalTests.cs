@@ -1917,7 +1917,7 @@ class Program
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        [Fact]
         public void RefAssignArrayAccess_Discard_Struct()
         {
             var text = @"
@@ -1932,29 +1932,29 @@ class Program
 
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M", @"
 {
-  // Code size       10 (0xa)
+  // Code size        6 (0x6)
   .maxstack  2
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldc.i4.0
-  IL_0003:  ldelema    ""int""
-  IL_0008:  pop
-  IL_0009:  ret
+  IL_0003:  ldelem.i4
+  IL_0004:  pop
+  IL_0005:  ret
 }");
 
             CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
 {
-  // Code size        9 (0x9)
+  // Code size        5 (0x5)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
-  IL_0002:  ldelema    ""int""
-  IL_0007:  pop
-  IL_0008:  ret
+  IL_0002:  ldelem.i4
+  IL_0003:  pop
+  IL_0004:  ret
 }");
         }
 
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        [Fact]
         public void RefAssignArrayAccess_Discard_Class()
         {
             var text = @"
@@ -1969,29 +1969,29 @@ class Program
 
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M", @"
 {
-  // Code size       10 (0xa)
+  // Code size        6 (0x6)
   .maxstack  2
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldc.i4.0
-  IL_0003:  ldelema    ""object""
-  IL_0008:  pop
-  IL_0009:  ret
+  IL_0003:  ldelem.ref
+  IL_0004:  pop
+  IL_0005:  ret
 }");
 
             CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M", @"
 {
-  // Code size        9 (0x9)
+  // Code size        5 (0x5)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
-  IL_0002:  ldelema    ""object""
-  IL_0007:  pop
-  IL_0008:  ret
+  IL_0002:  ldelem.ref
+  IL_0003:  pop
+  IL_0004:  ret
 }");
         }
 
-        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73215")]
+        [Theory, CombinatorialData]
         public void RefAssignArrayAccess_Discard_Generic(
             [CombinatorialValues("", "where T : class", "where T : struct")] string constraints)
         {
@@ -2007,25 +2007,27 @@ class Program
 
             CompileAndVerify(text, options: TestOptions.DebugDll).VerifyIL("Program.M<T>", @"
 {
-  // Code size       10 (0xa)
+  // Code size       12 (0xc)
   .maxstack  2
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  ldc.i4.0
-  IL_0003:  ldelema    ""T""
-  IL_0008:  pop
-  IL_0009:  ret
+  IL_0003:  readonly.
+  IL_0005:  ldelema    ""T""
+  IL_000a:  pop
+  IL_000b:  ret
 }");
 
             CompileAndVerify(text, options: TestOptions.ReleaseDll).VerifyIL("Program.M<T>", @"
 {
-  // Code size        9 (0x9)
+  // Code size       11 (0xb)
   .maxstack  2
   IL_0000:  ldarg.0
   IL_0001:  ldc.i4.0
-  IL_0002:  ldelema    ""T""
-  IL_0007:  pop
-  IL_0008:  ret
+  IL_0002:  readonly.
+  IL_0004:  ldelema    ""T""
+  IL_0009:  pop
+  IL_000a:  ret
 }");
         }
 
