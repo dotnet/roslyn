@@ -1938,6 +1938,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             return;
 
+            // Some erasures are unbounded. We need to detect them before we actually try to perform the erasure.
+            //
+            // Some examples:
+            // 1. extension E for E[] // unbounded: would expand to E[][]...
+            //
+            // 2. extension E1<T> for C<T>
+            //    extension E2 for E1<E2> // unbounded: would expand to C<C<C<...>>>
+            //
+            // But it is not just a matter of checking for self-reference
+            // or tracking which extension types we've already done an erasure on
+            // or tracking which types we've seen already.
+            // Some examples:
+            //
+            // 1. extension E1<T> for C
+            //    extension E2 for E1<E2> // erases to C, bounded despite self-reference
+            //
+            // 2. extension E1<T> for C<T>
+            //    extension E2 for C<E1<E1<int>>> // erases to C<C<C<int>>>, bounded despite erasing E1 after erasing E1
+            //
+            // 3. extension E1<T> for C<E2<(T, T)>>
+            //    extension E2<U> for C<E1<(U, U)>> // unbounded, involves new types at every iteration
             static bool foundUnboundedErasure(TypeSymbol type, ConsList<TypeSymbol> extensionsBeingErased, bool isContainer = false)
             {
                 if (type is NamedTypeSymbol)
