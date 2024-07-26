@@ -1903,7 +1903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (IsExtension)
             {
                 Binder.GetSpecialType(DeclaringCompilation, SpecialType.System_ValueType, declaration.NameLocations[0], diagnostics);
-                CheckSelfReferenceInExtendedType(diagnostics);
+                CheckUnboundedExtensionErasure(diagnostics);
             }
 
             return;
@@ -1929,60 +1929,50 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private void CheckSelfReferenceInExtendedType(BindingDiagnosticBag diagnostics)
+        private void CheckUnboundedExtensionErasure(BindingDiagnosticBag diagnostics)
         {
-            if (this.GetExtendedTypeNoUseSiteDiagnostics(null) is { } extendedType)
+            if (this.GetExtendedTypeNoUseSiteDiagnostics(null) is { } extendedType
+                && foundUnboundedErasure(extendedType, extensionsBeingErased: ConsList<TypeSymbol>.Empty.Prepend(this)))
             {
-                if (foundSelfReferenceInErasure(extendedType, extensionsBeingErased: ConsList<TypeSymbol>.Empty.Prepend(this)))
-                {
-                    // If erasing extension types in the extended type involves erasing the extension type
-                    // (to the given extended type) then the result of erasure would be unbounded
-                    diagnostics.Add(ErrorCode.ERR_CircularBase, Locations[0], extendedType, this);
-                }
+                diagnostics.Add(ErrorCode.ERR_CircularBase, Locations[0], extendedType, this);
             }
             return;
 
-            // Returns true if any type meant to be erased in the visited type is the given definition
-            static bool foundSelfReferenceInErasure(TypeSymbol type, ConsList<TypeSymbol> extensionsBeingErased, bool isContainer = false)
+            static bool foundUnboundedErasure(TypeSymbol type, ConsList<TypeSymbol> extensionsBeingErased, bool isContainer = false)
             {
                 if (type is NamedTypeSymbol)
                 {
-                    if (!isContainer)
+                    if (!isContainer && type.IsExtension)
                     {
-                        if (type.IsExtension)
+                        if (extensionsBeingErased.Contains(type.OriginalDefinition))
                         {
-                            if (extensionsBeingErased.Contains(type.OriginalDefinition))
-                            {
-                                return true;
-                            }
-
-                            if (type.GetExtendedTypeNoUseSiteDiagnostics(null) is { } extendedType)
-                            {
-                                var newExtensionsBeingErased = extensionsBeingErased.Prepend(type.OriginalDefinition);
-                                if (foundSelfReferenceInErasure(extendedType.OriginalDefinition, newExtensionsBeingErased))
-                                {
-                                    return true;
-                                }
-
-                                // Continue, to analyze the type arguments of the extended type
-                                type = extendedType;
-                            }
-                            else
-                            {
-                                return true;
-                            }
+                            return true;
                         }
+
+                        if (type.OriginalDefinition.GetExtendedTypeNoUseSiteDiagnostics(null) is not { } extendedType)
+                        {
+                            return true;
+                        }
+
+                        var newExtensionsBeingErased = extensionsBeingErased.Prepend(type.OriginalDefinition);
+                        if (foundUnboundedErasure(extendedType, newExtensionsBeingErased))
+                        {
+                            return true;
+                        }
+
+                        type = type.GetExtendedTypeNoUseSiteDiagnostics(null)!;
+                        Debug.Assert(type is not null);
                     }
 
                     if (type.ContainingType is { } containingType
-                        && foundSelfReferenceInErasure(containingType, extensionsBeingErased, isContainer: true))
+                        && foundUnboundedErasure(containingType, extensionsBeingErased, isContainer: true))
                     {
                         return true;
                     }
 
                     foreach (var typeArgument in type.GetMemberTypeArgumentsNoUseSiteDiagnostics())
                     {
-                        if (foundSelfReferenceInErasure(typeArgument, extensionsBeingErased))
+                        if (foundUnboundedErasure(typeArgument, extensionsBeingErased))
                         {
                             return true;
                         }
@@ -1990,22 +1980,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 else if (type is ArrayTypeSymbol arrayType)
                 {
-                    return foundSelfReferenceInErasure(arrayType.ElementType, extensionsBeingErased);
+                    return foundUnboundedErasure(arrayType.ElementType, extensionsBeingErased);
                 }
                 else if (type is PointerTypeSymbol pointerType)
                 {
-                    return foundSelfReferenceInErasure(pointerType.PointedAtType, extensionsBeingErased);
+                    return foundUnboundedErasure(pointerType.PointedAtType, extensionsBeingErased);
                 }
                 else if (type is FunctionPointerTypeSymbol functionPointerType)
                 {
-                    if (foundSelfReferenceInErasure(functionPointerType.Signature.ReturnType, extensionsBeingErased))
+                    if (foundUnboundedErasure(functionPointerType.Signature.ReturnType, extensionsBeingErased))
                     {
                         return true;
                     }
 
                     foreach (var parameter in functionPointerType.Signature.Parameters)
                     {
-                        if (foundSelfReferenceInErasure(parameter.Type, extensionsBeingErased))
+                        if (foundUnboundedErasure(parameter.Type, extensionsBeingErased))
                         {
                             return true;
                         }
