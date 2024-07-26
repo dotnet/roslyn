@@ -26,6 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\GenerateConstructorTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateEnumMember\GenerateEnumMemberTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateMethod\GenerateConversionTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceTests.vb" />

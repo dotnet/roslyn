@@ -17,13 +17,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMethod;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class GenerateConversionTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public GenerateConversionTest(ITestOutputHelper logger)
-         : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new GenerateConversionCodeFixProvider());
 

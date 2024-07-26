@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateMethod
     Partial Public Class GenerateMethodTests
         <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Class GenerateConversionTests
+        Public NotInheritable Class GenerateConversionTests
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
             Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
