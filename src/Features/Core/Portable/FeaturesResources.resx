@@ -210,9 +210,6 @@
   <data name="Generate_GetHashCode" xml:space="preserve">
     <value>Generate GetHashCode()</value>
   </data>
-  <data name="Generate_enum_member_0" xml:space="preserve">
-    <value>Generate enum member '{0}'</value>
-  </data>
   <data name="Generate_0_1_in_new_file" xml:space="preserve">
     <value>Generate {0} '{1}' in new file</value>
   </data>
@@ -510,15 +507,6 @@
   </data>
   <data name="Unexpected_interface_member_kind_colon_0" xml:space="preserve">
     <value>Unexpected interface member kind: {0}</value>
-  </data>
-  <data name="Generate_abstract_property_0" xml:space="preserve">
-    <value>Generate abstract property '{0}'</value>
-  </data>
-  <data name="Generate_abstract_method_0" xml:space="preserve">
-    <value>Generate abstract method '{0}'</value>
-  </data>
-  <data name="Generate_method_0" xml:space="preserve">
-    <value>Generate method '{0}'</value>
   </data>
   <data name="The_symbol_does_not_have_an_icon" xml:space="preserve">
     <value>The symbol does not have an icon.</value>

@@ -47,7 +47,8 @@ internal partial class AbstractGenerateDeconstructMethodService<TService, TSimpl
         {
             TypeToGenerateIn = typeToGenerateIn;
             IsStatic = false;
-            var generator = SyntaxGenerator.GetGenerator(document.Document);
+            var generator = document.Document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+
             IdentifierToken = generator.Identifier(WellKnownMemberNames.DeconstructMethodName);
             MethodGenerationKind = MethodGenerationKind.Member;
             MethodKind = MethodKind.Ordinary;

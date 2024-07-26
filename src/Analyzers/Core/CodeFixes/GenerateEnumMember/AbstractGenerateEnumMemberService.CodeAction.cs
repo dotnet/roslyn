@@ -54,7 +54,7 @@ internal abstract partial class AbstractGenerateEnumMemberService<TService, TSim
             get
             {
                 return string.Format(
-                    FeaturesResources.Generate_enum_member_0, _state.IdentifierToken.ValueText);
+                    CodeFixesResources.Generate_enum_member_0, _state.IdentifierToken.ValueText);
             }
         }
     }

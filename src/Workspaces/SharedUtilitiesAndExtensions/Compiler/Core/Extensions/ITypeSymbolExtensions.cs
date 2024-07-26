@@ -780,4 +780,20 @@ internal static partial class ITypeSymbolExtensions
     {
         return type?.Accept(new UnavailableTypeParameterRemover(compilation, availableTypeParameterNames));
     }
+
+    [return: NotNullIfNotNull(parameterName: nameof(type))]
+    public static ITypeSymbol? RemoveAnonymousTypes(
+        this ITypeSymbol? type,
+        Compilation compilation)
+    {
+        return type?.Accept(new AnonymousTypeRemover(compilation));
+    }
+
+    [return: NotNullIfNotNull(parameterName: nameof(type))]
+    public static ITypeSymbol? RemoveUnnamedErrorTypes(
+        this ITypeSymbol? type,
+        Compilation compilation)
+    {
+        return type?.Accept(new UnnamedErrorTypeRemover(compilation));
+    }
 }

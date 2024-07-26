@@ -276,9 +276,6 @@
   <data name="Generate_read_only_property_0" xml:space="preserve">
     <value>Generate read-only property '{0}'</value>
   </data>
-  <data name="Generate_property_0" xml:space="preserve">
-    <value>Generate property '{0}'</value>
-  </data>
   <data name="Generate_field_0" xml:space="preserve">
     <value>Generate field '{0}'</value>
   </data>
@@ -293,5 +290,20 @@
   </data>
   <data name="Generate_variable_0" xml:space="preserve">
     <value>Generate variable '{0}'</value>
+  </data>
+  <data name="Generate_enum_member_0" xml:space="preserve">
+    <value>Generate enum member '{0}'</value>
+  </data>
+  <data name="Generate_abstract_method_0" xml:space="preserve">
+    <value>Generate abstract method '{0}'</value>
+  </data>
+  <data name="Generate_abstract_property_0" xml:space="preserve">
+    <value>Generate abstract property '{0}'</value>
+  </data>
+  <data name="Generate_method_0" xml:space="preserve">
+    <value>Generate method '{0}'</value>
+  </data>
+  <data name="Generate_property_0" xml:space="preserve">
+    <value>Generate property '{0}'</value>
   </data>
 </root>

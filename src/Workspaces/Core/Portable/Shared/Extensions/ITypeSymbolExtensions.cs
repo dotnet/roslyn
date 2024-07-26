@@ -174,22 +174,6 @@ internal static partial class ITypeSymbolExtensions
         return explicitMatches.FirstOrDefault() ?? implicitMatches.FirstOrDefault();
     }
 
-    [return: NotNullIfNotNull(parameterName: nameof(type))]
-    public static ITypeSymbol? RemoveAnonymousTypes(
-        this ITypeSymbol? type,
-        Compilation compilation)
-    {
-        return type?.Accept(new AnonymousTypeRemover(compilation));
-    }
-
-    [return: NotNullIfNotNull(parameterName: nameof(type))]
-    public static ITypeSymbol? RemoveUnnamedErrorTypes(
-        this ITypeSymbol? type,
-        Compilation compilation)
-    {
-        return type?.Accept(new UnnamedErrorTypeRemover(compilation));
-    }
-
     public static bool CanBeEnumerated(this ITypeSymbol type)
     {
         // Type itself is IEnumerable/IEnumerable<SomeType>
