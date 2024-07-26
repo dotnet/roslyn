@@ -1959,10 +1959,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (type.GetExtendedTypeNoUseSiteDiagnostics(null) is { } extendedType)
                             {
                                 var newExtensionsBeingErased = extensionsBeingErased.Prepend(type.OriginalDefinition);
-                                return foundSelfReferenceInErasure(extendedType, newExtensionsBeingErased);
-                            }
+                                if (foundSelfReferenceInErasure(extendedType.OriginalDefinition, newExtensionsBeingErased))
+                                {
+                                    return true;
+                                }
 
-                            return true;
+                                // Continue, to analyze the type arguments of the extended type
+                                type = extendedType;
+                            }
+                            else
+                            {
+                                return true;
+                            }
                         }
                     }
 
