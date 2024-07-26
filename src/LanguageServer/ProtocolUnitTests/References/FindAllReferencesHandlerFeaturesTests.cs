@@ -51,9 +51,8 @@ class B
     }
 
     [Theory, CombinatorialData]
-    public async Task TestFindAllReferencesAsync_LargeNumberOfReferences(bool mutatingLspWorkspace, [CombinatorialRange(0, 50)] int iteration)
+    public async Task TestFindAllReferencesAsync_LargeNumberOfReferences(bool mutatingLspWorkspace)
     {
-        _ = iteration;
         var markup =
 @"using System.Threading.Tasks
 class A
@@ -80,5 +79,84 @@ class A
 
         var results = await FindAllReferencesHandlerTests.RunFindAllReferencesNonVSAsync(testLspServer, testLspServer.GetLocations("caret").First());
         Assert.Equal(103, results.Length);
+    }
+
+    [Theory, CombinatorialData]
+    public async Task TestFindAllReferencesAsync_LinkedFile(bool mutatingLspWorkspace, [CombinatorialRange(0, 10)] int iteration)
+    {
+        _ = iteration;
+        var markup =
+@"using System.Threading.Tasks
+class A
+{
+    private void SomeMethod()
+    {
+        Do({|caret:Task|}.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+        Do(Task.CompletedTask);
+    }
+}";
+
+        var workspaceXml =
+$@"<Workspace>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
+        <Document FilePath=""C:\C.cs"">{markup}</Document>
+    </Project>
+    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
+        <Document IsLinkFile=""true"" LinkFilePath=""C:\C.cs"" LinkAssemblyName=""CSProj1""></Document>
+    </Project>
+</Workspace>";
+
+        await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace, initializationOptions: new InitializationOptions
+        {
+            ClientCapabilities = new LSP.ClientCapabilities()
+        });
+
+        await WaitForWorkspaceOperationsAsync(testLspServer.TestWorkspace);
+
+        var results = await FindAllReferencesHandlerTests.RunFindAllReferencesNonVSAsync(testLspServer, testLspServer.GetLocations("caret").First());
+        Assert.Equal(46, results.Length);
     }
 }
