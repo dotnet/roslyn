@@ -274,7 +274,7 @@ internal partial class ProjectState
 
     internal DocumentState CreateDocument(DocumentInfo documentInfo, ParseOptions? parseOptions, LoadTextOptions loadTextOptions)
     {
-        var doc = new DocumentState(LanguageServices, documentInfo, parseOptions, loadTextOptions);
+        var doc = DocumentState.Create(LanguageServices, documentInfo, parseOptions, loadTextOptions);
 
         if (doc.SourceCodeKind != documentInfo.SourceCodeKind)
         {
