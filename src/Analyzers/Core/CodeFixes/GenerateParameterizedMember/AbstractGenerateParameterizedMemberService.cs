@@ -8,7 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeGeneration;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -54,7 +54,11 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
         if (canGenerateAbstractly)
             result.Add(new GenerateParameterizedMemberCodeAction((TService)this, document, state, isAbstract: true, generateProperty: false));
 
+#if CODE_STYLE
+        var semanticFacts = document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(state.TypeToGenerateIn.Language).GetService<ISemanticFactsService>();
+#else
         var semanticFacts = document.Project.Solution.Services.GetLanguageServices(state.TypeToGenerateIn.Language).GetService<ISemanticFactsService>();
+#endif
 
         if (semanticFacts.SupportsParameterizedProperties &&
             state.InvocationExpressionOpt != null)

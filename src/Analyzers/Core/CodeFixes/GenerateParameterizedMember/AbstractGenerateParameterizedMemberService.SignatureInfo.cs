@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -124,7 +125,12 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
                 methodKind: State.MethodKind);
 
             // Ensure no conflicts between type parameter names and parameter names.
+#if CODE_STYLE
+            var languageServiceProvider = Document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(State.TypeToGenerateIn.Language);
+#else
             var languageServiceProvider = Document.Project.Solution.Services.GetLanguageServices(State.TypeToGenerateIn.Language);
+#endif
+
             var syntaxFacts = languageServiceProvider.GetService<ISyntaxFactsService>();
 
             var equalityComparer = syntaxFacts.StringComparer;
