@@ -4257,6 +4257,22 @@ explicit extension E2<U> for C<E1<(U, U)>> { }
         Assert.Equal("C<E1<(U, U)>>", e2.GetExtendedTypeNoUseSiteDiagnostics(null).ToTestDisplayString());
     }
 
+    [Fact]
+    public void TypeDepends_SelfReference_TODO2()
+    {
+        var src = """
+class C<T> { }
+explicit extension E1<T> for C<T> { }
+explicit extension E2<U> for C<E1<E1<U>>> { }
+""";
+        var comp = CreateCompilation(src);
+        // TODO2 there is no cycle so should not report an error
+        comp.VerifyEmitDiagnostics(
+            // (3,20): error CS0146: Circular base type dependency involving 'C<E1<E1<U>>>' and 'E2<U>'
+            // explicit extension E2<U> for C<E1<E1<U>>> { }
+            Diagnostic(ErrorCode.ERR_CircularBase, "E2").WithArguments("C<E1<E1<U>>>", "E2<U>").WithLocation(3, 20));
+    }
+
     [ConditionalFact(typeof(NoBaseExtensions))]
     public void TypeDepends_SelfReference_AsContainingType()
     {
