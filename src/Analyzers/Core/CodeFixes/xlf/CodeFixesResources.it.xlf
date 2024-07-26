@@ -142,6 +142,11 @@
         <target state="new">Generate method '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_narrowing_conversion_in_0">
+        <source>Generate narrowing conversion in '{0}'</source>
+        <target state="new">Generate narrowing conversion in '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_parameter_0">
         <source>Generate parameter '{0}'</source>
         <target state="new">Generate parameter '{0}'</target>
@@ -170,6 +175,11 @@
       <trans-unit id="Generate_variable_0">
         <source>Generate variable '{0}'</source>
         <target state="new">Generate variable '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_widening_conversion_in_0">
+        <source>Generate widening conversion in '{0}'</source>
+        <target state="new">Generate widening conversion in '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Implement_all_members_explicitly">

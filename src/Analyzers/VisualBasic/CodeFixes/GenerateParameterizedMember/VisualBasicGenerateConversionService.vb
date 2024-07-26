@@ -164,11 +164,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
         End Function
 
         Protected Overrides Function GetExplicitConversionDisplayText(state As AbstractGenerateParameterizedMemberService(Of VisualBasicGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax).State) As String
-            Return String.Format(VBFeaturesResources.Generate_narrowing_conversion_in_0, state.TypeToGenerateIn.Name)
+            Return String.Format(CodeFixesResources.Generate_narrowing_conversion_in_0, state.TypeToGenerateIn.Name)
         End Function
 
         Protected Overrides Function GetImplicitConversionDisplayText(state As AbstractGenerateParameterizedMemberService(Of VisualBasicGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax).State) As String
-            Return String.Format(VBFeaturesResources.Generate_widening_conversion_in_0, state.TypeToGenerateIn.Name)
+            Return String.Format(CodeFixesResources.Generate_widening_conversion_in_0, state.TypeToGenerateIn.Name)
         End Function
     End Class
 End Namespace

@@ -306,4 +306,10 @@
   <data name="Generate_property_0" xml:space="preserve">
     <value>Generate property '{0}'</value>
   </data>
+  <data name="Generate_narrowing_conversion_in_0" xml:space="preserve">
+    <value>Generate narrowing conversion in '{0}'</value>
+  </data>
+  <data name="Generate_widening_conversion_in_0" xml:space="preserve">
+    <value>Generate widening conversion in '{0}'</value>
+  </data>
 </root>
