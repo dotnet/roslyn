@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
     <ExportLanguageService(GetType(IGenerateConversionService), LanguageNames.VisualBasic), [Shared]>
-    Partial Friend Class VisualBasicGenerateConversionService
+    Partial Friend NotInheritable Class VisualBasicGenerateConversionService
         Inherits AbstractGenerateConversionService(Of VisualBasicGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax)
 
         <ImportingConstructor>

@@ -36,6 +36,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)GenerateEnumMember\VisualBasicGenerateEnumMemberService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\GenerateConversionCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\GenerateParameterizedMemberCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\VisualBasicGenerateConversionService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\VisualBasicGenerateVariableCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\VisualBasicImplementAbstractClassCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\VisualBasicImplementInterfaceCodeFixProvider.vb" />

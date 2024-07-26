@@ -55,6 +55,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)GenerateMethod\GenerateConversionCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateMethod\GenerateDeconstructMethodCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateMethod\GenerateMethodCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\CSharpGenerateConversionService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\CSharpGenerateVariableCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseCodeFixProvider.AddNewKeywordAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)HideBase\HideBaseCodeFixProvider.cs" />

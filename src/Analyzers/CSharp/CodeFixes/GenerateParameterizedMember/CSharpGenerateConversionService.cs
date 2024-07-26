@@ -20,15 +20,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateParameterizedMember;
 
 [ExportLanguageService(typeof(IGenerateConversionService), LanguageNames.CSharp), Shared]
-internal partial class CSharpGenerateConversionService :
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class CSharpGenerateConversionService() :
     AbstractGenerateConversionService<CSharpGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpGenerateConversionService()
-    {
-    }
-
     protected override bool IsImplicitConversionGeneration(SyntaxNode node)
     {
         return node is ExpressionSyntax &&
