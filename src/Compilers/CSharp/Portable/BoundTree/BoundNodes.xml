@@ -663,10 +663,10 @@
 
   <!--
     Represents an array access that comes from the RHS of an unused ref (non-readonly) assignment.
-
     Needed so we can emit with correct side effects (runtime element type check).
   -->
   <Node Name="BoundRefArrayAccess" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
     <Field Name="ArrayAccess" Type="BoundArrayAccess" Null="disallow"/>
   </Node>
 

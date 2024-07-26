@@ -2191,7 +2191,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     left.LocalSymbol.RefKind == RefKind.Ref &&
                     right is BoundArrayAccess arrayAccess)
                 {
-                    return new BoundRefArrayAccess(arrayAccess.Syntax, arrayAccess, arrayAccess.Type);
+                    return new BoundRefArrayAccess(arrayAccess.Syntax, arrayAccess);
                 }
 
                 // assigned local is not used later => just emit the Right

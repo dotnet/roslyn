@@ -2078,8 +2078,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundRefArrayAccess : BoundExpression
     {
-        public BoundRefArrayAccess(SyntaxNode syntax, BoundArrayAccess arrayAccess, TypeSymbol? type, bool hasErrors = false)
-            : base(BoundKind.RefArrayAccess, syntax, type, hasErrors || arrayAccess.HasErrors())
+        public BoundRefArrayAccess(SyntaxNode syntax, BoundArrayAccess arrayAccess, bool hasErrors = false)
+            : base(BoundKind.RefArrayAccess, syntax, null, hasErrors || arrayAccess.HasErrors())
         {
 
             RoslynDebug.Assert(arrayAccess is object, "Field 'arrayAccess' cannot be null (make the type nullable in BoundNodes.xml to remove this check)");
@@ -2087,16 +2087,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.ArrayAccess = arrayAccess;
         }
 
+        public new TypeSymbol? Type => base.Type;
         public BoundArrayAccess ArrayAccess { get; }
 
         [DebuggerStepThrough]
         public override BoundNode? Accept(BoundTreeVisitor visitor) => visitor.VisitRefArrayAccess(this);
 
-        public BoundRefArrayAccess Update(BoundArrayAccess arrayAccess, TypeSymbol? type)
+        public BoundRefArrayAccess Update(BoundArrayAccess arrayAccess)
         {
-            if (arrayAccess != this.ArrayAccess || !TypeSymbol.Equals(type, this.Type, TypeCompareKind.ConsiderEverything))
+            if (arrayAccess != this.ArrayAccess)
             {
-                var result = new BoundRefArrayAccess(this.Syntax, arrayAccess, type, this.HasErrors);
+                var result = new BoundRefArrayAccess(this.Syntax, arrayAccess, this.HasErrors);
                 result.CopyAttributes(this);
                 return result;
             }
@@ -11101,7 +11102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundArrayAccess arrayAccess = (BoundArrayAccess)this.Visit(node.ArrayAccess);
             TypeSymbol? type = this.VisitType(node.Type);
-            return node.Update(arrayAccess, type);
+            return node.Update(arrayAccess);
         }
         public override BoundNode? VisitArrayLength(BoundArrayLength node)
         {
@@ -12918,12 +12919,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (_updatedNullabilities.TryGetValue(node, out (NullabilityInfo Info, TypeSymbol? Type) infoAndType))
             {
-                updatedNode = node.Update(arrayAccess, infoAndType.Type);
+                updatedNode = node.Update(arrayAccess);
                 updatedNode.TopLevelNullability = infoAndType.Info;
             }
             else
             {
-                updatedNode = node.Update(arrayAccess, node.Type);
+                updatedNode = node.Update(arrayAccess);
             }
             return updatedNode;
         }
