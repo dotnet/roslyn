@@ -1949,19 +1949,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             return true;
                         }
 
-                        if (type.OriginalDefinition.GetExtendedTypeNoUseSiteDiagnostics(null) is not { } extendedType)
+                        // Note: if there is a problem getting the extended type, we just ignore it (error scenario)
+                        if (type.OriginalDefinition.GetExtendedTypeNoUseSiteDiagnostics(null) is { } definitionExtendedType)
                         {
-                            return true;
-                        }
+                            var newExtensionsBeingErased = extensionsBeingErased.Prepend(type.OriginalDefinition);
+                            if (definitionExtendedType is NamedTypeSymbol)
+                            {
+                                if (foundUnboundedErasure(definitionExtendedType, newExtensionsBeingErased))
+                                {
+                                    return true;
+                                }
 
-                        var newExtensionsBeingErased = extensionsBeingErased.Prepend(type.OriginalDefinition);
-                        if (foundUnboundedErasure(extendedType, newExtensionsBeingErased))
-                        {
-                            return true;
+                                type = type.GetExtendedTypeNoUseSiteDiagnostics(null)!;
+                                Debug.Assert(type is not null);
+                            }
+                            else
+                            {
+                                type = type.GetExtendedTypeNoUseSiteDiagnostics(null)!;
+                                Debug.Assert(type is not null);
+                                return foundUnboundedErasure(type, extensionsBeingErased);
+                            }
                         }
-
-                        type = type.GetExtendedTypeNoUseSiteDiagnostics(null)!;
-                        Debug.Assert(type is not null);
                     }
 
                     if (type.ContainingType is { } containingType
