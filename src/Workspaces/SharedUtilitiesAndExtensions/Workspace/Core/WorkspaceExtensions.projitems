@@ -14,11 +14,14 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\AbstractRefactoringHelpersService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\CodeRefactoringHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\IRefactoringHelpersService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editing\ImportAdderService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IParameterSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IPropertySymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.CompilationTypeGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.SubstituteTypesVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\ISyntaxFormattingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingStylePreferencesProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\MemberDisplayOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Progress\CodeAnalysisProgressExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\FixAllHelper.cs" />
@@ -138,8 +141,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ParsedDocument.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\RoslynParallel.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Utilities\RoslynParallel.NetFramework.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SemanticDocument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\SyntacticDocument.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\TextReaderWithLength.cs" />

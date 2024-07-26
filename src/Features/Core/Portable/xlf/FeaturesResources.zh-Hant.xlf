@@ -660,11 +660,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">關閉</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
-        <source>Do not change this code. Put cleanup code in '{0}' method</source>
-        <target state="translated">請勿變更此程式碼。請將清除程式碼放入 '{0}' 方法</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">來源檔案 '{0}' 目前的內容與已建置的來源不一致。等到此檔案的內容與已建置的來源一致後，才會套用於偵錯期間對此檔案所做的所有變更。</target>
@@ -930,11 +925,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">隱含實作所有介面</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_all_members_explicitly">
-        <source>Implement all members explicitly</source>
-        <target state="translated">明確實作所有成員</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="translated">明確實作</target>
@@ -943,11 +933,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">隱含實作</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_remaining_members_explicitly">
-        <source>Implement remaining members explicitly</source>
-        <target state="translated">明確實作剩餘的成員</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -2715,16 +2700,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">語法錯誤</target>
         <note />
       </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
-        <target state="translated">TODO: 釋出非受控資源 (非受控物件) 並覆寫完成項</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
-        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
-        <target state="translated">TODO: 僅有當 '{0}' 具有會釋出非受控資源的程式碼時，才覆寫完成項</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
         <target state="translated">目標類型相符項目</target>
@@ -3925,21 +3900,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">產生巢狀 {0} '{1}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_abstractly">
-        <source>Implement interface abstractly</source>
-        <target state="translated">以抽象方式實作介面</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_through_0">
-        <source>Implement interface through '{0}'</source>
-        <target state="translated">透過 '{0}' 實作介面</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface">
-        <source>Implement interface</source>
-        <target state="translated">實作介面</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_field_for_0">
         <source>Introduce field for '{0}'</source>
         <target state="translated">為 '{0}' 引進欄位</target>
@@ -4220,16 +4180,6 @@ Do you want to continue?</source>
         <target state="translated">注意: 按兩次 Tab 鍵即可插入 '{0}' 程式碼片段。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
-        <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">使用 Dispose 模式明確地實作介面</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_with_Dispose_pattern">
-        <source>Implement interface with Dispose pattern</source>
-        <target state="translated">使用 Dispose 模式實作介面</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
         <source>Computing fix all occurrences code fix...</source>
         <target state="translated">正在計算修正所有出現程式碼修正之處...</target>
@@ -4253,16 +4203,6 @@ Do you want to continue?</source>
       <trans-unit id="Solution">
         <source>Solution</source>
         <target state="translated">解決方案</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects)</source>
-        <target state="translated">TODO: 處置受控狀態 (受控物件)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null</source>
-        <target state="translated">TODO: 將大型欄位設為 Null</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler2">

@@ -660,11 +660,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Kapat</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
-        <source>Do not change this code. Put cleanup code in '{0}' method</source>
-        <target state="translated">Bu kodu değiştirmeyin. Temizleme kodunu '{0}' metodunun içine yerleştirin.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">'{0}' kaynak dosyasının geçerli içeriği, derlenen kaynakla eşleşmiyor. Hata ayıklama işlemi sırasında bu dosyada yapılan değişiklikler, dosyanın içeriği derlenen kaynakla eşleşene kadar uygulanmaz.</target>
@@ -930,11 +925,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Tüm arabirimleri örtük olarak uygula</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_all_members_explicitly">
-        <source>Implement all members explicitly</source>
-        <target state="translated">Tüm üyeleri açıkça uygula</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="translated">Açıkça uygula</target>
@@ -943,11 +933,6 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">Örtük olarak uygula</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_remaining_members_explicitly">
-        <source>Implement remaining members explicitly</source>
-        <target state="translated">Kalan üyeleri açıkça uygula</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -2715,16 +2700,6 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">Söz dizimi hatası</target>
         <note />
       </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
-        <target state="translated">TODO: yönetilmeyen kaynakları (yönetilmeyen nesneleri) serbest bırakın ve sonlandırıcıyı geçersiz kılın</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
-        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
-        <target state="translated">TODO: sonlandırıcıyı yalnızca '{0}' içinde yönetilmeyen kaynakları serbest bırakacak kod varsa geçersiz kılın</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
         <target state="translated">Hedef tür eşleşmeleri</target>
@@ -3925,21 +3900,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">İç içe {0} '{1}' oluştur</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_abstractly">
-        <source>Implement interface abstractly</source>
-        <target state="translated">Arabirimi soyut olarak uygula</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_through_0">
-        <source>Implement interface through '{0}'</source>
-        <target state="translated">Arabirimi '{0}' aracılığıyla uygula</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface">
-        <source>Implement interface</source>
-        <target state="translated">Arabirimi uygula</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_field_for_0">
         <source>Introduce field for '{0}'</source>
         <target state="translated">'{0}' için alanı ortaya çıkar</target>
@@ -4220,16 +4180,6 @@ Devam etmek istiyor musunuz?</target>
         <target state="translated">Not: '{0}' kod parçacığını eklemek için iki kez sekme yapın.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
-        <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">Ara birimi açık olarak Dispose düzeniyle uygula</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_with_Dispose_pattern">
-        <source>Implement interface with Dispose pattern</source>
-        <target state="translated">Ara birimi Dispose düzeniyle uygula</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
         <source>Computing fix all occurrences code fix...</source>
         <target state="translated">Geçtiği her yerde düzeltme kod düzeltmesi hesaplanıyor...</target>
@@ -4253,16 +4203,6 @@ Devam etmek istiyor musunuz?</target>
       <trans-unit id="Solution">
         <source>Solution</source>
         <target state="translated">Çözüm</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects)</source>
-        <target state="translated">TODO: yönetilen durumu (yönetilen nesneleri) atın</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null</source>
-        <target state="translated">TODO: büyük alanları null olarak ayarlayın</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler2">

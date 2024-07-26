@@ -231,4 +231,40 @@
   <data name="Generate_field_assigning_constructor_0_1" xml:space="preserve">
     <value>Generate field assigning constructor '{0}({1})'</value>
   </data>
+  <data name="Implement_interface_abstractly" xml:space="preserve">
+    <value>Implement interface abstractly</value>
+  </data>
+  <data name="Implement_interface_through_0" xml:space="preserve">
+    <value>Implement interface through '{0}'</value>
+  </data>
+  <data name="Implement_interface_with_Dispose_pattern" xml:space="preserve">
+    <value>Implement interface with Dispose pattern</value>
+  </data>
+  <data name="Implement_interface_explicitly_with_Dispose_pattern" xml:space="preserve">
+    <value>Implement interface explicitly with Dispose pattern</value>
+  </data>
+  <data name="Implement_remaining_members_explicitly" xml:space="preserve">
+    <value>Implement remaining members explicitly</value>
+  </data>
+  <data name="Implement_interface" xml:space="preserve">
+    <value>Implement interface</value>
+  </data>
+  <data name="Implement_all_members_explicitly" xml:space="preserve">
+    <value>Implement all members explicitly</value>
+  </data>
+  <data name="TODO_colon_dispose_managed_state_managed_objects" xml:space="preserve">
+    <value>TODO: dispose managed state (managed objects)</value>
+  </data>
+  <data name="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer" xml:space="preserve">
+    <value>TODO: free unmanaged resources (unmanaged objects) and override finalizer</value>
+  </data>
+  <data name="TODO_colon_set_large_fields_to_null" xml:space="preserve">
+    <value>TODO: set large fields to null</value>
+  </data>
+  <data name="Do_not_change_this_code_Put_cleanup_code_in_0_method" xml:space="preserve">
+    <value>Do not change this code. Put cleanup code in '{0}' method</value>
+  </data>
+  <data name="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources" xml:space="preserve">
+    <value>TODO: override finalizer only if '{0}' has code to free unmanaged resources</value>
+  </data>
 </root>

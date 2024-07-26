@@ -47,7 +47,8 @@ internal abstract partial class AbstractImplementInterfaceService
                 return null;
             }
 
-            if (!CodeGenerator.CanAdd(document.Project.Solution, classOrStructType, cancellationToken))
+            var generator = document.GetRequiredLanguageService<ICodeGenerationService>();
+            if (!generator.CanAddTo(classOrStructType, document.Project.Solution, cancellationToken))
             {
                 return null;
             }

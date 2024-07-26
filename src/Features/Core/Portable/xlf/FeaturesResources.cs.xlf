@@ -660,11 +660,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Zavřít</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
-        <source>Do not change this code. Put cleanup code in '{0}' method</source>
-        <target state="translated">Neměňte tento kód. Kód pro vyčištění vložte do metody {0}.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">Aktuální obsah zdrojového souboru {0} se neshoduje se sestaveným zdrojem. Případné změny provedené v tomto souboru během ladění se nepoužijí, dokud se jeho obsah nebude shodovat se sestaveným zdrojem.</target>
@@ -930,11 +925,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
         <target state="translated">Implementovat všechna rozhraní implicitně</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_all_members_explicitly">
-        <source>Implement all members explicitly</source>
-        <target state="translated">Implementovat všechny členy explicitně</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="translated">Implementovat explicitně</target>
@@ -943,11 +933,6 @@ Ujistěte se, že specifikátor tt použijete pro jazyky, pro které je nezbytn�
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">Implementovat implicitně</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_remaining_members_explicitly">
-        <source>Implement remaining members explicitly</source>
-        <target state="translated">Implementovat zbývající členy explicitně</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -2715,16 +2700,6 @@ Pozitivní kontrolní výrazy zpětného vyhledávání s nulovou délkou se obv
         <target state="translated">Chyba syntaxe</target>
         <note />
       </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
-        <target state="translated">TODO: Uvolněte nespravované prostředky (nespravované objekty) a přepište finalizační metodu.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
-        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
-        <target state="translated">TODO: Finalizační metodu přepište, jen pokud metoda {0} obsahuje kód pro uvolnění nespravovaných prostředků.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
         <target state="translated">Shody cílového typu</target>
@@ -3925,21 +3900,6 @@ Pokud se specifikátor formátu M použije bez dalších specifikátorů vlastn�
         <target state="translated">Generovat vnořené {0} {1}</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_abstractly">
-        <source>Implement interface abstractly</source>
-        <target state="translated">Implementovat rozhraní abstraktně</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_through_0">
-        <source>Implement interface through '{0}'</source>
-        <target state="translated">Implementovat rozhraní přes {0}</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface">
-        <source>Implement interface</source>
-        <target state="translated">Implementujte rozhraní.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_field_for_0">
         <source>Introduce field for '{0}'</source>
         <target state="translated">Zavést pole pro {0}</target>
@@ -4220,16 +4180,6 @@ Chcete pokračovat?</target>
         <target state="translated">Poznámka: Pro vložení fragmentu {0} stiskněte dvakrát tabulátor.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
-        <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">Implementovat rozhraní explicitně se vzorem Dispose</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_with_Dispose_pattern">
-        <source>Implement interface with Dispose pattern</source>
-        <target state="translated">Implementovat rozhraní se vzorem Dispose</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
         <source>Computing fix all occurrences code fix...</source>
         <target state="translated">Vypočítává se oprava kódu pro opravu všech výskytů...</target>
@@ -4253,16 +4203,6 @@ Chcete pokračovat?</target>
       <trans-unit id="Solution">
         <source>Solution</source>
         <target state="translated">Řešení</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects)</source>
-        <target state="translated">TODO: Uvolněte spravovaný stav (spravované objekty).</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null</source>
-        <target state="translated">TODO: Nastavte velká pole na hodnotu null.</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler2">

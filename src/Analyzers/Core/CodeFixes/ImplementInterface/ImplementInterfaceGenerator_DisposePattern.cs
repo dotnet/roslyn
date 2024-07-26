@@ -18,6 +18,12 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
+#else
+using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
+#endif
+
 namespace Microsoft.CodeAnalysis.ImplementInterface;
 
 using static ImplementHelpers;
@@ -44,7 +50,7 @@ internal abstract partial class AbstractImplementInterfaceService
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
 
             var disposedValueField = await CreateDisposedValueFieldAsync(
-                document, State.ClassOrStructType, cancellationToken).ConfigureAwait(false);
+                document, this.Service.SyntaxFormatting, State.ClassOrStructType, cancellationToken).ConfigureAwait(false);
 
             var disposeMethod = TryGetIDisposableDispose(compilation)!;
             var (disposableMethods, finalizer) = CreateDisposableMethods(compilation, disposeMethod, disposedValueField);
@@ -85,7 +91,7 @@ internal abstract partial class AbstractImplementInterfaceService
             return await AddFinalizerCommentAsync(docWithAllMembers, finalizer, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<Document> AddFinalizerCommentAsync(
+        private async Task<Document> AddFinalizerCommentAsync(
             Document document, SyntaxNode finalizer, CancellationToken cancellationToken)
         {
             var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
@@ -98,11 +104,11 @@ internal abstract partial class AbstractImplementInterfaceService
             var finalizerLines = finalizer.ToFullString().Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
             var generator = document.GetRequiredLanguageService<SyntaxGenerator>();
-            var finalizerComments = CreateCommentTrivia(generator, finalizerLines);
+            var finalizerComments = this.Service.CreateCommentTrivia(finalizerLines);
 
             var lastMemberWithComments = lastGeneratedMember.WithPrependedLeadingTrivia(
-                finalizerComments.Insert(0, generator.CarriageReturnLineFeed)
-                                 .Add(generator.CarriageReturnLineFeed));
+                finalizerComments.Insert(0, this.Service.SyntaxGeneratorInternal.CarriageReturnLineFeed)
+                                 .Add(this.Service.SyntaxGeneratorInternal.CarriageReturnLineFeed));
 
             var finalRoot = root.ReplaceNode(lastGeneratedMember, lastMemberWithComments);
             return document.WithSyntaxRoot(finalRoot);
@@ -140,6 +146,7 @@ internal abstract partial class AbstractImplementInterfaceService
                 : DeclarationModifiers.Virtual;
 
             var g = this.Document.GetRequiredLanguageService<SyntaxGenerator>();
+            var gi = this.Service.SyntaxGeneratorInternal;
 
             // if (disposing)
             // {
@@ -148,15 +155,15 @@ internal abstract partial class AbstractImplementInterfaceService
             var ifDisposingStatement = g.IfStatement(g.IdentifierName(DisposingName), []);
             ifDisposingStatement = Service.AddCommentInsideIfStatement(
                 ifDisposingStatement,
-                CreateCommentTrivia(g, FeaturesResources.TODO_colon_dispose_managed_state_managed_objects))
-                    .WithoutTrivia().WithTrailingTrivia(g.CarriageReturnLineFeed, g.CarriageReturnLineFeed);
+                this.Service.CreateCommentTrivia(CodeFixesResources.TODO_colon_dispose_managed_state_managed_objects))
+                    .WithoutTrivia().WithTrailingTrivia(gi.CarriageReturnLineFeed, gi.CarriageReturnLineFeed);
 
             // TODO: free unmanaged ...
             // TODO: set large fields...
             // disposedValue = true
-            var disposedValueEqualsTrueStatement = AddComments(g,
-                FeaturesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer,
-                FeaturesResources.TODO_colon_set_large_fields_to_null,
+            var disposedValueEqualsTrueStatement = this.Service.AddComments(
+                CodeFixesResources.TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer,
+                CodeFixesResources.TODO_colon_set_large_fields_to_null,
                 g.AssignmentStatement(
                     g.IdentifierName(disposedValueField.Name), g.TrueLiteralExpression()));
 
@@ -170,10 +177,9 @@ internal abstract partial class AbstractImplementInterfaceService
                 accessibility: accessibility,
                 modifiers: modifiers,
                 name: disposeMethod.Name,
-                parameters: ImmutableArray.Create(
-                    CodeGenerationSymbolFactory.CreateParameterSymbol(
-                        compilation.GetSpecialType(SpecialType.System_Boolean),
-                        DisposingName)),
+                parameters: [CodeGenerationSymbolFactory.CreateParameterSymbol(
+                    compilation.GetSpecialType(SpecialType.System_Boolean),
+                    DisposingName)],
                 statements: [ifStatement]);
         }
 
@@ -189,8 +195,8 @@ internal abstract partial class AbstractImplementInterfaceService
 
             // // Do not change...
             // Dispose(true);
-            statements.Add(AddComment(g,
-                string.Format(FeaturesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, disposeMethodDisplayString),
+            statements.Add(this.Service.AddComment(
+                string.Format(CodeFixesResources.Do_not_change_this_code_Put_cleanup_code_in_0_method, disposeMethodDisplayString),
                 g.ExpressionStatement(
                     g.InvocationExpression(
                         g.IdentifierName(nameof(IDisposable.Dispose)),
@@ -226,13 +232,14 @@ internal abstract partial class AbstractImplementInterfaceService
 
         private static async Task<IFieldSymbol> CreateDisposedValueFieldAsync(
             Document document,
+            ISyntaxFormatting syntaxFormatting,
             INamedTypeSymbol containingType,
             CancellationToken cancellationToken)
         {
             var rule = await document.GetApplicableNamingRuleAsync(
                 SymbolKind.Field, Accessibility.Private, cancellationToken).ConfigureAwait(false);
 
-            var options = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+            var options = await document.GetSyntaxFormattingOptionsAsync(syntaxFormatting, cancellationToken).ConfigureAwait(false);
             var compilation = await document.Project.GetRequiredCompilationAsync(cancellationToken).ConfigureAwait(false);
             var boolType = compilation.GetSpecialType(SpecialType.System_Boolean);
             var accessibilityLevel = options.AccessibilityModifiersRequired is AccessibilityModifiersRequired.Never or AccessibilityModifiersRequired.OmitIfDefault

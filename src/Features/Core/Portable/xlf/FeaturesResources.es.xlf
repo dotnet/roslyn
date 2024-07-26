@@ -660,11 +660,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Descartar</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
-        <source>Do not change this code. Put cleanup code in '{0}' method</source>
-        <target state="translated">No cambie este código. Coloque el código de limpieza en el método "{0}".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">El contenido actual del archivo de código fuente "{0}" no coincide con el del código fuente compilado, así que los cambios realizados en este archivo durante la depuración no se aplicarán hasta que coincida.</target>
@@ -930,11 +925,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Implementar todas las interfaces de forma implícita</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_all_members_explicitly">
-        <source>Implement all members explicitly</source>
-        <target state="translated">Implementar todos los miembros de forma explícita</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="translated">Implementar de forma explícita</target>
@@ -943,11 +933,6 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">Implementar de forma implícita</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_remaining_members_explicitly">
-        <source>Implement remaining members explicitly</source>
-        <target state="translated">Implementar los miembros restantes de forma explícita</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -2715,16 +2700,6 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Error de sintaxis</target>
         <note />
       </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
-        <target state="translated">TODO: liberar los recursos no administrados (objetos no administrados) y reemplazar el finalizador</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
-        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
-        <target state="translated">TODO: reemplazar el finalizador solo si "{0}" tiene código para liberar los recursos no administrados</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
         <target state="translated">El tipo de destino coincide con</target>
@@ -3925,21 +3900,6 @@ Si el especificador de formato "M" se usa sin otros especificadores de formato p
         <target state="translated">Generar {0} anidado '{1}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_abstractly">
-        <source>Implement interface abstractly</source>
-        <target state="translated">Implementar interfaz de forma abstracta</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_through_0">
-        <source>Implement interface through '{0}'</source>
-        <target state="translated">Implementar interfaz a través de '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface">
-        <source>Implement interface</source>
-        <target state="translated">Implementar interfaz</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Introduce_field_for_0">
         <source>Introduce field for '{0}'</source>
         <target state="translated">Introducir el campo de '{0}'</target>
@@ -4220,16 +4180,6 @@ Do you want to continue?</source>
         <target state="translated">Nota: Presione dos veces la tecla Tab para insertar el fragmento de código '{0}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
-        <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">Implementar la interfaz de forma explícita con el patrón de Dispose</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_with_Dispose_pattern">
-        <source>Implement interface with Dispose pattern</source>
-        <target state="translated">Implementar la interfaz con el patrón de Dispose</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
         <source>Computing fix all occurrences code fix...</source>
         <target state="translated">Calculando corrección de todas las repeticiones de corrección de código...</target>
@@ -4253,16 +4203,6 @@ Do you want to continue?</source>
       <trans-unit id="Solution">
         <source>Solution</source>
         <target state="translated">Solución</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects)</source>
-        <target state="translated">TODO: eliminar el estado administrado (objetos administrados)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null</source>
-        <target state="translated">TODO: establecer los campos grandes como NULL</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler2">

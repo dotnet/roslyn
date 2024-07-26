@@ -31,6 +31,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\VisualBasicGenerateDefaultConstructorsCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\VisualBasicGenerateDefaultConstructorsService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\VisualBasicImplementAbstractClassCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\VisualBasicImplementInterfaceCodeFixProvider.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\VisualBasicImplementInterfaceService.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\VisualBasicChangeToYieldCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\VisualBasicConvertToIteratorCodeFixProvider.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\VisualBasicMakeFieldReadonlyCodeFixProvider.vb" />

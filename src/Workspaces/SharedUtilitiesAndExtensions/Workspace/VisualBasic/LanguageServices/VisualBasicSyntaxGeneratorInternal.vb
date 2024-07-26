@@ -36,8 +36,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
+        Public Overrides ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
+
+        Public Overrides ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
+
         Public Overrides Function EndOfLine(text As String) As SyntaxTrivia
             Return SyntaxFactory.EndOfLine(text)
+        End Function
+
+        Public Overrides Function SingleLineComment(text As String) As SyntaxTrivia
+            Return SyntaxFactory.CommentTrivia("'" + text)
         End Function
 
         Public Overloads Overrides Function LocalDeclarationStatement(type As SyntaxNode, identifier As SyntaxToken, Optional initializer As SyntaxNode = Nothing, Optional isConst As Boolean = False) As SyntaxNode
