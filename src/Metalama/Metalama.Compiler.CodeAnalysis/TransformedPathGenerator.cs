@@ -8,6 +8,7 @@ namespace Metalama.Compiler;
 
 internal class TransformedPathGenerator
 {
+    private static readonly string _directorySeparator = Path.DirectorySeparatorChar.ToString();
     private static readonly string _backwardDirectory = $"..{Path.DirectorySeparatorChar}";
     private readonly HashSet<string> _generatedPaths = new(StringComparer.OrdinalIgnoreCase);
 
@@ -23,6 +24,12 @@ internal class TransformedPathGenerator
         // The outputDirectory variable may be null if the code is not to be written to disk.
         _outputDirectory = outputDirectory ?? "(Transformed)";
         _workingDirectory = workingDirectory;
+
+        if (generatorsDirectory?.EndsWith(_directorySeparator) == false)
+        {
+            generatorsDirectory += _directorySeparator;
+        }
+
         _generatorsDirectory = generatorsDirectory;
     }
 
@@ -37,7 +44,7 @@ internal class TransformedPathGenerator
 
         if (_generatorsDirectory != null && syntaxTreeFilePath.StartsWith(_generatorsDirectory))
         {
-            stem = Path.Combine("generated", syntaxTreeFilePath.Substring(_generatorsDirectory.Length + 1));
+            stem = Path.Combine("generated", syntaxTreeFilePath.Substring(_generatorsDirectory.Length));
         }
         else if (_projectDirectory != null)
         {
