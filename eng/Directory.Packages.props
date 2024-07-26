@@ -111,8 +111,8 @@
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="17.10.191" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="17.10.191" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="17.10.191" />
-    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.10.41" />
-    <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.10.41" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.11.20" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.11.20" />
     <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.73" />
     <PackageVersion Include="Nerdbank.Streams" Version="2.10.69" />
     <PackageVersion Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
