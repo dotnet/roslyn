@@ -1110,16 +1110,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 throw ExceptionUtilities.Unreachable();
             }
 
-            // Value types do not need runtime element type checks.
-            if (refArrayAccess.ArrayAccess.Type.IsValueType)
-            {
-                EmitArrayElementLoad(refArrayAccess.ArrayAccess, used: false);
-            }
-            else
-            {
-                EmitArrayElementAddress(refArrayAccess.ArrayAccess, AddressKind.Writeable);
-                _builder.EmitOpCode(ILOpCode.Pop);
-            }
+            EmitArrayElementAddress(refArrayAccess.ArrayAccess, AddressKind.Writeable);
+            _builder.EmitOpCode(ILOpCode.Pop);
         }
 
         private void EmitFieldLoad(BoundFieldAccess fieldAccess, bool used)
