@@ -216,8 +216,8 @@ internal sealed partial class CSharpGenerateConversionService() :
     }
 
     protected override string GetImplicitConversionDisplayText(AbstractGenerateParameterizedMemberService<CSharpGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>.State state)
-        => string.Format(CSharpFeaturesResources.Generate_implicit_conversion_operator_in_0, state.TypeToGenerateIn.Name);
+        => string.Format(CodeFixesResources.Generate_implicit_conversion_operator_in_0, state.TypeToGenerateIn.Name);
 
     protected override string GetExplicitConversionDisplayText(AbstractGenerateParameterizedMemberService<CSharpGenerateConversionService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>.State state)
-        => string.Format(CSharpFeaturesResources.Generate_explicit_conversion_operator_in_0, state.TypeToGenerateIn.Name);
+        => string.Format(CodeFixesResources.Generate_explicit_conversion_operator_in_0, state.TypeToGenerateIn.Name);
 }

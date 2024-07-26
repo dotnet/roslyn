@@ -122,6 +122,11 @@
         <target state="new">Generate enum member '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_explicit_conversion_operator_in_0">
+        <source>Generate explicit conversion operator in '{0}'</source>
+        <target state="new">Generate explicit conversion operator in '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_field_0">
         <source>Generate field '{0}'</source>
         <target state="new">Generate field '{0}'</target>
@@ -130,6 +135,11 @@
       <trans-unit id="Generate_field_assigning_constructor_0_1">
         <source>Generate field assigning constructor '{0}({1})'</source>
         <target state="new">Generate field assigning constructor '{0}({1})'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_implicit_conversion_operator_in_0">
+        <source>Generate implicit conversion operator in '{0}'</source>
+        <target state="new">Generate implicit conversion operator in '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_local_0">
