@@ -3,9 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
-using System.ServiceModel.Syndication;
 using System.Threading.Tasks;
-using EnvDTE;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -14,12 +12,9 @@ using Xunit.Abstractions;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References;
-public class FindAllReferencesHandlerFeaturesTests : AbstractLanguageServerProtocolTests
+public sealed class FindAllReferencesHandlerFeaturesTests(ITestOutputHelper? testOutputHelper)
+    : AbstractLanguageServerProtocolTests(testOutputHelper)
 {
-    public FindAllReferencesHandlerFeaturesTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
-    {
-    }
-
     protected override TestComposition Composition => LspTestCompositions.LanguageServerProtocol
         .AddParts(typeof(TestDocumentTrackingService))
         .AddParts(typeof(TestWorkspaceRegistrationService));
@@ -28,22 +23,24 @@ public class FindAllReferencesHandlerFeaturesTests : AbstractLanguageServerProto
     public async Task TestFindAllReferencesAsync_DoesNotUseVSTypes(bool mutatingLspWorkspace)
     {
         var markup =
-@"class A
-{
-    public int {|reference:someInt|} = 1;
-    void M()
-    {
-        var i = {|reference:someInt|} + 1;
-    }
-}
-class B
-{
-    int someInt = A.{|reference:someInt|} + 1;
-    void M2()
-    {
-        var j = someInt + A.{|caret:|}{|reference:someInt|};
-    }
-}";
+            """
+            class A
+            {
+                public int {|reference:someInt|} = 1;
+                void M()
+                {
+                    var i = {|reference:someInt|} + 1;
+                }
+            }
+            class B
+            {
+                int someInt = A.{|reference:someInt|} + 1;
+                void M2()
+                {
+                    var j = someInt + A.{|caret:|}{|reference:someInt|};
+                }
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new LSP.ClientCapabilities());
 
         var results = await FindAllReferencesHandlerTests.RunFindAllReferencesNonVSAsync(testLspServer, testLspServer.GetLocations("caret").First());
@@ -54,11 +51,13 @@ class B
     public async Task TestFindAllReferencesAsync_LargeNumberOfReferences(bool mutatingLspWorkspace)
     {
         var markup =
-@"using System.Threading.Tasks
-class A
-{
-    private {|caret:Task|} someTask = Task.CompletedTask;
-}";
+            """
+            using System.Threading.Tasks
+            class A
+            {
+                private {|caret:Task|} someTask = Task.CompletedTask;
+            }
+            """;
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, new LSP.ClientCapabilities());
 
         for (var i = 0; i < 100; i++)
@@ -86,68 +85,72 @@ class A
     {
         _ = iteration;
         var markup =
-@"using System.Threading.Tasks
-class A
-{
-    private void SomeMethod()
-    {
-        Do({|caret:Task|}.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-        Do(Task.CompletedTask);
-    }
-}";
+            """
+            using System.Threading.Tasks
+            class A
+            {
+                private void SomeMethod()
+                {
+                    Do({|caret:Task|}.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                    Do(Task.CompletedTask);
+                }
+            }
+            """;
 
         var workspaceXml =
-$@"<Workspace>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj1"">
-        <Document FilePath=""C:\C.cs"">{markup}</Document>
-    </Project>
-    <Project Language=""C#"" CommonReferences=""true"" AssemblyName=""CSProj2"">
-        <Document IsLinkFile=""true"" LinkFilePath=""C:\C.cs"" LinkAssemblyName=""CSProj1""></Document>
-    </Project>
-</Workspace>";
+            $"""
+            <Workspace>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj1">
+                    <Document FilePath="C:\C.cs">{markup}</Document>
+                </Project>
+                <Project Language="C#" CommonReferences="true" AssemblyName="CSProj2">
+                    <Document IsLinkFile="true" LinkFilePath="C:\C.cs" LinkAssemblyName="CSProj1"></Document>
+                </Project>
+            </Workspace>
+            """;
 
         await using var testLspServer = await CreateXmlTestLspServerAsync(workspaceXml, mutatingLspWorkspace, initializationOptions: new InitializationOptions
         {
