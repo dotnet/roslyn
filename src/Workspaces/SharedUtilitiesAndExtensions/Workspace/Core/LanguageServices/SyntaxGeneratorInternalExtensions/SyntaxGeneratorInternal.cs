@@ -26,6 +26,10 @@ internal abstract class SyntaxGeneratorInternal : ILanguageService
     public abstract SyntaxTrivia EndOfLine(string text);
     public abstract SyntaxTrivia SingleLineComment(string text);
 
+    public abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
+
+    public abstract bool SupportsThrowExpression();
+
     /// <summary>
     /// Creates a statement that declares a single local variable with an optional initializer.
     /// </summary>

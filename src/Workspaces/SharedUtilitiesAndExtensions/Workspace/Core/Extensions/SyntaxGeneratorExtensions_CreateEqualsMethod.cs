@@ -17,6 +17,12 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
+#if CODE_STYLE
+using DeclarationModifiers = Microsoft.CodeAnalysis.Internal.Editing.DeclarationModifiers;
+#else
+using DeclarationModifiers = Microsoft.CodeAnalysis.Editing.DeclarationModifiers;
+#endif
+
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static partial class SyntaxGeneratorExtensions
@@ -79,7 +85,7 @@ internal static partial class SyntaxGeneratorExtensions
             type: constructedEquatableType.GetTypeArguments()[0],
             attributes: ImmutableArray<AttributeData>.Empty));
 
-        if (factory.RequiresExplicitImplementationForInterfaceMembers)
+        if (generatorInternal.RequiresExplicitImplementationForInterfaceMembers)
         {
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
                 methodSymbol,
@@ -132,12 +138,12 @@ internal static partial class SyntaxGeneratorExtensions
         // return statement of 'Equals'.
         using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var expressions);
 
-        if (factory.SyntaxGeneratorInternal.SupportsPatterns(parseOptions))
+        if (generatorInternal.SupportsPatterns(parseOptions))
         {
             // If we support patterns then we can do "return obj is MyType myType && ..."
             expressions.Add(
-                factory.SyntaxGeneratorInternal.IsPatternExpression(objNameExpression,
-                    factory.SyntaxGeneratorInternal.DeclarationPattern(containingType, localName)));
+                generatorInternal.IsPatternExpression(objNameExpression,
+                    generatorInternal.DeclarationPattern(containingType, localName)));
         }
         else if (containingType.IsValueType)
         {
@@ -159,7 +165,7 @@ internal static partial class SyntaxGeneratorExtensions
             //
             //      var myType = (MyType)obj;
 
-            var localDeclaration = factory.SimpleLocalDeclarationStatement(factory.SyntaxGeneratorInternal,
+            var localDeclaration = factory.SimpleLocalDeclarationStatement(generatorInternal,
                 containingType, localName, factory.CastExpression(containingType, objNameExpression));
 
             statements.Add(ifStatement);
@@ -171,13 +177,14 @@ internal static partial class SyntaxGeneratorExtensions
             //
             //      var myType = obj as MyType;
 
-            var localDeclaration = factory.SimpleLocalDeclarationStatement(factory.SyntaxGeneratorInternal,
+            var localDeclaration = factory.SimpleLocalDeclarationStatement(generatorInternal,
                 containingType, localName, factory.TryCastExpression(objNameExpression, containingType));
 
             statements.Add(localDeclaration);
 
             // Ensure that the parameter we got was not null (which also ensures the 'as' test succeeded):
-            AddReferenceNotNullCheck(factory, compilation, parseOptions, localNameExpression, expressions);
+            AddReferenceNotNullCheck(
+                factory, generatorInternal, compilation, parseOptions, localNameExpression, expressions);
         }
 
         if (!containingType.IsValueType && HasExistingBaseEqualsMethod(containingType))
@@ -280,7 +287,8 @@ internal static partial class SyntaxGeneratorExtensions
             // It's not a value type. Ensure that the parameter we got was not null.
 
             // if we support patterns, we can do `x is not null`
-            AddReferenceNotNullCheck(factory, compilation, parseOptions, otherNameExpression, expressions);
+            AddReferenceNotNullCheck(
+                factory, generatorInternal, compilation, parseOptions, otherNameExpression, expressions);
 
             if (HasExistingBaseEqualsMethod(containingType))
             {
@@ -310,7 +318,7 @@ internal static partial class SyntaxGeneratorExtensions
     }
 
     private static void AddReferenceNotNullCheck(
-        SyntaxGenerator factory, Compilation compilation, ParseOptions parseOptions, SyntaxNode otherNameExpression, ArrayBuilder<SyntaxNode> expressions)
+        SyntaxGenerator factory, SyntaxGeneratorInternal generatorInternal, Compilation compilation, ParseOptions parseOptions, SyntaxNode otherNameExpression, ArrayBuilder<SyntaxNode> expressions)
     {
         var nullLiteral = factory.NullLiteralExpression();
         if (compilation.Language == LanguageNames.VisualBasic)
@@ -320,22 +328,21 @@ internal static partial class SyntaxGeneratorExtensions
             return;
         }
 
-        var generator = factory.SyntaxGeneratorInternal;
-        if (generator.SyntaxFacts.SupportsNotPattern(parseOptions))
+        if (generatorInternal.SyntaxFacts.SupportsNotPattern(parseOptions))
         {
             // If we support not patterns then we can do "obj is not null && ..."
             expressions.Add(
-                generator.IsPatternExpression(otherNameExpression,
-                    generator.NotPattern(
-                        generator.ConstantPattern(nullLiteral))));
+                generatorInternal.IsPatternExpression(otherNameExpression,
+                    generatorInternal.NotPattern(
+                        generatorInternal.ConstantPattern(nullLiteral))));
         }
-        else if (generator.SupportsPatterns(parseOptions))
+        else if (generatorInternal.SupportsPatterns(parseOptions))
         {
             // if we support patterns then we can do `!(obj is null)`
             expressions.Add(
                 factory.LogicalNotExpression(
-                    generator.IsPatternExpression(otherNameExpression,
-                        generator.ConstantPattern(nullLiteral))));
+                    generatorInternal.IsPatternExpression(otherNameExpression,
+                        generatorInternal.ConstantPattern(nullLiteral))));
         }
         else
         {

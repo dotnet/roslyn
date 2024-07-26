@@ -77,6 +77,16 @@
         <target state="translated">Rozwiąż problem z naruszeniem nazwy: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_abstract_method_0">
+        <source>Generate abstract method '{0}'</source>
+        <target state="new">Generate abstract method '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_property_0">
+        <source>Generate abstract property '{0}'</source>
+        <target state="new">Generate abstract property '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_all">
         <source>Generate all</source>
         <target state="new">Generate all</target>
@@ -107,6 +117,11 @@
         <target state="new">Generate constructor in '{0}' (with properties)</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate_enum_member_0">
+        <source>Generate enum member '{0}'</source>
+        <target state="new">Generate enum member '{0}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Generate_field_0">
         <source>Generate field '{0}'</source>
         <target state="new">Generate field '{0}'</target>
@@ -120,6 +135,11 @@
       <trans-unit id="Generate_local_0">
         <source>Generate local '{0}'</source>
         <target state="new">Generate local '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_method_0">
+        <source>Generate method '{0}'</source>
+        <target state="new">Generate method '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Generate_parameter_0">
