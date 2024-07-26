@@ -40,64 +40,6 @@ internal static partial class SyntaxGeneratorExtensions
                 : factory.CreateArguments(constructor.Parameters));
     }
 
-    public static ImmutableArray<ISymbol> CreateMemberDelegatingConstructor(
-        this SyntaxGenerator factory,
-        SemanticModel semanticModel,
-        string typeName,
-        INamedTypeSymbol? containingType,
-        ImmutableArray<IParameterSymbol> parameters,
-        Accessibility accessibility,
-        ImmutableDictionary<string, ISymbol>? parameterToExistingMemberMap,
-        ImmutableDictionary<string, string>? parameterToNewMemberMap,
-        bool addNullChecks,
-        bool preferThrowExpression,
-        bool generateProperties,
-        bool isContainedInUnsafeType)
-    {
-        var newMembers = generateProperties
-            ? CreatePropertiesForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType)
-            : CreateFieldsForParameters(parameters, parameterToNewMemberMap, isContainedInUnsafeType);
-        var statements = factory.CreateAssignmentStatements(
-            semanticModel, parameters, parameterToExistingMemberMap, parameterToNewMemberMap,
-            addNullChecks, preferThrowExpression).SelectAsArray(
-                s => s.WithAdditionalAnnotations(Simplifier.Annotation));
-
-        var constructor = CodeGenerationSymbolFactory.CreateConstructorSymbol(
-            attributes: default,
-            accessibility: accessibility,
-            modifiers: new DeclarationModifiers(isUnsafe: !isContainedInUnsafeType && parameters.Any(static p => p.RequiresUnsafeModifier())),
-            typeName: typeName,
-            parameters: parameters,
-            statements: statements,
-            thisConstructorArguments: ShouldGenerateThisConstructorCall(containingType, parameterToExistingMemberMap)
-                ? []
-                : default);
-
-        return newMembers.Concat(constructor);
-    }
-
-    private static bool ShouldGenerateThisConstructorCall(
-        INamedTypeSymbol? containingType,
-        IDictionary<string, ISymbol>? parameterToExistingFieldMap)
-    {
-        if (containingType?.TypeKind == TypeKind.Struct)
-        {
-            // Special case.  If we're generating a struct constructor, then we'll need
-            // to initialize all fields in the struct, not just the ones we're creating.
-            // If there is any field or auto-property not being set by a parameter, we
-            // call the default constructor.
-
-            return containingType.GetMembers()
-                .OfType<IFieldSymbol>()
-                .Where(field => !field.IsStatic)
-                .Select(field => field.AssociatedSymbol ?? field)
-                .Except(parameterToExistingFieldMap?.Values ?? [])
-                .Any();
-        }
-
-        return false;
-    }
-
     public static async Task<IPropertySymbol> OverridePropertyAsync(
         this SyntaxGenerator codeFactory,
         IPropertySymbol overriddenProperty,

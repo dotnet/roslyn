@@ -314,6 +314,7 @@ internal static partial class SyntaxGeneratorExtensions
 
     public static ImmutableArray<SyntaxNode> CreateAssignmentStatements(
         this SyntaxGenerator factory,
+        SyntaxGeneratorInternal generatorInternal,
         SemanticModel semanticModel,
         ImmutableArray<IParameterSymbol> parameters,
         IDictionary<string, ISymbol>? parameterToExistingFieldMap,
@@ -351,6 +352,7 @@ internal static partial class SyntaxGeneratorExtensions
                                              .WithAdditionalAnnotations(Simplifier.Annotation);
 
                     factory.AddAssignmentStatements(
+                        generatorInternal,
                         semanticModel, parameter, fieldAccess,
                         addNullChecks, preferThrowExpression,
                         nullCheckStatements, assignStatements);
@@ -363,6 +365,7 @@ internal static partial class SyntaxGeneratorExtensions
 
     public static void AddAssignmentStatements(
          this SyntaxGenerator factory,
+         SyntaxGeneratorInternal generatorInternal,
          SemanticModel semanticModel,
          IParameterSymbol parameter,
          SyntaxNode fieldAccess,
@@ -376,7 +379,7 @@ internal static partial class SyntaxGeneratorExtensions
         // just disallows something that should be allowed.
         var shouldAddNullCheck = addNullChecks && parameter.Type.CanAddNullCheck() && !parameter.Type.IsNullable();
 
-        if (shouldAddNullCheck && preferThrowExpression && factory.SupportsThrowExpression())
+        if (shouldAddNullCheck && preferThrowExpression && generatorInternal.SupportsThrowExpression())
         {
             // Generate: this.x = x ?? throw ...
             assignStatements.Add(CreateAssignWithNullCheckStatement(
@@ -388,7 +391,7 @@ internal static partial class SyntaxGeneratorExtensions
             {
                 // generate: if (x == null) throw ...
                 nullCheckStatements.Add(
-                    factory.CreateNullCheckAndThrowStatement(semanticModel, parameter));
+                    factory.CreateNullCheckAndThrowStatement(generatorInternal, semanticModel, parameter));
             }
 
             // generate: this.x = x;
@@ -424,21 +427,23 @@ internal static partial class SyntaxGeneratorExtensions
 
     public static SyntaxNode CreateNullCheckAndThrowStatement(
         this SyntaxGenerator factory,
+        SyntaxGeneratorInternal generatorInternal,
         SemanticModel semanticModel,
         IParameterSymbol parameter)
     {
-        var condition = factory.CreateNullCheckExpression(semanticModel, parameter.Name);
+        var condition = factory.CreateNullCheckExpression(generatorInternal, semanticModel, parameter.Name);
         var throwStatement = factory.CreateThrowArgumentNullExceptionStatement(semanticModel.Compilation, parameter);
 
         // generates: if (s is null) { throw new ArgumentNullException(nameof(s)); }
         return factory.IfStatement(condition, [throwStatement]);
     }
-    public static SyntaxNode CreateNullCheckExpression(this SyntaxGenerator factory, SemanticModel semanticModel, string identifierName)
+    public static SyntaxNode CreateNullCheckExpression(
+        this SyntaxGenerator factory, SyntaxGeneratorInternal generatorInternal, SemanticModel semanticModel, string identifierName)
     {
         var identifier = factory.IdentifierName(identifierName);
         var nullExpr = factory.NullLiteralExpression();
-        var condition = factory.SyntaxGeneratorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options)
-            ? factory.SyntaxGeneratorInternal.IsPatternExpression(identifier, factory.SyntaxGeneratorInternal.ConstantPattern(nullExpr))
+        var condition = generatorInternal.SupportsPatterns(semanticModel.SyntaxTree.Options)
+            ? generatorInternal.IsPatternExpression(identifier, generatorInternal.ConstantPattern(nullExpr))
             : factory.ReferenceEqualsExpression(identifier, nullExpr);
         return condition;
     }
