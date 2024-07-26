@@ -180,13 +180,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.ERR_CircularBase, Locations[0], declaredUnderlyingType, this));
                 }
 
-                if (hasSelfReference(declaredUnderlyingType, this, newBasesBeingResolved))
-                {
-                    // If erasing extension types in the extended type involves erasing the extension type
-                    // (to the given extended type) then the result of erasure would be unbounded
-                    diagnostics.Add(ErrorCode.ERR_CircularBase, Locations[0], declaredUnderlyingType, this);
-                }
-
                 var useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(diagnostics, ContainingAssembly);
                 var current = declaredUnderlyingType;
                 do
@@ -211,88 +204,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return declaredUnderlyingType;
             }
-
-            static bool hasSelfReference(TypeSymbol underlyingType, SourceExtensionTypeSymbol definition, ConsList<TypeSymbol>? basesBeingResolved)
-            {
-                Debug.Assert(definition.IsDefinition);
-                PooledHashSet<TypeSymbol> alreadyVisited = PooledHashSet<TypeSymbol>.GetInstance();
-                var result = foundSelfReferenceInErasure(underlyingType, definition, alreadyVisited: alreadyVisited, basesBeingResolved: basesBeingResolved, isContainer: false);
-                alreadyVisited.Free();
-                return result;
-            }
-
-            // Returns true if any type meant to be erased in the visited type is the given definition
-            static bool foundSelfReferenceInErasure(TypeSymbol type, SourceExtensionTypeSymbol definition, PooledHashSet<TypeSymbol> alreadyVisited, ConsList<TypeSymbol>? basesBeingResolved, bool isContainer = false)
-            {
-                Debug.Assert(definition.IsDefinition);
-
-                if (type is NamedTypeSymbol)
-                {
-                    if (!isContainer)
-                    {
-                        if (object.ReferenceEquals(type.OriginalDefinition, definition))
-                        {
-                            return true;
-                        }
-
-                        if (alreadyVisited.Contains(type))
-                        {
-                            return false;
-                        }
-
-                        alreadyVisited.Add(type);
-
-                        if (type.IsExtension)
-                        {
-                            if (type.GetExtendedTypeNoUseSiteDiagnostics(basesBeingResolved) is { } extendedType)
-                            {
-                                return foundSelfReferenceInErasure(extendedType, definition, alreadyVisited, basesBeingResolved);
-                            }
-
-                            return true;
-                        }
-                    }
-
-                    if (type.ContainingType is { } containingType
-                        && foundSelfReferenceInErasure(containingType, definition, alreadyVisited, basesBeingResolved, isContainer: true))
-                    {
-                        return true;
-                    }
-
-                    foreach (var typeArgument in type.GetMemberTypeArgumentsNoUseSiteDiagnostics())
-                    {
-                        if (foundSelfReferenceInErasure(typeArgument, definition, alreadyVisited, basesBeingResolved))
-                        {
-                            return true;
-                        }
-                    }
-                }
-                else if (type is ArrayTypeSymbol arrayType)
-                {
-                    return foundSelfReferenceInErasure(arrayType.ElementType, definition, alreadyVisited, basesBeingResolved);
-                }
-                else if (type is PointerTypeSymbol pointerType)
-                {
-                    return foundSelfReferenceInErasure(pointerType.PointedAtType, definition, alreadyVisited, basesBeingResolved);
-                }
-                else if (type is FunctionPointerTypeSymbol functionPointerType)
-                {
-                    if (foundSelfReferenceInErasure(functionPointerType.Signature.ReturnType, definition, alreadyVisited, basesBeingResolved))
-                    {
-                        return true;
-                    }
-
-                    foreach (var parameter in functionPointerType.Signature.Parameters)
-                    {
-                        if (foundSelfReferenceInErasure(parameter.Type, definition, alreadyVisited, basesBeingResolved))
-                        {
-                            return true;
-                        }
-                    }
-                }
-
-                return false;
-            };
         }
 
         private SourceLocation? FindUnderlyingTypeSyntax(TypeSymbol underlyingType)
