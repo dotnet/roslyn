@@ -11303,10 +11303,12 @@ public class Class
                         // Should become the close curly of Type initially.
                         }
 
-                        // Should go into Type as well.
+                        // Will not go into Type because N2 will initially end prior to this.
+                        // After M joins into Type and NT finishes, this will be a child of
+                        // N1.  We could think about merging this into Type at some point.
                         private void N()
 
-                        // Should become the close curly of Type next.
+                        // Should become the close curly of N1
                         }
                     }
                 }
@@ -11318,15 +11320,15 @@ public class Class
                 // (15,10): error CS1513: } expected
                 //         }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(15, 10),
-                // (18,25): error CS1002: ; expected
+                // (20,25): error CS1002: ; expected
                 //         private void N()
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(18, 25),
-                // (22,5): error CS1022: Type or namespace definition, or end-of-file expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(20, 25),
+                // (24,5): error CS1022: Type or namespace definition, or end-of-file expected
                 //     }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(22, 5),
-                // (23,1): error CS1022: Type or namespace definition, or end-of-file expected
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(24, 5),
+                // (25,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
-                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(23, 1));
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(25, 1));
 
             N(SyntaxKind.CompilationUnit);
             {
