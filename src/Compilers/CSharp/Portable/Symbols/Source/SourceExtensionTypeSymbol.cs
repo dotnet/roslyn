@@ -137,10 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal sealed override TypeSymbol? GetDeclaredExtensionUnderlyingType()
-        {
-            var basesBeingResolved = ConsList<TypeSymbol>.Empty.Prepend(this.OriginalDefinition);
-            return GetDeclaredExtensionInfo(basesBeingResolved).UnderlyingType;
-        }
+            => GetDeclaredExtensionInfo(basesBeingResolved: null).UnderlyingType;
 
         internal sealed override TypeSymbol? GetExtendedTypeNoUseSiteDiagnostics(ConsList<TypeSymbol>? basesBeingResolved)
         {
@@ -166,8 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             TypeSymbol? makeAcyclicUnderlyingType(ConsList<TypeSymbol>? basesBeingResolved, BindingDiagnosticBag diagnostics)
             {
-                var newBasesBeingResolved = basesBeingResolved.Prepend(this.OriginalDefinition);
-                TypeSymbol? declaredUnderlyingType = GetDeclaredExtensionInfo(newBasesBeingResolved).UnderlyingType;
+                TypeSymbol? declaredUnderlyingType = GetDeclaredExtensionInfo(basesBeingResolved).UnderlyingType;
 
                 if (declaredUnderlyingType is null)
                 {
@@ -281,11 +277,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool reportedUnderlyingTypeConflict = false;
             TypeSymbol? underlyingType = null;
             SourceLocation? underlyingTypeLocation = null;
+            Debug.Assert(basesBeingResolved == null || !basesBeingResolved.ContainsReference(this.OriginalDefinition));
+            var newBasesBeingResolved = basesBeingResolved.Prepend(this.OriginalDefinition);
 
             for (int i = 0; i < this.declaration.Declarations.Length; i++)
             {
                 var declaration = this.declaration.Declarations[i];
-                ExtensionInfo one = MakeOneDeclaredExtensionInfo(basesBeingResolved, declaration, diagnostics, out bool sawPartUnderlyingType, out bool oneExplicit);
+                ExtensionInfo one = MakeOneDeclaredExtensionInfo(newBasesBeingResolved, declaration, diagnostics, out bool sawPartUnderlyingType, out bool oneExplicit);
                 sawUnderlyingType |= sawPartUnderlyingType;
 
                 if (i == 0)
@@ -371,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// - <see cref="Metadata.PE.PENamedTypeSymbol.EnsureExtensionTypeDecoded"/>
         /// - <see cref="Retargeting.RetargetingNamedTypeSymbol.GetDeclaredExtensionUnderlyingType"/>
         /// </summary>
-        private ExtensionInfo MakeOneDeclaredExtensionInfo(ConsList<TypeSymbol>? basesBeingResolved, SingleTypeDeclaration decl, BindingDiagnosticBag diagnostics,
+        private ExtensionInfo MakeOneDeclaredExtensionInfo(ConsList<TypeSymbol> basesBeingResolved, SingleTypeDeclaration decl, BindingDiagnosticBag diagnostics,
             out bool sawUnderlyingType, out bool isExplicit)
         {
             var syntax = (ExtensionDeclarationSyntax)decl.SyntaxReference.GetSyntax();
