@@ -602,7 +602,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
                 document.Project.Solution,
                 new CodeGenerationContext(Token.GetLocation()));
 
-            return await provider.GetRequiredService<ICodeGenerationService>().AddMembersAsync(
+            return await CodeGenerator.AddMemberDeclarationsAsync(
                 context,
                 TypeToGenerateIn,
                 members.Concat(constructor),
@@ -646,7 +646,7 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
                 withProperties ? ParameterToNewPropertyMap :
                 ImmutableDictionary<string, string>.Empty;
 
-            return await provider.GetRequiredService<ICodeGenerationService>().AddMembersAsync(
+            return await CodeGenerator.AddMemberDeclarationsAsync(
                 new CodeGenerationSolutionContext(
                     document.Project.Solution,
                     new CodeGenerationContext(Token.GetLocation())),

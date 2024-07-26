@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.GenerateConstructor
     <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
-    Public Class GenerateConstructorTests
+    Public NotInheritable Class GenerateConstructorTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
