@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 
@@ -77,10 +78,16 @@ internal partial class AbstractGenerateParameterizedMemberService<TService, TSim
             // errors.  In the former case we definitely want to offer to generate a method.  In
             // the latter case, we want to generate a method *unless* there's an existing method
             // with the same signature.
-            var existingMethods = TypeToGenerateIn.GetMembers(IdentifierToken.ValueText)
-                                                       .OfType<IMethodSymbol>();
+            var existingMethods = TypeToGenerateIn
+                .GetMembers(IdentifierToken.ValueText)
+                .OfType<IMethodSymbol>();
 
+#if CODE_STYLE
+            var destinationProvider = document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(TypeToGenerateIn.Language);
+#else
             var destinationProvider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
+#endif
+
             var syntaxFacts = destinationProvider.GetService<ISyntaxFactsService>();
             var syntaxFactory = destinationProvider.GetService<SyntaxGenerator>();
             IsContainedInUnsafeType = service.ContainingTypesOrSelfHasUnsafeKeyword(TypeToGenerateIn);

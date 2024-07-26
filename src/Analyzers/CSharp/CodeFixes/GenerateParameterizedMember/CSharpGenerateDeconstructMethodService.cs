@@ -20,15 +20,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod;
 
 [ExportLanguageService(typeof(IGenerateDeconstructMemberService), LanguageNames.CSharp), Shared]
-internal sealed class CSharpGenerateDeconstructMethodService :
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class CSharpGenerateDeconstructMethodService() :
     AbstractGenerateDeconstructMethodService<CSharpGenerateDeconstructMethodService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpGenerateDeconstructMethodService()
-    {
-    }
-
     protected override bool ContainingTypesOrSelfHasUnsafeKeyword(INamedTypeSymbol containingType)
         => containingType.ContainingTypesOrSelfHasUnsafeKeyword();
 

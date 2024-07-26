@@ -16,13 +16,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateDeconstructMethod;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-public class GenerateDeconstructMethodTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public sealed class GenerateDeconstructMethodTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public GenerateDeconstructMethodTests(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new GenerateDeconstructMethodCodeFixProvider());
 
