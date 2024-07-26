@@ -48,8 +48,8 @@ internal abstract partial class AbstractGenerateParameterizedMemberService<TServ
             {
                 case MethodGenerationKind.Member:
                     var text = generateProperty
-                        ? isAbstract ? FeaturesResources.Generate_abstract_property_0 : FeaturesResources.Generate_property_0
-                        : isAbstract ? FeaturesResources.Generate_abstract_method_0 : FeaturesResources.Generate_method_0;
+                        ? isAbstract ? CodeFixesResources.Generate_abstract_property_0 : CodeFixesResources.Generate_property_0
+                        : isAbstract ? CodeFixesResources.Generate_abstract_method_0 : CodeFixesResources.Generate_method_0;
 
                     var name = state.IdentifierToken.ValueText;
                     return string.Format(text, name);
