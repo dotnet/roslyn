@@ -237,15 +237,20 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             return null;
         }
 
+        private TLanguageService GetRequiredLanguageService<TLanguageService>(string language) where TLanguageService : ILanguageService
+        {
+#if CODE_STYLE
+            return _document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(language).GetRequiredService<TLanguageService>();
+#else
+            return _document.Project.Solution.Services.GetRequiredLanguageService<TLanguageService>(language);
+#endif
+        }
+
         private bool ClashesWithExistingConstructor()
         {
             Contract.ThrowIfNull(TypeToGenerateIn);
 
-#if CODE_STYLE
-            var syntaxFacts = _document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(TypeToGenerateIn.Language).GetRequiredService<ISyntaxFactsService>();
-#else
-            var syntaxFacts = _document.Project.Solution.Services.GetRequiredLanguageService<ISyntaxFactsService>(TypeToGenerateIn.Language);
-#endif
+            var syntaxFacts = GetRequiredLanguageService<ISyntaxFactsService>(TypeToGenerateIn.Language);
             return TypeToGenerateIn.InstanceConstructors.Any(static (c, arg) => arg.self.Matches(c, arg.syntaxFacts), (self: this, syntaxFacts));
         }
 
@@ -585,15 +590,9 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
 
             Contract.ThrowIfNull(TypeToGenerateIn);
 
-#if CODE_STYLE
-            var provider = document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(TypeToGenerateIn.Language);
-#else
-            var provider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
-#endif
-
             var (members, assignments) = await GenerateMembersAndAssignmentsAsync(document, withFields, withProperties, cancellationToken).ConfigureAwait(false);
             var isThis = _delegatedConstructor.ContainingType.OriginalDefinition.Equals(TypeToGenerateIn.OriginalDefinition);
-            var delegatingArguments = provider.GetRequiredService<SyntaxGenerator>().CreateArguments(_delegatedConstructor.Parameters);
+            var delegatingArguments = this.GetRequiredLanguageService<SyntaxGenerator>(TypeToGenerateIn.Language).CreateArguments(_delegatedConstructor.Parameters);
 
             var newParameters = _delegatedConstructor.Parameters.Concat(_parameters);
             var generateUnsafe = !IsContainedInUnsafeType && newParameters.Any(static p => p.RequiresUnsafeModifier());
@@ -624,12 +623,6 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         {
             Contract.ThrowIfNull(TypeToGenerateIn);
 
-#if CODE_STYLE
-            var provider = document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(TypeToGenerateIn.Language);
-#else
-            var provider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
-#endif
-
             var members = withFields ? SyntaxGeneratorExtensions.CreateFieldsForParameters(_parameters, ParameterToNewFieldMap, IsContainedInUnsafeType) :
                           withProperties ? SyntaxGeneratorExtensions.CreatePropertiesForParameters(_parameters, ParameterToNewPropertyMap, IsContainedInUnsafeType) :
                           [];
@@ -637,8 +630,8 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var assignments = !withFields && !withProperties
                 ? []
-                : provider.GetRequiredService<SyntaxGenerator>().CreateAssignmentStatements(
-                    provider.GetRequiredService<SyntaxGeneratorInternal>(),
+                : GetRequiredLanguageService<SyntaxGenerator>(TypeToGenerateIn.Language).CreateAssignmentStatements(
+                    GetRequiredLanguageService<SyntaxGeneratorInternal>(TypeToGenerateIn.Language),
                     semanticModel, _parameters,
                     _parameterToExistingMemberMap,
                     withFields ? ParameterToNewFieldMap : ParameterToNewPropertyMap,
@@ -652,12 +645,6 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
         {
             Contract.ThrowIfNull(TypeToGenerateIn);
 
-#if CODE_STYLE
-            var provider = document.Project.Solution.Workspace.Services.GetExtendedLanguageServices(TypeToGenerateIn.Language);
-#else
-            var provider = document.Project.Solution.Services.GetLanguageServices(TypeToGenerateIn.Language);
-#endif
-
             var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var newMemberMap =
@@ -670,8 +657,8 @@ internal abstract partial class AbstractGenerateConstructorService<TService, TEx
                     document.Project.Solution,
                     new CodeGenerationContext(Token.GetLocation())),
                 TypeToGenerateIn,
-                provider.GetRequiredService<SyntaxGenerator>().CreateMemberDelegatingConstructor(
-                    provider.GetRequiredService<SyntaxGeneratorInternal>(),
+                GetRequiredLanguageService<SyntaxGenerator>(TypeToGenerateIn.Language).CreateMemberDelegatingConstructor(
+                    GetRequiredLanguageService<SyntaxGeneratorInternal>(TypeToGenerateIn.Language),
                     semanticModel,
                     TypeToGenerateIn.Name,
                     TypeToGenerateIn,
