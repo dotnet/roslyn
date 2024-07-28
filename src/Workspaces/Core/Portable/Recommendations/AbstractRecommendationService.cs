@@ -72,6 +72,7 @@ internal abstract partial class AbstractRecommendationService<
         internal bool ShouldIncludeSymbol(ISymbol symbol)
         {
             var isMember = false;
+            var isConstructorParameter = false;
             switch (symbol.Kind)
             {
                 case SymbolKind.NamedType:
@@ -105,6 +106,13 @@ internal abstract partial class AbstractRecommendationService<
 
                 case SymbolKind.TypeParameter:
                     return ((ITypeParameterSymbol)symbol).TypeParameterKind != TypeParameterKind.Cref;
+
+                case SymbolKind.Parameter:
+                    isConstructorParameter = symbol.ContainingSymbol is IMethodSymbol
+                    {
+                        MethodKind: MethodKind.Constructor
+                    };
+                    break;
             }
 
             if (_context.IsAttributeNameContext)
@@ -130,6 +138,16 @@ internal abstract partial class AbstractRecommendationService<
                 {
                     return this.GetEnclosingTypeBases().Contains(containingTypeOriginalDefinition);
                 }
+            }
+
+            // Primary constructor parameters should not appear in static context
+            if (_context.IsStatementContext &&
+                !_context.IsAnyExpressionContext &&
+                !symbol.IsStatic &&
+                isConstructorParameter)
+            {
+                // Only referrable when inside a nameof
+                return _context.IsNameOfContext;
             }
 
             if (symbol is INamespaceSymbol namespaceSymbol)
