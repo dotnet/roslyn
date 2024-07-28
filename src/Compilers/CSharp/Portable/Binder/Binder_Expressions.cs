@@ -5616,39 +5616,55 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // SPEC:    A member initializer that specifies an expression after the equals sign is processed in the same way as an assignment (spec 7.17.1) to the field or property.
 
-            if (memberInitializer.Kind() == SyntaxKind.SimpleAssignmentExpression)
+            switch (memberInitializer.Kind())
             {
-                var initializer = (AssignmentExpressionSyntax)memberInitializer;
+                case SyntaxKind.SimpleAssignmentExpression:
+                    {
+                        var initializer = (AssignmentExpressionSyntax)memberInitializer;
 
-                // We use a location specific binder for binding object initializer field/property access to generate object initializer specific diagnostics:
-                //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
-                //  2) CS1917 (ERR_ReadonlyValueTypeInObjectInitializer)
-                //  3) CS1918 (ERR_ValueTypePropertyInObjectInitializer)
-                // See comments in BindObjectInitializerExpression for more details.
+                        // We use a location specific binder for binding object initializer field/property access to generate object initializer specific diagnostics:
+                        //  1) CS1914 (ERR_StaticMemberInObjectInitializer)
+                        //  2) CS1917 (ERR_ReadonlyValueTypeInObjectInitializer)
+                        //  3) CS1918 (ERR_ValueTypePropertyInObjectInitializer)
+                        // See comments in BindObjectInitializerExpression for more details.
 
-                Debug.Assert(objectInitializerMemberBinder != null);
+                        Debug.Assert(objectInitializerMemberBinder != null);
 
-                BoundExpression boundLeft = objectInitializerMemberBinder.BindObjectInitializerMember(initializer, implicitReceiver, diagnostics);
+                        BoundExpression boundLeft = objectInitializerMemberBinder.BindObjectInitializerMember(initializer, implicitReceiver, diagnostics);
 
-                if (boundLeft != null)
-                {
-                    Debug.Assert((object)boundLeft.Type != null);
+                        if (boundLeft != null)
+                        {
+                            Debug.Assert((object)boundLeft.Type != null);
 
-                    var rhsExpr = initializer.Right.CheckAndUnwrapRefExpression(diagnostics, out RefKind refKind);
-                    bool isRef = refKind == RefKind.Ref;
-                    var rhsKind = isRef ? GetRequiredRHSValueKindForRefAssignment(boundLeft) : BindValueKind.RValue;
+                            var rhsExpr = initializer.Right.CheckAndUnwrapRefExpression(diagnostics, out RefKind refKind);
+                            bool isRef = refKind == RefKind.Ref;
+                            var rhsKind = isRef ? GetRequiredRHSValueKindForRefAssignment(boundLeft) : BindValueKind.RValue;
 
-                    // Bind member initializer value, i.e. right part of assignment
-                    BoundExpression boundRight = BindInitializerExpressionOrValue(
-                        syntax: rhsExpr,
-                        type: boundLeft.Type,
-                        rhsKind,
-                        typeSyntax: boundLeft.Syntax,
-                        diagnostics: diagnostics);
+                            // Bind member initializer value, i.e. right part of assignment
+                            BoundExpression boundRight = BindInitializerExpressionOrValue(
+                                syntax: rhsExpr,
+                                type: boundLeft.Type,
+                                rhsKind,
+                                typeSyntax: boundLeft.Syntax,
+                                diagnostics: diagnostics);
 
-                    // Bind member initializer assignment expression
-                    return BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics);
-                }
+                            // Bind member initializer assignment expression
+                            return BindAssignment(initializer, boundLeft, boundRight, isRef, diagnostics);
+                        }
+                        break;
+                    }
+
+                // We fall back on simply binding the name as an expression for proper recovery
+                // and also report a diagnostic about this being an invalid value
+                case SyntaxKind.IdentifierName:
+                    {
+                        Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, memberInitializer);
+
+                        var identifierName = (IdentifierNameSyntax)memberInitializer;
+                        Debug.Assert(objectInitializerMemberBinder != null);
+
+                        return objectInitializerMemberBinder.BindObjectInitializerMemberMissingAssignment(identifierName, implicitReceiver, diagnostics);
+                    }
             }
 
             var boundExpression = BindValue(memberInitializer, diagnostics, BindValueKind.RValue);
@@ -5662,16 +5678,39 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundObjectOrCollectionValuePlaceholder implicitReceiver,
             BindingDiagnosticBag diagnostics)
         {
-            BoundExpression boundMember;
-            LookupResultKind resultKind;
-            bool hasErrors;
-
             var leftSyntax = namedAssignment.Left;
-            var initializerType = implicitReceiver.Type;
             SyntaxKind rhsKind = namedAssignment.Right.Kind();
             bool isRef = rhsKind is SyntaxKind.RefExpression;
             bool isRhsNestedInitializer = rhsKind is SyntaxKind.ObjectInitializerExpression or SyntaxKind.CollectionInitializerExpression;
             BindValueKind valueKind = isRhsNestedInitializer ? BindValueKind.RValue : (isRef ? BindValueKind.RefAssignable : BindValueKind.Assignable);
+
+            return BindObjectInitializerMemberCommon(
+                leftSyntax, implicitReceiver, valueKind, isRhsNestedInitializer, diagnostics);
+        }
+
+        // returns BadBoundExpression or BoundObjectInitializerMember
+        private BoundExpression BindObjectInitializerMemberMissingAssignment(
+            ExpressionSyntax leftSyntax,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            BindingDiagnosticBag diagnostics)
+        {
+            return BindObjectInitializerMemberCommon(
+                leftSyntax, implicitReceiver, BindValueKind.Assignable, false, diagnostics);
+        }
+
+        // returns BadBoundExpression or BoundObjectInitializerMember
+        private BoundExpression BindObjectInitializerMemberCommon(
+            ExpressionSyntax leftSyntax,
+            BoundObjectOrCollectionValuePlaceholder implicitReceiver,
+            BindValueKind valueKind,
+            bool isRhsNestedInitializer,
+            BindingDiagnosticBag diagnostics)
+        {
+            BoundExpression boundMember;
+            LookupResultKind resultKind;
+            bool hasErrors;
+
+            var initializerType = implicitReceiver.Type;
 
             if (leftSyntax.Kind() == SyntaxKind.IdentifierName)
             {
@@ -5767,7 +5806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (!hasErrors)
                             {
                                 // TODO: distinct error code for collection initializers?  (Dev11 doesn't have one.)
-                                Error(diagnostics, ErrorCode.ERR_ReadonlyValueTypeInObjectInitializer, leftSyntax, fieldSymbol, fieldSymbol.Type);
+                                Error(diagnostics, ErrorCode.ERR_ReadonlyValueTypeInObjectInitializer, (CSharpSyntaxNode)leftSyntax, fieldSymbol, fieldSymbol.Type);
                                 hasErrors = true;
                             }
 
@@ -5954,10 +5993,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var memberInitializerSyntax = boundMemberInitializer.Syntax;
 
-                Debug.Assert(memberInitializerSyntax.Kind() == SyntaxKind.SimpleAssignmentExpression);
-                var namedAssignment = (AssignmentExpressionSyntax)memberInitializerSyntax;
+                var memberNameSyntax = memberInitializerSyntax as IdentifierNameSyntax;
+                if (memberInitializerSyntax is AssignmentExpressionSyntax assignment)
+                {
+                    memberNameSyntax = assignment.Left as IdentifierNameSyntax;
+                }
 
-                var memberNameSyntax = namedAssignment.Left as IdentifierNameSyntax;
                 if (memberNameSyntax != null)
                 {
                     var memberName = memberNameSyntax.Identifier.ValueText;

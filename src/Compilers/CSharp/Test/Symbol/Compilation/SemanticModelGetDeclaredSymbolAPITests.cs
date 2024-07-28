@@ -5267,6 +5267,109 @@ class Program
             Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
         }
 
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        public void ObjectInitializerIncompletePropertyValueDeclaration01()
+        {
+            var source = """
+                public class Thing
+                {
+                    public int Key { get; set; }
+                    public string? Value { get; set; }
+                }
+
+                public class Using
+                {
+                    public static Thing CreateThing(int key, string? value)
+                    {
+                        return new()
+                        {
+                            Key = key,
+                            Value,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+            var propertyDecls = root.DescendantNodes()
+                .OfType<ClassDeclarationSyntax>()
+                .First()
+                .ChildNodes()
+                .OfType<PropertyDeclarationSyntax>()
+                .ToArray();
+            var valuePropertyDecl = propertyDecls[1];
+            var valueProperty = model.GetDeclaredSymbol(valuePropertyDecl);
+
+            var initializers = root.DescendantNodes()
+                .OfType<InitializerExpressionSyntax>()
+                .First()
+                .ChildNodes()
+                .ToArray();
+            var initializedSymbol = model.GetSymbolInfo(initializers[1]).Symbol;
+
+            Assert.NotNull(initializedSymbol);
+            Assert.True(initializedSymbol.Equals(valueProperty, SymbolEqualityComparer.Default));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        public void ObjectInitializerIncompletePropertyValueDeclaration02()
+        {
+            var source = """
+                public class Outer
+                {
+                    public Thing Thing { get; } = new();
+                }
+
+                public class Thing
+                {
+                    public int Key { get; set; }
+                    public string? Value { get; set; }
+                }
+
+                public class Using
+                {
+                    public static Outer CreateOuterThing(int key, string? value)
+                    {
+                        return new()
+                        {
+                            Thing =
+                            {
+                                Key = key,
+                                Value,
+                            }
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+            var propertyDecls = root.DescendantNodes()
+                .OfType<ClassDeclarationSyntax>()
+                .First(s => s.Identifier.Text is "Thing")
+                .ChildNodes()
+                .OfType<PropertyDeclarationSyntax>()
+                .ToArray();
+            var valuePropertyDecl = propertyDecls[1];
+            var valueProperty = model.GetDeclaredSymbol(valuePropertyDecl);
+
+            var thingInitializer = root.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .First(s => s.Left is IdentifierNameSyntax { Identifier.Text: "Thing" })
+                .Right
+                as InitializerExpressionSyntax;
+            var valueInitializer = thingInitializer.Expressions[1];
+            var initializedSymbol = model.GetSymbolInfo(valueInitializer).Symbol;
+
+            Assert.NotNull(initializedSymbol);
+            Assert.True(initializedSymbol.Equals(valueProperty, SymbolEqualityComparer.Default));
+        }
+
         private static IParameterSymbol VerifyParameter(
             SemanticModel model,
             ParameterSyntax decl,
