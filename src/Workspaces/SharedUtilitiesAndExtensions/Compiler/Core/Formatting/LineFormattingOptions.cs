@@ -4,15 +4,12 @@
 
 using System;
 using System.Runtime.Serialization;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
 [DataContract]
-internal sealed record class LineFormattingOptions
+internal sealed record class LineFormattingOptions()
 {
     public static readonly LineFormattingOptions Default = new();
 
@@ -20,25 +17,14 @@ internal sealed record class LineFormattingOptions
     [DataMember] public int TabSize { get; init; } = 4;
     [DataMember] public int IndentationSize { get; init; } = 4;
     [DataMember] public string NewLine { get; init; } = Environment.NewLine;
-}
 
-internal static partial class LineFormattingOptionsProviders
-{
-    public static LineFormattingOptions GetLineFormattingOptions(this IOptionsReader options, string language)
-        => new()
-        {
-            UseTabs = options.GetOption(FormattingOptions2.UseTabs, language),
-            TabSize = options.GetOption(FormattingOptions2.TabSize, language),
-            IndentationSize = options.GetOption(FormattingOptions2.IndentationSize, language),
-            NewLine = options.GetOption(FormattingOptions2.NewLine, language),
-        };
-
-#if !CODE_STYLE
-    public static async ValueTask<LineFormattingOptions> GetLineFormattingOptionsAsync(this Document document, CancellationToken cancellationToken)
+    public LineFormattingOptions(IOptionsReader options, string language)
+        : this()
     {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetLineFormattingOptions(document.Project.Language);
+        UseTabs = options.GetOption(FormattingOptions2.UseTabs, language);
+        TabSize = options.GetOption(FormattingOptions2.TabSize, language);
+        IndentationSize = options.GetOption(FormattingOptions2.IndentationSize, language);
+        NewLine = options.GetOption(FormattingOptions2.NewLine, language);
     }
-#endif
 }
 

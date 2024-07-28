@@ -23,6 +23,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)ConvertToAsync\ConvertToAsyncTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\FileHeaderTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingAnalyzerTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceTests.vb" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceTests_FixAllTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\IteratorTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMethodAsynchronous\MakeMethodAsynchronousTests.vb" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMethodSynchronous\MakeMethodSynchronousTests.vb" />

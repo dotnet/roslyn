@@ -129,6 +129,14 @@ internal partial class ProjectState
         _lazyContentHashToDocumentId = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeContentHashToDocumentIdAsync(cancellationToken), arg: this);
     }
 
+    public TextDocumentStates<TDocumentState> GetDocumentStates<TDocumentState>()
+        where TDocumentState : TextDocumentState
+        => (TextDocumentStates<TDocumentState>)(object)(
+            typeof(TDocumentState) == typeof(DocumentState) ? DocumentStates :
+            typeof(TDocumentState) == typeof(AdditionalDocumentState) ? AdditionalDocumentStates :
+            typeof(TDocumentState) == typeof(AnalyzerConfigDocumentState) ? AnalyzerConfigDocumentStates :
+            throw ExceptionUtilities.UnexpectedValue(typeof(TDocumentState)));
+
     private async Task<Dictionary<ImmutableArray<byte>, DocumentId>> ComputeContentHashToDocumentIdAsync(CancellationToken cancellationToken)
     {
         var result = new Dictionary<ImmutableArray<byte>, DocumentId>(ImmutableArrayComparer<byte>.Instance);
@@ -266,7 +274,7 @@ internal partial class ProjectState
 
     internal DocumentState CreateDocument(DocumentInfo documentInfo, ParseOptions? parseOptions, LoadTextOptions loadTextOptions)
     {
-        var doc = new DocumentState(LanguageServices, documentInfo, parseOptions, loadTextOptions);
+        var doc = DocumentState.Create(LanguageServices, documentInfo, parseOptions, loadTextOptions);
 
         if (doc.SourceCodeKind != documentInfo.SourceCodeKind)
         {
@@ -275,6 +283,14 @@ internal partial class ProjectState
 
         return doc;
     }
+
+    internal TDocumentState CreateDocument<TDocumentState>(DocumentInfo documentInfo)
+        where TDocumentState : TextDocumentState
+        => (TDocumentState)(object)(
+            typeof(TDocumentState) == typeof(DocumentState) ? CreateDocument(documentInfo, ParseOptions, new LoadTextOptions(ChecksumAlgorithm)) :
+            typeof(TDocumentState) == typeof(AdditionalDocumentState) ? new AdditionalDocumentState(LanguageServices.SolutionServices, documentInfo, new LoadTextOptions(ChecksumAlgorithm)) :
+            typeof(TDocumentState) == typeof(AnalyzerConfigDocumentState) ? new AnalyzerConfigDocumentState(LanguageServices.SolutionServices, documentInfo, new LoadTextOptions(ChecksumAlgorithm)) :
+            throw ExceptionUtilities.UnexpectedValue(typeof(TDocumentState)));
 
     public AnalyzerOptions AnalyzerOptions
         => _lazyAnalyzerOptions ??= new AnalyzerOptions(
@@ -664,7 +680,7 @@ internal partial class ProjectState
 
         return With(
             projectInfo: ProjectInfo.WithParseOptions(options).WithVersion(Version.GetNewerVersion()),
-            documentStates: DocumentStates.UpdateStates(static (state, args) => state.UpdateParseOptions(args.options, args.onlyPreprocessorDirectiveChange), (options, onlyPreprocessorDirectiveChange)));
+            documentStates: DocumentStates.UpdateStates(static (state, args) => state.UpdateParseOptionsAndSourceCodeKind(args.options, args.onlyPreprocessorDirectiveChange), (options, onlyPreprocessorDirectiveChange)));
     }
 
     public ProjectState WithFallbackAnalyzerOptions(StructuredAnalyzerConfigOptions options)
@@ -827,27 +843,25 @@ internal partial class ProjectState
             analyzerConfigOptionsCache: new AnalyzerConfigOptionsCache(AnalyzerConfigDocumentStates, _analyzerConfigOptionsCache.FallbackOptions));
     }
 
-    public ProjectState UpdateDocument(DocumentState newDocument, bool contentChanged)
-        => UpdateDocuments([newDocument], contentChanged);
+    public ProjectState UpdateDocument(DocumentState newDocument)
+        => UpdateDocuments([DocumentStates.GetRequiredState(newDocument.Id)], [newDocument]);
 
-    public ProjectState UpdateDocuments(ImmutableArray<DocumentState> newDocuments, bool contentChanged)
+    public ProjectState UpdateDocuments(ImmutableArray<DocumentState> oldDocuments, ImmutableArray<DocumentState> newDocuments)
     {
-        var oldDocuments = newDocuments.SelectAsArray(d => DocumentStates.GetRequiredState(d.Id));
-        if (oldDocuments.SequenceEqual(newDocuments))
-            return this;
-
-        // Must not be empty as we would have otherwise bailed out in the check above.
-        Contract.ThrowIfTrue(newDocuments.IsEmpty);
+        Contract.ThrowIfTrue(oldDocuments.IsEmpty);
+        Contract.ThrowIfFalse(oldDocuments.Length == newDocuments.Length);
+        Debug.Assert(!oldDocuments.SequenceEqual(newDocuments));
 
         var newDocumentStates = DocumentStates.SetStates(newDocuments);
 
         // When computing the latest dependent version, we just need to know how 
         GetLatestDependentVersions(
-            newDocumentStates, AdditionalDocumentStates,
+            newDocumentStates,
+            AdditionalDocumentStates,
             oldDocuments.CastArray<TextDocumentState>(),
             newDocuments.CastArray<TextDocumentState>(),
-            contentChanged,
-            out var dependentDocumentVersion, out var dependentSemanticVersion);
+            out var dependentDocumentVersion,
+            out var dependentSemanticVersion);
 
         return With(
             documentStates: newDocumentStates,
@@ -855,35 +869,38 @@ internal partial class ProjectState
             latestDocumentTopLevelChangeVersion: dependentSemanticVersion);
     }
 
-    public ProjectState UpdateAdditionalDocument(AdditionalDocumentState newDocument, bool contentChanged)
+    public ProjectState UpdateAdditionalDocument(AdditionalDocumentState newDocument)
+        => UpdateAdditionalDocuments([AdditionalDocumentStates.GetRequiredState(newDocument.Id)], [newDocument]);
+
+    public ProjectState UpdateAdditionalDocuments(ImmutableArray<AdditionalDocumentState> oldDocuments, ImmutableArray<AdditionalDocumentState> newDocuments)
     {
-        var oldDocument = AdditionalDocumentStates.GetRequiredState(newDocument.Id);
-        if (oldDocument == newDocument)
-        {
-            return this;
-        }
+        Contract.ThrowIfTrue(oldDocuments.IsEmpty);
+        Contract.ThrowIfFalse(oldDocuments.Length == newDocuments.Length);
+        Debug.Assert(!oldDocuments.SequenceEqual(newDocuments));
 
-        var newDocumentStates = AdditionalDocumentStates.SetState(newDocument);
+        var newDocumentStates = AdditionalDocumentStates.SetStates(newDocuments);
+
         GetLatestDependentVersions(
-            DocumentStates, newDocumentStates, [oldDocument], [newDocument], contentChanged,
-            out var dependentDocumentVersion, out var dependentSemanticVersion);
+            DocumentStates,
+            newDocumentStates,
+            oldDocuments.CastArray<TextDocumentState>(),
+            newDocuments.CastArray<TextDocumentState>(),
+            out var dependentDocumentVersion,
+            out var dependentSemanticVersion);
 
-        return this.With(
+        return With(
             additionalDocumentStates: newDocumentStates,
             latestDocumentVersion: dependentDocumentVersion,
             latestDocumentTopLevelChangeVersion: dependentSemanticVersion);
     }
 
     public ProjectState UpdateAnalyzerConfigDocument(AnalyzerConfigDocumentState newDocument)
+        => UpdateAnalyzerConfigDocuments([AnalyzerConfigDocumentStates.GetRequiredState(newDocument.Id)], [newDocument]);
+
+    public ProjectState UpdateAnalyzerConfigDocuments(ImmutableArray<AnalyzerConfigDocumentState> oldDocuments, ImmutableArray<AnalyzerConfigDocumentState> newDocuments)
     {
-        var oldDocument = AnalyzerConfigDocumentStates.GetRequiredState(newDocument.Id);
-        if (oldDocument == newDocument)
-        {
-            return this;
-        }
-
-        var newDocumentStates = AnalyzerConfigDocumentStates.SetState(newDocument);
-
+        Debug.Assert(!oldDocuments.SequenceEqual(newDocuments));
+        var newDocumentStates = AnalyzerConfigDocumentStates.SetStates(newDocuments);
         return CreateNewStateForChangedAnalyzerConfig(newDocumentStates, _analyzerConfigOptionsCache.FallbackOptions);
     }
 
@@ -904,12 +921,15 @@ internal partial class ProjectState
         TextDocumentStates<AdditionalDocumentState> newAdditionalDocumentStates,
         ImmutableArray<TextDocumentState> oldDocuments,
         ImmutableArray<TextDocumentState> newDocuments,
-        bool contentChanged,
         out AsyncLazy<VersionStamp> dependentDocumentVersion,
         out AsyncLazy<VersionStamp> dependentSemanticVersion)
     {
         var recalculateDocumentVersion = false;
         var recalculateSemanticVersion = false;
+
+        var contentChanged = !oldDocuments.SequenceEqual(
+            newDocuments,
+            static (oldDocument, newDocument) => oldDocument.TextAndVersionSource == newDocument.TextAndVersionSource);
 
         if (contentChanged)
         {

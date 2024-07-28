@@ -57,11 +57,6 @@
         <target state="translated">DateTimeKind 必須是 Utc</target>
         <note />
       </trans-unit>
-      <trans-unit id="Document_does_not_support_syntax_trees">
-        <source>Document does not support syntax trees</source>
-        <target state="translated">文件不支援語法樹</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Error_reading_content_of_source_file_0_1">
         <source>Error reading content of source file '{0}' -- '{1}'.</source>
         <target state="translated">讀取來源檔案 '{0}' 的內容時發生錯誤 -- '{1}'。</target>

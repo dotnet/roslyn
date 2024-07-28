@@ -983,7 +983,7 @@ public partial class Solution
     /// </summary>
     /// <returns>A new <see cref="Solution"/> with the documents added.</returns>
     public Solution AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
-        => WithCompilationState(_compilationState.AddDocuments(documentInfos));
+        => WithCompilationState(_compilationState.AddDocumentsToMultipleProjects<DocumentState>(documentInfos));
 
     /// <summary>
     /// Creates a new solution instance with the corresponding project updated to include a new
@@ -1021,7 +1021,7 @@ public partial class Solution
         => AddAdditionalDocuments([documentInfo]);
 
     public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
-        => WithCompilationState(_compilationState.AddAdditionalDocuments(documentInfos));
+        => WithCompilationState(_compilationState.AddDocumentsToMultipleProjects<AdditionalDocumentState>(documentInfos));
 
     /// <summary>
     /// Creates a new solution instance with the corresponding project updated to include a new
@@ -1073,7 +1073,7 @@ public partial class Solution
     /// Creates a new Solution instance that contains a new compiler configuration document like a .editorconfig file.
     /// </summary>
     public Solution AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
-        => WithCompilationState(_compilationState.AddAnalyzerConfigDocuments(documentInfos));
+        => WithCompilationState(_compilationState.AddDocumentsToMultipleProjects<AnalyzerConfigDocumentState>(documentInfos));
 
     /// <summary>
     /// Creates a new solution instance that no longer includes the specified document.
@@ -1094,7 +1094,7 @@ public partial class Solution
     }
 
     private Solution RemoveDocumentsImpl(ImmutableArray<DocumentId> documentIds)
-        => WithCompilationState(_compilationState.RemoveDocuments(documentIds));
+        => WithCompilationState(_compilationState.RemoveDocumentsFromMultipleProjects<DocumentState>(documentIds));
 
     /// <summary>
     /// Creates a new solution instance that no longer includes the specified additional document.
@@ -1115,7 +1115,7 @@ public partial class Solution
     }
 
     private Solution RemoveAdditionalDocumentsImpl(ImmutableArray<DocumentId> documentIds)
-        => WithCompilationState(_compilationState.RemoveAdditionalDocuments(documentIds));
+        => WithCompilationState(_compilationState.RemoveDocumentsFromMultipleProjects<AdditionalDocumentState>(documentIds));
 
     /// <summary>
     /// Creates a new solution instance that no longer includes the specified <see cref="AnalyzerConfigDocument"/>.
@@ -1136,7 +1136,7 @@ public partial class Solution
     }
 
     private Solution RemoveAnalyzerConfigDocumentsImpl(ImmutableArray<DocumentId> documentIds)
-        => WithCompilationState(_compilationState.RemoveAnalyzerConfigDocuments(documentIds));
+        => WithCompilationState(_compilationState.RemoveDocumentsFromMultipleProjects<AnalyzerConfigDocumentState>(documentIds));
 
     /// <summary>
     /// Creates a new solution instance with the document specified updated to have the new name.
@@ -1150,7 +1150,10 @@ public partial class Solution
             throw new ArgumentNullException(nameof(name));
         }
 
-        return WithCompilationState(_compilationState.WithDocumentName(documentId, name));
+        return WithCompilationState(_compilationState.WithDocumentAttributes(
+            documentId,
+            name,
+            static (attributes, value) => attributes.With(name: value)));
     }
 
     /// <summary>
@@ -1163,7 +1166,10 @@ public partial class Solution
 
         var collection = PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders));
 
-        return WithCompilationState(_compilationState.WithDocumentFolders(documentId, collection));
+        return WithCompilationState(_compilationState.WithDocumentAttributes(
+            documentId,
+            collection,
+            static (attributes, value) => attributes.With(folders: value)));
     }
 
     /// <summary>
@@ -1172,7 +1178,11 @@ public partial class Solution
     public Solution WithDocumentFilePath(DocumentId documentId, string? filePath)
     {
         CheckContainsDocument(documentId);
-        return WithCompilationState(_compilationState.WithDocumentFilePath(documentId, filePath));
+
+        return WithCompilationState(_compilationState.WithDocumentAttributes(
+            documentId,
+            filePath,
+            static (attributes, value) => attributes.With(filePath: value)));
     }
 
     /// <summary>

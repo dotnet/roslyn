@@ -13,6 +13,7 @@ using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 using Microsoft.VisualStudio.Debugger.Metadata;
+using Type = Microsoft.VisualStudio.Debugger.Metadata.Type;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -75,9 +76,9 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var allMembers = ArrayBuilder<MemberAndDeclarationInfo>.GetInstance();
             var includeInherited = (flags & ExpansionFlags.IncludeBaseMembers) == ExpansionFlags.IncludeBaseMembers;
             var hideNonPublic = (inspectionContext.EvaluationFlags & DkmEvaluationFlags.HideNonPublicMembers) == DkmEvaluationFlags.HideNonPublicMembers;
-            var includeCompilerGenerated = (inspectionContext.EvaluationFlags & DkmEvaluationFlags.ShowValueRaw) == DkmEvaluationFlags.ShowValueRaw;
+            var raw = (inspectionContext.EvaluationFlags & DkmEvaluationFlags.ShowValueRaw) == DkmEvaluationFlags.ShowValueRaw;
             var favoritesInfo = supportsFavorites ? type.GetFavorites() : null;
-            runtimeType.AppendTypeMembers(allMembers, predicate, declaredTypeAndInfo.Type, appDomain, includeInherited, hideNonPublic, isProxyType, includeCompilerGenerated, supportsFavorites, favoritesInfo);
+            runtimeType.AppendTypeMembers(allMembers, predicate, resultProvider, declaredTypeAndInfo.Type, appDomain, includeInherited, hideNonPublic, isProxyType, raw, supportsFavorites, favoritesInfo);
 
             var favoritesMembersByName = new Dictionary<string, MemberAndDeclarationInfo>();
 
@@ -86,7 +87,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 // Favorites are currently never static
                 if (member.IsFavorite && !value.IsNull)
                 {
-                    favoritesMembersByName.Add(member.Name, member);
+                    favoritesMembersByName.Add(member.DisplayName, member);
                 }
                 else if (member.IsStatic)
                 {
@@ -460,7 +461,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     inspectionContext: inspectionContext);
             }
         }
-
+#nullable enable
         internal static EvalResult CreateMemberDataItem(
             ResultProvider resultProvider,
             DkmInspectionContext inspectionContext,
@@ -474,35 +475,50 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var fullNameProvider = resultProvider.FullNameProvider;
             var declaredType = member.Type;
             var declaredTypeInfo = customTypeInfoMap.SubstituteCustomTypeInfo(member.OriginalDefinitionType, member.TypeInfo);
-            string memberName;
+            string? memberNameForFullName;
+
             // Considering, we're not handling the case of a member inherited from a generic base type.
-            var typeDeclaringMember = member.GetExplicitlyImplementedInterface(out memberName) ?? member.DeclaringType;
-            var typeDeclaringMemberInfo = typeDeclaringMember.IsInterface
-                ? customTypeInfoMap.SubstituteCustomTypeInfo(typeDeclaringMember.GetInterfaceListEntry(member.DeclaringType), customInfo: null)
+            if (member.TryGetExplicitlyImplementedInterface(out var declaringType, out var memberDisplayName))
+            {
+                // full name will include cast to the interface, e.g. "((I)obj).MemberName":
+                memberNameForFullName = memberDisplayName;
+            }
+            else
+            {
+                declaringType = member.DeclaringType;
+                memberDisplayName = member.DisplayName;
+                memberNameForFullName = member.MetadataName;
+            }
+
+            var declaringTypeInfo = declaringType.IsInterface
+                ? customTypeInfoMap.SubstituteCustomTypeInfo(declaringType.GetInterfaceListEntry(member.DeclaringType), customInfo: null)
                 : null;
-            var memberNameForFullName = fullNameProvider.GetClrValidIdentifier(inspectionContext, memberName);
+
             var appDomain = memberValue.Type.AppDomain;
-            string fullName;
+            string? fullName;
+
+            memberNameForFullName = fullNameProvider.GetClrValidIdentifier(inspectionContext, memberNameForFullName);
             if (memberNameForFullName == null)
             {
                 fullName = null;
             }
             else
             {
-                memberName = memberNameForFullName;
+                memberDisplayName = memberNameForFullName;
                 fullName = MakeFullName(
                        fullNameProvider,
                        inspectionContext,
                        memberNameForFullName,
-                       new TypeAndCustomInfo(DkmClrType.Create(appDomain, typeDeclaringMember), typeDeclaringMemberInfo), // Note: Won't include DynamicAttribute.
+                       new TypeAndCustomInfo(DkmClrType.Create(appDomain, declaringType), declaringTypeInfo), // Note: Won't include DynamicAttribute.
                        member.RequiresExplicitCast,
                        member.IsStatic,
                        parent);
             }
+
             return resultProvider.CreateDataItem(
                 inspectionContext,
-                memberName,
-                typeDeclaringMemberAndInfo: (member.IncludeTypeInMemberName || typeDeclaringMember.IsInterface) ? new TypeAndCustomInfo(DkmClrType.Create(appDomain, typeDeclaringMember), typeDeclaringMemberInfo) : default(TypeAndCustomInfo), // Note: Won't include DynamicAttribute.
+                memberDisplayName,
+                typeDeclaringMemberAndInfo: (member.IncludeTypeInMemberName || declaringType.IsInterface) ? new TypeAndCustomInfo(DkmClrType.Create(appDomain, declaringType), declaringTypeInfo) : default(TypeAndCustomInfo), // Note: Won't include DynamicAttribute.
                 declaredTypeAndInfo: new TypeAndCustomInfo(DkmClrType.Create(appDomain, declaredType), declaredTypeInfo),
                 value: memberValue,
                 useDebuggerDisplay: parent != null,
@@ -517,7 +533,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 isFavorite: member.IsFavorite,
                 supportsFavorites: supportsFavorites);
         }
-
+#nullable disable
         private static string MakeFullName(
             IDkmClrFullNameProvider fullNameProvider,
             DkmInspectionContext inspectionContext,

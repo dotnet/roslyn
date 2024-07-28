@@ -57,9 +57,7 @@ internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvid
 
         var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
         var services = document.Project.Solution.Services;
-
-        var codeActionOptions = context.Options.GetOptions(document.Project.Services);
-        var searchOptions = codeActionOptions.SearchOptions;
+        var searchOptions = await document.GetSymbolSearchOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var symbolSearchService = _symbolSearchService ?? services.GetRequiredService<ISymbolSearchService>();
 

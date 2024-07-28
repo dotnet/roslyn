@@ -56,7 +56,7 @@ public class TextDocument
     /// <summary>
     /// A <see cref="IDocumentServiceProvider"/> associated with this document
     /// </summary>
-    internal IDocumentServiceProvider Services => State.Services;
+    internal IDocumentServiceProvider Services => State.DocumentServiceProvider;
 
     /// <summary>
     /// Get the current text for the document if it is already loaded and available.

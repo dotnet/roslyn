@@ -134,12 +134,6 @@ internal static class PredefinedCommandHandlerNames
     public const string Rename = "Rename Command Handler";
 
     /// <summary>
-    /// Command handler for detecting user save commands, and using that to issue a request to run source generators
-    /// (when in <see cref="SourceGeneratorExecutionPreference.Balanced"/> mode).
-    /// </summary>
-    public const string SourceGeneratorSave = "Source Generator Save Command Handler";
-
-    /// <summary>
     /// Command handler name for Rename Tracking cancellation.
     /// </summary>
     public const string RenameTrackingCancellation = "Rename Tracking Cancellation Command Handler";

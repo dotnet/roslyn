@@ -4,6 +4,7 @@
 
 Imports System.Composition
 Imports System.Diagnostics.CodeAnalysis
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.LanguageService
@@ -16,7 +17,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
     Friend Class VisualBasicSyntaxGeneratorInternal
         Inherits SyntaxGeneratorInternal
 
-        Public Shared ReadOnly Instance As SyntaxGeneratorInternal = New VisualBasicSyntaxGeneratorInternal()
+        Public Shared ReadOnly Instance As New VisualBasicSyntaxGeneratorInternal()
+
+        Public Shared ReadOnly s_fieldModifiers As DeclarationModifiers = DeclarationModifiers.Const Or DeclarationModifiers.[New] Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.Static Or DeclarationModifiers.WithEvents
+        Public Shared ReadOnly s_methodModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.Async Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.Partial Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
+        Public Shared ReadOnly s_constructorModifiers As DeclarationModifiers = DeclarationModifiers.Static
+        Public Shared ReadOnly s_propertyModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.WriteOnly Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
+        Public Shared ReadOnly s_indexerModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.ReadOnly Or DeclarationModifiers.WriteOnly Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static Or DeclarationModifiers.Virtual
+        Public Shared ReadOnly s_classModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Partial Or DeclarationModifiers.Sealed Or DeclarationModifiers.Static
+        Public Shared ReadOnly s_structModifiers As DeclarationModifiers = DeclarationModifiers.[New] Or DeclarationModifiers.Partial
+        Public Shared ReadOnly s_interfaceModifiers As DeclarationModifiers = DeclarationModifiers.[New] Or DeclarationModifiers.Partial
+        Public Shared ReadOnly s_accessorModifiers As DeclarationModifiers = DeclarationModifiers.Abstract Or DeclarationModifiers.[New] Or DeclarationModifiers.Override Or DeclarationModifiers.Virtual
 
         <ImportingConstructor>
         <SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification:="Incorrectly used in production code: https://github.com/dotnet/roslyn/issues/42839")>
@@ -25,8 +36,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides ReadOnly Property SyntaxFacts As ISyntaxFacts = VisualBasicSyntaxFacts.Instance
 
+        Public Overrides ReadOnly Property CarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.CarriageReturnLineFeed
+
+        Public Overrides ReadOnly Property ElasticCarriageReturnLineFeed As SyntaxTrivia = SyntaxFactory.ElasticCarriageReturnLineFeed
+
         Public Overrides Function EndOfLine(text As String) As SyntaxTrivia
             Return SyntaxFactory.EndOfLine(text)
+        End Function
+
+        Public Overrides Function SingleLineComment(text As String) As SyntaxTrivia
+            Return SyntaxFactory.CommentTrivia("'" + text)
         End Function
 
         Public Overloads Overrides Function LocalDeclarationStatement(type As SyntaxNode, identifier As SyntaxToken, Optional initializer As SyntaxNode = Nothing, Optional isConst As Boolean = False) As SyntaxNode
@@ -146,6 +165,291 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.TypeOfIsNotExpression(DirectCast(expression, ExpressionSyntax), DirectCast(type, TypeSyntax))
         End Function
 
+        Public Shared Function CustomEventDeclarationWithRaise(
+            name As String,
+            type As SyntaxNode,
+            Optional accessibility As Accessibility = Accessibility.NotApplicable,
+            Optional modifiers As DeclarationModifiers = Nothing,
+            Optional parameters As IEnumerable(Of SyntaxNode) = Nothing,
+            Optional addAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing,
+            Optional removeAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing,
+            Optional raiseAccessorStatements As IEnumerable(Of SyntaxNode) = Nothing) As SyntaxNode
+
+            Dim accessors = New List(Of AccessorBlockSyntax)()
+
+            If modifiers.IsAbstract Then
+                addAccessorStatements = Nothing
+                removeAccessorStatements = Nothing
+                raiseAccessorStatements = Nothing
+            Else
+                If addAccessorStatements Is Nothing Then
+                    addAccessorStatements = SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
+                End If
+
+                If removeAccessorStatements Is Nothing Then
+                    removeAccessorStatements = SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
+                End If
+
+                If raiseAccessorStatements Is Nothing Then
+                    raiseAccessorStatements = SpecializedCollections.EmptyEnumerable(Of SyntaxNode)()
+                End If
+            End If
+
+            accessors.Add(CreateAddHandlerAccessorBlock(type, addAccessorStatements))
+            accessors.Add(CreateRemoveHandlerAccessorBlock(type, removeAccessorStatements))
+            accessors.Add(CreateRaiseEventAccessorBlock(parameters, raiseAccessorStatements))
+
+            Dim evStatement = SyntaxFactory.EventStatement(
+                attributeLists:=Nothing,
+                modifiers:=GetModifierList(accessibility, modifiers And GetAllowedModifiers(SyntaxKind.EventStatement), declaration:=Nothing, DeclarationKind.Event),
+                customKeyword:=SyntaxFactory.Token(SyntaxKind.CustomKeyword),
+                eventKeyword:=SyntaxFactory.Token(SyntaxKind.EventKeyword),
+                identifier:=name.ToIdentifierToken(),
+                parameterList:=Nothing,
+                asClause:=SyntaxFactory.SimpleAsClause(DirectCast(type, TypeSyntax)),
+                implementsClause:=Nothing)
+
+            Return SyntaxFactory.EventBlock(
+                eventStatement:=evStatement,
+                accessors:=SyntaxFactory.List(accessors),
+                endEventStatement:=SyntaxFactory.EndEventStatement())
+        End Function
+
+        Friend Shared Function CreateAddHandlerAccessorBlock(delegateType As SyntaxNode, statements As IEnumerable(Of SyntaxNode)) As AccessorBlockSyntax
+            Dim asClause = SyntaxFactory.SimpleAsClause(DirectCast(delegateType, TypeSyntax))
+
+            Dim valueParameter = SyntaxFactory.Parameter(
+                attributeLists:=Nothing,
+                modifiers:=Nothing,
+                identifier:=SyntaxFactory.ModifiedIdentifier("value"),
+                asClause:=asClause,
+                [default]:=Nothing)
+
+            Return SyntaxFactory.AccessorBlock(
+                SyntaxKind.AddHandlerAccessorBlock,
+                SyntaxFactory.AccessorStatement(
+                    kind:=SyntaxKind.AddHandlerAccessorStatement,
+                    attributeLists:=Nothing,
+                    modifiers:=Nothing,
+                    accessorKeyword:=SyntaxFactory.Token(SyntaxKind.AddHandlerKeyword),
+                    parameterList:=SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(valueParameter))),
+                GetStatementList(statements),
+                SyntaxFactory.EndAddHandlerStatement())
+        End Function
+
+        Friend Shared Function CreateRemoveHandlerAccessorBlock(delegateType As SyntaxNode, statements As IEnumerable(Of SyntaxNode)) As AccessorBlockSyntax
+            Dim asClause = SyntaxFactory.SimpleAsClause(DirectCast(delegateType, TypeSyntax))
+
+            Dim valueParameter = SyntaxFactory.Parameter(
+                attributeLists:=Nothing,
+                modifiers:=Nothing,
+                identifier:=SyntaxFactory.ModifiedIdentifier("value"),
+                asClause:=asClause,
+                [default]:=Nothing)
+
+            Return SyntaxFactory.AccessorBlock(
+                SyntaxKind.RemoveHandlerAccessorBlock,
+                SyntaxFactory.AccessorStatement(
+                    kind:=SyntaxKind.RemoveHandlerAccessorStatement,
+                    attributeLists:=Nothing,
+                    modifiers:=Nothing,
+                    accessorKeyword:=SyntaxFactory.Token(SyntaxKind.RemoveHandlerKeyword),
+                    parameterList:=SyntaxFactory.ParameterList(SyntaxFactory.SingletonSeparatedList(valueParameter))),
+                GetStatementList(statements),
+                SyntaxFactory.EndRemoveHandlerStatement())
+        End Function
+
+        Friend Shared Function CreateRaiseEventAccessorBlock(parameters As IEnumerable(Of SyntaxNode), statements As IEnumerable(Of SyntaxNode)) As AccessorBlockSyntax
+            Dim parameterList = GetParameterList(parameters)
+
+            Return SyntaxFactory.AccessorBlock(
+                SyntaxKind.RaiseEventAccessorBlock,
+                SyntaxFactory.AccessorStatement(
+                    kind:=SyntaxKind.RaiseEventAccessorStatement,
+                    attributeLists:=Nothing,
+                    modifiers:=Nothing,
+                    accessorKeyword:=SyntaxFactory.Token(SyntaxKind.RaiseEventKeyword),
+                    parameterList:=parameterList),
+                GetStatementList(statements),
+                SyntaxFactory.EndRaiseEventStatement())
+        End Function
+
+        Friend Shared Function GetStatementList(nodes As IEnumerable(Of SyntaxNode)) As SyntaxList(Of StatementSyntax)
+            If nodes Is Nothing Then
+                Return Nothing
+            Else
+                Return SyntaxFactory.List(nodes.Select(AddressOf AsStatement))
+            End If
+        End Function
+
+        Friend Shared Function AsStatement(node As SyntaxNode) As StatementSyntax
+            Dim expr = TryCast(node, ExpressionSyntax)
+            If expr IsNot Nothing Then
+                Return SyntaxFactory.ExpressionStatement(expr)
+            Else
+                Return DirectCast(node, StatementSyntax)
+            End If
+        End Function
+
+        Friend Shared Function GetAllowedModifiers(kind As SyntaxKind) As DeclarationModifiers
+            Select Case kind
+                Case SyntaxKind.ClassBlock, SyntaxKind.ClassStatement
+                    Return s_classModifiers
+
+                Case SyntaxKind.EnumBlock, SyntaxKind.EnumStatement
+                    Return DeclarationModifiers.[New]
+
+                Case SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement
+                    Return DeclarationModifiers.[New]
+
+                Case SyntaxKind.InterfaceBlock, SyntaxKind.InterfaceStatement
+                    Return s_interfaceModifiers
+
+                Case SyntaxKind.StructureBlock, SyntaxKind.StructureStatement
+                    Return s_structModifiers
+
+                Case SyntaxKind.FunctionBlock,
+                     SyntaxKind.FunctionStatement,
+                     SyntaxKind.SubBlock,
+                     SyntaxKind.SubStatement,
+                     SyntaxKind.OperatorBlock,
+                     SyntaxKind.OperatorStatement
+                    Return s_methodModifiers
+
+                Case SyntaxKind.ConstructorBlock,
+                     SyntaxKind.SubNewStatement
+                    Return s_constructorModifiers
+
+                Case SyntaxKind.FieldDeclaration
+                    Return s_fieldModifiers
+
+                Case SyntaxKind.PropertyBlock,
+                     SyntaxKind.PropertyStatement
+                    Return s_propertyModifiers
+
+                Case SyntaxKind.EventBlock,
+                     SyntaxKind.EventStatement
+                    Return s_propertyModifiers
+
+                Case SyntaxKind.GetAccessorBlock,
+                     SyntaxKind.GetAccessorStatement,
+                     SyntaxKind.SetAccessorBlock,
+                     SyntaxKind.SetAccessorStatement,
+                     SyntaxKind.AddHandlerAccessorBlock,
+                     SyntaxKind.AddHandlerAccessorStatement,
+                     SyntaxKind.RemoveHandlerAccessorBlock,
+                     SyntaxKind.RemoveHandlerAccessorStatement,
+                     SyntaxKind.RaiseEventAccessorBlock,
+                     SyntaxKind.RaiseEventAccessorStatement
+                    Return s_accessorModifiers
+
+                Case SyntaxKind.EnumMemberDeclaration
+                Case SyntaxKind.Parameter
+                Case SyntaxKind.LocalDeclarationStatement
+                Case Else
+                    Return DeclarationModifiers.None
+            End Select
+        End Function
+
+        Friend Shared Function GetParameterList(parameters As IEnumerable(Of SyntaxNode)) As ParameterListSyntax
+            Return If(parameters IsNot Nothing, SyntaxFactory.ParameterList(SyntaxFactory.SeparatedList(parameters.Cast(Of ParameterSyntax)())), SyntaxFactory.ParameterList())
+        End Function
+
+        Friend Shared Function GetModifierList(accessibility As Accessibility, modifiers As DeclarationModifiers, declaration As SyntaxNode, kind As DeclarationKind, Optional isDefault As Boolean = False) As SyntaxTokenList
+            Dim _list = SyntaxFactory.TokenList()
+
+            ' While partial must always be last in C#, its preferred position in VB is to be first,
+            ' even before accessibility modifiers. This order is enforced by line commit.
+            If modifiers.IsPartial Then
+                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword))
+            End If
+
+            If isDefault Then
+                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.DefaultKeyword))
+            End If
+
+            Select Case (accessibility)
+                Case Accessibility.Internal
+                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword))
+                Case Accessibility.Public
+                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PublicKeyword))
+                Case Accessibility.Private
+                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword))
+                Case Accessibility.Protected
+                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
+                Case Accessibility.ProtectedOrInternal
+                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword)).Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
+                Case Accessibility.ProtectedAndInternal
+                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PrivateKeyword)).Add(SyntaxFactory.Token(SyntaxKind.ProtectedKeyword))
+                Case Accessibility.NotApplicable
+                Case Else
+                    Throw New NotSupportedException(String.Format("Accessibility '{0}' not supported.", accessibility))
+            End Select
+
+            Dim isClass = kind = DeclarationKind.Class OrElse declaration.IsKind(SyntaxKind.ClassStatement)
+            If modifiers.IsAbstract Then
+                If isClass Then
+                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.MustInheritKeyword))
+                Else
+                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.MustOverrideKeyword))
+                End If
+            End If
+
+            If modifiers.IsNew Then
+                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.ShadowsKeyword))
+            End If
+
+            If modifiers.IsSealed Then
+                If isClass Then
+                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.NotInheritableKeyword))
+                Else
+                    _list = _list.Add(SyntaxFactory.Token(SyntaxKind.NotOverridableKeyword))
+                End If
+            End If
+
+            If modifiers.IsOverride Then
+                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.OverridesKeyword))
+            End If
+
+            If modifiers.IsVirtual Then
+                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.OverridableKeyword))
+            End If
+
+            If modifiers.IsStatic Then
+                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.SharedKeyword))
+            End If
+
+            If modifiers.IsAsync Then
+                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.AsyncKeyword))
+            End If
+
+            If modifiers.IsConst Then
+                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.ConstKeyword))
+            End If
+
+            If modifiers.IsReadOnly Then
+                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.ReadOnlyKeyword))
+            End If
+
+            If modifiers.IsWriteOnly Then
+                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.WriteOnlyKeyword))
+            End If
+
+            If modifiers.IsUnsafe Then
+                Throw New NotSupportedException("Unsupported modifier")
+                ''''_list = _list.Add(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword))
+            End If
+
+            If modifiers.IsWithEvents Then
+                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.WithEventsKeyword))
+            End If
+
+            If (kind = DeclarationKind.Field AndAlso _list.Count = 0) Then
+                _list = _list.Add(SyntaxFactory.Token(SyntaxKind.DimKeyword))
+            End If
+
+            Return _list
+        End Function
 #Region "Patterns"
 
         Public Overrides Function SupportsPatterns(options As ParseOptions) As Boolean

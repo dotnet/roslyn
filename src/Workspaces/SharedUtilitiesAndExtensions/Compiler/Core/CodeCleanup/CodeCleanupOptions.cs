@@ -43,24 +43,3 @@ internal sealed record class CodeCleanupOptions
         };
 #endif
 }
-
-internal static class CodeCleanupOptionsProviders
-{
-#if !CODE_STYLE
-    public static CodeCleanupOptions GetCodeCleanupOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowImportsInHiddenRegions = null)
-        => new()
-        {
-            FormattingOptions = options.GetSyntaxFormattingOptions(languageServices),
-            SimplifierOptions = options.GetSimplifierOptions(languageServices),
-            AddImportOptions = options.GetAddImportPlacementOptions(languageServices, allowImportsInHiddenRegions),
-            DocumentFormattingOptions = options.GetDocumentFormattingOptions(),
-        };
-
-    public static async ValueTask<CodeCleanupOptions> GetCodeCleanupOptionsAsync(this Document document, CancellationToken cancellationToken)
-    {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetCodeCleanupOptions(document.Project.Services, document.AllowImportsInHiddenRegions());
-    }
-#endif
-}
-

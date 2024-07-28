@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
         /// </summary>
         /// <remarks>
         /// Example:Full name of <see cref="ImplementTypeOptionsStorage.InsertionBehavior"/> would be:
-        /// implement_type.dotnet_insertion_behavior
+        /// implement_type.dotnet_member_insertion_location
         /// </remarks>
         internal static string GenerateFullNameForOption(IOption2 option)
         {

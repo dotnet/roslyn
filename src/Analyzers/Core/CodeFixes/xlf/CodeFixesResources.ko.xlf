@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Add_explicit_cast">
         <source>Add explicit cast</source>
-        <target state="translated">명시적 캐스트 추가</target>
+        <target state="needs-review-translation">명시적 캐스트 추가</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_file_header">
@@ -62,6 +62,11 @@
         <target state="translated">형식을 '{0}'(으)로 변환</target>
         <note />
       </trans-unit>
+      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
+        <source>Do not change this code. Put cleanup code in '{0}' method</source>
+        <target state="new">Do not change this code. Put cleanup code in '{0}' method</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_all_occurrences_in">
         <source>Fix all occurrences in</source>
         <target state="translated">다음 위치에서 모든 발생 수정</target>
@@ -70,6 +75,71 @@
       <trans-unit id="Fix_name_violation_colon_0">
         <source>Fix name violation: {0}</source>
         <target state="translated">이름 위반 수정: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_all">
+        <source>Generate all</source>
+        <target state="new">Generate all</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_0_1">
+        <source>Generate constructor '{0}({1})'</source>
+        <target state="new">Generate constructor '{0}({1})'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0">
+        <source>Generate constructor in '{0}'</source>
+        <target state="new">Generate constructor in '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0_with_fields">
+        <source>Generate constructor in '{0}' (with fields)</source>
+        <target state="new">Generate constructor in '{0}' (with fields)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0_with_properties">
+        <source>Generate constructor in '{0}' (with properties)</source>
+        <target state="new">Generate constructor in '{0}' (with properties)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_field_assigning_constructor_0_1">
+        <source>Generate field assigning constructor '{0}({1})'</source>
+        <target state="new">Generate field assigning constructor '{0}({1})'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_all_members_explicitly">
+        <source>Implement all members explicitly</source>
+        <target state="new">Implement all members explicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface">
+        <source>Implement interface</source>
+        <target state="new">Implement interface</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_abstractly">
+        <source>Implement interface abstractly</source>
+        <target state="new">Implement interface abstractly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
+        <source>Implement interface explicitly with Dispose pattern</source>
+        <target state="new">Implement interface explicitly with Dispose pattern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_through_0">
+        <source>Implement interface through '{0}'</source>
+        <target state="new">Implement interface through '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_with_Dispose_pattern">
+        <source>Implement interface with Dispose pattern</source>
+        <target state="new">Implement interface with Dispose pattern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_remaining_members_explicitly">
+        <source>Implement remaining members explicitly</source>
+        <target state="new">Implement remaining members explicitly</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
@@ -120,6 +190,26 @@
       <trans-unit id="Suppress_or_configure_issues">
         <source>Suppress or configure issues</source>
         <target state="translated">문제 표시 안 함 또는 구성</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
+        <source>TODO: dispose managed state (managed objects)</source>
+        <target state="new">TODO: dispose managed state (managed objects)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
+        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
+        <target state="new">TODO: free unmanaged resources (unmanaged objects) and override finalizer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
+        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
+        <target state="new">TODO: override finalizer only if '{0}' has code to free unmanaged resources</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_set_large_fields_to_null">
+        <source>TODO: set large fields to null</source>
+        <target state="new">TODO: set large fields to null</target>
         <note />
       </trans-unit>
       <trans-unit id="Take_0">

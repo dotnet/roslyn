@@ -208,7 +208,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             Dim isSupportedTheme = values.isSupportedTheme
             Dim isCustomized = values.isCustomized
-            Editor_color_scheme.Visibility = If(isSupportedTheme, Visibility.Visible, Visibility.Collapsed)
+            Editor_color_scheme.IsEnabled = isSupportedTheme
             Customized_Theme_Warning.Visibility = If(isSupportedTheme AndAlso isCustomized, Visibility.Visible, Visibility.Collapsed)
             Custom_VS_Theme_Warning.Visibility = If(isSupportedTheme, Visibility.Collapsed, Visibility.Visible)
 

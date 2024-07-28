@@ -6,11 +6,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -237,18 +237,14 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
             await FindMostRelevantDeclarationAsync(context.Solution, destination, context.Context.BestLocation, cancellationToken).ConfigureAwait(false);
 
         if (destinationDeclaration == null)
-        {
             throw new ArgumentException(WorkspaceExtensionsResources.Could_not_find_location_to_generation_symbol_into);
-        }
 
         var destinationTree = destinationDeclaration.SyntaxTree;
         var oldDocument = context.Solution.GetRequiredDocument(destinationTree);
-#if CODE_STYLE
-        var codeGenOptions = CodeGenerationOptions.CommonDefaults;
-#else
+
         var codeGenOptions = await oldDocument.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
-#endif
         var info = GetInfo(context.Context, codeGenOptions, destinationDeclaration.SyntaxTree.Options);
+
         var transformedDeclaration = declarationTransform(destinationDeclaration, info, availableIndices, cancellationToken);
 
         var root = await destinationTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -256,13 +252,17 @@ internal abstract partial class AbstractCodeGenerationService<TCodeGenerationCon
 
         var newDocument = oldDocument.WithSyntaxRoot(currentRoot);
 
-#if !CODE_STYLE
         if (context.Context.AddImports)
         {
             var addImportsOptions = await newDocument.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
-            newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(newDocument, addImportsOptions, cancellationToken).ConfigureAwait(false);
+            var service = newDocument.GetRequiredLanguageService<ImportAdderService>();
+            newDocument = await service.AddImportsAsync(
+                newDocument,
+                [currentRoot.FullSpan],
+                ImportAdderService.Strategy.AddImportsFromSymbolAnnotations,
+                addImportsOptions,
+                cancellationToken).ConfigureAwait(false);
         }
-#endif
 
         return newDocument;
     }

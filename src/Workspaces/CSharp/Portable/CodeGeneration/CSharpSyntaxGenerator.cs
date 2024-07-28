@@ -39,8 +39,6 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
     {
     }
 
-    internal override SyntaxTrivia ElasticCarriageReturnLineFeed => SyntaxFactory.ElasticCarriageReturnLineFeed;
-    internal override SyntaxTrivia CarriageReturnLineFeed => SyntaxFactory.CarriageReturnLineFeed;
     internal override SyntaxTrivia ElasticMarker => SyntaxFactory.ElasticMarker;
 
     internal override bool RequiresExplicitImplementationForInterfaceMembers => false;
@@ -49,9 +47,6 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
 
     internal override SyntaxTrivia Whitespace(string text)
         => SyntaxFactory.Whitespace(text);
-
-    internal override SyntaxTrivia SingleLineComment(string text)
-        => SyntaxFactory.Comment("//" + text);
 
     internal override SeparatedSyntaxList<TElement> SeparatedList<TElement>(SyntaxNodeOrTokenList list)
         => SyntaxFactory.SeparatedList<TElement>(list);

@@ -31,12 +31,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
             MyBase.New(editorOperationsFactoryService, globalOptions)
         End Sub
 
-        Protected Overrides Function TryGetNewDocument(
+        Protected Overrides Async Function TryGetNewDocumentAsync(
             document As Document,
-            options As ImplementTypeOptions,
             typeSyntax As TypeSyntax,
             cancellationToken As CancellationToken
-        ) As Document
+        ) As Task(Of Document)
 
             If typeSyntax.Parent.Kind <> SyntaxKind.InheritsStatement Then
                 Return Nothing
@@ -47,14 +46,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.ImplementAbstractClass
                 Return Nothing
             End If
 
-            Dim updatedDocument = ImplementAbstractClassData.TryImplementAbstractClassAsync(
-                document, classBlock, classBlock.ClassStatement.Identifier, options, cancellationToken).WaitAndGetResult(cancellationToken)
-            If updatedDocument IsNot Nothing AndAlso
-                updatedDocument.GetTextChangesAsync(document, cancellationToken).WaitAndGetResult(cancellationToken).Count = 0 Then
+            Dim updatedDocument = Await ImplementAbstractClassData.TryImplementAbstractClassAsync(
+                document, classBlock, classBlock.ClassStatement.Identifier, cancellationToken).ConfigureAwait(False)
+
+            If updatedDocument Is Nothing Then
                 Return Nothing
             End If
 
-            Return updatedDocument
+            Dim changes = Await updatedDocument.GetTextChangesAsync(document, cancellationToken).ConfigureAwait(False)
+            If changes.Any() Then
+                Return updatedDocument
+            End If
+
+            Return Nothing
         End Function
     End Class
 End Namespace

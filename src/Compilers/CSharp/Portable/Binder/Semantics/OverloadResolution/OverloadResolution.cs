@@ -1712,10 +1712,15 @@ outerDefault:
             return currentBestIndex;
         }
 
-        private static void RemoveLowerPriorityMembers<TMemberResolution, TMember>(ArrayBuilder<TMemberResolution> results)
+        private void RemoveLowerPriorityMembers<TMemberResolution, TMember>(ArrayBuilder<TMemberResolution> results)
             where TMemberResolution : IMemberResolutionResultWithPriority<TMember>
             where TMember : Symbol
         {
+            if (!Compilation.IsFeatureEnabled(MessageID.IDS_OverloadResolutionPriority))
+            {
+                return;
+            }
+
             // - Then, the reduced set of candidate members is grouped by declaring type. Within each group:
             //     - Candidate function members are ordered by *overload_resolution_priority*.
             //     - All members that have a lower *overload_resolution_priority* than the highest found within its declaring type group are removed.

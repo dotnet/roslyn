@@ -818,7 +818,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             {
                 [OverloadResolutionPriority(1)]
                 public void M(object o) => System.Console.Write("1");
-                public void M(string s) => throw null;
+                public void M(string s) => System.Console.Write("5");
 
                 [OverloadResolutionPriority(1)]
                 public int this[object o]
@@ -835,8 +835,15 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
                 }
                 public int this[string s]
                 {
-                    get => throw null;
-                    set => throw null;
+                    get
+                    {
+                        System.Console.Write("6");
+                        return 1;
+                    }
+                    set
+                    {
+                        System.Console.Write("7");
+                    }
                 }
 
                 [OverloadResolutionPriority(1)]
@@ -847,7 +854,7 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
 
                 public C(string s)
                 {
-                    throw null;
+                    System.Console.Write("8");
                 }
             }
             """;
@@ -859,9 +866,9 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             // (9,6): error CS9202: Feature 'overload resolution priority' is not available in C# 12.0. Please use language version 13.0 or greater.
             //     [OverloadResolutionPriority(1)]
             Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "OverloadResolutionPriority(1)").WithArguments("overload resolution priority", "13.0").WithLocation(9, 6),
-            // (28,6): error CS9202: Feature 'overload resolution priority' is not available in C# 12.0. Please use language version 13.0 or greater.
+            // (35,6): error CS9202: Feature 'overload resolution priority' is not available in C# 12.0. Please use language version 13.0 or greater.
             //     [OverloadResolutionPriority(1)]
-            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "OverloadResolutionPriority(1)").WithArguments("overload resolution priority", "13.0").WithLocation(28, 6));
+            Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "OverloadResolutionPriority(1)").WithArguments("overload resolution priority", "13.0").WithLocation(35, 6));
 
         var definingComp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition], parseOptions: TestOptions.Regular13).VerifyDiagnostics();
 
@@ -872,8 +879,8 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             c.M("test");
             """;
 
-        // We don't error on consumption, only on definition, so this runs just fine.
-        CompileAndVerify(consumingSource, references: [definingComp.ToMetadataReference()], parseOptions: TestOptions.Regular12, expectedOutput: "4321").VerifyDiagnostics();
+        CompileAndVerify(consumingSource, references: [definingComp.ToMetadataReference()], parseOptions: TestOptions.Regular12, expectedOutput: "8765").VerifyDiagnostics();
+        CompileAndVerify(consumingSource, references: [definingComp.ToMetadataReference()], parseOptions: TestOptions.Regular13, expectedOutput: "4321").VerifyDiagnostics();
     }
 
     [Fact]
@@ -1822,7 +1829,11 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             }
             """;
 
-        CompileAndVerify([source, OverloadResolutionPriorityAttributeDefinition], expectedOutput: "1").VerifyDiagnostics();
+        CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition]).VerifyDiagnostics(
+            // (9,10): error CS9262: Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+            //         [OverloadResolutionPriority(1)]
+            Diagnostic(ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember, "OverloadResolutionPriority(1)").WithLocation(9, 10)
+        );
     }
 
     [Fact]
