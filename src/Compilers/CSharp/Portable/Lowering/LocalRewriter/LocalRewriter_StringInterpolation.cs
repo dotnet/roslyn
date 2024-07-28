@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.ConversionKind == ConversionKind.InterpolatedString);
             BoundExpression format;
             ArrayBuilder<BoundExpression> expressions;
-            // TODO: Last argument could be true for some cases
-            // e.g. - ((FormattableString)$"Now: {DateTime.Now}").ToString(CultureInfo.GetCulture("some-lang"))
-            //      - FormattableString.Invariant($"Now: {DateTime.Now}")
-            MakeInterpolatedStringFormat((BoundInterpolatedString)conversion.Operand, out format, out expressions, false);
+            // Some cases can be optimizable in MakeInterpolatedStringFormat with the usingDirectlyAsString parameter:
+            // e.g. FormattableString.Invariant($"Copyright (c) {year} {CompanyNameConst}")
+            // However, this API has been superseded by InterpolatedStringHandler and string.Create, so it does not deserve to be optimized and should be kept as is.
+            MakeInterpolatedStringFormat((BoundInterpolatedString)conversion.Operand, out format, out expressions);
             expressions.Insert(0, format);
             var stringFactory = _factory.WellKnownType(WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory);
 
@@ -222,11 +222,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (_inExpressionLambda ||
                         fillin.HasErrors ||
                         fillin.Alignment != null ||
-                        fillin.Format != null ||
-                        !(
-                        IsTreatedAsLiteralInStringConcatenation(fillin.Value) ||
-                            fillin.Value.Type is { SpecialType: SpecialType.System_String }
-                        ))
+                        fillin.Format != null)
+                    {
+                        return false;
+                    }
+                    if (!IsTreatedAsLiteralInStringConcatenation(fillin.Value) &&
+                        fillin.Value.Type is not { SpecialType: SpecialType.System_String })
                     {
                         return false;
                     }
@@ -236,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private void MakeInterpolatedStringFormat(BoundInterpolatedString node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions, bool canHideOptimization = false)
+        private void MakeInterpolatedStringFormat(BoundInterpolatedString node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions, bool usingDirectlyAsString = false)
         {
             _factory.Syntax = node.Syntax;
             int n = node.Parts.Length - 1;
@@ -250,7 +251,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (part is BoundStringInsert fillin)
                 {
                     // string or char constants without alignment or format
-                    if (canHideOptimization && fillin is { Alignment: null, Format: null, Value.ConstantValueOpt: { } constantValueOpt })
+                    // Dedicated for interpolated strings treated as string
+                    // (Something like GetArguments() might be called for most ones treated as IFormattable or FormattableString)
+                    if (usingDirectlyAsString && fillin is { Alignment: null, Format: null, Value.ConstantValueOpt: { } constantValueOpt })
                     {
                         switch (constantValueOpt)
                         {
@@ -337,11 +340,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // This must output:
             //     s => Format("string: {0}", s)
             // Therefore, we must convert string interpolations to string.Format naively there.
-            bool canHideOptimization = !_inExpressionLambda;
+            bool usingDirectlyAsString = !_inExpressionLambda;
 
             if (node.InterpolationData is InterpolatedStringHandlerData data)
             {
-                return LowerPartsToString(data, node.Parts, node.Syntax, node.Type, canHideOptimization);
+                return LowerPartsToString(data, node.Parts, node.Syntax, node.Type, usingDirectlyAsString);
             }
             else if (CanLowerToStringConcatenation(node))
             {
@@ -371,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //
                 //     String.Format("argument's literal is: {0}", new object[] { argument })
 
-                MakeInterpolatedStringFormat(node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions, canHideOptimization);
+                MakeInterpolatedStringFormat(node, out BoundExpression format, out ArrayBuilder<BoundExpression> expressions, usingDirectlyAsString);
 
                 // The normal pattern for lowering is to lower subtrees before the enclosing tree. However we cannot lower
                 // the arguments first in this situation because we do not know what conversions will be
@@ -453,10 +456,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return (result!, true);
         }
 
-        private BoundExpression LowerPartsToString(InterpolatedStringHandlerData data, ImmutableArray<BoundExpression> parts, SyntaxNode syntax, TypeSymbol type, bool canHideOptimization = false)
+        private BoundExpression LowerPartsToString(InterpolatedStringHandlerData data, ImmutableArray<BoundExpression> parts, SyntaxNode syntax, TypeSymbol type, bool usingDirectlyAsString = false)
         {
-            var (optimizedParts, increasedLiteralLength, filledHolesCount) = canHideOptimization ? OptimizeAppendFormattedCalls(parts) : (parts, 0, 0);
-            if (canHideOptimization && TryConvertPartsFromHandlerToConcat(optimizedParts) is { } partsForConcat)
+            var (optimizedParts, increasedLiteralLength, filledHolesCount) = usingDirectlyAsString ? OptimizeAppendFormattedCalls(_factory, parts) : (parts, 0, 0);
+            if (usingDirectlyAsString && TryConvertPartsFromHandlerToConcat(optimizedParts) is { } partsForConcat)
             {
                 var (concatResult, requiresVisitAndConversion) = LowerPartsToConcatString(partsForConcat, type);
                 if (requiresVisitAndConversion && !concatResult.HasAnyErrors)
@@ -529,132 +532,239 @@ namespace Microsoft.CodeAnalysis.CSharp
             return builder.ToImmutableAndFree();
         }
 
-        private (ImmutableArray<BoundExpression> Calls, int IncreasedLiteralLength, int FilledHolesCount) OptimizeAppendFormattedCalls(ImmutableArray<BoundExpression> parts)
+        private static (ImmutableArray<BoundExpression> Calls, int IncreasedLiteralLength, int FilledHolesCount) OptimizeAppendFormattedCalls(SyntheticBoundNodeFactory factory, ImmutableArray<BoundExpression> parts)
         {
             var result = ArrayBuilder<BoundExpression>.GetInstance();
-            var currentStringConst = PooledStringBuilder.GetInstance();
-            (BoundCall? AppendLiteralCall, BoundLiteral? StringLiteral) reusable = default;
-            BoundExpression? lastAppendReceiver = null;
+            // Empty while previousUnmergedAppendLiteralCall or previousUnmergedStringLiteral is not null
+            // Never be left freed (must be reset to be a new instance immediately)
+            var currentBeingMergedStringConst = PooledStringBuilder.GetInstance();
+            // All receivers of AppendLiteral/Handler calls should be the same interpolated string handler instance.
+            BoundExpression? firstNonNullHandler = null;
+            // Previous AppendLiteral or AppendFormat call that has not been merged into others yet and can be reused (output as is)
+            // If null, Previous one has been merged into former ones, does not exist, or is not a string literal (e.g. const, nameof, or char)
+            BoundCall? previousUnmergedAppendLiteralCall = null;
+            // Previous string literal that is the argument of previousUnmergedAppendLiteralCall
+            // previousUnmergedStringLiteral can take a non-null value even though previousUnmergedAppendLiteralCall is still null
+            BoundLiteral? previousUnmergedStringLiteral = null;
+            // The below 2 affect on the constructor arguments of string handlers.
             int filledHolesCount = 0;
             int increasedLiteralLength = 0;
+            MethodSymbol? appendLiteralSymbol = null;
 
-            BoundExpression createAppendLiteralCallFromBoundLiteral(BoundLiteral literal, BoundExpression receiver) =>
-                _factory.InstanceCall(receiver, BoundInterpolatedString.AppendLiteralMethod, literal);
-            BoundExpression createAppendLiteralCallFromString(string literal, BoundExpression receiver) =>
-                createAppendLiteralCallFromBoundLiteral(_factory.StringLiteral(literal), receiver);
-            void mergeReusableIntoBuilder()
+            foreach (BoundExpression part in parts)
             {
-                if (reusable.StringLiteral.ConstantValueOpt != null)
+                // BoundDynamicInvocation etc.
+                if (part is not BoundCall call)
                 {
-                    currentStringConst.Builder.Append(reusable.StringLiteral.ConstantValueOpt.StringValue);
-                }
-                reusable = default;
-            }
-            void mergeReusableIntoResult(BoundCall? call = null)
-            {
-                switch (reusable)
-                {
-                    case (not null, _):
-                        result.Add(reusable.AppendLiteralCall);
-                        break;
-                    case (_, not null):
-                        Debug.Assert(call?.ReceiverOpt is not null || lastAppendReceiver is not null);
-                        result.Add(createAppendLiteralCallFromBoundLiteral(reusable.StringLiteral, call?.ReceiverOpt ?? lastAppendReceiver!));
-                        break;
-                    default:
-                        if (currentStringConst.Length > 0)
-                        {
-                            Debug.Assert(call?.ReceiverOpt is not null || lastAppendReceiver is not null);
-                            result.Add(createAppendLiteralCallFromString(currentStringConst.ToStringAndFree(), call?.ReceiverOpt ?? lastAppendReceiver!));
-                            currentStringConst = PooledStringBuilder.GetInstance();
-                        }
-                        return;
-                }
-                reusable = default;
-            }
-
-            foreach (var part in parts)
-            {
-                if (part is not BoundCall { Method.Name: not null, } call)
-                {
-                    mergeReusableIntoResult();
+                    // cannot be merged
+                    if (!tryAddPendingAppendLiteralCallToResult(firstNonNullHandler))
+                        return shouldBeAsIs();
                     result.Add(part);
                     continue;
                 }
 
+                firstNonNullHandler = call.ReceiverOpt ?? firstNonNullHandler;
+
                 switch (call.Method.Name)
                 {
                     case BoundInterpolatedString.AppendFormattedMethod:
-                        {
-                            // never be BoundLiteral (can be BoundLocal), so see ConstantValueOpt instead
-                            if (
-                                call.Arguments is [{ ConstantValueOpt: { IsString: true } or { IsChar: true } or { IsNull: true } } literal]
-                            )
-                            {
-                                if (reusable.StringLiteral is not null)
-                                {
-                                    mergeReusableIntoBuilder();
-                                }
-                                if (literal.ConstantValueOpt is { IsString: true } or { IsNull: true })
-                                {
-                                    if (literal.ConstantValueOpt.StringValue is { Length: var length and not 0 } value)
-                                    {
-                                        currentStringConst.Builder.Append(value);
-                                        increasedLiteralLength += length;
-                                    }
-                                }
-                                else
-                                {
-                                    currentStringConst.Builder.Append(literal.ConstantValueOpt.CharValue);
-                                    increasedLiteralLength++;
-                                }
-                                lastAppendReceiver = call.ReceiverOpt;
-                                filledHolesCount++;
-                            }
-                            else
-                            {
-                                // Calls that cannot be merged
-                                mergeReusableIntoResult(call);
-                                result.Add(part);
-                            }
-                        }
+                        if (!handleAppendFormattedCall(call))
+                            return shouldBeAsIs();
                         break;
                     case BoundInterpolatedString.AppendLiteralMethod:
-                        {
-                            if (call.Arguments is [BoundLiteral { ConstantValueOpt: { IsString: true, StringValue: not null } } literal])
-                            {
-
-                                if (reusable.StringLiteral is null)
-                                {
-                                    if (currentStringConst.Length == 0)
-                                        reusable = (call, literal);
-                                    else
-                                        currentStringConst.Builder.Append(literal.ConstantValueOpt.StringValue);
-                                }
-                                else
-                                {
-                                    // previous is embedded string literal
-                                    mergeReusableIntoBuilder();
-                                    currentStringConst.Builder.Append(literal.ConstantValueOpt.StringValue);
-                                }
-                                lastAppendReceiver = call.ReceiverOpt;
-                            }
-                            else
-                            {
-                                // e.g. using custom DefaultStringHandler
-                                goto default;
-                            }
-                        }
+                        if (!handleAppendLiteralCall(call))
+                            goto default;
                         break;
                     default:
-                        mergeReusableIntoResult(call);
+                        if (!tryAddPendingAppendLiteralCallToResult(firstNonNullHandler))
+                            return shouldBeAsIs();
                         result.Add(part);
                         break;
                 }
             }
-            mergeReusableIntoResult();
-            currentStringConst.Free();
+            if (!tryAddPendingAppendLiteralCallToResult(firstNonNullHandler))
+            {
+                return shouldBeAsIs();
+            }
+            currentBeingMergedStringConst.Free();
             return (result.ToImmutableAndFree(), increasedLiteralLength, filledHolesCount);
+
+            bool handleAppendFormattedCall(BoundCall call)
+            {
+                // can be BoundLocal (const) or something else (e.g. nameof), so don't stick to BoundLiteral
+                // Theoretically, BoundConversion (from string const to object) might come here, but we don't care about it for now because it doesn't come as long as we use the official BCL, which contains the AppendFormatted(string) overload.
+                if (
+                    call.Arguments is [{ ConstantValueOpt: { IsString: true } or { IsChar: true } or { IsNull: true } } literal]
+                )
+                {
+                    if (previousUnmergedStringLiteral is not null)
+                    {
+                        Debug.Assert(currentBeingMergedStringConst.Length == 0);
+                        mergePreviousAppendLiteralStringIntoBuilder();
+                    }
+                    if (literal.ConstantValueOpt is { IsString: true } or { IsNull: true })
+                    {
+                        // not only empty but also null can be omitted because they don't produce anything
+                        if (literal.ConstantValueOpt.StringValue is { Length: int length and not 0 } value)
+                        {
+                            if (currentBeingMergedStringConst.Builder.Length == 0 && literal is BoundLiteral genuineLiteral)
+                            {
+                                previousUnmergedStringLiteral = genuineLiteral;
+                            }
+                            else
+                            {
+                                currentBeingMergedStringConst.Builder.Append(value);
+                            }
+                            increasedLiteralLength += length;
+                        }
+#if DEBUG
+                        else
+                        {
+                            // Discard null or empty literal that doesn't go through the above if statement
+                            Debug.Assert(literal.ConstantValueOpt is { IsNull: true } or { IsString: true, StringValue: null or [] });
+                        }
+#endif
+                    }
+                    else
+                    {
+                        // char literal
+                        // this literal cannot be reused by an AppendLiteral call
+                        Debug.Assert(literal.ConstantValueOpt.IsChar);
+                        currentBeingMergedStringConst.Builder.Append(literal.ConstantValueOpt.CharValue);
+                        increasedLiteralLength++;
+                    }
+                    filledHolesCount++;
+                }
+                else
+                {
+                    // Calls that cannot be merged
+                    if (!tryAddPendingAppendLiteralCallToResult(call.ReceiverOpt))
+                        return false;
+                    result.Add(call);
+                }
+                return true;
+            }
+
+            bool handleAppendLiteralCall(BoundCall call)
+            {
+                if (call.Arguments is not [BoundLiteral { ConstantValueOpt: { IsString: true, StringValue: var value } } literal])
+                {
+                    // Not regular AppendLiteral call (handler.AppendLiteral("literal"))
+                    // e.g. using custom InterpolatedStringHandler (rare)
+                    return false;
+                }
+
+                appendLiteralSymbol = call.Method;
+
+                // Just ignore (null or) empty literal
+                if (string.IsNullOrEmpty(value))
+                {
+                    // We still have a chance to reuse previous (not this) AppendLiteral call
+                    return true;
+                }
+
+                if (previousUnmergedStringLiteral is null && currentBeingMergedStringConst.Length == 0)
+                {
+                    Debug.Assert(previousUnmergedAppendLiteralCall is null);
+                    (previousUnmergedAppendLiteralCall, previousUnmergedStringLiteral) = (call, literal);
+                }
+                else
+                {
+                    // already has pending AppendLiteral; merge into its parameter string
+                    mergePreviousAppendLiteralStringIntoBuilder();
+                    currentBeingMergedStringConst.Builder.Append(value);
+                }
+                return true;
+
+            }
+
+            (ImmutableArray<BoundExpression> Calls, int IncreasedLiteralLength, int FilledHolesCount) shouldBeAsIs()
+            {
+                result.Free();
+                currentBeingMergedStringConst.Free();
+                return (parts, 0, 0);
+            }
+
+            static MethodSymbol? tryGetAppendLiteralCallFromReceiver(BoundExpression receiver)
+            {
+                Debug.Assert(receiver.Type is not null);
+                foreach (var candidate in receiver.Type!.GetMembers(BoundInterpolatedString.AppendLiteralMethod))
+                {
+                    if (candidate is not MethodSymbol methodCandidate)
+                        continue;
+                    if (methodCandidate.IsStatic)
+                        continue;
+                    if (methodCandidate is not { Parameters: [{ Type.SpecialType: SpecialType.System_String }] })
+                        continue;
+                    if (methodCandidate.DeclaredAccessibility != Accessibility.Public)
+                        continue;
+                    return methodCandidate;
+
+                }
+                return null;
+            }
+
+            // This must be called just before modifying previous... or currentBeingMergedStringConst
+            void mergePreviousAppendLiteralStringIntoBuilder()
+            {
+                // other than null or empty literal
+                if (previousUnmergedStringLiteral is { ConstantValueOpt.StringValue: { Length: not 0 } value })
+                {
+                    currentBeingMergedStringConst.Builder.Append(value);
+                }
+                // We will have to newly generate a AppendLiteral without reusing the existing one
+                previousUnmergedAppendLiteralCall = null;
+                previousUnmergedStringLiteral = null;
+            }
+
+            bool tryAddPendingAppendLiteralCallToResult(BoundExpression? handler)
+            {
+                if (previousUnmergedAppendLiteralCall is not null)
+                {
+                    Debug.Assert(currentBeingMergedStringConst.Length == 0);
+                    // single append call; add it as is
+                    result.Add(previousUnmergedAppendLiteralCall);
+                }
+                else
+                {
+                    BoundLiteral? literal = null;
+                    // reuse existing previousUnmergedStringLiteral if possible
+                    if (previousUnmergedStringLiteral is not null)
+                    {
+                        literal = previousUnmergedStringLiteral;
+                        Debug.Assert(currentBeingMergedStringConst.Length == 0);
+
+                    }
+                    else if (currentBeingMergedStringConst.Length != 0)
+                    {
+                        literal = factory.StringLiteral(currentBeingMergedStringConst.ToStringAndFree());
+                        // Don't leave currentBeingMergedStringConst freed; make it available again immediately
+                        currentBeingMergedStringConst = PooledStringBuilder.GetInstance();
+                    }
+                    // You don't have to emit AppendLiteral call if there is no string literal
+                    if (literal is null)
+                    {
+                        Debug.Assert(previousUnmergedStringLiteral == null);
+                        return true;
+                    }
+
+                    // handler should exist because there should be at least one AppendLiteral/Formatted call
+                    if (handler is null)
+                        return false;
+
+                    appendLiteralSymbol ??= tryGetAppendLiteralCallFromReceiver(handler);
+                    if (appendLiteralSymbol is null)
+                        return false;
+
+                    // currentBeingMergedStringConst must have been freed here
+                    result.Add(factory.Call(handler, appendLiteralSymbol, literal));
+                }
+                // You can now forget previous string literal that has just been merged
+                previousUnmergedAppendLiteralCall = null;
+                previousUnmergedStringLiteral = null;
+                Debug.Assert(currentBeingMergedStringConst.Length == 0);
+                return true;
+            }
         }
 
         private readonly struct InterpolationHandlerResult

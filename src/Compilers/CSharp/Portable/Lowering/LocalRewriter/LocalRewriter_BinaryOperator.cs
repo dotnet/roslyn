@@ -117,8 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(node.Type.SpecialType == SpecialType.System_String, "Non-string binary addition should have been handled by VisitConversion or VisitArguments");
                 ImmutableArray<BoundExpression> parts = CollectBinaryOperatorInterpolatedStringParts(node);
                 // We do not have to consider custom handlers or formatters here thanks to the above Debug.Assert, so now we have only to take expression trees into account.
-                var canHideOptimization = !_inExpressionLambda;
-                return LowerPartsToString(data, parts, node.Syntax, node.Type, canHideOptimization);
+                return LowerPartsToString(data, parts, node.Syntax, node.Type, usingDirectlyAsString: !_inExpressionLambda);
             }
 
             if (node.OperatorKind is BinaryOperatorKind.Utf8Addition)

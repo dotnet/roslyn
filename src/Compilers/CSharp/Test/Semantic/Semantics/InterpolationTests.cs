@@ -19305,5 +19305,111 @@ System.Console.Write(expression);";
 }}
 ");
         }
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void MissingAppendLiteral(bool addStringOverload)
+        {
+            var code = """
+using System;
+
+const string C = "C";
+object o = "o";
+Console.WriteLine($"{o}{C}{nameof(C)}{C}");
+
+namespace System.Runtime.CompilerServices
+{
+    using System.Text;
+    using System.Globalization;
+
+    public ref struct DefaultInterpolatedStringHandler
+    {
+        private readonly StringBuilder _builder;
+
+        public DefaultInterpolatedStringHandler(int literalLength, int formattedCount)
+        {
+            _builder = new StringBuilder();
+        }
+
+        public void AppendFormatted(object o)
+        {
+            _builder.Append("[" + o.ToString() + "]");
+        }
+        
+""" + (addStringOverload ? """
+        public void AppendFormatted(string s)
+        {
+            _builder.Append("[" + s + "]");
+        }
+
+""" : "") + """
+        public string ToStringAndClear()
+            => _builder.ToString();
+    }
+}
+""";
+
+            var comp = CreateCompilation(code);
+            var verifier = CompileAndVerify(comp, expectedOutput: "[o][C][C][C]");
+            verifier.VerifyIL("<top-level-statements-entry-point>", addStringOverload ? """
+{
+  // Code size       72 (0x48)
+  .maxstack  3
+  .locals init (object V_0, //o
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+  IL_0000:  ldstr      "o"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.4
+  IL_000a:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloc.0
+  IL_0012:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldstr      "C"
+  IL_001e:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)"
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  ldstr      "C"
+  IL_002a:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)"
+  IL_002f:  ldloca.s   V_1
+  IL_0031:  ldstr      "C"
+  IL_0036:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(string)"
+  IL_003b:  ldloca.s   V_1
+  IL_003d:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+  IL_0042:  call       "void System.Console.WriteLine(string)"
+  IL_0047:  ret
+}
+""" : """
+{
+  // Code size       72 (0x48)
+  .maxstack  3
+  .locals init (object V_0, //o
+                System.Runtime.CompilerServices.DefaultInterpolatedStringHandler V_1)
+  IL_0000:  ldstr      "o"
+  IL_0005:  stloc.0
+  IL_0006:  ldloca.s   V_1
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.4
+  IL_000a:  call       "System.Runtime.CompilerServices.DefaultInterpolatedStringHandler..ctor(int, int)"
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  ldloc.0
+  IL_0012:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_0017:  ldloca.s   V_1
+  IL_0019:  ldstr      "C"
+  IL_001e:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_0023:  ldloca.s   V_1
+  IL_0025:  ldstr      "C"
+  IL_002a:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_002f:  ldloca.s   V_1
+  IL_0031:  ldstr      "C"
+  IL_0036:  call       "void System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.AppendFormatted(object)"
+  IL_003b:  ldloca.s   V_1
+  IL_003d:  call       "string System.Runtime.CompilerServices.DefaultInterpolatedStringHandler.ToStringAndClear()"
+  IL_0042:  call       "void System.Console.WriteLine(string)"
+  IL_0047:  ret
+}
+""");
+        }
     }
 }
