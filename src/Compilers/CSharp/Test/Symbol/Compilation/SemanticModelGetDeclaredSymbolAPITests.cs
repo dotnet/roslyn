@@ -5302,6 +5302,7 @@ class Program
                 .ToArray();
             var valuePropertyDecl = propertyDecls[1];
             var valueProperty = model.GetDeclaredSymbol(valuePropertyDecl);
+            Assert.NotNull(valueProperty);
 
             var initializers = root.DescendantNodes()
                 .OfType<InitializerExpressionSyntax>()
@@ -5357,6 +5358,7 @@ class Program
                 .ToArray();
             var valuePropertyDecl = propertyDecls[1];
             var valueProperty = model.GetDeclaredSymbol(valuePropertyDecl);
+            Assert.NotNull(valueProperty);
 
             var thingInitializer = root.DescendantNodes()
                 .OfType<AssignmentExpressionSyntax>()
@@ -5368,6 +5370,283 @@ class Program
 
             Assert.NotNull(initializedSymbol);
             Assert.True(initializedSymbol.Equals(valueProperty, SymbolEqualityComparer.Default));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        public void ObjectInitializerIncompletePropertyValueDeclaration03()
+        {
+            var source = """
+                public class Thing
+                {
+                    public int Key;
+                    public string? Value;
+                }
+
+                public class Using
+                {
+                    public static Thing CreateThing(int key, string? value)
+                    {
+                        return new()
+                        {
+                            Key = key,
+                            Value,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+            var valueFieldDecl = root.DescendantNodes()
+                .OfType<ClassDeclarationSyntax>()
+                .First()
+                .ChildNodes()
+                .OfType<FieldDeclarationSyntax>()
+                .ElementAt(1)
+                .Declaration.Variables.First();
+            var valueField = model.GetDeclaredSymbol(valueFieldDecl);
+            Assert.NotNull(valueField);
+
+            var initializers = root.DescendantNodes()
+                .OfType<InitializerExpressionSyntax>()
+                .First()
+                .ChildNodes()
+                .ToArray();
+            var initializedSymbol = model.GetSymbolInfo(initializers[1]).Symbol;
+
+            Assert.NotNull(initializedSymbol);
+            Assert.True(initializedSymbol.Equals(valueField, SymbolEqualityComparer.Default));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        public void ObjectInitializerIncompletePropertyValueDeclaration04()
+        {
+            var source = """
+                public class Thing
+                {
+                    public int Key;
+                    public event Action? Handler;
+                }
+
+                public class Using
+                {
+                    public static Thing CreateThing(int key, Action? handler)
+                    {
+                        return new()
+                        {
+                            Key = key,
+                            Handler,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+
+            var initializers = root.DescendantNodes()
+                .OfType<InitializerExpressionSyntax>()
+                .First()
+                .ChildNodes()
+                .ToArray();
+            var initializedSymbol = model.GetSymbolInfo(initializers[1]).Symbol;
+
+            Assert.Null(initializedSymbol);
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        public void ObjectInitializerIncompletePropertyValueDeclaration05()
+        {
+            var source = """
+                public class Thing
+                {
+                    public int Key { get; set; }
+                    public string? Value { get; set; }
+                }
+
+                public class Using
+                {
+                    public static Thing CreateThing(int key, string? value)
+                    {
+                        return new()
+                        {
+                            Value,
+                            Key = key,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+            var propertyDecls = root.DescendantNodes()
+                .OfType<ClassDeclarationSyntax>()
+                .First()
+                .ChildNodes()
+                .OfType<PropertyDeclarationSyntax>()
+                .ToArray();
+            var valuePropertyDecl = propertyDecls[1];
+            var valueProperty = model.GetDeclaredSymbol(valuePropertyDecl);
+            Assert.NotNull(valueProperty);
+
+            var initializers = root.DescendantNodes()
+                .OfType<InitializerExpressionSyntax>()
+                .First()
+                .ChildNodes()
+                .ToArray();
+            var initializedSymbol = model.GetSymbolInfo(initializers[0]).Symbol;
+
+            Assert.NotNull(initializedSymbol);
+            Assert.True(initializedSymbol.Equals(valueProperty, SymbolEqualityComparer.Default));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        public void ObjectInitializerIncompletePropertyValueDeclaration06()
+        {
+            var source = """
+                public class Outer
+                {
+                    public Thing Thing { get; } = new();
+                }
+
+                public class Thing
+                {
+                    public int Key { get; set; }
+                    public string? Value { get; set; }
+                }
+
+                public class Using
+                {
+                    public static Outer CreateOuterThing(int key, string? value)
+                    {
+                        return new()
+                        {
+                            Thing =
+                            {
+                                Value,
+                                Key = key,
+                            }
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+            var propertyDecls = root.DescendantNodes()
+                .OfType<ClassDeclarationSyntax>()
+                .First(s => s.Identifier.Text is "Thing")
+                .ChildNodes()
+                .OfType<PropertyDeclarationSyntax>()
+                .ToArray();
+            var valuePropertyDecl = propertyDecls[1];
+            var valueProperty = model.GetDeclaredSymbol(valuePropertyDecl);
+            Assert.NotNull(valueProperty);
+
+            var thingInitializer = root.DescendantNodes()
+                .OfType<AssignmentExpressionSyntax>()
+                .First(s => s.Left is IdentifierNameSyntax { Identifier.Text: "Thing" })
+                .Right
+                as InitializerExpressionSyntax;
+            var valueInitializer = thingInitializer.Expressions[0];
+            var initializedSymbol = model.GetSymbolInfo(valueInitializer).Symbol;
+
+            Assert.NotNull(initializedSymbol);
+            Assert.True(initializedSymbol.Equals(valueProperty, SymbolEqualityComparer.Default));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        public void ObjectInitializerIncompletePropertyValueDeclaration07()
+        {
+            var source = """
+                public class Thing
+                {
+                    public int Key;
+                    public string? Value;
+                }
+
+                public class Using
+                {
+                    public static Thing CreateThing(int key, string? value)
+                    {
+                        return new()
+                        {
+                            Value,
+                            Key = key,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+            var valueFieldDecl = root.DescendantNodes()
+                .OfType<ClassDeclarationSyntax>()
+                .First()
+                .ChildNodes()
+                .OfType<FieldDeclarationSyntax>()
+                .ElementAt(1)
+                .Declaration.Variables.First();
+            var valueField = model.GetDeclaredSymbol(valueFieldDecl);
+            Assert.NotNull(valueField);
+
+            var initializers = root.DescendantNodes()
+                .OfType<InitializerExpressionSyntax>()
+                .First()
+                .ChildNodes()
+                .ToArray();
+            var initializedSymbol = model.GetSymbolInfo(initializers[0]).Symbol;
+
+            Assert.NotNull(initializedSymbol);
+            Assert.True(initializedSymbol.Equals(valueField, SymbolEqualityComparer.Default));
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        public void ObjectInitializerIncompletePropertyValueDeclaration08()
+        {
+            var source = """
+                public class Thing
+                {
+                    public int Key;
+                    public event Action? Handler;
+                }
+
+                public class Using
+                {
+                    public static Thing CreateThing(int key, Action? handler)
+                    {
+                        return new()
+                        {
+                            Handler,
+                            Key = key,
+                        };
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var root = tree.GetCompilationUnitRoot();
+
+            var initializers = root.DescendantNodes()
+                .OfType<InitializerExpressionSyntax>()
+                .First()
+                .ChildNodes()
+                .ToArray();
+            var initializedSymbol = model.GetSymbolInfo(initializers[0]).Symbol;
+
+            Assert.Null(initializedSymbol);
         }
 
         private static IParameterSymbol VerifyParameter(
