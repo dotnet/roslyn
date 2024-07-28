@@ -6585,7 +6585,12 @@ oneMoreTime:
                     }
                     else
                     {
-                        Debug.Fail("This code path should not be reachable.");
+                        // In object initializers with invalid assignments we can get this operation with a None parent
+                        // So we expect this to be a valid case
+                        if (operation.Parent?.Kind is not OperationKind.None)
+                        {
+                            Debug.Fail("This code path should not be reachable.");
+                        }
                         return MakeInvalidOperation(operation.Syntax, operation.Type, ImmutableArray<IOperation>.Empty);
                     }
 
