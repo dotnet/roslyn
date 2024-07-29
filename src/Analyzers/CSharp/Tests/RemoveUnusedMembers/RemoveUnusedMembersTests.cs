@@ -15,6 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnusedMembers;
 
+using static Microsoft.CodeAnalysis.CSharp.UsePatternCombinators.AnalyzedPattern;
 using VerifyCS = CSharpCodeFixVerifier<
     CSharpRemoveUnusedMembersDiagnosticAnalyzer,
     CSharpRemoveUnusedMembersCodeFixProvider>;
@@ -1486,7 +1487,6 @@ public class RemoveUnusedMembersTests
                     .WithMessage(string.Format(AnalyzersResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked, "MyClass.P"))
                     .WithLocation(0),
             },
-            FixedCode = source,
         }.RunAsync();
     }
 
@@ -1748,13 +1748,24 @@ public class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
     public async Task PropertyIsIncrementedAndValueDropped_VerifyAnalyzerMessage()
     {
-        await VerifyCS.VerifyAnalyzerAsync("""
-            class MyClass
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                class MyClass
+                {
+                    private int {|#0:P|} { get; set; }
+                    public void M1() { ++P; }
+                }
+                """,
+            ExpectedDiagnostics =
             {
-                private int {|IDE0052:P|} { get; set; }
-                public void M1() { ++P; }
-            }
-            """);
+                // Test0.cs(3,17): info IDE0052: Private property 'MyClass.P' can be converted to a method as its get accessor is never invoked.
+                VerifyCS
+                    .Diagnostic(new CSharpRemoveUnusedMembersDiagnosticAnalyzer().SupportedDiagnostics.First(x => x.Id == "IDE0052"))
+                    .WithMessage(string.Format(AnalyzersResources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read, "MyClass.P"))
+                    .WithLocation(0),
+            },
+        }.RunAsync();
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
