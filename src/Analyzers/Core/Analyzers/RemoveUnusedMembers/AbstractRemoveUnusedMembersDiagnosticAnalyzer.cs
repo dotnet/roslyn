@@ -64,6 +64,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
     protected abstract IEnumerable<TTypeDeclarationSyntax> GetTypeDeclarations(INamedTypeSymbol namedType, CancellationToken cancellationToken);
     protected abstract SyntaxList<TMemberDeclarationSyntax> GetMembers(TTypeDeclarationSyntax typeDeclaration);
+    protected abstract SyntaxNode GetParentIfSoleDeclarator(SyntaxNode declaration);
 
     // We need to analyze the whole document even for edits within a method body,
     // because we might add or remove references to members in executable code.
@@ -428,6 +429,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
 
         private void OnSymbolEnd(SymbolAnalysisContext symbolEndContext, bool hasUnsupportedOperation)
         {
+            var cancellationToken = symbolEndContext.CancellationToken;
             if (hasUnsupportedOperation)
             {
                 return;
@@ -445,7 +447,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             using var _1 = PooledHashSet<ISymbol>.GetInstance(out var symbolsReferencedInDocComments);
             using var _2 = ArrayBuilder<string>.GetInstance(out var debuggerDisplayAttributeArguments);
 
-            var entryPoint = symbolEndContext.Compilation.GetEntryPoint(symbolEndContext.CancellationToken);
+            var entryPoint = symbolEndContext.Compilation.GetEntryPoint(cancellationToken);
 
             var namedType = (INamedTypeSymbol)symbolEndContext.Symbol;
             foreach (var member in namedType.GetMembers())
@@ -467,7 +469,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                     {
                         // Bail out if there are syntax errors in any of the declarations of the containing type.
                         // Note that we check this only for the first time that we report an unused or unread member for the containing type.
-                        if (HasSyntaxErrors(namedType, symbolEndContext.CancellationToken))
+                        if (HasSyntaxErrors(namedType, cancellationToken))
                         {
                             return;
                         }
@@ -475,7 +477,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         // Compute the set of candidate symbols referenced in all the documentation comments within the named type declarations.
                         // This set is computed once and used for all the iterations of the loop.
                         AddCandidateSymbolsReferencedInDocComments(
-                            namedType, symbolEndContext.Compilation, symbolsReferencedInDocComments, symbolEndContext.CancellationToken);
+                            namedType, symbolEndContext.Compilation, symbolsReferencedInDocComments, cancellationToken);
 
                         // Compute the set of string arguments to DebuggerDisplay attributes applied to any symbol within the named type declaration.
                         // These strings may have an embedded reference to the symbol.
@@ -513,6 +515,8 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                     var fadingLocation = member.DeclaringSyntaxReferences.FirstOrDefault(
                         r => r.SyntaxTree == diagnosticLocation.SourceTree && r.Span.Contains(diagnosticLocation.SourceSpan));
 
+                    var fadingNode = fadingLocation?.GetSyntax(cancellationToken);
+                    fadingNode = fadingNode != null ? this._analyzer.GetParentIfSoleDeclarator(fadingNode) : null;
 
                     // Most of the members should have a single location, except for partial methods.
                     // We report the diagnostic on the first location of the member.
@@ -522,7 +526,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         NotificationOption2.ForSeverity(rule.DefaultSeverity),
                         symbolEndContext.Options,
                         additionalLocations: default,
-                        additionalUnnecessaryLocations: default,
+                        additionalUnnecessaryLocations: fadingNode is null ? [] : [fadingNode.GetLocation()],
                         properties: null,
                         GetMessage(rule, member)));
                 }
