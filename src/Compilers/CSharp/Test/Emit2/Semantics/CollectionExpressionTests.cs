@@ -29018,8 +29018,8 @@ partial class Program
                 """);
         }
 
-        [Fact]
-        public void ImmutableArray_03()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71159")]
+        public void ImmutableArray_Empty()
         {
             string sourceA = """
                 using System.Collections.Immutable;
@@ -29034,7 +29034,41 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { sourceA, s_collectionExtensions }, targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[],"), verify: Verification.Skipped);
+            var verifier = CompileAndVerify([sourceA, s_collectionExtensions], targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[],"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       17 (0x11)
+                  .maxstack  2
+                  IL_0000:  ldsfld     "System.Collections.Immutable.ImmutableArray<int> System.Collections.Immutable.ImmutableArray<int>.Empty"
+                  IL_0005:  box        "System.Collections.Immutable.ImmutableArray<int>"
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0010:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71159")]
+        public void ImmutableArray_Empty_MissingKnownSingleton()
+        {
+            string sourceA = """
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<int> arr = [];
+                        arr.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([sourceA, s_collectionExtensions], options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[],"), verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main", """
                 {

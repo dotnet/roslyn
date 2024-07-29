@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.InlineHints;
@@ -9,7 +10,6 @@ using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using LSP = Roslyn.LanguageServer.Protocol;
-using System.Text.Json;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
 {
@@ -30,11 +30,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
         public TextDocumentIdentifier GetTextDocumentIdentifier(LSP.InlayHint request)
             => GetInlayHintResolveData(request).TextDocument;
 
-        public async Task<LSP.InlayHint> HandleRequestAsync(LSP.InlayHint request, RequestContext context, CancellationToken cancellationToken)
+        public Task<LSP.InlayHint> HandleRequestAsync(LSP.InlayHint request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.GetRequiredDocument();
+            return ResolveInlayHintAsync(document, request, _inlayHintCache, cancellationToken);
+        }
+
+        internal static async Task<LSP.InlayHint> ResolveInlayHintAsync(Document document, LSP.InlayHint request, InlayHintCache inlayHintCache, CancellationToken cancellationToken)
+        {
             var resolveData = GetInlayHintResolveData(request);
-            var (cacheEntry, inlineHintToResolve) = GetCacheEntry(resolveData);
+            var (cacheEntry, inlineHintToResolve) = GetCacheEntry(resolveData, inlayHintCache);
 
             var currentSyntaxVersion = await document.GetSyntaxVersionAsync(cancellationToken).ConfigureAwait(false);
             var cachedSyntaxVersion = cacheEntry.SyntaxVersion;
@@ -53,9 +58,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.InlayHint
             return request;
         }
 
-        private (InlayHintCache.InlayHintCacheEntry CacheEntry, InlineHint InlineHintToResolve) GetCacheEntry(InlayHintResolveData resolveData)
+        private static (InlayHintCache.InlayHintCacheEntry CacheEntry, InlineHint InlineHintToResolve) GetCacheEntry(InlayHintResolveData resolveData, InlayHintCache inlayHintCache)
         {
-            var cacheEntry = _inlayHintCache.GetCachedEntry(resolveData.ResultId);
+            var cacheEntry = inlayHintCache.GetCachedEntry(resolveData.ResultId);
             Contract.ThrowIfNull(cacheEntry, "Missing cache entry for inlay hint resolve request");
             return (cacheEntry, cacheEntry.InlayHintMembers[resolveData.ListIndex]);
         }

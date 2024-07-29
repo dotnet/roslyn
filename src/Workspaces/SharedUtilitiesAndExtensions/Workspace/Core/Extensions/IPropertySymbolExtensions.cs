@@ -70,4 +70,10 @@ internal static partial class IPropertySymbolExtensions
             => arg.attributesToRemove.Any(attr => attr.Equals(a.AttributeClass)) ||
             a.AttributeClass?.IsAccessibleWithin(arg.accessibleWithin) == false;
     }
+
+    public static bool IsWritableInConstructor(this IPropertySymbol property)
+        => property.SetMethod != null || ContainsBackingField(property);
+
+    private static bool ContainsBackingField(IPropertySymbol property)
+        => property.GetBackingFieldIfAny() != null;
 }

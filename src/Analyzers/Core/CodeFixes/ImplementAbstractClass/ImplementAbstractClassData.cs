@@ -57,8 +57,7 @@ internal sealed class ImplementAbstractClassData(
         if (abstractClassType == null || !abstractClassType.IsAbstractClass())
             return null;
 
-        var generator = document.GetRequiredLanguageService<ICodeGenerationService>();
-        if (!generator.CanAddTo(classType, document.Project.Solution, cancellationToken))
+        if (!CodeGenerator.CanAdd(document.Project.Solution, classType, cancellationToken))
             return null;
 
         var unimplementedMembers = classType.GetAllUnimplementedMembers(
