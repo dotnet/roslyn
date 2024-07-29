@@ -7842,4 +7842,119 @@ partial struct CustomHandler
         var method = model.GetInterceptorMethod(node);
         Assert.Equal("void SC.M1(this C c)", method.ToTestDisplayString());
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void Receiver_RefReturn_NotCapturedToTemp()
+    {
+        var source = CSharpTestSource.Parse("""
+            using System;
+
+            public struct S
+            {
+                public int F;
+
+                static S s;
+                static ref S RS() => ref s;
+
+                void M() => throw null!;
+
+                public static void Main()
+                {
+                    RS().F = 1;
+                    Console.Write(RS().F);
+                    RS().M();
+                    Console.Write(RS().F);
+                }
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source);
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single(i => i.ToString() == "RS().M()");
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            public static class SC
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static void M1(this ref S s) => s.F = 2;
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        var verifier = CompileAndVerify([source, interceptors, s_attributesTree], expectedOutput: "12");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("S.Main", """
+            {
+              // Code size       52 (0x34)
+              .maxstack  2
+              IL_0000:  call       "ref S S.RS()"
+              IL_0005:  ldc.i4.1
+              IL_0006:  stfld      "int S.F"
+              IL_000b:  call       "ref S S.RS()"
+              IL_0010:  ldfld      "int S.F"
+              IL_0015:  call       "void System.Console.Write(int)"
+              IL_001a:  call       "ref S S.RS()"
+              IL_001f:  call       "void SC.M1(ref S)"
+              IL_0024:  call       "ref S S.RS()"
+              IL_0029:  ldfld      "int S.F"
+              IL_002e:  call       "void System.Console.Write(int)"
+              IL_0033:  ret
+            }
+            """);
+
+        comp = (CSharpCompilation)verifier.Compilation;
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        Assert.Equal("void SC.M1(this ref S s)", method.ToTestDisplayString());
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71657")]
+    public void CannotReturnRefToImplicitTemp()
+    {
+        var source = CSharpTestSource.Parse("""
+            using System;
+            using System.Diagnostics.CodeAnalysis;
+
+            public ref struct S
+            {
+                static Span<int> Test()
+                {
+                    return new S().M();
+                }
+
+                [UnscopedRef]
+                public Span<int> M() => default;
+            }
+            """, "Program.cs", RegularWithInterceptors);
+
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(8,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+            //         return new S().M();
+            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "new S()").WithLocation(8, 16));
+
+        var model = comp.GetSemanticModel(source);
+        var node = source.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single(i => i.ToString() == "new S().M()");
+        var locationSpecifier = model.GetInterceptableLocation(node)!;
+
+        var interceptors = CSharpTestSource.Parse($$"""
+            using System;
+
+            static class D
+            {
+                {{locationSpecifier.GetInterceptsLocationAttributeSyntax()}}
+                public static Span<int> M(this ref S s) => default;
+            }
+            """, "Interceptors.cs", RegularWithInterceptors);
+
+        comp = CreateCompilation([source, interceptors, s_attributesTree], targetFramework: TargetFramework.Net90);
+        comp.VerifyEmitDiagnostics(
+            // Program.cs(8,16): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
+            //         return new S().M();
+            Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "new S()").WithLocation(8, 16));
+
+        model = comp.GetSemanticModel(source);
+        var method = model.GetInterceptorMethod(node);
+        AssertEx.Equal("System.Span<System.Int32> D.M(this ref S s)", method.ToTestDisplayString());
+    }
 }
