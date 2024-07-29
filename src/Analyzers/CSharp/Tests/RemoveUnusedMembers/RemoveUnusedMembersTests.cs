@@ -1808,18 +1808,16 @@ public class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
     public async Task IndexerIsIncrementedAndValueDropped_VerifyAnalyzerMessage()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
-                private int {|#0:this|}[int x] { get { return 0; } set { } }
+                [|private int {|#0:this|}[int x] { get { return 0; } set { } }|]
                 public void M1(int x) => ++this[x];
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
-            CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
-            .WithLocation(0)
-            .WithArguments("MyClass.this"));
+            """, new DiagnosticResult(
+                CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
+                    .WithLocation(0)
+                    .WithArguments("MyClass.this"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
