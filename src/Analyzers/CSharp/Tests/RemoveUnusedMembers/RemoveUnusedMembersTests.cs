@@ -1466,7 +1466,7 @@ public class RemoveUnusedMembersTests
             """
             class MyClass
             {
-                private int {|IDE0052:P|} { get; set; }
+                private int {|#0:P|} { get; set; }
                 public void M()
                 {
                     P = 0;

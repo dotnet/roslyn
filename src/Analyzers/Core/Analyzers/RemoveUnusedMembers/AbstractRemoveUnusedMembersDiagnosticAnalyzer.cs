@@ -543,35 +543,32 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
             }
         }
 
-        private LocalizableString GetMessage(
+        private static LocalizableString GetMessage(
            DiagnosticDescriptor rule,
-           ISymbol member)
+           ISymbol member,
+           bool isConvertibleProperty)
         {
-            var messageFormat = rule.MessageFormat;
+            var memberString = member.ToDisplayString(ContainingTypeAndNameOnlyFormat);
+
             if (rule == s_removeUnreadMembersRule)
             {
                 // IDE0052 has a different message for method and property symbols.
                 switch (member)
                 {
                     case IMethodSymbol:
-                        messageFormat = AnalyzersResources.Private_method_0_can_be_removed_as_it_is_never_invoked;
-                        break;
+                        return new DiagnosticHelper.LocalizableStringWithArguments(
+                            AnalyzersResources.Private_method_0_can_be_removed_as_it_is_never_invoked,
+                            memberString);
 
-                    case IPropertySymbol property when isConvertibleProperty:
-                        // We change the message only if both 'get' and 'set' accessors are present and
-                        // there are no shadow 'get' accessor usages. Otherwise the message will be confusing
-                        if (property.GetMethod != null && property.SetMethod != null &&
-                            !_propertiesWithShadowGetAccessorUsages.Contains(property))
-                        {
-                            messageFormat = AnalyzersResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked;
-                        }
-
-                        break;
+                    case IPropertySymbol when isConvertibleProperty:
+                        return new DiagnosticHelper.LocalizableStringWithArguments(
+                            AnalyzersResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked,
+                            memberString);
                 }
             }
 
             return new DiagnosticHelper.LocalizableStringWithArguments(
-                messageFormat, member.ToDisplayString(ContainingTypeAndNameOnlyFormat));
+                rule.MessageFormat, memberString);
         }
 
         private static bool HasSyntaxErrors(INamedTypeSymbol namedTypeSymbol, CancellationToken cancellationToken)
