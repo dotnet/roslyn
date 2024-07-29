@@ -345,6 +345,27 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Theory, CombinatorialData]
+    public void Conversion_Array_Span_Implicit_SpanClass(
+        [CombinatorialValues("Span", "ReadOnlySpan")] string type)
+    {
+        var source = $$"""
+            using System;
+            {{type}}<int> s =
+                arr();
+            static int[] arr() => new int[] { 1, 2, 3 };
+
+            namespace System
+            {
+                public class {{type}}<T>;
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (3,5): error CS0029: Cannot implicitly convert type 'int[]' to 'System.Span<int>'
+            //     arr();
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arr()").WithArguments("int[]", $"System.{type}<int>").WithLocation(3, 5));
+    }
+
+    [Theory, CombinatorialData]
     public void Conversion_Array_Span_Implicit_DifferentOperator(
         [CombinatorialValues("int[]", "T[][]")] string parameterType)
     {
