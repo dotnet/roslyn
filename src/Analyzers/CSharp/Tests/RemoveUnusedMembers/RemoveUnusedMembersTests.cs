@@ -1748,24 +1748,18 @@ public class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
     public async Task PropertyIsIncrementedAndValueDropped_VerifyAnalyzerMessage()
     {
-        await new VerifyCS.Test
-        {
-            TestCode = """
-                class MyClass
-                {
-                    private int {|#0:P|} { get; set; }
-                    public void M1() { ++P; }
-                }
-                """,
-            ExpectedDiagnostics =
+        var code = """
+            class MyClass
             {
-                // Test0.cs(3,17): info IDE0052: Private property 'MyClass.P' can be converted to a method as its get accessor is never invoked.
-                VerifyCS
-                    .Diagnostic(new CSharpRemoveUnusedMembersDiagnosticAnalyzer().SupportedDiagnostics.First(x => x.Id == "IDE0052"))
-                    .WithMessage(string.Format(AnalyzersResources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read, "MyClass.P"))
-                    .WithLocation(0),
-            },
-        }.RunAsync();
+                private int {|#0:P|} { get; set; }
+                public void M1() { ++P; }
+            }
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
+            CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
+            .WithLocation(0)
+            .WithArguments("MyClass.P"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
@@ -1814,13 +1808,18 @@ public class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
     public async Task IndexerIsIncrementedAndValueDropped_VerifyAnalyzerMessage()
     {
-        await VerifyCS.VerifyAnalyzerAsync("""
+        var code = """
             class MyClass
             {
-                private int {|IDE0052:this|}[int x] { get { return 0; } set { } }
+                private int {|#0:this|}[int x] { get { return 0; } set { } }
                 public void M1(int x) => ++this[x];
             }
-            """);
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
+            CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
+            .WithLocation(0)
+            .WithArguments("MyClass.this"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
@@ -1925,13 +1924,18 @@ public class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
     public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalyzerMessage()
     {
-        await VerifyCS.VerifyAnalyzerAsync("""
+        var code = """
             class MyClass
             {
-                private int {|IDE0052:P|} { get; set; }
+                private int {|#0:P|} { get; set; }
                 public void M1(int x) { P += x; }
             }
-            """);
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
+            CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
+            .WithLocation(0)
+            .WithArguments("MyClass.P"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
@@ -1980,13 +1984,18 @@ public class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
     public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalyzerMessage()
     {
-        await VerifyCS.VerifyAnalyzerAsync("""
+        var code = """
             class MyClass
             {
-                private int {|IDE0052:this|}[int x] { get { return 0; } set { } }
+                private int {|#0:this|}[int x] { get { return 0; } set { } }
                 public void M1(int x, int y) => this[x] += y;
             }
-            """);
+            """;
+
+        await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
+            CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
+            .WithLocation(0)
+            .WithArguments("MyClass.this"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
@@ -3165,9 +3174,11 @@ public class RemoveUnusedMembersTests
             """
             class C
             {
-                private [|C|](int i) { }
+                private {|#0:C|}(int i) { }
             }
-            """);
+            """,
+            // /0/Test0.cs(3,13): info IDE0051: Private member 'C.C' is unused
+            VerifyCS.Diagnostic("IDE0051").WithLocation(0).WithArguments("C.C"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62856")]
