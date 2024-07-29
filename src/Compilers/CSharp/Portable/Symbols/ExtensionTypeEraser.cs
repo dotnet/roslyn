@@ -32,17 +32,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Delegate:
                 case TypeKind.Enum:
                 case TypeKind.Error:
-                    return TransformNamedType((NamedTypeSymbol)type, out changed);
+                    return TransformExcludingSelf((NamedTypeSymbol)type, out changed);
                 case TypeKind.Extension:
                     return TransformExtension((NamedTypeSymbol)type, out changed);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
             }
-        }
-
-        internal static NamedTypeSymbol TransformExcludingSelf(NamedTypeSymbol type, out bool changed)
-        {
-            return TransformNamedType(type, out changed);
         }
 
         private static TypeSymbol TransformExtension(NamedTypeSymbol type, out bool changed)
@@ -63,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            TypeSymbol transformedExtended = TransformNamedType(type, out bool changedExtended);
+            TypeSymbol transformedExtended = TransformExcludingSelf(type, out bool changedExtended);
             if (changedExtended)
             {
                 changed = true;
@@ -84,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.WithTypeAndModifiers(transformedType, type.CustomModifiers);
         }
 
-        private static NamedTypeSymbol TransformNamedType(NamedTypeSymbol type, out bool changed)
+        internal static NamedTypeSymbol TransformExcludingSelf(NamedTypeSymbol type, out bool changed)
         {
             changed = false;
 

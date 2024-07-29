@@ -1189,6 +1189,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             return Translate((TypeSymbol)symbol, syntaxOpt, diagnostics, eraseExtensions: true);
         }
+
         /// <param name="eraseExtensions">
         /// When translating for purpose of serializing a type into a string for the extension erasure attribute, we should keep extensions.
         /// </param>
