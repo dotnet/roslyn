@@ -44,6 +44,47 @@ namespace Microsoft.CodeAnalysis.LanguageServer;
 /// </remarks>
 internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
 {
+    private class LspUriComparer : IEqualityComparer<Uri>
+    {
+        public static readonly LspUriComparer Instance = new();
+        public bool Equals(Uri? x, Uri? y)
+        {
+            // Compare the absolute URIs to handle the case where one URI is encoded and the other is not.
+            // By default, Uri.Equals will not consider the encoded version of a URI equal to the unencoded version.
+            //
+            // The client is expected to be consistent in how it sends the URIs (either encoded or unencoded).
+            // So we normally can safely store the URIs as they send us in our map and expect subsequent requests to be encoded in the same way and match.
+            // See https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#uri
+            //
+            // However when we serialize URIs to the client, we serialize the AbsoluteUri property which is always % encoded (no matter the original representation).
+            // For some requests, the client sends us exactly back what we sent (e.g. the data in a codelens/resolve request).
+            // This means that for these requests, the URI we will get from the client is the encoded version (that we sent).
+            // If the client sent us an unencoded URI originally, Uri.Equals will not consider it equal to the encoded version and we will fail to find the document
+            //
+            // So in order to resolve the encoded URI to the correct text, we can compare the AbsoluteUri properties (which are always encoded).
+            if (x is not null && y is not null && x.IsAbsoluteUri && y.IsAbsoluteUri && x.AbsoluteUri == y.AbsoluteUri)
+            {
+                return true;
+            }
+            else
+            {
+                return Uri.Equals(x, y);
+            }
+        }
+
+        public int GetHashCode(Uri obj)
+        {
+            if (obj.IsAbsoluteUri)
+            {
+                return obj.AbsoluteUri.GetHashCode();
+            }
+            else
+            {
+                return obj.GetHashCode();
+            }
+        }
+    }
+
     /// <summary>
     /// A cache from workspace to the last solution we returned for LSP.
     /// <para/> The forkedFromVersion is not null when the solution was created from a fork of the workspace with LSP
@@ -61,7 +102,7 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
     /// the URI.
     /// <para/> Access to this is guaranteed to be serial by the <see cref="RequestExecutionQueue{RequestContextType}"/>
     /// </summary>
-    private ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> _trackedDocuments = ImmutableDictionary<Uri, (SourceText, string)>.Empty;
+    private ImmutableDictionary<Uri, (SourceText Text, string LanguageId)> _trackedDocuments = ImmutableDictionary<Uri, (SourceText, string)>.Empty.WithComparers(LspUriComparer.Instance);
 
     private readonly ILspLogger _logger;
     private readonly LspMiscellaneousFilesWorkspace? _lspMiscellaneousFilesWorkspace;
