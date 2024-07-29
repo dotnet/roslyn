@@ -4310,6 +4310,15 @@ namespace Microsoft.CodeAnalysis
                         1,
                         (byte)SignatureTypeCode.GenericTypeParameter, 0,
 
+                // System_Collections_Immutable_ImmutableArray_T__Empty
+                (byte)(MemberFlags.Field | MemberFlags.Static),                                                             // Flags
+                (byte)WellKnownType.System_Collections_Immutable_ImmutableArray_T,                                          // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    (byte)SignatureTypeCode.GenericTypeInstance,                                                            // Field Signature
+                        (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Collections_Immutable_ImmutableArray_T,
+                        1,
+                        (byte)SignatureTypeCode.GenericTypeParameter, 0,
+
                 // System_Collections_Generic_List_T__AddRange
                 (byte)MemberFlags.Method,                                                                                   // Flags
                 (byte)WellKnownType.System_Collections_Generic_List_T,                                                      // DeclaringTypeId
@@ -4859,6 +4868,7 @@ namespace Microsoft.CodeAnalysis
                 "CopyTo",                                   // System_Span_T__CopyTo_Span_T
                 "CopyTo",                                   // System_ReadOnlySpan_T__CopyTo_Span_T
                 "AsSpan",                                   // System_Collections_Immutable_ImmutableArray_T__AsSpan
+                "Empty",                                    // System_Collections_Immutable_ImmutableArray_T__Empty
                 "AddRange",                                 // System_Collections_Generic_List_T__AddRange
                 ".ctor",                                    // System_Runtime_CompilerServices_ParamCollectionAttribute__ctor
             };
