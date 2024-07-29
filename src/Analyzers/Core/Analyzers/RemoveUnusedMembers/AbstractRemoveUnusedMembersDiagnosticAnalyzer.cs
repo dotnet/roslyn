@@ -45,7 +45,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         EnforceOnBuildValues.RemoveUnusedMembers,
         new LocalizableResourceString(nameof(AnalyzersResources.Remove_unused_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_is_unused), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        hasAnyCodeStyleOption: false, isUnnecessary: true);
+        hasAnyCodeStyleOption: false, isUnnecessary: false);
 
     // IDE0052: "Remove unread members" (Value is written and/or symbol is referenced, but the assigned value is never read)
     // Internal for testing
@@ -54,7 +54,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
         EnforceOnBuildValues.RemoveUnreadMembers,
         new LocalizableResourceString(nameof(AnalyzersResources.Remove_unread_private_members), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         new LocalizableResourceString(nameof(AnalyzersResources.Private_member_0_can_be_removed_as_the_value_assigned_to_it_is_never_read), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        hasAnyCodeStyleOption: false, isUnnecessary: true);
+        hasAnyCodeStyleOption: false, isUnnecessary: false);
 
     protected AbstractRemoveUnusedMembersDiagnosticAnalyzer()
         : base([s_removeUnusedMembersRule, s_removeUnreadMembersRule],
@@ -509,17 +509,22 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         continue;
                     }
 
+                    var diagnosticLocation = GetDiagnosticLocation(member);
+                    var fadingLocation = member.DeclaringSyntaxReferences.FirstOrDefault(
+                        r => r.SyntaxTree == diagnosticLocation.SourceTree && r.Span.Contains(diagnosticLocation.SourceSpan));
+
+
                     // Most of the members should have a single location, except for partial methods.
                     // We report the diagnostic on the first location of the member.
-                    var diagnostic = DiagnosticHelper.CreateWithMessage(
+                    symbolEndContext.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
                         rule,
-                        GetDiagnosticLocation(member),
+                        diagnosticLocation,
                         NotificationOption2.ForSeverity(rule.DefaultSeverity),
                         symbolEndContext.Options,
-                        additionalLocations: null,
+                        additionalLocations: default,
+                        additionalUnnecessaryLocations: default,
                         properties: null,
-                        GetMessage(rule, member));
-                    symbolEndContext.ReportDiagnostic(diagnostic);
+                        GetMessage(rule, member)));
                 }
             }
         }
