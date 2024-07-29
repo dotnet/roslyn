@@ -3187,7 +3187,7 @@ public class RemoveUnusedMembersTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62856")]
-    public async Task DontWarnForAwaiterMethods()
+    public async Task DoNotWarnForAwaiterMethods()
     {
         const string code = """
             using System;
