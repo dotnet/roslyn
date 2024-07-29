@@ -1745,7 +1745,7 @@ public class RemoveUnusedMembersTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
-    public async Task PropertyIsIncrementedAndValueDropped_VerifyAnalizerMessage()
+    public async Task PropertyIsIncrementedAndValueDropped_VerifyAnalyzerMessage()
     {
         var code = """
             class MyClass
@@ -1805,7 +1805,7 @@ public class RemoveUnusedMembersTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
-    public async Task IndexerIsIncrementedAndValueDropped_VerifyAnalizerMessage()
+    public async Task IndexerIsIncrementedAndValueDropped_VerifyAnalyzerMessage()
     {
         var code = """
             class MyClass
@@ -3176,8 +3176,8 @@ public class RemoveUnusedMembersTests
                 private C(int i) { }
             }
             """,
-// /0/Test0.cs(3,13): info IDE0051: Private member 'C.C' is unused
-VerifyCS.Diagnostic("IDE0051").WithSpan(3, 13, 3, 14).WithArguments("C.C"));
+            // /0/Test0.cs(3,13): info IDE0051: Private member 'C.C' is unused
+            VerifyCS.Diagnostic("IDE0051").WithSpan(3, 5, 3, 25).WithArguments("C.C"));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62856")]

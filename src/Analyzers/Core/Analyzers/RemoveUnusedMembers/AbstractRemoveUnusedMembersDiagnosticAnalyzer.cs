@@ -515,7 +515,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                     var fadingLocation = member.DeclaringSyntaxReferences.FirstOrDefault(
                         r => r.SyntaxTree == diagnosticLocation.SourceTree && r.Span.Contains(diagnosticLocation.SourceSpan));
 
-                    var fadingNode = fadingLocation?.GetSyntax(cancellationToken);
+                    var fadingNode = fadingLocation?.GetSyntax(cancellationToken) ?? diagnosticLocation.FindNode(cancellationToken);
                     fadingNode = fadingNode != null ? this._analyzer.GetParentIfSoleDeclarator(fadingNode) : null;
 
                     // Most of the members should have a single location, except for partial methods.
