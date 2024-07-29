@@ -1758,8 +1758,9 @@ public class RemoveUnusedMembersTests
 
         await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
             CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
-            .WithLocation(0)
-            .WithArguments("MyClass.P"));
+                .WithLocation(0)
+                .WithArguments("MyClass.P")
+                .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
@@ -1811,13 +1812,14 @@ public class RemoveUnusedMembersTests
         await VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
-                [|private int {|#0:this|}[int x] { get { return 0; } set { } }|]
+                private int {|#0:this|}[int x] { get { return 0; } set { } }
                 public void M1(int x) => ++this[x];
             }
             """, new DiagnosticResult(
                 CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
                     .WithLocation(0)
-                    .WithArguments("MyClass.this"));
+                    .WithArguments("MyClass.this")
+                    .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
@@ -1932,8 +1934,9 @@ public class RemoveUnusedMembersTests
 
         await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
             CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
-            .WithLocation(0)
-            .WithArguments("MyClass.P"));
+                .WithLocation(0)
+                .WithArguments("MyClass.P")
+                .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
@@ -1992,8 +1995,9 @@ public class RemoveUnusedMembersTests
 
         await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
             CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
-            .WithLocation(0)
-            .WithArguments("MyClass.this"));
+                .WithLocation(0)
+                .WithArguments("MyClass.this")
+                .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
@@ -3176,7 +3180,10 @@ public class RemoveUnusedMembersTests
             }
             """,
             // /0/Test0.cs(3,13): info IDE0051: Private member 'C.C' is unused
-            VerifyCS.Diagnostic("IDE0051").WithLocation(0).WithArguments("C.C"));
+            VerifyCS.Diagnostic("IDE0051")
+                .WithLocation(0)
+                .WithArguments("C.C")
+                .WithOptions(DiagnosticOptions.IgnoreAdditionalLocations));
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62856")]
