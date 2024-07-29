@@ -5806,7 +5806,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (!hasErrors)
                             {
                                 // TODO: distinct error code for collection initializers?  (Dev11 doesn't have one.)
-                                Error(diagnostics, ErrorCode.ERR_ReadonlyValueTypeInObjectInitializer, (CSharpSyntaxNode)leftSyntax, fieldSymbol, fieldSymbol.Type);
+                                Error(diagnostics, ErrorCode.ERR_ReadonlyValueTypeInObjectInitializer, leftSyntax, fieldSymbol, fieldSymbol.Type);
                                 hasErrors = true;
                             }
 
@@ -5993,10 +5993,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var memberInitializerSyntax = boundMemberInitializer.Syntax;
 
-                var memberNameSyntax = memberInitializerSyntax as IdentifierNameSyntax;
-                if (memberInitializerSyntax is AssignmentExpressionSyntax assignment)
+                IdentifierNameSyntax memberNameSyntax;
+                if (memberInitializerSyntax is AssignmentExpressionSyntax namedAssignment)
                 {
-                    memberNameSyntax = assignment.Left as IdentifierNameSyntax;
+                    Debug.Assert(memberInitializerSyntax.IsKind(SyntaxKind.SimpleAssignmentExpression));
+                    memberNameSyntax = namedAssignment.Left as IdentifierNameSyntax;
+                }
+                else
+                {
+                    Debug.Assert(memberInitializerSyntax.IsKind(SyntaxKind.IdentifierName));
+                    memberNameSyntax = (IdentifierNameSyntax)memberInitializerSyntax;
                 }
 
                 if (memberNameSyntax != null)
