@@ -146,6 +146,28 @@ configuration:
       triggerOnOwnActions: false
     - if:
       - payloadType: Pull_Request
+      - filesMatchPattern:
+          pattern: src/(Analyzers|CodeStyle|Features|LanguageServer|Workspaces)/.*\.(cs|vb)
+      - not:
+          isActivitySender:
+            user: dotnet-bot
+            issueAuthor: False
+      - or:
+        - isAction:
+            action: Opened
+        - isAction:
+            action: Synchronize
+      - and:
+        - not:
+            hasLabel:
+              label: VSCode
+      then:
+      - addLabel:
+          label: VSCode
+      description: Adds "VSCode" tag on PRs which may affect C# extension.
+      triggerOnOwnActions: false
+    - if:
+      - payloadType: Pull_Request
       - isPullRequest
       - filesMatchPattern:
           pattern: '[xX][aA][mM][lL]$'
