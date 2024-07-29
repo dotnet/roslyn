@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
@@ -1462,28 +1461,25 @@ public class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/33994")]
     public async Task PropertyIsOnlyWritten()
     {
-        var source =
-            """
-            class MyClass
-            {
-                private int {|#0:P|} { get; set; }
-                public void M()
-                {
-                    P = 0;
-                }
-            }
-            """;
-
-        var descriptor = new CSharpRemoveUnusedMembersDiagnosticAnalyzer().SupportedDiagnostics.First(x => x.Id == "IDE0052");
-        var expectedMessage = string.Format(AnalyzersResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked, "MyClass.P");
-
         await new VerifyCS.Test
         {
-            TestCode = source,
+            TestCode = """
+                class MyClass
+                {
+                    private int {|#0:P|} { get; set; }
+                    public void M()
+                    {
+                        P = 0;
+                    }
+                }
+                """,
             ExpectedDiagnostics =
             {
                 // Test0.cs(3,17): info IDE0052: Private property 'MyClass.P' can be converted to a method as its get accessor is never invoked.
-                VerifyCS.Diagnostic(descriptor).WithMessage(expectedMessage).WithLocation(0),
+                VerifyCS
+                    .Diagnostic(new CSharpRemoveUnusedMembersDiagnosticAnalyzer().SupportedDiagnostics.First(x => x.Id == "IDE0052"))
+                    .WithMessage(string.Format(AnalyzersResources.Private_property_0_can_be_converted_to_a_method_as_its_get_accessor_is_never_invoked, "MyClass.P"))
+                    .WithLocation(0),
             },
             FixedCode = source,
         }.RunAsync();
