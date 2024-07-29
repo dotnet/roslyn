@@ -290,9 +290,11 @@
     <PackageVersion Include="xunit.extensibility.execution" Version="$(xunitVersion)" />
     <PackageVersion Include="XunitXml.TestLogger" Version="2.1.26" />
     <PackageVersion Include="runtime.win-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
+    <PackageVersion Include="runtime.linux-arm64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
     <PackageVersion Include="runtime.linux-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
     <PackageVersion Include="runtime.osx-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
     <PackageVersion Include="runtime.win-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
+    <PackageVersion Include="runtime.linux-arm64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="runtime.linux-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="runtime.osx-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="Basic.CompilerLog.Util" Version="0.6.1" />
