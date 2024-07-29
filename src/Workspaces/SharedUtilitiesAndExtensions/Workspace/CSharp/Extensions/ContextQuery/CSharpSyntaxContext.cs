@@ -27,7 +27,6 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
     public readonly bool IsGenericTypeArgumentContext;
     public readonly bool IsImplicitOrExplicitOperatorTypeContext;
     public readonly bool IsInNonUserCode;
-    public readonly bool IsInstanceContext;
     public readonly bool IsIsOrAsOrSwitchOrWithExpressionContext;
     public readonly bool IsIsOrAsTypeContext;
     public readonly bool IsLabelContext;
@@ -156,7 +155,6 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
         this.IsGenericTypeArgumentContext = isGenericTypeArgumentContext;
         this.IsImplicitOrExplicitOperatorTypeContext = isImplicitOrExplicitOperatorTypeContext;
         this.IsInNonUserCode = isInNonUserCode;
-        this.IsInstanceContext = isInstanceContext;
         this.IsIsOrAsOrSwitchOrWithExpressionContext = isIsOrAsOrSwitchOrWithExpressionContext;
         this.IsIsOrAsTypeContext = isIsOrAsTypeContext;
         this.IsLabelContext = isLabelContext;
