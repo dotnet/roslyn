@@ -268,23 +268,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void RefProperty()
-        {
-            string source = """
-                class C
-                {
-                    ref int P => ref field;
-                }
-                """;
-            // PROTOTYPE: Should report: error CS8145: Auto-implemented properties cannot return by reference
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics(
-                // (3,22): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     ref int P => ref field;
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 22));
-        }
-
-        [Fact]
         public void Attribute_01()
         {
             string source = """

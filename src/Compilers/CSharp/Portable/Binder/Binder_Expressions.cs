@@ -1467,8 +1467,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw ExceptionUtilities.UnexpectedValue(ContainingMember());
             }
 
-            // PROTOTYPE: We're not applying any checks to this field reference. What checks do we
-            // use when referencing an explicitly-declared field, and which of those should be used here?
             var implicitReceiver = field.IsStatic ? null : ThisReference(node, field.ContainingType, wasCompilerGenerated: true);
             return new BoundFieldAccess(node, implicitReceiver, field, constantValueOpt: null);
         }
@@ -1791,8 +1789,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void ReportFieldContextualKeywordConflict(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
         {
             string name = identifier.Text;
-            // PROTOTYPE: Report the diagnostic in LanguageParser.ParseTermWithoutPostfix() (regardless
-            // of whether we treat the 'field' token as an identifier or keyword) rather than here.
             var requiredVersion = MessageID.IDS_FeatureFieldKeyword.RequiredVersion();
             diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
         }

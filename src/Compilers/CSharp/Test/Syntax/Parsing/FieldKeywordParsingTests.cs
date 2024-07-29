@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Context_Property_Initializer(
+        public void Property_Initializer(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             bool expectedParsedAsToken = false;
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Context_Property_ExpressionBody(
+        public void Property_ExpressionBody(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12;
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Context_PropertyGet_ExpressionBody(
+        public void PropertyGet_ExpressionBody(
            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12;
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Context_PropertyGet_BlockBody(
+        public void PropertyGet_BlockBody(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12;
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Context_PropertySet_BlockBody(
+        public void PropertySet_BlockBody(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useInit)
         {
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Context_Indexer_ExpressionBody(
+        public void Indexer_ExpressionBody(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             bool expectedParsedAsToken = false;
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Context_IndexerGet_ExpressionBody(
+        public void IndexerGet_ExpressionBody(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             bool expectedParsedAsToken = false;
@@ -440,7 +440,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Context_IndexerGet_BlockBody(
+        public void IndexerGet_BlockBody(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             bool expectedParsedAsToken = false;
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Context_IndexerSet_BlockBody(
+        public void IndexerSet_BlockBody(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useInit)
         {
@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Context_EventAccessor(
+        public void EventAccessor(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useRemove)
         {
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Context_ExplicitImplementation_PropertySet_BlockBody(
+        public void ExplicitImplementation_PropertySet_BlockBody(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useInit)
         {
@@ -732,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Context_ExplicitImplementation_IndexerSet_BlockBody(
+        public void ExplicitImplementation_IndexerSet_BlockBody(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useInit)
         {
@@ -833,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingTree($$"""
                 class C
                 {
-                    object P { set { {{GetFieldIdentifier(escapeIdentifier)}}(); } }
+                    object P => {{GetFieldIdentifier(escapeIdentifier)}}();
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -852,33 +852,365 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.ObjectKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "P");
-                        N(SyntaxKind.AccessorList);
+                        N(SyntaxKind.ArrowExpressionClause);
                         {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.SetAccessorDeclaration);
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.InvocationExpression);
                             {
-                                N(SyntaxKind.SetKeyword);
-                                N(SyntaxKind.Block);
+                                IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
+                                N(SyntaxKind.ArgumentList);
                                 {
-                                    N(SyntaxKind.OpenBraceToken);
-                                    N(SyntaxKind.ExpressionStatement);
-                                    {
-                                        N(SyntaxKind.InvocationExpression);
-                                        {
-                                            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
-                                            N(SyntaxKind.ArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.CloseParenToken);
-                                            }
-                                        }
-                                        N(SyntaxKind.SemicolonToken);
-                                    }
-                                    N(SyntaxKind.CloseBraceToken);
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.CloseParenToken);
                                 }
                             }
-                            N(SyntaxKind.CloseBraceToken);
                         }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ElementAccess(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            bool escapeIdentifier)
+        {
+            UsingTree($$"""
+                class C
+                {
+                    object P => {{GetFieldIdentifier(escapeIdentifier)}}[0];
+                }
+                """,
+                TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.ElementAccessExpression);
+                            {
+                                IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
+                                N(SyntaxKind.BracketedArgumentList);
+                                {
+                                    N(SyntaxKind.OpenBracketToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.NumericLiteralExpression);
+                                        {
+                                            N(SyntaxKind.NumericLiteralToken, "0");
+                                        }
+                                    }
+                                    N(SyntaxKind.CloseBracketToken);
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PreIncrement(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            bool escapeIdentifier)
+        {
+            UsingTree($$"""
+                class C
+                {
+                    object P => ++{{GetFieldIdentifier(escapeIdentifier)}};
+                }
+                """,
+                TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.PreIncrementExpression);
+                            {
+                                N(SyntaxKind.PlusPlusToken);
+                                IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PostIncrement(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            bool escapeIdentifier)
+        {
+            UsingTree($$"""
+                class C
+                {
+                    object P => {{GetFieldIdentifier(escapeIdentifier)}}++;
+                }
+                """,
+                TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.PostIncrementExpression);
+                            {
+                                IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
+                                N(SyntaxKind.PlusPlusToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PointerIndirection(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            bool escapeIdentifier)
+        {
+            UsingTree($$"""
+                class C
+                {
+                    object P => *{{GetFieldIdentifier(escapeIdentifier)}};
+                }
+                """,
+                TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.PointerIndirectionExpression);
+                            {
+                                N(SyntaxKind.AsteriskToken);
+                                IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void PointerMemberAccess(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            bool escapeIdentifier)
+        {
+            UsingTree($$"""
+                class C
+                {
+                    object P => {{GetFieldIdentifier(escapeIdentifier)}}->F;
+                }
+                """,
+                TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.PointerMemberAccessExpression);
+                            {
+                                IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
+                                N(SyntaxKind.MinusGreaterThanToken);
+                                N(SyntaxKind.IdentifierName);
+                                {
+                                    N(SyntaxKind.IdentifierToken, "F");
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ConditionalAccess(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            bool escapeIdentifier)
+        {
+            UsingTree($$"""
+                class C
+                {
+                    object P => {{GetFieldIdentifier(escapeIdentifier)}}?.F;
+                }
+                """,
+                TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.ConditionalAccessExpression);
+                            {
+                                IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
+                                N(SyntaxKind.QuestionToken);
+                                N(SyntaxKind.MemberBindingExpression);
+                                {
+                                    N(SyntaxKind.DotToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "F");
+                                    }
+                                }
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NullableSuppression(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            bool escapeIdentifier)
+        {
+            UsingTree($$"""
+                class C
+                {
+                    object P => {{GetFieldIdentifier(escapeIdentifier)}}!;
+                }
+                """,
+                TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.SuppressNullableWarningExpression);
+                            {
+                                IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
+                                N(SyntaxKind.ExclamationToken);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -897,7 +1229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             UsingTree($$"""
                 class C
                 {
-                    object P { set { F({{identifier}}, {{identifier}}, out {{identifier}}); } }
+                    object P => F({{identifier}}, {{identifier}}, out {{identifier}});
                 }
                 """,
                 TestOptions.Regular.WithLanguageVersion(languageVersion));
@@ -916,51 +1248,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                             N(SyntaxKind.ObjectKeyword);
                         }
                         N(SyntaxKind.IdentifierToken, "P");
-                        N(SyntaxKind.AccessorList);
+                        N(SyntaxKind.ArrowExpressionClause);
                         {
-                            N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.SetAccessorDeclaration);
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.InvocationExpression);
                             {
-                                N(SyntaxKind.SetKeyword);
-                                N(SyntaxKind.Block);
+                                N(SyntaxKind.IdentifierName);
                                 {
-                                    N(SyntaxKind.OpenBraceToken);
-                                    N(SyntaxKind.ExpressionStatement);
+                                    N(SyntaxKind.IdentifierToken, "F");
+                                }
+                                N(SyntaxKind.ArgumentList);
+                                {
+                                    N(SyntaxKind.OpenParenToken);
+                                    N(SyntaxKind.Argument);
                                     {
-                                        N(SyntaxKind.InvocationExpression);
-                                        {
-                                            N(SyntaxKind.IdentifierName);
-                                            {
-                                                N(SyntaxKind.IdentifierToken, "F");
-                                            }
-                                            N(SyntaxKind.ArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenParenToken);
-                                                N(SyntaxKind.Argument);
-                                                {
-                                                    IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
-                                                }
-                                                N(SyntaxKind.CommaToken);
-                                                N(SyntaxKind.Argument);
-                                                {
-                                                    IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
-                                                }
-                                                N(SyntaxKind.CommaToken);
-                                                N(SyntaxKind.Argument);
-                                                {
-                                                    N(SyntaxKind.OutKeyword);
-                                                    IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
-                                                }
-                                                N(SyntaxKind.CloseParenToken);
-                                            }
-                                        }
-                                        N(SyntaxKind.SemicolonToken);
+                                        IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
                                     }
-                                    N(SyntaxKind.CloseBraceToken);
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
+                                    }
+                                    N(SyntaxKind.CommaToken);
+                                    N(SyntaxKind.Argument);
+                                    {
+                                        N(SyntaxKind.OutKeyword);
+                                        IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
+                                    }
+                                    N(SyntaxKind.CloseParenToken);
                                 }
                             }
-                            N(SyntaxKind.CloseBraceToken);
                         }
+                        N(SyntaxKind.SemicolonToken);
                     }
                     N(SyntaxKind.CloseBraceToken);
                 }
@@ -1135,8 +1454,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             EOF();
         }
-
-        // PROTOTYPE: Test the other cases from LanguageParser.ParsePostFixExpression: (), [0], ++, ->, ., ?, !
 
         [Theory]
         [CombinatorialData]
@@ -1532,9 +1849,5 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 EOF();
             }
         }
-
-        // PROTOTYPE: Test all possible identifier token cases. See FieldKeywordTests.IdentifierToken_*. Already covered:
-        // IdentifierToken_IdentifierNameSyntax
-        // IdentifierToken_CatchDeclarationSyntax
     }
 }

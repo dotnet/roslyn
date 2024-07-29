@@ -11203,8 +11203,6 @@ done:;
                             }
                             else if (IsCurrentTokenFieldInKeywordContext() && PeekToken(1).Kind != SyntaxKind.ColonColonToken)
                             {
-                                // PROTOTYPE: Report ErrorCode.INF_IdentifierConflictWithContextualKeyword here (regardless
-                                // of whether we treat the 'field' token as an identifier or keyword) rather than in the Binder.
                                 var token = this.EatContextualToken(CurrentToken.ContextualKind);
                                 if (token.Kind != SyntaxKind.FieldKeyword)
                                 {
