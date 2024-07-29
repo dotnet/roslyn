@@ -200,7 +200,7 @@ internal static partial class Extensions
         {
             IMethodSymbol { PartialDefinitionPart: var def } => def,
             IPropertySymbol { PartialDefinitionPart: var def } => def,
-            _ => symbol
+            _ => null
         };
 
     public static ISymbol? PartialImplementationPart(this ISymbol symbol)
@@ -208,7 +208,7 @@ internal static partial class Extensions
         {
             IMethodSymbol { PartialImplementationPart: var impl } => impl,
             IPropertySymbol { PartialImplementationPart: var impl } => impl,
-            _ => symbol
+            _ => null
         };
 
     /// <summary>
