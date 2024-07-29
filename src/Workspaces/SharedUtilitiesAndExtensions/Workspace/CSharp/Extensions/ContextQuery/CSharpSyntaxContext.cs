@@ -125,6 +125,7 @@ internal sealed class CSharpSyntaxContext : SyntaxContext
               isGlobalStatementContext: isGlobalStatementContext,
               isInImportsDirective: isInImportsDirective,
               isInQuery: isInQuery,
+              isInstanceContext: isInstanceContext,
               isTaskLikeTypeContext: isTaskLikeTypeContext,
               isNameOfContext: isNameOfContext,
               isNamespaceContext: isNamespaceContext,

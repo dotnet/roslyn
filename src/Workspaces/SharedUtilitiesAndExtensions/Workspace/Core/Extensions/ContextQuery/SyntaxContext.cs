@@ -52,6 +52,7 @@ internal abstract class SyntaxContext
     public bool IsStatementContext { get; }
     public bool IsTypeContext { get; }
     public bool IsWithinAsyncMethod { get; }
+    public bool IsInstanceContext { get; }
 
     public ImmutableArray<ITypeSymbol> InferredTypes { get; }
 
@@ -72,6 +73,7 @@ internal abstract class SyntaxContext
         bool isGlobalStatementContext,
         bool isInImportsDirective,
         bool isInQuery,
+        bool isInstanceContext,
         bool isTaskLikeTypeContext,
         bool isNameOfContext,
         bool isNamespaceContext,
@@ -106,6 +108,7 @@ internal abstract class SyntaxContext
         this.IsGlobalStatementContext = isGlobalStatementContext;
         this.IsInImportsDirective = isInImportsDirective;
         this.IsInQuery = isInQuery;
+        this.IsInstanceContext = isInstanceContext;
         this.IsTaskLikeTypeContext = isTaskLikeTypeContext;
         this.IsNameOfContext = isNameOfContext;
         this.IsNamespaceContext = isNamespaceContext;

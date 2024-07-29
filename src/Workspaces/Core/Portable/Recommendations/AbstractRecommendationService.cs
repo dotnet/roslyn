@@ -142,8 +142,7 @@ internal abstract partial class AbstractRecommendationService<
 
             // Primary constructor parameters should not appear in static context
             if (_context.IsStatementContext &&
-                !_context.IsAnyExpressionContext &&
-                !symbol.IsStatic &&
+                !_context.IsInstanceContext &&
                 isConstructorParameter)
             {
                 // Only referrable when inside a nameof

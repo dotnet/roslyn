@@ -659,6 +659,43 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         End Function
 
         <Extension()>
+        Friend Function IsInstanceContext(syntaxTree As SyntaxTree, targetToken As SyntaxToken, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
+
+            ' Reference to the respective C# SyntaxTreeExtensions.IsInstanceContext implementation
+            ' It's possible the caller is asking about a speculative semantic model, and may have moved before the
+            ' bounds of that model (for example, while looking at the nearby tokens around an edit).  If so, ensure we
+            ' walk outwards to the correct model to actually ask this question of.
+            Dim position = targetToken.SpanStart
+            If semanticModel.IsSpeculativeSemanticModel AndAlso position < semanticModel.OriginalPositionForSpeculation Then
+                semanticModel = semanticModel.GetOriginalSemanticModel()
+            End If
+
+            Dim enclosingSymbol = semanticModel.GetEnclosingSymbol(position, cancellationToken)
+
+            While TypeOf enclosingSymbol Is IMethodSymbol
+                Dim method = DirectCast(enclosingSymbol, IMethodSymbol)
+                Dim methodKind = method.MethodKind
+                If methodKind = MethodKind.AnonymousFunction Then
+                    If method.IsStatic Then
+                        Return False
+                    End If
+
+                    ' It Is allowed to reference the instance (`Me`) within an anonymous function, as long as the containing method allows it
+                    enclosingSymbol = enclosingSymbol.ContainingSymbol
+                Else
+                    Exit While
+                End If
+            End While
+
+            If enclosingSymbol Is Nothing Then
+                Return True
+            End If
+
+            Return Not enclosingSymbol.IsStatic
+
+        End Function
+
+        <Extension()>
         Friend Function IsStartOfSelectCaseBlock(syntaxTree As SyntaxTree, position As Integer, token As SyntaxToken, cancellationToken As CancellationToken) As Boolean
             Return syntaxTree.IsAfterStatementOfKind(position, token, cancellationToken, SyntaxKind.SelectStatement)
         End Function
