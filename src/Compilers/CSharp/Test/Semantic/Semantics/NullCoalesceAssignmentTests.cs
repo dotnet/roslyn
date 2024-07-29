@@ -602,7 +602,7 @@ class C
 
             var typeInfo = model.GetTypeInfo(node);
             Assert.Null(typeInfo.Type);
-            Assert.True(typeInfo.ConvertedType.IsErrorType());
+            Assert.Null(typeInfo.ConvertedType);
 
             var assignmentNode = descendantNodes.OfType<AssignmentExpressionSyntax>().Single();
             var assignmentTypeInfo = model.GetTypeInfo(assignmentNode);
@@ -1002,7 +1002,7 @@ class C
 
             var typeInfo = model.GetTypeInfo(node);
             Assert.Equal("System.String", typeInfo.Type.ToTestDisplayString());
-            Assert.True(typeInfo.ConvertedType.IsErrorType());
+            Assert.Equal("System.String", typeInfo.ConvertedType.ToTestDisplayString());
 
             var assignmentNode = descendantNodes.OfType<AssignmentExpressionSyntax>().Single();
             var assignmentTypeInfo = model.GetTypeInfo(assignmentNode);

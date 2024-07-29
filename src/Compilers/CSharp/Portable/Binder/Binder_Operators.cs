@@ -4171,23 +4171,23 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol leftType = leftOperand.Type;
 
-            // If left operand is bad, bail out immediately
-            if (leftOperand.HasAnyErrors)
+            var rightOperandTargetType = leftType switch
+            {
+                { IsReferenceType: true } or { IsValueType: false, TypeKind: TypeKind.TypeParameter } => leftType,
+                { IsValueType: true } when leftType.IsNullableType() => leftType.GetNullableUnderlyingType(),
+                _ => null
+            };
+
+            // If left operand is bad or we cannot determine the type of right operand type should be, take the default error recovery path
+            if (leftOperand.HasAnyErrors || rightOperandTargetType is null)
             {
                 leftOperand = BindToTypeForErrorRecovery(leftOperand);
                 rightOperand = BindToTypeForErrorRecovery(rightOperand);
                 return new BoundNullCoalescingAssignmentOperator(node, leftOperand, rightOperand, CreateErrorType(), hasErrors: true);
             }
-            // If right operand is bad, make sure conversion is in place for better error recovery
+            // If right operand is bad, but we can know its type, make sure conversion is in place for better error recovery
             else if (rightOperand.HasAnyErrors)
             {
-                var rightOperandTargetType = leftType switch
-                {
-                    { IsReferenceType: true } or { IsValueType: false, TypeKind: TypeKind.TypeParameter } => leftType,
-                    { IsValueType: true } when leftType.IsNullableType() => leftType.GetNullableUnderlyingType(),
-                    _ => CreateErrorType()
-                };
-
                 var conversion = GenerateConversionForAssignment(rightOperandTargetType, rightOperand, diagnostics, ConversionForAssignmentFlags.CompoundAssignment);
                 return new BoundNullCoalescingAssignmentOperator(node, leftOperand, conversion, rightOperandTargetType, hasErrors: true);
             }
