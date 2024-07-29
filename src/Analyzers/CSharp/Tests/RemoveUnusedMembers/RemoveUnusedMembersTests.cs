@@ -29,19 +29,20 @@ public class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/31582")]
     public async Task FieldReadViaSuppression()
     {
-        var code = """
-            #nullable enable
-            class MyClass
-            {
-                string? _field = null;
-                public void M()
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                #nullable enable
+                class MyClass
                 {
-                    _field!.ToString();
+                    string? _field = null;
+                    public void M()
+                    {
+                        _field!.ToString();
+                    }
                 }
-            }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(code, code);
+                """
+        }.RunAsync();
     }
 
     [Theory]
@@ -52,14 +53,16 @@ public class RemoveUnusedMembersTests
     [InlineData("private protected")]
     public async Task NonPrivateField(string accessibility)
     {
-        var code = $$"""
-            class MyClass
-            {
-                {{accessibility}} int _goo;
-            }
-            """;
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                class MyClass
+                {
+                    {{accessibility}} int _goo;
+                }
+                """,
+        }.RunAsync();
 
-        await VerifyCS.VerifyCodeFixAsync(code, code);
     }
 
     [Theory]
@@ -70,14 +73,15 @@ public class RemoveUnusedMembersTests
     [InlineData("private protected")]
     public async Task NonPrivateFieldWithConstantInitializer(string accessibility)
     {
-        var code = $$"""
-            class MyClass
-            {
-                {{accessibility}} int _goo = 0;
-            }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(code, code);
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                class MyClass
+                {
+                    {{accessibility}} int _goo = 0;
+                }
+                """,
+        }.RunAsync();
     }
 
     [Theory]
@@ -88,15 +92,16 @@ public class RemoveUnusedMembersTests
     [InlineData("private protected")]
     public async Task NonPrivateFieldWithNonConstantInitializer(string accessibility)
     {
-        var code = $$"""
-            class MyClass
-            {
-                {{accessibility}} int _goo = _goo2;
-                private static readonly int _goo2 = 0;
-            }
-            """;
-
-        await VerifyCS.VerifyCodeFixAsync(code, code);
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                class MyClass
+                {
+                    {{accessibility}} int _goo = _goo2;
+                    private static readonly int _goo2 = 0;
+                }
+                """,
+        }.RunAsync();
     }
 
     [Theory]

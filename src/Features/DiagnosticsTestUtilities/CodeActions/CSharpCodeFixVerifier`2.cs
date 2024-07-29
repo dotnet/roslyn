@@ -50,7 +50,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         }
 
         /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.VerifyCodeFixAsync(string, string)"/>
-        public static async Task VerifyCodeFixAsync(string source, string fixedSource)
+        public static async Task VerifyCodeFixAsync(
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source,
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string fixedSource)
             => await VerifyCodeFixAsync(source, DiagnosticResult.EmptyDiagnosticResults, fixedSource);
 
         /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.VerifyCodeFixAsync(string, DiagnosticResult, string)"/>
