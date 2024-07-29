@@ -18,8 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IParameterSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\IPropertySymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.CompilationTypeGenerator.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.SubstituteTypesVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_CreateEqualsMethod.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\ISyntaxFormattingService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingStylePreferencesProviders.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\MemberDisplayOptions.cs" />
@@ -40,7 +39,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ICodeGenerationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\INamedTypeSymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ITypeGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\LiteralSpecialValues.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\NullableSyntaxAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\CodeGenerationAbstractMethodSymbol.cs" />
@@ -84,8 +82,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\HostWorkspaceServicesExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.CollectTypeParameterSymbolsVisitor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\KnownTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringBuilderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions.cs" />

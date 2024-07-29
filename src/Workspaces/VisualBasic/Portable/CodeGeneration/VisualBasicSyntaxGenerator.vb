@@ -27,8 +27,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Friend Overrides ReadOnly Property ElasticMarker As SyntaxTrivia = SyntaxFactory.ElasticMarker
 
-        Friend Overrides ReadOnly Property RequiresExplicitImplementationForInterfaceMembers As Boolean = True
-
         Friend Overrides ReadOnly Property SyntaxGeneratorInternal As SyntaxGeneratorInternal = VisualBasicSyntaxGeneratorInternal.Instance
 
         Friend Overrides Function Whitespace(text As String) As SyntaxTrivia
@@ -379,10 +377,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
         Public Overrides Function ThrowExpression(expression As SyntaxNode) As SyntaxNode
             Throw New NotSupportedException("ThrowExpressions are not supported in Visual Basic")
-        End Function
-
-        Friend Overrides Function SupportsThrowExpression() As Boolean
-            Return False
         End Function
 
         Public Overrides Function NameExpression(namespaceOrTypeSymbol As INamespaceOrTypeSymbol) As SyntaxNode
