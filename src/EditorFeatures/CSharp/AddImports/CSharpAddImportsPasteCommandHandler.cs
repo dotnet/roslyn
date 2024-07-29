@@ -32,4 +32,5 @@ internal class CSharpAddImportsPasteCommandHandler(IThreadingContext threadingCo
 {
     public override string DisplayName => CSharpEditorResources.Add_Missing_Usings_on_Paste;
     protected override string DialogText => CSharpEditorResources.Adding_missing_usings;
+
 }
