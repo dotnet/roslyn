@@ -12,20 +12,14 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 [Export, Shared]
-internal sealed class DotnetCliHelper
+[ImportingConstructor]
+[Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class DotnetCliHelper(ILoggerFactory loggerFactory)
 {
     internal const string DotnetRootEnvVar = "DOTNET_ROOT";
 
-    private readonly ILogger _logger;
-    private readonly Lazy<string> _dotnetExecutablePath;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public DotnetCliHelper(ILoggerFactory loggerFactory)
-    {
-        _logger = loggerFactory.CreateLogger<DotnetCliHelper>();
-        _dotnetExecutablePath = new Lazy<string>(() => GetDotNetPathOrDefault());
-    }
+    private readonly ILogger _logger = loggerFactory.CreateLogger<DotnetCliHelper>();
+    private readonly Lazy<string> _dotnetExecutablePath = new Lazy<string>(() => GetDotNetPathOrDefault());
 
     /// <summary>
     /// The folder the dotnet executable is in could contain multiple SDK paths.
