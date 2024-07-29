@@ -511,12 +511,22 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         continue;
                     }
 
+                    // We change the message only if both 'get' and 'set' accessors are present and
+                    // there are no shadow 'get' accessor usages. Otherwise the message will be confusing
+                    var isConvertibleProperty =
+                        member is IPropertySymbol { GetMethod: not null, SetMethod: not null } property2 &&
+                        !_propertiesWithShadowGetAccessorUsages.Contains(property2);
+
                     var diagnosticLocation = GetDiagnosticLocation(member);
                     var fadingLocation = member.DeclaringSyntaxReferences.FirstOrDefault(
                         r => r.SyntaxTree == diagnosticLocation.SourceTree && r.Span.Contains(diagnosticLocation.SourceSpan));
 
                     var fadingNode = fadingLocation?.GetSyntax(cancellationToken) ?? diagnosticLocation.FindNode(cancellationToken);
                     fadingNode = fadingNode != null ? this._analyzer.GetParentIfSoleDeclarator(fadingNode) : null;
+
+                    var additionalUnnecessaryLocations = !isConvertibleProperty && fadingNode is not null
+                        ? [fadingNode.GetLocation()]
+                        : ImmutableArray<Location>.Empty;
 
                     // Most of the members should have a single location, except for partial methods.
                     // We report the diagnostic on the first location of the member.
@@ -525,9 +535,9 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         diagnosticLocation,
                         NotificationOption2.ForSeverity(rule.DefaultSeverity),
                         symbolEndContext.Options,
-                        message: GetMessage(rule, member),
+                        message: GetMessage(rule, member, isConvertibleProperty),
                         additionalLocations: [],
-                        additionalUnnecessaryLocations: fadingNode is null ? [] : [fadingNode.GetLocation()],
+                        additionalUnnecessaryLocations: additionalUnnecessaryLocations,
                         properties: null));
                 }
             }
@@ -547,7 +557,7 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         messageFormat = AnalyzersResources.Private_method_0_can_be_removed_as_it_is_never_invoked;
                         break;
 
-                    case IPropertySymbol property:
+                    case IPropertySymbol property when isConvertibleProperty:
                         // We change the message only if both 'get' and 'set' accessors are present and
                         // there are no shadow 'get' accessor usages. Otherwise the message will be confusing
                         if (property.GetMethod != null && property.SetMethod != null &&

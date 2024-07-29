@@ -1466,7 +1466,7 @@ public class RemoveUnusedMembersTests
             """
             class MyClass
             {
-                private int {|#0:P|} { get; set; }
+                private int {|IDE0052:P|} { get; set; }
                 public void M()
                 {
                     P = 0;
@@ -1747,18 +1747,13 @@ public class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
     public async Task PropertyIsIncrementedAndValueDropped_VerifyAnalyzerMessage()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
-                private int P { get; set; }
+                private int {|IDE0052:P|} { get; set; }
                 public void M1() { ++P; }
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
-            CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
-            .WithSpan(3, 17, 3, 18)
-            .WithArguments("MyClass.P"));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
@@ -1807,18 +1802,13 @@ public class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
     public async Task IndexerIsIncrementedAndValueDropped_VerifyAnalyzerMessage()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
-                private int this[int x] { get { return 0; } set { } }
+                private int {|IDE0052:this|}[int x] { get { return 0; } set { } }
                 public void M1(int x) => ++this[x];
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
-            CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
-            .WithSpan(3, 17, 3, 21)
-            .WithArguments("MyClass.this"));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
@@ -1921,20 +1911,15 @@ public class RemoveUnusedMembersTests
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
-    public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalizerMessage()
+    public async Task PropertyIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalyzerMessage()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
-                private int P { get; set; }
+                private int {|IDE0052:P|} { get; set; }
                 public void M1(int x) { P += x; }
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
-            CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
-            .WithSpan(3, 17, 3, 18)
-            .WithArguments("MyClass.P"));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
@@ -1983,18 +1968,13 @@ public class RemoveUnusedMembersTests
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
     public async Task IndexerIsTargetOfCompoundAssignmentAndValueDropped_VerifyAnalyzerMessage()
     {
-        var code = """
+        await VerifyCS.VerifyAnalyzerAsync("""
             class MyClass
             {
-                private int this[int x] { get { return 0; } set { } }
+                private int {|IDE0052:this|}[int x] { get { return 0; } set { } }
                 public void M1(int x, int y) => this[x] += y;
             }
-            """;
-
-        await VerifyCS.VerifyAnalyzerAsync(code, new DiagnosticResult(
-            CSharpRemoveUnusedMembersDiagnosticAnalyzer.s_removeUnreadMembersRule)
-            .WithSpan(3, 17, 3, 21)
-            .WithArguments("MyClass.this"));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/43191")]
@@ -3173,11 +3153,9 @@ public class RemoveUnusedMembersTests
             """
             class C
             {
-                private C(int i) { }
+                private [|C|](int i) { }
             }
-            """,
-            // /0/Test0.cs(3,13): info IDE0051: Private member 'C.C' is unused
-            VerifyCS.Diagnostic("IDE0051").WithSpan(3, 5, 3, 25).WithArguments("C.C"));
+            """);
     }
 
     [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/62856")]

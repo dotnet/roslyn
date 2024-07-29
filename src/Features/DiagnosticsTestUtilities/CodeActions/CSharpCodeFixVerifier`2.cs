@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Testing;
@@ -36,7 +37,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             => CodeFixVerifierHelper.VerifyStandardProperty(new TAnalyzer(), property);
 
         /// <inheritdoc cref="CodeFixVerifier{TAnalyzer, TCodeFix, TTest, TVerifier}.VerifyAnalyzerAsync(string, DiagnosticResult[])"/>
-        public static async Task VerifyAnalyzerAsync(string source, params DiagnosticResult[] expected)
+        public static async Task VerifyAnalyzerAsync(
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)] string source, params DiagnosticResult[] expected)
         {
             var test = new Test
             {
