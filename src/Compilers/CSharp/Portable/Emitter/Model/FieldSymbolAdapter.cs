@@ -97,6 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return moduleBeingBuilt.Translate(AdaptedFieldSymbol.ContainingType,
                                               syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                               diagnostics: context.Diagnostics,
+                                              keepExtension: true,
                                               needDeclaration: AdaptedFieldSymbol.IsDefinition);
         }
 

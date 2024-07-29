@@ -3506,7 +3506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static bool canIgnoreAnyType(TypeSymbol type)
             {
-                return type.VisitType((t, unused1, unused2) => canIgnoreType(t), (object?)null) is object;
+                return type.VisitType((t, _, _, _) => canIgnoreType(t), (object?)null) is object;
             }
             static bool canIgnoreType(TypeSymbol type)
             {
@@ -8018,6 +8018,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     return symbol;
                 }
+                // PROTOTYPE the containingType may be an extension type (causes assertion, see TypeReference_MethodBody_AnonymousType_AccessAnonymousTypeMembers)
                 return AnonymousTypeManager.GetAnonymousTypeProperty(containingType, memberIndex.GetValueOrDefault());
             }
             if (!symbolContainer.IsGenericType)

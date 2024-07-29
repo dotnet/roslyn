@@ -353,6 +353,7 @@ namespace Microsoft.Cci
                 }
                 else
                 {
+                    // PROTOTYPE this is another scenario that serializes type names, should we keep or erase extensions types?
                     result = typeReference.GetSerializedTypeName(Context);
                 }
 

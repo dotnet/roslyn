@@ -87,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return moduleBeingBuilt.Translate(containingType,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                 diagnostics: context.Diagnostics,
+                keepExtension: true,
                 needDeclaration: AdaptedMethodSymbol.IsDefinition);
         }
 
@@ -241,7 +242,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return ((PEModuleBuilder)context.Module).Translate(AdaptedMethodSymbol.ReturnType,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
-                diagnostics: context.Diagnostics);
+                diagnostics: context.Diagnostics,
+                keepExtension: false);
         }
 
         IEnumerable<Cci.ITypeReference> Cci.IGenericMethodInstanceReference.GetGenericArguments(EmitContext context)

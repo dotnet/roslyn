@@ -88,7 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         Cci.ITypeReference Cci.ICustomAttribute.GetType(EmitContext context)
         {
             PEModuleBuilder moduleBeingBuilt = (PEModuleBuilder)context.Module;
-            return moduleBeingBuilt.Translate(this.AttributeClass, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics);
+            // PROTOTYPE validate once extension types are all allowed in attributes
+            return moduleBeingBuilt.Translate(this.AttributeClass, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics, keepExtension: false);
         }
 
         bool Cci.ICustomAttribute.AllowMultiple
@@ -107,6 +108,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 case TypedConstantKind.Array:
                     return CreateMetadataArray(argument, context);
+
+                case TypedConstantKind.Primitive when argument.TypeInternal.SpecialType is SpecialType.System_String && argument.ValueInternal is TypeSymbol:
+                    return CreateSerializedType(argument, context);
 
                 case TypedConstantKind.Type:
                     return CreateType(argument, context);
@@ -148,6 +152,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var diagnostics = context.Diagnostics;
             return new MetadataTypeOf(moduleBeingBuilt.Translate((TypeSymbol)argument.ValueInternal, syntaxNodeOpt, diagnostics),
                                       moduleBeingBuilt.Translate((TypeSymbol)argument.TypeInternal, syntaxNodeOpt, diagnostics));
+        }
+
+        private static MetadataSerializedType CreateSerializedType(TypedConstant argument, EmitContext context)
+        {
+            Debug.Assert(argument.ValueInternal is not null);
+            Debug.Assert(((TypeSymbol)argument.TypeInternal).SpecialType == SpecialType.System_String);
+
+            var moduleBeingBuilt = (PEModuleBuilder)context.Module;
+            var syntaxNodeOpt = (CSharpSyntaxNode)context.SyntaxNode;
+            var diagnostics = context.Diagnostics;
+
+            return new MetadataSerializedType(
+                moduleBeingBuilt.Translate((TypeSymbol)argument.ValueInternal, syntaxNodeOpt, diagnostics, keepExtension: true),
+                moduleBeingBuilt.Translate((TypeSymbol)argument.TypeInternal, syntaxNodeOpt, diagnostics));
         }
 
         private static MetadataConstant CreateMetadataConstant(ITypeSymbolInternal type, object value, EmitContext context)

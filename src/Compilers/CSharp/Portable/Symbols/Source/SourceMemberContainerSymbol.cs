@@ -1903,6 +1903,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (IsExtension)
             {
                 Binder.GetSpecialType(DeclaringCompilation, SpecialType.System_ValueType, declaration.NameLocations[0], diagnostics);
+                CheckUnboundedExtensionErasure(diagnostics);
             }
 
             return;
@@ -1922,9 +1923,115 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 var resultType = type.VisitType(
-                    predicate: (t, a, b) => !t.TupleElementNames.IsDefaultOrEmpty && !t.IsErrorType(),
+                    predicate: (t, _, _, _) => !t.TupleElementNames.IsDefaultOrEmpty && !t.IsErrorType(),
                     arg: (object?)null);
                 return resultType is object;
+            }
+        }
+
+        private void CheckUnboundedExtensionErasure(BindingDiagnosticBag diagnostics)
+        {
+            if (this.GetExtendedTypeNoUseSiteDiagnostics(null) is { } extendedType
+                && foundUnboundedErasure(extendedType, extensionsBeingErased: ConsList<TypeSymbol>.Empty.Prepend(this)))
+            {
+                diagnostics.Add(ErrorCode.ERR_CircularBase, Locations[0], extendedType, this);
+            }
+            return;
+
+            // Some erasures are unbounded. We need to detect them before we actually try to perform the erasure.
+            //
+            // Some examples:
+            // 1. extension E for E[] // unbounded: would expand to E[][]...
+            //
+            // 2. extension E1<T> for C<T>
+            //    extension E2 for E1<E2> // unbounded: would expand to C<C<C<...>>>
+            //
+            // But it is not just a matter of checking for self-reference
+            // or tracking which extension types we've already done an erasure on
+            // or tracking which types we've seen already.
+            // Some examples:
+            //
+            // 1. extension E1<T> for C
+            //    extension E2 for E1<E2> // erases to C, bounded despite self-reference
+            //
+            // 2. extension E1<T> for C<T>
+            //    extension E2 for C<E1<E1<int>>> // erases to C<C<C<int>>>, bounded despite erasing E1 after erasing E1
+            //
+            // 3. extension E1<T> for C<E2<(T, T)>>
+            //    extension E2<U> for C<E1<(U, U)>> // unbounded, involves new types at every iteration
+            static bool foundUnboundedErasure(TypeSymbol type, ConsList<TypeSymbol> extensionsBeingErased, bool isContainer = false)
+            {
+                if (type is NamedTypeSymbol)
+                {
+                    if (!isContainer && type.IsExtension)
+                    {
+                        if (extensionsBeingErased.Contains(type.OriginalDefinition))
+                        {
+                            return true;
+                        }
+
+                        // Note: if there is a problem getting the extended type, we just ignore it (error scenario)
+                        if (type.OriginalDefinition.GetExtendedTypeNoUseSiteDiagnostics(null) is { } definitionExtendedType)
+                        {
+                            var newExtensionsBeingErased = extensionsBeingErased.Prepend(type.OriginalDefinition);
+                            if (definitionExtendedType is NamedTypeSymbol)
+                            {
+                                if (foundUnboundedErasure(definitionExtendedType, newExtensionsBeingErased))
+                                {
+                                    return true;
+                                }
+
+                                type = type.GetExtendedTypeNoUseSiteDiagnostics(null)!;
+                                Debug.Assert(type is not null);
+                            }
+                            else
+                            {
+                                type = type.GetExtendedTypeNoUseSiteDiagnostics(null)!;
+                                Debug.Assert(type is not null);
+                                return foundUnboundedErasure(type, extensionsBeingErased);
+                            }
+                        }
+                    }
+
+                    if (type.ContainingType is { } containingType
+                        && foundUnboundedErasure(containingType, extensionsBeingErased, isContainer: true))
+                    {
+                        return true;
+                    }
+
+                    foreach (var typeArgument in type.GetMemberTypeArgumentsNoUseSiteDiagnostics())
+                    {
+                        if (foundUnboundedErasure(typeArgument, extensionsBeingErased))
+                        {
+                            return true;
+                        }
+                    }
+                }
+                else if (type is ArrayTypeSymbol arrayType)
+                {
+                    return foundUnboundedErasure(arrayType.ElementType, extensionsBeingErased);
+                }
+                else if (type is PointerTypeSymbol pointerType)
+                {
+                    return foundUnboundedErasure(pointerType.PointedAtType, extensionsBeingErased);
+                }
+                else if (type is FunctionPointerTypeSymbol functionPointerType)
+                {
+                    if (foundUnboundedErasure(functionPointerType.Signature.ReturnType, extensionsBeingErased))
+                    {
+                        return true;
+                    }
+
+                    foreach (var parameter in functionPointerType.Signature.Parameters)
+                    {
+                        if (foundUnboundedErasure(parameter.Type, extensionsBeingErased))
+                        {
+                            return true;
+                        }
+                    }
+                }
+
+                return false;
             }
         }
 

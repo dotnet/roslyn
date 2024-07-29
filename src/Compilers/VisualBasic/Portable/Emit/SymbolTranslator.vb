@@ -246,8 +246,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         Friend NotOverridable Overrides Function Translate(
             typeSymbol As TypeSymbol,
             syntaxNodeOpt As SyntaxNode,
-            diagnostics As DiagnosticBag
-        ) As Microsoft.Cci.ITypeReference
+            diagnostics As DiagnosticBag,
+            Optional keepExtensions As Boolean = False) As Microsoft.Cci.ITypeReference
             Debug.Assert(diagnostics IsNot Nothing)
 
             Select Case typeSymbol.Kind

@@ -6307,7 +6307,7 @@ class Test
             AssertEx.NotNull(field);
 
             var typeParameters = new List<TypeParameterSymbol>();
-            field.Type.VisitType(static (typeSymbol, typeParameters, _) =>
+            field.Type.VisitType(static (typeSymbol, typeParameters, _, _) =>
             {
                 if (typeSymbol is TypeParameterSymbol typeParameter)
                 {

@@ -11,18 +11,19 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using System.Text;
 using System.Diagnostics;
 using System.Linq;
+using System.Globalization;
 
 namespace Microsoft.Cci
 {
     internal static class TypeNameSerializer
     {
-        internal static string GetSerializedTypeName(this ITypeReference typeReference, EmitContext context)
+        internal static string GetSerializedTypeName(this ITypeReference typeReference, EmitContext context, bool allowTypeParameters = false)
         {
             bool isAssemblyQualified = true;
-            return GetSerializedTypeName(typeReference, context, ref isAssemblyQualified);
+            return GetSerializedTypeName(typeReference, context, ref isAssemblyQualified, allowTypeParameters);
         }
 
-        internal static string GetSerializedTypeName(this ITypeReference typeReference, EmitContext context, ref bool isAssemblyQualified)
+        internal static string GetSerializedTypeName(this ITypeReference typeReference, EmitContext context, ref bool isAssemblyQualified, bool allowTypeParameters = false)
         {
             var pooled = PooledStringBuilder.GetInstance();
             StringBuilder sb = pooled.Builder;
@@ -31,7 +32,7 @@ namespace Microsoft.Cci
             {
                 typeReference = arrType.GetElementType(context);
                 bool isAssemQual = false;
-                AppendSerializedTypeName(sb, typeReference, ref isAssemQual, context);
+                AppendSerializedTypeName(sb, typeReference, ref isAssemQual, context, allowTypeParameters);
                 if (arrType.IsSZArray)
                 {
                     sb.Append("[]");
@@ -57,7 +58,7 @@ namespace Microsoft.Cci
             {
                 typeReference = pointer.GetTargetType(context);
                 bool isAssemQual = false;
-                AppendSerializedTypeName(sb, typeReference, ref isAssemQual, context);
+                AppendSerializedTypeName(sb, typeReference, ref isAssemQual, context, allowTypeParameters);
                 sb.Append('*');
                 goto done;
             }
@@ -88,6 +89,25 @@ namespace Microsoft.Cci
                     goto done;
                 }
 
+                if (allowTypeParameters)
+                {
+                    // When encoding types into extension erasure attributes we allow type parameters (encoded as `!N` and `!!N`).
+                    if (typeReference.AsGenericTypeParameterReference is { } genericTypeParameter)
+                    {
+                        sb.Append("!");
+                        var index = MetadataWriter.GetNumberOfInheritedTypeParameters(genericTypeParameter.DefiningType, context) + genericTypeParameter.Index;
+                        sb.Append(index.ToString(CultureInfo.InvariantCulture));
+                        goto done;
+                    }
+                    else if (typeReference.AsGenericMethodParameterReference is { } genericMethodParameter)
+                    {
+                        sb.Append("!!");
+                        var index = genericMethodParameter.Index;
+                        sb.Append(index.ToString(CultureInfo.InvariantCulture));
+                        goto done;
+                    }
+                }
+
                 ITypeReference uninstantiatedTypeReference = typeReference.GetUninstantiatedGenericType(context);
                 Debug.Assert(uninstantiatedTypeReference != typeReference);
 
@@ -110,7 +130,7 @@ namespace Microsoft.Cci
                     }
 
                     bool isAssemQual = true;
-                    AppendSerializedTypeName(sb, argument, ref isAssemQual, context);
+                    AppendSerializedTypeName(sb, argument, ref isAssemQual, context, allowTypeParameters);
                 }
                 consolidatedTypeArguments.Free();
 
@@ -138,9 +158,9 @@ done:
             return pooled.ToStringAndFree();
         }
 
-        private static void AppendSerializedTypeName(StringBuilder sb, ITypeReference type, ref bool isAssemQualified, EmitContext context)
+        private static void AppendSerializedTypeName(StringBuilder sb, ITypeReference type, ref bool isAssemQualified, EmitContext context, bool allowTypeParameters)
         {
-            string argTypeName = GetSerializedTypeName(type, context, ref isAssemQualified);
+            string argTypeName = GetSerializedTypeName(type, context, ref isAssemQualified, allowTypeParameters);
             if (isAssemQualified)
             {
                 sb.Append('[');

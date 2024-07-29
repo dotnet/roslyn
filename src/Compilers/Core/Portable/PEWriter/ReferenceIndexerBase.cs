@@ -15,8 +15,12 @@ namespace Microsoft.Cci
 {
     internal abstract class ReferenceIndexerBase : MetadataVisitor
     {
-        private readonly HashSet<IReferenceOrISignature> _alreadySeen = new();
-        private readonly HashSet<IReferenceOrISignature> _alreadyHasToken = new();
+        // Note: for the _alreadySeen set, we use the KeepExtensions flag to differentiate between
+        // a visit that erases extension types from one that doesn't.
+        // For example, for `C<Extension>` we'll need to collect references from the erased type `C<ExtendedType>`
+        // but also references needed to decode the extension erasure attribute `[ExtensionErasure("C'1[Extension]")]`.
+        private readonly HashSet<IReferenceOrISignature> _alreadySeen = new HashSet<IReferenceOrISignature>();
+        private readonly HashSet<IReferenceOrISignature> _alreadyHasToken = new HashSet<IReferenceOrISignature>();
 
         /// <summary>
         /// Set true before a type reference is visited but only if a token needs to be created for the type reference.
@@ -414,7 +418,11 @@ namespace Microsoft.Cci
         // Returns true if we need to look at the children, false otherwise.
         private bool VisitTypeReference(ITypeReference typeReference)
         {
-            if (!_alreadySeen.Add(new IReferenceOrISignature(typeReference)))
+            // When visiting a MetadataSerializedType (representing the type we need to serialize in an extension erasure attribute),
+            // we set the KeepExtensions flag.
+            // We keep track of whether a type reference has been seen with this flag (as part of erasure attribute)
+            // and without this flag (normal type reference elsewhere) so that both translations can be indexed.
+            if (!_alreadySeen.Add(new IReferenceOrISignature(typeReference, keepExtensions: Context.KeepExtensions)))
             {
                 if (!this.typeReferenceNeedsToken)
                 {
@@ -422,6 +430,10 @@ namespace Microsoft.Cci
                 }
 
                 this.typeReferenceNeedsToken = false;
+                // PROTOTYPE note that we don't use a keepExtensions flag for the _alreadyHasToken set yet.
+                //   But in case where a program has both `modopt(C<E>)` and `C<E>` (to be erased), we will need
+                //   tokens for both. This may be solved naturally by the alternative approach for keeping context (keepExtensions flag)
+                //   to support emitting modopts with extension types.
                 if (!_alreadyHasToken.Add(new IReferenceOrISignature(typeReference)))
                 {
                     return false;

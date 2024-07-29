@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             Debug.Assert(UnderlyingNamedType.OriginalDefinition.IsDefinition);
             var result = ((PEModuleBuilder)context.Module).Translate(this.UnderlyingNamedType.OriginalDefinition,
-                                          (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics, needDeclaration: true).AsNestedTypeReference;
+                                          (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics, keepExtension: true, needDeclaration: true).AsNestedTypeReference;
 
             Debug.Assert(result != null);
             return result;
@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(UnderlyingNamedType.ContainingType, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics);
+            return ((PEModuleBuilder)context.Module).Translate(UnderlyingNamedType.ContainingType, (CSharpSyntaxNode)context.SyntaxNode, context.Diagnostics, keepExtension: true);
         }
 
         public override Cci.IGenericTypeInstanceReference AsGenericTypeInstanceReference

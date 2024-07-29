@@ -305,17 +305,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
-                var typeSymbol = DynamicTypeDecoder.TransformType(typeWithAnnotations.Type, countOfCustomModifiers, handle, moduleSymbol, refKind);
-                typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, handle, moduleSymbol, containingSymbol.ContainingType);
-                typeWithAnnotations = typeWithAnnotations.WithTypeAndModifiers(typeSymbol, typeWithAnnotations.CustomModifiers);
-                // Decode nullable before tuple types to avoid converting between
-                // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
+                if (moduleSymbol.TryDecodeExtensionErasureAttribute(handle, (PENamedTypeSymbol)containingSymbol.ContainingType, containingSymbol as PEMethodSymbol) is { } typeWithExtensions)
+                {
+                    typeWithAnnotations = TypeWithAnnotations.Create(typeWithExtensions);
+                    // PROTOTYPE deal with tuple names, dynamic, etc
+                    // PROTOTYPE consider checking that the type is the erased version of the decoded type
+                    // PROTOTYPE we should drop the attribute from the symbol
+                }
+                else
+                {
+                    var typeSymbol = DynamicTypeDecoder.TransformType(typeWithAnnotations.Type, countOfCustomModifiers, handle, moduleSymbol, refKind);
+                    typeSymbol = NativeIntegerTypeDecoder.TransformType(typeSymbol, handle, moduleSymbol, containingSymbol.ContainingType);
+                    typeWithAnnotations = typeWithAnnotations.WithTypeAndModifiers(typeSymbol, typeWithAnnotations.CustomModifiers);
+                    // Decode nullable before tuple types to avoid converting between
+                    // NamedTypeSymbol and TupleTypeSymbol unnecessarily.
 
-                // The containing type is passed to NullableTypeDecoder.TransformType to determine access
-                // for property parameters because the property does not have explicit accessibility in metadata.
-                var accessSymbol = containingSymbol.Kind == SymbolKind.Property ? containingSymbol.ContainingSymbol : containingSymbol;
-                typeWithAnnotations = NullableTypeDecoder.TransformType(typeWithAnnotations, handle, moduleSymbol, accessSymbol: accessSymbol, nullableContext: nullableContext);
-                typeWithAnnotations = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeWithAnnotations, handle, moduleSymbol);
+                    // The containing type is passed to NullableTypeDecoder.TransformType to determine access
+                    // for property parameters because the property does not have explicit accessibility in metadata.
+                    var accessSymbol = containingSymbol.Kind == SymbolKind.Property ? containingSymbol.ContainingSymbol : containingSymbol;
+                    typeWithAnnotations = NullableTypeDecoder.TransformType(typeWithAnnotations, handle, moduleSymbol, accessSymbol: accessSymbol, nullableContext: nullableContext);
+                    typeWithAnnotations = TupleTypeDecoder.DecodeTupleTypesIfApplicable(typeWithAnnotations, handle, moduleSymbol);
+                }
 
                 hasUnscopedRefAttribute = _moduleSymbol.Module.HasUnscopedRefAttribute(_handle);
                 if (hasUnscopedRefAttribute)

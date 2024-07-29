@@ -3541,6 +3541,12 @@ namespace Microsoft.Cci
                     SerializeMetadataExpression(in context, literalsEncoder.AddLiteral(), elemValue, targetElementType);
                 }
             }
+            else if (expression is MetadataSerializedType t)
+            {
+                var scalarEncoder = encoder.Scalar();
+                string serializedTypeName = t.TypeToGet.GetSerializedTypeName(context.WithKeepExtensions(), allowTypeParameters: true);
+                scalarEncoder.Constant(serializedTypeName);
+            }
             else
             {
                 ScalarEncoder scalarEncoder;
@@ -3608,6 +3614,7 @@ namespace Microsoft.Cci
                     switch (marshaller)
                     {
                         case ITypeReference marshallerTypeRef:
+                            // PROTOTYPE this is another scenario that serializes type names, should we keep or erase extensions types?
                             this.SerializeTypeName(marshallerTypeRef, writer);
                             break;
                         case null:
@@ -3658,6 +3665,7 @@ namespace Microsoft.Cci
                         var elementType = marshallingInformation.GetSafeArrayElementUserDefinedSubtype(Context);
                         if (elementType != null)
                         {
+                            // PROTOTYPE this is another scenario that serializes type names, should we keep or erase extensions types?
                             this.SerializeTypeName(elementType, writer);
                         }
                     }
@@ -3741,6 +3749,7 @@ namespace Microsoft.Cci
             foreach (ICustomAttribute customAttribute in permissionSet)
             {
                 bool isAssemblyQualified = true;
+                // PROTOTYPE this is another scenario that serializes type names, should we keep or erase extensions types?
                 string typeName = customAttribute.GetType(context).GetSerializedTypeName(context, ref isAssemblyQualified);
                 if (!isAssemblyQualified)
                 {
@@ -3859,7 +3868,7 @@ namespace Microsoft.Cci
                 if (genericTypeParameterReference != null)
                 {
                     encoder.GenericTypeParameter(
-                        GetNumberOfInheritedTypeParameters(genericTypeParameterReference.DefiningType) +
+                        GetNumberOfInheritedTypeParameters(genericTypeParameterReference.DefiningType, Context) +
                         genericTypeParameterReference.Index);
                     return;
                 }
@@ -4043,6 +4052,7 @@ namespace Microsoft.Cci
             else
             {
                 Debug.Assert(typeReference.IsEnum);
+                // PROTOTYPE this is another scenario that serializes type names, should we keep or erase extensions types?
                 encoder.Enum(typeReference.GetSerializedTypeName(context));
             }
         }
@@ -4116,7 +4126,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private int GetNumberOfInheritedTypeParameters(ITypeReference type)
+        internal static int GetNumberOfInheritedTypeParameters(ITypeReference type, EmitContext context)
         {
             INestedTypeReference nestedType = type.AsNestedTypeReference;
             if (nestedType == null)
@@ -4127,16 +4137,16 @@ namespace Microsoft.Cci
             ISpecializedNestedTypeReference specializedNestedType = nestedType.AsSpecializedNestedTypeReference;
             if (specializedNestedType != null)
             {
-                nestedType = specializedNestedType.GetUnspecializedVersion(Context);
+                nestedType = specializedNestedType.GetUnspecializedVersion(context);
             }
 
             int result = 0;
-            type = nestedType.GetContainingType(Context);
+            type = nestedType.GetContainingType(context);
             nestedType = type.AsNestedTypeReference;
             while (nestedType != null)
             {
                 result += nestedType.GenericParameterCount;
-                type = nestedType.GetContainingType(Context);
+                type = nestedType.GetContainingType(context);
                 nestedType = type.AsNestedTypeReference;
             }
 

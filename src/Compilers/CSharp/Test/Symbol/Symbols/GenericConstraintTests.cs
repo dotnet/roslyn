@@ -4926,7 +4926,7 @@ class C : I<object>, I<C>
         private void CheckTypeParameterContainingSymbols(MethodSymbol containingMethod, TypeSymbol type, int nReferencesExpected)
         {
             int nReferences = 0;
-            type.VisitType((t, unused1, unused2) =>
+            type.VisitType((t, _, _, _) =>
                 {
                     if (t.TypeKind == TypeKind.TypeParameter)
                     {

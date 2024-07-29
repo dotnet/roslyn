@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             bool containsType(TypeWithAnnotations type, bool useNativeInteger)
             {
-                return type.Type.VisitType((type, unused1, unused2) => type.SpecialType == specialType && useNativeInteger == type.IsNativeIntegerWrapperType, (object)null) is { };
+                return type.Type.VisitType((type, _, _, _) => type.SpecialType == specialType && useNativeInteger == type.IsNativeIntegerWrapperType, (object)null) is { };
             }
 
             static Symbol getUnderlyingMember(Symbol nativeIntegerMember)

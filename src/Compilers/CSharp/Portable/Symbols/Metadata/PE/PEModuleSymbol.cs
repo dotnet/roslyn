@@ -457,6 +457,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             return null;
         }
 
+#nullable enable
+        internal TypeSymbol? TryDecodeExtensionErasureAttribute(EntityHandle handle, PENamedTypeSymbol typeContext, PEMethodSymbol? methodContext)
+        {
+            Debug.Assert(typeContext is not null);
+
+            string typeName;
+            if (_module.HasStringValuedAttribute(handle, AttributeDescription.ExtensionErasureAttribute, out typeName))
+            {
+                var decoder = methodContext is not null
+                    ? new MetadataDecoder(this, methodContext)
+                    : new MetadataDecoder(this, typeContext);
+
+                return decoder.GetTypeSymbolForSerializedType(typeName, allowTypeParameters: true);
+            }
+
+            return null;
+        }
+#nullable disable
+
         /// <summary>
         /// Filters extension attributes from the attribute results.
         /// </summary>

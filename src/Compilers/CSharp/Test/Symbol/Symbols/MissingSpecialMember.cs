@@ -647,6 +647,7 @@ namespace System
                     case WellKnownType.System_Runtime_InteropServices_MemoryMarshal:
                     case WellKnownType.System_Runtime_CompilerServices_Unsafe:
                     case WellKnownType.System_Runtime_CompilerServices_ParamCollectionAttribute:
+                    case WellKnownType.System_Runtime_CompilerServices_ExtensionErasureAttribute:
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
@@ -1074,6 +1075,7 @@ namespace System
                     case WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan:
                     case WellKnownMember.System_Span_T__ctor_ref_T:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T:
+                    case WellKnownMember.System_Runtime_CompilerServices_ExtensionErasureAttribute__ctorEncodedType:
                         // Not always available.
                         continue;
                 }

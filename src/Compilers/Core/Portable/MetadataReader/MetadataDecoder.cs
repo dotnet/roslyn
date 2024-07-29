@@ -2136,9 +2136,6 @@ tryAgain:
 
         protected abstract TypeSymbol LookupTopLevelTypeDefSymbol(string moduleName, ref MetadataTypeName emittedName, out bool isNoPiaLocalType);
 
-        protected abstract TypeSymbol GetGenericTypeParamSymbol(int position);
-        protected abstract TypeSymbol GetGenericMethodTypeParamSymbol(int position);
-
         private static TypedConstant CreateArrayTypedConstant(TypeSymbol type, ImmutableArray<TypedConstant> array)
         {
             if (type.TypeKind == TypeKind.Error)

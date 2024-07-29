@@ -1394,7 +1394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Called when an "attribute-dependent" type such as 'dynamic', 'string?', etc. is not permitted.</summary>
         private void CheckDisallowedAttributeDependentType(TypeWithAnnotations typeArgument, NameSyntax attributeName, BindingDiagnosticBag diagnostics)
         {
-            typeArgument.VisitType(type: null, static (typeWithAnnotations, arg, _) =>
+            typeArgument.VisitType(type: null, static (typeWithAnnotations, arg, _, _) =>
             {
                 var (attributeName, diagnostics) = arg;
                 var type = typeWithAnnotations.Type;

@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return TypeWithAnnotations.Create(type).VisitType(
                 type: null,
-                static (type, arg, flag) => !type.Type.IsValueType && !type.NullableAnnotation.IsOblivious(),
+                static (type, _, _, _) => !type.Type.IsValueType && !type.NullableAnnotation.IsOblivious(),
                 typePredicate: null,
                 arg: (object)null) is null;
         }
