@@ -317,6 +317,44 @@ class C
         [Theory]
         [InlineData("=")]
         [InlineData("??=")]
+        public void ImplicitObjectCreation_UnconstrainedGenericType(string assignmentOperator)
+        {
+            var source = $$"""
+                class C
+                {
+                    void M<T>() where T : new()
+                    {
+                        T t = default;
+                        t {{assignmentOperator}} new();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var descendantNodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var node = descendantNodes.OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("T", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("T", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.True(symbolInfo.IsEmpty);
+
+            var assignmentNode = descendantNodes.OfType<AssignmentExpressionSyntax>().Single();
+            var assignmentTypeInfo = model.GetTypeInfo(assignmentNode);
+            Assert.Equal("T", assignmentTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("T", assignmentTypeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Theory]
+        [InlineData("=")]
+        [InlineData("??=")]
         public void ErrorRecovery_ImplicitObjectCreation_UnconstrainedGenericType(string assignmentOperator)
         {
             var source = $$"""
@@ -355,6 +393,44 @@ class C
             // Given that we know type of the expression, shouldn't symbol info be identical for normal and error cases?
             Assert.Collection(symbolInfo.CandidateSymbols,
                 static c => Assert.Equal("T", c.ToTestDisplayString()));
+
+            var assignmentNode = descendantNodes.OfType<AssignmentExpressionSyntax>().Single();
+            var assignmentTypeInfo = model.GetTypeInfo(assignmentNode);
+            Assert.Equal("T", assignmentTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("T", assignmentTypeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Theory]
+        [InlineData("=")]
+        [InlineData("??=")]
+        public void ImplicitObjectCreation_ReferenceGenericType(string assignmentOperator)
+        {
+            var source = $$"""
+                class C
+                {
+                    void M<T>() where T : class, new()
+                    {
+                        T t = default;
+                        t {{assignmentOperator}} new();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var descendantNodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var node = descendantNodes.OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("T", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("T", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.True(symbolInfo.IsEmpty);
 
             var assignmentNode = descendantNodes.OfType<AssignmentExpressionSyntax>().Single();
             var assignmentTypeInfo = model.GetTypeInfo(assignmentNode);
@@ -411,6 +487,42 @@ class C
         }
 
         [Fact]
+        public void ImplicitObjectCreation_ValueGenericType_Nullable()
+        {
+            var source = """
+                class C
+                {
+                    void M<T>() where T : struct
+                    {
+                        T? t = default;
+                        t ??= new();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var descendantNodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var node = descendantNodes.OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Equal("T", typeInfo.Type.ToTestDisplayString());
+            Assert.Equal("T", typeInfo.ConvertedType.ToTestDisplayString());
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.True(symbolInfo.IsEmpty);
+
+            var assignmentNode = descendantNodes.OfType<AssignmentExpressionSyntax>().Single();
+            var assignmentTypeInfo = model.GetTypeInfo(assignmentNode);
+            Assert.Equal("T", assignmentTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("T", assignmentTypeInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
         public void ErrorRecovery_ImplicitObjectCreation_ValueGenericType_Nullable()
         {
             var source = """
@@ -455,6 +567,42 @@ class C
         }
 
         [Fact]
+        public void ImplicitObjectCreation_ValueGenericType_NotNullable()
+        {
+            var source = """
+                class C
+                {
+                    void M<T>() where T : struct
+                    {
+                        T t = default;
+                        t ??= new();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var descendantNodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var node = descendantNodes.OfType<ImplicitObjectCreationExpressionSyntax>().Single();
+
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.True(typeInfo.Type.IsErrorType());
+            Assert.True(typeInfo.ConvertedType.IsErrorType());
+
+            var symbolInfo = model.GetSymbolInfo(node);
+            Assert.True(symbolInfo.IsEmpty);
+
+            var assignmentNode = descendantNodes.OfType<AssignmentExpressionSyntax>().Single();
+            var assignmentTypeInfo = model.GetTypeInfo(assignmentNode);
+            Assert.True(assignmentTypeInfo.Type.IsErrorType());
+            Assert.True(assignmentTypeInfo.ConvertedType.IsErrorType());
+        }
+
+        [Fact]
         public void ErrorRecovery_ImplicitObjectCreation_ValueGenericType_NotNullable()
         {
             var source = """
@@ -485,8 +633,7 @@ class C
             Assert.True(typeInfo.ConvertedType.IsErrorType());
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Null(symbolInfo.Symbol);
-            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.True(symbolInfo.IsEmpty);
 
             var assignmentNode = descendantNodes.OfType<AssignmentExpressionSyntax>().Single();
             var assignmentTypeInfo = model.GetTypeInfo(assignmentNode);
