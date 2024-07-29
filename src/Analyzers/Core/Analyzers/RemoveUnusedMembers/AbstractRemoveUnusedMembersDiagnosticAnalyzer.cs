@@ -525,10 +525,10 @@ internal abstract class AbstractRemoveUnusedMembersDiagnosticAnalyzer<
                         diagnosticLocation,
                         NotificationOption2.ForSeverity(rule.DefaultSeverity),
                         symbolEndContext.Options,
+                        message: GetMessage(rule, member),
                         additionalLocations: [],
                         additionalUnnecessaryLocations: fadingNode is null ? [] : [fadingNode.GetLocation()],
-                        properties: null,
-                        GetMessage(rule, member)));
+                        properties: null));
                 }
             }
         }
