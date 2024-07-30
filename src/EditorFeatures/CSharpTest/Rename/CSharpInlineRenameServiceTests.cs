@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Rename
                 if (x is null || y is null)
                     return false;
 
-                if (x.Count != y.Count())
+                if (x.Count != y.Count)
                     return false;
 
                 foreach (var (elementFromX, elementFromY) in x.Zip(y, (elementFromX, elementFromY) => (elementFromX, elementFromY)))
