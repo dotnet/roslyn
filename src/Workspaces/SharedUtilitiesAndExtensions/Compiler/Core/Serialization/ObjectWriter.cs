@@ -76,7 +76,7 @@ internal sealed partial class ObjectWriter : IDisposable
     /// </summary>
     private WriterReferenceMap _stringReferenceMap;
 
-    private static Encoding s_encoding = Encoding.UTF8;
+    private static readonly Encoding s_encoding = Encoding.UTF8;
 
     /// <summary>
     /// Creates a new instance of a <see cref="ObjectWriter"/>.
