@@ -30,7 +30,19 @@ namespace Roslyn.LanguageServer.Protocol
         [JsonPropertyName("contents")]
         [JsonRequired]
 #pragma warning disable CS0618 // MarkedString is obsolete but this property is not
-        public new SumType<SumType<string, MarkedString>, SumType<string, MarkedString>[], MarkupContent>? Contents { get; set; }
+        public new SumType<string, MarkedString, SumType<string, MarkedString>[], MarkupContent>? Contents {
+            get => contentsIsNull ? (SumType<string, MarkedString, SumType<string, MarkedString>[], MarkupContent>?)null : base.Contents;
+            set
+            {
+                contentsIsNull = value is null;
+                if (value is not null)
+                {
+                    base.Contents = value.Value;
+                }
+            }
+        }
+
+        bool contentsIsNull = false;
 #pragma warning restore CS0618
     }
 }

@@ -43,7 +43,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>Since LSP 3.13</remarks>
         [JsonPropertyName("failureHandling")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public FailureHandlingKind[]? FailureHandling { get; init; }
+        public FailureHandlingKind? FailureHandling { get; init; }
 
         /// <summary>
         /// Whether the client normalizes line endings to the client specific setting

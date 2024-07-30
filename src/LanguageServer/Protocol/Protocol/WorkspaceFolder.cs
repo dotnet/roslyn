@@ -15,7 +15,7 @@ internal class WorkspaceFolder
     /// The URI for this workspace folder.
     /// </summary>
     [JsonPropertyName("uri")]
-    [JsonConverter(typeof(Uri))]
+    [JsonConverter(typeof(DocumentUriConverter))]
     [JsonRequired]
     public Uri Uri { get; init; }
 

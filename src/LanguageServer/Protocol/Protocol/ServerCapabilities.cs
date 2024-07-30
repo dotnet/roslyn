@@ -57,6 +57,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         /// <remarks>Since LSP 3.17</remarks>
         [JsonPropertyName("notebookDocumentSync")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SumType<NotebookDocumentSyncOptions, NotebookDocumentSyncRegistrationOptions>? NotebookDocumentSync { get; init; }
 
         /// <summary>
