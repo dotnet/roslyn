@@ -45,6 +45,7 @@ internal abstract partial class AbstractGenerateConstructorFromMembersCodeRefact
             var preferThrowExpression = await _service.PrefersThrowExpressionAsync(_document, cancellationToken).ConfigureAwait(false);
 
             var members = factory.CreateMemberDelegatingConstructor(
+                factory.SyntaxGeneratorInternal,
                 semanticModel,
                 _state.ContainingType.Name,
                 _state.ContainingType,

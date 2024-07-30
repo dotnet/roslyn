@@ -5,6 +5,7 @@
 using System;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading;
 using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue;
@@ -57,14 +58,35 @@ internal readonly struct SemanticEditInfo
     public static SemanticEditInfo CreateInsert(SymbolKey symbol, SymbolKey? partialType)
         => new(SemanticEditKind.Insert, symbol, syntaxMaps: default, partialType, deletedSymbolContainer: null);
 
+    public static SemanticEditInfo CreateInsert(ISymbol symbol, CancellationToken cancellationToken)
+    {
+        Debug.Assert(!symbol.IsPartialDefinition());
+        var partialType = symbol.IsPartialImplementation() ? SymbolKey.Create(symbol.ContainingType, cancellationToken) : (SymbolKey?)null;
+        return CreateInsert(SymbolKey.Create(symbol, cancellationToken), partialType);
+    }
+
     public static SemanticEditInfo CreateUpdate(SymbolKey symbol, SyntaxMaps syntaxMaps, SymbolKey? partialType)
         => new(SemanticEditKind.Update, symbol, syntaxMaps, partialType, deletedSymbolContainer: null);
+
+    public static SemanticEditInfo CreateUpdate(ISymbol symbol, SyntaxMaps syntaxMaps, CancellationToken cancellationToken)
+    {
+        Debug.Assert(!symbol.IsPartialDefinition());
+        var partialType = symbol.IsPartialImplementation() ? SymbolKey.Create(symbol.ContainingType, cancellationToken) : (SymbolKey?)null;
+        return CreateUpdate(SymbolKey.Create(symbol, cancellationToken), syntaxMaps, partialType);
+    }
 
     public static SemanticEditInfo CreateReplace(SymbolKey symbol, SymbolKey? partialType)
         => new(SemanticEditKind.Replace, symbol, syntaxMaps: default, partialType, deletedSymbolContainer: null);
 
     public static SemanticEditInfo CreateDelete(SymbolKey symbol, SymbolKey deletedSymbolContainer, SymbolKey? partialType)
         => new(SemanticEditKind.Delete, symbol, syntaxMaps: default, partialType, deletedSymbolContainer);
+
+    public static SemanticEditInfo CreateDelete(ISymbol symbol, SymbolKey containingSymbolKey, CancellationToken cancellationToken)
+    {
+        Debug.Assert(!symbol.IsPartialDefinition());
+        var partialType = symbol.IsPartialImplementation() ? containingSymbolKey : (SymbolKey?)null;
+        return CreateDelete(SymbolKey.Create(symbol, cancellationToken), containingSymbolKey, partialType);
+    }
 
     /// <summary>
     /// <see cref="SemanticEditKind.Insert"/> or <see cref="SemanticEditKind.Update"/> or <see cref="SemanticEditKind.Delete"/>.

@@ -144,6 +144,34 @@
 
   <Import Project="GeneratePkgDef.targets" Condition="'$(MSBuildRuntimeType)' != 'Core' and '$(GeneratePkgDefFile)' == 'true' and '$(DesignTimeBuild)' != 'true' and '$(BuildingForLiveUnitTesting)' != 'true'" />
 
-    <!-- Workaround to fix https://github.com/dotnet/msbuild/issues/10306 -->
+  <!-- Workaround to fix https://github.com/dotnet/msbuild/issues/10306 -->
   <Target Name="ExtensionJsonOutputGroupFixed" Returns="@(ExtensionJsonOutputGroupOutput)" DependsOnTargets="PrepareResources;ExtensionJsonOutputGroup" />
+
+  <!--
+    Workaround for missing dependency publishing feature in the VS SDK.
+    
+    Relies on the following convention: When a project reference publish outputs (i.e. more than standard build outputs) need to be packaged into a VSIX,
+    the project should define PublishedProjectOutputGroup target and include it in ProjectRefrence.IncludeOutputGroupsInVSIX.
+
+    PublishedProjectOutputGroup target may gather all the publishing items to be packaged into the VSIX using PublishItemsOutputGroup target,
+    but should not depend on Publish target (i.e. invoking PublishedProjectOutputGroup target should not trigger actual publishing).
+
+    Target PublishProjectReferencesForVsixCreation will take care of publishing for all ProjectReferences with PublishedProjectOutputGroup.
+  -->
+  
+  <PropertyGroup>
+    <CreateVsixContainerDependsOn>$(CreateVsixContainerDependsOn);PublishProjectReferencesForVsixCreation</CreateVsixContainerDependsOn>
+  </PropertyGroup>
+
+  <Target Name="PublishProjectReferencesForVsixCreation">
+    <ItemGroup>
+      <_ProjectsToPublish Include="@(ProjectReference)" Condition="$([MSBuild]::ValueOrDefault('%(ProjectReference.IncludeOutputGroupsInVSIX)', '').Contains('PublishedProjectOutputGroup'))"/>
+    </ItemGroup>
+
+    <MSBuild Projects="@(_ProjectsToPublish)"
+             BuildInParallel="$(BuildInParallel)"
+             Properties="%(_ProjectsToPublish.SetConfiguration);%(_ProjectsToPublish.SetPlatform);%(_ProjectsToPublish.SetTargetFramework)"
+             Targets="PublishVsixItems"
+             RebaseOutputs="true" />
+  </Target>
 </Project>

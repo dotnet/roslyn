@@ -39,6 +39,12 @@ internal sealed class CSharpSyntaxGeneratorInternal : SyntaxGeneratorInternal
     public override SyntaxTrivia ElasticCarriageReturnLineFeed
         => SyntaxFactory.ElasticCarriageReturnLineFeed;
 
+    public override bool SupportsThrowExpression()
+        => true;
+
+    public override bool RequiresExplicitImplementationForInterfaceMembers
+        => false;
+
     public override SyntaxTrivia EndOfLine(string text)
         => SyntaxFactory.EndOfLine(text);
 

@@ -1198,6 +1198,10 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
                     //   int this[...] { get => expr; }
                     //   int P => expr;
                     //   int P { get => expr; } = init
+                    //
+                    // Note: An update of a partial property/indexer definition can only affect its attributes. The partial definition does not have a body.
+                    // In that case we do not need to update/analyze the accessors since attribute update has no impact on them.
+                    //
                     // 2) Property/indexer declarations differ in readonly keyword.
                     // 3) Property signature changes
                     // 4) Property name changes

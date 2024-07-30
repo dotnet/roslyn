@@ -41,9 +41,8 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
 
     internal override SyntaxTrivia ElasticMarker => SyntaxFactory.ElasticMarker;
 
-    internal override bool RequiresExplicitImplementationForInterfaceMembers => false;
-
-    internal override SyntaxGeneratorInternal SyntaxGeneratorInternal => CSharpSyntaxGeneratorInternal.Instance;
+    internal override SyntaxGeneratorInternal SyntaxGeneratorInternal
+        => CSharpSyntaxGeneratorInternal.Instance;
 
     internal override SyntaxTrivia Whitespace(string text)
         => SyntaxFactory.Whitespace(text);
@@ -3113,8 +3112,6 @@ internal sealed class CSharpSyntaxGenerator : SyntaxGenerator
 
     public override SyntaxNode ThrowExpression(SyntaxNode expression)
         => SyntaxFactory.ThrowExpression((ExpressionSyntax)expression);
-
-    internal override bool SupportsThrowExpression() => true;
 
     public override SyntaxNode IfStatement(SyntaxNode condition, IEnumerable<SyntaxNode> trueStatements, IEnumerable<SyntaxNode>? falseStatements = null)
     {
