@@ -11203,12 +11203,7 @@ done:;
                             }
                             else if (IsCurrentTokenFieldInKeywordContext() && PeekToken(1).Kind != SyntaxKind.ColonColonToken)
                             {
-                                var token = this.EatContextualToken(CurrentToken.ContextualKind);
-                                if (token.Kind != SyntaxKind.FieldKeyword)
-                                {
-                                    throw ExceptionUtilities.UnexpectedValue(token.Kind);
-                                }
-                                return _syntaxFactory.FieldExpression(token);
+                                return _syntaxFactory.FieldExpression(this.EatContextualToken(SyntaxKind.FieldKeyword));
                             }
                             else
                             {
