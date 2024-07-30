@@ -160,14 +160,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class C
                 {
                     static C _other = new();
-                    object P => _other.field;
+                    object P
+                    {
+                        get { return _other.field; }
+                        set { _ = field; }
+                    }
                 }
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (4,24): error CS1061: 'C' does not contain a definition for 'field' and no accessible extension method 'field' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-                //     object P => _other.field;
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "field").WithArguments("C", "field").WithLocation(4, 24));
+                // (6,29): error CS1061: 'C' does not contain a definition for 'field' and no accessible extension method 'field' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
+                //         get { return _other.field; }
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "field").WithArguments("C", "field").WithLocation(6, 29),
+                // (7,19): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //         set { _ = field; }
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(7, 19));
         }
 
         [Fact]
@@ -201,15 +208,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     int P
                     {
+                        get { return field; }
                         set { _ = this is { field: 0 }; }
                     }
                 }
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,29): error CS0117: 'C' does not contain a definition for 'field'
+                // (5,22): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //         get { return field; }
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(5, 22),
+                // (6,29): error CS0117: 'C' does not contain a definition for 'field'
                 //         set { _ = this is { field: 0 }; }
-                Diagnostic(ErrorCode.ERR_NoSuchMember, "field").WithArguments("C", "field").WithLocation(5, 29));
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "field").WithArguments("C", "field").WithLocation(6, 29));
         }
 
         [Fact]

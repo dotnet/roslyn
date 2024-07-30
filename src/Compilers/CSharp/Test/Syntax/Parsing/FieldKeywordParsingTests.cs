@@ -324,7 +324,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Indexer_ExpressionBody(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
-            bool expectedParsedAsToken = false;
             UsingTree($$"""
                 class C
                 {
@@ -363,7 +362,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.ArrowExpressionClause);
                         {
                             N(SyntaxKind.EqualsGreaterThanToken);
-                            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "field");
+                            }
                         }
                         N(SyntaxKind.SemicolonToken);
                     }
@@ -379,7 +381,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void IndexerGet_ExpressionBody(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
-            bool expectedParsedAsToken = false;
             UsingTree($$"""
                 class C
                 {
@@ -424,7 +425,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                 N(SyntaxKind.ArrowExpressionClause);
                                 {
                                     N(SyntaxKind.EqualsGreaterThanToken);
-                                    IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
+                                    N(SyntaxKind.IdentifierName);
+                                    {
+                                        N(SyntaxKind.IdentifierToken, "field");
+                                    }
                                 }
                                 N(SyntaxKind.SemicolonToken);
                             }
@@ -443,7 +447,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void IndexerGet_BlockBody(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
-            bool expectedParsedAsToken = false;
             UsingTree($$"""
                 class C
                 {
@@ -491,7 +494,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     N(SyntaxKind.ReturnStatement);
                                     {
                                         N(SyntaxKind.ReturnKeyword);
-                                        IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
+                                        N(SyntaxKind.IdentifierName);
+                                        {
+                                            N(SyntaxKind.IdentifierToken, "field");
+                                        }
                                         N(SyntaxKind.SemicolonToken);
                                     }
                                     N(SyntaxKind.CloseBraceToken);
@@ -513,7 +519,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useInit)
         {
-            bool expectedParsedAsToken = false;
             UsingTree($$"""
                 class C
                 {
@@ -562,7 +567,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     {
                                         N(SyntaxKind.SimpleAssignmentExpression);
                                         {
-                                            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "field");
+                                            }
                                             N(SyntaxKind.EqualsToken);
                                             N(SyntaxKind.NumericLiteralExpression);
                                             {
@@ -590,7 +598,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useRemove)
         {
-            bool expectedParsedAsToken = false;
             UsingTree($$"""
                 class C
                 {
@@ -627,7 +634,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     {
                                         N(SyntaxKind.SimpleAssignmentExpression);
                                         {
-                                            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "field");
+                                            }
                                             N(SyntaxKind.EqualsToken);
                                             N(SyntaxKind.NullLiteralExpression);
                                             {
@@ -736,7 +746,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useInit)
         {
-            bool expectedParsedAsToken = false;
             UsingTree($$"""
                 class C
                 {
@@ -802,7 +811,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                     {
                                         N(SyntaxKind.SimpleAssignmentExpression);
                                         {
-                                            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
+                                            N(SyntaxKind.IdentifierName);
+                                            {
+                                                N(SyntaxKind.IdentifierToken, "field");
+                                            }
                                             N(SyntaxKind.EqualsToken);
                                             N(SyntaxKind.NumericLiteralExpression);
                                             {
@@ -1658,6 +1670,147 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                             }
                                         }
                                         N(SyntaxKind.SemicolonToken);
+                                    }
+                                    N(SyntaxKind.CloseBraceToken);
+                                }
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void LambdaBody(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            bool escapeIdentifier)
+        {
+            string identifier = GetFieldIdentifier(escapeIdentifier);
+            UsingTree($$"""
+                class C
+                {
+                    object P => {{identifier}} => {{identifier}};
+                }
+                """,
+                TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P");
+                        N(SyntaxKind.ArrowExpressionClause);
+                        {
+                            N(SyntaxKind.EqualsGreaterThanToken);
+                            N(SyntaxKind.SimpleLambdaExpression);
+                            {
+                                N(SyntaxKind.Parameter);
+                                {
+                                    N(SyntaxKind.IdentifierToken, identifier);
+                                }
+                                N(SyntaxKind.EqualsGreaterThanToken);
+                                IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
+                            }
+                        }
+                        N(SyntaxKind.SemicolonToken);
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
+            EOF();
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void LocalFunctionBody(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            bool escapeIdentifier)
+        {
+            string identifier = GetFieldIdentifier(escapeIdentifier);
+            UsingTree($$"""
+                class C
+                {
+                    object P { set { void Local(object {{identifier}}) { _ = {{identifier}}; } } }
+                }
+                """,
+                TestOptions.Regular.WithLanguageVersion(languageVersion));
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken, "C");
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.PropertyDeclaration);
+                    {
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.ObjectKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken, "P");
+                        N(SyntaxKind.AccessorList);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.SetAccessorDeclaration);
+                            {
+                                N(SyntaxKind.SetKeyword);
+                                N(SyntaxKind.Block);
+                                {
+                                    N(SyntaxKind.OpenBraceToken);
+                                    N(SyntaxKind.LocalFunctionStatement);
+                                    {
+                                        N(SyntaxKind.PredefinedType);
+                                        {
+                                            N(SyntaxKind.VoidKeyword);
+                                        }
+                                        N(SyntaxKind.IdentifierToken, "Local");
+                                        N(SyntaxKind.ParameterList);
+                                        {
+                                            N(SyntaxKind.OpenParenToken);
+                                            N(SyntaxKind.Parameter);
+                                            {
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.ObjectKeyword);
+                                                }
+                                                N(SyntaxKind.IdentifierToken, identifier);
+                                            }
+                                            N(SyntaxKind.CloseParenToken);
+                                        }
+                                        N(SyntaxKind.Block);
+                                        {
+                                            N(SyntaxKind.OpenBraceToken);
+                                            N(SyntaxKind.ExpressionStatement);
+                                            {
+                                                N(SyntaxKind.SimpleAssignmentExpression);
+                                                {
+                                                    N(SyntaxKind.IdentifierName);
+                                                    {
+                                                        N(SyntaxKind.IdentifierToken, "_");
+                                                    }
+                                                    N(SyntaxKind.EqualsToken);
+                                                    IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier);
+                                                }
+                                                N(SyntaxKind.SemicolonToken);
+                                            }
+                                            N(SyntaxKind.CloseBraceToken);
+                                        }
                                     }
                                     N(SyntaxKind.CloseBraceToken);
                                 }
