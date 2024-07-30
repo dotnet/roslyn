@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -45,7 +46,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 {
                     var service = document.GetRequiredLanguageService<ISyntaxFactsService>();
                     var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    var members = service.GetMethodLevelMembers(root);
+
+                    using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var members);
+                    service.AddMethodLevelMembers(root, members);
                     return members.SelectAsArray(m => m.FullSpan);
                 }
             }
