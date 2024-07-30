@@ -35,7 +35,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         Public ReadOnly IsCustomEventContext As Boolean
         Public ReadOnly IsInLambda As Boolean
-        Public ReadOnly IsInstanceContext As Boolean
         Public ReadOnly IsInterfaceMemberDeclarationKeywordContext As Boolean
         Public ReadOnly IsMultiLineStatementContext As Boolean
         Public ReadOnly IsPreprocessorEndDirectiveKeywordContext As Boolean
