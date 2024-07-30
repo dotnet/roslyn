@@ -22,6 +22,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Rename
 {
     [UseExportProvider]
+    [Trait(Traits.Feature, Traits.Features.Rename)]
     public class CSharpInlineRenameServiceTests
     {
         private class ContextDictionaryComparer : IEqualityComparer<ImmutableDictionary<string, ImmutableArray<string>>?>
@@ -71,7 +72,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Rename
         }
 
         [Fact]
-        public async Task Test()
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74545")]
+        public async Task VerifyContextReachEndOfFile()
         {
             var markup = @"
 public class Sampl$$eClass()
