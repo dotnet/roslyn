@@ -658,7 +658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
                                                        s_multilineStatementBlockStartKinds)
         End Function
 
-        <Extension()>
+        <Extension>
         Friend Function IsInstanceContext(syntaxTree As SyntaxTree, targetToken As SyntaxToken, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Boolean
 
             ' Reference to the respective C# SyntaxTreeExtensions.IsInstanceContext implementation
@@ -692,7 +692,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
             End If
 
             Return Not enclosingSymbol.IsStatic
-
         End Function
 
         <Extension()>
