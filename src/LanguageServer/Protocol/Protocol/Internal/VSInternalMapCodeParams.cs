@@ -4,6 +4,7 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
+    using System;
     using System.Text.Json.Serialization;
 
     /// <summary>
@@ -11,6 +12,18 @@ namespace Roslyn.LanguageServer.Protocol
     /// </summary>
     internal class VSInternalMapCodeParams
     {
+        /// <summary>
+        /// Internal correlation GUID, used to correlate map code messages from Copilot
+        /// with LSP Client actions. Used for telemetry.
+        /// </summary>
+        [JsonPropertyName("_vs_map_code_correlation_id")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public Guid? MapCodeCorrelationId
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         /// Set of code blocks, associated with documents and regions, to map.
         /// </summary>
