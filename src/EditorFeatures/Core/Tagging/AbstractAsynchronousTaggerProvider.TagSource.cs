@@ -49,7 +49,6 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
         /// </summary>
         private const int CoalesceDifferenceCount = 10;
 
-        private static readonly ObjectPool<SegmentedList<TagSpan<TTag>>> s_tagSpanListPool = new(() => new(), trimOnFree: false);
         private readonly ObjectPool<HashSet<TagSpan<TTag>>> _tagSpanSetPool;
 
         #region Fields that can be accessed from either thread
@@ -325,18 +324,15 @@ internal partial class AbstractAsynchronousTaggerProvider<TTag>
 
             // If there are any options specified for this tagger, then also hook up event
             // notifications for when those options change.
-            var optionChangedEventSources = _dataSource.Options.Concat(_dataSource.FeatureOptions)
-                .Select(globalOption => TaggerEventSources.OnGlobalOptionChanged(_dataSource.GlobalOptions, globalOption))
-                .ToList();
-
-            if (optionChangedEventSources.Count == 0)
+            if (_dataSource.Options.IsEmpty && _dataSource.FeatureOptions.IsEmpty)
             {
-                // No options specified for this tagger.  So just keep the event source as is.
                 return eventSource;
             }
 
-            optionChangedEventSources.Add(eventSource);
-            return TaggerEventSources.Compose(optionChangedEventSources);
+            return TaggerEventSources.Compose(
+                eventSource,
+                TaggerEventSources.OnGlobalOptionChanged(_dataSource.GlobalOptions, option =>
+                    _dataSource.Options.Contains(option) || _dataSource.FeatureOptions.Contains(option)));
         }
 
         private void RaiseTagsChanged(ITextBuffer buffer, DiffResult difference)

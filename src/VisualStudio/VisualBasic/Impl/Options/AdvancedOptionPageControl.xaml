@@ -86,10 +86,6 @@
 
                     <CheckBox x:Name="Analyze_source_generated_files"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
-
-                    <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
-
                 </StackPanel>
             </GroupBox>
 
@@ -282,14 +278,6 @@
                            TextWrapping="WrapWithOverflow"
                            Margin="0, 0, 0, 8"
                            Text="{x:Static local:AdvancedOptionPageStrings.Editor_color_scheme_options_are_only_available_when_using_a_color_theme_bundled_with_Visual_Studio_The_color_theme_can_be_configured_from_the_Environment_General_options_page}"/>
-                </StackPanel>
-            </GroupBox>
-
-            <GroupBox x:Uid="ExtractMethodGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_ExtractMethod}">
-                <StackPanel>
-                    <CheckBox x:Name="DontPutOutOrRefOnStruct"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_DontPutOutOrRefOnStruct}" />
                 </StackPanel>
             </GroupBox>
 

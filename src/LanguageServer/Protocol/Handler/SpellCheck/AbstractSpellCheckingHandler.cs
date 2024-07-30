@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SpellCheck
             var spans = await service.GetSpansAsync(document, cancellationToken).ConfigureAwait(false);
 
             // protocol requires the results be in sorted order
-            spans = spans.Sort(static (s1, s2) => s1.TextSpan.CompareTo(s1.TextSpan));
+            spans = spans.Sort(static (s1, s2) => s1.TextSpan.CompareTo(s2.TextSpan));
 
             if (spans.Length == 0)
             {

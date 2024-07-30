@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.LanguageServer.Protocol;
@@ -37,10 +38,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeLens
             return Methods.WorkspaceCodeLensRefreshName;
         }
 
-        private void OnOptionChanged(object? sender, OptionChangedEventArgs e)
+        private void OnOptionChanged(object sender, object target, OptionChangedEventArgs e)
         {
-            if (e.Option.Equals(LspOptionsStorage.LspEnableReferencesCodeLens) ||
-                e.Option.Equals(LspOptionsStorage.LspEnableTestsCodeLens))
+            if (e.HasOption(static option => option.Equals(LspOptionsStorage.LspEnableReferencesCodeLens) || option.Equals(LspOptionsStorage.LspEnableTestsCodeLens)))
             {
                 EnqueueRefreshNotification(documentUri: null);
             }

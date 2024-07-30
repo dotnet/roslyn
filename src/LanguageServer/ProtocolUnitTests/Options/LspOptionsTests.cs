@@ -8,23 +8,18 @@ using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.Test;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.References;
-public class LspOptionsTests : AbstractLanguageServerProtocolTests
-{
-    public LspOptionsTests(ITestOutputHelper? testOutputHelper) : base(testOutputHelper)
-    {
-    }
+namespace Microsoft.CodeAnalysis.Options.UnitTests;
 
-    protected override TestComposition Composition => EditorTestCompositions.LanguageServerProtocol
+public class LspOptionsTests(ITestOutputHelper? testOutputHelper) : AbstractLanguageServerProtocolTests(testOutputHelper)
+{
+    protected override TestComposition Composition => LspTestCompositions.LanguageServerProtocol
         .AddParts(typeof(TestDocumentTrackingService))
         .AddParts(typeof(TestWorkspaceRegistrationService));
 
@@ -35,9 +30,8 @@ public class LspOptionsTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace);
         var globalOptions = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
         var project = testLspServer.GetCurrentSolution().Projects.Single().Services;
-        Assert.NotNull(globalOptions.GetAddImportPlacementOptions(project));
+        Assert.NotNull(globalOptions.GetAddImportPlacementOptions(project, allowInHiddenRegions: null));
         Assert.NotNull(globalOptions.GetCodeGenerationOptions(project));
-        Assert.NotNull(globalOptions.GetCodeStyleOptions(project));
         Assert.NotNull(globalOptions.GetSyntaxFormattingOptions(project));
         Assert.NotNull(globalOptions.GetSimplifierOptions(project));
     }
@@ -49,9 +43,8 @@ public class LspOptionsTests : AbstractLanguageServerProtocolTests
         await using var testLspServer = await CreateVisualBasicTestLspServerAsync(markup, mutatingLspWorkspace);
         var globalOptions = testLspServer.TestWorkspace.ExportProvider.GetExportedValue<IGlobalOptionService>();
         var project = testLspServer.GetCurrentSolution().Projects.Single().Services;
-        Assert.NotNull(globalOptions.GetAddImportPlacementOptions(project));
+        Assert.NotNull(globalOptions.GetAddImportPlacementOptions(project, allowInHiddenRegions: null));
         Assert.NotNull(globalOptions.GetCodeGenerationOptions(project));
-        Assert.NotNull(globalOptions.GetCodeStyleOptions(project));
         Assert.NotNull(globalOptions.GetSyntaxFormattingOptions(project));
         Assert.NotNull(globalOptions.GetSimplifierOptions(project));
     }

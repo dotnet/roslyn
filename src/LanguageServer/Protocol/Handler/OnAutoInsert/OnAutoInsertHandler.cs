@@ -41,27 +41,43 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public LSP.TextDocumentIdentifier GetTextDocumentIdentifier(LSP.VSInternalDocumentOnAutoInsertParams request) => request.TextDocument;
 
-        public async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
+        public Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> HandleRequestAsync(
             LSP.VSInternalDocumentOnAutoInsertParams request,
             RequestContext context,
             CancellationToken cancellationToken)
         {
             var document = context.Document;
             if (document == null)
-                return null;
+                return SpecializedTasks.Null<LSP.VSInternalDocumentOnAutoInsertResponseItem>();
 
+            var servicesForDocument = _braceCompletionServices.Where(s => s.Metadata.Language == document.Project.Language).SelectAsArray(s => s.Value);
+            var isRazorRequest = context.ServerKind == WellKnownLspServerKinds.RazorLspServer;
+            var position = ProtocolConversions.PositionToLinePosition(request.Position);
+            return GetOnAutoInsertResponseAsync(_globalOptions, servicesForDocument, document, position, request.Character, request.Options, isRazorRequest, cancellationToken);
+        }
+
+        internal static async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetOnAutoInsertResponseAsync(
+            IGlobalOptionService globalOptions,
+            ImmutableArray<IBraceCompletionService> servicesForDocument,
+            Document document,
+            LinePosition linePosition,
+            string character,
+            LSP.FormattingOptions lspFormattingOptions,
+            bool isRazorRequest,
+            CancellationToken cancellationToken)
+        {
             var service = document.GetRequiredLanguageService<IDocumentationCommentSnippetService>();
 
             // We should use the options passed in by LSP instead of the document's options.
-            var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(request.Options, document, _globalOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(lspFormattingOptions, document, cancellationToken).ConfigureAwait(false);
 
             // The editor calls this handler for C# and VB comment characters, but we only need to process the one for the language that matches the document
-            if (request.Character == "\n" || request.Character == service.DocumentationCommentCharacter)
+            if (character == "\n" || character == service.DocumentationCommentCharacter)
             {
-                var docCommentOptions = _globalOptions.GetDocumentationCommentOptions(formattingOptions.LineFormatting, document.Project.Language);
+                var docCommentOptions = globalOptions.GetDocumentationCommentOptions(formattingOptions.LineFormatting, document.Project.Language);
 
                 var documentationCommentResponse = await GetDocumentationCommentResponseAsync(
-                    request, document, service, docCommentOptions, cancellationToken).ConfigureAwait(false);
+                    document, linePosition, character, service, docCommentOptions, cancellationToken).ConfigureAwait(false);
 
                 if (documentationCommentResponse != null)
                 {
@@ -72,15 +88,15 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // Only support this for razor as LSP doesn't support overtype yet.
             // https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1165179/
             // Once LSP supports overtype we can move all of brace completion to LSP.
-            if (request.Character == "\n" && context.ServerKind == WellKnownLspServerKinds.RazorLspServer)
+            if (character == "\n" && isRazorRequest)
             {
                 var indentationOptions = new IndentationOptions(formattingOptions)
                 {
-                    AutoFormattingOptions = _globalOptions.GetAutoFormattingOptions(document.Project.Language)
+                    AutoFormattingOptions = globalOptions.GetAutoFormattingOptions(document.Project.Language)
                 };
 
                 var braceCompletionAfterReturnResponse = await GetBraceCompletionAfterReturnResponseAsync(
-                    request, document, indentationOptions, cancellationToken).ConfigureAwait(false);
+                    document, servicesForDocument, linePosition, indentationOptions, cancellationToken).ConfigureAwait(false);
                 if (braceCompletionAfterReturnResponse != null)
                 {
                     return braceCompletionAfterReturnResponse;
@@ -91,8 +107,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         }
 
         private static async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetDocumentationCommentResponseAsync(
-            LSP.VSInternalDocumentOnAutoInsertParams autoInsertParams,
             Document document,
+            LinePosition linePosition,
+            string character,
             IDocumentationCommentSnippetService service,
             DocumentationCommentOptions options,
             CancellationToken cancellationToken)
@@ -100,10 +117,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var linePosition = ProtocolConversions.PositionToLinePosition(autoInsertParams.Position);
             var position = sourceText.Lines.GetPosition(linePosition);
 
-            var result = autoInsertParams.Character == "\n"
+            var result = character == "\n"
                 ? service.GetDocumentationCommentSnippetOnEnterTyped(syntaxTree, sourceText, position, options, cancellationToken)
                 : service.GetDocumentationCommentSnippetOnCharacterTyped(syntaxTree, sourceText, position, options, cancellationToken, addIndentation: false);
 
@@ -123,16 +139,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             };
         }
 
-        private async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetBraceCompletionAfterReturnResponseAsync(
-            LSP.VSInternalDocumentOnAutoInsertParams autoInsertParams,
+        private static async Task<LSP.VSInternalDocumentOnAutoInsertResponseItem?> GetBraceCompletionAfterReturnResponseAsync(
             Document document,
+            ImmutableArray<IBraceCompletionService> servicesForDocument,
+            LinePosition linePosition,
             IndentationOptions options,
             CancellationToken cancellationToken)
         {
             var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-            var position = sourceText.Lines.GetPosition(ProtocolConversions.PositionToLinePosition(autoInsertParams.Position));
+            var position = sourceText.Lines.GetPosition(linePosition);
 
-            var serviceAndContext = await GetBraceCompletionContextAsync(position, document, cancellationToken).ConfigureAwait(false);
+            var serviceAndContext = await GetBraceCompletionContextAsync(servicesForDocument, position, document, cancellationToken).ConfigureAwait(false);
             if (serviceAndContext == null)
             {
                 return null;
@@ -219,15 +236,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             }
         }
 
-        private async Task<(IBraceCompletionService Service, BraceCompletionContext Context)?> GetBraceCompletionContextAsync(int caretLocation, Document document, CancellationToken cancellationToken)
+        private static async Task<(IBraceCompletionService Service, BraceCompletionContext Context)?> GetBraceCompletionContextAsync(ImmutableArray<IBraceCompletionService> servicesForDocument, int caretLocation, Document document, CancellationToken cancellationToken)
         {
-            var servicesForDocument = _braceCompletionServices.Where(s => s.Metadata.Language == document.Project.Language).SelectAsArray(s => s.Value);
-
             var parsedDocument = await ParsedDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
+            var fallbackOptions = document.Project.GetFallbackAnalyzerOptions();
 
             foreach (var service in servicesForDocument)
             {
-                var context = service.GetCompletedBraceContext(parsedDocument, caretLocation);
+                var context = service.GetCompletedBraceContext(parsedDocument, fallbackOptions, caretLocation);
                 if (context != null)
                 {
                     return (service, context.Value);

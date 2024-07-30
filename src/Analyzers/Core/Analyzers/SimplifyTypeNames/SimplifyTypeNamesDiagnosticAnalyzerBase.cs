@@ -81,16 +81,6 @@ internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnu
         out TextSpan issueSpan, out string diagnosticId, out bool inDeclaration,
         CancellationToken cancellationToken);
 
-    public override bool OpenFileOnly(SimplifierOptions? options)
-    {
-        // analyzer is only active in C# and VB projects
-        Contract.ThrowIfNull(options);
-
-        return
-            !(options.PreferPredefinedTypeKeywordInDeclaration.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
-              options.PreferPredefinedTypeKeywordInMemberAccess.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
-    }
-
     protected static ImmutableArray<NotificationOption2> GetAllNotifications(SimplifierOptions options)
         => [
             options.PreferPredefinedTypeKeywordInDeclaration.Notification,
@@ -119,7 +109,7 @@ internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnu
     /// <see cref="AnalyzeSemanticModel"/>.</returns>
     protected abstract bool IsIgnoredCodeBlock(SyntaxNode codeBlock);
     protected abstract ImmutableArray<Diagnostic> AnalyzeCodeBlock(CodeBlockAnalysisContext context, SyntaxNode root);
-    protected abstract ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, TextSpanIntervalTree? codeBlockIntervalTree);
+    protected abstract ImmutableArray<Diagnostic> AnalyzeSemanticModel(SemanticModelAnalysisContext context, SyntaxNode root, TextSpanMutableIntervalTree? codeBlockIntervalTree);
 
     public bool TrySimplify(SemanticModel model, SyntaxNode node, [NotNullWhen(true)] out Diagnostic? diagnostic, TSimplifierOptions options, AnalyzerOptions analyzerOptions, CancellationToken cancellationToken)
     {
@@ -229,14 +219,14 @@ internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnu
         /// </description></item>
         /// </list>
         /// </summary>
-        private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, TextSpanIntervalTree? intervalTree)> _codeBlockIntervals = [];
+        private readonly ConcurrentDictionary<SyntaxTree, (StrongBox<bool> completed, TextSpanMutableIntervalTree? intervalTree)> _codeBlockIntervals = [];
 
         public void AnalyzeCodeBlock(CodeBlockAnalysisContext context)
         {
             if (_analyzer.IsIgnoredCodeBlock(context.CodeBlock))
                 return;
 
-            var (completed, intervalTree) = _codeBlockIntervals.GetOrAdd(context.CodeBlock.SyntaxTree, _ => (new StrongBox<bool>(false), new TextSpanIntervalTree()));
+            var (completed, intervalTree) = _codeBlockIntervals.GetOrAdd(context.CodeBlock.SyntaxTree, _ => (new StrongBox<bool>(false), new TextSpanMutableIntervalTree()));
             if (completed.Value)
                 return;
 
@@ -256,7 +246,7 @@ internal abstract class SimplifyTypeNamesDiagnosticAnalyzerBase<TLanguageKindEnu
                 context.ReportDiagnostic(diagnostic);
             }
 
-            static bool TryProceedWithInterval(bool addIfAvailable, TextSpan span, StrongBox<bool> completed, TextSpanIntervalTree intervalTree)
+            static bool TryProceedWithInterval(bool addIfAvailable, TextSpan span, StrongBox<bool> completed, TextSpanMutableIntervalTree intervalTree)
             {
                 lock (completed)
                 {

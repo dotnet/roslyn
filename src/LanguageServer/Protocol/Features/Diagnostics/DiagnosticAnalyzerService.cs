@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +27,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     [Shared]
     internal partial class DiagnosticAnalyzerService : IDiagnosticAnalyzerService
     {
+        private static readonly Option2<bool> s_crashOnAnalyzerException = new("dotnet_crash_on_analyzer_exception", defaultValue: false);
+
         public DiagnosticAnalyzerInfoCache AnalyzerInfoCache { get; private set; }
 
         public IAsynchronousOperationListener Listener { get; }
@@ -49,48 +52,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _diagnosticsRefresher = diagnosticsRefresher;
             _createIncrementalAnalyzer = CreateIncrementalAnalyzerCallback;
 
-            globalOptions.AddOptionChangedHandler(this, (_, e) =>
+            globalOptions.AddOptionChangedHandler(this, (_, _, e) =>
             {
-                if (IsGlobalOptionAffectingDiagnostics(e.Option))
+                if (e.HasOption(IsGlobalOptionAffectingDiagnostics))
                 {
                     RequestDiagnosticRefresh();
                 }
             });
         }
 
+        public bool CrashOnAnalyzerException
+            => GlobalOptions.GetOption(s_crashOnAnalyzerException);
+
         public static bool IsGlobalOptionAffectingDiagnostics(IOption2 option)
             => option == NamingStyleOptions.NamingPreferences ||
                option.Definition.Group.Parent == CodeStyleOptionGroups.CodeStyle ||
                option == SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption ||
                option == SolutionCrawlerOptionsStorage.SolutionBackgroundAnalysisScopeOption ||
-               option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption;
+               option == SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption ||
+               option == s_crashOnAnalyzerException;
 
         public void RequestDiagnosticRefresh()
             => _diagnosticsRefresher?.RequestWorkspaceRefresh();
-
-        public async Task<(ImmutableArray<DiagnosticData> diagnostics, bool upToDate)> TryGetDiagnosticsForSpanAsync(
-            TextDocument document,
-            TextSpan range,
-            Func<string, bool>? shouldIncludeDiagnostic,
-            bool includeSuppressedDiagnostics,
-            ICodeActionRequestPriorityProvider priorityProvider,
-            DiagnosticKind diagnosticKinds,
-            bool isExplicit,
-            CancellationToken cancellationToken)
-        {
-            var analyzer = CreateIncrementalAnalyzer(document.Project.Solution.Workspace);
-
-            // always make sure that analyzer is called on background thread.
-            await TaskScheduler.Default;
-            priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
-
-            using var _ = ArrayBuilder<DiagnosticData>.GetInstance(out var diagnostics);
-            var upToDate = await analyzer.TryAppendDiagnosticsForSpanAsync(
-                document, range, diagnostics, shouldIncludeDiagnostic,
-                includeSuppressedDiagnostics, true, priorityProvider, blockForData: false,
-                diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
-            return (diagnostics.ToImmutable(), upToDate);
-        }
 
         public async Task<ImmutableArray<DiagnosticData>> GetDiagnosticsForSpanAsync(
             TextDocument document,
@@ -104,13 +87,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             CancellationToken cancellationToken)
         {
             var analyzer = CreateIncrementalAnalyzer(document.Project.Solution.Workspace);
-            priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
 
             // always make sure that analyzer is called on background thread.
             await TaskScheduler.Default;
+            priorityProvider ??= new DefaultCodeActionRequestPriorityProvider();
+
             return await analyzer.GetDiagnosticsForSpanAsync(
                 document, range, shouldIncludeDiagnostic, includeSuppressedDiagnostics, includeCompilerDiagnostics,
-                priorityProvider, blockForData: true, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
+                priorityProvider, diagnosticKinds, isExplicit, cancellationToken).ConfigureAwait(false);
         }
 
         public Task<ImmutableArray<DiagnosticData>> GetCachedDiagnosticsAsync(Workspace workspace, ProjectId? projectId, DocumentId? documentId, bool includeSuppressedDiagnostics, bool includeLocalDocumentDiagnostics, bool includeNonLocalDocumentDiagnostics, CancellationToken cancellationToken)

@@ -10,7 +10,9 @@ using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
@@ -33,15 +35,22 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public abstract Task<LSP.Location[]?> HandleRequestAsync(TextDocumentPositionParams request, RequestContext context, CancellationToken cancellationToken);
 
-        protected async Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)
+        protected Task<LSP.Location[]?> GetDefinitionAsync(LSP.TextDocumentPositionParams request, bool typeOnly, RequestContext context, CancellationToken cancellationToken)
         {
             var workspace = context.Workspace;
             var document = context.Document;
             if (workspace is null || document is null)
-                return null;
+                return SpecializedTasks.Null<LSP.Location[]>();
 
+            var linePosition = ProtocolConversions.PositionToLinePosition(request.Position);
+
+            return GetDefinitionsAsync(_globalOptions, _metadataAsSourceFileService, workspace, document, typeOnly, linePosition, cancellationToken);
+        }
+
+        internal static async Task<LSP.Location[]?> GetDefinitionsAsync(IGlobalOptionService globalOptions, IMetadataAsSourceFileService? metadataAsSourceFileService, Workspace workspace, Document document, bool typeOnly, LinePosition linePosition, CancellationToken cancellationToken)
+        {
             var locations = ArrayBuilder<LSP.Location>.GetInstance();
-            var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
+            var position = await document.GetPositionFromLinePositionAsync(linePosition, cancellationToken).ConfigureAwait(false);
 
             var service = document.GetLanguageService<INavigableItemsService>();
             if (service is null)
@@ -63,16 +72,16 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     locations.AddIfNotNull(location);
                 }
             }
-            else if (document.SupportsSemanticModel && _metadataAsSourceFileService != null)
+            else if (document.SupportsSemanticModel && metadataAsSourceFileService != null)
             {
                 // No definition found - see if we can get metadata as source but that's only applicable for C#\VB.
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(document, position, cancellationToken).ConfigureAwait(false);
-                if (symbol != null && _metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
+                if (symbol != null && metadataAsSourceFileService.IsNavigableMetadataSymbol(symbol))
                 {
                     if (!typeOnly || symbol is ITypeSymbol)
                     {
-                        var options = _globalOptions.GetMetadataAsSourceOptions(document.Project.Services);
-                        var declarationFile = await _metadataAsSourceFileService.GetGeneratedFileAsync(workspace, document.Project, symbol, signaturesOnly: false, options, cancellationToken).ConfigureAwait(false);
+                        var options = globalOptions.GetMetadataAsSourceOptions();
+                        var declarationFile = await metadataAsSourceFileService.GetGeneratedFileAsync(workspace, document.Project, symbol, signaturesOnly: false, options: options, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                         var linePosSpan = declarationFile.IdentifierLocation.GetLineSpan().Span;
                         locations.Add(new LSP.Location

@@ -96,11 +96,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private Binder? _binder;
 
-        internal BoundExpression MakeInvocationExpression(
+        private BoundExpression MakeInvocationExpression(
             BinderFlags flags,
             SyntaxNode node,
             BoundExpression receiver,
             string methodName,
+            bool disallowExpandedNonArrayParams,
             ImmutableArray<BoundExpression> args,
             BindingDiagnosticBag diagnostics,
             ImmutableArray<TypeSymbol> typeArgs = default(ImmutableArray<TypeSymbol>),
@@ -119,7 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 typeArgs: typeArgs.IsDefault ? default(ImmutableArray<TypeWithAnnotations>) : typeArgs.SelectAsArray(t => TypeWithAnnotations.Create(t)),
                 allowFieldsAndProperties: false,
-                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter);
+                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
+                disallowExpandedNonArrayParams: disallowExpandedNonArrayParams);
         }
 
         /// <summary>
@@ -831,29 +833,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public BoundExpression InstanceCall(BoundExpression receiver, string name, BoundExpression arg)
+        public BoundExpression StaticCall(TypeSymbol receiver, string name, bool disallowExpandedNonArrayParams, params BoundExpression[] args)
         {
-            return MakeInvocationExpression(BinderFlags.None, this.Syntax, receiver, name, ImmutableArray.Create(arg), this.Diagnostics);
+            return MakeInvocationExpression(BinderFlags.None, this.Syntax, this.Type(receiver), name, disallowExpandedNonArrayParams, args.ToImmutableArray(), this.Diagnostics);
         }
 
-        public BoundExpression InstanceCall(BoundExpression receiver, string name)
+        public BoundExpression StaticCall(TypeSymbol receiver, string name, bool disallowExpandedNonArrayParams, ImmutableArray<BoundExpression> args, bool ignoreNormalFormIfHasValidParamsParameter)
         {
-            return MakeInvocationExpression(BinderFlags.None, this.Syntax, receiver, name, ImmutableArray<BoundExpression>.Empty, this.Diagnostics);
+            return MakeInvocationExpression(
+                BinderFlags.None, this.Syntax, this.Type(receiver), name, disallowExpandedNonArrayParams, args, this.Diagnostics, ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter);
         }
 
-        public BoundExpression StaticCall(TypeSymbol receiver, string name, params BoundExpression[] args)
+        public BoundExpression StaticCall(BinderFlags flags, TypeSymbol receiver, string name, bool disallowExpandedNonArrayParams, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] args)
         {
-            return MakeInvocationExpression(BinderFlags.None, this.Syntax, this.Type(receiver), name, args.ToImmutableArray(), this.Diagnostics);
-        }
-
-        public BoundExpression StaticCall(TypeSymbol receiver, string name, ImmutableArray<BoundExpression> args, bool ignoreNormalFormIfHasValidParamsParameter)
-        {
-            return MakeInvocationExpression(BinderFlags.None, this.Syntax, this.Type(receiver), name, args, this.Diagnostics, ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter);
-        }
-
-        public BoundExpression StaticCall(BinderFlags flags, TypeSymbol receiver, string name, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] args)
-        {
-            return MakeInvocationExpression(flags, this.Syntax, this.Type(receiver), name, args.ToImmutableArray(), this.Diagnostics, typeArgs);
+            return MakeInvocationExpression(flags, this.Syntax, this.Type(receiver), name, disallowExpandedNonArrayParams, args.ToImmutableArray(), this.Diagnostics, typeArgs);
         }
 
         public BoundExpression StaticCall(TypeSymbol receiver, MethodSymbol method, params BoundExpression[] args)

@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -30,19 +29,20 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
             => new RemoteSourceGenerationService(arguments);
     }
 
-    public ValueTask<ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity, DateTime generationDateTime)>> GetSourceGenerationInfoAsync(
-        Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken)
+    public ValueTask<ImmutableArray<SourceGeneratedDocumentInfo>> GetSourceGeneratedDocumentInfoAsync(
+        Checksum solutionChecksum, ProjectId projectId, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
             var project = solution.GetRequiredProject(projectId);
-            var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
+            var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(
+                project.State, withFrozenSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
-            var result = new FixedSizeArrayBuilder<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity, DateTime generationDateTime)>(documentStates.States.Count);
+            var result = new FixedSizeArrayBuilder<SourceGeneratedDocumentInfo>(documentStates.States.Count);
             foreach (var (id, state) in documentStates.States)
             {
                 Contract.ThrowIfFalse(id.IsSourceGenerated);
-                result.Add((state.Identity, state.GetContentIdentity(), state.GenerationDateTime));
+                result.Add(new(state.Identity, state.GetContentIdentity(), state.GenerationDateTime));
             }
 
             return result.MoveToImmutable();
@@ -50,12 +50,13 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
     }
 
     public ValueTask<ImmutableArray<string>> GetContentsAsync(
-        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)
     {
         return RunServiceAsync(solutionChecksum, async solution =>
         {
             var project = solution.GetRequiredProject(projectId);
-            var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(project.State, cancellationToken).ConfigureAwait(false);
+            var documentStates = await solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(
+                project.State, withFrozenSourceGeneratedDocuments, cancellationToken).ConfigureAwait(false);
 
             var result = new FixedSizeArrayBuilder<string>(documentIds.Length);
             foreach (var id in documentIds)
@@ -130,5 +131,22 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         }
 
         return false;
+    }
+
+    public ValueTask<ImmutableArray<SourceGeneratorIdentity>> GetSourceGeneratorIdentitiesAsync(
+        Checksum solutionChecksum,
+        ProjectId projectId,
+        string analyzerReferenceFullPath,
+        CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(solutionChecksum, solution =>
+        {
+            var project = solution.GetRequiredProject(projectId);
+            var analyzerReference = project.AnalyzerReferences
+                .OfType<AnalyzerFileReference>()
+                .First(r => r.FullPath == analyzerReferenceFullPath);
+
+            return ValueTaskFactory.FromResult(SourceGeneratorIdentity.GetIdentities(analyzerReference, project.Language));
+        }, cancellationToken);
     }
 }

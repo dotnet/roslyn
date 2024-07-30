@@ -47,7 +47,6 @@ internal static class DocumentBasedFixAllProviderHelpers
         var cleanedSolution = await CodeAction.CleanSyntaxAndSemanticsAsync(
             originalSolution,
             dirtySolution,
-            originalFixAllContext.State.CodeActionOptionsProvider,
             progressTracker,
             cancellationToken).ConfigureAwait(false);
 
@@ -103,8 +102,8 @@ internal static class DocumentBasedFixAllProviderHelpers
             // expensive as we'd fork, produce semantics, fork, produce semantics, etc. etc.). Instead, by
             // adding all the changed documents to one solution, and then cleaning *those* we only perform
             // cleanup semantics on one forked solution.
-            var changedRoots = changedRootsAndTexts.SelectAsArray(t => t.Item2.node != null, t => (t.documentId, t.Item2.node!, PreservationMode.PreserveValue));
-            var changedTexts = changedRootsAndTexts.SelectAsArray(t => t.Item2.text != null, t => (t.documentId, t.Item2.text!, PreservationMode.PreserveValue));
+            var changedRoots = changedRootsAndTexts.SelectAsArray(t => t.Item2.node != null, t => (t.documentId, t.Item2.node!));
+            var changedTexts = changedRootsAndTexts.SelectAsArray(t => t.Item2.text != null, t => (t.documentId, t.Item2.text!));
 
             return originalSolution
                 .WithDocumentSyntaxRoots(changedRoots)

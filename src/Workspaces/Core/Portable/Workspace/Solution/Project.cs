@@ -802,9 +802,21 @@ public partial class Project
     internal AnalyzerConfigData? GetAnalyzerConfigOptions()
         => _projectState.GetAnalyzerConfigOptions();
 
+    /// <summary>
+    /// Retrieves fallback analyzer options for this project's language.
+    /// </summary>
+    internal StructuredAnalyzerConfigOptions GetFallbackAnalyzerOptions()
+        => _solution.FallbackAnalyzerOptions.GetValueOrDefault(Language, StructuredAnalyzerConfigOptions.Empty);
+
     private string GetDebuggerDisplay()
         => this.Name;
 
     internal SkippedHostAnalyzersInfo GetSkippedAnalyzersInfo(DiagnosticAnalyzerInfoCache infoCache)
         => Solution.SolutionState.Analyzers.GetSkippedAnalyzersInfo(this, infoCache);
+
+    internal async ValueTask<Document?> GetDocumentAsync(ImmutableArray<byte> contentHash, CancellationToken cancellationToken)
+    {
+        var documentId = await _projectState.GetDocumentIdAsync(contentHash, cancellationToken).ConfigureAwait(false);
+        return documentId is null ? null : GetDocument(documentId);
+    }
 }

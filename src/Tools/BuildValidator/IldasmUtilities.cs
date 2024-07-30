@@ -27,7 +27,8 @@ namespace BuildValidator
             }
             else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
             {
-                ridName = "linux-x64";
+                var architecture = Microsoft.CodeAnalysis.Test.Utilities.IlasmUtilities.Architecture;
+                ridName = $"linux-{architecture}";
             }
             else
             {

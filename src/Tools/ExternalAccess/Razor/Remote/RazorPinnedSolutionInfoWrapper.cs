@@ -3,10 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Runtime.Serialization;
-using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor
 {
+    /// <summary>
+    /// A wrapper for a solution that can be used by Razor for OOP services that communicate via MessagePack
+    /// </summary>
     [DataContract]
     internal readonly struct RazorPinnedSolutionInfoWrapper
     {

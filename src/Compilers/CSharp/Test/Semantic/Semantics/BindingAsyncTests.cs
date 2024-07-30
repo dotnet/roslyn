@@ -2313,13 +2313,13 @@ class Test
         get
         {
             Meth(1);
-            return field;
+            return @field;
         }
         set
         {
             Bar();
             Meth("""");
-            field = value;
+            @field = value;
         }
     }
 

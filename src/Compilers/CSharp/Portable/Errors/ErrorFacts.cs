@@ -207,10 +207,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // docs/compilers/CSharp/Warnversion Warning Waves.md
             switch (code)
             {
-                case ErrorCode.WRN_BadYieldInLock:
-                    // Warning level 9 is exclusively for warnings introduced in the compiler
-                    // shipped with dotnet 9 (C# 13) and that can be reported for pre-existing code.
-                    return 9;
                 case ErrorCode.WRN_AddressOfInAsync:
                 case ErrorCode.WRN_ByValArraySizeConstRequired:
                     // Warning level 8 is exclusively for warnings introduced in the compiler
@@ -558,9 +554,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CollectionExpressionRefStructMayAllocate:
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
-                case ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod:
-                case ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer:
-                case ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor:
                 case ErrorCode.WRN_PartialPropertySignatureDifference:
 
                     return 1;
@@ -2422,10 +2415,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_CollectionExpressionMissingAdd
                 or ErrorCode.WRN_ConvertingLock
                 or ErrorCode.ERR_DynamicDispatchToParamsCollection
-                or ErrorCode.ERR_ParamsCollectionAmbiguousDynamicArgument
-                or ErrorCode.WRN_DynamicDispatchToParamsCollectionMethod
-                or ErrorCode.WRN_DynamicDispatchToParamsCollectionIndexer
-                or ErrorCode.WRN_DynamicDispatchToParamsCollectionConstructor
                 or ErrorCode.ERR_ParamsCollectionInfiniteChainOfConstructorCalls
                 or ErrorCode.ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember
                 or ErrorCode.ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember
@@ -2440,7 +2429,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_InterceptsLocationFileNotFound
                 or ErrorCode.ERR_InterceptsLocationDataInvalidPosition
                 or ErrorCode.INF_TooManyBoundLambdas
-                or ErrorCode.WRN_BadYieldInLock
                 or ErrorCode.ERR_BadYieldInUnsafe
                 or ErrorCode.ERR_AddressOfInIterator
                 or ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics
@@ -2461,6 +2449,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialPropertyTypeDifference
                 or ErrorCode.WRN_PartialPropertySignatureDifference
                 or ErrorCode.ERR_PartialPropertyRequiredDifference
+                or ErrorCode.INF_IdentifierConflictWithContextualKeyword
+                or ErrorCode.ERR_InlineArrayAttributeOnRecord
+                or ErrorCode.ERR_FeatureNotAvailableInVersion13
+                or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride
+                or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember
                     => false,
             };
 #pragma warning restore CS8524 // The switch expression does not handle some values of its input type (it is not exhaustive) involving an unnamed enum value.
@@ -2482,7 +2475,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (IsWarning(code))
+            if (IsWarning(code) || IsInfo(code) || IsHidden(code))
             {
                 return false;
             }

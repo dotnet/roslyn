@@ -25,6 +25,5 @@ internal interface IExtractInterfaceOptionsService : IWorkspaceService
         string defaultNamespace,
         string generatedNameTypeParameterSuffix,
         string languageName,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken);
 }

@@ -2391,21 +2391,21 @@ class C
                 // (27,37): error CS1637: Iterators cannot have pointer type parameters
                 //         IEnumerable<int> Local(int* a) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(27, 37),
+                // (37,40): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //                 IEnumerable<int> Local(int* b) { yield break; }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "int*").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(37, 40),
+                // (39,23): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "&x").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(39, 23),
+                // (39,17): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //                 Local(&x);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "Local(&x)").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(39, 17),
                 // (33,44): error CS1637: Iterators cannot have pointer type parameters
                 //     public unsafe IEnumerable<int> M4(int* a)
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "a").WithLocation(33, 44),
-                // (33,36): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                // (33,36): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //     public unsafe IEnumerable<int> M4(int* a)
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "M4").WithArguments("ref and unsafe in async and iterator methods").WithLocation(33, 36),
-                // (37,40): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //                 IEnumerable<int> Local(int* b) { yield break; }
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "int*").WithArguments("ref and unsafe in async and iterator methods").WithLocation(37, 40),
-                // (39,23): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //                 Local(&x);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "&x").WithArguments("ref and unsafe in async and iterator methods").WithLocation(39, 23),
-                // (39,17): error CS8652: The feature 'ref and unsafe in async and iterator methods' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                //                 Local(&x);
-                Diagnostic(ErrorCode.ERR_FeatureInPreview, "Local(&x)").WithArguments("ref and unsafe in async and iterator methods").WithLocation(39, 17),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "M4").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(33, 36),
                 // (37,45): error CS1637: Iterators cannot have pointer type parameters
                 //                 IEnumerable<int> Local(int* b) { yield break; }
                 Diagnostic(ErrorCode.ERR_UnsafeIteratorArgType, "b").WithLocation(37, 45));
@@ -2438,7 +2438,7 @@ class C
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "&x").WithLocation(39, 23)
             };
 
-            CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularNext.WithFeature("run-nullable-analysis", "never")).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular13.WithFeature("run-nullable-analysis", "never")).VerifyDiagnostics(expectedDiagnostics);
             CreateCompilation(src, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.RegularPreview.WithFeature("run-nullable-analysis", "never")).VerifyDiagnostics(expectedDiagnostics);
         }
 
@@ -2485,43 +2485,29 @@ class C
         [Fact]
         public void ForgotSemicolonLocalFunctionsMistake()
         {
-            var src = @"
-class C
-{
-    public void M1()
-    {
-    // forget closing brace
+            var src = """
+                class C
+                {
+                    public void M1()
+                    {
+                    // forget closing brace
 
-    public void BadLocal1()
-    {
-        this.BadLocal2();
-    }
+                    public void BadLocal1()
+                    {
+                        this.BadLocal2();
+                    }
 
-    public void BadLocal2()
-    {
-    }
+                    public void BadLocal2()
+                    {
+                    }
 
-    public int P => 0;
-}";
+                    public int P => 0;
+                }
+                """;
             VerifyDiagnostics(src,
-                // (8,5): error CS0106: The modifier 'public' is not valid for this item
-                //     public void BadLocal1()
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(8, 5),
-                // (13,5): error CS0106: The modifier 'public' is not valid for this item
-                //     public void BadLocal2()
-                Diagnostic(ErrorCode.ERR_BadMemberFlag, "public").WithArguments("public").WithLocation(13, 5),
-                // (15,6): error CS1513: } expected
-                //     }
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(15, 6),
-                // (10,14): error CS1061: 'C' does not contain a definition for 'BadLocal2' and no extension method 'BadLocal2' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
-                //         this.BadLocal2();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "BadLocal2").WithArguments("C", "BadLocal2").WithLocation(10, 14),
-                // (8,17): warning CS8321: The local function 'BadLocal1' is declared but never used
-                //     public void BadLocal1()
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "BadLocal1").WithArguments("BadLocal1").WithLocation(8, 17),
-                // (13,17): warning CS8321: The local function 'BadLocal2' is declared but never used
-                //     public void BadLocal2()
-                Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "BadLocal2").WithArguments("BadLocal2").WithLocation(13, 17));
+                // (5,6): error CS1513: } expected
+                //     {
+                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 6));
         }
 
         [Fact]
@@ -10188,7 +10174,13 @@ int P
                 .Where(i => i.Ancestors().Any(a => a.IsKind(SyntaxKind.Attribute)))
                 .Single();
 
-            Assert.Null(model.GetSymbolInfo(node).Symbol);
+            // int P ... should be pulled into MyAttribute as it's more likely that there's an errant close curly in the
+            // type, versus a property in a compilation unit.
+            var symbol = model.GetSymbolInfo(node).Symbol;
+            Assert.NotNull(symbol);
+            var property = (IPropertySymbol)symbol;
+            Assert.Equal("P", property.Name);
+            Assert.Equal("MyAttribute", property.ContainingType.Name);
         }
 
         [Fact, WorkItem(43697, "https://github.com/dotnet/roslyn/issues/43697")]

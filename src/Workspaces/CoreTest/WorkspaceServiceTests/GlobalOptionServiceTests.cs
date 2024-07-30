@@ -170,9 +170,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             var option2 = new Option2<int>("test_option2", defaultValue: 2);
             var option3 = new Option2<int>("test_option3", defaultValue: 3);
 
-            var changedOptions = new List<OptionChangedEventArgs>();
+            var events = new List<OptionChangedEventArgs>();
 
-            var handler = new EventHandler<OptionChangedEventArgs>((_, e) => changedOptions.Add(e));
+            var handler = new WeakEventHandler<OptionChangedEventArgs>((_, _, e) => events.Add(e));
             globalOptions.AddOptionChangedHandler(this, handler);
 
             var values = globalOptions.GetOptions([new OptionKey2(option1), new OptionKey2(option2)]);
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
             {
                 "test_option1=5",
                 "test_option2=6",
-            }, changedOptions.Select(e => $"{e.Option.Definition.ConfigName}={e.Value}"));
+            }, events.Single().ChangedOptions.Select(e => $"{e.key.Option.Definition.ConfigName}={e.newValue}"));
 
             values = globalOptions.GetOptions([new OptionKey2(option1), new OptionKey2(option2), new OptionKey2(option3)]);
             Assert.Equal(5, values[0]);

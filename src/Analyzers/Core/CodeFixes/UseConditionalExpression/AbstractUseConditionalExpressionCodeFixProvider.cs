@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,12 +14,6 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-
-#if CODE_STYLE
-using Formatter = Microsoft.CodeAnalysis.Formatting.FormatterHelper;
-#else
-using Formatter = Microsoft.CodeAnalysis.Formatting.Formatter;
-#endif
 
 namespace Microsoft.CodeAnalysis.UseConditionalExpression;
 
@@ -40,20 +33,22 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
     protected abstract ISyntaxFacts SyntaxFacts { get; }
     protected abstract AbstractFormattingRule GetMultiLineFormattingRule();
 
-    protected abstract ISyntaxFormatting GetSyntaxFormatting();
+    protected abstract ISyntaxFormatting SyntaxFormatting { get; }
 
     protected abstract TExpressionSyntax ConvertToExpression(IThrowOperation throwOperation);
     protected abstract TStatementSyntax WrapWithBlockIfAppropriate(TIfStatementSyntax ifStatement, TStatementSyntax statement);
 
     protected abstract Task FixOneAsync(
         Document document, Diagnostic diagnostic,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+        SyntaxEditor editor, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken);
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, cancellationToken).ConfigureAwait(false);
 
         // Defer to our callback to actually make the edits for each diagnostic. In turn, it
         // will return 'true' if it made a multi-line conditional expression. In that case,
@@ -63,7 +58,7 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         foreach (var diagnostic in diagnostics)
         {
             await FixOneAsync(
-                document, diagnostic, nestedEditor, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                document, diagnostic, nestedEditor, formattingOptions, cancellationToken).ConfigureAwait(false);
         }
 
         var changedRoot = nestedEditor.GetChangedRoot();
@@ -73,16 +68,9 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         // conditional expression as that's the only node that has the appropriate
         // annotation on it.
         var rules = ImmutableArray.Create(GetMultiLineFormattingRule());
+        var spansToFormat = FormattingExtensions.GetAnnotatedSpans(changedRoot, SpecializedFormattingAnnotation);
 
-#if CODE_STYLE
-        var provider = GetSyntaxFormatting();
-#else
-        var provider = document.Project.Solution.Services;
-#endif
-        var options = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-        var formattingOptions = options.GetFormattingOptions(GetSyntaxFormatting());
-        var formattedRoot = Formatter.Format(changedRoot, SpecializedFormattingAnnotation, provider, formattingOptions, rules, cancellationToken);
-
+        var formattedRoot = SyntaxFormatting.GetFormattingResult(changedRoot, spansToFormat, formattingOptions, rules, cancellationToken).GetFormattedRoot(cancellationToken);
         changedRoot = formattedRoot;
 
         editor.ReplaceNode(root, changedRoot);
@@ -98,7 +86,7 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         Document document, IConditionalOperation ifOperation,
         IOperation trueStatement, IOperation falseStatement,
         IOperation trueValue, IOperation falseValue,
-        bool isRef, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        bool isRef, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
     {
         var generator = SyntaxGenerator.GetGenerator(document);
         var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
@@ -125,7 +113,7 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
         conditionalExpression = conditionalExpression.WithAdditionalAnnotations(Simplifier.Annotation);
         var makeMultiLine = await MakeMultiLineAsync(
             document, condition,
-            trueValue.Syntax, falseValue.Syntax, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            trueValue.Syntax, falseValue.Syntax, formattingOptions, cancellationToken).ConfigureAwait(false);
         if (makeMultiLine)
         {
             conditionalExpression = conditionalExpression.WithAdditionalAnnotations(
@@ -148,7 +136,7 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
     /// Checks if we should wrap the conditional expression over multiple lines.
     /// </summary>
     private static async Task<bool> MakeMultiLineAsync(
-        Document document, SyntaxNode condition, SyntaxNode trueSyntax, SyntaxNode falseSyntax, CodeActionOptionsProvider fallbackOptions,
+        Document document, SyntaxNode condition, SyntaxNode trueSyntax, SyntaxNode falseSyntax, SyntaxFormattingOptions formattingOptions,
         CancellationToken cancellationToken)
     {
         var sourceText = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
@@ -159,14 +147,7 @@ internal abstract class AbstractUseConditionalExpressionCodeFixProvider<
             return true;
         }
 
-        // the option is currently not an editorconfig option, so not available in code style layer
-        var wrappingLength =
-#if !CODE_STYLE
-            fallbackOptions.GetOptions(document.Project.Services)?.ConditionalExpressionWrappingLength ??
-#endif
-            CodeActionOptions.DefaultConditionalExpressionWrappingLength;
-
-        if (condition.Span.Length + trueSyntax.Span.Length + falseSyntax.Span.Length > wrappingLength)
+        if (condition.Span.Length + trueSyntax.Span.Length + falseSyntax.Span.Length > formattingOptions.ConditionalExpressionWrappingLength)
         {
             return true;
         }

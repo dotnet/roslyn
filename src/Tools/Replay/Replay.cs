@@ -158,7 +158,7 @@ static async IAsyncEnumerable<BuildData> BuildAllAsync(
 
         var buildData = await completedTask.ConfigureAwait(false);
         yield return buildData;
-    } while (tasks.Count > 0);
+    } while (index < compilerCalls.Count);
 
     string GetOutputName(CompilerCall compilerCall)
     {

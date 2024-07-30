@@ -35,20 +35,6 @@ namespace Microsoft.CodeAnalysis.Remote
             private readonly AssetProvider _assetProvider = assetService;
             private readonly Solution _baseSolution = baseSolution;
 
-            public async Task<bool> IsIncrementalUpdateAsync(Checksum newSolutionChecksum, CancellationToken cancellationToken)
-            {
-                var newSolutionCompilationChecksums = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
-                    AssetPathKind.SolutionCompilationStateChecksums, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
-                var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
-                    AssetPathKind.SolutionStateChecksums, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
-
-                var newSolutionInfo = await _assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(
-                    AssetPathKind.SolutionAttributes, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
-
-                // if either solution id or file path changed, then we consider it as new solution
-                return _baseSolution.Id == newSolutionInfo.Id && _baseSolution.FilePath == newSolutionInfo.FilePath;
-            }
-
             public async Task<Solution> CreateSolutionAsync(Checksum newSolutionChecksum, CancellationToken cancellationToken)
             {
                 try
@@ -86,6 +72,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         solution = solution.WithAnalyzerReferences(await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
                             AssetPathKind.SolutionAnalyzerReferences, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
+                    }
+
+                    if (oldSolutionChecksums.FallbackAnalyzerOptions != newSolutionChecksums.FallbackAnalyzerOptions)
+                    {
+                        solution = solution.WithFallbackAnalyzerOptions(await _assetProvider.GetAssetAsync<ImmutableDictionary<string, StructuredAnalyzerConfigOptions>>(
+                            AssetPathKind.SolutionFallbackAnalyzerOptions, newSolutionChecksums.FallbackAnalyzerOptions, cancellationToken).ConfigureAwait(false));
                     }
 
                     if (newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.HasValue &&
@@ -137,7 +129,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         }
 #endif
 
-                        solution = solution.UpdateSpecificSourceGeneratorExecutionVersions(newVersions, cancellationToken);
+                        solution = solution.UpdateSpecificSourceGeneratorExecutionVersions(newVersions);
                     }
 
 #if DEBUG

@@ -31,7 +31,6 @@ internal sealed class RemoveRedundantEqualityCodeFixProvider() : ForkingSyntaxEd
     protected override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         SyntaxNode node,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)

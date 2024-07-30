@@ -21,11 +21,11 @@ internal abstract class AbstractSyntaxFormatting : ISyntaxFormatting
     private static readonly Func<TextSpan, bool> s_notEmpty = s => !s.IsEmpty;
 
     public abstract SyntaxFormattingOptions DefaultOptions { get; }
-    public abstract SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options, SyntaxFormattingOptions? fallbackOptions);
+    public abstract SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options);
 
     public abstract ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules();
 
-    protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanIntervalTree? formattingSpans = null);
+    protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanMutableIntervalTree? formattingSpans = null);
 
     protected abstract AbstractFormattingResult Format(SyntaxNode node, SyntaxFormattingOptions options, ImmutableArray<AbstractFormattingRule> rules, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken);
 

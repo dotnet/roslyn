@@ -2,44 +2,47 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Composition;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
 using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[Export(typeof(VSCodeAnalyzerLoader)), Shared]
-internal class VSCodeAnalyzerLoader
+[ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider), [WorkspaceKind.Host]), Shared]
+internal class VSCodeAnalyzerLoaderProvider : AbstractAnalyzerAssemblyLoaderProvider
 {
+    private readonly ExtensionAssemblyManager _extensionAssemblyManager;
+    private readonly ILoggerFactory _loggerFactory;
+
     [ImportingConstructor]
     [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VSCodeAnalyzerLoader()
+    public VSCodeAnalyzerLoaderProvider(
+        ExtensionAssemblyManager extensionAssemblyManager,
+        ILoggerFactory loggerFactory,
+        [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers) : base(externalResolvers)
     {
+        _extensionAssemblyManager = extensionAssemblyManager;
+        _loggerFactory = loggerFactory;
     }
 
-#pragma warning disable CA1822 // Mark members as static
-    public void InitializeDiagnosticsServices()
-#pragma warning restore CA1822 // Mark members as static
+    protected override IAnalyzerAssemblyLoader CreateShadowCopyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
     {
-    }
-
-    public static IAnalyzerAssemblyLoader CreateAnalyzerAssemblyLoader(ExtensionAssemblyManager extensionAssemblyManager, ILogger logger)
-    {
-        return new VSCodeExtensionAssemblyAnalyzerLoader(extensionAssemblyManager, logger);
+        var baseLoader = base.CreateShadowCopyLoader(externalResolvers);
+        return new VSCodeExtensionAssemblyAnalyzerLoader(baseLoader, _extensionAssemblyManager, _loggerFactory.CreateLogger<VSCodeExtensionAssemblyAnalyzerLoader>());
     }
 
     /// <summary>
     /// Analyzer loader that will re-use already loaded assemblies from the extension load context.
     /// </summary>
-    private class VSCodeExtensionAssemblyAnalyzerLoader(ExtensionAssemblyManager extensionAssemblyManager, ILogger logger) : IAnalyzerAssemblyLoader
+    private class VSCodeExtensionAssemblyAnalyzerLoader(IAnalyzerAssemblyLoader defaultLoader, ExtensionAssemblyManager extensionAssemblyManager, ILogger logger) : IAnalyzerAssemblyLoader
     {
-        private readonly DefaultAnalyzerAssemblyLoader _defaultLoader = new();
-
         public void AddDependencyLocation(string fullPath)
         {
-            _defaultLoader.AddDependencyLocation(fullPath);
+            defaultLoader.AddDependencyLocation(fullPath);
         }
 
         public Assembly LoadFromPath(string fullPath)
@@ -51,7 +54,7 @@ internal class VSCodeAnalyzerLoader
                 return assembly;
             }
 
-            return _defaultLoader.LoadFromPath(fullPath);
+            return defaultLoader.LoadFromPath(fullPath);
         }
     }
 }

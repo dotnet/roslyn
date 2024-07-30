@@ -13,22 +13,16 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-internal partial class TextDocumentState
+internal abstract partial class TextDocumentState
 {
-    protected readonly SolutionServices solutionServices;
-
-    internal ITextAndVersionSource TextAndVersionSource { get; }
+    public readonly SolutionServices SolutionServices;
+    public readonly IDocumentServiceProvider DocumentServiceProvider;
+    public readonly DocumentInfo.DocumentAttributes Attributes;
+    public readonly ITextAndVersionSource TextAndVersionSource;
     public readonly LoadTextOptions LoadTextOptions;
 
     // Checksums for this solution state
     private readonly AsyncLazy<DocumentStateChecksums> _lazyChecksums;
-
-    public DocumentInfo.DocumentAttributes Attributes { get; }
-
-    /// <summary>
-    /// A <see cref="IDocumentServiceProvider"/> associated with this document
-    /// </summary>
-    public IDocumentServiceProvider Services { get; }
 
     protected TextDocumentState(
         SolutionServices solutionServices,
@@ -37,13 +31,11 @@ internal partial class TextDocumentState
         ITextAndVersionSource textAndVersionSource,
         LoadTextOptions loadTextOptions)
     {
-        this.solutionServices = solutionServices;
-
-        this.LoadTextOptions = loadTextOptions;
-        TextAndVersionSource = textAndVersionSource;
-
+        SolutionServices = solutionServices;
+        DocumentServiceProvider = documentServiceProvider ?? DefaultTextDocumentServiceProvider.Instance;
         Attributes = attributes;
-        Services = documentServiceProvider ?? DefaultTextDocumentServiceProvider.Instance;
+        TextAndVersionSource = textAndVersionSource;
+        LoadTextOptions = loadTextOptions;
 
         // This constructor is called whenever we're creating a new TextDocumentState from another
         // TextDocumentState, and so we populate all the fields from the inputs. We will always create
@@ -53,34 +45,27 @@ internal partial class TextDocumentState
         _lazyChecksums = AsyncLazy.Create(static (self, cancellationToken) => self.ComputeChecksumsAsync(cancellationToken), arg: this);
     }
 
-    public TextDocumentState(SolutionServices solutionServices, DocumentInfo info, LoadTextOptions loadTextOptions)
-        : this(solutionServices,
-               info.DocumentServiceProvider,
-               info.Attributes,
-               textAndVersionSource: info.TextLoader != null
-                ? CreateTextFromLoader(info.TextLoader, PreservationMode.PreserveValue, solutionServices)
-                : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, loadTextOptions.ChecksumAlgorithm), VersionStamp.Default, info.FilePath)),
-               loadTextOptions)
-    {
-    }
+    protected static ITextAndVersionSource CreateTextAndVersionSource(SolutionServices solutionServices, DocumentInfo info, LoadTextOptions loadTextOptions)
+        => info.TextLoader != null
+            ? CreateTextFromLoader(info.TextLoader, PreservationMode.PreserveValue, solutionServices)
+            : CreateStrongText(TextAndVersion.Create(SourceText.From(string.Empty, encoding: null, loadTextOptions.ChecksumAlgorithm), VersionStamp.Default, info.FilePath));
 
     public DocumentId Id => Attributes.Id;
     public string? FilePath => Attributes.FilePath;
     public IReadOnlyList<string> Folders => Attributes.Folders;
     public string Name => Attributes.Name;
 
-    private static ITextAndVersionSource CreateStrongText(TextAndVersion text)
-        => new ConstantTextAndVersionSource(text);
+    public TextDocumentState WithAttributes(DocumentInfo.DocumentAttributes newAttributes)
+        => ReferenceEquals(newAttributes, Attributes) ? this : UpdateAttributes(newAttributes);
 
-    private static ITextAndVersionSource CreateRecoverableText(TextAndVersion text, SolutionServices services)
-    {
-        var service = services.GetRequiredService<IWorkspaceConfigurationService>();
-        var options = service.Options;
+    protected abstract TextDocumentState UpdateAttributes(DocumentInfo.DocumentAttributes newAttributes);
+    protected abstract TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental);
 
-        return options.DisableRecoverableText
-            ? CreateStrongText(text)
-            : new RecoverableTextAndVersion(new ConstantTextAndVersionSource(text), services);
-    }
+    private static ConstantTextAndVersionSource CreateStrongText(TextAndVersion text)
+        => new(text);
+
+    private static RecoverableTextAndVersion CreateRecoverableText(TextAndVersion text, SolutionServices services)
+        => new(new ConstantTextAndVersionSource(text), services);
 
     public ITemporaryStorageTextHandle? StorageHandle
         => (TextAndVersionSource as RecoverableTextAndVersion)?.StorageHandle;
@@ -144,13 +129,11 @@ internal partial class TextDocumentState
     }
 
     public TextDocumentState UpdateText(TextAndVersion newTextAndVersion, PreservationMode mode)
-    {
-        var newTextSource = mode == PreservationMode.PreserveIdentity
-            ? CreateStrongText(newTextAndVersion)
-            : CreateRecoverableText(newTextAndVersion, solutionServices);
-
-        return UpdateText(newTextSource, mode, incremental: true);
-    }
+        => UpdateText(mode == PreservationMode.PreserveIdentity
+                ? CreateStrongText(newTextAndVersion)
+                : CreateRecoverableText(newTextAndVersion, SolutionServices),
+            mode,
+            incremental: true);
 
     public TextDocumentState UpdateText(SourceText newText, PreservationMode mode)
     {
@@ -163,19 +146,16 @@ internal partial class TextDocumentState
     public TextDocumentState UpdateText(TextLoader loader, PreservationMode mode)
     {
         // don't blow up on non-text documents.
-        var newTextSource = CreateTextFromLoader(loader, mode, this.solutionServices);
+        var newTextSource = CreateTextFromLoader(loader, mode, this.SolutionServices);
 
         return UpdateText(newTextSource, mode, incremental: false);
     }
 
     private static ITextAndVersionSource CreateTextFromLoader(TextLoader loader, PreservationMode mode, SolutionServices solutionServices)
     {
-        var service = solutionServices.GetRequiredService<IWorkspaceConfigurationService>();
-        var options = service.Options;
-
         // If the caller is explicitly stating that identity must be preserved, then we created a source that will load
         // from the loader the first time, but then cache that result so that hte same result is *always* returned.
-        if (mode == PreservationMode.PreserveIdentity || options.DisableRecoverableText)
+        if (mode == PreservationMode.PreserveIdentity)
             return new LoadableTextAndVersionSource(loader, cacheResult: true);
 
         // If the loader asks us to always hold onto it strongly, then we do not want to create a recoverable text
@@ -189,16 +169,6 @@ internal partial class TextDocumentState
         // contents, but not hold onto them strongly, and we wrap it in a recoverable-text that will then take those
         // contents and dump it into a memory-mapped-file in this process so that snapshot semantics can be preserved.
         return new RecoverableTextAndVersion(new LoadableTextAndVersionSource(loader, cacheResult: false), solutionServices);
-    }
-
-    protected virtual TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
-    {
-        return new TextDocumentState(
-            solutionServices,
-            this.Services,
-            this.Attributes,
-            textAndVersionSource: newTextSource,
-            LoadTextOptions);
     }
 
     private ValueTask<TextAndVersion> GetTextAndVersionAsync(CancellationToken cancellationToken)

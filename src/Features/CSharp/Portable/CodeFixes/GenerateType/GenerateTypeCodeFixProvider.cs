@@ -60,9 +60,9 @@ internal class GenerateTypeCodeFixProvider : AbstractGenerateMemberCodeFixProvid
         => ((ExpressionSyntax)node).GetRightmostName();
 
     protected override Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
-        Document document, SyntaxNode node, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, SyntaxNode node, CancellationToken cancellationToken)
     {
         var service = document.GetRequiredLanguageService<IGenerateTypeService>();
-        return service.GenerateTypeAsync(document, node, fallbackOptions, cancellationToken);
+        return service.GenerateTypeAsync(document, node, cancellationToken);
     }
 }

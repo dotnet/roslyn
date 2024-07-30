@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -58,9 +59,10 @@ public partial class Solution
         Workspace workspace,
         SolutionInfo.SolutionAttributes solutionAttributes,
         SolutionOptionSet options,
-        IReadOnlyList<AnalyzerReference> analyzerReferences)
+        IReadOnlyList<AnalyzerReference> analyzerReferences,
+        ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(new SolutionCompilationState(
-                  new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences),
+                  new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences, fallbackAnalyzerOptions),
                   workspace.PartialSemanticsEnabled))
     {
     }
@@ -499,6 +501,12 @@ public partial class Solution
 
         return WithCompilationState(_compilationState.WithProjectParseOptions(projectId, options));
     }
+
+    /// <summary>
+    /// Create a new solution instance updated to use the specified <see cref="FallbackAnalyzerOptions"/>.
+    /// </summary>
+    internal Solution WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions> options)
+        => WithCompilationState(_compilationState.WithFallbackAnalyzerOptions(options));
 
     /// <summary>
     /// Create a new solution instance with the project specified updated to have
@@ -975,7 +983,7 @@ public partial class Solution
     /// </summary>
     /// <returns>A new <see cref="Solution"/> with the documents added.</returns>
     public Solution AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
-        => WithCompilationState(_compilationState.AddDocuments(documentInfos));
+        => WithCompilationState(_compilationState.AddDocumentsToMultipleProjects<DocumentState>(documentInfos));
 
     /// <summary>
     /// Creates a new solution instance with the corresponding project updated to include a new
@@ -1013,7 +1021,7 @@ public partial class Solution
         => AddAdditionalDocuments([documentInfo]);
 
     public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
-        => WithCompilationState(_compilationState.AddAdditionalDocuments(documentInfos));
+        => WithCompilationState(_compilationState.AddDocumentsToMultipleProjects<AdditionalDocumentState>(documentInfos));
 
     /// <summary>
     /// Creates a new solution instance with the corresponding project updated to include a new
@@ -1065,7 +1073,7 @@ public partial class Solution
     /// Creates a new Solution instance that contains a new compiler configuration document like a .editorconfig file.
     /// </summary>
     public Solution AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
-        => WithCompilationState(_compilationState.AddAnalyzerConfigDocuments(documentInfos));
+        => WithCompilationState(_compilationState.AddDocumentsToMultipleProjects<AnalyzerConfigDocumentState>(documentInfos));
 
     /// <summary>
     /// Creates a new solution instance that no longer includes the specified document.
@@ -1086,7 +1094,7 @@ public partial class Solution
     }
 
     private Solution RemoveDocumentsImpl(ImmutableArray<DocumentId> documentIds)
-        => WithCompilationState(_compilationState.RemoveDocuments(documentIds));
+        => WithCompilationState(_compilationState.RemoveDocumentsFromMultipleProjects<DocumentState>(documentIds));
 
     /// <summary>
     /// Creates a new solution instance that no longer includes the specified additional document.
@@ -1107,7 +1115,7 @@ public partial class Solution
     }
 
     private Solution RemoveAdditionalDocumentsImpl(ImmutableArray<DocumentId> documentIds)
-        => WithCompilationState(_compilationState.RemoveAdditionalDocuments(documentIds));
+        => WithCompilationState(_compilationState.RemoveDocumentsFromMultipleProjects<AdditionalDocumentState>(documentIds));
 
     /// <summary>
     /// Creates a new solution instance that no longer includes the specified <see cref="AnalyzerConfigDocument"/>.
@@ -1128,7 +1136,7 @@ public partial class Solution
     }
 
     private Solution RemoveAnalyzerConfigDocumentsImpl(ImmutableArray<DocumentId> documentIds)
-        => WithCompilationState(_compilationState.RemoveAnalyzerConfigDocuments(documentIds));
+        => WithCompilationState(_compilationState.RemoveDocumentsFromMultipleProjects<AnalyzerConfigDocumentState>(documentIds));
 
     /// <summary>
     /// Creates a new solution instance with the document specified updated to have the new name.
@@ -1142,7 +1150,10 @@ public partial class Solution
             throw new ArgumentNullException(nameof(name));
         }
 
-        return WithCompilationState(_compilationState.WithDocumentName(documentId, name));
+        return WithCompilationState(_compilationState.WithDocumentAttributes(
+            documentId,
+            name,
+            static (attributes, value) => attributes.With(name: value)));
     }
 
     /// <summary>
@@ -1155,25 +1166,23 @@ public partial class Solution
 
         var collection = PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders));
 
-        return WithCompilationState(_compilationState.WithDocumentFolders(documentId, collection));
+        return WithCompilationState(_compilationState.WithDocumentAttributes(
+            documentId,
+            collection,
+            static (attributes, value) => attributes.With(folders: value)));
     }
 
     /// <summary>
     /// Creates a new solution instance with the document specified updated to have the specified file path.
     /// </summary>
-    public Solution WithDocumentFilePath(DocumentId documentId, string filePath)
+    public Solution WithDocumentFilePath(DocumentId documentId, string? filePath)
     {
         CheckContainsDocument(documentId);
 
-        // TODO (https://github.com/dotnet/roslyn/issues/37125): 
-        // We *do* support null file paths. Why can't you switch a document back to null?
-        // See DocumentState.GetSyntaxTreeFilePath
-        if (filePath == null)
-        {
-            throw new ArgumentNullException(nameof(filePath));
-        }
-
-        return WithCompilationState(_compilationState.WithDocumentFilePath(documentId, filePath));
+        return WithCompilationState(_compilationState.WithDocumentAttributes(
+            documentId,
+            filePath,
+            static (attributes, value) => attributes.With(filePath: value)));
     }
 
     /// <summary>
@@ -1181,14 +1190,11 @@ public partial class Solution
     /// specified.
     /// </summary>
     public Solution WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
-        => WithDocumentTexts([(documentId, text, mode)]);
+        => WithDocumentTexts([(documentId, text)], mode);
 
-    internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts)
-        => WithDocumentTexts(texts.SelectAsArray(t => (t.documentId, t.text, PreservationMode.PreserveValue)));
-
-    internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text, PreservationMode mode)> texts)
+    internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode = PreservationMode.PreserveValue)
     {
-        foreach (var (documentId, text, mode) in texts)
+        foreach (var (documentId, text) in texts)
         {
             CheckContainsDocument(documentId);
 
@@ -1199,7 +1205,7 @@ public partial class Solution
                 throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        return WithCompilationState(_compilationState.WithDocumentTexts(texts));
+        return WithCompilationState(_compilationState.WithDocumentTexts(texts, mode));
     }
 
     /// <summary>
@@ -1312,31 +1318,30 @@ public partial class Solution
     /// rooted by the specified syntax node.
     /// </summary>
     public Solution WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
-        => WithDocumentSyntaxRoots([(documentId, root, mode)]);
+        => WithDocumentSyntaxRoots([(documentId, root)], mode);
 
     /// <inheritdoc cref="WithDocumentSyntaxRoot"/>.
-    internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots)
-        => WithDocumentSyntaxRoots(syntaxRoots.SelectAsArray(t => (t.documentId, t.root, PreservationMode.PreserveValue)));
-
-    /// <inheritdoc cref="WithDocumentSyntaxRoot"/>.
-    internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root, PreservationMode mode)> syntaxRoots)
+    internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots, PreservationMode mode = PreservationMode.PreserveValue)
     {
-        foreach (var (documentId, root, mode) in syntaxRoots)
+        if (!mode.IsValid())
+            throw new ArgumentOutOfRangeException(nameof(mode));
+
+        foreach (var (documentId, root) in syntaxRoots)
         {
             CheckContainsDocument(documentId);
 
             if (root == null)
                 throw new ArgumentNullException(nameof(root));
-
-            if (!mode.IsValid())
-                throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        return WithCompilationState(_compilationState.WithDocumentSyntaxRoots(syntaxRoots));
+        return WithCompilationState(_compilationState.WithDocumentSyntaxRoots(syntaxRoots, mode));
     }
 
     internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
-        => WithCompilationState(_compilationState.WithDocumentContentsFrom(documentId, documentState, forceEvenIfTreesWouldDiffer));
+        => WithCompilationState(_compilationState.WithDocumentContentsFrom([(documentId, documentState)], forceEvenIfTreesWouldDiffer));
+
+    internal Solution WithDocumentContentsFrom(ImmutableArray<(DocumentId documentId, DocumentState documentState)> documentIdsAndStates, bool forceEvenIfTreesWouldDiffer)
+        => WithCompilationState(_compilationState.WithDocumentContentsFrom(documentIdsAndStates, forceEvenIfTreesWouldDiffer));
 
     /// <summary>
     /// Creates a new solution instance with the document specified updated to have the source
@@ -1580,8 +1585,8 @@ public partial class Solution
         => WithCompilationState(_compilationState.WithFrozenSourceGeneratedDocuments(documents));
 
     /// <inheritdoc cref="SolutionCompilationState.UpdateSpecificSourceGeneratorExecutionVersions"/>
-    internal Solution UpdateSpecificSourceGeneratorExecutionVersions(SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap, CancellationToken cancellationToken)
-        => WithCompilationState(_compilationState.UpdateSpecificSourceGeneratorExecutionVersions(sourceGeneratorExecutionVersionMap, cancellationToken));
+    internal Solution UpdateSpecificSourceGeneratorExecutionVersions(SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap)
+        => WithCompilationState(_compilationState.UpdateSpecificSourceGeneratorExecutionVersions(sourceGeneratorExecutionVersionMap));
 
     /// <summary>
     /// Undoes the operation of <see cref="WithFrozenSourceGeneratedDocument"/>; any frozen source generated document is allowed
@@ -1636,6 +1641,14 @@ public partial class Solution
     /// Analyzer references associated with the solution.
     /// </summary>
     public IReadOnlyList<AnalyzerReference> AnalyzerReferences => this.SolutionState.AnalyzerReferences;
+
+    /// <summary>
+    /// Fallback analyzer config options by language. The set of languages does not need to match the set of languages of projects included in the current solution snapshot
+    /// since these options can be updated independently of the projects contained in the solution.
+    /// Generally, the host is responsible for keeping these options up-to-date with whatever option store it maintains
+    /// and for making sure fallback options are available in the solution for all languages the host supports.
+    /// </summary>
+    internal ImmutableDictionary<string, StructuredAnalyzerConfigOptions> FallbackAnalyzerOptions => SolutionState.FallbackAnalyzerOptions;
 
     /// <summary>
     /// Creates a new solution instance with the specified <paramref name="options"/>.

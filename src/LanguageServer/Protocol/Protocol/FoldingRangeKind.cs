@@ -8,7 +8,7 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Value representing kinds of folding range.
+    /// Value representing various folding range kinds.
     /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#foldingRangeKind">Language Server Protocol specification</see> for additional information.
     /// </para>
