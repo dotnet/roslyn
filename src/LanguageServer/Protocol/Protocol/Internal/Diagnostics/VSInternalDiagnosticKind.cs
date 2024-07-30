@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -18,6 +18,11 @@ namespace Roslyn.LanguageServer.Protocol
         /// Task list diagnostic kind.
         /// </summary>
         public static readonly VSInternalDiagnosticKind Task = new("task");
+
+        /// <summary>
+        /// Edit and Continue diagnostic kind.
+        /// </summary>
+        public static readonly VSInternalDiagnosticKind EditAndContinue = new("enc");
 
         /// <summary>
         /// Syntax diagnostic kind.
