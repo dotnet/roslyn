@@ -22,7 +22,6 @@
     <ContextMenu.Resources>
         <!-- The image shown in the menu item, mark this is non-shared to make sure each menu item has its own image -->
         <imaging:CrispImage x:Key="NonSharedIcon" x:Shared="False" Moniker="{Binding ImageMoniker}"/>
-        <local:MenuItemContainerTemplateSelector x:Key="TemplateSelector"/>
 
         <!-- Style used to display a single target menu item -->
         <Style x:Key="TargetMenuItemStyle" TargetType="{x:Type MenuItem}">
@@ -148,7 +147,11 @@
             <Setter Property="Header" Value="{Binding DisplayContent}"/>
             <Setter Property="ItemsSource" Value="{Binding Targets}"/>
             <Setter Property="UsesItemContainerTemplate" Value="True"/>
-            <Setter Property="ItemContainerTemplateSelector" Value="{StaticResource TemplateSelector}"/>
+            <Setter Property="ItemContainerTemplateSelector">
+                <Setter.Value>
+                    <local:MenuItemContainerTemplateSelector />
+                </Setter.Value>
+            </Setter>
             <Setter Property="IsCheckable" Value="False"/>
             <Setter Property="AutomationProperties.Name" Value="{Binding AutomationName}"/>
             <Setter Property="HorizontalContentAlignment" Value="{Binding Path=HorizontalContentAlignment, RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}}"/>
