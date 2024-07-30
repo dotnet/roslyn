@@ -5267,8 +5267,7 @@ class Program
             Assert.Same(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
         public void ObjectInitializerIncompletePropertyValueDeclaration01()
         {
             var source = """
@@ -5315,8 +5314,7 @@ class Program
             Assert.True(initializedSymbol.Equals(valueProperty, SymbolEqualityComparer.Default));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
         public void ObjectInitializerIncompletePropertyValueDeclaration02()
         {
             var source = """
@@ -5372,8 +5370,7 @@ class Program
             Assert.True(initializedSymbol.Equals(valueProperty, SymbolEqualityComparer.Default));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
         public void ObjectInitializerIncompletePropertyValueDeclaration03()
         {
             var source = """
@@ -5420,8 +5417,7 @@ class Program
             Assert.True(initializedSymbol.Equals(valueField, SymbolEqualityComparer.Default));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
         public void ObjectInitializerIncompletePropertyValueDeclaration04()
         {
             var source = """
@@ -5458,8 +5454,7 @@ class Program
             Assert.Null(initializedSymbol);
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
         public void ObjectInitializerIncompletePropertyValueDeclaration05()
         {
             var source = """
@@ -5506,8 +5501,7 @@ class Program
             Assert.True(initializedSymbol.Equals(valueProperty, SymbolEqualityComparer.Default));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
         public void ObjectInitializerIncompletePropertyValueDeclaration06()
         {
             var source = """
@@ -5563,8 +5557,7 @@ class Program
             Assert.True(initializedSymbol.Equals(valueProperty, SymbolEqualityComparer.Default));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
         public void ObjectInitializerIncompletePropertyValueDeclaration07()
         {
             var source = """
@@ -5611,8 +5604,7 @@ class Program
             Assert.True(initializedSymbol.Equals(valueField, SymbolEqualityComparer.Default));
         }
 
-        [Fact]
-        [WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74348")]
         public void ObjectInitializerIncompletePropertyValueDeclaration08()
         {
             var source = """
