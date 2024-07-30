@@ -9317,7 +9317,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (conversionOpt != null && conversionOpt != convertedNode)
             {
                 Debug.Assert(conversionOpt.ConversionGroupOpt == conversionGroup);
-                // TODO2: what does it mean for these types to differ? Why is it correct to copy over the top-level nullability when the types have differences beyond nullability?
                 if (!visitResult.LValueType.Type.Equals(conversionOpt.Type, TypeCompareKind.AllNullableIgnoreOptions))
                 {
                     visitResult = withType(visitResult, conversionOpt.Type);
