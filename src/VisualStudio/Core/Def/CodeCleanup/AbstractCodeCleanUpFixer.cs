@@ -9,12 +9,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Progress;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -183,6 +181,7 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
     {
         using (var scope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Waiting_for_background_work_to_finish))
         {
+
             var workspaceStatusService = workspace.Services.GetService<IWorkspaceStatusService>();
             if (workspaceStatusService != null)
                 await workspaceStatusService.WaitUntilFullyLoadedAsync(context.OperationContext.UserCancellationToken).ConfigureAwait(true);
@@ -193,11 +192,120 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
             var cancellationToken = context.OperationContext.UserCancellationToken;
             var progress = scope.GetCodeAnalysisProgress();
 
+            var initialSolution = workspace.CurrentSolution;
             var solution = await applyFixAsync(progress, cancellationToken).ConfigureAwait(true);
 
             await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 
+            if (!IsSolutionValidForChanges(initialSolution, workspace.CurrentSolution, solution, out solution))
+            {
+                // Solution has changed. We can't apply this change.
+                return false;
+            }
+
             return workspace.TryApplyChanges(solution, progress);
+
+            bool IsSolutionValidForChanges(Solution initialSolution, Solution currentSolution, Solution changedSolution, out Solution updatedSolution)
+            {
+                updatedSolution = changedSolution;
+                if (initialSolution.WorkspaceVersion != currentSolution.WorkspaceVersion)
+                {
+                    // something has changed. Lets make sure we can still apply changes.
+
+                    var solutionChanges = initialSolution.GetChanges(currentSolution);
+
+                    if (solutionChanges.GetAddedProjects().Any()
+                        || solutionChanges.GetRemovedProjects().Any()
+                        || solutionChanges.GetAddedAnalyzerReferences().Any()
+                        || solutionChanges.GetRemovedAnalyzerReferences().Any())
+                    {
+                        //something more than the document has changed. We can't apply this change.
+                        return false;
+                    }
+
+                    foreach (var projectChanges in solutionChanges.GetProjectChanges())
+                    {
+                        if (projectChanges.GetAddedAdditionalDocuments().Any()
+                            || projectChanges.GetRemovedAdditionalDocuments().Any()
+                            || projectChanges.GetAddedAnalyzerConfigDocuments().Any()
+                            || projectChanges.GetRemovedAnalyzerConfigDocuments().Any()
+                            || projectChanges.GetAddedAnalyzerReferences().Any()
+                            || projectChanges.GetRemovedAnalyzerReferences().Any()
+                            || projectChanges.GetAddedDocuments().Any()
+                            || projectChanges.GetRemovedDocuments().Any()
+                            || projectChanges.GetAddedMetadataReferences().Any()
+                            || projectChanges.GetRemovedMetadataReferences().Any()
+                            || projectChanges.GetAddedProjectReferences().Any()
+                            || projectChanges.GetRemovedProjectReferences().Any())
+                        {
+                            //something more than the document has changed. We can't apply this change.
+                            return false;
+                        }
+
+                        var changedDocuments = projectChanges.GetChangedDocuments()
+                            .Concat(projectChanges.GetChangedAdditionalDocuments())
+                            .Concat(projectChanges.GetChangedAnalyzerConfigDocuments()).ToImmutableArray();
+
+                        if (changedDocuments.Length == 0)
+                        {
+                            //nothing has changed in this project. We can't apply this change.
+                            return false;
+                        }
+
+                        foreach (var documentId in changedDocuments)
+                        {
+                            var originalDocument = projectChanges.NewProject.GetRequiredDocument(documentId);
+                            var currentDocument = currentSolution.GetTextDocument(documentId);
+
+                            if (currentDocument is null)
+                            {
+                                // Document is gone, we can't apply this change.
+
+                                return false;
+                            }
+
+                            if (originalDocument.HasTextChanged(currentDocument, ignoreUnchangeableDocument: false))
+                            {
+                                // Document has changed, we can't apply this change.
+                                return false;
+                            }
+                        }
+                    }
+
+                    // If we got here, all documents in this project are the same as they were when we started.
+                    var codeCleanUpChanges = solution.GetChanges(currentSolution);
+
+                    foreach (var projectChanges in codeCleanUpChanges.GetProjectChanges())
+                    {
+                        var codeCleanupDocChanges = projectChanges.GetChangedDocuments()
+                            .Concat(projectChanges.GetChangedAdditionalDocuments())
+                            .Concat(projectChanges.GetChangedAnalyzerConfigDocuments()).ToImmutableArray();
+
+                        if (codeCleanupDocChanges.Length == 0)
+                        {
+                            //nothing has changed in this project. We can't apply this change.
+                            return false;
+                        }
+
+                        foreach (var documentId in codeCleanupDocChanges)
+                        {
+                            var changedDocument = projectChanges.NewProject.GetRequiredDocument(documentId);
+                            var currentDocument = solution.GetRequiredDocument(documentId);
+
+                            if (currentDocument is null)
+                            {
+                                // Document is gone, we can't apply this change.
+                                return false;
+                            }
+
+                            solution = currentSolution.WithTextDocumentText(documentId, changedDocument.GetTextSynchronously(cancellationToken));
+                        }
+                    }
+                }
+
+                updatedSolution = solution;
+                return true;
+            }
         }
     }
 
