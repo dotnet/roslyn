@@ -5386,6 +5386,64 @@ class C
             }
         }
 
-        // TODO2: test collection-exprs in lambda returns to exercise all BestTypeInferrer usages in NullableWalker
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74609")]
+        public void CollectionExpression_NestedNullability_06()
+        {
+            var source = """
+                #nullable enable
+
+                public class C
+                {
+                    public string[] M1(bool b)
+                    {
+                        var lam = () =>
+                        {
+                            if (b)
+                                return ["1"];
+
+                            return new[] { "2" };
+                        };
+
+                        var arr = lam();
+                        arr[0] = null; // 1
+                        return arr;
+                    }
+
+                    public string[] M2(bool b)
+                    {
+                        var lam = () => new[] { "2" };
+                        var arr = lam();
+                        arr = b ? ["1"] : arr;
+                        arr[0] = null; // 2
+                        return arr;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            // The expected nullable warnings are not reported here.
+            // https://github.com/dotnet/roslyn/issues/74609
+            comp.VerifyEmitDiagnostics();
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var collectionExprs = root.DescendantNodes().OfType<CollectionExpressionSyntax>().ToArray();
+            Assert.Equal(2, collectionExprs.Length);
+            foreach (var collectionExpr in collectionExprs)
+            {
+                var typeInfo = model.GetTypeInfo(collectionExpr);
+                var type = (IArrayTypeSymbol)typeInfo.ConvertedType;
+                Assert.Equal("System.String[]", type.ToTestDisplayString());
+                Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.NullableAnnotation);
+
+                // The arrays have unexpected oblivious element nullability.
+                // https://github.com/dotnet/roslyn/issues/74609
+                Assert.Equal(PublicNullableAnnotation.None, type.ElementNullableAnnotation);
+            }
+        }
     }
 }
