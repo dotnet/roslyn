@@ -745,8 +745,9 @@ internal abstract class AbstractRemoveUnnecessaryInlineSuppressionsDiagnosticAna
             return false;
         }
 
-        var declarationNodes = SyntaxFacts.GetTopLevelAndMethodLevelMembers(root);
-        using var _ = PooledHashSet<ISymbol>.GetInstance(out var processedPartialSymbols);
+        using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var declarationNodes);
+        SyntaxFacts.AddTopLevelAndMethodLevelMembers(root, declarationNodes);
+        using var _2 = PooledHashSet<ISymbol>.GetInstance(out var processedPartialSymbols);
         if (declarationNodes.Count > 0)
         {
             foreach (var node in declarationNodes)
