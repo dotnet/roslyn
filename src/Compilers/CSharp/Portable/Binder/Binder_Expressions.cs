@@ -5657,7 +5657,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                 // We fall back on simply binding the name as an expression for proper recovery
-                // and also report a diagnostic about this being an invalid value
+                // and also report a diagnostic about a simple identifier being an invalid expression
+                // in the object initializer, to indicate to the user that they are missing an assignment
                 case SyntaxKind.IdentifierName:
                     {
                         Error(diagnostics, ErrorCode.ERR_InvalidInitializerElementInitializer, memberInitializer);
