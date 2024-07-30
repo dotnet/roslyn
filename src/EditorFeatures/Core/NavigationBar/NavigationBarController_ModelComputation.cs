@@ -159,6 +159,14 @@ internal partial class NavigationBarController
             return;
 
         var model = await modelTask.ConfigureAwait(false);
+
+        // If we didn't get a new model (which can happen if the work to do it was canceled), use the last one we
+        // computed. This ensures that we still update the project info if needed, and we don't unintentionally 
+        // clear our the type/member info from the last time we computed it.
+        model ??= lastPresentedInfo.model;
+        if (model is null)
+            return;
+
         var currentSelectedItem = ComputeSelectedTypeAndMember(model, lastCaretPosition, cancellationToken);
 
         var (projectItems, selectedProjectItem) = GetProjectItems();
@@ -185,7 +193,7 @@ internal partial class NavigationBarController
     }
 
     internal static NavigationBarSelectedTypeAndMember ComputeSelectedTypeAndMember(
-        NavigationBarModel? model, int caretPosition, CancellationToken cancellationToken)
+        NavigationBarModel model, int caretPosition, CancellationToken cancellationToken)
     {
         if (model != null)
         {
