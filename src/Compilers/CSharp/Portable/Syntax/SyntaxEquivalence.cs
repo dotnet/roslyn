@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
     internal static class SyntaxEquivalence
     {
+        private static readonly ObjectPool<Stack<(GreenNode? before, GreenNode? after)>> s_equivalenceCheckStack =
+            new ObjectPool<Stack<(GreenNode?, GreenNode?)>>(() => new Stack<(GreenNode?, GreenNode?)>());
+
         internal static bool AreEquivalent(SyntaxTree? before, SyntaxTree? after, Func<SyntaxKind, bool>? ignoreChildNode, bool topLevel)
         {
             if (before == after)
@@ -102,13 +105,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private static bool AreEquivalentRecursive(GreenNode? before, GreenNode? after, Func<SyntaxKind, bool>? ignoreChildNode, bool topLevel)
         {
             // Use an explicit stack so we can walk down deep trees without blowing the real stack.
-            var stack = ArrayBuilder<(GreenNode? before, GreenNode? after)>.GetInstance();
+            var stack = s_equivalenceCheckStack.Allocate();
             stack.Push((before, after));
 
             try
             {
-                while (stack.TryPop(out var current))
+                while (stack.Count > 0)
                 {
+                    var current = stack.Pop();
                     if (!areEquivalentSingleLevel(current.before, current.after))
                         return false;
                 }
@@ -117,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
             finally
             {
-                stack.Free();
+                s_equivalenceCheckStack.Free(stack);
             }
 
             bool areEquivalentSingleLevel(GreenNode? before, GreenNode? after)
