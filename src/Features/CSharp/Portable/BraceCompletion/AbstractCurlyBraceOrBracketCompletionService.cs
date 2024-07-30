@@ -122,7 +122,7 @@ internal abstract class AbstractCurlyBraceOrBracketCompletionService : AbstractC
             var rootToFormat = document.Root.ReplaceToken(closingToken, newClosingToken);
             annotatedNewline = rootToFormat.GetAnnotatedTrivia(s_closingBraceNewlineAnnotation).Single();
 
-            document = GetUpdatedDocument(document, new[] { new TextChange(closingToken.FullSpan, newClosingToken.ToFullString()) }, rootToFormat);
+            document = GetUpdatedDocument(document, [new TextChange(closingToken.FullSpan, newClosingToken.ToFullString())], rootToFormat);
 
             // Calculate text change for adding a newline and adjust closing point location.
             closingPoint = annotatedNewline.Token.Span.End;
