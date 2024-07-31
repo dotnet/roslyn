@@ -497,6 +497,9 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> nonConstructorFieldWrites,
         SymbolAnalysisContext context)
     {
+        using var _1 = PooledHashSet<IFieldSymbol>.GetInstance(out var reportedFields);
+        using var _2 = PooledHashSet<IPropertySymbol>.GetInstance(out var reportedProperties);
+
         foreach (var result in analysisResults)
         {
             // C# specific check.
@@ -539,6 +542,20 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             {
                 continue;
             }
+
+            // Only report a use-auto-prop message at most once for any field or property. Note: we could be smarter
+            // here.  The set of fields and properties form a bipartite graph.  In an ideal world, we'd determine the
+            // maximal matching between those two bipartite sets (see
+            // https://en.wikipedia.org/wiki/Hopcroft%E2%80%93Karp_algorithm) and use that to offer the most matches as
+            // possible.
+            //
+            // We can see if the simple greedy approach of just taking the matches as we find them and returning those
+            // is insufficient in the future.
+            if (reportedFields.Contains(result.Field) || reportedProperties.Contains(result.Property))
+                continue;
+
+            reportedFields.Add(result.Field);
+            reportedProperties.Add(result.Property);
 
             Process(result, context);
         }
