@@ -30,10 +30,10 @@ internal readonly record struct AccessedFields(
 
     public AccessedFields Where<TArg>(Func<IFieldSymbol, TArg, bool> predicate, TArg arg)
         => new(TrivialField != null && predicate(TrivialField, arg) ? TrivialField : null,
-               NonTrivialFields.WhereAsArray(predicate, arg));
+               NonTrivialFields.NullToEmpty().WhereAsArray(predicate, arg));
 
     public bool Contains(IFieldSymbol field)
-        => Equals(TrivialField, field) || NonTrivialFields.Contains(field);
+        => Equals(TrivialField, field) || NonTrivialFields.NullToEmpty().Contains(field);
 }
 
 internal abstract class AbstractUseAutoPropertyAnalyzer<
@@ -117,12 +117,18 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             var ineligibleFields = s_fieldSetPool.Allocate();
             var nonConstructorFieldWrites = s_fieldWriteLocationPool.Allocate();
 
-            // Record the names of all the fields in this type.  We can use this to greatly reduce the amount of
+            // Record the names of all the private fields in this type.  We can use this to greatly reduce the amount of
             // binding we need to perform when looking for restrictions in the type.
             foreach (var member in namedType.GetMembers())
             {
-                if (member is IFieldSymbol field)
+                if (member is IFieldSymbol
+                    {
+                        DeclaredAccessibility: Accessibility.Private,
+                        CanBeReferencedByName: true,
+                    } field)
+                {
                     fieldNames.Add(field.Name);
+                }
             }
 
             context.RegisterSyntaxNodeAction(context => AnalyzePropertyDeclaration(context, namedType, analysisResults), PropertyDeclarationKind);
@@ -222,10 +228,28 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
     }
 
     private AccessedFields GetGetterFields(SemanticModel semanticModel, IMethodSymbol getMethod, CancellationToken cancellationToken)
-        => new(CheckFieldAccessExpression(semanticModel, GetGetterExpression(getMethod, cancellationToken), cancellationToken));
+    {
+        var trivialFieldExpression = GetGetterExpression(getMethod, cancellationToken);
+        if (trivialFieldExpression != null)
+            return new(CheckFieldAccessExpression(semanticModel, trivialFieldExpression, cancellationToken));
+
+        if (!this.SupportsSemiAutoProperty(semanticModel.Compilation))
+            return default;
+
+        return new(TrivialField: null, GetAccessedFields(semanticModel, getMethod, cancellationToken));
+    }
 
     private AccessedFields GetSetterFields(SemanticModel semanticModel, IMethodSymbol setMethod, CancellationToken cancellationToken)
-        => new(CheckFieldAccessExpression(semanticModel, GetSetterExpression(setMethod, semanticModel, cancellationToken), cancellationToken));
+    {
+        var trivialFieldExpression = GetSetterExpression(setMethod, semanticModel, cancellationToken);
+        if (trivialFieldExpression != null)
+            return new(CheckFieldAccessExpression(semanticModel, trivialFieldExpression, cancellationToken);
+
+        if (!this.SupportsSemiAutoProperty(semanticModel.Compilation))
+            return default;
+
+        return new(TrivialField: null, GetAccessedFields(semanticModel, setMethod, cancellationToken));
+    }
 
     private static bool TryGetSyntax(
         IFieldSymbol field,
