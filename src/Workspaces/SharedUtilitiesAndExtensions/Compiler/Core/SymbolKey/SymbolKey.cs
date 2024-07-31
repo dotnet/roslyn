@@ -115,7 +115,7 @@ internal partial struct SymbolKey(string data) : IEquatable<SymbolKey>
     /// out a SymbolKey from a previous version of Roslyn and then attempt to use it in a 
     /// newer version where the encoding has changed.
     /// </summary>
-    internal const int FormatVersion = 7;
+    internal const int FormatVersion = 8;
 
     [DataMember(Order = 0)]
     private readonly string _symbolKeyData = data ?? throw new ArgumentNullException(nameof(data));
