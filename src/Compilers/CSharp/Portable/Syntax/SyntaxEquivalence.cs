@@ -121,6 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
             finally
             {
+                stack.Clear();
                 s_equivalenceCheckStack.Free(stack);
             }
 
