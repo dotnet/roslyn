@@ -500,8 +500,17 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         foreach (var result in analysisResults)
         {
             // C# specific check.
-            if (ineligibleFields.ContainsKey(result.Field))
-                continue;
+            if (ineligibleFields.TryGetValue(result.Field, out var ineligibleFieldUsages))
+            {
+                // We had a usage of the field outside of the property in a way that disqualifies it.
+                if (!ineligibleFieldUsages.All(loc => loc.Ancestors().Contains(result.PropertyDeclaration)))
+                    continue;
+
+                // All the usages were inside the property.  This is ok if we support the `field` keyword as those
+                // usages will be updated to that form.
+                if (!this.SupportsSemiAutoProperty(context.Compilation))
+                    continue;
+            }
 
             // VB specific check.
             //
