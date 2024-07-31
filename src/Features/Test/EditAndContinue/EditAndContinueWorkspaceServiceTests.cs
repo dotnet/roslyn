@@ -13,6 +13,7 @@ using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -3947,6 +3948,87 @@ class C
         }, spans);
 
         ExitBreakState(debuggingSession);
+    }
+
+    /// <summary>
+    /// Scenario:
+    /// - F5
+    /// - edit source and apply code fix to move type to file XYZ.cs
+    /// - continue execution
+    /// </summary>
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72984")]
+    public async Task EditAndContinueAfterApplyingMoveTypeToFileCodeFix()
+    {
+        const string movedType = "AnotherClass";
+
+        const string source = $$"""
+            class {{movedType}}
+            {
+                public const bool True = true;
+            }
+
+            class Test
+            {
+                static bool B() => {{movedType}}.True;
+                static void G() { while (B()); }
+
+                static void F()
+                {
+                    G();
+                }
+            }
+            """;
+
+        const string modifiedSource = $$"""
+            class Test
+            {
+                static bool A() => {{movedType}}.True;
+                static bool B() => A();
+                static void G() { while (B()); }
+
+                static void F()
+                {
+                    H();
+                }
+
+                static void H()
+                {
+                    G();
+                }
+            }
+            """;
+
+        var moduleId = EmitAndLoadLibraryToDebuggee(source);
+
+        using var workspace = CreateWorkspace(out var solution, out var service);
+        (solution, var document) = AddDefaultTestProject(solution, source);
+        var documentId = document.Id;
+        var oldProject = document.Project;
+
+        var debuggingSession = await StartDebuggingSessionAsync(service, solution);
+
+        // Apply code fix: Move type to AnotherClass.cs
+
+        var moveTypeService = document.GetLanguageService<IMoveTypeService>();
+        var root = await document.GetSyntaxRootAsync();
+        var span = root.DescendantTokens()
+            .Where(s => s.Text is movedType)
+            .FirstOrDefault()
+            .Span;
+        var modifiedSolution = await moveTypeService.GetModifiedSolutionAsync(document, span, MoveTypeOperationKind.MoveType, cancellationToken: default);
+
+        // Apply edit on remaining document: source after code fix -> modifiedSource
+
+        modifiedSolution = modifiedSolution.WithDocumentText(document.Id, CreateText(modifiedSource));
+
+        var newProject = modifiedSolution.GetProject(oldProject.Id);
+        Assert.Equal(1, oldProject.DocumentIds.Count);
+        Assert.Equal(2, newProject.DocumentIds.Count);
+
+        var (updates, emitDiagnostics) = await EmitSolutionUpdateAsync(debuggingSession, modifiedSolution);
+        Assert.Empty(emitDiagnostics);
+        Assert.False(updates.Updates.IsEmpty);
+        Assert.Equal(ModuleUpdateStatus.Ready, updates.Status);
     }
 
     [Fact]

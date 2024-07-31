@@ -499,8 +499,8 @@ internal partial class DocumentState : TextDocumentState
         }
         else
         {
-            // the existing encoding was never observed so is unknown.
-            encoding = null;
+            // the existing encoding was never observed so we try to use the one from the desired root.
+            encoding = newRoot.SyntaxTree.Encoding;
         }
 
         var syntaxTreeFactory = LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
