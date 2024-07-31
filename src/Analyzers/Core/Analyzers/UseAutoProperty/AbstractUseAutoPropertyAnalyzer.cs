@@ -176,6 +176,11 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
                 if (namedType.TypeKind is not TypeKind.Class and not TypeKind.Struct and not TypeKind.Module)
                     return false;
 
+                // Serializable types can depend on fields (and their order).  Don't report these
+                // properties in that case.
+                if (namedType.IsSerializable)
+                    return false;
+
                 // Don't bother running on this type unless at least one of its parts has the 'prefer auto props' option
                 // on, and the diagnostic is not suppressed.
                 if (!namedType.DeclaringSyntaxReferences.Select(d => d.SyntaxTree).Distinct().Any(tree =>
@@ -328,11 +333,6 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             return;
 
         if (!CanExplicitInterfaceImplementationsBeFixed() && property.ExplicitInterfaceImplementations.Length != 0)
-            return;
-
-        // Serializable types can depend on fields (and their order).  Don't report these
-        // properties in that case.
-        if (containingType.IsSerializable)
             return;
 
         var preferAutoProps = context.GetAnalyzerOptions().PreferAutoProperties;
