@@ -486,14 +486,15 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
 
         // needs to be of the form `x` or `this.x`.
         var syntaxFacts = this.SyntaxFacts;
+        var name = expression;
         if (syntaxFacts.IsMemberAccessExpression(expression))
-            expression = (TExpression)SyntaxFacts.GetNameOfMemberAccessExpression(expression);
+            name = (TExpression)SyntaxFacts.GetNameOfMemberAccessExpression(expression);
 
-        if (!syntaxFacts.IsIdentifierName(expression))
+        if (!syntaxFacts.IsIdentifierName(name))
             return null;
 
         // Avoid binding identifiers that couldn't possibly bind to a field we care about.
-        if (!fieldNames.Contains(syntaxFacts.GetIdentifierOfIdentifierName(expression).ValueText))
+        if (!fieldNames.Contains(syntaxFacts.GetIdentifierOfIdentifierName(name).ValueText))
             return null;
 
         return TryGetDirectlyAccessedFieldSymbol(semanticModel, expression, cancellationToken);
