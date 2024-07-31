@@ -20,4 +20,37 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty;
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
 public sealed partial class UseAutoPropertyTests
 {
+    private readonly ParseOptions CSharp13 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp13);
+
+    [Fact]
+    public async Task TestFieldSimplestCase()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|string s|];
+
+                int P
+                {
+                    get
+                    {
+                        return s.Trim();
+                    }
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                int P
+                {
+                    get
+                    {
+                        return field.Trim();
+                    }
+                }
+            }
+            """, parseOptions: CSharp13);
+    }
 }
