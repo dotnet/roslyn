@@ -11,6 +11,9 @@ namespace Roslyn.Utilities
     {
         public static ImmutableArray<T> ToImmutableArray<T>(this HashSet<T> set)
         {
+            if (set.Count == 0)
+                return [];
+
             return [.. set];
         }
 

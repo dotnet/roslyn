@@ -12,6 +12,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -99,8 +100,9 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
     protected abstract bool CanExplicitInterfaceImplementationsBeFixed();
     protected abstract TExpression? GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
     protected abstract TExpression? GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
-    protected abstract TExpression? GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken);
+    protected abstract TExpression? GetSetterExpression(SemanticModel semanticModel, IMethodSymbol setMethod, CancellationToken cancellationToken);
     protected abstract SyntaxNode GetFieldNode(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
+    protected abstract void AddAccessedFields(SemanticModel semanticModel, IMethodSymbol accessor, HashSet<IFieldSymbol> result, CancellationToken cancellationToken);
 
     protected abstract void RegisterIneligibleFieldsAction(
         HashSet<string> fieldNames, ConcurrentSet<IFieldSymbol> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
@@ -131,7 +133,11 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
                 }
             }
 
-            context.RegisterSyntaxNodeAction(context => AnalyzePropertyDeclaration(context, namedType, analysisResults), PropertyDeclarationKind);
+            context.RegisterSyntaxNodeAction(context =>
+            {
+                AnalyzePropertyDeclaration(context, namedType, fieldNames, analysisResults);
+            }, PropertyDeclarationKind);
+
             context.RegisterCodeBlockStartAction<TSyntaxKind>(context =>
             {
                 RegisterIneligibleFieldsAction(fieldNames, ineligibleFields, context.SemanticModel, context.CodeBlock, context.CancellationToken);
@@ -227,28 +233,39 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         }
     }
 
-    private AccessedFields GetGetterFields(SemanticModel semanticModel, IMethodSymbol getMethod, CancellationToken cancellationToken)
+    private AccessedFields GetGetterFields(
+        SemanticModel semanticModel,
+        IMethodSymbol getMethod,
+        HashSet<string> fieldNames,
+        CancellationToken cancellationToken)
     {
         var trivialFieldExpression = GetGetterExpression(getMethod, cancellationToken);
         if (trivialFieldExpression != null)
-            return new(CheckFieldAccessExpression(semanticModel, trivialFieldExpression, cancellationToken));
+            return new(CheckFieldAccessExpression(semanticModel, trivialFieldExpression, fieldNames, cancellationToken));
 
         if (!this.SupportsSemiAutoProperty(semanticModel.Compilation))
             return default;
 
-        return new(TrivialField: null, GetAccessedFields(semanticModel, getMethod, cancellationToken));
+        using var _ = PooledHashSet<IFieldSymbol>.GetInstance(out var set);
+        AddAccessedFields(semanticModel, getMethod, set, cancellationToken);
+
+        return new(TrivialField: null, set.ToImmutableArray());
     }
 
-    private AccessedFields GetSetterFields(SemanticModel semanticModel, IMethodSymbol setMethod, CancellationToken cancellationToken)
+    private AccessedFields GetSetterFields(
+        SemanticModel semanticModel, IMethodSymbol setMethod, HashSet<string> fieldNames, CancellationToken cancellationToken)
     {
-        var trivialFieldExpression = GetSetterExpression(setMethod, semanticModel, cancellationToken);
+        var trivialFieldExpression = GetSetterExpression(semanticModel, setMethod, cancellationToken);
         if (trivialFieldExpression != null)
-            return new(CheckFieldAccessExpression(semanticModel, trivialFieldExpression, cancellationToken);
+            return new(CheckFieldAccessExpression(semanticModel, trivialFieldExpression, fieldNames, cancellationToken));
 
         if (!this.SupportsSemiAutoProperty(semanticModel.Compilation))
             return default;
 
-        return new(TrivialField: null, GetAccessedFields(semanticModel, setMethod, cancellationToken));
+        using var _ = PooledHashSet<IFieldSymbol>.GetInstance(out var set);
+        AddAccessedFields(semanticModel, setMethod, set, cancellationToken);
+
+        return new(TrivialField: null, set.ToImmutableArray());
     }
 
     private static bool TryGetSyntax(
@@ -272,6 +289,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
     private void AnalyzePropertyDeclaration(
         SyntaxNodeAnalysisContext context,
         INamedTypeSymbol containingType,
+        HashSet<string> fieldNames,
         ConcurrentStack<AnalysisResult> analysisResults)
     {
         var cancellationToken = context.CancellationToken;
@@ -321,7 +339,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         if (notification.Severity == ReportDiagnostic.Suppress)
             return;
 
-        var getterFields = GetGetterFields(semanticModel, property.GetMethod, cancellationToken);
+        var getterFields = GetGetterFields(semanticModel, property.GetMethod, fieldNames, cancellationToken);
         getterFields = getterFields.Where(
             static (getterField, args) =>
             {
@@ -387,7 +405,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         var setMethod = property.SetMethod;
         if (setMethod != null)
         {
-            var setterFields = GetSetterFields(semanticModel, setMethod, cancellationToken);
+            var setterFields = GetSetterFields(semanticModel, setMethod, fieldNames, cancellationToken);
             var sharedFields = setterFields.Where(
                 static (field, getterFields) => getterFields.Contains(field),
                 getterFields);
@@ -416,21 +434,41 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
     protected virtual bool CanConvert(IPropertySymbol property)
         => true;
 
-    private IFieldSymbol? GetSetterField(SemanticModel semanticModel, IMethodSymbol setMethod, CancellationToken cancellationToken)
-        => CheckFieldAccessExpression(semanticModel, GetSetterExpression(setMethod, semanticModel, cancellationToken), cancellationToken);
-
-    private IFieldSymbol? GetGetterField(SemanticModel semanticModel, IMethodSymbol getMethod, CancellationToken cancellationToken)
-        => CheckFieldAccessExpression(semanticModel, GetGetterExpression(getMethod, cancellationToken), cancellationToken);
-
-    private static IFieldSymbol? CheckFieldAccessExpression(SemanticModel semanticModel, TExpression? expression, CancellationToken cancellationToken)
+    private IFieldSymbol? CheckFieldAccessExpression(
+        SemanticModel semanticModel,
+        TExpression? expression,
+        HashSet<string> fieldNames,
+        CancellationToken cancellationToken)
     {
         if (expression == null)
             return null;
 
-        var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-        return symbolInfo.Symbol is IFieldSymbol { DeclaringSyntaxReferences.Length: 1 } field
-            ? field
-            : null;
+        // needs to be of the form `x` or `this.x`.
+        var syntaxFacts = this.SyntaxFacts;
+        if (syntaxFacts.IsMemberAccessExpression(expression))
+            expression = (TExpression)SyntaxFacts.GetNameOfMemberAccessExpression(expression);
+
+        if (!syntaxFacts.IsIdentifierName(expression))
+            return null;
+
+        // Avoid binding identifiers that couldn't possibly bind to a field we care about.
+        if (!fieldNames.Contains(syntaxFacts.GetIdentifierOfIdentifierName(expression).ValueText))
+            return null;
+
+        var operation = semanticModel.GetOperation(expression, cancellationToken);
+        if (operation is not IFieldReferenceOperation
+            {
+                Instance: IInstanceReferenceOperation
+                {
+                    ReferenceKind: InstanceReferenceKind.ContainingTypeInstance,
+                },
+                Field.DeclaringSyntaxReferences.Length: 1,
+            } fieldReference)
+        {
+            return null;
+        }
+
+        return fieldReference.Field;
     }
 
     private void Process(
