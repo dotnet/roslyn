@@ -23,6 +23,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty;
 
+using static UseAutoPropertiesHelpers;
+
 internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationSyntax, TPropertyDeclaration, TVariableDeclarator, TConstructorDeclaration, TExpression> : CodeFixProvider
     where TTypeDeclarationSyntax : SyntaxNode
     where TPropertyDeclaration : SyntaxNode
@@ -43,8 +45,15 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
     protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document);
 
     protected abstract Task<SyntaxNode> UpdatePropertyAsync(
-        Document propertyDocument, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol,
-        TPropertyDeclaration propertyDeclaration, bool isWrittenOutsideConstructor, CancellationToken cancellationToken);
+        Document propertyDocument,
+        Compilation compilation,
+        IFieldSymbol fieldSymbol,
+        IPropertySymbol propertySymbol,
+        TPropertyDeclaration propertyDeclaration,
+        bool isWrittenOutsideConstructor,
+        bool isTrivialGetAccessor,
+        bool isTrivialSetAccessor,
+        CancellationToken cancellationToken);
 
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -68,6 +77,10 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
     private async Task<Solution> ProcessResultAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
     {
         var locations = diagnostic.AdditionalLocations;
+
+        var isTrivialGetAccessor = diagnostic.Properties.ContainsKey(IsTrivialGetAccessor);
+        var isTrivialSetAccessor = diagnostic.Properties.ContainsKey(IsTrivialSetAccessor);
+
         var propertyLocation = locations[0];
         var declaratorLocation = locations[1];
 
@@ -94,8 +107,10 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
         // First, create the updated property we want to replace the old property with
         var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(fieldSymbol, fieldLocations, property, cancellationToken);
         var updatedProperty = await UpdatePropertyAsync(
-            propertyDocument, compilation, fieldSymbol, propertySymbol, property,
-            isWrittenToOutsideOfConstructor, cancellationToken).ConfigureAwait(false);
+            propertyDocument, compilation,
+            fieldSymbol, propertySymbol, property,
+            isWrittenToOutsideOfConstructor, isTrivialGetAccessor, isTrivialSetAccessor,
+            cancellationToken).ConfigureAwait(false);
 
         // Note: rename will try to update all the references in linked files as well.  However, 
         // this can lead to some very bad behavior as we will change the references in linked files

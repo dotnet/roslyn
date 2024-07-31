@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseAutoProperty), [Shared]>
-    Friend Class VisualBasicUseAutoPropertyCodeFixProvider
+    Friend NotInheritable Class VisualBasicUseAutoPropertyCodeFixProvider
         Inherits AbstractUseAutoPropertyCodeFixProvider(Of TypeBlockSyntax, PropertyBlockSyntax, ModifiedIdentifierSyntax, ConstructorBlockSyntax, ExpressionSyntax)
 
         <ImportingConstructor>
@@ -38,13 +38,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return Nothing
         End Function
 
-        Protected Overrides Async Function UpdatePropertyAsync(propertyDocument As Document,
-                                                         compilation As Compilation,
-                                                         fieldSymbol As IFieldSymbol,
-                                                         propertySymbol As IPropertySymbol,
-                                                         propertyDeclaration As PropertyBlockSyntax,
-                                                         isWrittenToOutsideOfConstructor As Boolean,
-                                                         cancellationToken As CancellationToken) As Task(Of SyntaxNode)
+        Protected Overrides Async Function UpdatePropertyAsync(
+                propertyDocument As Document,
+                compilation As Compilation,
+                fieldSymbol As IFieldSymbol,
+                propertySymbol As IPropertySymbol,
+                propertyDeclaration As PropertyBlockSyntax,
+                isWrittenToOutsideOfConstructor As Boolean,
+                isTrivialGetAccessor As Boolean,
+                isTrivialSetAccessor As Boolean,
+                cancellationToken As CancellationToken) As Task(Of SyntaxNode)
             Dim statement = propertyDeclaration.PropertyStatement
 
             Dim generator = SyntaxGenerator.GetGenerator(propertyDocument.Project)

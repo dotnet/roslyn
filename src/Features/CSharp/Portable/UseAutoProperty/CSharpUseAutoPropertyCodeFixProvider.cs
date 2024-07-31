@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -17,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseAutoProperty;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
@@ -40,7 +39,7 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
 
     protected override SyntaxNode GetNodeToRemove(VariableDeclaratorSyntax declarator)
     {
-        var fieldDeclaration = (FieldDeclarationSyntax)declarator.Parent.Parent;
+        var fieldDeclaration = (FieldDeclarationSyntax)declarator.GetRequiredParent().GetRequiredParent();
         var nodeToRemove = fieldDeclaration.Declaration.Variables.Count > 1 ? declarator : (SyntaxNode)fieldDeclaration;
         return nodeToRemove;
     }
@@ -52,21 +51,25 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
         IPropertySymbol propertySymbol,
         PropertyDeclarationSyntax propertyDeclaration,
         bool isWrittenOutsideOfConstructor,
+        bool isTrivialGetAccessor,
+        bool isTrivialSetAccessor,
         CancellationToken cancellationToken)
     {
         var project = propertyDocument.Project;
         var trailingTrivia = propertyDeclaration.GetTrailingTrivia();
 
-        var updatedProperty = propertyDeclaration.WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList))
-                                                 .WithExpressionBody(null)
-                                                 .WithSemicolonToken(Token(SyntaxKind.None));
+        var updatedProperty = propertyDeclaration
+            .WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList, isTrivialGetAccessor, isTrivialSetAccessor))
+            .WithExpressionBody(null)
+            .WithSemicolonToken(Token(SyntaxKind.None));
 
         // We may need to add a setter if the field is written to outside of the constructor
         // of it's class.
-        if (NeedsSetter(compilation, propertyDeclaration, isWrittenOutsideOfConstructor))
+        if (!updatedProperty.AccessorList.Accessors.Any(SyntaxKind.SetAccessorDeclaration) &&
+            NeedsSetter(compilation, propertyDeclaration, isWrittenOutsideOfConstructor))
         {
             var accessor = AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                           .WithSemicolonToken(SemicolonToken);
+                .WithSemicolonToken(SemicolonToken);
             var generator = SyntaxGenerator.GetGenerator(project);
 
             if (fieldSymbol.DeclaredAccessibility != propertySymbol.DeclaredAccessibility)
@@ -116,30 +119,26 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
             return false;
         }
 
-        public override AdjustNewLinesOperation GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
         {
             if (ForceSingleSpace(previousToken, currentToken))
-            {
                 return null;
-            }
 
             return base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
         }
 
-        public override AdjustSpacesOperation GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
         {
             if (ForceSingleSpace(previousToken, currentToken))
-            {
                 return new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
-            }
 
             return base.GetAdjustSpacesOperation(in previousToken, in currentToken, in nextOperation);
         }
     }
 
-    private static async Task<ExpressionSyntax> GetFieldInitializerAsync(IFieldSymbol fieldSymbol, CancellationToken cancellationToken)
+    private static ExpressionSyntax? GetFieldInitializer(IFieldSymbol fieldSymbol, CancellationToken cancellationToken)
     {
-        var variableDeclarator = (VariableDeclaratorSyntax)await fieldSymbol.DeclaringSyntaxReferences[0].GetSyntaxAsync(cancellationToken).ConfigureAwait(false);
+        var variableDeclarator = (VariableDeclaratorSyntax)fieldSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
         return variableDeclarator.Initializer?.Value;
     }
 
@@ -165,12 +164,12 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
     private static bool SupportsReadOnlyProperties(Compilation compilation)
         => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
-    private static AccessorListSyntax UpdateAccessorList(AccessorListSyntax accessorList)
+    private static AccessorListSyntax? UpdateAccessorList(AccessorListSyntax accessorList)
     {
         if (accessorList == null)
         {
             var getter = AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                                      .WithSemicolonToken(SemicolonToken);
+                .WithSemicolonToken(SemicolonToken);
             return AccessorList([getter]);
         }
 
@@ -181,9 +180,10 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
     {
         foreach (var accessor in accessors)
         {
-            yield return accessor.WithBody(null)
-                                 .WithExpressionBody(null)
-                                 .WithSemicolonToken(SemicolonToken);
+            yield return accessor
+                .WithBody(null)
+                .WithExpressionBody(null)
+                .WithSemicolonToken(SemicolonToken);
         }
     }
 }
