@@ -17,6 +17,7 @@
     <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\Contracts\ContractWrappers.cs" Link="EditAndContinue\ContractWrappers.cs" />
     <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\Contracts\ManagedHotReloadServiceBridge.cs" Link="EditAndContinue\ManagedHotReloadServiceBridge.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\Shared\*.cs" LinkBase="Logging" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\PdbSourceDocument\AbstractSourceLinkService.cs" />
   </ItemGroup>
 
   <ItemGroup>
