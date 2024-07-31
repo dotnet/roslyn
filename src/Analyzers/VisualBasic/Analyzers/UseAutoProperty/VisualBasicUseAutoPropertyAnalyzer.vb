@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.LanguageService
@@ -30,6 +31,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
         Protected Overrides Function SupportsPropertyInitializer(compilation As Compilation) As Boolean
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic10
+        End Function
+
+        Protected Overrides Function SupportsSemiAutoProperty(compilation As Compilation) As Boolean
+            ' 'field' keyword not supported in VB.
+            Return False
         End Function
 
         Protected Overrides Function CanExplicitInterfaceImplementationsBeFixed() As Boolean
@@ -131,6 +137,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
         Protected Overrides Function GetFieldNode(fieldDeclaration As FieldDeclarationSyntax, identifier As ModifiedIdentifierSyntax) As SyntaxNode
             Return GetNodeToRemove(identifier)
+        End Function
+
+        Protected Overrides Function GetAccessedFields(semanticModel As SemanticModel, accessor As IMethodSymbol, cancellationToken As CancellationToken) As ImmutableArray(Of IFieldSymbol)
+            Throw New NotImplementedException()
         End Function
     End Class
 End Namespace

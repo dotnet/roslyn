@@ -56,7 +56,7 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
 
             context.RegisterCodeFix(CodeAction.SolutionChangeAction.Create(
                     AnalyzersResources.Use_auto_property,
-                    c => ProcessResultAsync(context, diagnostic, c),
+                    cancellationToken => ProcessResultAsync(context, diagnostic, cancellationToken),
                     equivalenceKey: nameof(AnalyzersResources.Use_auto_property),
                     priority),
                 diagnostic);
