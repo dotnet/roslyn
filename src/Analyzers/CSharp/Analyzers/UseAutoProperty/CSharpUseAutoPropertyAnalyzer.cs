@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -49,7 +50,7 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
 
     protected override void RegisterIneligibleFieldsAction(
         HashSet<string> fieldNames,
-        ConcurrentSet<IFieldSymbol> ineligibleFields,
+        ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFields,
         SemanticModel semanticModel,
         SyntaxNode codeBlock,
         CancellationToken cancellationToken)
@@ -91,12 +92,15 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
                 return;
 
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-            AddIneligibleFields(ineligibleFields, symbolInfo);
+            AddIneligibleFields(ineligibleFields, symbolInfo, expression);
         }
     }
 
     private static void AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(
-        SemanticModel semanticModel, MemberAccessExpressionSyntax memberAccess, ConcurrentSet<IFieldSymbol> ineligibleFields, CancellationToken cancellationToken)
+        SemanticModel semanticModel,
+        MemberAccessExpressionSyntax memberAccess,
+        ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFields,
+        CancellationToken cancellationToken)
     {
         // `c.x = ...` can't be converted to `c.X = ...` if `c` is a struct and isn't definitely assigned as that point.
 
@@ -116,10 +120,13 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
 
         var dataFlow = semanticModel.AnalyzeDataFlow(memberAccess.Expression);
         if (dataFlow != null && !dataFlow.DefinitelyAssignedOnEntry.Contains(exprSymbol))
-            AddIneligibleFields(ineligibleFields, symbolInfo);
+            AddIneligibleFields(ineligibleFields, symbolInfo, memberAccess);
     }
 
-    private static void AddIneligibleFields(ConcurrentSet<IFieldSymbol> ineligibleFields, SymbolInfo symbolInfo)
+    private static void AddIneligibleFields(
+        ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFields,
+        SymbolInfo symbolInfo,
+        SyntaxNode location)
     {
         AddIneligibleField(symbolInfo.Symbol);
         foreach (var symbol in symbolInfo.CandidateSymbols)
@@ -128,7 +135,7 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
         void AddIneligibleField(ISymbol? symbol)
         {
             if (symbol is IFieldSymbol field)
-                ineligibleFields.Add(field);
+                AddFieldUsage(ineligibleFields, field, location);
         }
     }
 

@@ -57,11 +57,11 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
     /// ConcurrentStack as that's the only concurrent collection that supports 'Clear' in netstandard2.
     /// </summary>
     private static readonly ObjectPool<ConcurrentStack<AnalysisResult>> s_analysisResultPool = new(() => new());
-    private static readonly ObjectPool<ConcurrentSet<IFieldSymbol>> s_fieldSetPool = new(() => []);
     private static readonly ObjectPool<ConcurrentSet<SyntaxNode>> s_nodeSetPool = new(() => []);
-    private static readonly ObjectPool<ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>>> s_fieldWriteLocationPool = new(() => []);
 
-    private static readonly Func<IFieldSymbol, ConcurrentSet<SyntaxNode>> s_createFieldWriteNodeSet = _ => s_nodeSetPool.Allocate();
+    private static readonly ObjectPool<ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>>> s_fieldToUsageLocationPool = new(() => []);
+
+    private static readonly Func<IFieldSymbol, ConcurrentSet<SyntaxNode>> s_createFieldUsageSet = _ => s_nodeSetPool.Allocate();
 
     /// <summary>
     /// Not static as this has different semantics around case sensitivity for C# and VB.
@@ -78,8 +78,16 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         _fieldNamesPool = new(() => new(this.SyntaxFacts.StringComparer));
     }
 
-    protected static void AddFieldWrite(ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, IFieldSymbol field, SyntaxNode node)
-        => fieldWrites.GetOrAdd(field, s_createFieldWriteNodeSet).Add(node);
+    protected static void AddFieldUsage(ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, IFieldSymbol field, SyntaxNode location)
+        => fieldWrites.GetOrAdd(field, s_createFieldUsageSet).Add(location);
+
+    private static void ClearAndFree(ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> multiMap)
+    {
+        foreach (var (_, nodeSet) in multiMap)
+            s_nodeSetPool.ClearAndFree(nodeSet);
+
+        s_fieldToUsageLocationPool.ClearAndFree(multiMap);
+    }
 
     /// <summary>
     /// A method body edit anywhere in a type will force us to reanalyze the whole type.
@@ -106,7 +114,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         SemanticModel semanticModel, IMethodSymbol accessor, HashSet<string> fieldNames, HashSet<IFieldSymbol> result, CancellationToken cancellationToken);
 
     protected abstract void RegisterIneligibleFieldsAction(
-        HashSet<string> fieldNames, ConcurrentSet<IFieldSymbol> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
+        HashSet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
 
     protected sealed override void InitializeWorker(AnalysisContext context)
         => context.RegisterSymbolStartAction(context =>
@@ -117,8 +125,8 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
 
             var fieldNames = _fieldNamesPool.Allocate();
             var analysisResults = s_analysisResultPool.Allocate();
-            var ineligibleFields = s_fieldSetPool.Allocate();
-            var nonConstructorFieldWrites = s_fieldWriteLocationPool.Allocate();
+            var ineligibleFields = s_fieldToUsageLocationPool.Allocate();
+            var nonConstructorFieldWrites = s_fieldToUsageLocationPool.Allocate();
 
             // Record the names of all the private fields in this type.  We can use this to greatly reduce the amount of
             // binding we need to perform when looking for restrictions in the type.
@@ -157,12 +165,9 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
                     _fieldNamesPool.ClearAndFree(fieldNames);
 
                     s_analysisResultPool.ClearAndFree(analysisResults);
-                    s_fieldSetPool.ClearAndFree(ineligibleFields);
 
-                    foreach (var (_, nodeSet) in nonConstructorFieldWrites)
-                        s_nodeSetPool.ClearAndFree(nodeSet);
-
-                    s_fieldWriteLocationPool.ClearAndFree(nonConstructorFieldWrites);
+                    ClearAndFree(ineligibleFields);
+                    ClearAndFree(nonConstructorFieldWrites);
                 }
             });
 
@@ -230,7 +235,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             if (!semanticFacts.IsWrittenTo(semanticModel, identifierName, cancellationToken))
                 continue;
 
-            AddFieldWrite(fieldWrites, field, identifierName);
+            AddFieldUsage(fieldWrites, field, identifierName);
         }
     }
 
@@ -488,14 +493,14 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
 
     private void Process(
         ConcurrentStack<AnalysisResult> analysisResults,
-        ConcurrentSet<IFieldSymbol> ineligibleFields,
+        ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFields,
         ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> nonConstructorFieldWrites,
         SymbolAnalysisContext context)
     {
         foreach (var result in analysisResults)
         {
             // C# specific check.
-            if (ineligibleFields.Contains(result.Field))
+            if (ineligibleFields.ContainsKey(result.Field))
                 continue;
 
             // VB specific check.
