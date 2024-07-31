@@ -161,10 +161,15 @@ configuration:
       - filesMatchPattern:
           pattern: 'src/(Analyzers|CodeStyle|Features|LanguageServer|Workspaces)/.*\.(cs|vb)$'
           matchAny: true
-      - not:
-          isActivitySender:
-            user: dotnet-bot
-            issueAuthor: False
+      - and:
+        - not:
+            isActivitySender:
+              user: dotnet-bot
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: github-actions
+              issueAuthor: False
       - or:
         - isAction:
             action: Opened
