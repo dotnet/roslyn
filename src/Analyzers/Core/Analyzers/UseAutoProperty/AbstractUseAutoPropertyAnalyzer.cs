@@ -407,42 +407,45 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         if (getterFields.IsEmpty)
             return;
 
+        var isTrivialSetAccessor = false;
+
         // A setter is optional though.
-        var setMethod = property.SetMethod;
-        if (setMethod != null)
+        if (property.SetMethod != null)
         {
-            var setterFields = GetSetterFields(semanticModel, setMethod, fieldNames, cancellationToken);
-            var sharedFields = setterFields.Where(
+            var setterFields = GetSetterFields(semanticModel, property.SetMethod, fieldNames, cancellationToken);
+            getterFields = setterFields.Where(
                 static (field, getterFields) => getterFields.Contains(field),
                 getterFields);
 
-            // If there is a getter and a setter, they both need to agree on which field they are writing to.  Or, if
-            // this language supports semi-auto-properties, we can still update the getter to use `field` and keep the
-            // setter as-is.
-            if (sharedFields.IsEmpty)
-            {
-                if (!this.SupportsSemiAutoProperty(compilation))
-                    return;
+            // If there is a getter and a setter, they both need to agree on which field they are writing to.
+            if (getterFields.IsEmpty)
+                return;
 
-                // Intentionally keep getterFields as is.  We'll just choose any of the viable fields to remove here.
-            }
-            else
-            {
-                // They share certain fields.  Prefer one of those fields as the one to remove.
-                getterFields = sharedFields;
-            }
+            isTrivialSetAccessor = setterFields.TrivialField != null;
         }
 
-        var getterField = getterFields.TrivialField ?? getterFields.NonTrivialFields.First();
-
         // Looks like a viable property/field to convert into an auto property.
-        Contract.ThrowIfFalse(TryGetSyntax(getterField, out var fieldDeclaration, out var variableDeclarator, cancellationToken));
 
-        analysisResults.Push(new AnalysisResult(
-            property, getterField,
-            propertyDeclaration, fieldDeclaration, variableDeclarator,
-            notification,
-            IsSimpleProperty: getterField == getterFields.TrivialField));
+        AddAnalysisResult(getterFields.TrivialField, isTrivialGetAccessor: true, isTrivialSetAccessor);
+        foreach (var getterField in getterFields.NonTrivialFields)
+            AddAnalysisResult(getterField, isTrivialGetAccessor: false, isTrivialSetAccessor);
+
+        return;
+
+        void AddAnalysisResult(IFieldSymbol? field, bool isTrivialGetAccessor, bool isTrivialSetAccessor)
+        {
+            if (field is null)
+                return;
+
+            Contract.ThrowIfFalse(TryGetSyntax(field, out var fieldDeclaration, out var variableDeclarator, cancellationToken));
+
+            analysisResults.Push(new AnalysisResult(
+                property, field,
+                propertyDeclaration, fieldDeclaration, variableDeclarator,
+                notification,
+                isTrivialGetAccessor,
+                isTrivialSetAccessor));
+        }
     }
 
     protected virtual bool CanConvert(IPropertySymbol property)
@@ -600,5 +603,6 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         TFieldDeclaration FieldDeclaration,
         TVariableDeclarator VariableDeclarator,
         NotificationOption2 Notification,
-        bool IsSimpleProperty);
+        bool IsTrivialGetAccessor,
+        bool IsTrivialSetAccessor);
 }
