@@ -58,15 +58,22 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
         foreach (var argument in codeBlock.DescendantNodesAndSelf().OfType<ArgumentSyntax>())
         {
             // An argument will disqualify a field if that field is used in a ref/out position.  
-            // We can't change such field references to be property references in C#.
-            if (argument.RefKindKeyword.Kind() != SyntaxKind.None)
+            // We can't change such field references to be property references in C#, unless we
+            // are converting to the `field` keyword.
+            if (argument.RefKindKeyword.Kind() is SyntaxKind.RefKeyword or SyntaxKind.OutKeyword)
                 AddIneligibleFieldsForExpression(argument.Expression);
+
+            // Use of a field in a nameof(...) expression can't *ever* be converted to use `field`.
+            // So hard block in this case.
+            if (argument.Expression.IsNameOfArgumentExpression())
+                AddIneligibleFieldsForExpression(argument.Expression, alwaysRestricted: true);
         }
 
         foreach (var refExpression in codeBlock.DescendantNodesAndSelf().OfType<RefExpressionSyntax>())
             AddIneligibleFieldsForExpression(refExpression.Expression);
 
-        // Can't take the address of an auto-prop.  So disallow for fields that we do `&x` on.
+        // Can't take the address of an auto-prop.  So disallow for fields that we do `&x` on.  Unless we are converting
+        // to the `field` keyword.
         foreach (var addressOfExpression in codeBlock.DescendantNodesAndSelf().OfType<PrefixUnaryExpressionSyntax>())
         {
             if (addressOfExpression.Kind() == SyntaxKind.AddressOfExpression)
@@ -86,13 +93,13 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
             return rightmostName != null && fieldNames.Contains(rightmostName);
         }
 
-        void AddIneligibleFieldsForExpression(ExpressionSyntax expression)
+        void AddIneligibleFieldsForExpression(ExpressionSyntax expression, bool alwaysRestricted = false)
         {
             if (!CouldReferenceField(expression))
                 return;
 
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-            AddIneligibleFields(ineligibleFields, symbolInfo, expression);
+            AddIneligibleFields(ineligibleFields, symbolInfo, expression, alwaysRestricted);
         }
     }
 
@@ -126,7 +133,8 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
     private static void AddIneligibleFields(
         ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFields,
         SymbolInfo symbolInfo,
-        SyntaxNode location)
+        SyntaxNode location,
+        bool alwaysRestricted = false)
     {
         AddIneligibleField(symbolInfo.Symbol);
         foreach (var symbol in symbolInfo.CandidateSymbols)
@@ -134,8 +142,10 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
 
         void AddIneligibleField(ISymbol? symbol)
         {
+            // If the field is always restricted, then add the compilation unit itself to the ineligibility locations.
+            // that way we never think we can convert this field. 
             if (symbol is IFieldSymbol field)
-                AddFieldUsage(ineligibleFields, field, location);
+                AddFieldUsage(ineligibleFields, field, alwaysRestricted ? location.SyntaxTree.GetRoot() : location);
         }
     }
 
