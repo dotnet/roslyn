@@ -19,6 +19,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty;
 
+using static UseAutoPropertiesHelpers;
+
 internal readonly record struct AccessedFields(
     IFieldSymbol? TrivialField,
     ImmutableArray<IFieldSymbol> NonTrivialFields)
@@ -412,7 +414,10 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         // A setter is optional though.
         if (property.SetMethod != null)
         {
+            // Figure out all the fields written to in the setter.
             var setterFields = GetSetterFields(semanticModel, property.SetMethod, fieldNames, cancellationToken);
+
+            // Intersect these to determine which fields both the getter and setter write to.
             getterFields = setterFields.Where(
                 static (field, getterFields) => getterFields.Contains(field),
                 getterFields);
@@ -577,23 +582,28 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             propertyDeclaration.GetLocation(),
             variableDeclarator.GetLocation());
 
+        var properties = ImmutableDictionary<string, string?>.Empty;
+        if (result.IsTrivialGetAccessor)
+            properties = properties.Add(IsTrivialGetAccessor, IsTrivialGetAccessor);
+
+        if (result.IsTrivialSetAccessor)
+            properties = properties.Add(IsTrivialSetAccessor, IsTrivialSetAccessor);
+
         // Place the appropriate marker on the field depending on the user option.
-        var diagnostic1 = DiagnosticHelper.Create(
+        context.ReportDiagnostic(DiagnosticHelper.Create(
             Descriptor,
             fieldNode.GetLocation(),
             result.Notification,
             context.Options,
             additionalLocations: additionalLocations,
-            properties: null);
+            properties: properties));
 
-        // Also, place a hidden marker on the property.  If they bring up a lightbulb
-        // there, they'll be able to see that they can convert it to an auto-prop.
-        var diagnostic2 = Diagnostic.Create(
+        // Also, place a hidden marker on the property.  If they bring up a lightbulb there, they'll be able to see that
+        // they can convert it to an auto-prop.
+        context.ReportDiagnostic(Diagnostic.Create(
             Descriptor, propertyDeclaration.GetLocation(),
-            additionalLocations: additionalLocations);
-
-        context.ReportDiagnostic(diagnostic1);
-        context.ReportDiagnostic(diagnostic2);
+            additionalLocations: additionalLocations,
+            properties: properties));
     }
 
     private sealed record AnalysisResult(
