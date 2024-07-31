@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return Nothing
         End Function
 
-        Protected Overrides Function GetSetterExpression(setMethod As IMethodSymbol, semanticModel As SemanticModel, cancellationToken As CancellationToken) As ExpressionSyntax
+        Protected Overrides Function GetSetterExpression(semanticModel As SemanticModel, setMethod As IMethodSymbol, cancellationToken As CancellationToken) As ExpressionSyntax
             ' Setter has to be of the form:
             '
             '     Set(value)
@@ -139,8 +139,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return GetNodeToRemove(identifier)
         End Function
 
-        Protected Overrides Function GetAccessedFields(semanticModel As SemanticModel, accessor As IMethodSymbol, cancellationToken As CancellationToken) As ImmutableArray(Of IFieldSymbol)
-            Throw New NotImplementedException()
-        End Function
+        Protected Overrides Sub AddAccessedFields(semanticModel As SemanticModel, accessor As IMethodSymbol, result As HashSet(Of IFieldSymbol), cancellationToken As CancellationToken)
+            Throw ExceptionUtilities.Unreachable()
+        End Sub
     End Class
 End Namespace

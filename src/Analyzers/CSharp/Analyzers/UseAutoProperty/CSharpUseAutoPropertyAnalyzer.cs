@@ -184,7 +184,7 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
         => accessorDeclaration is { Body.Statements: [T statement] } ? statement : null;
 
     protected override ExpressionSyntax? GetSetterExpression(
-        IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken)
+         SemanticModel semanticModel, IMethodSymbol setMethod, CancellationToken cancellationToken)
     {
         // Setter has to be of the form:
         //
@@ -215,5 +215,9 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
         return fieldDeclaration.Declaration.Variables.Count == 1
             ? fieldDeclaration
             : variableDeclarator;
+    }
+
+    protected override void AddAccessedFields(SemanticModel semanticModel, IMethodSymbol accessor, HashSet<IFieldSymbol> result, CancellationToken cancellationToken)
+    {
     }
 }

@@ -427,8 +427,16 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             }
         }
 
+        var getterField = getterFields.TrivialField ?? getterFields.NonTrivialFields.First();
+
         // Looks like a viable property/field to convert into an auto property.
-        analysisResults.Push(new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, notification));
+        Contract.ThrowIfFalse(TryGetSyntax(getterField, out var fieldDeclaration, out var variableDeclarator, cancellationToken));
+
+        analysisResults.Push(new AnalysisResult(
+            property, getterField,
+            propertyDeclaration, fieldDeclaration, variableDeclarator,
+            notification,
+            IsSimpleProperty: getterField == getterFields.TrivialField));
     }
 
     protected virtual bool CanConvert(IPropertySymbol property)
