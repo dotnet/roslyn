@@ -6,7 +6,9 @@ namespace Roslyn.LanguageServer.Protocol
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Text.Json.Serialization;
+    using Roslyn.Utilities;
 
     /// <summary>
     /// Class representing information about programming constructs like variables, classes, interfaces, etc.
@@ -111,6 +113,14 @@ namespace Roslyn.LanguageServer.Protocol
 
         /// <inheritdoc/>
         public override int GetHashCode() =>
-            HashCode.Combine(Name, Kind, Utilities.Hash.CombineValues(Tags), Deprecated, Location, ContainerName);
+#if NETCOREAPP
+            HashCode.Combine(Name, Kind, Hash.CombineValues(Tags), Deprecated, Location, ContainerName);
+#else
+            Hash.Combine(Name,
+            Hash.Combine((int)Kind,
+            Hash.Combine(Hash.CombineValues(Tags),
+            Hash.Combine(Deprecated,
+            Hash.Combine(ContainerName, Location?.GetHashCode() ?? 0)))));
+#endif
     }
 }

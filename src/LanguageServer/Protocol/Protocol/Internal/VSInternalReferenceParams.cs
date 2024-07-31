@@ -10,7 +10,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// <summary>
     /// Class which represents extensions of <see cref="ReferenceParams"/> passed as parameter of find reference requests.
     /// </summary>
-    internal class VSInternalReferenceParams : ReferenceParams, IPartialResultParams<SumType<Location[], VSInternalReferenceItem[]>>
+    internal class VSInternalReferenceParams : ReferenceParams, IPartialResultParams<SumType<VSInternalReferenceItem, Location>[]>
     {
         /// <summary>
         /// Gets or sets a value indicating the scope of returned items.
@@ -27,6 +27,6 @@ namespace Roslyn.LanguageServer.Protocol
         /// <inheritdoc/>
         [JsonPropertyName(Methods.PartialResultTokenName)]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public new IProgress<SumType<Location[], VSInternalReferenceItem[]>>? PartialResultToken { get; set; }
+        public new IProgress<SumType<VSInternalReferenceItem, Location>[]>? PartialResultToken { get; set; }
     }
 }

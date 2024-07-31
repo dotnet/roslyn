@@ -7,6 +7,7 @@ namespace Roslyn.LanguageServer.Protocol
     using System;
     using System.Linq;
     using System.Text.Json.Serialization;
+    using Roslyn.Utilities;
 
     /// <summary>
     /// Class which represents a source code diagnostic message.
@@ -169,6 +170,16 @@ namespace Roslyn.LanguageServer.Protocol
 
         /// <inheritdoc/>
         public override int GetHashCode() =>
-            HashCode.Combine(Range, Severity, Code, Source, Message, Utilities.Hash.CombineValues(Tags), CodeDescription, Data);
+#if NETCOREAPP
+            HashCode.Combine(Range, Severity, Code, Source, Message, Hash.CombineValues(Tags), CodeDescription, Data);
+#else
+            Hash.Combine(Range,
+            Hash.Combine((int)(Severity ?? 0),
+            Hash.Combine(Code?.GetHashCode() ?? 0,
+            Hash.Combine(Source,
+            Hash.Combine(Message,
+            Hash.Combine(Hash.CombineValues(Tags),
+            Hash.Combine(CodeDescription?.GetHashCode() ?? 0, Data?.GetHashCode() ?? 0)))))));
+#endif
     }
 }

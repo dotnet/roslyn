@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
+using Roslyn.Utilities;
+
 namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
@@ -67,5 +69,11 @@ internal class LocationLink : IEquatable<LocationLink>
 
     /// <inheritdoc/>
     public override int GetHashCode() =>
+#if NETCOREAPP
         HashCode.Combine(OriginSelectionRange, TargetUri, TargetRange, TargetSelectionRange);
+#else
+        Hash.Combine(OriginSelectionRange,
+        Hash.Combine(TargetUri,
+        Hash.Combine(TargetRange, TargetSelectionRange.GetHashCode())));
+#endif
 }
