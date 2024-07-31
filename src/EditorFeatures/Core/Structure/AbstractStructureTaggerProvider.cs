@@ -206,6 +206,10 @@ internal abstract partial class AbstractStructureTaggerProvider(
         ImmutableArray<BlockSpan> spans)
     {
         var snapshot = snapshotSpan.Snapshot;
+
+        // Use the returned enumerable directly instead of allocating into an array. The returned
+        // enumeration can contain a fairly large number of items for large files, so even
+        // using an ArrayBuilder could result in allocation issues without using a custom pool.
         var multiLineSpans = GetMultiLineRegions(outliningService, spans, snapshot);
 
         foreach (var span in multiLineSpans)
