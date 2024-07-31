@@ -25,15 +25,16 @@ using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseAutoProperty), Shared]
-internal class CSharpUseAutoPropertyCodeFixProvider
-    : AbstractUseAutoPropertyCodeFixProvider<TypeDeclarationSyntax, PropertyDeclarationSyntax, VariableDeclaratorSyntax, ConstructorDeclarationSyntax, ExpressionSyntax>
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpUseAutoPropertyCodeFixProvider()
+    : AbstractUseAutoPropertyCodeFixProvider<
+        TypeDeclarationSyntax,
+        PropertyDeclarationSyntax,
+        VariableDeclaratorSyntax,
+        ConstructorDeclarationSyntax,
+        ExpressionSyntax>
 {
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpUseAutoPropertyCodeFixProvider()
-    {
-    }
-
     protected override PropertyDeclarationSyntax GetPropertyDeclaration(SyntaxNode node)
         => (PropertyDeclarationSyntax)node;
 
@@ -45,8 +46,13 @@ internal class CSharpUseAutoPropertyCodeFixProvider
     }
 
     protected override async Task<SyntaxNode> UpdatePropertyAsync(
-        Document propertyDocument, Compilation compilation, IFieldSymbol fieldSymbol, IPropertySymbol propertySymbol,
-        PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor, CancellationToken cancellationToken)
+        Document propertyDocument,
+        Compilation compilation,
+        IFieldSymbol fieldSymbol,
+        IPropertySymbol propertySymbol,
+        PropertyDeclarationSyntax propertyDeclaration,
+        bool isWrittenOutsideOfConstructor,
+        CancellationToken cancellationToken)
     {
         var project = propertyDocument.Project;
         var trailingTrivia = propertyDeclaration.GetTrailingTrivia();

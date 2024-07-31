@@ -31,7 +31,7 @@ public sealed partial class UseAutoPropertyTests
             {
                 [|string s|];
 
-                int P
+                string P
                 {
                     get
                     {
@@ -43,7 +43,7 @@ public sealed partial class UseAutoPropertyTests
             """
             class Class
             {
-                int P
+                string P
                 {
                     get
                     {
