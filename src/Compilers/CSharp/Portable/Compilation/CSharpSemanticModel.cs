@@ -1679,7 +1679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (name == null)
-                FilterNotReferenceable(results);
+                results.RemoveWhere(static (symbol, _, _) => !symbol.CanBeReferencedByName, default(VoidResult));
 
             return results.ToImmutableAndFree();
         }
@@ -1794,24 +1794,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// symbols were reinferred. This should only be called when nullable semantic analysis is enabled.
         /// </summary>
         internal abstract Symbol RemapSymbolIfNecessaryCore(Symbol symbol);
-
-        private static void FilterNotReferenceable(ArrayBuilder<ISymbol> sealedResults)
-        {
-            var writeIndex = 0;
-            for (var i = 0; i < sealedResults.Count; i++)
-            {
-                var symbol = sealedResults[i];
-                if (symbol.CanBeReferencedByName)
-                {
-                    if (writeIndex != i)
-                        sealedResults[writeIndex] = symbol;
-
-                    writeIndex++;
-                }
-            }
-
-            sealedResults.Count = writeIndex;
-        }
 
         /// <summary>
         /// Determines if the symbol is accessible from the specified location. 
