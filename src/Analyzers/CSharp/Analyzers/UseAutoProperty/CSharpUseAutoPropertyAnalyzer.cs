@@ -60,7 +60,7 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
             // An argument will disqualify a field if that field is used in a ref/out position.  
             // We can't change such field references to be property references in C#, unless we
             // are converting to the `field` keyword.
-            if (argument.RefKindKeyword.Kind() is SyntaxKind.RefKeyword or SyntaxKind.OutKeyword)
+            if (argument.RefKindKeyword.Kind() != SyntaxKind.None)
                 AddIneligibleFieldsForExpression(argument.Expression);
 
             // Use of a field in a nameof(...) expression can't *ever* be converted to use `field`.

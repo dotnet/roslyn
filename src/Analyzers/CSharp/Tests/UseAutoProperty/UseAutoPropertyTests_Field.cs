@@ -53,4 +53,38 @@ public sealed partial class UseAutoPropertyTests
             }
             """, parseOptions: CSharp13);
     }
+
+    [Fact]
+    public async Task TestGetterWithMultipleStatements_Field()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                int P
+                {
+                    get
+                    {
+                        ;
+                        return i;
+                    }
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                int P
+                {
+                    get
+                    {
+                        ;
+                        return field;
+                    }
+                }
+            }
+            """);
+    }
 }
