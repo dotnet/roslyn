@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -27,9 +28,12 @@ internal readonly record struct AccessedFields(
 
     public bool IsEmpty => TrivialField is null && NonTrivialFields.IsDefaultOrEmpty;
 
-    public AccessedFields Filter<TArg>(Func<IFieldSymbol, TArg, bool> predicate, TArg arg)
+    public AccessedFields Where<TArg>(Func<IFieldSymbol, TArg, bool> predicate, TArg arg)
         => new(TrivialField != null && predicate(TrivialField, arg) ? TrivialField : null,
                NonTrivialFields.WhereAsArray(predicate, arg));
+
+    public bool Contains(IFieldSymbol field)
+        => Equals(TrivialField, field) || NonTrivialFields.Contains(field);
 }
 
 internal abstract class AbstractUseAutoPropertyAnalyzer<
@@ -87,8 +91,11 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
     protected ISyntaxFacts SyntaxFacts => this.SemanticFacts.SyntaxFacts;
 
     protected abstract TSyntaxKind PropertyDeclarationKind { get; }
+
     protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
     protected abstract bool SupportsPropertyInitializer(Compilation compilation);
+    protected abstract bool SupportsSemiAutoProperty(Compilation compilation);
+
     protected abstract bool CanExplicitInterfaceImplementationsBeFixed();
     protected abstract TExpression? GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
     protected abstract TExpression? GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
@@ -217,6 +224,27 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
     private AccessedFields GetGetterFields(SemanticModel semanticModel, IMethodSymbol getMethod, CancellationToken cancellationToken)
         => new(CheckFieldAccessExpression(semanticModel, GetGetterExpression(getMethod, cancellationToken), cancellationToken));
 
+    private AccessedFields GetSetterFields(SemanticModel semanticModel, IMethodSymbol setMethod, CancellationToken cancellationToken)
+        => new(CheckFieldAccessExpression(semanticModel, GetSetterExpression(setMethod, semanticModel, cancellationToken), cancellationToken));
+
+    private static bool TryGetSyntax(
+        IFieldSymbol field,
+        [NotNullWhen(true)] out TFieldDeclaration? fieldDeclaration,
+        [NotNullWhen(true)] out TVariableDeclarator? variableDeclarator,
+        CancellationToken cancellationToken)
+    {
+        if (field.DeclaringSyntaxReferences is [var fieldReference, ..])
+        {
+            variableDeclarator = fieldReference.GetSyntax(cancellationToken) as TVariableDeclarator;
+            fieldDeclaration = variableDeclarator?.Parent?.Parent as TFieldDeclaration;
+            return fieldDeclaration != null && variableDeclarator != null;
+        }
+
+        fieldDeclaration = null;
+        variableDeclarator = null;
+        return false;
+    }
+
     private void AnalyzePropertyDeclaration(
         SyntaxNodeAnalysisContext context,
         INamedTypeSymbol containingType,
@@ -270,7 +298,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             return;
 
         var getterFields = GetGetterFields(semanticModel, property.GetMethod, cancellationToken);
-        getterFields = getterFields.Filter(
+        getterFields = getterFields.Where(
             static (getterField, args) =>
             {
                 var (@this, compilation, containingType, property, cancellationToken) = args;
@@ -305,8 +333,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
                 if (!property.Type.Equals(getterField.Type))
                     return false;
 
-                var fieldReference = getterField.DeclaringSyntaxReferences[0];
-                if (fieldReference.GetSyntax(cancellationToken) is not TVariableDeclarator { Parent.Parent: TFieldDeclaration fieldDeclaration } variableDeclarator)
+                if (!TryGetSyntax(getterField, out _, out var variableDeclarator, cancellationToken))
                     return false;
 
                 var initializer = @this.GetFieldInitializer(variableDeclarator, cancellationToken);
@@ -336,14 +363,27 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         var setMethod = property.SetMethod;
         if (setMethod != null)
         {
-            var setterField = GetSetterField(semanticModel, setMethod, cancellationToken);
-            // If there is a getter and a setter, they both need to agree on which field they are 
-            // writing to.
-            if (setterField != getterField)
-                return;
+            var setterFields = GetSetterFields(semanticModel, setMethod, cancellationToken);
+            var sharedFields = setterFields.Where(
+                static (field, getterFields) => getterFields.Contains(field),
+                getterFields);
+
+            // If there is a getter and a setter, they both need to agree on which field they are writing to.  Or, if
+            // this language supports semi-auto-properties, we can still update the getter to use `field` and keep the
+            // setter as-is.
+            if (sharedFields.IsEmpty)
+            {
+                if (!this.SupportsSemiAutoProperty(compilation))
+                    return;
+
+                // Intentionally keep getterFields as is.  We'll just choose any of the viable fields to remove here.
+            }
+            else
+            {
+                // They share certain fields.  Prefer one of those fields as the one to remove.
+                getterFields = sharedFields;
+            }
         }
-
-
 
         // Looks like a viable property/field to convert into an auto property.
         analysisResults.Push(new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, notification));
@@ -451,5 +491,6 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         TPropertyDeclaration PropertyDeclaration,
         TFieldDeclaration FieldDeclaration,
         TVariableDeclarator VariableDeclarator,
-        NotificationOption2 Notification);
+        NotificationOption2 Notification,
+        bool IsSimpleProperty);
 }
