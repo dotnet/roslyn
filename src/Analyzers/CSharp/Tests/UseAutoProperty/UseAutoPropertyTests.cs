@@ -18,7 +18,7 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-public sealed class UseAutoPropertyTests(ITestOutputHelper logger)
+public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
