@@ -17,6 +17,21 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.UseAutoProperty;
 
+internal readonly record struct AccessedFields(
+    IFieldSymbol? TrivialField,
+    ImmutableArray<IFieldSymbol> NonTrivialFields)
+{
+    public AccessedFields(IFieldSymbol? trivialField) : this(trivialField, [])
+    {
+    }
+
+    public bool IsEmpty => TrivialField is null && NonTrivialFields.IsDefaultOrEmpty;
+
+    public AccessedFields Filter<TArg>(Func<IFieldSymbol, TArg, bool> predicate, TArg arg)
+        => new(TrivialField != null && predicate(TrivialField, arg) ? TrivialField : null,
+               NonTrivialFields.WhereAsArray(predicate, arg));
+}
+
 internal abstract class AbstractUseAutoPropertyAnalyzer<
     TSyntaxKind,
     TPropertyDeclaration,
@@ -199,6 +214,9 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         }
     }
 
+    private AccessedFields GetGetterFields(SemanticModel semanticModel, IMethodSymbol getMethod, CancellationToken cancellationToken)
+        => new(CheckFieldAccessExpression(semanticModel, GetGetterExpression(getMethod, cancellationToken), cancellationToken));
+
     private void AnalyzePropertyDeclaration(
         SyntaxNodeAnalysisContext context,
         INamedTypeSymbol containingType,
@@ -251,42 +269,67 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         if (notification.Severity == ReportDiagnostic.Suppress)
             return;
 
-        var getterField = GetGetterField(semanticModel, property.GetMethod, cancellationToken);
-        if (getterField == null)
-            return;
+        var getterFields = GetGetterFields(semanticModel, property.GetMethod, cancellationToken);
+        getterFields = getterFields.Filter(
+            static (getterField, args) =>
+            {
+                var (@this, compilation, containingType, property, cancellationToken) = args;
 
-        // Only support this for private fields.  It limits the scope of hte program
-        // we have to analyze to make sure this is safe to do.
-        if (getterField.DeclaredAccessibility != Accessibility.Private)
-            return;
+                // Only support this for private fields.  It limits the scope of hte program
+                // we have to analyze to make sure this is safe to do.
+                if (getterField.DeclaredAccessibility != Accessibility.Private)
+                    return false;
 
-        // If the user made the field readonly, we only want to convert it to a property if we
-        // can keep it readonly.
-        if (getterField.IsReadOnly && !SupportsReadOnlyProperties(compilation))
-            return;
+                // Don't want to remove constants and volatile fields.
+                if (getterField.IsConst || getterField.IsVolatile)
+                    return false;
 
-        // Field and property have to be in the same type.
-        if (!containingType.Equals(getterField.ContainingType))
-            return;
+                // If the user made the field readonly, we only want to convert it to a property if we
+                // can keep it readonly.
+                if (getterField.IsReadOnly && !@this.SupportsReadOnlyProperties(compilation))
+                    return false;
 
-        // Property and field have to agree on type.
-        if (!property.Type.Equals(getterField.Type))
-            return;
+                // Mutable value type fields are mutable unless they are marked read-only
+                if (!getterField.IsReadOnly && getterField.Type.IsMutableValueType() != false)
+                    return false;
 
-        // Mutable value type fields are mutable unless they are marked read-only
-        if (!getterField.IsReadOnly && getterField.Type.IsMutableValueType() != false)
-            return;
+                // Field and property have to be in the same type.
+                if (!containingType.Equals(getterField.ContainingType))
+                    return false;
 
-        // Don't want to remove constants and volatile fields.
-        if (getterField.IsConst || getterField.IsVolatile)
-            return;
+                // Field and property should match in static-ness
+                if (getterField.IsStatic != property.IsStatic)
+                    return false;
 
-        // Field and property should match in static-ness
-        if (getterField.IsStatic != property.IsStatic)
-            return;
+                // Property and field have to agree on type.
+                if (!property.Type.Equals(getterField.Type))
+                    return false;
 
-        var fieldReference = getterField.DeclaringSyntaxReferences[0];
-        if (fieldReference.GetSyntax(cancellationToken) is not TVariableDeclarator { Parent.Parent: TFieldDeclaration fieldDeclaration } variableDeclarator)
+                var fieldReference = getterField.DeclaringSyntaxReferences[0];
+                if (fieldReference.GetSyntax(cancellationToken) is not TVariableDeclarator { Parent.Parent: TFieldDeclaration fieldDeclaration } variableDeclarator)
+                    return false;
+
+                var initializer = @this.GetFieldInitializer(variableDeclarator, cancellationToken);
+                if (initializer != null && !@this.SupportsPropertyInitializer(compilation))
+                    return false;
+
+                if (!@this.CanConvert(property))
+                    return false;
+
+                // Can't remove the field if it has attributes on it.
+                var attributes = getterField.GetAttributes();
+                var suppressMessageAttributeType = compilation.SuppressMessageAttributeType();
+                foreach (var attribute in attributes)
+                {
+                    if (attribute.AttributeClass != suppressMessageAttributeType)
+                        return false;
+                }
+
+                return true;
+            },
+            (this, compilation, containingType, property, cancellationToken));
+
+        if (getterFields.IsEmpty)
             return;
 
         // A setter is optional though.
@@ -300,21 +343,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
                 return;
         }
 
-        var initializer = GetFieldInitializer(variableDeclarator, cancellationToken);
-        if (initializer != null && !SupportsPropertyInitializer(compilation))
-            return;
 
-        // Can't remove the field if it has attributes on it.
-        var attributes = getterField.GetAttributes();
-        var suppressMessageAttributeType = compilation.SuppressMessageAttributeType();
-        foreach (var attribute in attributes)
-        {
-            if (attribute.AttributeClass != suppressMessageAttributeType)
-                return;
-        }
-
-        if (!CanConvert(property))
-            return;
 
         // Looks like a viable property/field to convert into an auto property.
         analysisResults.Push(new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator, notification));
