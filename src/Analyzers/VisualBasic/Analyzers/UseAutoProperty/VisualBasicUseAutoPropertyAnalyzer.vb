@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return GetNodeToRemove(identifier)
         End Function
 
-        Protected Overrides Sub AddAccessedFields(semanticModel As SemanticModel, accessor As IMethodSymbol, result As HashSet(Of IFieldSymbol), cancellationToken As CancellationToken)
+        Protected Overrides Sub AddAccessedFields(semanticModel As SemanticModel, accessor As IMethodSymbol, fieldNames As HashSet(Of String), result As HashSet(Of IFieldSymbol), cancellationToken As CancellationToken)
             Throw ExceptionUtilities.Unreachable()
         End Sub
     End Class

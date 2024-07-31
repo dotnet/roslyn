@@ -102,7 +102,8 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
     protected abstract TExpression? GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
     protected abstract TExpression? GetSetterExpression(SemanticModel semanticModel, IMethodSymbol setMethod, CancellationToken cancellationToken);
     protected abstract SyntaxNode GetFieldNode(TFieldDeclaration fieldDeclaration, TVariableDeclarator variableDeclarator);
-    protected abstract void AddAccessedFields(SemanticModel semanticModel, IMethodSymbol accessor, HashSet<IFieldSymbol> result, CancellationToken cancellationToken);
+    protected abstract void AddAccessedFields(
+        SemanticModel semanticModel, IMethodSymbol accessor, HashSet<string> fieldNames, HashSet<IFieldSymbol> result, CancellationToken cancellationToken);
 
     protected abstract void RegisterIneligibleFieldsAction(
         HashSet<string> fieldNames, ConcurrentSet<IFieldSymbol> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
@@ -247,7 +248,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             return default;
 
         using var _ = PooledHashSet<IFieldSymbol>.GetInstance(out var set);
-        AddAccessedFields(semanticModel, getMethod, set, cancellationToken);
+        AddAccessedFields(semanticModel, getMethod, fieldNames, set, cancellationToken);
 
         return new(TrivialField: null, set.ToImmutableArray());
     }
@@ -263,7 +264,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             return default;
 
         using var _ = PooledHashSet<IFieldSymbol>.GetInstance(out var set);
-        AddAccessedFields(semanticModel, setMethod, set, cancellationToken);
+        AddAccessedFields(semanticModel, setMethod, fieldNames, set, cancellationToken);
 
         return new(TrivialField: null, set.ToImmutableArray());
     }
@@ -442,6 +443,25 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
     protected virtual bool CanConvert(IPropertySymbol property)
         => true;
 
+    protected static IFieldSymbol? TryGetDirectlyAccessedFieldSymbol(
+        SemanticModel semanticModel, TExpression expression, CancellationToken cancellationToken)
+    {
+        var operation = semanticModel.GetOperation(expression, cancellationToken);
+        if (operation is not IFieldReferenceOperation
+            {
+                Instance: null or IInstanceReferenceOperation
+                {
+                    ReferenceKind: InstanceReferenceKind.ContainingTypeInstance,
+                },
+                Field.DeclaringSyntaxReferences.Length: 1,
+            } fieldReference)
+        {
+            return null;
+        }
+
+        return fieldReference.Field;
+    }
+
     private IFieldSymbol? CheckFieldAccessExpression(
         SemanticModel semanticModel,
         TExpression? expression,
@@ -463,20 +483,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         if (!fieldNames.Contains(syntaxFacts.GetIdentifierOfIdentifierName(expression).ValueText))
             return null;
 
-        var operation = semanticModel.GetOperation(expression, cancellationToken);
-        if (operation is not IFieldReferenceOperation
-            {
-                Instance: IInstanceReferenceOperation
-                {
-                    ReferenceKind: InstanceReferenceKind.ContainingTypeInstance,
-                },
-                Field.DeclaringSyntaxReferences.Length: 1,
-            } fieldReference)
-        {
-            return null;
-        }
-
-        return fieldReference.Field;
+        return TryGetDirectlyAccessedFieldSymbol(semanticModel, expression, cancellationToken);
     }
 
     private void Process(

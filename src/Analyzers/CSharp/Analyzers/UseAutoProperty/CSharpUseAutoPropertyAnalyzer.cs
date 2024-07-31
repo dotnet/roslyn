@@ -217,7 +217,24 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
             : variableDeclarator;
     }
 
-    protected override void AddAccessedFields(SemanticModel semanticModel, IMethodSymbol accessor, HashSet<IFieldSymbol> result, CancellationToken cancellationToken)
+    protected override void AddAccessedFields(
+        SemanticModel semanticModel,
+        IMethodSymbol accessor,
+        HashSet<string> fieldNames,
+        HashSet<IFieldSymbol> result,
+        CancellationToken cancellationToken)
     {
+        var syntax = accessor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
+        foreach (var identifierName in syntax.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (!fieldNames.Contains(identifierName.Identifier.ValueText))
+                continue;
+
+            var field = TryGetDirectlyAccessedFieldSymbol(
+                semanticModel, identifierName, cancellationToken);
+            result.AddIfNotNull(field);
+        }
     }
 }
