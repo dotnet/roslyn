@@ -87,4 +87,45 @@ public sealed partial class UseAutoPropertyTests
             }
             """);
     }
+
+    [Fact]
+    public async Task TestSetterWithMultipleStatementsAndGetterWithSingleStatement_Field()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Class
+            {
+                [|int i|];
+
+                int P
+                {
+                    get
+                    {
+                        return i;
+                    }
+
+                    set
+                    {
+                        ;
+                        i = value;
+                    }
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                int P
+                {
+                    get;
+
+                    set
+                    {
+                        ;
+                        field = value;
+                    }
+                }
+            }
+            """);
+    }
 }

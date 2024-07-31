@@ -733,7 +733,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                     }
                 }
             }
-            """);
+            """, new TestParameters(parseOptions: CSharp12));
     }
 
     [Fact]
