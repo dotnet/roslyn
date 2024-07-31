@@ -160,6 +160,7 @@ configuration:
       - isPullRequest
       - filesMatchPattern:
           pattern: 'src/(Analyzers|CodeStyle|Features|LanguageServer|Workspaces)/.*\.(cs|vb)$'
+          matchAny: true
       - not:
           isActivitySender:
             user: dotnet-bot
@@ -184,6 +185,7 @@ configuration:
       - isPullRequest
       - filesMatchPattern:
           pattern: '.*\.[xX][aA][mM][lL]$'
+          matchAny: true
       - and:
         - not:
             hasLabel:
@@ -230,6 +232,7 @@ configuration:
       - isPullRequest
       - filesMatchPattern:
           pattern: '.*/PublicAPI\.(Shipped|Unshipped)\.txt'
+          matchAny: true
       - not:
           isActivitySender:
             user: dotnet-bot
