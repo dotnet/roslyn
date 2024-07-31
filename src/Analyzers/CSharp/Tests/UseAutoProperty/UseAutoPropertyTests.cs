@@ -21,6 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty;
 public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
+    private readonly ParseOptions CSharp12 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp12);
+
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpUseAutoPropertyAnalyzer(), GetCSharpUseAutoPropertyCodeFixProvider());
 
@@ -667,7 +669,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task TestGetterWithMutipleStatements()
+    public async Task TestGetterWithMultipleStatements()
     {
         await TestMissingInRegularAndScriptAsync(
             """
@@ -688,7 +690,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task TestSetterWithMutipleStatements()
+    public async Task TestSetterWithMultipleStatements()
     {
         await TestMissingInRegularAndScriptAsync(
             """
