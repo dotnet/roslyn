@@ -345,7 +345,8 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Theory, CombinatorialData]
-    public void Conversion_Array_Span_Implicit_SpanClass(
+    public void Conversion_Array_Span_Implicit_SpanNotRefStruct(
+        [CombinatorialValues("class", "struct", "readonly struct", "record", "record struct", "readonly record struct")] string kind,
         [CombinatorialValues("Span", "ReadOnlySpan")] string type)
     {
         var source = $$"""
@@ -356,7 +357,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
             namespace System
             {
-                public class {{type}}<T>;
+                public {{kind}} {{type}}<T>;
             }
             """;
         CreateCompilation(source).VerifyDiagnostics(

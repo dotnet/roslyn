@@ -1344,6 +1344,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Name: "Span",
                 IsValueType: true,
+                IsRefLikeType: true,
                 Arity: 1,
                 ContainingType: null,
                 ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true },
@@ -1356,6 +1357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Name: "ReadOnlySpan",
                 IsValueType: true,
+                IsRefLikeType: true,
                 Arity: 1,
                 ContainingType: null,
                 ContainingNamespace: { Name: nameof(System), ContainingNamespace.IsGlobalNamespace: true },
