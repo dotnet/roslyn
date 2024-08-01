@@ -14,6 +14,9 @@ parameters:
   - name: skipCheckout
     type: boolean
     default: false
+  - name: isDartLab
+    type: boolean
+    default: false
 
 steps:
   # Pipelines like the DartLab integration pipeline skip checkout because it is performed elsewhere.
@@ -22,6 +25,8 @@ steps:
 
   - task: PowerShell@2
     displayName: Build and Test
+    env:
+      isDartLab: $(isDartLab)
     inputs:
       filePath: eng/build.ps1
       arguments: -ci -restore -build -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine -testVsi -oop64bit:$${{ parameters.oop64bit }} -collectDumps -lspEditor:$${{ parameters.lspEditor }}
