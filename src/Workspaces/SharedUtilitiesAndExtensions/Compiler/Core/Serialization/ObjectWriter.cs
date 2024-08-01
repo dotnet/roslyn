@@ -76,8 +76,6 @@ internal sealed partial class ObjectWriter : IDisposable
     /// </summary>
     private WriterReferenceMap _stringReferenceMap;
 
-    private static readonly Encoding s_encoding = Encoding.UTF8;
-
     /// <summary>
     /// Creates a new instance of a <see cref="ObjectWriter"/>.
     /// </summary>
@@ -97,7 +95,7 @@ internal sealed partial class ObjectWriter : IDisposable
         // It can be adjusted for BigEndian if needed.
         Debug.Assert(BitConverter.IsLittleEndian);
 
-        _writer = new BinaryWriter(stream, s_encoding, leaveOpen);
+        _writer = new BinaryWriter(stream, Encoding.UTF8, leaveOpen);
         _stringReferenceMap = new WriterReferenceMap();
 
         if (writeValidationBytes)
@@ -287,14 +285,14 @@ internal sealed partial class ObjectWriter : IDisposable
         //
         // Instead, emulate the .net core code which has the GetBytes
         // call fill up a pooled array instead
-        var maxByteCount = s_encoding.GetMaxByteCount(count);
+        var maxByteCount = Encoding.UTF8.GetMaxByteCount(count);
 
         if (maxByteCount <= BufferPool<byte>.BufferSize)
         {
             using var pooledObj = BufferPool<byte>.Shared.GetPooledObject();
             var buffer = pooledObj.Object;
 
-            var actualByteCount = s_encoding.GetBytes(array, index, count, buffer, 0);
+            var actualByteCount = Encoding.UTF8.GetBytes(array, index, count, buffer, 0);
             _writer.Write(buffer, 0, actualByteCount);
 
             return;
