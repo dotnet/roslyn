@@ -437,42 +437,31 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             isTrivialSetAccessor = setterFields.TrivialField != null;
         }
 
-        var (getterField, isTrivialGetAccessor) = GetDesiredField(getterFields);
-        // Looks like a viable property/field to convert into an auto property.
-
-        AddAnalysisResult(getterFields.TrivialField, isTrivialGetAccessor: true, isTrivialSetAccessor);
-        foreach (var getterField in getterFields.NonTrivialFields)
-            AddAnalysisResult(getterField, isTrivialGetAccessor: false, isTrivialSetAccessor);
-
-        return;
-
-        (IFieldSymbol? desiredField, bool isTrivialAccessor) GetDesiredField(AccessedFields fields)
+        if (getterFields.Count > 1)
         {
-            if (fields.Count == 1)
-                return 
-
-            if (fields.TrivialField != null)
-                return (fields.TrivialField, true);
-            // If there are multiple fields, we can't convert this to an auto-prop.
-            if (fields.NonTrivialFields.Length > 1)
-                return (null, false);
-            return (fields.NonTrivialFields[0], false);
+            // Multiple fields we could convert here.  Check if any of the fields end with the property name.  If
+            // so, it's likely that that's the field to use.
+            getterFields = getterFields.Where(
+                static (field, property) => field.Name.EndsWith(property.Name, StringComparison.OrdinalIgnoreCase),
+                property);
         }
 
-        void AddAnalysisResult(IFieldSymbol? field, bool isTrivialGetAccessor, bool isTrivialSetAccessor)
-        {
-            if (field is null)
-                return;
+        // If we have multiple fields that could be converted, don't offer.  We don't know which field/prop pair would
+        // be best.
+        if (getterFields.Count != 1)
+            return;
 
-            Contract.ThrowIfFalse(TryGetSyntax(field, out var fieldDeclaration, out var variableDeclarator, cancellationToken));
+        var getterField = getterFields.TrivialField ?? getterFields.NonTrivialFields.Single();
+        var isTrivialGetAccessor = getterFields.TrivialField == getterField;
 
-            analysisResults.Push(new AnalysisResult(
-                property, field,
-                propertyDeclaration, fieldDeclaration, variableDeclarator,
-                notification,
-                isTrivialGetAccessor,
-                isTrivialSetAccessor));
-        }
+        Contract.ThrowIfFalse(TryGetSyntax(getterField, out var fieldDeclaration, out var variableDeclarator, cancellationToken));
+
+        analysisResults.Push(new AnalysisResult(
+            property, getterField,
+            propertyDeclaration, fieldDeclaration, variableDeclarator,
+            notification,
+            isTrivialGetAccessor,
+            isTrivialSetAccessor));
     }
 
     protected virtual bool CanConvert(IPropertySymbol property)
