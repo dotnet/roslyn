@@ -25,19 +25,21 @@ internal readonly record struct AccessedFields(
     IFieldSymbol? TrivialField,
     ImmutableArray<IFieldSymbol> NonTrivialFields)
 {
+    public static readonly AccessedFields Empty = new(null, []);
+
     public AccessedFields(IFieldSymbol? trivialField) : this(trivialField, [])
     {
     }
 
-    public int Count => (TrivialField != null ? 1 : 0) + NonTrivialFields.NullToEmpty().Length;
+    public int Count => (TrivialField != null ? 1 : 0) + NonTrivialFields.Length;
     public bool IsEmpty => Count == 0;
 
     public AccessedFields Where<TArg>(Func<IFieldSymbol, TArg, bool> predicate, TArg arg)
         => new(TrivialField != null && predicate(TrivialField, arg) ? TrivialField : null,
-               NonTrivialFields.NullToEmpty().WhereAsArray(predicate, arg));
+               NonTrivialFields.WhereAsArray(predicate, arg));
 
     public bool Contains(IFieldSymbol field)
-        => Equals(TrivialField, field) || NonTrivialFields.NullToEmpty().Contains(field);
+        => Equals(TrivialField, field) || NonTrivialFields.Contains(field);
 }
 
 internal abstract class AbstractUseAutoPropertyAnalyzer<
@@ -260,7 +262,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             return new(CheckFieldAccessExpression(semanticModel, trivialFieldExpression, fieldNames, cancellationToken));
 
         if (!this.SupportsFieldExpression(semanticModel.Compilation))
-            return default;
+            return AccessedFields.Empty;
 
         using var _ = PooledHashSet<IFieldSymbol>.GetInstance(out var set);
         AddAccessedFields(semanticModel, getMethod, fieldNames, set, cancellationToken);
@@ -276,7 +278,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             return new(CheckFieldAccessExpression(semanticModel, trivialFieldExpression, fieldNames, cancellationToken));
 
         if (!this.SupportsFieldExpression(semanticModel.Compilation))
-            return default;
+            return AccessedFields.Empty;
 
         using var _ = PooledHashSet<IFieldSymbol>.GetInstance(out var set);
         AddAccessedFields(semanticModel, setMethod, fieldNames, set, cancellationToken);
@@ -473,6 +475,8 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         var operation = semanticModel.GetOperation(expression, cancellationToken);
         if (operation is not IFieldReferenceOperation
             {
+                // Instance has to be 'null' (a static reference) or through `this.` Anything else is not a direct
+                // reference that can be updated to `field`.
                 Instance: null or IInstanceReferenceOperation
                 {
                     ReferenceKind: InstanceReferenceKind.ContainingTypeInstance,
