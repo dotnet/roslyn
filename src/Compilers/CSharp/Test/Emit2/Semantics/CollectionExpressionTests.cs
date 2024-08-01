@@ -34952,7 +34952,7 @@ partial class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74615")]
-        public void List_SingleSpread_CustomCollection_NotICollectionAndStructEnumerator_MixedWithOtherAddRangeSpread()
+        public void List_CustomCollection_NotICollectionAndStructEnumerator_MixedWithOtherAddRangeSpread()
         {
             var source = """
                 using System.Collections;
