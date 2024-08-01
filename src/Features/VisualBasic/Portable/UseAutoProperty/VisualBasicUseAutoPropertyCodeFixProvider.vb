@@ -9,6 +9,7 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting.Rules
+Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.UseAutoProperty
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
@@ -36,6 +37,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
         Protected Overrides Function GetFormattingRules(document As Document) As ImmutableArray(Of AbstractFormattingRule)
             Return Nothing
+        End Function
+
+        Protected Overrides Function RewriteReferencesInProperty([property] As PropertyBlockSyntax, fieldLocations As LightweightRenameLocations) As PropertyBlockSyntax
+            ' Only called to rewrite to `field` (which VB does not support).
+            Throw ExceptionUtilities.Unreachable
         End Function
 
         Protected Overrides Async Function UpdatePropertyAsync(

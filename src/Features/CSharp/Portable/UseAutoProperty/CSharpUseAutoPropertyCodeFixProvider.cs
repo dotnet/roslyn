@@ -11,12 +11,15 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseAutoProperty;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseAutoProperty;
 
@@ -42,6 +45,77 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
         var fieldDeclaration = (FieldDeclarationSyntax)declarator.GetRequiredParent().GetRequiredParent();
         var nodeToRemove = fieldDeclaration.Declaration.Variables.Count > 1 ? declarator : (SyntaxNode)fieldDeclaration;
         return nodeToRemove;
+    }
+
+    private sealed class UseAutoPropertyRewriter : CSharpSyntaxRewriter
+    {
+        private readonly IdentifierNameSyntax _propertyIdentifierName;
+        private readonly ISet<IdentifierNameSyntax> _identifierNames;
+
+        public UseAutoPropertyRewriter(
+            IdentifierNameSyntax propertyIdentifierName,
+            ISet<IdentifierNameSyntax> identifierNames)
+        {
+            _propertyIdentifierName = propertyIdentifierName;
+            _identifierNames = identifierNames;
+        }
+
+        public override SyntaxNode? VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
+        {
+            if (node.Name is IdentifierNameSyntax identifierName &&
+                _identifierNames.Contains(identifierName))
+            {
+                if (node.Expression.IsKind(SyntaxKind.ThisExpression))
+                {
+                    // `this.fieldName` gets rewritten to `field`.
+                    return FieldExpression().WithTriviaFrom(node);
+                }
+                else
+                {
+                    // `obj.fieldName` gets rewritten to `obj.PropName`
+                    return node.WithName(_propertyIdentifierName.WithTriviaFrom(identifierName));
+                }
+            }
+
+            return base.VisitMemberAccessExpression(node);
+        }
+
+        public override SyntaxNode? VisitIdentifierName(IdentifierNameSyntax node)
+        {
+            if (_identifierNames.Contains(node))
+            {
+                if (node.Parent is AssignmentExpressionSyntax
+                    {
+                        Parent: InitializerExpressionSyntax { RawKind: (int)SyntaxKind.ObjectInitializerExpression }
+                    } assigment && assigment.Left == node)
+                {
+                    // `new X { fieldName = ... }` gets rewritten to `new X { propName = ... }`
+                    return _propertyIdentifierName.WithTriviaFrom(node);
+                }
+
+                // Any other naked reference to fieldName within the property gets updated to `field`.
+                return FieldExpression().WithTriviaFrom(node);
+            }
+
+            return base.VisitIdentifierName(node);
+        }
+    }
+
+    protected override PropertyDeclarationSyntax RewriteReferencesInProperty(
+        PropertyDeclarationSyntax property,
+        LightweightRenameLocations fieldLocations,
+        CancellationToken cancellationToken)
+    {
+        var propertyIdentifier = property.Identifier.WithoutTrivia();
+        var propertyIdentifierName = IdentifierName(propertyIdentifier);
+
+        var identifierNames = fieldLocations.Locations
+            .Select(loc => loc.Location.FindNode(cancellationToken) as IdentifierNameSyntax)
+            .WhereNotNull()
+            .ToSet();
+
+        var rewriter = new UseAutoPropertyRewriter(propertyIdentifierName, identifierNames);
+        return rewriter.Visit(property);
     }
 
     protected override Task<SyntaxNode> UpdatePropertyAsync(

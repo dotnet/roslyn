@@ -41,6 +41,8 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
 
     protected abstract TPropertyDeclaration GetPropertyDeclaration(SyntaxNode node);
     protected abstract SyntaxNode GetNodeToRemove(TVariableDeclarator declarator);
+    protected abstract TPropertyDeclaration RewriteReferencesInProperty(
+        TPropertyDeclaration property, LightweightRenameLocations fieldLocations, CancellationToken cancellationToken);
 
     protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document);
 
@@ -105,7 +107,16 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
             solution, fieldSymbol, renameOptions, cancellationToken).ConfigureAwait(false);
 
         // First, create the updated property we want to replace the old property with
-        var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(fieldSymbol, fieldLocations, property, cancellationToken);
+        var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(
+            fieldSymbol, fieldLocations, property, cancellationToken);
+
+        if (!isTrivialGetAccessor || !isTrivialSetAccessor)
+        {
+            // We have at least a non-trivial getter/setter.  We need to update the property to reference `field`
+            // instead of the actual field.
+            property = RewriteReferencesInProperty(property, fieldLocations);
+        }
+
         var updatedProperty = await UpdatePropertyAsync(
             propertyDocument, compilation,
             fieldSymbol, propertySymbol, property,
