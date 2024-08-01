@@ -160,6 +160,7 @@ configuration:
       - isPullRequest
       - filesMatchPattern:
           pattern: 'src/(Analyzers|CodeStyle|Features|LanguageServer|Workspaces)/.*\.(cs|vb)$'
+          matchAny: true
       - not:
           isActivitySender:
             user: dotnet-bot
