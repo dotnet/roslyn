@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
@@ -16,12 +17,12 @@ internal class FileScopedNamespaceDeclarationStructureProvider : AbstractSyntaxN
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,
         FileScopedNamespaceDeclarationSyntax fileScopedNamespaceDeclaration,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         BlockStructureOptions options,
         CancellationToken cancellationToken)
     {
         // add leading comments
-        CSharpStructureHelpers.CollectCommentBlockSpans(fileScopedNamespaceDeclaration, ref spans, options);
+        CSharpStructureHelpers.CollectCommentBlockSpans(fileScopedNamespaceDeclaration, spans, options);
 
         // extern aliases and usings are outlined in a single region
         var externsAndUsings = Enumerable.Union<SyntaxNode>(fileScopedNamespaceDeclaration.Externs, fileScopedNamespaceDeclaration.Usings).ToImmutableArray();
@@ -29,7 +30,7 @@ internal class FileScopedNamespaceDeclarationStructureProvider : AbstractSyntaxN
         // add any leading comments before the extern aliases and usings
         if (externsAndUsings.Any())
         {
-            CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), ref spans, options);
+            CSharpStructureHelpers.CollectCommentBlockSpans(externsAndUsings.First(), spans, options);
         }
 
         spans.AddIfNotNull(CSharpStructureHelpers.CreateBlockSpan(
