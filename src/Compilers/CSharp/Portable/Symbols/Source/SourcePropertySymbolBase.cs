@@ -5,15 +5,12 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -87,6 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool isExpressionBodied,
             bool isInitOnly,
             bool accessorsHaveImplementation,
+            bool usesFieldKeyword,
             RefKind refKind,
             string memberName,
             SyntaxList<AttributeListSyntax> indexerNameAttributeLists,
@@ -160,13 +158,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _name = _lazySourceName = memberName;
             }
 
-            if ((isAutoProperty && hasGetAccessor) || hasInitializer)
+            if (usesFieldKeyword || (isAutoProperty && hasGetAccessor) || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
                 string fieldName = GeneratedNames.MakeBackingFieldName(_name);
                 BackingField = new SynthesizedBackingFieldSymbol(this,
                                                                       fieldName,
-                                                                      isReadOnly: (hasGetAccessor && !hasSetAccessor) || isInitOnly,
+                                                                      // Synthesized backing field for 'field' should not be marked 'initonly'
+                                                                      // since the field might be modified in the get accessor.
+                                                                      // PROTOTYPE: Should the backing field be 'initonly' when the containing
+                                                                      // type, property, or accessor is declared 'readonly'?
+                                                                      isReadOnly: !usesFieldKeyword && ((hasGetAccessor && !hasSetAccessor) || isInitOnly),
                                                                       this.IsStatic,
                                                                       hasInitializer);
             }

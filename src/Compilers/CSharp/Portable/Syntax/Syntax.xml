@@ -910,6 +910,21 @@
       <summary>Creates a LiteralExpressionSyntax node.</summary>
     </FactoryComment>
   </Node>
+  <Node Name="FieldExpressionSyntax" Base="ExpressionSyntax">
+    <Kind Name="FieldExpression"/>
+    <Field Name="Token" Type="SyntaxToken">
+      <Kind Name="FieldKeyword"/>
+      <PropertyComment>
+        <summary>SyntaxToken representing the field keyword.</summary>
+      </PropertyComment>
+    </Field>
+    <TypeComment>
+      <summary>Class which represents the syntax node for a field expression.</summary>
+    </TypeComment>
+    <FactoryComment>
+      <summary>Creates a FieldExpressionSyntax node.</summary>
+    </FactoryComment>
+  </Node>
   <Node Name="MakeRefExpressionSyntax" Base="ExpressionSyntax">
     <Kind Name="MakeRefExpression"/>
     <Field Name="Keyword" Type="SyntaxToken">
