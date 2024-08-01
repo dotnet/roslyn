@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else if (conversion.IsSpan)
                 {
                     Debug.Assert(source.Type is not null);
-                    Debug.Assert(destination.OriginalDefinition.IsSpan() || destination.OriginalDefinition.IsReadOnlySpan());
+                    Debug.Assert(destination.IsSpan() || destination.IsReadOnlySpan());
 
                     CheckFeatureAvailability(syntax, MessageID.IDS_FeatureFirstClassSpan, diagnostics);
 
@@ -507,9 +507,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // ReadOnlySpan<T> Span<T>.op_Implicit(Span<T>)
-                    if (source.Type.OriginalDefinition.IsSpan())
+                    if (source.Type.IsSpan())
                     {
-                        Debug.Assert(destination.OriginalDefinition.IsReadOnlySpan());
+                        Debug.Assert(destination.IsReadOnlySpan());
                         reportUseSiteOrMissing(
                             TryFindImplicitOperatorFromSpan(source.Type.OriginalDefinition, destination.OriginalDefinition),
                             source.Type.OriginalDefinition,
@@ -519,19 +519,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // ReadOnlySpan<T> ReadOnlySpan<T>.CastUp<TDerived>(ReadOnlySpan<TDerived>)
-                    if (source.Type.OriginalDefinition.IsSpan() || source.Type.OriginalDefinition.IsReadOnlySpan())
+                    if (source.Type.IsSpan() || source.Type.IsReadOnlySpan())
                     {
-                        Debug.Assert(destination.OriginalDefinition.IsReadOnlySpan());
+                        Debug.Assert(destination.IsReadOnlySpan());
                         if (NeedsSpanCastUp(source.Type, destination))
                         {
                             // If converting Span<TDerived> -> ROS<TDerived> -> ROS<T>,
                             // the source of the CastUp is the return type of the op_Implicit (i.e., the ROS<TDerived>)
                             // which has the same original definition as the destination ROS<T>.
-                            TypeSymbol sourceForCastUp = source.Type.OriginalDefinition.IsSpan()
+                            TypeSymbol sourceForCastUp = source.Type.IsSpan()
                                 ? destination.OriginalDefinition
                                 : source.Type.OriginalDefinition;
 
-                            MethodSymbol? castUpMethod = TryFindCastUpMethod(sourceForCastUp.OriginalDefinition, destination.OriginalDefinition);
+                            MethodSymbol? castUpMethod = TryFindCastUpMethod(sourceForCastUp, destination.OriginalDefinition);
                             reportUseSiteOrMissing(
                                 castUpMethod,
                                 destination.OriginalDefinition,
@@ -581,8 +581,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(type.IsSpan() || type.IsReadOnlySpan());
             Debug.Assert(type.IsDefinition);
 
-            return TryFindImplicitOperator(type, 0, static (_, parameterType) =>
-                parameterType is ArrayTypeSymbol { IsSZArray: true, ElementType: TypeParameterSymbol });
+            return TryFindImplicitOperator(type, 0, static (_, method) =>
+                method.Parameters[0].Type is ArrayTypeSymbol { IsSZArray: true, ElementType: TypeParameterSymbol });
         }
 
         // ReadOnlySpan<T> Span<T>.op_Implicit(Span<T>)
@@ -592,30 +592,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(spanType.IsDefinition && readonlySpanType.IsDefinition);
 
             return TryFindImplicitOperator(spanType, readonlySpanType,
-                parameterPredicate: static (_, parameterType) => parameterType.IsSpan(),
-                returnTypePredicate: static (readonlySpanType, returnType) => readonlySpanType.Equals(returnType.OriginalDefinition, TypeCompareKind.ConsiderEverything));
+                static (readonlySpanType, method) => method.Parameters[0].Type.IsSpan() &&
+                    readonlySpanType.Equals(method.ReturnType.OriginalDefinition, TypeCompareKind.ConsiderEverything));
         }
 
         private static MethodSymbol? TryFindImplicitOperator<TArg>(TypeSymbol type, TArg arg,
-            Func<TArg, TypeSymbol, bool> parameterPredicate,
-            Func<TArg, TypeSymbol, bool>? returnTypePredicate = null)
+            Func<TArg, MethodSymbol, bool> predicate)
         {
-            return TryFindSingleMember(type, WellKnownMemberNames.ImplicitConversionName, (parameterPredicate, returnTypePredicate, arg),
+            return TryFindSingleMethod(type, WellKnownMemberNames.ImplicitConversionName, (predicate, arg),
                 static (arg, method) => method is
                 {
                     ParameterCount: 1,
                     Arity: 0,
                     IsStatic: true,
                     DeclaredAccessibility: Accessibility.Public,
-                    Parameters: [{ Type: { } parameterType }],
-                } && arg.parameterPredicate(arg.arg, parameterType) &&
-                    arg.returnTypePredicate?.Invoke(arg.arg, method.ReturnType) != false);
+                } && arg.predicate(arg.arg, method));
         }
 
         internal static bool NeedsSpanCastUp(TypeSymbol source, TypeSymbol destination)
         {
-            Debug.Assert(source.OriginalDefinition.IsSpan() || source.OriginalDefinition.IsReadOnlySpan());
-            Debug.Assert(destination.OriginalDefinition.IsReadOnlySpan());
+            Debug.Assert(source.IsSpan() || source.IsReadOnlySpan());
+            Debug.Assert(destination.IsReadOnlySpan());
             Debug.Assert(!source.IsDefinition && !destination.IsDefinition);
 
             var sourceElementType = ((NamedTypeSymbol)source).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0].Type;
@@ -623,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var sameElementTypes = sourceElementType.Equals(destinationElementType, TypeCompareKind.AllIgnoreOptions);
 
-            Debug.Assert(!source.OriginalDefinition.IsReadOnlySpan() || !sameElementTypes);
+            Debug.Assert(!source.IsReadOnlySpan() || !sameElementTypes);
 
             return !sameElementTypes;
         }
@@ -634,7 +631,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(source.IsReadOnlySpan() && destination.IsReadOnlySpan());
             Debug.Assert(source.IsDefinition && destination.IsDefinition);
 
-            return TryFindSingleMember(destination, WellKnownMemberNames.CastUpMethodName, (source, destination),
+            return TryFindSingleMethod(destination, WellKnownMemberNames.CastUpMethodName, (source, destination),
                 static (arg, method) => method is
                 {
                     ParameterCount: 1,
@@ -666,7 +663,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? result = null;
             foreach (var memoryExtensionsType in compilation.GetTypesByMetadataName(WellKnownMemberNames.MemoryExtensionsTypeFullName))
             {
-                if (TryFindSingleMember(memoryExtensionsType.GetSymbol<NamedTypeSymbol>(), WellKnownMemberNames.AsSpanMethodName, 0,
+                if (TryFindSingleMethod(memoryExtensionsType.GetSymbol<NamedTypeSymbol>(), WellKnownMemberNames.AsSpanMethodName, 0,
                     static (_, method) => method is
                     {
                         ParameterCount: 1,
@@ -690,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private static MethodSymbol? TryFindSingleMember<TArg>(TypeSymbol type, string name, TArg arg, Func<TArg, MethodSymbol, bool> predicate)
+        private static MethodSymbol? TryFindSingleMethod<TArg>(TypeSymbol type, string name, TArg arg, Func<TArg, MethodSymbol, bool> predicate)
         {
             var members = type.GetMembers(name);
             MethodSymbol? result = null;

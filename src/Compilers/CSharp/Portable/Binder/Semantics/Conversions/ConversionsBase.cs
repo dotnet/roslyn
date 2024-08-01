@@ -3962,14 +3962,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (source is ArrayTypeSymbol { IsSZArray: true, ElementTypeWithAnnotations: { } elementType })
             {
                 // SPEC: ...to `System.Span<Ei>`.
-                if (destination.OriginalDefinition.IsSpan())
+                if (destination.IsSpan())
                 {
                     var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
                     return hasIdentityConversion(elementType, spanElementType);
                 }
 
                 // SPEC: ...to `System.ReadOnlySpan<Ui>`, provided that `Ei` is covariance-convertible to `Ui`.
-                if (destination.OriginalDefinition.IsReadOnlySpan())
+                if (destination.IsReadOnlySpan())
                 {
                     var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
                     return hasCovariantConversion(elementType, spanElementType, ref useSiteInfo);
@@ -3977,9 +3977,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             // SPEC: From `System.Span<Ti>` to `System.ReadOnlySpan<Ui>`, provided that `Ti` is covariance-convertible to `Ui`.
             // SPEC: From `System.ReadOnlySpan<Ti>` to `System.ReadOnlySpan<Ui>`, provided that `Ti` is covariance-convertible to `Ui`.
-            else if (source.OriginalDefinition.IsSpan() || source.OriginalDefinition.IsReadOnlySpan())
+            else if (source.IsSpan() || source.IsReadOnlySpan())
             {
-                if (destination.OriginalDefinition.IsReadOnlySpan())
+                if (destination.IsReadOnlySpan())
                 {
                     var sourceElementType = ((NamedTypeSymbol)source).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
                     var destinationElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
@@ -3989,7 +3989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: From `string` to `System.ReadOnlySpan<char>`.
             else if (source.IsStringType())
             {
-                if (destination.OriginalDefinition.IsReadOnlySpan())
+                if (destination.IsReadOnlySpan())
                 {
                     var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
                     return spanElementType.SpecialType is SpecialType.System_Char;
@@ -4025,7 +4025,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // to `System.Span<Ui>` or `System.ReadOnlySpan<Ui>`
             // provided an explicit reference conversion exists from `Ti` to `Ui`.
             if (source is ArrayTypeSymbol { IsSZArray: true, ElementTypeWithAnnotations: { } elementType } &&
-                (destination.OriginalDefinition.IsSpan() || destination.OriginalDefinition.IsReadOnlySpan()))
+                (destination.IsSpan() || destination.IsReadOnlySpan()))
             {
                 var spanElementType = ((NamedTypeSymbol)destination).TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteInfo)[0];
                 return HasIdentityOrReferenceConversion(elementType.Type, spanElementType.Type, ref useSiteInfo) &&
