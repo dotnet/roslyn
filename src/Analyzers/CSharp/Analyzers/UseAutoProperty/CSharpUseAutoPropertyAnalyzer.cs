@@ -97,6 +97,8 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
                 AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(semanticModel, memberAccess, ineligibleFields, cancellationToken);
         }
 
+        return;
+
         bool CouldReferenceField(ExpressionSyntax expression)
         {
             // Don't bother binding if the expression isn't even referencing the name of a field we know about.

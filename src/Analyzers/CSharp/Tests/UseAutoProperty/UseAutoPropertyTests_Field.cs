@@ -329,7 +329,7 @@ public sealed partial class UseAutoPropertyTests
     }
 
     [Fact]
-    public async Task TestWithRefUseInside()
+    public async Task TestWithRefArgumentUseInside()
     {
         await TestInRegularAndScriptAsync(
             """
@@ -348,12 +348,16 @@ public sealed partial class UseAutoPropertyTests
             class Class
             {
                 string P => Init(ref field);
+            
+                void Init(ref string s)
+                {
+                }
             }
             """);
     }
 
     [Fact]
-    public async Task TestNotWithRefUseOutside()
+    public async Task TestNotWithRefArgumentUseOutside()
     {
         await TestMissingInRegularAndScriptAsync(
             """
@@ -370,6 +374,133 @@ public sealed partial class UseAutoPropertyTests
 
                 void Init(ref string s)
                 {
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestWithRefUseInside()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|string s|];
+
+                string P
+                {
+                    get
+                    {
+                        ref string s1 = ref s;
+                        return s.Trim();
+                    }
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                string P
+                {
+                    get
+                    {
+                        ref string s1 = ref field;
+                        return field.Trim();
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotWithRefUseOutside()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|string s|];
+
+                string P
+                {
+                    get
+                    {
+                        return s.Trim();
+                    }
+                }
+
+                void M()
+                {
+                    ref string s1 = ref s;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestWithAddressOfInside()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int s|];
+
+                int P
+                {
+                    get
+                    {
+                        unsafe
+                        {
+                            int* p = &s;
+                            return s;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                int P
+                {
+                    get
+                    {
+                        unsafe
+                        {
+                            int* p = &field;
+                            return field;
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotWithAddressOfOutside()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int s|];
+
+                int P
+                {
+                    get
+                    {
+                        unsafe
+                        {
+                            return s;
+                        }
+                    }
+                }
+            
+                unsafe void M()
+                {
+                    int* p = &s;
                 }
             }
             """);
