@@ -663,7 +663,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol? result = null;
             foreach (var memoryExtensionsType in compilation.GetTypesByMetadataName(WellKnownMemberNames.MemoryExtensionsTypeFullName))
             {
-                if (TryFindSingleMethod(memoryExtensionsType.GetSymbol<NamedTypeSymbol>(), WellKnownMemberNames.AsSpanMethodName, 0,
+                if (memoryExtensionsType.DeclaredAccessibility == Accessibility.Public &&
+                    TryFindSingleMethod(memoryExtensionsType.GetSymbol<NamedTypeSymbol>(), WellKnownMemberNames.AsSpanMethodName, 0,
                     static (_, method) => method is
                     {
                         ParameterCount: 1,

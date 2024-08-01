@@ -871,7 +871,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
         var comp = CreateCompilation(source);
-        if (methodModifier == "internal")
+        if (classModifier == "internal" || methodModifier == "internal")
         {
             comp.VerifyDiagnostics(
                 // (2,24): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
@@ -904,6 +904,9 @@ public class FirstClassSpanTests : CSharpTestBase
             static string source() => "";
             """;
         CreateCompilation(source2, [comp1]).VerifyDiagnostics(
+            // (2,25): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+            // ReadOnlySpan<char> s1 = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(2, 25),
             // (3,25): error CS0122: 'MemoryExtensions' is inaccessible due to its protection level
             // ReadOnlySpan<char> s2 = MemoryExtensions.AsSpan(source());
             Diagnostic(ErrorCode.ERR_BadAccess, "MemoryExtensions").WithArguments("System.MemoryExtensions").WithLocation(3, 25));
@@ -928,7 +931,7 @@ public class FirstClassSpanTests : CSharpTestBase
             }
             """;
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source);
-        if (methodModifier == "public")
+        if (classModifier == "public" && methodModifier == "public")
         {
             comp.VerifyDiagnostics(
                 // (2,24): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
