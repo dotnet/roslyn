@@ -31,5 +31,6 @@ public class RoslynSelfBuildTests : AbstractIntegrationTest
         var outputResult = await this.TestServices.SolutionExplorer.GetBuildOutputContentAsync(HangMitigatingCancellationToken);
         output.WriteLine(outputResult);
         Assert.Contains("0 failed", result);
+        await this.TestServices.Shell.ExecuteCommandAsync("Debug.StartWithoutDebugging", HangMitigatingCancellationToken);
     }
 }
