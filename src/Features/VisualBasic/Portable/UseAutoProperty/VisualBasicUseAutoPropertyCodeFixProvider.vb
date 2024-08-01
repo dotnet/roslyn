@@ -35,7 +35,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return Utilities.GetNodeToRemove(identifier)
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document, node As PropertyBlockSyntax) As ImmutableArray(Of AbstractFormattingRule)
+        Protected Overrides Function GetFormattingRules(document As Document, finalProperty As SyntaxNode) As ImmutableArray(Of AbstractFormattingRule)
             Return Nothing
         End Function
 

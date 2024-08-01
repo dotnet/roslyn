@@ -211,11 +211,14 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
 
     protected override ImmutableArray<AbstractFormattingRule> GetFormattingRules(
         Document document,
-        PropertyDeclarationSyntax propertyDeclaration)
+        SyntaxNode propertyDeclaration)
     {
         // If the final property is only simple `get;set;` accessors, then reformat the property to be on a single line.
-        if (propertyDeclaration.AccessorList != null && propertyDeclaration.AccessorList.Accessors.All(a => a is { ExpressionBody: null, Body: null }))
+        if (propertyDeclaration is PropertyDeclarationSyntax { AccessorList.Accessors: var accessors } &&
+            accessors.All(a => a is { ExpressionBody: null, Body: null }))
+        {
             return [new SingleLinePropertyFormattingRule(), .. Formatter.GetDefaultFormattingRules(document)];
+        }
 
         return default;
     }

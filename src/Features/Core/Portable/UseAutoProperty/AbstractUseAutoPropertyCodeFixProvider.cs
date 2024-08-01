@@ -45,7 +45,7 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
         TPropertyDeclaration property, LightweightRenameLocations fieldLocations, CancellationToken cancellationToken);
 
     protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(
-        Document document, TPropertyDeclaration finalPropertyDeclaration);
+        Document document, SyntaxNode finalPropertyDeclaration);
 
     protected abstract Task<SyntaxNode> UpdatePropertyAsync(
         Document propertyDocument,
@@ -307,7 +307,7 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
     private async Task<SyntaxNode> FormatAsync(
         SyntaxNode newRoot,
         Document document,
-        TPropertyDeclaration finalPropertyDeclaration,
+        SyntaxNode finalPropertyDeclaration,
         CancellationToken cancellationToken)
     {
         var formattingRules = GetFormattingRules(document, finalPropertyDeclaration);
