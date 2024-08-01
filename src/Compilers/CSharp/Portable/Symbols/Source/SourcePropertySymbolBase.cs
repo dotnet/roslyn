@@ -166,6 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                       fieldName,
                                                                       // Synthesized backing field for 'field' should not be marked 'initonly'
                                                                       // since the field might be modified in the get accessor.
+                                                                      // PROTOTYPE: Should the backing field be 'initonly' when the containing
+                                                                      // type, property, or accessor is declared 'readonly'?
                                                                       isReadOnly: !usesFieldKeyword && ((hasGetAccessor && !hasSetAccessor) || isInitOnly),
                                                                       this.IsStatic,
                                                                       hasInitializer);
