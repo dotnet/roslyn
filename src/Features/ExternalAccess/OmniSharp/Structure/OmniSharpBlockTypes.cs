@@ -28,4 +28,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.OmniSharp.Structure
 
         public static string Expression => BlockTypes.Expression;
     }
+
+    public class TestClass
+    {
+        
+    }
 }
