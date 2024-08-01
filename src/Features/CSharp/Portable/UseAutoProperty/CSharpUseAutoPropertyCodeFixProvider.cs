@@ -209,27 +209,29 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
             })));
     }
 
-    protected override ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
-        => [new SingleLinePropertyFormattingRule(), .. Formatter.GetDefaultFormattingRules(document)];
+    protected override ImmutableArray<AbstractFormattingRule> GetFormattingRules(
+        Document document,
+        PropertyDeclarationSyntax propertyDeclaration)
+    {
+        // If the final property is only simple `get;set;` accessors, then reformat the property to be on a single line.
+        if (propertyDeclaration.AccessorList != null && propertyDeclaration.AccessorList.Accessors.All(a => a is { ExpressionBody: null, Body: null }))
+            return [new SingleLinePropertyFormattingRule(), .. Formatter.GetDefaultFormattingRules(document)];
+
+        return default;
+    }
 
     private class SingleLinePropertyFormattingRule : AbstractFormattingRule
     {
         private static bool ForceSingleSpace(SyntaxToken previousToken, SyntaxToken currentToken)
         {
             if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.AccessorList))
-            {
                 return true;
-            }
 
             if (previousToken.IsKind(SyntaxKind.OpenBraceToken) && previousToken.Parent.IsKind(SyntaxKind.AccessorList))
-            {
                 return true;
-            }
 
             if (currentToken.IsKind(SyntaxKind.CloseBraceToken) && currentToken.Parent.IsKind(SyntaxKind.AccessorList))
-            {
                 return true;
-            }
 
             return false;
         }

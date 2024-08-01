@@ -35,13 +35,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return Utilities.GetNodeToRemove(identifier)
         End Function
 
-        Protected Overrides Function GetFormattingRules(document As Document) As ImmutableArray(Of AbstractFormattingRule)
+        Protected Overrides Function GetFormattingRules(document As Document, node As PropertyBlockSyntax) As ImmutableArray(Of AbstractFormattingRule)
             Return Nothing
         End Function
 
-        Protected Overrides Function RewriteReferencesInProperty([property] As PropertyBlockSyntax, fieldLocations As LightweightRenameLocations, cancellationToken As CancellationToken) As PropertyBlockSyntax
+        Protected Overrides Function RewriteFieldReferencesInProperty([property] As PropertyBlockSyntax, fieldLocations As LightweightRenameLocations, cancellationToken As CancellationToken) As PropertyBlockSyntax
             ' Only called to rewrite to `field` (which VB does not support).
-            Throw ExceptionUtilities.Unreachable
+            Return [property]
         End Function
 
         Protected Overrides Async Function UpdatePropertyAsync(

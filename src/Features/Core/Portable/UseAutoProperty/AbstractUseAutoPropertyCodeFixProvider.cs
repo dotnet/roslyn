@@ -44,7 +44,8 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
     protected abstract TPropertyDeclaration RewriteFieldReferencesInProperty(
         TPropertyDeclaration property, LightweightRenameLocations fieldLocations, CancellationToken cancellationToken);
 
-    protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document);
+    protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(
+        Document document, TPropertyDeclaration finalPropertyDeclaration);
 
     protected abstract Task<SyntaxNode> UpdatePropertyAsync(
         Document propertyDocument,
@@ -80,9 +81,6 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
     {
         var locations = diagnostic.AdditionalLocations;
 
-        var isTrivialGetAccessor = diagnostic.Properties.ContainsKey(IsTrivialGetAccessor);
-        var isTrivialSetAccessor = diagnostic.Properties.ContainsKey(IsTrivialSetAccessor);
-
         var propertyLocation = locations[0];
         var declaratorLocation = locations[1];
 
@@ -96,6 +94,9 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
         var propertyDocument = solution.GetRequiredDocument(property.SyntaxTree);
         var propertySemanticModel = await propertyDocument.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var propertySymbol = (IPropertySymbol)propertySemanticModel.GetRequiredDeclaredSymbol(property, cancellationToken);
+
+        var isTrivialGetAccessor = diagnostic.Properties.ContainsKey(IsTrivialGetAccessor);
+        var isTrivialSetAccessor = propertySymbol.SetMethod is null || diagnostic.Properties.ContainsKey(IsTrivialSetAccessor);
 
         Debug.Assert(fieldDocument.Project == propertyDocument.Project);
         var project = fieldDocument.Project;
@@ -237,7 +238,7 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
             editor.RemoveNode(nodeToRemove, syntaxRemoveOptions);
 
             var newRoot = editor.GetChangedRoot();
-            newRoot = await FormatAsync(newRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
+            newRoot = await FormatAsync(newRoot, fieldDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
 
             return solution.WithDocumentSyntaxRoot(fieldDocument.Id, newRoot);
         }
@@ -251,8 +252,8 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
             Contract.ThrowIfNull(newFieldTreeRoot);
             var newPropertyTreeRoot = propertyTreeRoot.ReplaceNode(property, updatedProperty);
 
-            newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, cancellationToken).ConfigureAwait(false);
-            newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, cancellationToken).ConfigureAwait(false);
+            newFieldTreeRoot = await FormatAsync(newFieldTreeRoot, fieldDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
+            newPropertyTreeRoot = await FormatAsync(newPropertyTreeRoot, propertyDocument, updatedProperty, cancellationToken).ConfigureAwait(false);
 
             var updatedSolution = solution.WithDocumentSyntaxRoot(fieldDocument.Id, newFieldTreeRoot);
             updatedSolution = updatedSolution.WithDocumentSyntaxRoot(propertyDocument.Id, newPropertyTreeRoot);
@@ -303,9 +304,13 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
         return canEditDocument;
     }
 
-    private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CancellationToken cancellationToken)
+    private async Task<SyntaxNode> FormatAsync(
+        SyntaxNode newRoot,
+        Document document,
+        TPropertyDeclaration finalPropertyDeclaration,
+        CancellationToken cancellationToken)
     {
-        var formattingRules = GetFormattingRules(document);
+        var formattingRules = GetFormattingRules(document, finalPropertyDeclaration);
         if (formattingRules.IsDefault)
             return newRoot;
 

@@ -428,9 +428,9 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             var setterFields = GetSetterFields(semanticModel, property.SetMethod, fieldNames, cancellationToken);
 
             // Intersect these to determine which fields both the getter and setter write to.
-            getterFields = setterFields.Where(
-                static (field, getterFields) => getterFields.Contains(field),
-                getterFields);
+            getterFields = getterFields.Where(
+                static (field, setterFields) => setterFields.Contains(field),
+                setterFields);
 
             // If there is a getter and a setter, they both need to agree on which field they are writing to.
             if (getterFields.IsEmpty)
