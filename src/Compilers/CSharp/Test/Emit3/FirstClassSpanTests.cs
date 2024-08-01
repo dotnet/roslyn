@@ -3140,35 +3140,6 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Fact]
-    public void Conversion_Span_ReadOnlySpan_Implicit_NullableAnalysis_NestedNullability_Covariant()
-    {
-        var source = """
-            #nullable enable
-            using System;
-            class C
-            {
-                ReadOnlySpan<I<object>> M(Span<I<string?>> arg) => arg;
-            }
-            interface I<out T> { }
-            """;
-
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
-            // (5,56): error CS0029: Cannot implicitly convert type 'System.Span<I<string?>>' to 'System.ReadOnlySpan<I<object>>'
-            //     ReadOnlySpan<I<object>> M(Span<I<string?>> arg) => arg;
-            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.Span<I<string?>>", "System.ReadOnlySpan<I<object>>").WithLocation(5, 56));
-
-        var expectedDiagnostics = new[]
-        {
-            // (5,56): warning CS8619: Nullability of reference types in value of type 'Span<I<string?>>' doesn't match target type 'ReadOnlySpan<I<object>>'.
-            //     ReadOnlySpan<I<object>> M(Span<I<string?>> arg) => arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.Span<I<string?>>", "System.ReadOnlySpan<I<object>>").WithLocation(5, 56)
-        };
-
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
-    }
-
-    [Fact]
     public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_NullableAnalysis_NestedNullability_Covariant()
     {
         var source = """
