@@ -20,10 +20,11 @@ public class RoslynSelfBuildTests : AbstractIntegrationTest
         this.output = output;
     }
 
-    [IdeFact(EnvironmentVariables = ["RoslynSelfBuildTest='true'"])]
+    [IdeFact]
     public async Task Test()
     {
-        Assert.True(System.Environment.GetEnvironmentVariable("RoslynSelfBuildTest") == "true");
+        // https://github.com/microsoft/vs-extension-testing/issues/172
+        System.Environment.SetEnvironmentVariable("RoslynSelfBuildTest", "true");
         var solutionDir = @"D:\Sample\roslyn\roslyn.sln";
         await this.TestServices.SolutionExplorer.OpenSolutionAsync(solutionDir, HangMitigatingCancellationToken);
         var result = await this.TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
