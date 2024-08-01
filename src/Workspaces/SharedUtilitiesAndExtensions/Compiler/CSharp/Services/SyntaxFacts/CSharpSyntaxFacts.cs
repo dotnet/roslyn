@@ -913,24 +913,24 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     {
         Debug.Assert(topLevel || methodLevel);
 
-        foreach (var member in node.GetMembers())
-        {
-            if (IsTopLevelNodeWithMembers(member))
+        node.ForEachMember(static (member, arg) =>
             {
-                if (topLevel)
+                var (@this, list, topLevel, methodLevel) = arg;
+                if (@this.IsTopLevelNodeWithMembers(member))
+                {
+                    if (topLevel)
+                    {
+                        list.Add(member);
+                    }
+
+                    @this.AppendMembers(member, list, topLevel, methodLevel);
+                }
+                else if (methodLevel && @this.IsMethodLevelMember(member))
                 {
                     list.Add(member);
                 }
-
-                AppendMembers(member, list, topLevel, methodLevel);
-                continue;
-            }
-
-            if (methodLevel && IsMethodLevelMember(member))
-            {
-                list.Add(member);
-            }
-        }
+            },
+            (this, list, topLevel, methodLevel));
     }
 
     public TextSpan GetMemberBodySpanForSpeculativeBinding(SyntaxNode node)
