@@ -205,7 +205,7 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
                 if (convert)
                 {
                     if (accessor.ExpressionBody != null)
-                        return accessor.WithExpressionBody(null);
+                        return accessor.WithExpressionBody(null).WithKeyword(accessor.Keyword.WithoutTrailingTrivia());
 
                     if (accessor.Body != null)
                         return accessor.WithBody(null).WithSemicolonToken(SemicolonToken.WithTrailingTrivia(accessor.Body.CloseBraceToken.TrailingTrivia));

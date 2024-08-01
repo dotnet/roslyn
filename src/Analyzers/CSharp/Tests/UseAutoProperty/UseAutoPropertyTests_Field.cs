@@ -48,6 +48,38 @@ public sealed partial class UseAutoPropertyTests
     }
 
     [Fact]
+    public async Task TestFieldAccessOffOfThis()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|string s|];
+
+                string P
+                {
+                    get
+                    {
+                        return this.s.Trim();
+                    }
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                string P
+                {
+                    get
+                    {
+                        return field.Trim();
+                    }
+                }
+            }
+            """, parseOptions: CSharp13);
+    }
+
+    [Fact]
     public async Task TestGetterWithMultipleStatements_Field()
     {
         await TestInRegularAndScriptAsync(
@@ -502,6 +534,168 @@ public sealed partial class UseAutoPropertyTests
                 {
                     int* p = &s;
                 }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotChainedPattern1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Builder
+            {
+                [|private bool _strictMode;|]
+                private Builder _builder;
+
+                public bool StrictMode
+                {
+                    get { return _strictMode ?? _builder.StrictMode; }
+                    set { this._strictMode = value; }
+                }
+            }
+            """,
+            """
+            class Builder
+            {
+                private Builder _builder;
+
+                public bool StrictMode
+                {
+                    get { return field ?? _builder.StrictMode; }
+                    set;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestLazyInit1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            using System.Collections.Generic;
+
+            class Builder
+            {
+                [|private List<int>? _list|]
+
+                public List<int> List => _list ??= new();
+            }
+            """,
+            """
+            using System.Collections.Generic;
+
+            class Builder
+            {
+                public List<int> List => field ??= new();
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestRefSetAccessor1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Builder
+            {
+                [|private int prop;|]
+                public int Prop { get => prop; set => Set(ref prop, value); }
+
+                void Set(ref int a, int b) { }
+            }
+            """,
+            """
+            class Builder
+            {
+                public int Prop { get; set => Set(ref field, value); }
+            
+                void Set(ref int a, int b) { }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestRefSetAccessor2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Builder
+            {
+                [|private int prop;|]
+
+                public int Prop
+                {
+                    get => prop;
+                    set 
+                    {
+                        if (!Set(ref prop, value)) return;
+                        OnPropChanged();
+                    }
+                }
+            
+                void Set(ref int a, int b) { }
+                void OnPropChanged() { }
+            }
+            """,
+            """
+            class Builder
+            {
+                public int Prop
+                {
+                    get;
+                    set 
+                    {
+                        if (!Set(ref field, value)) return;
+                        OnPropChanged();
+                    }
+                }
+            
+                void Set(ref int a, int b) { }
+                void OnPropChanged() { }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestAttributesOnField()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                [Something]
+                [|private int prop;|]
+                public int Prop { get => prop; set => prop = value; }
+            }
+            """,
+            """
+            class C
+            {
+                [field: Something]
+                public int Prop { get => prop; set => prop = value; }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestAttributesOnField2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                [Something]
+                [|private string prop;|]
+                public int Prop => prop.Trim();
+            }
+            """,
+            """
+            class C
+            {
+                [field: Something]
+                public int Prop => field.Trim();
             }
             """);
     }
