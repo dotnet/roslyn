@@ -39,7 +39,7 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
     protected override bool SupportsPropertyInitializer(Compilation compilation)
         => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
-    protected override bool SupportsFieldKeyword(Compilation compilation)
+    protected override bool SupportsFieldExpression(Compilation compilation)
         => compilation.LanguageVersion() >= LanguageVersion.CSharp13;
 
     protected override bool CanExplicitInterfaceImplementationsBeFixed()
@@ -48,12 +48,15 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
     protected override ExpressionSyntax? GetFieldInitializer(VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
         => variable.Initializer?.Value;
 
-    protected override bool ContainsFieldKeyword(PropertyDeclarationSyntax propertyDeclaration, CancellationToken cancellationToken)
+    protected override bool ContainsFieldExpression(PropertyDeclarationSyntax propertyDeclaration, CancellationToken cancellationToken)
     {
         foreach (var node in propertyDeclaration.DescendantNodes())
         {
-            if (node.IsKind(SyntaxKind.FieldKeyword))
+            if (node.IsKind(SyntaxKind.FieldExpression))
+                return true;
         }
+
+        return false;
     }
 
     protected override void RegisterIneligibleFieldsAction(

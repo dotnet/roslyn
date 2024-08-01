@@ -34,7 +34,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return DirectCast(compilation, VisualBasicCompilation).LanguageVersion >= LanguageVersion.VisualBasic10
         End Function
 
-        Protected Overrides Function SupportsFieldKeyword(compilation As Compilation) As Boolean
+        Protected Overrides Function SupportsFieldExpression(compilation As Compilation) As Boolean
             ' 'field' keyword not supported in VB.
             Return False
         End Function
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return True
         End Function
 
-        Protected Overrides Function ContainsFieldKeyword(propertyDeclaration As PropertyBlockSyntax, cancellationToken As CancellationToken) As Boolean
+        Protected Overrides Function ContainsFieldExpression(propertyDeclaration As PropertyBlockSyntax, cancellationToken As CancellationToken) As Boolean
             Return False
         End Function
 
