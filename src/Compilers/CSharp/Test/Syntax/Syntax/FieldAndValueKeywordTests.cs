@@ -907,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Field_NameOf_01()
+        public void NameOf_01()
         {
             string source = """
                 class C
@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Field_NameOf_02()
+        public void NameOf_02()
         {
             string source = """
                 class C
