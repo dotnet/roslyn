@@ -29,7 +29,8 @@ internal readonly record struct AccessedFields(
     {
     }
 
-    public bool IsEmpty => TrivialField is null && NonTrivialFields.IsDefaultOrEmpty;
+    public int Count => (TrivialField != null ? 1 : 0) + NonTrivialFields.NullToEmpty().Length;
+    public bool IsEmpty => Count == 0;
 
     public AccessedFields Where<TArg>(Func<IFieldSymbol, TArg, bool> predicate, TArg arg)
         => new(TrivialField != null && predicate(TrivialField, arg) ? TrivialField : null,
@@ -436,6 +437,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             isTrivialSetAccessor = setterFields.TrivialField != null;
         }
 
+        var (getterField, isTrivialGetAccessor) = GetDesiredField(getterFields);
         // Looks like a viable property/field to convert into an auto property.
 
         AddAnalysisResult(getterFields.TrivialField, isTrivialGetAccessor: true, isTrivialSetAccessor);
@@ -443,6 +445,19 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             AddAnalysisResult(getterField, isTrivialGetAccessor: false, isTrivialSetAccessor);
 
         return;
+
+        (IFieldSymbol? desiredField, bool isTrivialAccessor) GetDesiredField(AccessedFields fields)
+        {
+            if (fields.Count == 1)
+                return 
+
+            if (fields.TrivialField != null)
+                return (fields.TrivialField, true);
+            // If there are multiple fields, we can't convert this to an auto-prop.
+            if (fields.NonTrivialFields.Length > 1)
+                return (null, false);
+            return (fields.NonTrivialFields[0], false);
+        }
 
         void AddAnalysisResult(IFieldSymbol? field, bool isTrivialGetAccessor, bool isTrivialSetAccessor)
         {
