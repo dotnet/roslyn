@@ -105,9 +105,11 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
 
     protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
     protected abstract bool SupportsPropertyInitializer(Compilation compilation);
-    protected abstract bool SupportsSemiAutoProperty(Compilation compilation);
+    protected abstract bool SupportsFieldKeyword(Compilation compilation);
 
     protected abstract bool CanExplicitInterfaceImplementationsBeFixed();
+    protected abstract bool ContainsFieldKeyword(TPropertyDeclaration propertyDeclaration, CancellationToken cancellationToken);
+
     protected abstract TExpression? GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
     protected abstract TExpression? GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
     protected abstract TExpression? GetSetterExpression(SemanticModel semanticModel, IMethodSymbol setMethod, CancellationToken cancellationToken);
@@ -256,7 +258,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         if (trivialFieldExpression != null)
             return new(CheckFieldAccessExpression(semanticModel, trivialFieldExpression, fieldNames, cancellationToken));
 
-        if (!this.SupportsSemiAutoProperty(semanticModel.Compilation))
+        if (!this.SupportsFieldKeyword(semanticModel.Compilation))
             return default;
 
         using var _ = PooledHashSet<IFieldSymbol>.GetInstance(out var set);
@@ -272,7 +274,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         if (trivialFieldExpression != null)
             return new(CheckFieldAccessExpression(semanticModel, trivialFieldExpression, fieldNames, cancellationToken));
 
-        if (!this.SupportsSemiAutoProperty(semanticModel.Compilation))
+        if (!this.SupportsFieldKeyword(semanticModel.Compilation))
             return default;
 
         using var _ = PooledHashSet<IFieldSymbol>.GetInstance(out var set);
@@ -310,6 +312,9 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         var compilation = semanticModel.Compilation;
 
         var propertyDeclaration = (TPropertyDeclaration)context.Node;
+        if (SupportsFieldKeyword(compilation) && ContainsFieldKeyword(propertyDeclaration, cancellationToken))
+            return;
+
         if (semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) is not IPropertySymbol property)
             return;
 
@@ -520,7 +525,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
 
                 // All the usages were inside the property.  This is ok if we support the `field` keyword as those
                 // usages will be updated to that form.
-                if (!this.SupportsSemiAutoProperty(context.Compilation))
+                if (!this.SupportsFieldKeyword(context.Compilation))
                     continue;
             }
 

@@ -44,7 +44,7 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
         return nodeToRemove;
     }
 
-    protected override async Task<SyntaxNode> UpdatePropertyAsync(
+    protected override Task<SyntaxNode> UpdatePropertyAsync(
         Document propertyDocument,
         Compilation compilation,
         IFieldSymbol fieldSymbol,
@@ -56,42 +56,49 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
         CancellationToken cancellationToken)
     {
         var project = propertyDocument.Project;
-        var trailingTrivia = propertyDeclaration.GetTrailingTrivia();
+        var generator = SyntaxGenerator.GetGenerator(project);
 
-        var updatedProperty = propertyDeclaration
-            .WithAccessorList(UpdateAccessorList(propertyDeclaration.AccessorList, isTrivialGetAccessor, isTrivialSetAccessor))
-            .WithExpressionBody(null)
-            .WithSemicolonToken(Token(SyntaxKind.None));
+        var needsSetter = NeedsSetter(compilation, propertyDeclaration, isWrittenOutsideOfConstructor);
 
-        // We may need to add a setter if the field is written to outside of the constructor
-        // of it's class.
-        if (!updatedProperty.AccessorList.Accessors.Any(SyntaxKind.SetAccessorDeclaration) &&
-            NeedsSetter(compilation, propertyDeclaration, isWrittenOutsideOfConstructor))
+        if (isTrivialGetAccessor || isTrivialSetAccessor || needsSetter)
         {
-            var accessor = AccessorDeclaration(SyntaxKind.SetAccessorDeclaration)
-                .WithSemicolonToken(SemicolonToken);
-            var generator = SyntaxGenerator.GetGenerator(project);
+            var trailingTrivia = propertyDeclaration.GetTrailingTrivia();
 
-            if (fieldSymbol.DeclaredAccessibility != propertySymbol.DeclaredAccessibility)
+            var accessorList = UpdateAccessorList(
+                propertyDeclaration.AccessorList, isTrivialGetAccessor, isTrivialSetAccessor);
+            var updatedProperty = propertyDeclaration
+                .WithAccessorList(accessorList)
+                .WithExpressionBody(null)
+                .WithSemicolonToken(Token(SyntaxKind.None));
+
+            // We may need to add a setter if the field is written to outside of the constructor
+            // of it's class.
+            if ()
             {
-                accessor = (AccessorDeclarationSyntax)generator.WithAccessibility(accessor, fieldSymbol.DeclaredAccessibility);
+                var accessor = AccessorDeclaration(SyntaxKind.SetAccessorDeclaration).WithSemicolonToken(SemicolonToken);
+
+                if (fieldSymbol.DeclaredAccessibility != propertySymbol.DeclaredAccessibility)
+                    accessor = (AccessorDeclarationSyntax)generator.WithAccessibility(accessor, fieldSymbol.DeclaredAccessibility);
+
+                var modifiers = TokenList(
+                    updatedProperty.Modifiers.Where(token => !token.IsKind(SyntaxKind.ReadOnlyKeyword)));
+
+                updatedProperty = updatedProperty.WithModifiers(modifiers)
+                                                 .AddAccessorListAccessors(accessor);
             }
 
-            var modifiers = TokenList(
-                updatedProperty.Modifiers.Where(token => !token.IsKind(SyntaxKind.ReadOnlyKeyword)));
+            var fieldInitializer = GetFieldInitializer(fieldSymbol, cancellationToken);
+            if (fieldInitializer != null)
+            {
+                updatedProperty = updatedProperty.WithInitializer(EqualsValueClause(fieldInitializer))
+                                                 .WithSemicolonToken(SemicolonToken);
+            }
 
-            updatedProperty = updatedProperty.WithModifiers(modifiers)
-                                             .AddAccessorListAccessors(accessor);
+            var finalProperty = updatedProperty
+                .WithTrailingTrivia(trailingTrivia)
+                .WithAdditionalAnnotations(SpecializedFormattingAnnotation);
+            return Task.FromResult(finalProperty);
         }
-
-        var fieldInitializer = await GetFieldInitializerAsync(fieldSymbol, cancellationToken).ConfigureAwait(false);
-        if (fieldInitializer != null)
-        {
-            updatedProperty = updatedProperty.WithInitializer(EqualsValueClause(fieldInitializer))
-                                             .WithSemicolonToken(SemicolonToken);
-        }
-
-        return updatedProperty.WithTrailingTrivia(trailingTrivia).WithAdditionalAnnotations(SpecializedFormattingAnnotation);
     }
 
     protected override ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
@@ -164,7 +171,10 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
     private static bool SupportsReadOnlyProperties(Compilation compilation)
         => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
-    private static AccessorListSyntax? UpdateAccessorList(AccessorListSyntax accessorList)
+    private static AccessorListSyntax? UpdateAccessorList(
+        AccessorListSyntax accessorList,
+        bool isTrivialGetAccessor,
+        bool isTrivialSetAccessor)
     {
         if (accessorList == null)
         {
