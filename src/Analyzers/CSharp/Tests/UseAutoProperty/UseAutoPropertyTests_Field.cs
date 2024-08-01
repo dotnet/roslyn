@@ -118,7 +118,6 @@ public sealed partial class UseAutoPropertyTests
                 int P
                 {
                     get;
-
                     set
                     {
                         ;
