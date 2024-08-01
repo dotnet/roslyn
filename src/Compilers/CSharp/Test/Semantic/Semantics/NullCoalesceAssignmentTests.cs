@@ -581,7 +581,10 @@ class C
                 """;
 
             var comp = CreateCompilation(source);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0019: Operator '??=' cannot be applied to operands of type 'T' and 'new()'
+                //         t ??= new();
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "t ??= new()").WithArguments("??=", "T", "new()").WithLocation(6, 9));
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
