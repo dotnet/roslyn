@@ -684,6 +684,15 @@ internal partial class SolutionExplorerInProcess
         return string.Empty;
     }
 
+    public async Task<string> GetBuildOutputContentAsync(CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
+        var textView = (IVsTextView)buildOutputWindowPane;
+        var wpfTextViewHost = await textView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken);
+        return wpfTextViewHost.TextView.TextSnapshot.GetText();
+    }
+
     public async Task<IVsOutputWindowPane> GetBuildOutputWindowPaneAsync(CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
@@ -714,6 +723,13 @@ internal partial class SolutionExplorerInProcess
         var project = solution.Projects.Cast<EnvDTE.Project>().First(x => x.Name == projectName);
         var projectPath = Path.GetDirectoryName(project.FullName);
         return Path.Combine(projectPath, relativeFilePath);
+    }
+
+    public async Task OpenSolutionAsync(string solutionPath, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        var dte = await GetRequiredGlobalServiceAsync<SDTE, EnvDTE.DTE>(cancellationToken);
+        dte.Solution.Open(solutionPath);
     }
 
     private async Task<string> GetDirectoryNameAsync(CancellationToken cancellationToken)
