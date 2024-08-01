@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
@@ -66,59 +65,57 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         protected async Task TestPragmaOrAttributeAsync(
             string code, ParseOptions options, bool pragma, Func<SyntaxNode, bool> digInto, Func<string, bool> verifier, Func<CodeAction, bool> fixChecker)
         {
-            using (var workspace = CreateWorkspaceFromFile(code, options))
+            using var workspace = CreateWorkspaceFromFile(code, options);
+            var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
+
+            var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
+
+            var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
+            var root = document.GetSyntaxRootAsync().GetAwaiter().GetResult();
+            var existingDiagnostics = root.GetDiagnostics().ToArray();
+
+            var descendants = root.DescendantNodesAndSelf(digInto).ToImmutableArray();
+            analyzer.AllNodes = descendants;
+            var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, root.FullSpan);
+
+            foreach (var diagnostic in diagnostics)
             {
-                var (analyzer, fixer) = CreateDiagnosticProviderAndFixer(workspace);
-
-                var analyzerReference = new AnalyzerImageReference(ImmutableArray.Create<DiagnosticAnalyzer>(analyzer));
-                workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
-
-                var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
-                var root = document.GetSyntaxRootAsync().GetAwaiter().GetResult();
-                var existingDiagnostics = root.GetDiagnostics().ToArray();
-
-                var descendants = root.DescendantNodesAndSelf(digInto).ToImmutableArray();
-                analyzer.AllNodes = descendants;
-                var diagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, root.FullSpan);
-
-                foreach (var diagnostic in diagnostics)
+                if (!fixer.IsFixableDiagnostic(diagnostic))
                 {
-                    if (!fixer.IsFixableDiagnostic(diagnostic))
-                    {
-                        continue;
-                    }
-
-                    var fixes = fixer.GetFixesAsync(document, diagnostic.Location.SourceSpan, [diagnostic], CodeActionOptions.DefaultProvider, CancellationToken.None).GetAwaiter().GetResult();
-                    if (fixes == null || fixes.Count() <= 0)
-                    {
-                        continue;
-                    }
-
-                    var fix = GetFix(fixes.Select(f => f.Action), pragma);
-                    if (fix == null)
-                    {
-                        continue;
-                    }
-
-                    // already same fix has been tested
-                    if (fixChecker(fix))
-                    {
-                        continue;
-                    }
-
-                    var operations = fix.GetOperationsAsync(
-                        document.Project.Solution, CodeAnalysisProgress.None, CancellationToken.None).GetAwaiter().GetResult();
-
-                    var applyChangesOperation = operations.OfType<ApplyChangesOperation>().Single();
-                    var newDocument = applyChangesOperation.ChangedSolution.Projects.Single().Documents.Single();
-                    var newTree = newDocument.GetSyntaxTreeAsync().GetAwaiter().GetResult();
-
-                    var newText = newTree.GetText().ToString();
-                    Assert.True(verifier(newText));
-
-                    var newDiagnostics = newTree.GetDiagnostics();
-                    Assert.Equal(0, existingDiagnostics.Except(newDiagnostics, this).Count());
+                    continue;
                 }
+
+                var fixes = fixer.GetFixesAsync(document, diagnostic.Location.SourceSpan, [diagnostic], CancellationToken.None).GetAwaiter().GetResult();
+                if (fixes == null || fixes.Count() <= 0)
+                {
+                    continue;
+                }
+
+                var fix = GetFix(fixes.Select(f => f.Action), pragma);
+                if (fix == null)
+                {
+                    continue;
+                }
+
+                // already same fix has been tested
+                if (fixChecker(fix))
+                {
+                    continue;
+                }
+
+                var operations = fix.GetOperationsAsync(
+                    document.Project.Solution, CodeAnalysisProgress.None, CancellationToken.None).GetAwaiter().GetResult();
+
+                var applyChangesOperation = operations.OfType<ApplyChangesOperation>().Single();
+                var newDocument = applyChangesOperation.ChangedSolution.Projects.Single().Documents.Single();
+                var newTree = newDocument.GetSyntaxTreeAsync().GetAwaiter().GetResult();
+
+                var newText = newTree.GetText().ToString();
+                Assert.True(verifier(newText));
+
+                var newDiagnostics = newTree.GetDiagnostics();
+                Assert.Equal(0, existingDiagnostics.Except(newDiagnostics, this).Count());
             }
         }
 
@@ -144,8 +141,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 new DiagnosticDescriptor("TestId", "Test", "Test", "Test", DiagnosticSeverity.Warning, isEnabledByDefault: true);
 
             public bool IsHighPriority => false;
-
-            public bool OpenFileOnly(SimplifierOptions options) => false;
 
             public ImmutableArray<SyntaxNode> AllNodes { get; set; }
 

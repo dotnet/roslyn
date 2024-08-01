@@ -21,7 +21,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename;
-using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
@@ -31,10 +30,18 @@ namespace Microsoft.CodeAnalysis.EncapsulateField;
 
 internal abstract partial class AbstractEncapsulateFieldService : ILanguageService
 {
-    protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CodeAndImportGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken);
-    protected abstract Task<ImmutableArray<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
+    private static readonly CultureInfo EnUSCultureInfo = new("en-US");
+    private static readonly SymbolRenameOptions s_symbolRenameOptions = new(
+        RenameOverloads: false,
+        RenameInStrings: false,
+        RenameInComments: false,
+        RenameFile: false);
 
-    public async Task<EncapsulateFieldResult> EncapsulateFieldsInSpanAsync(Document document, TextSpan span, CleanCodeGenerationOptionsProvider fallbackOptions, bool useDefaultBehavior, CancellationToken cancellationToken)
+    protected abstract Task<SyntaxNode> RewriteFieldNameAndAccessibilityAsync(string originalFieldName, bool makePrivate, Document document, SyntaxAnnotation declarationAnnotation, CancellationToken cancellationToken);
+    protected abstract Task<ImmutableArray<IFieldSymbol>> GetFieldsAsync(Document document, TextSpan span, CancellationToken cancellationToken);
+    protected abstract IEnumerable<SyntaxNode> GetConstructorNodes(INamedTypeSymbol containingType);
+
+    public async Task<EncapsulateFieldResult> EncapsulateFieldsInSpanAsync(Document document, TextSpan span, bool useDefaultBehavior, CancellationToken cancellationToken)
     {
         var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
         if (fields.IsDefaultOrEmpty)
@@ -44,10 +51,10 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
         return new EncapsulateFieldResult(
             firstField.ToDisplayString(),
             firstField.GetGlyph(),
-            c => EncapsulateFieldsAsync(document, fields, fallbackOptions, useDefaultBehavior, c));
+            cancellationToken => EncapsulateFieldsAsync(document, fields, useDefaultBehavior, cancellationToken));
     }
 
-    public async Task<ImmutableArray<CodeAction>> GetEncapsulateFieldCodeActionsAsync(Document document, TextSpan span, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<CodeAction>> GetEncapsulateFieldCodeActionsAsync(Document document, TextSpan span, CancellationToken cancellationToken)
     {
         var fields = await GetFieldsAsync(document, span, cancellationToken).ConfigureAwait(false);
         if (fields.IsDefaultOrEmpty)
@@ -56,7 +63,7 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
         if (fields.Length == 1)
         {
             // there is only one field
-            return EncapsulateOneField(document, fields[0], fallbackOptions);
+            return EncapsulateOneField(document, fields[0]);
         }
 
         // there are multiple fields.
@@ -66,47 +73,43 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
         {
             // if there is no selection, get action for each field + all of them.
             foreach (var field in fields)
-                builder.AddRange(EncapsulateOneField(document, field, fallbackOptions));
+                builder.AddRange(EncapsulateOneField(document, field));
         }
 
-        builder.AddRange(EncapsulateAllFields(document, fields, fallbackOptions));
+        builder.AddRange(EncapsulateAllFields(document, fields));
         return builder.ToImmutableAndClear();
     }
 
-    private ImmutableArray<CodeAction> EncapsulateAllFields(Document document, ImmutableArray<IFieldSymbol> fields, CleanCodeGenerationOptionsProvider fallbackOptions)
-    {
-        return
-        [
+    private ImmutableArray<CodeAction> EncapsulateAllFields(Document document, ImmutableArray<IFieldSymbol> fields)
+        => [
             CodeAction.Create(
-                    FeaturesResources.Encapsulate_fields_and_use_property,
-                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c),
-                    nameof(FeaturesResources.Encapsulate_fields_and_use_property)),
+                FeaturesResources.Encapsulate_fields_and_use_property,
+                cancellationToken => EncapsulateFieldsAsync(document, fields, updateReferences: true, cancellationToken),
+                nameof(FeaturesResources.Encapsulate_fields_and_use_property)),
             CodeAction.Create(
                 FeaturesResources.Encapsulate_fields_but_still_use_field,
-                c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, c),
+                cancellationToken => EncapsulateFieldsAsync(document, fields, updateReferences: false, cancellationToken),
                 nameof(FeaturesResources.Encapsulate_fields_but_still_use_field)),
         ];
-    }
 
-    private ImmutableArray<CodeAction> EncapsulateOneField(Document document, IFieldSymbol field, CleanCodeGenerationOptionsProvider fallbackOptions)
+    private ImmutableArray<CodeAction> EncapsulateOneField(Document document, IFieldSymbol field)
     {
         var fields = ImmutableArray.Create(field);
         return
         [
             CodeAction.Create(
-                    string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, field.Name),
-                    c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: true, c),
-                    nameof(FeaturesResources.Encapsulate_field_colon_0_and_use_property) + "_" + field.Name),
+                string.Format(FeaturesResources.Encapsulate_field_colon_0_and_use_property, field.Name),
+                cancellationToken => EncapsulateFieldsAsync(document, fields, updateReferences: true, cancellationToken),
+                nameof(FeaturesResources.Encapsulate_field_colon_0_and_use_property) + "_" + field.Name),
             CodeAction.Create(
                 string.Format(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field, field.Name),
-                c => EncapsulateFieldsAsync(document, fields, fallbackOptions, updateReferences: false, c),
+                cancellationToken => EncapsulateFieldsAsync(document, fields, updateReferences: false, cancellationToken),
                 nameof(FeaturesResources.Encapsulate_field_colon_0_but_still_use_field) + "_" + field.Name),
         ];
     }
 
     public async Task<Solution> EncapsulateFieldsAsync(
         Document document, ImmutableArray<IFieldSymbol> fields,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         bool updateReferences, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -121,14 +124,11 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
 
                 var result = await client.TryInvokeAsync<IRemoteEncapsulateFieldService, ImmutableArray<(DocumentId, ImmutableArray<TextChange>)>>(
                     solution,
-                    (service, solutionInfo, callbackId, cancellationToken) => service.EncapsulateFieldsAsync(solutionInfo, callbackId, document.Id, fieldSymbolKeys, updateReferences, cancellationToken),
-                    callbackTarget: new RemoteOptionsProvider<CleanCodeGenerationOptions>(solution.Services, fallbackOptions),
+                    (service, solutionInfo, cancellationToken) => service.EncapsulateFieldsAsync(solutionInfo, document.Id, fieldSymbolKeys, updateReferences, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
-                {
                     return solution;
-                }
 
                 return await RemoteUtilities.UpdateSolutionAsync(
                     solution, result.Value, cancellationToken).ConfigureAwait(false);
@@ -136,10 +136,10 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
         }
 
         return await EncapsulateFieldsInCurrentProcessAsync(
-            document, fields, fallbackOptions, updateReferences, cancellationToken).ConfigureAwait(false);
+            document, fields, updateReferences, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task<Solution> EncapsulateFieldsInCurrentProcessAsync(Document document, ImmutableArray<IFieldSymbol> fields, CleanCodeGenerationOptionsProvider fallbackOptions, bool updateReferences, CancellationToken cancellationToken)
+    private async Task<Solution> EncapsulateFieldsInCurrentProcessAsync(Document document, ImmutableArray<IFieldSymbol> fields, bool updateReferences, CancellationToken cancellationToken)
     {
         Contract.ThrowIfTrue(fields.Length == 0);
 
@@ -155,7 +155,7 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
             if (field.GetSymbolKey(cancellationToken).Resolve(compilation, cancellationToken: cancellationToken).Symbol is not IFieldSymbol currentField)
                 continue;
 
-            var nextSolution = await EncapsulateFieldAsync(document, currentField, updateReferences, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var nextSolution = await EncapsulateFieldAsync(document, currentField, updateReferences, cancellationToken).ConfigureAwait(false);
             if (nextSolution == null)
                 continue;
 
@@ -169,7 +169,6 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
         Document document,
         IFieldSymbol field,
         bool updateReferences,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var originalField = field;
@@ -182,23 +181,6 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
             fieldDeclaration.GetSyntax(cancellationToken).WithAdditionalAnnotations(declarationAnnotation)));
 
         var solution = document.Project.Solution;
-
-        foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
-        {
-            var linkedDocument = solution.GetDocument(linkedDocumentId);
-            var linkedRoot = await linkedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var linkedFieldNode = linkedRoot.FindNode(fieldDeclaration.Span);
-            if (linkedFieldNode.Span != fieldDeclaration.Span)
-            {
-                continue;
-            }
-
-            var updatedRoot = linkedRoot.ReplaceNode(linkedFieldNode, linkedFieldNode.WithAdditionalAnnotations(declarationAnnotation));
-            solution = solution.WithDocumentSyntaxRoot(linkedDocumentId, updatedRoot);
-        }
-
-        document = solution.GetDocument(document.Id);
-
         // Resolve the annotated symbol and prepare for rename.
 
         var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -210,27 +192,15 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
             return null;
 
         var solutionNeedingProperty = await UpdateReferencesAsync(
-            updateReferences, solution, document, field, finalFieldName, generatedPropertyName, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            updateReferences, solution, document, field, finalFieldName, generatedPropertyName, cancellationToken).ConfigureAwait(false);
         document = solutionNeedingProperty.GetDocument(document.Id);
 
         var markFieldPrivate = field.DeclaredAccessibility != Accessibility.Private;
-        var rewrittenFieldDeclaration = await RewriteFieldNameAndAccessibilityAsync(finalFieldName, markFieldPrivate, document, declarationAnnotation, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var rewrittenFieldDeclaration = await RewriteFieldNameAndAccessibilityAsync(finalFieldName, markFieldPrivate, document, declarationAnnotation, cancellationToken).ConfigureAwait(false);
 
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         document = await Formatter.FormatAsync(document.WithSyntaxRoot(rewrittenFieldDeclaration), Formatter.Annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
-
-        solution = document.Project.Solution;
-        foreach (var linkedDocumentId in document.GetLinkedDocumentIds())
-        {
-            var linkedDocument = solution.GetDocument(linkedDocumentId);
-            var linkedDocumentFormattingOptions = await linkedDocument.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var updatedLinkedRoot = await RewriteFieldNameAndAccessibilityAsync(finalFieldName, markFieldPrivate, linkedDocument, declarationAnnotation, fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var updatedLinkedDocument = await Formatter.FormatAsync(linkedDocument.WithSyntaxRoot(updatedLinkedRoot), Formatter.Annotation, linkedDocumentFormattingOptions, cancellationToken).ConfigureAwait(false);
-            solution = updatedLinkedDocument.Project.Solution;
-        }
-
-        document = solution.GetDocument(document.Id);
 
         semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -247,10 +217,10 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
             new SyntaxAnnotation(),
             document);
 
-        var simplifierOptions = await document.GetSimplifierOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var simplifierOptions = await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var documentWithProperty = await AddPropertyAsync(
-            document, document.Project.Solution, field, generatedProperty, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            document, document.Project.Solution, field, generatedProperty, cancellationToken).ConfigureAwait(false);
 
         documentWithProperty = await Formatter.FormatAsync(documentWithProperty, Formatter.Annotation, formattingOptions, cancellationToken).ConfigureAwait(false);
         documentWithProperty = await Simplifier.ReduceAsync(documentWithProperty, simplifierOptions, cancellationToken).ConfigureAwait(false);
@@ -259,14 +229,16 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
     }
 
     private async Task<Solution> UpdateReferencesAsync(
-        bool updateReferences, Solution solution, Document document, IFieldSymbol field, string finalFieldName, string generatedPropertyName, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        bool updateReferences, Solution solution, Document document, IFieldSymbol field, string finalFieldName, string generatedPropertyName, CancellationToken cancellationToken)
     {
         if (!updateReferences)
-        {
             return solution;
-        }
 
         var projectId = document.Project.Id;
+        var linkedDocumentIds = document.GetLinkedDocumentIds();
+        using var _ = PooledHashSet<ProjectId>.GetInstance(out var linkedProjectIds);
+        linkedProjectIds.AddRange(linkedDocumentIds.Select(d => d.ProjectId));
+
         if (field.IsReadOnly)
         {
             // Inside the constructor we want to rename references the field to the final field name.
@@ -274,9 +246,8 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
             if (finalFieldName != field.Name && constructorLocations.Count > 0)
             {
                 solution = await RenameAsync(
-                    solution, field, finalFieldName,
-                    (docId, span) => IntersectsWithAny(docId, span, constructorLocations),
-                    fallbackOptions,
+                    solution, field, finalFieldName, linkedProjectIds,
+                    filter: (docId, span) => IntersectsWithAny(docId, span, constructorLocations),
                     cancellationToken).ConfigureAwait(false);
 
                 document = solution.GetDocument(document.Id);
@@ -288,16 +259,17 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
 
             // Outside the constructor we want to rename references to the field to final property name.
             return await RenameAsync(
-                solution, field, generatedPropertyName,
-                (documentId, span) => !IntersectsWithAny(documentId, span, constructorLocations),
-                fallbackOptions,
+                solution, field, generatedPropertyName, linkedProjectIds,
+                filter: (documentId, span) => !IntersectsWithAny(documentId, span, constructorLocations),
                 cancellationToken).ConfigureAwait(false);
         }
         else
         {
             // Just rename everything.
-            return await Renamer.RenameSymbolAsync(
-                solution, field, new SymbolRenameOptions(), generatedPropertyName, cancellationToken).ConfigureAwait(false);
+            return await RenameAsync(
+                solution, field, generatedPropertyName, linkedProjectIds,
+                filter: static (documentId, span) => true,
+                cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -305,21 +277,18 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
         Solution solution,
         IFieldSymbol field,
         string finalName,
+        HashSet<ProjectId> linkedProjectIds,
         Func<DocumentId, TextSpan, bool> filter,
-        CodeCleanupOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
-        var options = new SymbolRenameOptions(
-            RenameOverloads: false,
-            RenameInStrings: false,
-            RenameInComments: false,
-            RenameFile: false);
-
         var initialLocations = await Renamer.FindRenameLocationsAsync(
-            solution, field, options, cancellationToken).ConfigureAwait(false);
+            solution, field, s_symbolRenameOptions, cancellationToken).ConfigureAwait(false);
 
-        var resolution = await initialLocations.Filter(filter).ResolveConflictsAsync(
-            field, finalName, nonConflictSymbolKeys: default, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        // Ensure we don't update any files in projects linked to us.  That will be taken care of automatically when we
+        // edit the files in the current project
+        var resolution = await initialLocations
+            .Filter((documentId, span) => !linkedProjectIds.Contains(documentId.ProjectId) && filter(documentId, span))
+            .ResolveConflictsAsync(field, finalName, nonConflictSymbolKeys: default, cancellationToken).ConfigureAwait(false);
 
         Contract.ThrowIfFalse(resolution.IsSuccessful);
 
@@ -343,14 +312,11 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
     private ISet<(DocumentId documentId, TextSpan span)> GetConstructorLocations(Solution solution, INamedTypeSymbol containingType)
         => GetConstructorNodes(containingType).Select(n => (solution.GetRequiredDocument(n.SyntaxTree).Id, n.Span)).ToSet();
 
-    internal abstract IEnumerable<SyntaxNode> GetConstructorNodes(INamedTypeSymbol containingType);
-
     protected static async Task<Document> AddPropertyAsync(
         Document document,
         Solution destinationSolution,
         IFieldSymbol field,
         IPropertySymbol property,
-        CodeAndImportGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var codeGenerationService = document.GetLanguageService<ICodeGenerationService>();
@@ -360,8 +326,7 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
         var context = new CodeGenerationSolutionContext(
             destinationSolution,
             new CodeGenerationContext(
-                contextLocation: fieldDeclaration.SyntaxTree.GetLocation(fieldDeclaration.Span)),
-            fallbackOptions);
+                contextLocation: fieldDeclaration.SyntaxTree.GetLocation(fieldDeclaration.Span)));
 
         var destination = field.ContainingType;
         return await codeGenerationService.AddPropertyAsync(
@@ -465,6 +430,4 @@ internal abstract partial class AbstractEncapsulateFieldService : ILanguageServi
         var firstCharacter = EnUSCultureInfo.TextInfo.ToUpper(baseName[0]);
         return firstCharacter.ToString() + baseName[1..];
     }
-
-    private static readonly CultureInfo EnUSCultureInfo = new("en-US");
 }

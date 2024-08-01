@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal virtual CSharpSyntaxNode SyntaxNode
+        internal CSharpSyntaxNode SyntaxNode
         {
             get
             {
@@ -369,6 +369,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // diagnostics that might later get thrown away as possible when binding method calls.
                     return (null, null);
                 }
+                else if (CSharpAttributeData.IsTargetEarlyAttribute(arguments.AttributeType, arguments.AttributeSyntax, AttributeDescription.OverloadResolutionPriorityAttribute))
+                {
+                    if (!CanHaveOverloadResolutionPriority)
+                    {
+                        // Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+                        return (null, null);
+                    }
+
+                    (attributeData, boundAttribute) = arguments.Binder.GetAttribute(arguments.AttributeSyntax, arguments.AttributeType, beforeAttributePartBound: null, afterAttributePartBound: null, out hasAnyDiagnostics);
+
+                    if (attributeData.CommonConstructorArguments is [{ ValueInternal: int priority }])
+                    {
+                        arguments.GetOrCreateData<MethodEarlyWellKnownAttributeData>().OverloadResolutionPriority = priority;
+
+                        if (!hasAnyDiagnostics)
+                        {
+                            return (attributeData, boundAttribute);
+                        }
+                    }
+
+                    return (null, null);
+                }
             }
 
             return base.EarlyDecodeWellKnownAttribute(ref arguments);
@@ -595,6 +617,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (this.IsValidUnscopedRefAttributeTarget())
                 {
                     arguments.GetOrCreateData<MethodWellKnownAttributeData>().HasUnscopedRefAttribute = true;
+
+                    if (ContainingType.IsInterface || IsExplicitInterfaceImplementation)
+                    {
+                        MessageID.IDS_FeatureRefStructInterfaces.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+                    }
                 }
                 else
                 {
@@ -604,6 +631,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if (attribute.IsTargetAttribute(AttributeDescription.InterceptsLocationAttribute))
             {
                 DecodeInterceptsLocationAttribute(arguments);
+            }
+            else if (attribute.IsTargetAttribute(AttributeDescription.OverloadResolutionPriorityAttribute))
+            {
+                MessageID.IDS_OverloadResolutionPriority.CheckFeatureAvailability(diagnostics, arguments.AttributeSyntaxOpt);
+
+                if (!CanHaveOverloadResolutionPriority)
+                {
+                    diagnostics.Add(IsOverride
+                            // Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.
+                            ? ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride
+                            // Cannot use 'OverloadResolutionPriorityAttribute' on this member.
+                            : ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToMember,
+                        arguments.AttributeSyntaxOpt);
+                }
             }
             else
             {
@@ -1452,7 +1493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (IsExtern
                     && !IsAbstract
-                    && !this.IsPartialMethod()
+                    && !this.IsPartialMember()
                     && GetInMethodSyntaxNode() is null
                     && boundAttributes.IsEmpty
                     && !this.ContainingType.IsComImport)
@@ -1702,5 +1743,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return result;
             }
         }
+
+        internal override int? TryGetOverloadResolutionPriority()
+            => GetEarlyDecodedWellKnownAttributeData()?.OverloadResolutionPriority;
     }
 }

@@ -273,4 +273,7 @@
   <data name="New_line_preferences" xml:space="preserve">
     <value>New line preferences</value>
   </data>
+  <data name="Instantiated_parts_threw_exceptions_from_IDisposable_Dispose" xml:space="preserve">
+    <value>Instantiated part(s) threw exception(s) from IDisposable.Dispose().</value>
+  </data>
 </root>

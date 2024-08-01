@@ -315,11 +315,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">L'attività attesa non restituisce alcun valore</target>
         <note />
       </trans-unit>
-      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
-        <source>Base classes contain inaccessible unimplemented members</source>
-        <target state="translated">Le classi di base contengono membri non implementati inaccessibili</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Built_in_Copilot_analysis">
         <source>Built-in Copilot analysis</source>
         <target state="translated">Analisi Copilot predefinita</target>
@@ -403,6 +398,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Changing_0_from_asynchronous_to_synchronous_requires_restarting_the_application">
         <source>Changing {0} from asynchronous to synchronous requires restarting the application.</source>
         <target state="translated">Se si modifica {0} da asincrono a sincrono, è necessario riavviare l'applicazione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Changing_0_might_not_have_any_effect_until_the_application_is_restarted">
+        <source>Changing '{0}' might not have any effect until the application is restarted.</source>
+        <target state="translated">La modifica di '{0}' potrebbe non avere alcun effetto fino al riavvio dell'applicazione.</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_0_to_1_requires_restarting_the_application_because_it_changes_the_shape_of_the_state_machine">
@@ -660,11 +660,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Chiudi</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
-        <source>Do not change this code. Put cleanup code in '{0}' method</source>
-        <target state="translated">Non modificare questo codice. Inserire il codice di pulizia nel metodo '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">Il contenuto corrente del file di origine '{0}' non corrisponde al codice sorgente compilato. Tutte le modifiche apportate a questo file durante il debug non verranno applicate finché il relativo contenuto non corrisponde al codice sorgente compilato.</target>
@@ -825,79 +820,14 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">È stato trovato un solo assembly: '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_abstract_method_0">
-        <source>Generate abstract method '{0}'</source>
-        <target state="translated">Genera il metodo astratto '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_property_0">
-        <source>Generate abstract property '{0}'</source>
-        <target state="translated">Genera la proprietà astratta '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Genera gli operatori di confronto</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constant_0">
-        <source>Generate constant '{0}'</source>
-        <target state="translated">Genera la costante '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_fields">
-        <source>Generate constructor in '{0}' (with fields)</source>
-        <target state="translated">Genera il costruttore in '{0}' (con campi)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_properties">
-        <source>Generate constructor in '{0}' (with properties)</source>
-        <target state="translated">Genera il costruttore in '{0}' (con proprietà)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_enum_member_0">
-        <source>Generate enum member '{0}'</source>
-        <target state="translated">Genera il membro di enumerazione '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_0">
-        <source>Generate field '{0}'</source>
-        <target state="translated">Genera il campo '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">Genera per '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_method_0">
-        <source>Generate method '{0}'</source>
-        <target state="translated">Genera il metodo '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_parameter_0">
-        <source>Generate parameter '{0}'</source>
-        <target state="translated">Generare il parametro '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_parameter_0_and_overrides_implementations">
-        <source>Generate parameter '{0}' (and overrides/implementations)</source>
-        <target state="translated">Generare il parametro '{0}' (e override/implementazioni)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_property_0">
-        <source>Generate property '{0}'</source>
-        <target state="translated">Genera la proprietà '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_field_0">
-        <source>Generate read-only field '{0}'</source>
-        <target state="translated">Genera il campo di sola lettura '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_property_0">
-        <source>Generate read-only property '{0}'</source>
-        <target state="translated">Genera la proprietà di sola lettura '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -930,11 +860,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Implementa '{0}' in modo implicito</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_abstract_class">
-        <source>Implement abstract class</source>
-        <target state="translated">Implementa la classe astratta</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_all_interfaces_explicitly">
         <source>Implement all interfaces explicitly</source>
         <target state="translated">Implementa tutte le interfacce in modo esplicito</target>
@@ -945,11 +870,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
         <target state="translated">Implementa tutte le interfacce in modo implicito</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_all_members_explicitly">
-        <source>Implement all members explicitly</source>
-        <target state="translated">Implementare tutti i membri in modo esplicito</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="translated">Implementa in modo esplicito</target>
@@ -958,16 +878,6 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">Implementa in modo implicito</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_remaining_members_explicitly">
-        <source>Implement remaining members explicitly</source>
-        <target state="translated">Implementare i membri rimanenti in modo esplicito</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_through_0">
-        <source>Implement through '{0}'</source>
-        <target state="translated">Implementa tramite '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -1157,12 +1067,12 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Method_0_must_be_static_and_non_generic">
         <source>Method '{0}' must be static and non-generic</source>
-        <target state="new">Method '{0}' must be static and non-generic</target>
+        <target state="translated">Il metodo '{0}' deve essere statico e non generico</target>
         <note />
       </trans-unit>
       <trans-unit id="Method_0_must_have_a_single_parameter_of_type_1_and_return_2">
         <source>Method '{0}' must have a single parameter of type '{1}' and return '{2}'</source>
-        <target state="new">Method '{0}' must have a single parameter of type '{1}' and return '{2}'</target>
+        <target state="translated">Il metodo '{0}' deve avere un singolo parametro di tipo '{1}' e restituire '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Miscellaneous_Files">
@@ -1278,6 +1188,11 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       <trans-unit id="Moving_0_requires_restarting_the_application">
         <source>Moving {0} requires restarting the application.</source>
         <target state="translated">Se si sposta {0}, è necessario riavviare l'applicazione.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="NET_Code_Actions">
+        <source>.NET Code Actions</source>
+        <target state="new">.NET Code Actions</target>
         <note />
       </trans-unit>
       <trans-unit id="Name_expected">
@@ -1397,7 +1312,7 @@ Assicurarsi di usare l'identificatore "tt" per le lingue per le quali è necessa
       </trans-unit>
       <trans-unit id="Query">
         <source>Query</source>
-        <target state="new">Query</target>
+        <target state="translated">Query</target>
         <note />
       </trans-unit>
       <trans-unit id="Reference_to_undefined_group">
@@ -2637,22 +2552,22 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="SemanticSearch">
         <source>Semantic Search</source>
-        <target state="new">Semantic Search</target>
+        <target state="translated">Ricerca semantica</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_only_supported_on_net_core">
         <source>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</source>
-        <target state="new">Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</target>
+        <target state="translated">La ricerca semantica è supportata solo quando l'analisi del codice viene eseguita in un processo separato nella versione più recente di .NET (vedere Strumenti &gt; Opzioni &gt; Editor di testo &gt; C# &gt; Avanzate).</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_query_failed_to_compile">
         <source>Semantic search query failed to compile</source>
-        <target state="new">Semantic search query failed to compile</target>
+        <target state="translated">Non è stato possibile compilare la query di ricerca semantica</target>
         <note />
       </trans-unit>
       <trans-unit id="Semantic_search_query_terminated_with_exception">
         <source>Semantic search query terminated with exception</source>
-        <target state="new">Semantic search query terminated with exception</target>
+        <target state="translated">Query di ricerca semantica terminata con eccezione</target>
         <note />
       </trans-unit>
       <trans-unit id="Silent">
@@ -2715,24 +2630,19 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
         <target state="translated">Simbolo trovato nel percorso assembly '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Symbol_search">
+        <source>Symbol search</source>
+        <target state="new">Symbol search</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Symbols">
         <source>Symbols</source>
-        <target state="new">Symbols</target>
+        <target state="translated">Simboli</target>
         <note />
       </trans-unit>
       <trans-unit id="Syntax_error">
         <source>Syntax error</source>
         <target state="translated">Errore di sintassi</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
-        <target state="translated">TODO: liberare risorse non gestite (oggetti non gestiti) ed eseguire l'override del finalizzatore</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
-        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
-        <target state="translated">TODO: eseguire l'override del finalizzatore solo se '{0}' contiene codice per liberare risorse non gestite</target>
         <note />
       </trans-unit>
       <trans-unit id="Target_type_matches">
@@ -2752,7 +2662,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="The_query_does_not_specify_0_method_or_top_level_function">
         <source>The query does not specify '{0}' method or top-level function</source>
-        <target state="new">The query does not specify '{0}' method or top-level function</target>
+        <target state="translated">La query non specifica il metodo '{0}' o la funzione di primo livello</target>
         <note />
       </trans-unit>
       <trans-unit id="The_selection_contains_a_local_function_call_without_its_declaration">
@@ -2812,7 +2722,7 @@ Le asserzioni lookbehind positive di larghezza zero vengono usate in genere all'
       </trans-unit>
       <trans-unit id="Unable_to_load_type_0_1">
         <source>Unable to load type '{0}': '{1}'</source>
-        <target state="new">Unable to load type '{0}': '{1}'</target>
+        <target state="translated">Non è possibile caricare il tipo '{0}': '{1}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Unknown_property">
@@ -3905,16 +3815,6 @@ Se l'identificatore di formato "M" viene usato senza altri identificatori di for
         <target state="translated">Genera il costruttore delegante '{0}({1})'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_0_1">
-        <source>Generate constructor '{0}({1})'</source>
-        <target state="translated">Genera il costruttore '{0}({1})'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_assigning_constructor_0_1">
-        <source>Generate field assigning constructor '{0}({1})'</source>
-        <target state="translated">Genera il costruttore per l'assegnazione dei campi '{0}({1})'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Genera Equals e GetHashCode</target>
@@ -3930,21 +3830,6 @@ Se l'identificatore di formato "M" viene usato senza altri identificatori di for
         <target state="translated">Genera GetHashCode()</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_in_0">
-        <source>Generate constructor in '{0}'</source>
-        <target state="translated">Genera il costruttore in '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_all">
-        <source>Generate all</source>
-        <target state="translated">Genera tutto</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_local_0">
-        <source>Generate local '{0}'</source>
-        <target state="translated">Genera l'elemento '{0}' locale</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_0_1_in_new_file">
         <source>Generate {0} '{1}' in new file</source>
         <target state="translated">Genera l'elemento {0} '{1}' nel nuovo file</target>
@@ -3953,21 +3838,6 @@ Se l'identificatore di formato "M" viene usato senza altri identificatori di for
       <trans-unit id="Generate_nested_0_1">
         <source>Generate nested {0} '{1}'</source>
         <target state="translated">Genera l'elemento {0} '{1}' annidato</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_abstractly">
-        <source>Implement interface abstractly</source>
-        <target state="translated">Implementa l'interfaccia in modo astratto</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_through_0">
-        <source>Implement interface through '{0}'</source>
-        <target state="translated">Implementa l'interfaccia tramite '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface">
-        <source>Implement interface</source>
-        <target state="translated">Implementa l'interfaccia</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_field_for_0">
@@ -4250,16 +4120,6 @@ Continuare?</target>
         <target state="translated">Nota: premere due volte TAB per inserire il frammento di codice '{0}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
-        <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">Implementa l'interfaccia in modo esplicito con il criterio Dispose</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_with_Dispose_pattern">
-        <source>Implement interface with Dispose pattern</source>
-        <target state="translated">Implementa l'interfaccia con il criterio Dispose</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
         <source>Computing fix all occurrences code fix...</source>
         <target state="translated">Calcolo di tutte le occorrenze da correggere nel codice...</target>
@@ -4283,16 +4143,6 @@ Continuare?</target>
       <trans-unit id="Solution">
         <source>Solution</source>
         <target state="translated">Soluzione</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects)</source>
-        <target state="translated">TODO: eliminare lo stato gestito (oggetti gestiti)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null</source>
-        <target state="translated">TODO: impostare campi di grandi dimensioni su Null</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler2">
@@ -4643,11 +4493,6 @@ Questa versione è usata {2}</target>
       <trans-unit id="Install_version_0">
         <source>Install version '{0}'</source>
         <target state="translated">Installa la versione '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_variable_0">
-        <source>Generate variable '{0}'</source>
-        <target state="translated">Genera la variabile '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Classes">

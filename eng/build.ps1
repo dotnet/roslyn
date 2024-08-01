@@ -259,7 +259,7 @@ function BuildSolution() {
   $roslynUseHardLinks = if ($ci) { "/p:ROSLYNUSEHARDLINKS=true" } else { "" }
 
   $restoreUseStaticGraphEvaluation = $true
-  
+
   try {
     MSBuild $toolsetBuildProj `
       $bl `
@@ -318,6 +318,11 @@ function GetIbcSourceBranchName() {
 }
 
 function GetIbcDropName() {
+    [Diagnostics.CodeAnalysis.SuppressMessageAttribute(
+     'PSAvoidUsingConvertToSecureStringWithPlainText',
+     '',
+     Justification='$officialVisualStudioDropAccessToken is a script parameter so it needs to be plain text')]
+    param()
 
     if ($officialIbcDrop -and $officialIbcDrop -ne "default"){
         return $officialIbcDrop

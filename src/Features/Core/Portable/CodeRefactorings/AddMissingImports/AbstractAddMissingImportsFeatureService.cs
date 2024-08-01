@@ -15,7 +15,6 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Utilities;
@@ -30,25 +29,24 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
     protected abstract ImmutableArray<AbstractFormattingRule> GetFormatRules(SourceText text);
 
     /// <inheritdoc/>
-    public async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, AddMissingImportsOptions options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+    public async Task<Document> AddMissingImportsAsync(Document document, TextSpan textSpan, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
     {
-        var analysisResult = await AnalyzeAsync(document, textSpan, options, cancellationToken).ConfigureAwait(false);
+        var analysisResult = await AnalyzeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
         return await AddMissingImportsAsync(
-            document, analysisResult, options.CleanupOptions.FormattingOptions, progressTracker, cancellationToken).ConfigureAwait(false);
+            document, analysisResult, progressTracker, cancellationToken).ConfigureAwait(false);
     }
 
     /// <inheritdoc/>
     public async Task<Document> AddMissingImportsAsync(
         Document document,
         AddMissingImportsAnalysisResult analysisResult,
-        SyntaxFormattingOptions formattingOptions,
         IProgress<CodeAnalysisProgress> progressTracker,
         CancellationToken cancellationToken)
     {
         if (analysisResult.CanAddMissingImports)
         {
             // Apply those fixes to the document.
-            var newDocument = await ApplyFixesAsync(document, analysisResult.AddImportFixData, formattingOptions, progressTracker, cancellationToken).ConfigureAwait(false);
+            var newDocument = await ApplyFixesAsync(document, analysisResult.AddImportFixData, progressTracker, cancellationToken).ConfigureAwait(false);
             return newDocument;
         }
 
@@ -56,7 +54,7 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
     }
 
     /// <inheritdoc/>
-    public async Task<AddMissingImportsAnalysisResult> AnalyzeAsync(Document document, TextSpan textSpan, AddMissingImportsOptions options, CancellationToken cancellationToken)
+    public async Task<AddMissingImportsAnalysisResult> AnalyzeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
         // Get the diagnostics that indicate a missing import.
         var addImportFeatureService = document.GetRequiredLanguageService<IAddImportFeatureService>();
@@ -67,10 +65,9 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
         // Since we are not currently considering NuGet packages, pass an empty array
         var packageSources = ImmutableArray<PackageSource>.Empty;
 
-        var addImportOptions = new AddImportOptions(
-            SearchOptions: new() { SearchReferenceAssemblies = true, SearchNuGetPackages = false },
-            CleanupOptions: options.CleanupOptions,
-            HideAdvancedMembers: options.HideAdvancedMembers);
+        var addImportOptions = await document.GetAddImportOptionsAsync(
+            searchOptions: new() { SearchReferenceAssemblies = true, SearchNuGetPackages = false },
+            cancellationToken).ConfigureAwait(false);
 
         var unambiguousFixes = await addImportFeatureService.GetUniqueFixesAsync(
             document, textSpan, FixableDiagnosticIds, symbolSearchService,
@@ -92,7 +89,6 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
     private async Task<Document> ApplyFixesAsync(
         Document document,
         ImmutableArray<AddImportFixData> fixes,
-        SyntaxFormattingOptions formattingOptions,
         IProgress<CodeAnalysisProgress> progressTracker,
         CancellationToken cancellationToken)
     {
@@ -105,6 +101,7 @@ internal abstract class AbstractAddMissingImportsFeatureService : IAddMissingImp
         var textDiffingService = solution.Services.GetRequiredService<IDocumentTextDifferencingService>();
         var packageInstallerService = solution.Services.GetService<IPackageInstallerService>();
         var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         // Do not limit the results since we plan to fix all the reported issues.
         var codeActions = addImportService.GetCodeActionsForFixes(document, fixes, packageInstallerService, maxResults: int.MaxValue);

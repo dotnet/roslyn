@@ -564,6 +564,7 @@ namespace System
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__UnmanagedSignatureCallingConvention
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__NumericIntPtr
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefFields
+                    || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics
                     || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
                     || special == SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor
                     || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference
@@ -1071,6 +1072,9 @@ namespace System
                     case WellKnownMember.System_Span_T__CopyTo_Span_T:
                     case WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T:
                     case WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan:
+                    case WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty:
+                    case WellKnownMember.System_Span_T__ctor_ref_T:
+                    case WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T:
                         // Not always available.
                         continue;
                 }

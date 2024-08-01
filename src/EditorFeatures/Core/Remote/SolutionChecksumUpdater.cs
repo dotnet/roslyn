@@ -205,45 +205,36 @@ internal sealed class SolutionChecksumUpdater
 
         async ValueTask SynchronizeTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
         {
-            // this pushes text changes to the remote side if it can.
-            // this is purely perf optimization. whether this pushing text change
-            // worked or not doesn't affect feature's functionality.
+            // this pushes text changes to the remote side if it can. this is purely perf optimization. whether this
+            // pushing text change worked or not doesn't affect feature's functionality.
             //
-            // this basically see whether it can cheaply find out text changes
-            // between 2 snapshots, if it can, it will send out that text changes to
-            // remote side.
+            // this basically see whether it can cheaply find out text changes between 2 snapshots, if it can, it will
+            // send out that text changes to remote side.
             //
-            // the remote side, once got the text change, will again see whether
-            // it can use that text change information without any high cost and
-            // create new snapshot from it.
+            // the remote side, once got the text change, will again see whether it can use that text change information
+            // without any high cost and create new snapshot from it.
             //
-            // otherwise, it will do the normal behavior of getting full text from
-            // VS side. this optimization saves times we need to do full text
-            // synchronization for typing scenario.
+            // otherwise, it will do the normal behavior of getting full text from VS side. this optimization saves
+            // times we need to do full text synchronization for typing scenario.
 
-            if ((oldDocument.TryGetText(out var oldText) == false) ||
-                (newDocument.TryGetText(out var newText) == false))
+            if (!oldDocument.TryGetText(out var oldText) ||
+                !newDocument.TryGetText(out var newText))
             {
                 // we only support case where text already exist
                 return;
             }
 
-            // get text changes
+            // Avoid allocating text before seeing if we can bail out.
+            var changeRanges = newText.GetChangeRanges(oldText).AsImmutable();
+            if (changeRanges.Length == 0)
+                return;
+
+            // no benefit here. pulling from remote host is more efficient
+            if (changeRanges is [{ Span.Length: var singleChangeLength }] && singleChangeLength == oldText.Length)
+                return;
+
             var textChanges = newText.GetTextChanges(oldText).AsImmutable();
-            if (textChanges.Length == 0)
-            {
-                // no changes
-                return;
-            }
 
-            // whole document case
-            if (textChanges.Length == 1 && textChanges[0].Span.Length == oldText.Length)
-            {
-                // no benefit here. pulling from remote host is more efficient
-                return;
-            }
-
-            // only cancelled when remote host gets shutdown
             var client = await RemoteHostClient.TryGetClientAsync(_workspace, cancellationToken).ConfigureAwait(false);
             if (client == null)
                 return;

@@ -10,10 +10,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
@@ -155,7 +153,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
                 // Create a context that will add the reported code actions into this
                 using var _2 = ArrayBuilder<CodeAction>.GetInstance(out var codeActions);
                 var action = GetRegisterCodeFixAction(fixAllContext.CodeActionEquivalenceKey, codeActions);
-                var context = new CodeFixContext(document, diagnostic.Location.SourceSpan, [diagnostic], action, fixAllContext.State.CodeActionOptionsProvider, cancellationToken);
+                var context = new CodeFixContext(document, diagnostic.Location.SourceSpan, [diagnostic], action, cancellationToken);
 
                 // Wait for the all the code actions to be reported for this diagnostic.
                 var registerTask = fixAllContext.CodeFixProvider.RegisterCodeFixesAsync(context) ?? Task.CompletedTask;
@@ -253,15 +251,10 @@ internal sealed class BatchFixAllProvider : FixAllProvider
 
     private static async Task<Solution> ApplyChangesAsync(
         Solution currentSolution,
-        ImmutableArray<(DocumentId, TextChangeMerger)> docIdsAndMerger,
+        ImmutableArray<(DocumentId documentId, TextChangeMerger merger)> docIdsAndMerger,
         CancellationToken cancellationToken)
     {
-        foreach (var (documentId, textMerger) in docIdsAndMerger)
-        {
-            var newText = await textMerger.GetFinalMergedTextAsync(cancellationToken).ConfigureAwait(false);
-            currentSolution = currentSolution.WithDocumentText(documentId, newText);
-        }
-
-        return currentSolution;
+        var docIdsAndTexts = await docIdsAndMerger.SelectAsArrayAsync(async t => (t.documentId, await t.merger.GetFinalMergedTextAsync(cancellationToken).ConfigureAwait(false))).ConfigureAwait(false);
+        return currentSolution.WithDocumentTexts(docIdsAndTexts);
     }
 }

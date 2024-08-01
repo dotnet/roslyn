@@ -320,7 +320,7 @@ Block[B0] - Entry
             Statements (1)
                 IAwaitOperation (OperationKind.Await, Type: System.Void, IsImplicit) (Syntax: 'c = disposable')
                   Expression:
-                    IInvocationOperation ( System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'c = disposable')
+                    IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsImplicit) (Syntax: 'c = disposable')
                       Instance Receiver:
                         ILocalReferenceOperation: c (OperationKind.LocalReference, Type: System.IAsyncDisposable, IsImplicit) (Syntax: 'c = disposable')
                       Arguments(0)
@@ -1047,7 +1047,7 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'using (va
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1674: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // CS1674: 'C': type used in a using statement must implement 'System.IDisposable'
                 //         /*<bind>*/using (var c1 = new C())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var c1 = new C()").WithArguments("C").WithLocation(9, 26)
             };
@@ -1096,7 +1096,7 @@ IUsingOperation (OperationKind.Using, Type: null, IsInvalid) (Syntax: 'using (c1
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1674: 'C': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // CS1674: 'C': type used in a using statement must implement 'System.IDisposable'
                 //         /*<bind>*/using (c1)
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "c1").WithArguments("C").WithLocation(10, 26)
             };
@@ -1939,10 +1939,7 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (6,15): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params int)'
-                //         using(var s = new S())
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "var s = new S()").WithArguments("extras", "S.Dispose(params int)").WithLocation(6, 15),
-                // (6,15): error CS1674: 'S': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (6,15): error CS1674: 'S': type used in a using statement must implement 'System.IDisposable'.
                 //         using(var s = new S())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(6, 15),
                 // (14,11): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params int)'
@@ -2011,11 +2008,7 @@ Block[B0] - Entry
             Statements (1)
                 IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 's = new S()')
                   Instance Receiver: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 's = new S()')
-                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (NoConversion)
-                      Operand: 
-                        ILocalReferenceOperation: s (OperationKind.LocalReference, Type: S, IsInvalid, IsImplicit) (Syntax: 's = new S()')
+                    ILocalReferenceOperation: s (OperationKind.LocalReference, Type: S, IsInvalid, IsImplicit) (Syntax: 's = new S()')
                   Arguments(0)
             Next (StructuredExceptionHandling) Block[null]
     }
@@ -2080,10 +2073,7 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (6,15): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params int)'
-                //         using(var s = new S())
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "var s = new S()").WithArguments("extras", "S.Dispose(params int)").WithLocation(6, 15),
-                // (6,15): error CS1674: 'S': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (6,15): error CS1674: 'S': type used in a using statement must implement 'System.IDisposable'.
                 //         using(var s = new S())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(6, 15),
                 // (14,11): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params int)'
@@ -2152,11 +2142,7 @@ Block[B0] - Entry
             Statements (1)
                 IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 's = new S()')
                   Instance Receiver: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 's = new S()')
-                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (NoConversion)
-                      Operand: 
-                        ILocalReferenceOperation: s (OperationKind.LocalReference, Type: S, IsInvalid, IsImplicit) (Syntax: 's = new S()')
+                    ILocalReferenceOperation: s (OperationKind.LocalReference, Type: S, IsInvalid, IsImplicit) (Syntax: 's = new S()')
                   Arguments(0)
             Next (StructuredExceptionHandling) Block[null]
     }
@@ -2221,10 +2207,7 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (6,15): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params int)'
-                //         using(var s = new S())
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "var s = new S()").WithArguments("extras", "S.Dispose(params int)").WithLocation(6, 15),
-                // (6,15): error CS1674: 'S': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (6,15): error CS1674: 'S': type used in a using statement must implement 'System.IDisposable'.
                 //         using(var s = new S())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(6, 15),
                 // (14,11): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params int)'
@@ -2293,11 +2276,7 @@ Block[B0] - Entry
             Statements (1)
                 IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 's = new S()')
                   Instance Receiver: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 's = new S()')
-                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (NoConversion)
-                      Operand: 
-                        ILocalReferenceOperation: s (OperationKind.LocalReference, Type: S, IsInvalid, IsImplicit) (Syntax: 's = new S()')
+                    ILocalReferenceOperation: s (OperationKind.LocalReference, Type: S, IsInvalid, IsImplicit) (Syntax: 's = new S()')
                   Arguments(0)
             Next (StructuredExceptionHandling) Block[null]
     }
@@ -2363,10 +2342,7 @@ class C
 
             var expectedDiagnostics = new[]
             {
-                // (6,15): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params object[], int)'
-                //         using(var s = new S())
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "var s = new S()").WithArguments("extras", "S.Dispose(params object[], int)").WithLocation(6, 15),
-                // (6,15): error CS1674: 'S': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (6,15): error CS1674: 'S': type used in a using statement must implement 'System.IDisposable'.
                 //         using(var s = new S())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(6, 15),
                 // (14,11): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'S.Dispose(params object[], int)'
@@ -2437,11 +2413,7 @@ Block[B0] - Entry
             Statements (1)
                 IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 's = new S()')
                   Instance Receiver: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 's = new S()')
-                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (NoConversion)
-                      Operand: 
-                        ILocalReferenceOperation: s (OperationKind.LocalReference, Type: S, IsInvalid, IsImplicit) (Syntax: 's = new S()')
+                    ILocalReferenceOperation: s (OperationKind.LocalReference, Type: S, IsInvalid, IsImplicit) (Syntax: 's = new S()')
                   Arguments(0)
             Next (StructuredExceptionHandling) Block[null]
     }
@@ -2792,11 +2764,7 @@ Block[B0] - Entry
             Statements (1)
                 IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'b ? GetDisp ... e() : input')
                   Instance Receiver: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'b ? GetDisp ... e() : input')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (Boxing)
-                      Operand: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsImplicit) (Syntax: 'b ? GetDisp ... e() : input')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsImplicit) (Syntax: 'b ? GetDisp ... e() : input')
                   Arguments(0)
 
             Next (StructuredExceptionHandling) Block[null]
@@ -2901,11 +2869,7 @@ Block[B0] - Entry
             Statements (1)
                 IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'b ? GetDisp ... >() : input')
                   Instance Receiver: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'b ? GetDisp ... >() : input')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (Boxing)
-                      Operand: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsImplicit) (Syntax: 'b ? GetDisp ... >() : input')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsImplicit) (Syntax: 'b ? GetDisp ... >() : input')
                   Arguments(0)
 
             Next (Regular) Block[B7]
@@ -3032,11 +2996,10 @@ Block[B0] - Entry
             Statements (1)
                 IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsImplicit) (Syntax: 'GetDisposable() ?? input')
                   Instance Receiver: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsImplicit) (Syntax: 'GetDisposable() ?? input')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (Boxing)
-                      Operand: 
+                    IInvocationOperation ( MyDisposable MyDisposable?.GetValueOrDefault()) (OperationKind.Invocation, Type: MyDisposable, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: MyDisposable?, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+                      Arguments(0)
                   Arguments(0)
 
             Next (Regular) Block[B7]
@@ -3309,7 +3272,7 @@ Block[B8] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,16): error CS1674: 'NotDisposable': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // file.cs(6,16): error CS1674: 'NotDisposable': type used in a using statement must implement 'System.IDisposable'
                 //         using (GetDisposable() ?? input)
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "GetDisposable() ?? input").WithArguments("NotDisposable").WithLocation(6, 16)
             };
@@ -3395,11 +3358,7 @@ Block[B0] - Entry
             Statements (1)
                 IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... e() : input')
                   Instance Receiver: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... e() : input')
-                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (NoConversion)
-                      Operand: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... e() : input')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... e() : input')
                   Arguments(0)
             Next (StructuredExceptionHandling) Block[null]
     }
@@ -3409,7 +3368,7 @@ Block[B6] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,16): error CS1674: 'MyDisposable': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // file.cs(6,16): error CS1674: 'MyDisposable': type used in a using statement must implement 'System.IDisposable'
                 //         using (b ? GetDisposable() : input)
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "b ? GetDisposable() : input").WithArguments("MyDisposable").WithLocation(6, 16)
             };
@@ -3499,11 +3458,7 @@ Block[B0] - Entry
             Statements (1)
                 IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... >() : input')
                   Instance Receiver: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... >() : input')
-                      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (Unboxing)
-                      Operand: 
-                        IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... >() : input')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyDisposable, IsInvalid, IsImplicit) (Syntax: 'b ? GetDisp ... >() : input')
                   Arguments(0)
             Next (Regular) Block[B7]
         Block[B7] - Block
@@ -3517,7 +3472,7 @@ Block[B8] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,16): error CS1674: 'MyDisposable': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // file.cs(6,16): error CS1674: 'MyDisposable': type used in a using statement must implement 'System.IDisposable'
                 //         using (b ? GetDisposable<MyDisposable>() : input)
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "b ? GetDisposable<MyDisposable>() : input").WithArguments("MyDisposable").WithLocation(6, 16)
             };
@@ -3622,11 +3577,10 @@ Block[B0] - Entry
             Statements (1)
                 IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
                   Instance Receiver: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
-                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (NoConversion)
-                      Operand: 
+                    IInvocationOperation ( MyDisposable MyDisposable?.GetValueOrDefault()) (OperationKind.Invocation, Type: MyDisposable, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+                      Instance Receiver:
                         IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: MyDisposable?, IsInvalid, IsImplicit) (Syntax: 'GetDisposable() ?? input')
+                      Arguments(0)
                   Arguments(0)
             Next (Regular) Block[B7]
         Block[B7] - Block
@@ -3640,7 +3594,7 @@ Block[B8] - Exit
     Statements (0)
 ";
             var expectedDiagnostics = new[] {
-                // file.cs(6,16): error CS1674: 'MyDisposable?': type used in a using statement must be implicitly convertible to 'System.IDisposable'
+                // file.cs(6,16): error CS1674: 'MyDisposable?': type used in a using statement must implement 'System.IDisposable'
                 //         using (GetDisposable() ?? input)
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "GetDisposable() ?? input").WithArguments("MyDisposable?").WithLocation(6, 16)
             };
@@ -4418,11 +4372,10 @@ Block[B0] - Entry
                   Expression: 
                     IInvocationOperation (virtual System.Threading.Tasks.ValueTask System.IAsyncDisposable.DisposeAsync()) (OperationKind.Invocation, Type: System.Threading.Tasks.ValueTask, IsInvalid, IsImplicit) (Syntax: 's')
                       Instance Receiver: 
-                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IAsyncDisposable, IsInvalid, IsImplicit) (Syntax: 's')
-                          Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                            (NoConversion)
-                          Operand: 
+                        IInvocationOperation ( S S?.GetValueOrDefault()) (OperationKind.Invocation, Type: S, IsInvalid, IsImplicit) (Syntax: 's')
+                          Instance Receiver:
                             IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: S?, IsInvalid, IsImplicit) (Syntax: 's')
+                          Arguments(0)
                       Arguments(0)
             Next (Regular) Block[B5]
         Block[B5] - Block
@@ -4437,7 +4390,7 @@ Block[B6] - Exit
 ";
             var expectedDiagnostics = new[]
             {
-                // (9,22): error CS8410: 'S?': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                // (9,22): error CS8410: 'S?': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using (s)
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "s").WithArguments("S?").WithLocation(9, 22)
             };
@@ -4790,10 +4743,7 @@ Block[B6] - Exit
 ";
             var expectedDiagnostics = new[]
             {
-                // file.cs(8,21): error CS7036: There is no argument given that corresponds to the required parameter 'extras' of 'C.DisposeAsync(int, params int[], bool)'
-                //         await using(this){}
-                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "this").WithArguments("extras", "C.DisposeAsync(int, params int[], bool)").WithLocation(8, 21),
-                // file.cs(8,21): error CS8410: 'C': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
+                // file.cs(8,21): error CS8410: 'C': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.
                 //         await using(this){}
                 Diagnostic(ErrorCode.ERR_NoConvToIAsyncDisp, "this").WithArguments("C").WithLocation(8, 21),
                 // file.cs(11,34): error CS0231: A params parameter must be the last parameter in a parameter list
@@ -7597,11 +7547,7 @@ Block[B0] - Entry
             Statements (1)
                 IInvocationOperation (virtual void System.IDisposable.Dispose()) (OperationKind.Invocation, Type: System.Void, IsInvalid, IsImplicit) (Syntax: 'x = new P()')
                   Instance Receiver: 
-                    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.IDisposable, IsInvalid, IsImplicit) (Syntax: 'x = new P()')
-                      Conversion: CommonConversion (Exists: False, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
-                        (NoConversion)
-                      Operand: 
-                        ILocalReferenceOperation: x (OperationKind.LocalReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'x = new P()')
+                    ILocalReferenceOperation: x (OperationKind.LocalReference, Type: P, IsInvalid, IsImplicit) (Syntax: 'x = new P()')
                   Arguments(0)
             Next (StructuredExceptionHandling) Block[null]
     }
@@ -7612,12 +7558,9 @@ Block[B4] - Exit
 ";
             var expectedDiagnostics = new[]
             {
-                    // file.cs(8,13): warning CS0280: 'P' does not implement the 'disposable' pattern. 'P.Dispose()' has the wrong signature.
-                    //             using var x = new P();
-                    Diagnostic(ErrorCode.WRN_PatternBadSignature, "using var x = new P();").WithArguments("P", "disposable", "P.Dispose()").WithLocation(8, 13),
-                    // file.cs(8,13): error CS1674: 'P': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
-                    //             using var x = new P();
-                    Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var x = new P();").WithArguments("P").WithLocation(8, 13)
+                // file.cs(8,13): error CS1674: 'P': type used in a using statement must implement 'System.IDisposable'.
+                //             using var x = new P();
+                Diagnostic(ErrorCode.ERR_NoConvToIDisp, "using var x = new P();").WithArguments("P").WithLocation(8, 13)
             };
 
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedGraph, expectedDiagnostics);

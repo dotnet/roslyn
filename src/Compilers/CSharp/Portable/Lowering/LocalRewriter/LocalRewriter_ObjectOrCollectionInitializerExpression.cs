@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenReceiver = sequence.Value;
             }
 
-            return node.Update(node.MemberSymbol, rewrittenArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.ReceiverType, node.Type);
+            return node.Update(node.MemberSymbol, rewrittenArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, node.Expanded, node.ArgsToParamsOpt, node.DefaultArguments, node.ResultKind, node.AccessorKind, node.ReceiverType, node.Type);
         }
 
         // Rewrite object initializer member assignments and add them to the result.
@@ -317,6 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 memberInit.ArgsToParamsOpt,
                                 memberInit.DefaultArguments,
                                 memberInit.ResultKind,
+                                memberInit.AccessorKind,
                                 memberInit.ReceiverType,
                                 memberInit.Type);
                         }
@@ -663,7 +664,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
 #if DEBUG
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-            Debug.Assert(_compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType, isChecked: false, ref discardedUseSiteInfo).IsImplicit);
+            Debug.Assert(_compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType, isChecked: false, ref discardedUseSiteInfo).IsImplicit ||
+                         _compilation.Conversions.HasImplicitConversionToOrImplementsVarianceCompatibleInterface(rewrittenReceiver.Type, memberSymbol.ContainingType, ref discardedUseSiteInfo, out _));
             // It is possible there are use site diagnostics from the above, but none that we need report as we aren't generating code for the conversion
 #endif
 
@@ -688,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             rewrittenLeft.Expanded,
                             rewrittenLeft.ArgsToParamsOpt,
                             rewrittenLeft.DefaultArguments,
-                            originalIndexerAccessOrObjectInitializerMember: rewrittenLeft,
+                            rewrittenLeft,
                             isLeftOfAssignment: !isRhsNestedInitializer);
                     }
                     else

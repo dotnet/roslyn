@@ -233,8 +233,8 @@ internal class CSharpIsAndCastCheckDiagnosticAnalyzer : AbstractBuiltInCodeStyle
 
             foreach (var child in current.ChildNodesAndTokens())
             {
-                if (child.IsNode)
-                    stack.Push(child.AsNode()!);
+                if (child.AsNode(out var childNode))
+                    stack.Push(childNode);
             }
         }
 

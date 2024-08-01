@@ -11,14 +11,11 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Implementation.Suggestions;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -34,7 +31,7 @@ internal partial class VisualStudioWorkspaceImpl
     /// <summary>
     /// Singleton the updates the workspace in response to files being opened or closed.
     /// </summary>
-    public sealed class OpenFileTracker : IOpenTextBufferEventListener
+    public sealed partial class OpenFileTracker : IOpenTextBufferEventListener
     {
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;

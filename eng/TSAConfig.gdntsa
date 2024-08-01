@@ -5,11 +5,11 @@
     ],
     "codebaseAdmins": [
         "REDMOND\\jaredpar",
-        "REDMOND\\vaagrawa"
+        "REDMOND\\arkalyan"
     ],
     "instanceUrl": "https://devdiv.visualstudio.com",
     "projectName": "DevDiv",
-    "areaPath": "DevDiv\\NET Developer Experience\\Productivity",
+    "areaPath": "DevDiv\\NET Developer Experience\\CSharp and VB IDE",
     "iterationPath": "DevDiv",
     "tools": [
         "APIScan"

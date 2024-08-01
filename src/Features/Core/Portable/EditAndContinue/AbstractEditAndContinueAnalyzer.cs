@@ -667,8 +667,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             AnalyzeUnchangedActiveMemberBodies(diagnostics, syntacticEdits.Match, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, cancellationToken);
             Debug.Assert(newActiveStatements.All(a => a != null));
 
-            var hasRudeEdits = diagnostics.Count > 0;
-            if (hasRudeEdits)
+            if (!diagnostics.IsEmpty)
             {
                 LogRudeEdits(diagnostics, newText, filePath);
             }
@@ -677,19 +676,22 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 Log.Write("Capabilities required by '{0}': {1}", filePath, capabilities.GrantedCapabilities);
             }
 
+            var hasBlockingRudeEdits = diagnostics.HasBlockingRudeEdits();
+
             return new DocumentAnalysisResults(
                 newDocument.Id,
                 filePath,
                 newActiveStatements.MoveToImmutable(),
                 diagnostics.ToImmutable(),
                 syntaxError: null,
-                hasRudeEdits ? default : semanticEdits,
-                hasRudeEdits ? default : newExceptionRegions.MoveToImmutable(),
-                hasRudeEdits ? default : lineEdits.ToImmutable(),
-                hasRudeEdits ? default : capabilities.GrantedCapabilities,
+                hasBlockingRudeEdits ? default : semanticEdits,
+                hasBlockingRudeEdits ? default : newExceptionRegions.MoveToImmutable(),
+                hasBlockingRudeEdits ? default : lineEdits.ToImmutable(),
+                hasBlockingRudeEdits ? default : capabilities.GrantedCapabilities,
                 analysisStopwatch.Elapsed,
                 hasChanges: true,
-                hasSyntaxErrors: false);
+                hasSyntaxErrors: false,
+                hasBlockingRudeEdits);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -845,6 +847,9 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                         {
                             Contract.ThrowIfFalse(statementPart == -1);
                             oldBody.FindStatementAndPartner(oldStatementSpan, newBody, out newStatement, out statementPart);
+
+                            // We should find a partner statement since we are analyzing method body that has not been changed.
+                            // If this fails we should have calculated the new active statement during the analysis of the updated method body.
                             Contract.ThrowIfNull(newStatement);
                         }
 
@@ -949,11 +954,6 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
         var activeStatementIndices = oldMemberBody?.GetOverlappingActiveStatementIndices(oldActiveStatements)?.ToArray() ?? [];
 
-        if (isMemberReplaced && !activeStatementIndices.IsEmpty())
-        {
-            diagnosticContext.Report(RudeEditKind.ChangingNameOrSignatureOfActiveMember, cancellationToken);
-        }
-
         try
         {
             if (newMemberBody != null)
@@ -1047,6 +1047,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             }
 
             var activeNodesInBody = activeNodes.Where(n => n.EnclosingLambdaBody == null).ToArray();
+            var bodyHasActiveStatement = activeNodesInBody.Length != 0;
 
             var memberBodyMap = ComputeDeclarationBodyMap(oldMemberBody, newMemberBody, activeNodesInBody);
             var aggregateBodyMap = IncludeLambdaBodyMaps(memberBodyMap, activeNodes, ref lazyActiveOrMatchedLambdas);
@@ -1054,7 +1055,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             var oldStateMachineInfo = oldMemberBody?.GetStateMachineInfo() ?? StateMachineInfo.None;
             var newStateMachineInfo = newMemberBody?.GetStateMachineInfo() ?? StateMachineInfo.None;
 
-            ReportStateMachineBodyUpdateRudeEdits(diagnosticContext, memberBodyMap, oldStateMachineInfo, newStateMachineInfo, hasActiveStatement: activeNodesInBody.Length != 0, cancellationToken);
+            ReportStateMachineBodyUpdateRudeEdits(diagnosticContext, memberBodyMap, oldStateMachineInfo, newStateMachineInfo, bodyHasActiveStatement, cancellationToken);
 
             ReportMemberOrLambdaBodyUpdateRudeEdits(
                 diagnosticContext,
@@ -1086,8 +1087,23 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 capabilities,
                 diagnostics,
                 out var newBodyHasLambdas,
+                out var hasLambdaBodyUpdate,
                 out var runtimeRudeEdits,
                 cancellationToken);
+
+            // Report rude edit only if the body itself has active statement, not when only a lambda in the body has one.
+            if (isMemberReplaced && bodyHasActiveStatement)
+            {
+                diagnosticContext.Report(RudeEditKind.ChangingNameOrSignatureOfActiveMember, cancellationToken);
+            }
+
+            // Updating entry point that doesn't have an active statement will most likely have no effect, unless the update is in a lambda body.   
+            // In theory, the code could be updating the entry point while executing static constructor of module initializer,
+            // but those cases are rare.
+            if (!hasLambdaBodyUpdate && !bodyHasActiveStatement && oldMember == oldCompilation.GetEntryPoint(cancellationToken))
+            {
+                diagnosticContext.Report(RudeEditKind.UpdateMightNotHaveAnyEffect, cancellationToken);
+            }
 
             // We need to provide syntax map to the compiler if 
             // 1) The new member has a active statement
@@ -1101,7 +1117,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             //    We create syntax map even if it's not necessary: if any data member initializers are active/contain lambdas.
             //    Since initializers are usually simple the map should not be large enough to make it worth optimizing it away.
             var matchingNodes =
-                (!activeNodes.IsEmpty() ||
+                (!activeNodes.IsEmpty ||
                 newStateMachineInfo.HasSuspensionPoints ||
                 newBodyHasLambdas ||
                 IsConstructorWithMemberInitializers(newMember, cancellationToken) ||
@@ -2339,6 +2355,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         => TypesEquivalent(oldParameter.ConstraintTypes, newParameter.ConstraintTypes, exact) &&
            oldParameter.HasReferenceTypeConstraint == newParameter.HasReferenceTypeConstraint &&
            oldParameter.HasValueTypeConstraint == newParameter.HasValueTypeConstraint &&
+           oldParameter.AllowsRefLikeType == newParameter.AllowsRefLikeType &&
            oldParameter.HasConstructorConstraint == newParameter.HasConstructorConstraint &&
            oldParameter.HasNotNullConstraint == newParameter.HasNotNullConstraint &&
            oldParameter.HasUnmanagedTypeConstraint == newParameter.HasUnmanagedTypeConstraint &&
@@ -2656,9 +2673,9 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                     break;
                                 }
 
-                                // If a partial method definition is deleted (and not moved to another partial type declaration, which is handled above)
+                                // If a partial method/property/indexer definition is deleted (and not moved to another partial type declaration, which is handled above)
                                 // so must be the implementation. An edit will be issued for the implementation change.
-                                if (newSymbol is IMethodSymbol { IsPartialDefinition: true })
+                                if (newSymbol?.IsPartialDefinition() == true)
                                 {
                                     continue;
                                 }
@@ -2806,7 +2823,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                                 // If a partial method definition is inserted (and not moved to another partial type declaration, which is handled above)
                                 // so must be the implementation. An edit will be issued for the implementation change.
-                                if (newSymbol is IMethodSymbol { IsPartialDefinition: true })
+                                if (newSymbol.IsPartialDefinition())
                                 {
                                     continue;
                                 }
@@ -3047,13 +3064,16 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                         var replaceMember = IsMemberOrDelegate(oldSymbol) && IsMemberOrDelegateReplaced(oldSymbol, newSymbol);
 
+                        var signatureRudeEdit = RudeEditKind.None;
                         if (replaceMember && oldSymbol.Name == newSymbol.Name)
                         {
-                            var signatureRudeEdit = GetSignatureChangeRudeEdit(oldSymbol, newSymbol, capabilities);
+                            signatureRudeEdit = GetSignatureChangeRudeEdit(oldSymbol, newSymbol, capabilities);
                             if (signatureRudeEdit != RudeEditKind.None)
                             {
                                 diagnosticContext.Report(signatureRudeEdit, cancellationToken);
-                                continue;
+
+                                // Note: Continue analysis - we need to analyze the changed body and
+                                // update any active statements to avoid contract failures.
                             }
                         }
 
@@ -3090,6 +3110,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                     out syntaxMaps,
                                     cancellationToken);
                             }
+                        }
+
+                        // Skip further symbol update analysis if the member signature change is unsupported:
+                        if (signatureRudeEdit != RudeEditKind.None)
+                        {
+                            continue;
                         }
 
                         AnalyzeSymbolUpdate(diagnosticContext, capabilities, semanticEdits, out var hasAttributeChange, cancellationToken);
@@ -3159,7 +3185,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                     // The partial type needs to be specified in the following cases:
                     // 1) partial method is updated (in case both implementation and definition are updated)
                     // 2) partial type is updated
-                    var partialType = editKind == SemanticEditKind.Update && symbol is IMethodSymbol { PartialDefinitionPart: not null }
+                    var partialType = editKind == SemanticEditKind.Update && symbol.IsPartialImplementation()
                         ? symbolCache.GetKey(symbol.ContainingType, cancellationToken)
                         : IsPartialTypeEdit(oldSymbol, newSymbol, oldTree, newTree)
                         ? symbolKey
@@ -3328,7 +3354,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                     var result = symbolKey.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
 
                     // If we were looking for a definition and an implementation is returned the definition does not exist.
-                    return symbol is IMethodSymbol { PartialDefinitionPart: not null } && result is IMethodSymbol { IsPartialDefinition: true } ? null : result;
+                    return symbol.IsPartialImplementation() && result?.IsPartialDefinition() == true ? null : result;
                 }
 
                 var symbol = newSymbol ?? oldSymbol;
@@ -3599,9 +3625,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             if (symbol is null)
                 return;
 
-            Debug.Assert(symbol is not IMethodSymbol { IsPartialDefinition: true });
-
-            semanticEdits.Add(SemanticEditInfo.CreateUpdate(SymbolKey.Create(symbol, cancellationToken), syntaxMaps: default, partialType: null));
+            semanticEdits.Add(SemanticEditInfo.CreateUpdate(symbol, syntaxMaps: default, cancellationToken));
         }
     }
 
@@ -3640,10 +3664,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             if (symbol is null)
                 return;
 
-            Debug.Assert(symbol is not IMethodSymbol { IsPartialDefinition: true });
-
-            var partialType = symbol is IMethodSymbol { PartialDefinitionPart: not null } ? SymbolKey.Create(symbol.ContainingType, cancellationToken) : (SymbolKey?)null;
-            semanticEdits.Add(SemanticEditInfo.CreateDelete(SymbolKey.Create(symbol, cancellationToken), deletedSymbolContainer, partialType));
+            semanticEdits.Add(SemanticEditInfo.CreateDelete(symbol, deletedSymbolContainer, cancellationToken));
         }
     }
 
@@ -3657,9 +3678,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         // 
         // When inserting a new event we need to insert the entire event, so
         // pevent and method semantics metadata tables can all be updated if/as necessary.
-
-        var partialType = newSymbol is IMethodSymbol { PartialDefinitionPart: not null } ? SymbolKey.Create(newSymbol.ContainingType, cancellationToken) : (SymbolKey?)null;
-        semanticEdits.Add(SemanticEditInfo.CreateInsert(SymbolKey.Create(newSymbol, cancellationToken), partialType));
+        semanticEdits.Add(SemanticEditInfo.CreateInsert(newSymbol, cancellationToken));
     }
 
     private static void AddMemberSignatureOrNameChangeEdits(
@@ -3717,7 +3736,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             if (symbol is null)
                 return;
 
-            semanticEdits.Add(SemanticEditInfo.CreateInsert(SymbolKey.Create(symbol, cancellationToken), partialType: null));
+            semanticEdits.Add(SemanticEditInfo.CreateInsert(symbol, cancellationToken));
         }
 
         void AddDelete(ISymbol? symbol)
@@ -3725,7 +3744,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             if (symbol is null)
                 return;
 
-            semanticEdits.Add(SemanticEditInfo.CreateDelete(SymbolKey.Create(symbol, cancellationToken), containingSymbolKey, partialType: null));
+            semanticEdits.Add(SemanticEditInfo.CreateDelete(symbol, containingSymbolKey, cancellationToken));
         }
     }
 
@@ -5396,10 +5415,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         EditAndContinueCapabilitiesGrantor capabilities,
         ArrayBuilder<RudeEditDiagnostic> diagnostics,
         out bool syntaxMapRequired,
+        out bool hasLambdaBodyUpdate,
         out Func<SyntaxNode, RuntimeRudeEdit?>? runtimeRudeEdits,
         CancellationToken cancellationToken)
     {
         syntaxMapRequired = false;
+        hasLambdaBodyUpdate = false;
         runtimeRudeEdits = null;
 
         if (activeOrMatchedLambdas != null)
@@ -5443,6 +5464,8 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                 if (!oldLambdaBody.IsSyntaxEquivalentTo(newLambdaBody))
                 {
+                    hasLambdaBodyUpdate = true;
+
                     ReportMemberOrLambdaBodyUpdateRudeEdits(
                         diagnosticContext,
                         oldModel.Compilation,

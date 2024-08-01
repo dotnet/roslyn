@@ -12,8 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -22,112 +20,111 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders;
+
+[Trait(Traits.Feature, Traits.Features.Completion)]
+public class ReferenceDirectiveCompletionProviderTests : AbstractInteractiveCSharpCompletionProviderTests
 {
-    [Trait(Traits.Feature, Traits.Features.Completion)]
-    public class ReferenceDirectiveCompletionProviderTests : AbstractInteractiveCSharpCompletionProviderTests
+    internal override Type GetCompletionProviderType()
+        => typeof(ReferenceDirectiveCompletionProvider);
+
+    protected override IEqualityComparer<string> GetStringComparer()
+        => StringComparer.OrdinalIgnoreCase;
+
+    private protected override Task VerifyWorkerAsync(
+        string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
+        SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, char? deletedCharTrigger, bool checkForAbsence,
+        int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
+        string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
+        List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
     {
-        internal override Type GetCompletionProviderType()
-            => typeof(ReferenceDirectiveCompletionProvider);
+        return BaseVerifyWorkerAsync(
+            code, position, expectedItemOrNull, expectedDescriptionOrNull,
+            sourceCodeKind, usePreviousCharAsTrigger, deletedCharTrigger, checkForAbsence,
+            glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
+            displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
+    }
 
-        protected override IEqualityComparer<string> GetStringComparer()
-            => StringComparer.OrdinalIgnoreCase;
+    [Fact]
+    public async Task IsCommitCharacterTest()
+    {
+        var commitCharacters = PathUtilities.IsUnixLikePlatform ? new[] { '"', '/' } : new[] { '"', '\\', '/', ',' };
+        await VerifyCommitCharactersAsync("#r \"$$", textTypedSoFar: "", validChars: commitCharacters, sourceCodeKind: SourceCodeKind.Script);
+    }
 
-        private protected override Task VerifyWorkerAsync(
-            string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
-            SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
-            int? glyph, int? matchPriority, bool? hasSuggestionItem, string displayTextSuffix,
-            string displayTextPrefix, string inlineDescription = null, bool? isComplexTextEdit = null,
-            List<CompletionFilter> matchingFilters = null, CompletionItemFlags? flags = null, CompletionOptions options = null, bool skipSpeculation = false)
-        {
-            return BaseVerifyWorkerAsync(
-                code, position, expectedItemOrNull, expectedDescriptionOrNull,
-                sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
-                glyph, matchPriority, hasSuggestionItem, displayTextSuffix,
-                displayTextPrefix, inlineDescription, isComplexTextEdit, matchingFilters, flags);
-        }
+    [Theory]
+    [InlineData("#r \"$$/")]
+    [InlineData("#r \"$$\\")]
+    [InlineData("#r \"$$,")]
+    [InlineData("#r \"$$A")]
+    [InlineData("#r \"$$!")]
+    [InlineData("#r \"$$(")]
+    public void IsTextualTriggerCharacterTest(string markup)
+        => VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true, SourceCodeKind.Script);
 
-        [Fact]
-        public async Task IsCommitCharacterTest()
-        {
-            var commitCharacters = PathUtilities.IsUnixLikePlatform ? new[] { '"', '/' } : new[] { '"', '\\', '/', ',' };
-            await VerifyCommitCharactersAsync("#r \"$$", textTypedSoFar: "", validChars: commitCharacters, sourceCodeKind: SourceCodeKind.Script);
-        }
+    [ConditionalTheory(typeof(WindowsOnly))]
+    [InlineData(EnterKeyRule.Never)]
+    [InlineData(EnterKeyRule.AfterFullyTypedWord)]
+    [InlineData(EnterKeyRule.Always)] // note: GAC completion helper uses its own EnterKeyRule
+    public async Task SendEnterThroughToEditorTest(EnterKeyRule enterKeyRule)
+        => await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", enterKeyRule, expected: false);
 
-        [Theory]
-        [InlineData("#r \"$$/")]
-        [InlineData("#r \"$$\\")]
-        [InlineData("#r \"$$,")]
-        [InlineData("#r \"$$A")]
-        [InlineData("#r \"$$!")]
-        [InlineData("#r \"$$(")]
-        public void IsTextualTriggerCharacterTest(string markup)
-            => VerifyTextualTriggerCharacter(markup, shouldTriggerWithTriggerOnLettersEnabled: true, shouldTriggerWithTriggerOnLettersDisabled: true, SourceCodeKind.Script);
+    [ConditionalFact(typeof(WindowsOnly))]
+    public async Task GacReference()
+        => await VerifyItemExistsAsync("#r \"$$", "System.Windows.Forms", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
 
-        [ConditionalTheory(typeof(WindowsOnly))]
-        [InlineData(EnterKeyRule.Never)]
-        [InlineData(EnterKeyRule.AfterFullyTypedWord)]
-        [InlineData(EnterKeyRule.Always)] // note: GAC completion helper uses its own EnterKeyRule
-        public async Task SendEnterThroughToEditorTest(EnterKeyRule enterKeyRule)
-            => await VerifySendEnterThroughToEnterAsync("#r \"System$$", "System", enterKeyRule, expected: false);
+    [ConditionalFact(typeof(WindowsOnly))]
+    public async Task GacReferenceFullyQualified()
+    {
+        await VerifyItemExistsAsync(
+            "#r \"System.Windows.Forms,$$",
+            "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+    }
 
-        [ConditionalFact(typeof(WindowsOnly))]
-        public async Task GacReference()
-            => await VerifyItemExistsAsync("#r \"$$", "System.Windows.Forms", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+    [ConditionalFact(typeof(WindowsOnly))]
+    public async Task FileSystemReference()
+    {
+        var systemDir = Path.GetFullPath(Environment.SystemDirectory);
+        var windowsDir = Directory.GetParent(systemDir);
+        var windowsRoot = Directory.GetDirectoryRoot(systemDir);
 
-        [ConditionalFact(typeof(WindowsOnly))]
-        public async Task GacReferenceFullyQualified()
-        {
-            await VerifyItemExistsAsync(
-                "#r \"System.Windows.Forms,$$",
-                "System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089", expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
-        }
+        // we need to get the exact casing from the file system:
+        var normalizedWindowsPath = Directory.GetDirectories(windowsRoot, windowsDir.Name).Single();
+        var windowsFolderName = Path.GetFileName(normalizedWindowsPath);
 
-        [ConditionalFact(typeof(WindowsOnly))]
-        public async Task FileSystemReference()
-        {
-            var systemDir = Path.GetFullPath(Environment.SystemDirectory);
-            var windowsDir = Directory.GetParent(systemDir);
-            var windowsRoot = Directory.GetDirectoryRoot(systemDir);
+        var code = """
+            #r "
+            """ + windowsRoot + "$$";
+        await VerifyItemExistsAsync(code, windowsFolderName, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
+    }
 
-            // we need to get the exact casing from the file system:
-            var normalizedWindowsPath = Directory.GetDirectories(windowsRoot, windowsDir.Name).Single();
-            var windowsFolderName = Path.GetFileName(normalizedWindowsPath);
+    [Theory]
+    [InlineData("$$", false)]
+    [InlineData("#$$", false)]
+    [InlineData("#r$$", false)]
+    [InlineData("#r\"$$", true)]
+    [InlineData(" # r \"$$", true)]
+    [InlineData("""
+        # r "$$"
+        """, true)]
+    [InlineData(" # r \"\"$$", true)]
+    [InlineData("""
+        $$ # r ""
+        """, false)]
+    [InlineData("""
+        # $$r ""
+        """, false)]
+    [InlineData("""
+        # r $$""
+        """, false)]
+    public void ShouldTriggerCompletion(string textWithPositionMarker, bool expectedResult)
+    {
+        var position = textWithPositionMarker.IndexOf("$$");
+        var text = textWithPositionMarker.Replace("$$", "");
 
-            var code = """
-                #r "
-                """ + windowsRoot + "$$";
-            await VerifyItemExistsAsync(code, windowsFolderName, expectedDescriptionOrNull: null, sourceCodeKind: SourceCodeKind.Script);
-        }
-
-        [Theory]
-        [InlineData("$$", false)]
-        [InlineData("#$$", false)]
-        [InlineData("#r$$", false)]
-        [InlineData("#r\"$$", true)]
-        [InlineData(" # r \"$$", true)]
-        [InlineData("""
-            # r "$$"
-            """, true)]
-        [InlineData(" # r \"\"$$", true)]
-        [InlineData("""
-            $$ # r ""
-            """, false)]
-        [InlineData("""
-            # $$r ""
-            """, false)]
-        [InlineData("""
-            # r $$""
-            """, false)]
-        public void ShouldTriggerCompletion(string textWithPositionMarker, bool expectedResult)
-        {
-            var position = textWithPositionMarker.IndexOf("$$");
-            var text = textWithPositionMarker.Replace("$$", "");
-
-            using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
-            var provider = workspace.ExportProvider.GetExports<CompletionProvider, CompletionProviderMetadata>().Single(p => p.Metadata.Language == LanguageNames.CSharp && p.Metadata.Name == nameof(ReferenceDirectiveCompletionProvider)).Value;
-            var languageServices = workspace.Services.GetLanguageServices(LanguageNames.CSharp);
-            Assert.Equal(expectedResult, provider.ShouldTriggerCompletion(languageServices.LanguageServices, SourceText.From(text), position, trigger: default, CompletionOptions.Default, OptionSet.Empty));
-        }
+        using var workspace = new TestWorkspace(composition: FeaturesTestCompositions.Features);
+        var provider = workspace.ExportProvider.GetExports<CompletionProvider, CompletionProviderMetadata>().Single(p => p.Metadata.Language == LanguageNames.CSharp && p.Metadata.Name == nameof(ReferenceDirectiveCompletionProvider)).Value;
+        var languageServices = workspace.Services.GetLanguageServices(LanguageNames.CSharp);
+        Assert.Equal(expectedResult, provider.ShouldTriggerCompletion(languageServices.LanguageServices, SourceText.From(text), position, trigger: default, CompletionOptions.Default, OptionSet.Empty));
     }
 }

@@ -15,6 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertToInterpolatedSt
 
 using VerifyCS = CSharpCodeRefactoringVerifier<CSharpConvertConcatenationToInterpolatedStringRefactoringProvider>;
 
+[UseExportProvider]
 [Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
 public class ConvertConcatenationToInterpolatedStringTests
 {

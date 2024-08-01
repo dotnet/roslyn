@@ -7,10 +7,8 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
-using Microsoft.CodeAnalysis.Shared.Collections;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
@@ -41,12 +39,12 @@ internal class CSharpSyntaxFormatting : AbstractSyntaxFormatting
     public override SyntaxFormattingOptions DefaultOptions
         => CSharpSyntaxFormattingOptions.Default;
 
-    public override SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options, SyntaxFormattingOptions? fallbackOptions)
-        => new CSharpSyntaxFormattingOptions(options, (CSharpSyntaxFormattingOptions?)fallbackOptions);
+    public override SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options)
+        => new CSharpSyntaxFormattingOptions(options);
 
-    protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanIntervalTree? formattingSpans = null)
+    protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanMutableIntervalTree? formattingSpans = null)
         => new AggregatedFormattingResult(node, results, formattingSpans);
 
-    protected override AbstractFormattingResult Format(SyntaxNode node, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> formattingRules, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)
+    protected override AbstractFormattingResult Format(SyntaxNode node, SyntaxFormattingOptions options, ImmutableArray<AbstractFormattingRule> formattingRules, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken)
         => new CSharpFormatEngine(node, options, formattingRules, startToken, endToken).Format(cancellationToken);
 }

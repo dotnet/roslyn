@@ -74,7 +74,7 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
             token != node.TypeArgumentList.GreaterThanToken;
     }
 
-    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
+    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         if (!TryGetGenericIdentifier(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken,
@@ -284,6 +284,22 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
                 parts.Add(Keyword(SyntaxKind.NewKeyword));
                 parts.Add(Punctuation(SyntaxKind.OpenParenToken));
                 parts.Add(Punctuation(SyntaxKind.CloseParenToken));
+                needComma = true;
+            }
+
+            if (typeParam.AllowsRefLikeType)
+            {
+                if (needComma)
+                {
+                    parts.Add(Punctuation(SyntaxKind.CommaToken));
+                    parts.Add(Space());
+                }
+
+                parts.Add(Keyword(SyntaxKind.AllowsKeyword));
+                parts.Add(Space());
+                parts.Add(Keyword(SyntaxKind.RefKeyword));
+                parts.Add(Space());
+                parts.Add(Keyword(SyntaxKind.StructKeyword));
             }
         }
 
@@ -293,6 +309,7 @@ internal partial class GenericNameSignatureHelpProvider : AbstractCSharpSignatur
     private static bool TypeParameterHasConstraints(ITypeParameterSymbol typeParam)
     {
         return !typeParam.ConstraintTypes.IsDefaultOrEmpty || typeParam.HasConstructorConstraint ||
-            typeParam.HasReferenceTypeConstraint || typeParam.HasValueTypeConstraint;
+            typeParam.HasReferenceTypeConstraint || typeParam.HasValueTypeConstraint ||
+            typeParam.AllowsRefLikeType;
     }
 }

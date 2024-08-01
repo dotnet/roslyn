@@ -19,9 +19,7 @@ using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
@@ -100,26 +98,23 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         internal override Task<CodeRefactoring> GetCodeRefactoringAsync(TestWorkspace workspace, TestParameters parameters)
             => throw new NotImplementedException("No refactoring provided in diagnostic test");
 
-        protected static void AddAnalyzerToWorkspace(Workspace workspace, DiagnosticAnalyzer analyzer, TestParameters parameters)
+        protected static void AddAnalyzerToWorkspace(Workspace workspace, DiagnosticAnalyzer analyzer)
         {
-            AnalyzerReference[] analyzeReferences;
+            AnalyzerReference[] analyzerReferences;
             if (analyzer != null)
             {
-                Contract.ThrowIfTrue(parameters.testHost == TestHost.OutOfProcess, $"Out-of-proc testing is not supported since {analyzer} can't be serialized.");
-
-                analyzeReferences = new[] { new AnalyzerImageReference(ImmutableArray.Create(analyzer)) };
+                var analyzerImageReference = new AnalyzerImageReference([analyzer]);
+                analyzerReferences = [analyzerImageReference];
             }
             else
             {
                 // create a serializable analyzer reference:
-                analyzeReferences = new[]
-                {
+                analyzerReferences = [
                     new AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.CSharp).GetType().Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile),
-                    new AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic).GetType().Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)
-                };
+                    new AnalyzerFileReference(DiagnosticExtensions.GetCompilerDiagnosticAnalyzer(LanguageNames.VisualBasic).GetType().Assembly.Location, TestAnalyzerAssemblyLoader.LoadFromFile)];
             }
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(analyzeReferences));
+            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(analyzerReferences));
         }
 
         protected static Document GetDocumentAndSelectSpan(TestWorkspace workspace, out TextSpan span)
@@ -168,7 +163,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                     diagnostic.Location.SourceSpan,
                     ImmutableArray.Create(diagnostic),
                     (a, d) => fixes.Add(new CodeFix(document.Project, a, d)),
-                    testDriver.FallbackOptions,
                     CancellationToken.None);
 
                 await fixer.RegisterCodeFixesAsync(context);
@@ -192,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
             var fixAllState = GetFixAllState(
                 fixAllProvider, diagnostics, fixer, testDriver, document,
-                scope.Value, equivalenceKey, testDriver.FallbackOptions);
+                scope.Value, equivalenceKey);
             var fixAllContext = new FixAllContext(fixAllState, CodeAnalysisProgress.None, CancellationToken.None);
             var fixAllFix = await fixAllProvider.GetFixAsync(fixAllContext);
 
@@ -208,8 +202,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             TestDiagnosticAnalyzerDriver testDriver,
             Document document,
             FixAllScope scope,
-            string equivalenceKey,
-            CodeActionOptionsProvider optionsProvider)
+            string equivalenceKey)
         {
             Assert.NotEmpty(diagnostics);
 
@@ -217,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             {
                 // Bulk fixing diagnostics in selected scope.                    
                 var diagnosticsToFix = ImmutableDictionary.CreateRange([KeyValuePairUtil.Create(document, diagnostics.ToImmutableArray())]);
-                return FixAllState.Create(fixAllProvider, diagnosticsToFix, fixer, equivalenceKey, optionsProvider);
+                return FixAllState.Create(fixAllProvider, diagnosticsToFix, fixer, equivalenceKey);
             }
 
             var diagnostic = diagnostics.First();
@@ -225,8 +218,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             var fixAllDiagnosticProvider = new FixAllDiagnosticProvider(testDriver, diagnosticIds);
 
             return diagnostic.Location.IsInSource
-                ? new FixAllState(fixAllProvider, diagnostic.Location.SourceSpan, document, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider, optionsProvider)
-                : new FixAllState(fixAllProvider, diagnosticSpan: null, document: null, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider, optionsProvider);
+                ? new FixAllState(fixAllProvider, diagnostic.Location.SourceSpan, document, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider)
+                : new FixAllState(fixAllProvider, diagnosticSpan: null, document: null, document.Project, fixer, scope, equivalenceKey, diagnosticIds, fixAllDiagnosticProvider);
         }
 
         private protected Task TestActionCountInAllFixesAsync(

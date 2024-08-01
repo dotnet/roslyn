@@ -41,13 +41,11 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
         private readonly bool _fromDialog;
         private readonly GenerateTypeOptionsResult _generateTypeOptionsResult;
         private readonly CancellationToken _cancellationToken;
-        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions;
 
         public Editor(
             TService service,
             SemanticDocument document,
             State state,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
             bool intoNamespace,
             bool inNewFile,
             CancellationToken cancellationToken)
@@ -55,7 +53,6 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             _service = service;
             _semanticDocument = document;
             _state = state;
-            _fallbackOptions = fallbackOptions;
             _intoNamespace = intoNamespace;
             _inNewFile = inNewFile;
             _cancellationToken = cancellationToken;
@@ -65,7 +62,6 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             TService service,
             SemanticDocument document,
             State state,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
             bool fromDialog,
             GenerateTypeOptionsResult generateTypeOptionsResult,
             CancellationToken cancellationToken)
@@ -76,7 +72,6 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             _service = service;
             _semanticDocument = document;
             _state = state;
-            _fallbackOptions = fallbackOptions;
             _fromDialog = fromDialog;
             _generateTypeOptionsResult = generateTypeOptionsResult;
             _cancellationToken = cancellationToken;
@@ -299,8 +294,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var codeGenResult = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
                 new CodeGenerationSolutionContext(
                     newSolution,
-                    new CodeGenerationContext(newSemanticModel.SyntaxTree.GetLocation(new TextSpan())),
-                    _fallbackOptions),
+                    new CodeGenerationContext(newSemanticModel.SyntaxTree.GetLocation(new TextSpan()))),
                 enclosingNamespace,
                 rootNamespaceOrType,
                 _cancellationToken).ConfigureAwait(false);
@@ -320,7 +314,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                 var formattingService = newDocument.GetLanguageService<INewDocumentFormattingService>();
                 if (formattingService is not null)
                 {
-                    var cleanupOptions = await codeGenResult.GetCodeCleanupOptionsAsync(_fallbackOptions, _cancellationToken).ConfigureAwait(false);
+                    var cleanupOptions = await codeGenResult.GetCodeCleanupOptionsAsync(_cancellationToken).ConfigureAwait(false);
                     codeGenResult = await formattingService.FormatNewDocumentAsync(codeGenResult, _semanticDocument.Document, cleanupOptions, _cancellationToken).ConfigureAwait(false);
                 }
             }
@@ -367,7 +361,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             {
                 updatedSolution = await _service.TryAddUsingsOrImportToDocumentAsync(
                     updatedSolution, modifiedRoot: null, _semanticDocument.Document, _state.SimpleName,
-                    includeUsingsOrImports, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    includeUsingsOrImports, cancellationToken).ConfigureAwait(false);
             }
 
             // Add reference of the updated project to the triggering Project if they are 2 different projects
@@ -398,8 +392,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var codeGenResult = await CodeGenerator.AddNamedTypeDeclarationAsync(
                 new CodeGenerationSolutionContext(
                     solution,
-                    new CodeGenerationContext(afterThisLocation: _semanticDocument.SyntaxTree.GetLocation(_state.SimpleName.Span)),
-                    _fallbackOptions),
+                    new CodeGenerationContext(afterThisLocation: _semanticDocument.SyntaxTree.GetLocation(_state.SimpleName.Span))),
                 enclosingNamespace,
                 namedType,
                 _cancellationToken).ConfigureAwait(false);
@@ -445,8 +438,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var codeGenResult = await CodeGenerator.AddNamespaceOrTypeDeclarationAsync(
                 new CodeGenerationSolutionContext(
                     solution,
-                    new CodeGenerationContext(afterThisLocation: enclosingNamespaceGeneratedTypeToAddAndLocation.Item3),
-                    _fallbackOptions),
+                    new CodeGenerationContext(afterThisLocation: enclosingNamespaceGeneratedTypeToAddAndLocation.Item3)),
                 enclosingNamespaceGeneratedTypeToAddAndLocation.Item1,
                 enclosingNamespaceGeneratedTypeToAddAndLocation.Item2,
                 _cancellationToken).ConfigureAwait(false);
@@ -462,7 +454,6 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                                     _semanticDocument.Document,
                                     _state.SimpleName,
                                     includeUsingsOrImports,
-                                    _fallbackOptions,
                                     _cancellationToken).ConfigureAwait(false);
             }
 
@@ -525,7 +516,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                     AddFoldersToNamespaceContainers(containerList, folders);
 
                     containers = [.. containerList];
-                    includeUsingsOrImports = string.Join(".", [.. containerList]);
+                    includeUsingsOrImports = string.Join(".", containers);
                 }
 
                 // Case 4 : If the type is generated into the same VB project or
@@ -539,7 +530,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                     // Populate the ContainerList
                     AddFoldersToNamespaceContainers(containerList, folders);
                     containers = [.. containerList];
-                    includeUsingsOrImports = string.Join(".", [.. containerList]);
+                    includeUsingsOrImports = string.Join(".", containers);
                     if (!string.IsNullOrWhiteSpace(rootNamespaceOfTheProjectGeneratedInto))
                     {
                         includeUsingsOrImports = string.IsNullOrEmpty(includeUsingsOrImports)
@@ -560,8 +551,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             var codeGenResult = await CodeGenerator.AddNamedTypeDeclarationAsync(
                 new CodeGenerationSolutionContext(
                     solution,
-                    new CodeGenerationContext(contextLocation: _state.SimpleName.GetLocation()),
-                    _fallbackOptions),
+                    new CodeGenerationContext(contextLocation: _state.SimpleName.GetLocation())),
                 _state.TypeToGenerateInOpt,
                 namedType,
                 _cancellationToken)
@@ -616,7 +606,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
                 }
             }
 
-            var fieldNamingRule = await _semanticDocument.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, _fallbackOptions, _cancellationToken).ConfigureAwait(false);
+            var fieldNamingRule = await _semanticDocument.Document.GetApplicableNamingRuleAsync(SymbolKind.Field, Accessibility.Private, _cancellationToken).ConfigureAwait(false);
             var nameToUse = fieldNamingRule.NamingStyle.MakeCompliant(parameterName.NameBasedOnArgument).First();
             parameterToNewFieldMap[parameterName.BestNameForParameter] = nameToUse;
             return false;

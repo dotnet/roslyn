@@ -2,14 +2,18 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -67,9 +71,142 @@ internal readonly struct EmitSolutionUpdateResults
         return DiagnosticData.Create(SyntaxError, solution.GetRequiredDocument(SyntaxError.Location.SourceTree));
     }
 
+    private IEnumerable<Project> GetProjectsContainingBlockingRudeEdits(Solution solution)
+        => RudeEdits
+            .Where(static e => e.Diagnostics.Any(static d => d.Kind.IsBlocking()))
+            .Select(static e => e.DocumentId.ProjectId)
+            .Distinct()
+            .OrderBy(static id => id)
+            .Select(solution.GetRequiredProject);
+
+    /// <summary>
+    /// Returns projects that need to be rebuilt and/or restarted due to blocking rude edits in order to apply changes.
+    /// </summary>
+    /// <param name="isRunningProject">Identifies projects that have been launched.</param>
+    /// <param name="projectsToRestart">Running projects that have to be restarted.</param>
+    /// <param name="projectsToRebuild">Projects whose source have been updated and need to be rebuilt.</param>
+    public void GetProjectsToRebuildAndRestart(
+        Solution solution,
+        Func<Project, bool> isRunningProject,
+        ISet<Project> projectsToRestart,
+        ISet<Project> projectsToRebuild)
+    {
+        var graph = solution.GetProjectDependencyGraph();
+
+        // First, find all running projects that transitively depend on projects with rude edits.
+        // These will need to be rebuilt and restarted. In order to rebuilt these projects
+        // all their transitive references must either be free of source changes or be rebuilt as well.
+        // This may add more running projects to the set of projects we need to restart.
+        // We need to repeat this process until we find a fixed point.
+
+        using var _1 = ArrayBuilder<Project>.GetInstance(out var traversalStack);
+
+        projectsToRestart.Clear();
+        projectsToRebuild.Clear();
+
+        foreach (var projectWithRudeEdit in GetProjectsContainingBlockingRudeEdits(solution))
+        {
+            if (AddImpactedRunningProjects(projectsToRestart, projectWithRudeEdit))
+            {
+                projectsToRebuild.Add(projectWithRudeEdit);
+            }
+        }
+
+        // At this point the restart set contains all running projects directly affected by rude edits.
+        // Next, find projects that were successfully updated and affect running projects.
+
+        if (ModuleUpdates.Updates.IsEmpty || projectsToRestart.IsEmpty())
+        {
+            return;
+        }
+
+        // The set of updated projects is usually much smaller then the number of all projects in the solution.
+        // We iterate over this set updating the reset set until no new project is added to the reset set.
+        // Once a project is determined to affect a running process, all running processes that
+        // reference this project are added to the reset set. The project is then removed from updated
+        // project set as it can't contribute any more running projects to the reset set. 
+        // If an updated project does not affect reset set in a given iteration, it stays in the set
+        // because it may affect reset set later on, after another running project is added to it.
+
+        using var _2 = PooledHashSet<Project>.GetInstance(out var updatedProjects);
+        using var _3 = ArrayBuilder<Project>.GetInstance(out var updatedProjectsToRemove);
+        foreach (var update in ModuleUpdates.Updates)
+        {
+            updatedProjects.Add(solution.GetRequiredProject(update.ProjectId));
+        }
+
+        using var _4 = ArrayBuilder<Project>.GetInstance(out var impactedProjects);
+
+        while (true)
+        {
+            Debug.Assert(updatedProjectsToRemove.Count == 0);
+
+            foreach (var updatedProject in updatedProjects)
+            {
+                if (AddImpactedRunningProjects(impactedProjects, updatedProject) &&
+                    impactedProjects.Any(projectsToRestart.Contains))
+                {
+                    projectsToRestart.AddRange(impactedProjects);
+                    updatedProjectsToRemove.Add(updatedProject);
+                    projectsToRebuild.Add(updatedProject);
+                }
+
+                impactedProjects.Clear();
+            }
+
+            if (updatedProjectsToRemove is [])
+            {
+                // none of the remaining updated projects affect restart set:
+                break;
+            }
+
+            updatedProjects.RemoveAll(updatedProjectsToRemove);
+            updatedProjectsToRemove.Clear();
+        }
+
+        return;
+
+        bool AddImpactedRunningProjects(ICollection<Project> impactedProjects, Project initialProject)
+        {
+            Debug.Assert(traversalStack.Count == 0);
+            traversalStack.Push(initialProject);
+
+            var added = false;
+
+            while (traversalStack.Count > 0)
+            {
+                var project = traversalStack.Pop();
+                if (isRunningProject(project))
+                {
+                    impactedProjects.Add(project);
+                    added = true;
+                }
+
+                foreach (var referencingProjectId in graph.GetProjectsThatDirectlyDependOnThisProject(project.Id))
+                {
+                    traversalStack.Push(solution.GetRequiredProject(referencingProjectId));
+                }
+            }
+
+            return added;
+        }
+    }
+
     public async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsAsync(Solution solution, CancellationToken cancellationToken)
     {
         using var _ = ArrayBuilder<Diagnostic>.GetInstance(out var diagnostics);
+
+        // add semantic and lowering diagnostics reported during delta emit:
+        foreach (var (_, projectEmitDiagnostics) in Diagnostics)
+        {
+            diagnostics.AddRange(projectEmitDiagnostics);
+        }
+
+        // add syntax error:
+        if (SyntaxError != null)
+        {
+            diagnostics.Add(SyntaxError);
+        }
 
         // add rude edits:
         foreach (var (documentId, documentRudeEdits) in RudeEdits)
@@ -84,16 +221,10 @@ internal readonly struct EmitSolutionUpdateResults
             }
         }
 
-        // add emit diagnostics:
-        foreach (var (_, projectEmitDiagnostics) in Diagnostics)
-        {
-            diagnostics.AddRange(projectEmitDiagnostics);
-        }
-
         return diagnostics.ToImmutableAndClear();
     }
 
-    internal static async ValueTask<ImmutableArray<ManagedHotReloadDiagnostic>> GetHotReloadDiagnosticsAsync(
+    internal static async ValueTask<ImmutableArray<ManagedHotReloadDiagnostic>> GetAllDiagnosticsAsync(
         Solution solution,
         ImmutableArray<DiagnosticData> diagnosticData,
         ImmutableArray<(DocumentId DocumentId, ImmutableArray<RudeEditDiagnostic> Diagnostics)> rudeEdits,
@@ -103,22 +234,14 @@ internal readonly struct EmitSolutionUpdateResults
     {
         using var _ = ArrayBuilder<ManagedHotReloadDiagnostic>.GetInstance(out var builder);
 
-        // Add the first compiler emit error. Do not report warnings - they do not block applying the edit.
-        // It's unnecessary to report more then one error since all the diagnostics are already reported in the Error List
-        // and this is just messaging to the agent.
+        // Add semantic and lowering diagnostics reported during delta emit:
 
         foreach (var data in diagnosticData)
         {
-            if (data.Severity != DiagnosticSeverity.Error)
-            {
-                continue;
-            }
-
             builder.Add(data.ToHotReloadDiagnostic(updateStatus));
-
-            // only report first error
-            break;
         }
+
+        // Add syntax error:
 
         if (syntaxError != null)
         {

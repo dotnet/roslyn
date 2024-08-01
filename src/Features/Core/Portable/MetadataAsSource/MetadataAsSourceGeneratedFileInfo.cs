@@ -8,7 +8,6 @@ using System.IO;
 using System.Text;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
@@ -98,7 +97,7 @@ internal sealed class MetadataAsSourceGeneratedFileInfo
                 name: AssemblyIdentity.Name,
                 assemblyName: AssemblyIdentity.Name,
                 language: LanguageName,
-                compilationOutputFilePaths: default,
+                compilationOutputInfo: default,
                 checksumAlgorithm: ChecksumAlgorithm),
             compilationOptions: compilationOptions,
             parseOptions: _parseOptions,

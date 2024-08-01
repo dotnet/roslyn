@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Security.Principal;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -76,7 +75,7 @@ internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
 
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var span = GetCompletionItemSpan(text, position);
-            var serializedOptions = ImmutableArray.Create(KeyValuePairUtil.Create(HideAdvancedMembers, options.HideAdvancedMembers.ToString()));
+            var serializedOptions = ImmutableArray.Create(KeyValuePairUtil.Create(HideAdvancedMembers, options.MemberDisplayOptions.HideAdvancedMembers.ToString()));
 
             var items = CreateCompletionItems(semanticModel, symbols, token, position, serializedOptions);
 
@@ -108,7 +107,7 @@ internal sealed class CrefCompletionProvider() : AbstractCrefCompletionProvider
             parentNode, cancellationToken).ConfigureAwait(false);
 
         var symbols = GetSymbols(token, semanticModel, cancellationToken)
-            .FilterToVisibleAndBrowsableSymbols(options.HideAdvancedMembers, semanticModel.Compilation);
+            .FilterToVisibleAndBrowsableSymbols(options.MemberDisplayOptions.HideAdvancedMembers, semanticModel.Compilation);
 
         return (token, semanticModel, symbols);
     }

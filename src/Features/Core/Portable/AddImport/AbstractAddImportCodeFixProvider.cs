@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -58,9 +57,7 @@ internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvid
 
         var addImportService = document.GetRequiredLanguageService<IAddImportFeatureService>();
         var services = document.Project.Solution.Services;
-
-        var codeActionOptions = context.Options.GetOptions(document.Project.Services);
-        var searchOptions = codeActionOptions.SearchOptions;
+        var searchOptions = await document.GetSymbolSearchOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var symbolSearchService = _symbolSearchService ?? services.GetRequiredService<ISymbolSearchService>();
 
@@ -76,12 +73,7 @@ internal abstract partial class AbstractAddImportCodeFixProvider : CodeFixProvid
             searchOptions = searchOptions with { SearchNuGetPackages = false };
         }
 
-        var cleanupOptions = await document.GetCodeCleanupOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
-
-        var addImportOptions = new AddImportOptions(
-            searchOptions,
-            cleanupOptions,
-            codeActionOptions.HideAdvancedMembers);
+        var addImportOptions = await document.GetAddImportOptionsAsync(searchOptions, cancellationToken).ConfigureAwait(false);
 
         var fixesForDiagnostic = await addImportService.GetFixesForDiagnosticsAsync(
             document, span, diagnostics, MaxResults, symbolSearchService, addImportOptions, packageSources, cancellationToken).ConfigureAwait(false);

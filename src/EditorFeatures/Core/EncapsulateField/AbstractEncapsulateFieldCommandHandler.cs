@@ -18,7 +18,6 @@ using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Operations;
-using Microsoft.VisualStudio.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EncapsulateField;
@@ -26,12 +25,10 @@ namespace Microsoft.CodeAnalysis.EncapsulateField;
 internal abstract class AbstractEncapsulateFieldCommandHandler(
     IThreadingContext threadingContext,
     ITextBufferUndoManagerProvider undoManager,
-    IGlobalOptionService globalOptions,
     IAsynchronousOperationListenerProvider listenerProvider) : ICommandHandler<EncapsulateFieldCommandArgs>
 {
     private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly ITextBufferUndoManagerProvider _undoManager = undoManager;
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
     private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.EncapsulateField);
 
     public string DisplayName => EditorFeaturesResources.Encapsulate_Field;
@@ -81,7 +78,7 @@ internal abstract class AbstractEncapsulateFieldCommandHandler(
         var service = document.GetRequiredLanguageService<AbstractEncapsulateFieldService>();
 
         var result = await service.EncapsulateFieldsInSpanAsync(
-            document, span.Span.ToTextSpan(), _globalOptions.CreateProvider(), useDefaultBehavior: true, cancellationToken).ConfigureAwait(false);
+            document, span.Span.ToTextSpan(), useDefaultBehavior: true, cancellationToken).ConfigureAwait(false);
 
         if (result == null)
         {

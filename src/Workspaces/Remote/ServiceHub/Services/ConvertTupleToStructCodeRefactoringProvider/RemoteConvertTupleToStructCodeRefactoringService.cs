@@ -12,23 +12,23 @@ using Microsoft.CodeAnalysis.ConvertTupleToStruct;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote
 {
-    internal sealed class RemoteConvertTupleToStructCodeRefactoringService(in BrokeredServiceBase.ServiceConstructionArguments arguments, RemoteCallback<IRemoteConvertTupleToStructCodeRefactoringService.ICallback> callback)
+    internal sealed class RemoteConvertTupleToStructCodeRefactoringService(in BrokeredServiceBase.ServiceConstructionArguments arguments)
         : BrokeredServiceBase(arguments), IRemoteConvertTupleToStructCodeRefactoringService
     {
-        internal sealed class Factory : FactoryBase<IRemoteConvertTupleToStructCodeRefactoringService, IRemoteConvertTupleToStructCodeRefactoringService.ICallback>
+        internal sealed class Factory : FactoryBase<IRemoteConvertTupleToStructCodeRefactoringService>
         {
-            protected override IRemoteConvertTupleToStructCodeRefactoringService CreateService(in ServiceConstructionArguments arguments, RemoteCallback<IRemoteConvertTupleToStructCodeRefactoringService.ICallback> callback)
-                => new RemoteConvertTupleToStructCodeRefactoringService(arguments, callback);
+            protected override IRemoteConvertTupleToStructCodeRefactoringService CreateService(in ServiceConstructionArguments arguments)
+                => new RemoteConvertTupleToStructCodeRefactoringService(arguments);
         }
 
         public ValueTask<SerializableConvertTupleToStructResult> ConvertToStructAsync(
             Checksum solutionChecksum,
-            RemoteServiceCallbackId callbackId,
             DocumentId documentId,
             TextSpan span,
             Scope scope,
@@ -40,11 +40,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 var document = solution.GetRequiredDocument(documentId);
 
                 var service = document.GetRequiredLanguageService<IConvertTupleToStructCodeRefactoringProvider>();
-                var fallbackOptions = GetClientOptionsProvider<CleanCodeGenerationOptions, IRemoteConvertTupleToStructCodeRefactoringService.ICallback>(callback, callbackId).ToCleanCodeGenerationOptionsProvider();
 
-                var updatedSolution = await service.ConvertToStructAsync(document, span, scope, fallbackOptions, isRecord, cancellationToken).ConfigureAwait(false);
+                var updatedSolution = await service.ConvertToStructAsync(document, span, scope, isRecord, cancellationToken).ConfigureAwait(false);
 
-                var cleanedSolution = await CleanupAsync(solution, updatedSolution, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var cleanedSolution = await CleanupAsync(solution, updatedSolution, cancellationToken).ConfigureAwait(false);
 
                 var documentTextChanges = await RemoteUtilities.GetDocumentTextChangesAsync(
                     solution, cleanedSolution, cancellationToken).ConfigureAwait(false);
@@ -74,23 +73,27 @@ namespace Microsoft.CodeAnalysis.Remote
             throw ExceptionUtilities.Unreachable();
         }
 
-        private static async Task<Solution> CleanupAsync(Solution oldSolution, Solution newSolution, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        private static async Task<Solution> CleanupAsync(Solution oldSolution, Solution newSolution, CancellationToken cancellationToken)
         {
             var changes = newSolution.GetChangedDocuments(oldSolution);
             var final = newSolution;
 
-            foreach (var docId in changes)
-            {
-                var document = newSolution.GetRequiredDocument(docId);
+            var changedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+                source: changes,
+                produceItems: static async (docId, callback, newSolution, cancellationToken) =>
+                {
+                    var document = newSolution.GetRequiredDocument(docId);
 
-                var options = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-                var cleaned = await CodeAction.CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
+                    var options = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
+                    var cleaned = await CodeAction.CleanupDocumentAsync(document, options, cancellationToken).ConfigureAwait(false);
 
-                var cleanedRoot = await cleaned.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                final = final.WithDocumentSyntaxRoot(docId, cleanedRoot);
-            }
+                    var cleanedRoot = await cleaned.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                    callback((docId, cleanedRoot));
+                },
+                args: newSolution,
+                cancellationToken).ConfigureAwait(false);
 
-            return final;
+            return newSolution.WithDocumentSyntaxRoots(changedDocuments);
         }
     }
 }

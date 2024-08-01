@@ -246,18 +246,26 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
             return last;
         }
 
-        public readonly bool Contains(T value)
-        {
-            if (_builder != null)
-                return _builder.Contains(value);
+        public readonly bool Contains(T value, IEqualityComparer<T>? equalityComparer = null)
+            => IndexOf(value, equalityComparer) >= 0;
 
+        public readonly int IndexOf(T value, IEqualityComparer<T>? equalityComparer = null)
+        {
+            equalityComparer ??= EqualityComparer<T>.Default;
+
+            if (_builder != null)
+                return _builder.IndexOf(value, equalityComparer);
+
+            var index = 0;
             foreach (var v in this)
             {
-                if (EqualityComparer<T>.Default.Equals(v, value))
-                    return true;
+                if (equalityComparer.Equals(v, value))
+                    return index;
+
+                index++;
             }
 
-            return false;
+            return -1;
         }
 
         public readonly Enumerator GetEnumerator()
@@ -266,10 +274,28 @@ namespace Microsoft.CodeAnalysis.Shared.Collections
         }
 
         /// <summary>
+        /// Create an <see cref="OneOrMany{T}"/> with the elements currently held in the temporary array, and clear the
+        /// array.
+        /// </summary>
+        public OneOrMany<T> ToOneOrManyAndClear()
+        {
+            switch (this.Count)
+            {
+                case 0:
+                    return OneOrMany<T>.Empty;
+                case 1:
+                    var result = OneOrMany.Create(this[0]);
+                    this.Clear();
+                    return result;
+                default:
+                    return new(this.ToImmutableAndClear());
+            }
+        }
+
+        /// <summary>
         /// Create an <see cref="ImmutableArray{T}"/> with the elements currently held in the temporary array, and clear
         /// the array.
         /// </summary>
-        /// <returns></returns>
         public ImmutableArray<T> ToImmutableAndClear()
         {
             if (_builder is not null)

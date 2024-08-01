@@ -6,21 +6,16 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
-using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.ExternalAccess.IntelliCode.Api;
 using Microsoft.CodeAnalysis.Features.Intents;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode;
 
@@ -28,11 +23,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.IntelliCode;
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal class IntentSourceProvider(
-    [ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders,
-    IGlobalOptionService globalOptions) : IIntentSourceProvider
+    [ImportMany] IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders) : IIntentSourceProvider
 {
     private readonly ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> _lazyIntentProviders = CreateProviderMap(lazyIntentProviders);
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
 
     private static ImmutableDictionary<(string LanguageName, string IntentName), Lazy<IIntentProvider, IIntentProviderMetadata>> CreateProviderMap(
         IEnumerable<Lazy<IIntentProvider, IIntentProviderMetadata>> lazyIntentProviders)
@@ -71,9 +64,7 @@ internal class IntentSourceProvider(
             originalDocument,
             selectionTextSpan,
             currentDocument,
-            new IntentDataProvider(
-                intentRequestContext.IntentData,
-                _globalOptions.CreateProvider()),
+            new IntentDataProvider(intentRequestContext.IntentData),
             cancellationToken).ConfigureAwait(false);
 
         if (results.IsDefaultOrEmpty)

@@ -7,8 +7,6 @@
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ChangeNamespace;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -29,7 +27,7 @@ internal class MoveToNamespaceCodeActionProvider : CodeRefactoringProvider
     {
         var (document, textSpan, cancellationToken) = context;
         var moveToNamespaceService = document.GetLanguageService<IMoveToNamespaceService>();
-        var actions = await moveToNamespaceService.GetCodeActionsAsync(document, textSpan, context.Options, cancellationToken).ConfigureAwait(false);
+        var actions = await moveToNamespaceService.GetCodeActionsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
         context.RegisterRefactorings(actions);
     }
 }

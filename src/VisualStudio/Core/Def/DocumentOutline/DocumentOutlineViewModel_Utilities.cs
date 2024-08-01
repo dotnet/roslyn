@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -12,19 +11,14 @@ using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.PatternMatching;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.Text;
-using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.DocumentOutline;
-
-using LspDocumentSymbol = DocumentSymbol;
-using Range = Roslyn.LanguageServer.Protocol.Range;
-
-internal delegate Task<ManualInvocationResponse?> LanguageServiceBrokerCallback(
-    ITextBuffer textBuffer, Func<JToken, bool> capabilitiesFilter, string languageServerName, string method, Func<ITextSnapshot, JToken> parameterFactory, CancellationToken cancellationToken);
+internal delegate Task<TResponse?> LanguageServiceBrokerCallback<TRequest, TResponse>(Request<TRequest, TResponse> request, CancellationToken cancellationToken);
 
 internal sealed partial class DocumentOutlineViewModel
 {
@@ -32,34 +26,34 @@ internal sealed partial class DocumentOutlineViewModel
     /// Makes an LSP document symbol request and returns the response and the text snapshot used at 
     /// the time the LSP client sends the request to the server.
     /// </summary>
-    public static async Task<(JToken response, ITextSnapshot snapshot)?> DocumentSymbolsRequestAsync(
+    public static async Task<(RoslynDocumentSymbol[] response, ITextSnapshot snapshot)?> DocumentSymbolsRequestAsync(
         ITextBuffer textBuffer,
-        LanguageServiceBrokerCallback callbackAsync,
+        LanguageServiceBrokerCallback<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]> callbackAsync,
         string textViewFilePath,
         CancellationToken cancellationToken)
     {
         ITextSnapshot? requestSnapshot = null;
-        JToken ParameterFunction(ITextSnapshot snapshot)
-        {
-            requestSnapshot = snapshot;
-            return JToken.FromObject(new RoslynDocumentSymbolParams()
-            {
-                UseHierarchicalSymbols = true,
-                TextDocument = new TextDocumentIdentifier()
-                {
-                    Uri = ProtocolConversions.CreateAbsoluteUri(textViewFilePath)
-                }
-            });
-        }
 
-        var manualResponse = await callbackAsync(
-            textBuffer: textBuffer,
-            method: Methods.TextDocumentDocumentSymbolName,
-            capabilitiesFilter: _ => true,
-            languageServerName: WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
-            parameterFactory: ParameterFunction,
-            cancellationToken: cancellationToken).ConfigureAwait(false);
-        var response = manualResponse?.Response;
+        var request = new DocumentRequest<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]>()
+        {
+            Method = Methods.TextDocumentDocumentSymbolName,
+            LanguageServerName = WellKnownLspServerKinds.AlwaysActiveVSLspServer.ToUserVisibleString(),
+            TextBuffer = textBuffer,
+            ParameterFactory = (snapshot) =>
+            {
+                requestSnapshot = snapshot;
+                return new RoslynDocumentSymbolParams
+                {
+                    TextDocument = new TextDocumentIdentifier
+                    {
+                        Uri = ProtocolConversions.CreateAbsoluteUri(textViewFilePath),
+                    },
+                    UseHierarchicalSymbols = true
+                };
+            }
+        };
+
+        var response = await callbackAsync(request, cancellationToken).ConfigureAwait(false);
 
         // The request snapshot or response can be null if there is no LSP server implementation for
         // the document symbol request for that language.
@@ -100,12 +94,8 @@ internal sealed partial class DocumentOutlineViewModel
     ///         ]
     ///     }
     /// ]
-    public static ImmutableArray<DocumentSymbolData> CreateDocumentSymbolData(JToken token, ITextSnapshot textSnapshot)
+    public static ImmutableArray<DocumentSymbolData> CreateDocumentSymbolData(RoslynDocumentSymbol[] documentSymbols, ITextSnapshot textSnapshot)
     {
-        // If we get no value results back, treat that as empty results.  That way we don't keep showing stale
-        // results if the server starts returning nothing.
-        var documentSymbols = token.ToObject<RoslynDocumentSymbol[]>() ?? [];
-
         // Obtain a flat list of all the document symbols sorted by location in the document.
         var allSymbols = documentSymbols
             .SelectMany(x => x.Children)
@@ -149,7 +139,7 @@ internal sealed partial class DocumentOutlineViewModel
             // Return the nested parent symbol.
             return new DocumentSymbolData(
                 currentParent.Detail ?? currentParent.Name,
-                currentParent.Kind,
+                (Roslyn.LanguageServer.Protocol.SymbolKind)currentParent.Kind,
                 (Glyph)currentParent.Glyph,
                 GetSymbolRangeSpan(currentParent.Range),
                 GetSymbolRangeSpan(currentParent.SelectionRange),
@@ -157,11 +147,16 @@ internal sealed partial class DocumentOutlineViewModel
         }
 
         // Returns whether the child symbol is in range of the parent symbol.
-        static bool Contains(LspDocumentSymbol parent, LspDocumentSymbol child)
+        static bool Contains(RoslynDocumentSymbol parent, RoslynDocumentSymbol child)
         {
-            var parentRange = ProtocolConversions.RangeToLinePositionSpan(parent.Range);
-            var childRange = ProtocolConversions.RangeToLinePositionSpan(child.Range);
+            var parentRange = RangeToLinePositionSpan(parent.Range);
+            var childRange = RangeToLinePositionSpan(child.Range);
             return childRange.Start > parentRange.Start && childRange.End <= parentRange.End;
+
+            static LinePositionSpan RangeToLinePositionSpan(Range range)
+            {
+                return new(new LinePosition(range.Start.Line, range.Start.Character), new LinePosition(range.End.Line, range.End.Character));
+            }
         }
 
         // Converts a Document Symbol Range to a SnapshotSpan within the text snapshot used for the LSP request.

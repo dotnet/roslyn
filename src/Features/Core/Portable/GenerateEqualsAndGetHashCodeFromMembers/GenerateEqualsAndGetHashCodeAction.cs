@@ -4,12 +4,10 @@
 
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -25,7 +23,6 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
         SyntaxNode typeDeclaration,
         INamedTypeSymbol containingType,
         ImmutableArray<ISymbol> selectedMembers,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         bool generateEquals,
         bool generateGetHashCode,
         bool implementIEquatable,
@@ -44,7 +41,6 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
         private readonly SyntaxNode _typeDeclaration = typeDeclaration;
         private readonly INamedTypeSymbol _containingType = containingType;
         private readonly ImmutableArray<ISymbol> _selectedMembers = selectedMembers;
-        private readonly CleanCodeGenerationOptionsProvider _fallbackOptions = fallbackOptions;
 
         public override string EquivalenceKey => Title;
 
@@ -74,8 +70,8 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
                 await AddOperatorsAsync(methods, cancellationToken).ConfigureAwait(false);
             }
 
-            var info = await _document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, _fallbackOptions, cancellationToken).ConfigureAwait(false);
-            var formattingOptions = await _document.GetSyntaxFormattingOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var info = await _document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await _document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var newTypeDeclaration = info.Service.AddMembers(_typeDeclaration, methods, info, cancellationToken);
 
@@ -120,7 +116,7 @@ internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringPro
         {
             var oldRoot = await _document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newDocument = _document.WithSyntaxRoot(oldRoot.ReplaceNode(oldType, newType));
-            var addImportOptions = await _document.GetAddImportPlacementOptionsAsync(_fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var addImportOptions = await _document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             newDocument = await ImportAdder.AddImportsFromSymbolAnnotationAsync(newDocument, addImportOptions, cancellationToken).ConfigureAwait(false);
             return newDocument;

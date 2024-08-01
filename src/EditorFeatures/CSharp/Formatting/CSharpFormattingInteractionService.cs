@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting;
@@ -87,7 +86,7 @@ internal partial class CSharpFormattingInteractionService(EditorOptionsService e
         CancellationToken cancellationToken)
     {
         var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-        var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: true);
+        var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), parsedDocument.LanguageServices, explicitFormat: true);
 
         var span = textSpan ?? new TextSpan(0, parsedDocument.Root.FullSpan.Length);
         var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(parsedDocument.Root, span);
@@ -98,7 +97,7 @@ internal partial class CSharpFormattingInteractionService(EditorOptionsService e
     public Task<ImmutableArray<TextChange>> GetFormattingChangesOnPasteAsync(Document document, ITextBuffer textBuffer, TextSpan textSpan, CancellationToken cancellationToken)
     {
         var parsedDocument = ParsedDocument.CreateSynchronously(document, cancellationToken);
-        var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: true);
+        var options = textBuffer.GetSyntaxFormattingOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), parsedDocument.LanguageServices, explicitFormat: true);
         var service = parsedDocument.LanguageServices.GetRequiredService<ISyntaxFormattingService>();
         return Task.FromResult(service.GetFormattingChangesOnPaste(parsedDocument, textSpan, options, cancellationToken));
     }
@@ -113,7 +112,7 @@ internal partial class CSharpFormattingInteractionService(EditorOptionsService e
 
         if (service.ShouldFormatOnTypedCharacter(parsedDocument, typedChar, position, cancellationToken))
         {
-            var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsService, parsedDocument.LanguageServices, explicitFormat: false);
+            var indentationOptions = textBuffer.GetIndentationOptions(_editorOptionsService, document.Project.GetFallbackAnalyzerOptions(), parsedDocument.LanguageServices, explicitFormat: false);
             return Task.FromResult(service.GetFormattingChangesOnTypedCharacter(parsedDocument, position, indentationOptions, cancellationToken));
         }
 

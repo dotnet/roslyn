@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.Contracts;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
@@ -108,7 +109,7 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         ITreeAndVersionSource treeSource,
         Lazy<Checksum> lazyContentHash,
         DateTime generationDateTime)
-        : base(languageServices, documentServiceProvider, attributes, options, textSource, loadTextOptions, treeSource)
+        : base(languageServices, documentServiceProvider, attributes, textSource, loadTextOptions, options, treeSource)
     {
         Identity = documentIdentity;
 
@@ -116,6 +117,9 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         _lazyContentHash = lazyContentHash;
         GenerationDateTime = generationDateTime;
     }
+
+    protected override TextDocumentState UpdateAttributes(DocumentInfo.DocumentAttributes newAttributes)
+        => throw ExceptionUtilities.Unreachable();
 
     private static Checksum ComputeContentHash(SourceText text)
         => Checksum.From(text.GetContentHash());
@@ -173,7 +177,7 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         return new(
             this.Identity,
             this.LanguageServices,
-            this.Services,
+            this.DocumentServiceProvider,
             this.Attributes,
             this.ParseOptions,
             this.TextAndVersionSource,

@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Operations;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertForEachToFor;
 

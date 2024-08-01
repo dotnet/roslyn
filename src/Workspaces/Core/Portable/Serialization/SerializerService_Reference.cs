@@ -5,9 +5,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Reflection.Metadata;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -22,6 +21,28 @@ using static TemporaryStorageService;
 internal partial class SerializerService
 {
     private const int MetadataFailed = int.MaxValue;
+
+    /// <summary>
+    /// Allow analyzer tests to exercise the oop codepaths, even though they're referring to in-memory instances of
+    /// DiagnosticAnalyzers.  In that case, we'll just share the in-memory instance of the analyzer across the OOP
+    /// boundary (which still runs in proc in tests), but we will still exercise all codepaths that use the RemoteClient
+    /// as well as exercising all codepaths that send data across the OOP boundary.  Effectively, this allows us to
+    /// pretend that a <see cref="AnalyzerImageReference"/> is a <see cref="AnalyzerFileReference"/> during tests.
+    /// </summary>
+    private static readonly object s_analyzerImageReferenceMapGate = new();
+    private static IBidirectionalMap<AnalyzerImageReference, Guid> s_analyzerImageReferenceMap = BidirectionalMap<AnalyzerImageReference, Guid>.Empty;
+
+    private static bool TryGetAnalyzerImageReferenceGuid(AnalyzerImageReference imageReference, out Guid guid)
+    {
+        lock (s_analyzerImageReferenceMapGate)
+            return s_analyzerImageReferenceMap.TryGetValue(imageReference, out guid);
+    }
+
+    private static bool TryGetAnalyzerImageReferenceFromGuid(Guid guid, [NotNullWhen(true)] out AnalyzerImageReference? imageReference)
+    {
+        lock (s_analyzerImageReferenceMapGate)
+            return s_analyzerImageReferenceMap.TryGetKey(guid, out imageReference);
+    }
 
     public static Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
     {
@@ -49,6 +70,11 @@ internal partial class SerializerService
                 case AnalyzerFileReference file:
                     writer.WriteString(file.FullPath);
                     writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
+                    break;
+
+                case AnalyzerImageReference analyzerImageReference:
+                    Contract.ThrowIfFalse(TryGetAnalyzerImageReferenceGuid(analyzerImageReference, out var guid), "AnalyzerImageReferences are only supported during testing");
+                    writer.WriteGuid(guid);
                     break;
 
                 default:
@@ -101,6 +127,12 @@ internal partial class SerializerService
                 writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
                 break;
 
+            case AnalyzerImageReference analyzerImageReference:
+                Contract.ThrowIfFalse(TryGetAnalyzerImageReferenceGuid(analyzerImageReference, out var guid), "AnalyzerImageReferences are only supported during testing");
+                writer.WriteString(nameof(AnalyzerImageReference));
+                writer.WriteGuid(guid);
+                break;
+
             default:
                 throw ExceptionUtilities.UnexpectedValue(reference);
         }
@@ -111,11 +143,17 @@ internal partial class SerializerService
         cancellationToken.ThrowIfCancellationRequested();
 
         var type = reader.ReadString();
-        if (type == nameof(AnalyzerFileReference))
+        switch (type)
         {
-            var fullPath = reader.ReadRequiredString();
-            var shadowCopy = reader.ReadBoolean();
-            return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(new AnalyzerAssemblyLoaderOptions(shadowCopy)));
+            case nameof(AnalyzerFileReference):
+                var fullPath = reader.ReadRequiredString();
+                var shadowCopy = reader.ReadBoolean();
+                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(shadowCopy));
+
+            case nameof(AnalyzerImageReference):
+                var guid = reader.ReadGuid();
+                Contract.ThrowIfFalse(TryGetAnalyzerImageReferenceFromGuid(guid, out var analyzerImageReference));
+                return analyzerImageReference;
         }
 
         throw ExceptionUtilities.UnexpectedValue(type);
@@ -400,7 +438,7 @@ internal partial class SerializerService
             CopyByteArrayToStream(reader, stream, cancellationToken);
 
             var length = stream.Length;
-            var storageHandle = _storageService.WriteToTemporaryStorage(stream, cancellationToken);
+            var storageHandle = _storageService.Value.WriteToTemporaryStorage(stream, cancellationToken);
             Contract.ThrowIfTrue(length != storageHandle.Identifier.Size);
             return ReadModuleMetadataFromStorage(storageHandle);
         }
@@ -411,7 +449,10 @@ internal partial class SerializerService
             // Now read in the module data using that identifier.  This will either be reading from the host's memory if
             // they passed us the information about that memory segment.  Or it will be reading from our own memory if they
             // sent us the full contents.
-            var unmanagedStream = storageHandle.ReadFromTemporaryStorage(cancellationToken);
+            //
+            // The ITemporaryStorageStreamHandle should have given us an UnmanagedMemoryStream
+            // since this only runs on Windows for VS.
+            var unmanagedStream = (UnmanagedMemoryStream)storageHandle.ReadFromTemporaryStorage(cancellationToken);
             Contract.ThrowIfFalse(storageHandle.Identifier.Size == unmanagedStream.Length);
 
             // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
@@ -503,70 +544,14 @@ internal partial class SerializerService
             => new MissingMetadataReference(properties, FilePath, _provider);
     }
 
-    [DebuggerDisplay("{" + nameof(Display) + ",nq}")]
-    private sealed class SerializedMetadataReference : PortableExecutableReference, ISupportTemporaryStorage
+    public static class TestAccessor
     {
-        private readonly Metadata _metadata;
-        private readonly ImmutableArray<TemporaryStorageStreamHandle> _storageHandles;
-        private readonly DocumentationProvider _provider;
-
-        public IReadOnlyList<ITemporaryStorageStreamHandle> StorageHandles => _storageHandles;
-
-        public SerializedMetadataReference(
-            MetadataReferenceProperties properties,
-            string? fullPath,
-            Metadata metadata,
-            ImmutableArray<TemporaryStorageStreamHandle> storageHandles,
-            DocumentationProvider initialDocumentation)
-            : base(properties, fullPath, initialDocumentation)
+        public static void AddAnalyzerImageReference(AnalyzerImageReference analyzerImageReference)
         {
-            Contract.ThrowIfTrue(storageHandles.IsDefault);
-            _metadata = metadata;
-            _storageHandles = storageHandles;
-
-            _provider = initialDocumentation;
-        }
-
-        protected override DocumentationProvider CreateDocumentationProvider()
-        {
-            // this uses documentation provider given at the constructor
-            throw ExceptionUtilities.Unreachable();
-        }
-
-        protected override Metadata GetMetadataImpl()
-            => _metadata;
-
-        protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            => new SerializedMetadataReference(properties, FilePath, _metadata, _storageHandles, _provider);
-
-        public override string ToString()
-        {
-            var metadata = TryGetMetadata(this);
-            var modules = GetModules(metadata);
-
-            return $"""
-            {nameof(SerializedMetadataReference)}
-                FilePath={this.FilePath}
-                Kind={this.Properties.Kind}
-                Aliases={this.Properties.Aliases.Join(",")}
-                EmbedInteropTypes={this.Properties.EmbedInteropTypes}
-                MetadataKind={metadata switch { null => "null", AssemblyMetadata => "assembly", ModuleMetadata => "module", _ => metadata.GetType().Name }}
-                Guids={modules.Select(m => GetMetadataGuid(m).ToString()).Join(",")}
-            """;
-
-            static ImmutableArray<ModuleMetadata> GetModules(Metadata? metadata)
+            lock (s_analyzerImageReferenceMapGate)
             {
-                if (metadata is AssemblyMetadata assemblyMetadata)
-                {
-                    if (TryGetModules(assemblyMetadata, out var modules))
-                        return modules;
-                }
-                else if (metadata is ModuleMetadata moduleMetadata)
-                {
-                    return [moduleMetadata];
-                }
-
-                return [];
+                if (!s_analyzerImageReferenceMap.ContainsKey(analyzerImageReference))
+                    s_analyzerImageReferenceMap = s_analyzerImageReferenceMap.Add(analyzerImageReference, Guid.NewGuid());
             }
         }
     }

@@ -4,14 +4,12 @@
 
 using System;
 using System.Composition;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.ConvertProgram;
-using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -45,7 +43,7 @@ internal class ConvertToTopLevelStatementsCodeRefactoringProvider : CodeRefactor
         if (methodDeclaration is null)
             return;
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         if (!CanOfferUseTopLevelStatements(options.PreferTopLevelStatements, forAnalyzer: false))
             return;
 
@@ -60,7 +58,7 @@ internal class ConvertToTopLevelStatementsCodeRefactoringProvider : CodeRefactor
 
         context.RegisterRefactoring(CodeAction.Create(
             CSharpAnalyzersResources.Convert_to_top_level_statements,
-            c => ConvertToTopLevelStatementsAsync(document, methodDeclaration, context.Options, c),
+            c => ConvertToTopLevelStatementsAsync(document, methodDeclaration, c),
             nameof(CSharpAnalyzersResources.Convert_to_top_level_statements),
             CodeActionPriority.Low));
     }

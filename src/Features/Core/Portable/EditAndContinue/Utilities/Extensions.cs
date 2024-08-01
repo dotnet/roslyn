@@ -3,10 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Threading;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -185,8 +183,33 @@ internal static partial class Extensions
         => (IMethodSymbol?)constructor.ContainingType.GetMembers(WellKnownMemberNames.DeconstructMethodName).FirstOrDefault(
             static (symbol, constructor) => symbol is IMethodSymbol method && HasDeconstructorSignature(method, constructor), constructor)?.PartialAsImplementation();
 
+    /// <summary>
+    /// Returns a partial implementation part of a partial member, or the member itself if it's not partial.
+    /// </summary>
     public static ISymbol PartialAsImplementation(this ISymbol symbol)
-        => symbol is IMethodSymbol { PartialImplementationPart: { } impl } ? impl : symbol;
+        => PartialImplementationPart(symbol) ?? symbol;
+
+    public static bool IsPartialDefinition(this ISymbol symbol)
+        => symbol is IMethodSymbol { IsPartialDefinition: true } or IPropertySymbol { IsPartialDefinition: true };
+
+    public static bool IsPartialImplementation(this ISymbol symbol)
+        => symbol is IMethodSymbol { PartialDefinitionPart: not null } or IPropertySymbol { PartialDefinitionPart: not null };
+
+    public static ISymbol? PartialDefinitionPart(this ISymbol symbol)
+        => symbol switch
+        {
+            IMethodSymbol { PartialDefinitionPart: var def } => def,
+            IPropertySymbol { PartialDefinitionPart: var def } => def,
+            _ => null
+        };
+
+    public static ISymbol? PartialImplementationPart(this ISymbol symbol)
+        => symbol switch
+        {
+            IMethodSymbol { PartialImplementationPart: var impl } => impl,
+            IPropertySymbol { PartialImplementationPart: var impl } => impl,
+            _ => null
+        };
 
     /// <summary>
     /// Returns true if any member of the type implements an interface member explicitly.

@@ -6,7 +6,6 @@ using System;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
-using Newtonsoft.Json.Linq;
 using Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
@@ -24,7 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer
             _projectService = projectService;
         }
 
-        [Obsolete]
         protected internal override void BeforeRequest<TRequest>(TRequest request)
         {
             if (request is ITextDocumentParams textDocumentParams &&

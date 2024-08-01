@@ -716,6 +716,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // is not a string or delegate) we do not check any other operators.  This patches
                 // what is otherwise a flaw in the language specification.  See 11426.
                 GetReferenceEquality(kind, operators);
+                Debug.Assert(operators.Count == 1);
+
+                if ((left.Type is TypeParameterSymbol { AllowsRefLikeType: true } && right.IsLiteralNull()) ||
+                    (right.Type is TypeParameterSymbol { AllowsRefLikeType: true } && left.IsLiteralNull()))
+                {
+                    BinaryOperatorSignature op = operators[0];
+                    Debug.Assert(op.LeftType.IsObjectType());
+                    Debug.Assert(op.RightType.IsObjectType());
+
+                    var convLeft = getOperandConversionForAllowByRefLikeNullCheck(isChecked, left, op.LeftType, ref useSiteInfo);
+                    var convRight = getOperandConversionForAllowByRefLikeNullCheck(isChecked, right, op.RightType, ref useSiteInfo);
+
+                    Debug.Assert(convLeft.IsImplicit);
+                    Debug.Assert(convRight.IsImplicit);
+
+                    results.Add(BinaryOperatorAnalysisResult.Applicable(op, convLeft, convRight));
+                    operators.Free();
+                    return;
+                }
             }
             else
             {
@@ -753,6 +772,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             static bool isUtf8ByteRepresentation(BoundExpression value)
             {
                 return value is BoundUtf8String or BoundBinaryOperator { OperatorKind: BinaryOperatorKind.Utf8Addition };
+            }
+
+            Conversion getOperandConversionForAllowByRefLikeNullCheck(bool isChecked, BoundExpression operand, TypeSymbol objectType, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+            {
+                return (operand.Type is TypeParameterSymbol { AllowsRefLikeType: true }) ? Conversion.Boxing : Conversions.ClassifyConversionFromExpression(operand, objectType, isChecked: isChecked, ref useSiteInfo);
             }
         }
 
@@ -1045,13 +1069,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            var candidates = result.Results;
+            RemoveLowerPriorityMembers<BinaryOperatorAnalysisResult, MethodSymbol>(candidates);
+
             // SPEC: Otherwise, the best function member is the one function member that is better than all other function 
             // SPEC: members with respect to the given argument list, provided that each function member is compared to all 
             // SPEC: other function members using the rules in 7.5.3.2. If there is not exactly one function member that is 
             // SPEC: better than all other function members, then the function member invocation is ambiguous and a binding-time 
             // SPEC: error occurs.
 
-            var candidates = result.Results;
             // Try to find a single best candidate
             int bestIndex = GetTheBestCandidateIndex(left, right, candidates, ref useSiteInfo);
             if (bestIndex != -1)

@@ -7,14 +7,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Formatting;
 
@@ -22,20 +20,16 @@ internal abstract class AbstractSyntaxFormatting : ISyntaxFormatting
 {
     private static readonly Func<TextSpan, bool> s_notEmpty = s => !s.IsEmpty;
 
-    protected AbstractSyntaxFormatting()
-    {
-    }
-
     public abstract SyntaxFormattingOptions DefaultOptions { get; }
-    public abstract SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options, SyntaxFormattingOptions? fallbackOptions);
+    public abstract SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options);
 
     public abstract ImmutableArray<AbstractFormattingRule> GetDefaultFormattingRules();
 
-    protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanIntervalTree? formattingSpans = null);
+    protected abstract IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanMutableIntervalTree? formattingSpans = null);
 
-    protected abstract AbstractFormattingResult Format(SyntaxNode node, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule> rules, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken);
+    protected abstract AbstractFormattingResult Format(SyntaxNode node, SyntaxFormattingOptions options, ImmutableArray<AbstractFormattingRule> rules, SyntaxToken startToken, SyntaxToken endToken, CancellationToken cancellationToken);
 
-    public IFormattingResult GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, IEnumerable<AbstractFormattingRule>? rules, CancellationToken cancellationToken)
+    public IFormattingResult GetFormattingResult(SyntaxNode node, IEnumerable<TextSpan>? spans, SyntaxFormattingOptions options, ImmutableArray<AbstractFormattingRule> rules, CancellationToken cancellationToken)
     {
         IReadOnlyList<TextSpan> spansToFormat;
 
@@ -53,7 +47,8 @@ internal abstract class AbstractSyntaxFormatting : ISyntaxFormatting
             return CreateAggregatedFormattingResult(node, results: []);
         }
 
-        rules ??= GetDefaultFormattingRules();
+        if (rules.IsDefault)
+            rules = GetDefaultFormattingRules();
 
         List<AbstractFormattingResult>? results = null;
         foreach (var (startToken, endToken) in node.ConvertToTokenPairs(spansToFormat))

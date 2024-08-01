@@ -5,17 +5,13 @@
 #nullable disable
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.AutomaticCompletion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.BraceCompletion;
-using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -141,15 +137,15 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             var buffer = session.SubjectBuffer;
             var caret = session.TextView.GetCaretPoint(buffer).Value;
 
-            using (var edit = buffer.CreateEdit())
-            {
-                edit.Insert(caret.Position, text);
-                edit.Apply();
-            }
+            using var edit = buffer.CreateEdit();
+            edit.Insert(caret.Position, text);
+            edit.Apply();
         }
 
         internal static Holder CreateSession(EditorTestWorkspace workspace, char opening, char closing, OptionsCollection globalOptions = null)
         {
+            workspace.SetAnalyzerFallbackAndGlobalOptions(globalOptions);
+
             var document = workspace.Documents.First();
 
             var provider = Assert.IsType<BraceCompletionSessionProvider>(workspace.GetService<IBraceCompletionSessionProvider>());
@@ -157,7 +153,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.AutomaticCompletion
             var openingPoint = new SnapshotPoint(document.GetTextBuffer().CurrentSnapshot, document.CursorPosition.Value);
             var textView = document.GetTextView();
 
-            globalOptions?.SetGlobalOptions(workspace.GlobalOptions);
             workspace.GlobalOptions.SetEditorOptions(textView.Options.GlobalOptions, document.Project.Language);
 
             if (provider.TryCreateSession(textView, openingPoint, opening, closing, out var session))

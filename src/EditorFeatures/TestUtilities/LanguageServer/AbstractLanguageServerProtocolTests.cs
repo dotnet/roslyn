@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,13 +27,10 @@ using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CommonLanguageServerProtocol.Framework;
 using Nerdbank.Streams;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 using Xunit;
@@ -44,6 +42,8 @@ namespace Roslyn.Test.Utilities
     [UseExportProvider]
     public abstract partial class AbstractLanguageServerProtocolTests
     {
+        protected static readonly JsonSerializerOptions JsonSerializerOptions = RoslynLanguageServer.CreateJsonMessageFormatter().JsonSerializerOptions;
+
         private protected readonly AbstractLspLogger TestOutputLspLogger;
         protected AbstractLanguageServerProtocolTests(ITestOutputHelper? testOutputHelper)
         {
@@ -54,7 +54,7 @@ namespace Roslyn.Test.Utilities
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService));
 
-        protected static readonly TestComposition FeaturesLspComposition = EditorTestCompositions.LanguageServerProtocol
+        protected static readonly TestComposition FeaturesLspComposition = LspTestCompositions.LanguageServerProtocol
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService));
 
@@ -124,8 +124,8 @@ namespace Roslyn.Test.Utilities
         /// <param name="actual">the actual object to be converted to JSON.</param>
         public static void AssertJsonEquals<T1, T2>(T1 expected, T2 actual)
         {
-            var expectedStr = JsonConvert.SerializeObject(expected);
-            var actualStr = JsonConvert.SerializeObject(actual);
+            var expectedStr = JsonSerializer.Serialize(expected, JsonSerializerOptions);
+            var actualStr = JsonSerializer.Serialize(actual, JsonSerializerOptions);
             AssertEqualIgnoringWhitespace(expectedStr, actualStr);
         }
 
@@ -269,7 +269,7 @@ namespace Roslyn.Test.Utilities
                 SortText = sortText,
                 InsertTextFormat = LSP.InsertTextFormat.Plaintext,
                 Kind = kind,
-                Data = JObject.FromObject(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document))),
+                Data = JsonSerializer.SerializeToElement(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document)), JsonSerializerOptions),
                 Preselect = preselect,
                 VsResolveTextEditOnCommit = vsResolveTextEditOnCommit,
                 LabelDetails = labelDetails
@@ -384,7 +384,7 @@ namespace Roslyn.Test.Utilities
             InitializationOptions? options, string? workspaceKind, bool mutatingLspWorkspace, TestComposition? composition = null)
         {
             var workspace = new EditorTestWorkspace(
-                composition ?? Composition, workspaceKind, configurationOptions: new WorkspaceConfigurationOptions(EnableOpeningSourceGeneratedFiles: true), supportsLspMutation: mutatingLspWorkspace);
+                composition ?? Composition, workspaceKind, configurationOptions: new WorkspaceConfigurationOptions(ValidateCompilationTrackerStates: true), supportsLspMutation: mutatingLspWorkspace);
             options?.OptionUpdater?.Invoke(workspace.GetService<IGlobalOptionService>());
 
             workspace.GetService<LspWorkspaceRegistrationService>().Register(workspace);
@@ -512,13 +512,6 @@ namespace Roslyn.Test.Utilities
                }
            };
 
-        internal static JsonMessageFormatter CreateJsonMessageFormatter()
-        {
-            var messageFormatter = new JsonMessageFormatter();
-            LSP.VSInternalExtensionUtilities.AddVSInternalExtensionConverters(messageFormatter.JsonSerializer);
-            return messageFormatter;
-        }
-
         internal sealed class TestLspServer : IAsyncDisposable
         {
             public readonly EditorTestWorkspace TestWorkspace;
@@ -536,7 +529,8 @@ namespace Roslyn.Test.Utilities
                 LSP.ClientCapabilities clientCapabilities,
                 RoslynLanguageServer target,
                 Stream clientStream,
-                object? clientTarget = null)
+                object? clientTarget = null,
+                IJsonRpcMessageFormatter? clientMessageFormatter = null)
             {
                 TestWorkspace = testWorkspace;
                 ClientCapabilities = clientCapabilities;
@@ -545,7 +539,9 @@ namespace Roslyn.Test.Utilities
 
                 LanguageServer = target;
 
-                _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, CreateJsonMessageFormatter()), clientTarget)
+                clientMessageFormatter ??= RoslynLanguageServer.CreateJsonMessageFormatter();
+
+                _clientRpc = new JsonRpc(new HeaderDelimitedMessageHandler(clientStream, clientStream, clientMessageFormatter), clientTarget)
                 {
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
@@ -571,13 +567,16 @@ namespace Roslyn.Test.Utilities
                 var (clientStream, serverStream) = FullDuplexStream.CreatePair();
                 var languageServer = CreateLanguageServer(serverStream, serverStream, testWorkspace, initializationOptions.ServerKind, logger);
 
-                var server = new TestLspServer(testWorkspace, locations, initializationOptions.ClientCapabilities, languageServer, clientStream, initializationOptions.ClientTarget);
+                var server = new TestLspServer(testWorkspace, locations, initializationOptions.ClientCapabilities, languageServer, clientStream, initializationOptions.ClientTarget, initializationOptions.ClientMessageFormatter);
 
-                await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
+                if (initializationOptions.CallInitialize)
                 {
-                    Capabilities = initializationOptions.ClientCapabilities,
-                    Locale = initializationOptions.Locale,
-                }, CancellationToken.None);
+                    await server.ExecuteRequestAsync<LSP.InitializeParams, LSP.InitializeResult>(LSP.Methods.InitializeName, new LSP.InitializeParams
+                    {
+                        Capabilities = initializationOptions.ClientCapabilities,
+                        Locale = initializationOptions.Locale,
+                    }, CancellationToken.None);
+                }
 
                 if (initializationOptions.CallInitialized)
                 {
@@ -607,13 +606,13 @@ namespace Roslyn.Test.Utilities
                 var capabilitiesProvider = workspace.ExportProvider.GetExportedValue<ExperimentalCapabilitiesProvider>();
                 var factory = workspace.ExportProvider.GetExportedValue<ILanguageServerFactory>();
 
-                var jsonMessageFormatter = CreateJsonMessageFormatter();
+                var jsonMessageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
                 var jsonRpc = new JsonRpc(new HeaderDelimitedMessageHandler(outputStream, inputStream, jsonMessageFormatter))
                 {
                     ExceptionStrategy = ExceptionProcessing.ISerializable,
                 };
 
-                var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializer, capabilitiesProvider, serverKind, logger, workspace.Services.HostServices);
+                var languageServer = (RoslynLanguageServer)factory.Create(jsonRpc, jsonMessageFormatter.JsonSerializerOptions, capabilitiesProvider, serverKind, logger, workspace.Services.HostServices);
 
                 jsonRpc.StartListening();
                 return languageServer;
@@ -641,6 +640,11 @@ namespace Roslyn.Test.Utilities
             public Task ExecuteNotification0Async(string methodName)
             {
                 return _clientRpc.NotifyWithParameterObjectAsync(methodName);
+            }
+
+            public Task ExecutePreSerializedRequestAsync(string methodName, JsonDocument serializedRequest)
+            {
+                return _clientRpc.InvokeWithParameterObjectAsync(methodName, serializedRequest);
             }
 
             public async Task OpenDocumentAsync(Uri documentUri, string? text = null, string languageId = "")
@@ -705,14 +709,21 @@ namespace Roslyn.Test.Utilities
 
             public IList<LSP.Location> GetLocations(string locationName) => _locations[locationName];
 
+            public Dictionary<string, IList<LSP.Location>> GetLocations() => _locations;
+
             public Solution GetCurrentSolution() => TestWorkspace.CurrentSolution;
 
             public async Task AssertServerShuttingDownAsync()
             {
                 var queueAccessor = GetQueueAccessor()!.Value;
                 await queueAccessor.WaitForProcessingToStopAsync().ConfigureAwait(false);
-                Assert.True(GetServerAccessor().HasShutdownStarted());
-                Assert.True(queueAccessor.IsComplete());
+
+                var shutdownTask = GetServerAccessor().GetShutdownTaskAsync();
+                AssertEx.NotNull(shutdownTask, "Unexpected shutdown not started");
+
+                // Shutdown task will close the queue, so we need to wait for it to complete.
+                await shutdownTask.ConfigureAwait(false);
+                Assert.True(queueAccessor.IsComplete(), "Unexpected queue not complete");
             }
 
             internal async Task WaitForDiagnosticsAsync()

@@ -2,14 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -21,13 +18,12 @@ internal partial class CSharpSelectionResult
     private class ExpressionResult(
         TextSpan originalSpan,
         TextSpan finalSpan,
-        ExtractMethodOptions options,
         bool selectionInExpression,
         SemanticDocument document,
         SyntaxAnnotation firstTokenAnnotation,
         SyntaxAnnotation lastTokenAnnotation,
         bool selectionChanged) : CSharpSelectionResult(
-            originalSpan, finalSpan, options, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
+            originalSpan, finalSpan, selectionInExpression, document, firstTokenAnnotation, lastTokenAnnotation, selectionChanged)
     {
         public override bool ContainingScopeHasAsyncKeyword()
             => false;

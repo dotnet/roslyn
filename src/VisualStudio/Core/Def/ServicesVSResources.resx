@@ -1489,9 +1489,6 @@ Additional information: {1}</value>
   <data name="Reference" xml:space="preserve">
     <value>Reference</value>
   </data>
-  <data name="Enable_all_features_in_opened_files_from_source_generators_experimental" xml:space="preserve">
-    <value>Enable all features in opened files from source generators (experimental)</value>
-  </data>
   <data name="Remove_Unused_References" xml:space="preserve">
     <value>Remove Unused References</value>
   </data>
@@ -1881,6 +1878,10 @@ Additional information: {1}</value>
   <data name="Prefer_primary_constructors" xml:space="preserve">
     <value>Prefer primary constructors</value>
   </data>
+  <data name="Prefer_System_Threading_Lock" xml:space="preserve">
+    <value>Prefer 'System.Threading.Lock'</value>
+    <comment>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</comment>
+  </data>
   <data name="Prefer_collection_expression" xml:space="preserve">
     <value>Prefer collection expression</value>
   </data>
@@ -1915,9 +1916,6 @@ Additional information: {1}</value>
   <data name="Balanced_Run_generators_after_saving_or_building" xml:space="preserve">
     <value>Balanced. Run generators after saving or building</value>
   </data>
-  <data name="Roslyn_save_command_handler" xml:space="preserve">
-    <value>Roslyn save command handler</value>
-  </data>
   <data name="Generator_running" xml:space="preserve">
     <value>Generator running...</value>
   </data>
@@ -1938,5 +1936,8 @@ Additional information: {1}</value>
   </data>
   <data name="Prefer_static_anonymous_functions" xml:space="preserve">
     <value>Prefer static anonymous functions</value>
+  </data>
+  <data name="Show_hints_for_collection_expressions" xml:space="preserve">
+    <value>Show hints for collection expressions</value>
   </data>
 </root>

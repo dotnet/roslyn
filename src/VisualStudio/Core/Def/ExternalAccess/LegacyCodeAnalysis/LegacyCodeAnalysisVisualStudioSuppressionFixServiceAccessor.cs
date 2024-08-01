@@ -5,7 +5,6 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Telemetry;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.ExternalAccess.LegacyCodeAnalysis.Api;
 using Microsoft.CodeAnalysis.Host.Mef;

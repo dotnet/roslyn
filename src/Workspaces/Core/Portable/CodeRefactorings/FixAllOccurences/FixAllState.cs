@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -37,11 +36,10 @@ internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, F
         Document document,
         TextSpan selectionSpan,
         CodeRefactoringProvider codeRefactoringProvider,
-        CodeActionOptionsProvider optionsProvider,
         FixAllScope fixAllScope,
         CodeAction codeAction)
         : this(fixAllProvider, document ?? throw new ArgumentNullException(nameof(document)), document.Project, selectionSpan, codeRefactoringProvider,
-               optionsProvider, fixAllScope, codeAction.Title, codeAction.EquivalenceKey)
+               fixAllScope, codeAction.Title, codeAction.EquivalenceKey)
     {
     }
 
@@ -50,11 +48,10 @@ internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, F
         Project project,
         TextSpan selectionSpan,
         CodeRefactoringProvider codeRefactoringProvider,
-        CodeActionOptionsProvider optionsProvider,
         FixAllScope fixAllScope,
         CodeAction codeAction)
         : this(fixAllProvider, document: null, project ?? throw new ArgumentNullException(nameof(project)), selectionSpan, codeRefactoringProvider,
-               optionsProvider, fixAllScope, codeAction.Title, codeAction.EquivalenceKey)
+               fixAllScope, codeAction.Title, codeAction.EquivalenceKey)
     {
     }
 
@@ -64,11 +61,10 @@ internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, F
         Project project,
         TextSpan selectionSpan,
         CodeRefactoringProvider codeRefactoringProvider,
-        CodeActionOptionsProvider optionsProvider,
         FixAllScope fixAllScope,
         string codeActionTitle,
         string? codeActionEquivalenceKey)
-        : base(fixAllProvider, document, project, codeRefactoringProvider, optionsProvider, fixAllScope, codeActionEquivalenceKey)
+        : base(fixAllProvider, document, project, codeRefactoringProvider, fixAllScope, codeActionEquivalenceKey)
     {
         _selectionSpan = selectionSpan;
         this.CodeActionTitle = codeActionTitle;
@@ -82,7 +78,6 @@ internal sealed class FixAllState : CommonFixAllState<CodeRefactoringProvider, F
             project,
             _selectionSpan,
             this.Provider,
-            this.CodeActionOptionsProvider,
             scope,
             this.CodeActionTitle,
             codeActionEquivalenceKey);

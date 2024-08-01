@@ -81,7 +81,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
         private readonly TextDocument? _document;
         private readonly Project _project;
-        private readonly IdeAnalyzerOptions _ideOptions;
         private readonly TextSpan? _span;
         private readonly AnalysisKind? _analysisKind;
         private readonly IPerformanceTrackerService? _performanceTracker;
@@ -92,7 +91,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             TextDocument? document,
             Project project,
             Checksum solutionChecksum,
-            IdeAnalyzerOptions ideOptions,
             TextSpan? span,
             AnalysisKind? analysisKind,
             DiagnosticAnalyzerInfoCache analyzerInfoCache,
@@ -101,7 +99,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             _document = document;
             _project = project;
             _solutionChecksum = solutionChecksum;
-            _ideOptions = ideOptions;
             _span = span;
             _analysisKind = analysisKind;
             _analyzerInfoCache = analyzerInfoCache;
@@ -113,7 +110,6 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             TextDocument? document,
             Project project,
             Checksum solutionChecksum,
-            IdeAnalyzerOptions ideOptions,
             TextSpan? span,
             IEnumerable<string> analyzerIds,
             AnalysisKind? analysisKind,
@@ -147,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 
             // We execute explicit, user-invoked diagnostics requests with higher priority compared to implicit requests
             // from clients such as editor diagnostic tagger to show squiggles, background analysis to populate the error list, etc.
-            var diagnosticsComputer = new DiagnosticComputer(document, project, solutionChecksum, ideOptions, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
+            var diagnosticsComputer = new DiagnosticComputer(document, project, solutionChecksum, span, analysisKind, analyzerInfoCache, hostWorkspaceServices);
             return isExplicit
                 ? diagnosticsComputer.GetHighPriorityDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken)
                 : diagnosticsComputer.GetNormalPriorityDiagnosticsAsync(analyzerIds, reportSuppressedDiagnostics, logPerformanceInfo, getTelemetryInfo, cancellationToken);
@@ -307,7 +303,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
                         if (task.IsCompleted)
                         {
                             // Make sure to yield so continuations of 'task' can make progress.
-                            await AwaitExtensions.ConfigureAwait(Task.Yield(), false);
+                            await TaskScheduler.Default.SwitchTo(alwaysYield: true);
                         }
                         else
                         {
@@ -554,7 +550,7 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
             // TODO: can we support analyzerExceptionFilter in remote host? 
             //       right now, host doesn't support watson, we might try to use new NonFatal watson API?
             var analyzerOptions = new CompilationWithAnalyzersOptions(
-                options: new WorkspaceAnalyzerOptions(_project.AnalyzerOptions, _ideOptions),
+                options: _project.AnalyzerOptions,
                 onAnalyzerException: null,
                 analyzerExceptionFilter: null,
                 concurrentAnalysis: concurrentAnalysis,

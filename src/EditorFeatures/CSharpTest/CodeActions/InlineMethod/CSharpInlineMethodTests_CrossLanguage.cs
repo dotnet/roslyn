@@ -11,28 +11,28 @@ using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsInlineMethod)]
+public class CSharpInlineMethodTests_CrossLanguage : AbstractCSharpCodeActionTest
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsInlineMethod)]
-    public class CSharpInlineMethodTests_CrossLanguage : AbstractCSharpCodeActionTest
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
+        => new CSharpInlineMethodRefactoringProvider();
+
+    private async Task TestNoActionIsProvided(string initialMarkup)
     {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(EditorTestWorkspace workspace, TestParameters parameters)
-            => new CSharpInlineMethodRefactoringProvider();
+        var workspace = CreateWorkspaceFromOptions(initialMarkup);
+        var (actions, _) = await GetCodeActionsAsync(workspace).ConfigureAwait(false);
+        Assert.True(actions.IsEmpty);
+    }
 
-        private async Task TestNoActionIsProvided(string initialMarkup)
-        {
-            var workspace = CreateWorkspaceFromOptions(initialMarkup);
-            var (actions, _) = await GetCodeActionsAsync(workspace).ConfigureAwait(false);
-            Assert.True(actions.IsEmpty);
-        }
-
-        // Because this issue: https://github.com/dotnet/roslyn-sdk/issues/464
-        // it is hard to test cross language scenario.
-        // After it is resolved then this test should be merged to the other test class
-        [Fact]
-        public async Task TestCrossLanguageInline()
-        {
-            var input = @"
+    // Because this issue: https://github.com/dotnet/roslyn-sdk/issues/464
+    // it is hard to test cross language scenario.
+    // After it is resolved then this test should be merged to the other test class
+    [Fact]
+    public async Task TestCrossLanguageInline()
+    {
+        var input = @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""CSAssembly"" CommonReferences=""true"">
     <ProjectReference>VBAssembly</ProjectReference>
@@ -57,8 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.InlineMethod
     </Document>
     </Project>
 </Workspace>";
-            await TestNoActionIsProvided(input);
-        }
+        await TestNoActionIsProvided(input);
     }
 }
 

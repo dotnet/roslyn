@@ -2,10 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Indentation;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -88,14 +88,14 @@ internal abstract class AbstractBraceCompletionService : IBraceCompletionService
         return !syntaxFactsService.IsInNonUserCode(document.SyntaxTree, openingPosition, cancellationToken);
     }
 
-    public BraceCompletionContext? GetCompletedBraceContext(ParsedDocument document, int caretLocation)
+    public BraceCompletionContext? GetCompletedBraceContext(ParsedDocument document, StructuredAnalyzerConfigOptions fallbackOptions, int caretLocation)
     {
         var leftToken = document.Root.FindTokenOnLeftOfPosition(caretLocation);
         var rightToken = document.Root.FindTokenOnRightOfPosition(caretLocation);
 
         if (IsValidOpeningBraceToken(leftToken) && IsValidClosingBraceToken(rightToken))
         {
-            return new BraceCompletionContext(document, leftToken.GetLocation().SourceSpan.Start, rightToken.GetLocation().SourceSpan.End, caretLocation);
+            return new BraceCompletionContext(document, fallbackOptions, leftToken.GetLocation().SourceSpan.Start, rightToken.GetLocation().SourceSpan.End, caretLocation);
         }
 
         return null;

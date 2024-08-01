@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -386,7 +385,7 @@ internal sealed partial class ConfigurationUpdater
         if (IDEDiagnosticIdToOptionMappingHelper.TryGetMappedOptions(diagnostic.Id, project.Language, out var options))
         {
             return [.. from option in options
-                       where option.DefaultValue is ICodeStyleOption
+                       where option.DefaultValue is ICodeStyleOption2
                        orderby option.Definition.ConfigName
                        select option];
         }

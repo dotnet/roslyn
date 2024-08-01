@@ -6,17 +6,16 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Rpc;
+namespace Microsoft.CodeAnalysis.MSBuild;
 
 /// <summary>
-/// Implements the client side of the RPC channel used to communicate with the build host, which is using <see cref="RpcServer"/>.
+/// Implements the client side of the RPC channel used to communicate with the build host, which is using RpcServer.
 /// </summary>
 /// <remarks>
 /// The RPC system implemented here is pretty close to something like JSON-RPC; however since we need the Build Host to be usable in Source Build

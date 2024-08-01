@@ -11,8 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EnableNullable;
 
@@ -53,7 +55,7 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
         }
 
         context.RegisterRefactoring(new CustomCodeAction(
-            (purpose, progress, cancellationToken) => EnableNullableReferenceTypesAsync(document.Project, purpose, context.Options, progress, cancellationToken)));
+            (purpose, _, cancellationToken) => EnableNullableReferenceTypesAsync(document.Project, purpose, cancellationToken)));
     }
 
     private static bool ShouldOfferRefactoring(Project project)
@@ -64,17 +66,23 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
         };
 
     private static async Task<Solution> EnableNullableReferenceTypesAsync(
-        Project project, CodeActionPurpose purpose, CodeActionOptionsProvider fallbackOptions, IProgress<CodeAnalysisProgress> _, CancellationToken cancellationToken)
+        Project project, CodeActionPurpose purpose, CancellationToken cancellationToken)
     {
         var solution = project.Solution;
-        foreach (var document in project.Documents)
-        {
-            if (await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
-                continue;
+        var updatedDocumentRoots = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+            source: project.Documents,
+            produceItems: static async (document, callback, _, cancellationToken) =>
+            {
+                if (await document.IsGeneratedCodeAsync(cancellationToken).ConfigureAwait(false))
+                    return;
 
-            var updatedDocumentRoot = await EnableNullableReferenceTypesAsync(document, fallbackOptions, cancellationToken).ConfigureAwait(false);
-            solution = solution.WithDocumentSyntaxRoot(document.Id, updatedDocumentRoot);
-        }
+                var updatedDocumentRoot = await EnableNullableReferenceTypesAsync(document, cancellationToken).ConfigureAwait(false);
+                callback((document.Id, updatedDocumentRoot));
+            },
+            args: 0,
+            cancellationToken).ConfigureAwait(false);
+
+        solution = solution.WithDocumentSyntaxRoots(updatedDocumentRoots);
 
         if (purpose is CodeActionPurpose.Apply)
         {
@@ -85,7 +93,7 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
         return solution;
     }
 
-    private static async Task<SyntaxNode> EnableNullableReferenceTypesAsync(Document document, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    private static async Task<SyntaxNode> EnableNullableReferenceTypesAsync(Document document, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var firstToken = GetFirstTokenOfInterest(root);
@@ -103,7 +111,7 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
         // * Add '#nullable disable' if the document didn't specify other semantics
         // * Remove leading '#nullable restore' (was '#nullable enable' prior to rewrite in the previous step)
         // * Otherwise, leave existing '#nullable' directive since it will control the initial semantics for the document
-        return await DisableNullableReferenceTypesInExistingDocumentIfNecessaryAsync(document, root, firstToken, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        return await DisableNullableReferenceTypesInExistingDocumentIfNecessaryAsync(document, root, firstToken, cancellationToken).ConfigureAwait(false);
     }
 
     private static (SyntaxNode root, SyntaxToken firstToken) RewriteExistingDirectives(SyntaxNode root, SyntaxToken firstToken)
@@ -150,9 +158,9 @@ internal partial class EnableNullableCodeRefactoringProvider : CodeRefactoringPr
         return (updatedRoot, GetFirstTokenOfInterest(updatedRoot));
     }
 
-    private static async Task<SyntaxNode> DisableNullableReferenceTypesInExistingDocumentIfNecessaryAsync(Document document, SyntaxNode root, SyntaxToken firstToken, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    private static async Task<SyntaxNode> DisableNullableReferenceTypesInExistingDocumentIfNecessaryAsync(Document document, SyntaxNode root, SyntaxToken firstToken, CancellationToken cancellationToken)
     {
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var newLine = SyntaxFactory.EndOfLine(options.NewLine);
 
         // Add a new '#nullable disable' to the top of each file

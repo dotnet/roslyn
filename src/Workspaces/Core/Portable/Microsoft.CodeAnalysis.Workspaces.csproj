@@ -39,6 +39,7 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.Desktop.cs" Link="Diagnostics\CompilerShared\AnalyzerAssemblyLoader.Desktop.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\DefaultAnalyzerAssemblyLoader.cs" Link="Diagnostics\CompilerShared\DefaultAnalyzerAssemblyLoader.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\ShadowCopyAnalyzerAssemblyLoader.cs" Link="Diagnostics\CompilerShared\ShadowCopyAnalyzerAssemblyLoader.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\IAnalyzerAssemblyResolver.cs" Link="Diagnostics\CompilerShared\IAnalyzerAssemblyResolver.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\Text\SourceHashAlgorithms.cs" Link="Text\SourceHashAlgorithms.cs" />
     <Compile Include="..\..\..\Compilers\Core\Portable\AssemblyUtilitiesCore.cs" Link="AssemblyUtilitiesCore.cs" />
   </ItemGroup>
@@ -106,8 +107,8 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.DiagnosticsTests.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities" />
-    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.Test.Utilities" />
     <InternalsVisibleTo Include="IdeBenchmarks" />
     <InternalsVisibleTo Include="IdeCoreBenchmarks" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Test.Utilities2" />

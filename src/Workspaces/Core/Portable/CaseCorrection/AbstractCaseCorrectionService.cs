@@ -8,9 +8,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -31,7 +29,7 @@ internal abstract partial class AbstractCaseCorrectionService : ICaseCorrectionS
         var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         if (root is null)
         {
-            throw new NotSupportedException(WorkspacesResources.Document_does_not_support_syntax_trees);
+            throw new NotSupportedException(WorkspaceExtensionsResources.Document_does_not_support_syntax_trees);
         }
 
         var semanticModel = await document.ReuseExistingSpeculativeModelAsync(spans.Collapse(), cancellationToken).ConfigureAwait(false);

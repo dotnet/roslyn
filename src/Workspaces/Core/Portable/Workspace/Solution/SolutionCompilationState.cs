@@ -18,7 +18,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
@@ -55,6 +54,10 @@ internal sealed partial class SolutionCompilationState
     /// compilation-state level.  When syncing to our OOP process, this information is included, allowing the oop side
     /// to move its own generators forward when a host changes these versions.
     /// </summary>
+    /// <remarks>
+    /// Contains information for all projects, even non-C#/VB ones.  Though this will have no meaning for those project
+    /// types.
+    /// </remarks>
     private readonly SourceGeneratorExecutionVersionMap _sourceGeneratorExecutionVersionMap;
 
     /// <summary>
@@ -117,9 +120,8 @@ internal sealed partial class SolutionCompilationState
         // An id shouldn't point at a tracker for a different project.
         Contract.ThrowIfTrue(_projectIdToTrackerMap.Any(kvp => kvp.Key != kvp.Value.ProjectState.Id));
 
-        // Solution and SG version maps must correspond to the same set of projets.
+        // Solution and SG version maps must correspond to the same set of projects.
         Contract.ThrowIfFalse(this.SolutionState.ProjectStates
-            .Where(kvp => RemoteSupportedLanguages.IsSupported(kvp.Value.Language))
             .Select(kvp => kvp.Key)
             .SetEquals(_sourceGeneratorExecutionVersionMap.Map.Keys));
     }
@@ -340,12 +342,13 @@ internal sealed partial class SolutionCompilationState
             modifyNewTrackerInfo: static (_, _) => { }, argModifyNewTrackerInfo: default(VoidResult),
             skipEmptyCallback: true);
 
+        // Add the new projects to the source generator execution version map.  Note: it's ok for us to have entries for
+        // non-C#/VB projects.  These will have no effect in-proc as we won't have compilation-trackers for these
+        // projects.  And, when communicating with the OOP process, we'll filter out these projects before sending them
+        // across in SolutionCompilationState.GetFilteredSourceGenerationExecutionMap.
         var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
         foreach (var projectInfo in projectInfos)
-        {
-            if (RemoteSupportedLanguages.IsSupported(projectInfo.Language))
-                versionMapBuilder.Add(projectInfo.Id, new());
-        }
+            versionMapBuilder.Add(projectInfo.Id, new());
 
         var sourceGeneratorExecutionVersionMap = new SourceGeneratorExecutionVersionMap(versionMapBuilder.ToImmutable());
         return Branch(
@@ -488,8 +491,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             this.SolutionState.WithProjectCompilationOptions(projectId, options),
-            static stateChange => new TranslationAction.ProjectCompilationOptionsAction(
-                stateChange.OldProjectState, stateChange.NewProjectState, isAnalyzerConfigChange: false),
+            static stateChange => new TranslationAction.ProjectCompilationOptionsAction(stateChange.OldProjectState, stateChange.NewProjectState),
             forkTracker: true);
     }
 
@@ -684,36 +686,132 @@ internal sealed partial class SolutionCompilationState
             forkTracker: true);
     }
 
-    /// <inheritdoc cref="SolutionState.WithDocumentName"/>
-    public SolutionCompilationState WithDocumentName(
-        DocumentId documentId, string name)
+    /// <inheritdoc cref="SolutionState.WithDocumentAttributes{TValue}"/>
+    public SolutionCompilationState WithDocumentAttributes<TArg>(
+        DocumentId documentId,
+        TArg arg,
+        Func<DocumentInfo.DocumentAttributes, TArg, DocumentInfo.DocumentAttributes> updateAttributes)
     {
         return UpdateDocumentState(
-            this.SolutionState.WithDocumentName(documentId, name), documentId);
+            SolutionState.WithDocumentAttributes(documentId, arg, updateAttributes), documentId);
     }
 
-    /// <inheritdoc cref="SolutionState.WithDocumentFolders"/>
-    public SolutionCompilationState WithDocumentFolders(
-        DocumentId documentId, IReadOnlyList<string> folders)
+    internal SolutionCompilationState WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode)
+        => UpdateDocumentsInMultipleProjects<DocumentState, SourceText, PreservationMode>(
+            texts,
+            arg: mode,
+            updateDocument: static (oldDocumentState, text, mode) =>
+                SourceTextIsUnchanged(oldDocumentState, text) ? oldDocumentState : oldDocumentState.UpdateText(text, mode));
+
+    private static bool SourceTextIsUnchanged(DocumentState oldDocument, SourceText text)
+        => oldDocument.TryGetText(out var oldText) && text == oldText;
+
+    /// <summary>
+    /// Applies an update operation <paramref name="updateDocument"/> to specified <paramref name="documentsToUpdate"/>.
+    /// Documents may be in different projects.
+    /// </summary>
+    private SolutionCompilationState UpdateDocumentsInMultipleProjects<TDocumentState, TDocumentData, TArg>(
+        ImmutableArray<(DocumentId documentId, TDocumentData documentData)> documentsToUpdate,
+        TArg arg,
+        Func<TDocumentState, TDocumentData, TArg, TDocumentState> updateDocument)
+        where TDocumentState : TextDocumentState
     {
-        return UpdateDocumentState(
-            this.SolutionState.WithDocumentFolders(documentId, folders), documentId);
+        return WithDocumentStatesOfMultipleProjects(
+            documentsToUpdate
+                .GroupBy(static d => d.documentId.ProjectId)
+                .Select(g =>
+                {
+                    var projectId = g.Key;
+                    var oldProjectState = SolutionState.GetRequiredProjectState(projectId);
+                    var oldDocumentStates = oldProjectState.GetDocumentStates<TDocumentState>();
+
+                    using var _ = ArrayBuilder<TDocumentState>.GetInstance(out var newDocumentStates);
+                    foreach (var (documentId, documentData) in g)
+                    {
+                        var oldDocumentState = oldDocumentStates.GetRequiredState(documentId);
+                        var newDocumentState = updateDocument(oldDocumentState, documentData, arg);
+
+                        if (ReferenceEquals(oldDocumentState, newDocumentState))
+                            continue;
+
+                        newDocumentStates.Add(newDocumentState);
+                    }
+
+                    return (projectId, newDocumentStates.ToImmutableAndClear());
+                }),
+            GetUpdateDocumentsTranslationAction);
     }
 
-    /// <inheritdoc cref="SolutionState.WithDocumentFilePath"/>
-    public SolutionCompilationState WithDocumentFilePath(
-        DocumentId documentId, string? filePath)
+    /// <summary>
+    /// Returns <see cref="SolutionCompilationState"/> with projects updated to new document states specified in <paramref name="updatedDocumentStatesPerProject"/>.
+    /// </summary>
+    private SolutionCompilationState WithDocumentStatesOfMultipleProjects<TDocumentState>(
+        IEnumerable<(ProjectId projectId, ImmutableArray<TDocumentState> updatedDocumentState)> updatedDocumentStatesPerProject,
+        Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> getTranslationAction)
+        where TDocumentState : TextDocumentState
     {
-        return UpdateDocumentState(
-            this.SolutionState.WithDocumentFilePath(documentId, filePath), documentId);
+        var newCompilationState = this;
+
+        foreach (var (projectId, newDocumentStates) in updatedDocumentStatesPerProject)
+        {
+            if (newDocumentStates.IsEmpty)
+            {
+                continue;
+            }
+
+            var oldProjectState = newCompilationState.SolutionState.GetRequiredProjectState(projectId);
+            var compilationTranslationAction = getTranslationAction(oldProjectState, newDocumentStates);
+            var newProjectState = compilationTranslationAction.NewProjectState;
+
+            var stateChange = newCompilationState.SolutionState.ForkProject(
+                oldProjectState,
+                newProjectState);
+
+            newCompilationState = newCompilationState.ForkProject(
+                stateChange,
+                static (_, compilationTranslationAction) => compilationTranslationAction,
+                forkTracker: true,
+                arg: compilationTranslationAction);
+        }
+
+        return newCompilationState;
     }
 
-    /// <inheritdoc cref="SolutionState.WithDocumentText(DocumentId, SourceText, PreservationMode)"/>
-    public SolutionCompilationState WithDocumentText(
-        DocumentId documentId, SourceText text, PreservationMode mode)
+    /// <summary>
+    /// Updates the <paramref name="oldProjectState"/> to a new state with <paramref name="newDocumentStates"/> and returns a <see cref="TranslationAction"/> that 
+    /// reflects these changes in the project compilation.
+    /// </summary>
+    private static TranslationAction GetUpdateDocumentsTranslationAction<TDocumentState>(ProjectState oldProjectState, ImmutableArray<TDocumentState> newDocumentStates)
+        where TDocumentState : TextDocumentState
     {
-        return UpdateDocumentState(
-            this.SolutionState.WithDocumentText(documentId, text, mode), documentId);
+        return newDocumentStates switch
+        {
+            ImmutableArray<DocumentState> ordinaryNewDocumentStates => GetUpdateOrdinaryDocumentsTranslationAction(oldProjectState, ordinaryNewDocumentStates),
+            ImmutableArray<AdditionalDocumentState> additionalNewDocumentStates => GetUpdateAdditionalDocumentsTranslationAction(oldProjectState, additionalNewDocumentStates),
+            ImmutableArray<AnalyzerConfigDocumentState> analyzerConfigNewDocumentStates => GetUpdateAnalyzerConfigDocumentsTranslationAction(oldProjectState, analyzerConfigNewDocumentStates),
+            _ => throw ExceptionUtilities.UnexpectedValue(typeof(TDocumentState))
+        };
+
+        TranslationAction GetUpdateOrdinaryDocumentsTranslationAction(ProjectState oldProjectState, ImmutableArray<DocumentState> newDocumentStates)
+        {
+            var oldDocumentStates = newDocumentStates.SelectAsArray(static (s, oldProjectState) => oldProjectState.DocumentStates.GetRequiredState(s.Id), oldProjectState);
+            var newProjectState = oldProjectState.UpdateDocuments(oldDocumentStates, newDocumentStates);
+            return new TranslationAction.TouchDocumentsAction(oldProjectState, newProjectState, oldDocumentStates, newDocumentStates);
+        }
+
+        TranslationAction GetUpdateAdditionalDocumentsTranslationAction(ProjectState oldProjectState, ImmutableArray<AdditionalDocumentState> newDocumentStates)
+        {
+            var oldDocumentStates = newDocumentStates.SelectAsArray(static (s, oldProjectState) => oldProjectState.AdditionalDocumentStates.GetRequiredState(s.Id), oldProjectState);
+            var newProjectState = oldProjectState.UpdateAdditionalDocuments(oldDocumentStates, newDocumentStates);
+            return new TranslationAction.TouchAdditionalDocumentsAction(oldProjectState, newProjectState, oldDocumentStates, newDocumentStates);
+        }
+
+        TranslationAction GetUpdateAnalyzerConfigDocumentsTranslationAction(ProjectState oldProjectState, ImmutableArray<AnalyzerConfigDocumentState> newDocumentStates)
+        {
+            var oldDocumentStates = newDocumentStates.SelectAsArray(static (s, oldProjectState) => oldProjectState.AnalyzerConfigDocumentStates.GetRequiredState(s.Id), oldProjectState);
+            var newProjectState = oldProjectState.UpdateAnalyzerConfigDocuments(oldDocumentStates, newDocumentStates);
+            return new TranslationAction.TouchAnalyzerConfigDocumentsAction(oldProjectState, newProjectState);
+        }
     }
 
     public SolutionCompilationState WithDocumentState(
@@ -737,6 +835,10 @@ internal sealed partial class SolutionCompilationState
     {
         return UpdateAnalyzerConfigDocumentState(this.SolutionState.WithAnalyzerConfigDocumentText(documentId, text, mode));
     }
+
+    /// <inheritdoc cref="SolutionState.WithFallbackAnalyzerOptions(ImmutableDictionary{string, StructuredAnalyzerConfigOptions})"/>
+    public SolutionCompilationState WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions> options)
+        => Branch(SolutionState.WithFallbackAnalyzerOptions(options));
 
     /// <inheritdoc cref="SolutionState.WithDocumentText(DocumentId, TextAndVersion, PreservationMode)"/>
     public SolutionCompilationState WithDocumentText(
@@ -762,19 +864,28 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode));
     }
 
-    /// <inheritdoc cref="SolutionState.WithDocumentSyntaxRoot"/>
-    public SolutionCompilationState WithDocumentSyntaxRoot(
-        DocumentId documentId, SyntaxNode root, PreservationMode mode)
+    /// <inheritdoc cref="Solution.WithDocumentSyntaxRoots(ImmutableArray{ValueTuple{DocumentId, SyntaxNode}}, PreservationMode)"/>
+    public SolutionCompilationState WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots, PreservationMode mode)
     {
-        return UpdateDocumentState(
-            this.SolutionState.WithDocumentSyntaxRoot(documentId, root, mode), documentId);
+        return UpdateDocumentsInMultipleProjects<DocumentState, SyntaxNode, PreservationMode>(
+            syntaxRoots,
+            arg: mode,
+            static (oldDocumentState, root, mode) =>
+                oldDocumentState.TryGetSyntaxTree(out var oldTree) && oldTree.TryGetRoot(out var oldRoot) && oldRoot == root
+                ? oldDocumentState
+                : oldDocumentState.UpdateTree(root, mode));
     }
 
     public SolutionCompilationState WithDocumentContentsFrom(
-        DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
+        ImmutableArray<(DocumentId documentId, DocumentState documentState)> documentIdsAndStates, bool forceEvenIfTreesWouldDiffer)
     {
-        return UpdateDocumentState(
-            this.SolutionState.WithDocumentContentsFrom(documentId, documentState, forceEvenIfTreesWouldDiffer), documentId);
+        return UpdateDocumentsInMultipleProjects<DocumentState, DocumentState, bool>(
+            documentIdsAndStates,
+            arg: forceEvenIfTreesWouldDiffer,
+            static (oldDocumentState, documentState, forceEvenIfTreesWouldDiffer) =>
+                oldDocumentState.TextAndVersionSource == documentState.TextAndVersionSource && oldDocumentState.TreeSource == documentState.TreeSource
+                ? oldDocumentState
+                : oldDocumentState.UpdateTextAndTreeContents(documentState.TextAndVersionSource, documentState.TreeSource, forceEvenIfTreesWouldDiffer));
     }
 
     /// <inheritdoc cref="SolutionState.WithDocumentSourceCodeKind"/>
@@ -842,7 +953,8 @@ internal sealed partial class SolutionCompilationState
                 var oldDocument = stateChange.OldProjectState.DocumentStates.GetRequiredState(documentId);
                 var newDocument = stateChange.NewProjectState.DocumentStates.GetRequiredState(documentId);
 
-                return new TranslationAction.TouchDocumentAction(stateChange.OldProjectState, stateChange.NewProjectState, oldDocument, newDocument);
+                return new TranslationAction.TouchDocumentsAction(
+                    stateChange.OldProjectState, stateChange.NewProjectState, [oldDocument], [newDocument]);
             },
             forkTracker: true,
             arg: documentId);
@@ -860,7 +972,8 @@ internal sealed partial class SolutionCompilationState
                 var oldDocument = stateChange.OldProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
                 var newDocument = stateChange.NewProjectState.AdditionalDocumentStates.GetRequiredState(documentId);
 
-                return new TranslationAction.TouchAdditionalDocumentAction(stateChange.OldProjectState, stateChange.NewProjectState, oldDocument, newDocument);
+                return new TranslationAction.TouchAdditionalDocumentsAction(
+                    stateChange.OldProjectState, stateChange.NewProjectState, [oldDocument], [newDocument]);
             },
             forkTracker: true,
             arg: documentId);
@@ -870,10 +983,7 @@ internal sealed partial class SolutionCompilationState
     {
         return ForkProject(
             stateChange,
-            static stateChange => stateChange.NewProjectState.CompilationOptions != null
-                ? new TranslationAction.ProjectCompilationOptionsAction(
-                    stateChange.OldProjectState, stateChange.NewProjectState, isAnalyzerConfigChange: true)
-                : null,
+            static stateChange => new TranslationAction.TouchAnalyzerConfigDocumentsAction(stateChange.OldProjectState, stateChange.NewProjectState),
             forkTracker: true);
     }
 
@@ -892,13 +1002,13 @@ internal sealed partial class SolutionCompilationState
     private bool TryGetCompilationTracker(ProjectId projectId, [NotNullWhen(returnValue: true)] out ICompilationTracker? tracker)
         => _projectIdToTrackerMap.TryGetValue(projectId, out tracker);
 
-    private static readonly Func<ProjectId, SolutionState, CompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
+    private static readonly Func<ProjectId, SolutionState, RegularCompilationTracker> s_createCompilationTrackerFunction = CreateCompilationTracker;
 
-    private static CompilationTracker CreateCompilationTracker(ProjectId projectId, SolutionState solution)
+    private static RegularCompilationTracker CreateCompilationTracker(ProjectId projectId, SolutionState solution)
     {
         var projectState = solution.GetProjectState(projectId);
         Contract.ThrowIfNull(projectState);
-        return new CompilationTracker(projectState);
+        return new RegularCompilationTracker(projectState);
     }
 
     private ICompilationTracker GetCompilationTracker(ProjectId projectId)
@@ -971,11 +1081,15 @@ internal sealed partial class SolutionCompilationState
     /// <summary>
     /// Returns the generated document states for source generated documents.
     /// </summary>
+    public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(ProjectState project, CancellationToken cancellationToken)
+        => GetSourceGeneratedDocumentStatesAsync(project, withFrozenSourceGeneratedDocuments: true, cancellationToken);
+
+    /// <inheritdoc cref="GetSourceGeneratedDocumentStatesAsync(ProjectState, CancellationToken)"/>
     public ValueTask<TextDocumentStates<SourceGeneratedDocumentState>> GetSourceGeneratedDocumentStatesAsync(
-        ProjectState project, CancellationToken cancellationToken)
+        ProjectState project, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken)
     {
         return project.SupportsCompilation
-            ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, cancellationToken)
+            ? GetCompilationTracker(project.Id).GetSourceGeneratedDocumentStatesAsync(this, withFrozenSourceGeneratedDocuments, cancellationToken)
             : new(TextDocumentStates<SourceGeneratedDocumentState>.Empty);
     }
 
@@ -1080,8 +1194,9 @@ internal sealed partial class SolutionCompilationState
             .Distinct()
             .ToImmutableArray();
 
-        // Since we previously froze documents in these projects, we should have a CompilationTracker entry for it, and it should be a
-        // GeneratedFileReplacingCompilationTracker. To undo the operation, we'll just restore the original CompilationTracker.
+        // Since we previously froze documents in these projects, we should have a CompilationTracker entry for it, and
+        // it should be a WithFrozenSourceGeneratedDocumentsCompilationTracker. To undo the operation, we'll just
+        // restore the original CompilationTracker.
         var newTrackerMap = CreateCompilationTrackerMap(
             projectIdsToUnfreeze,
             this.SolutionState.GetProjectDependencyGraph(),
@@ -1090,7 +1205,11 @@ internal sealed partial class SolutionCompilationState
                 foreach (var projectId in projectIdsToUnfreeze)
                 {
                     Contract.ThrowIfFalse(trackerMap.TryGetValue(projectId, out var existingTracker));
-                    var replacingItemTracker = (GeneratedFileReplacingCompilationTracker)existingTracker;
+                    // TODO(cyrusn): Is it possible to wrap an underlying tracker with multiple frozen document
+                    // compilation trackers?  Should we be unwrapping as much as we can here?  Or would that also be bad
+                    // given that we're basing what we want to unfreeze on the FrozenSourceGeneratedDocumentStates,
+                    // which may not represent those inner freezes.  Unclear.  There may be bugs here.
+                    var replacingItemTracker = (WithFrozenSourceGeneratedDocumentsCompilationTracker)existingTracker;
                     trackerMap[projectId] = replacingItemTracker.UnderlyingTracker;
                 }
             },
@@ -1175,7 +1294,7 @@ internal sealed partial class SolutionCompilationState
                         existingTracker = CreateCompilationTracker(projectId, arg.SolutionState);
                     }
 
-                    trackerMap[projectId] = new GeneratedFileReplacingCompilationTracker(existingTracker, new(documentStatesForProject));
+                    trackerMap[projectId] = new WithFrozenSourceGeneratedDocumentsCompilationTracker(existingTracker, new(documentStatesForProject));
                 }
             },
             (documentStatesByProjectId, this.SolutionState),
@@ -1201,8 +1320,14 @@ internal sealed partial class SolutionCompilationState
             this.SolutionState.WithOptions(options));
     }
 
-    public SolutionCompilationState WithSourceGeneratorExecutionVersions(
-        SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions, CancellationToken cancellationToken)
+    /// <summary>
+    /// Updates entries in our <see cref="_sourceGeneratorExecutionVersionMap"/> to the corresponding values in the
+    /// given <paramref name="sourceGeneratorExecutionVersions"/>.  Importantly, <paramref
+    /// name="sourceGeneratorExecutionVersions"/> must refer to projects in this solution.  Projects not mentioned in
+    /// <paramref name="sourceGeneratorExecutionVersions"/> will not be touched (and they will stay in the map).
+    /// </summary>
+    public SolutionCompilationState UpdateSpecificSourceGeneratorExecutionVersions(
+        SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions)
     {
         var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
@@ -1210,8 +1335,6 @@ internal sealed partial class SolutionCompilationState
 
         foreach (var (projectId, sourceGeneratorExecutionVersion) in sourceGeneratorExecutionVersions.Map)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
             var currentExecutionVersion = versionMapBuilder[projectId];
 
             // Nothing to do if already at this version.
@@ -1229,7 +1352,7 @@ internal sealed partial class SolutionCompilationState
                 // if the major version has changed then we also want to drop the generator driver so that we're rerun
                 // generators from scratch.
                 var forceRegeneration = currentExecutionVersion.MajorVersion != sourceGeneratorExecutionVersion.MajorVersion;
-                var newTracker = existingTracker.WithCreationPolicy(create: true, forceRegeneration, cancellationToken);
+                var newTracker = existingTracker.WithCreateCreationPolicy(forceRegeneration);
                 if (newTracker != existingTracker)
                     newIdToTrackerMapBuilder[projectId] = newTracker;
             }
@@ -1265,7 +1388,7 @@ internal sealed partial class SolutionCompilationState
 
             // Since we're freezing, set both generators and skeletons to not be created.  We don't want to take any
             // perf hit on either of those at all for our clients.
-            var newTracker = oldTracker.WithCreationPolicy(create: false, forceRegeneration: false, cancellationToken);
+            var newTracker = oldTracker.WithDoNotCreateCreationPolicy(cancellationToken);
             if (oldTracker == newTracker)
                 continue;
 
@@ -1346,8 +1469,8 @@ internal sealed partial class SolutionCompilationState
         // compilation state instance.  So in the case where there are no linked documents, there is no cost here.  And
         // there is no additional cost processing the initiating document in this loop.
         var allDocumentIds = this.SolutionState.GetRelatedDocumentIds(documentId);
-        foreach (var siblingId in allDocumentIds)
-            currentCompilationState = currentCompilationState.WithDocumentContentsFrom(siblingId, currentDocumentState, forceEvenIfTreesWouldDiffer: true);
+        var allDocumentIdsWithCurrentDocumentState = allDocumentIds.SelectAsArray(static (docId, currentDocumentState) => (docId, currentDocumentState), currentDocumentState);
+        currentCompilationState = currentCompilationState.WithDocumentContentsFrom(allDocumentIdsWithCurrentDocumentState, forceEvenIfTreesWouldDiffer: true);
 
         return WithFrozenPartialCompilationIncludingSpecificDocumentWorker(currentCompilationState, documentId, cancellationToken);
 
@@ -1408,70 +1531,22 @@ internal sealed partial class SolutionCompilationState
             }
 
             // Now, add all missing documents per project.
-            currentState = currentState.AddDocumentsToMultipleProjects(
+            currentState = currentState.WithDocumentStatesOfMultipleProjects(
                 // Do a SelectAsArray here to ensure that we realize the array once, and as such only call things like
                 // ToImmutableAndFree once per ArrayBuilder.
                 missingDocumentStates.SelectAsArray(kvp => (kvp.Key, kvp.Value.ToImmutableAndFree())),
-                static (oldProjectState, newDocumentStates) =>
-                    new TranslationAction.AddDocumentsAction(oldProjectState, oldProjectState.AddDocuments(newDocumentStates), newDocumentStates));
+                GetAddDocumentsTranslationAction);
 
             return currentState;
         }
-    }
-
-    public SolutionCompilationState AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
-    {
-        return AddDocumentsToMultipleProjects(documentInfos,
-            static (documentInfo, project) => project.CreateDocument(documentInfo, project.ParseOptions, new LoadTextOptions(project.ChecksumAlgorithm)),
-            static (oldProject, documents) => new TranslationAction.AddDocumentsAction(oldProject, oldProject.AddDocuments(documents), documents));
-    }
-
-    public SolutionCompilationState AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
-    {
-        return AddDocumentsToMultipleProjects(documentInfos,
-            static (documentInfo, project) => new AdditionalDocumentState(project.LanguageServices.SolutionServices, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-            static (oldProject, documents) => new TranslationAction.AddAdditionalDocumentsAction(oldProject, oldProject.AddAdditionalDocuments(documents), documents));
-    }
-
-    public SolutionCompilationState AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
-    {
-        return AddDocumentsToMultipleProjects(documentInfos,
-            static (documentInfo, project) => new AnalyzerConfigDocumentState(project.LanguageServices.SolutionServices, documentInfo, new LoadTextOptions(project.ChecksumAlgorithm)),
-            static (oldProject, documents) => new TranslationAction.ProjectCompilationOptionsAction(oldProject, oldProject.AddAnalyzerConfigDocuments(documents), isAnalyzerConfigChange: true));
-    }
-
-    public SolutionCompilationState RemoveDocuments(ImmutableArray<DocumentId> documentIds)
-    {
-        return RemoveDocumentsFromMultipleProjects(documentIds,
-            static (projectState, documentId) => projectState.DocumentStates.GetRequiredState(documentId),
-            static (oldProject, documentIds, documentStates) => new TranslationAction.RemoveDocumentsAction(oldProject, oldProject.RemoveDocuments(documentIds), documentStates));
-    }
-
-    public SolutionCompilationState RemoveAdditionalDocuments(ImmutableArray<DocumentId> documentIds)
-    {
-        return RemoveDocumentsFromMultipleProjects(documentIds,
-            static (projectState, documentId) => projectState.AdditionalDocumentStates.GetRequiredState(documentId),
-            static (oldProject, documentIds, documentStates) => new TranslationAction.RemoveAdditionalDocumentsAction(oldProject, oldProject.RemoveAdditionalDocuments(documentIds), documentStates));
-    }
-
-    public SolutionCompilationState RemoveAnalyzerConfigDocuments(ImmutableArray<DocumentId> documentIds)
-    {
-        return RemoveDocumentsFromMultipleProjects(documentIds,
-            static (projectState, documentId) => projectState.AnalyzerConfigDocumentStates.GetRequiredState(documentId),
-            static (oldProject, documentIds, _) => new TranslationAction.ProjectCompilationOptionsAction(oldProject, oldProject.RemoveAnalyzerConfigDocuments(documentIds), isAnalyzerConfigChange: true));
     }
 
     /// <summary>
     /// Core helper that takes a set of <see cref="DocumentInfo" />s and does the application of the appropriate documents to each project.
     /// </summary>
     /// <param name="documentInfos">The set of documents to add.</param>
-    /// <param name="addDocumentsToProjectState">Returns the new <see cref="ProjectState"/> with the documents added,
-    /// and the <see cref="SolutionCompilationState.TranslationAction"/> needed as
-    /// well.</param>
-    private SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
-        ImmutableArray<DocumentInfo> documentInfos,
-        Func<DocumentInfo, ProjectState, TDocumentState> createDocumentState,
-        Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> addDocumentsToProjectState)
+    public SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
+        ImmutableArray<DocumentInfo> documentInfos)
         where TDocumentState : TextDocumentState
     {
         if (documentInfos.IsDefault)
@@ -1482,48 +1557,18 @@ internal sealed partial class SolutionCompilationState
 
         // The documents might be contributing to multiple different projects; split them by project and then we'll
         // process one project at a time.
-        return AddDocumentsToMultipleProjects(
+        return WithDocumentStatesOfMultipleProjects(
             documentInfos.GroupBy(d => d.Id.ProjectId).Select(g =>
             {
                 var projectId = g.Key;
-                this.SolutionState.CheckContainsProject(projectId);
-                var projectState = this.SolutionState.GetRequiredProjectState(projectId);
-                return (projectId, newDocumentStates: g.SelectAsArray(di => createDocumentState(di, projectState)));
+                SolutionState.CheckContainsProject(projectId);
+                var projectState = SolutionState.GetRequiredProjectState(projectId);
+                return (projectId, newDocumentStates: g.SelectAsArray(projectState.CreateDocument<TDocumentState>));
             }),
-            addDocumentsToProjectState);
+            GetAddDocumentsTranslationAction);
     }
 
-    private SolutionCompilationState AddDocumentsToMultipleProjects<TDocumentState>(
-        IEnumerable<(ProjectId projectId, ImmutableArray<TDocumentState> newDocumentStates)> projectIdAndNewDocuments,
-        Func<ProjectState, ImmutableArray<TDocumentState>, TranslationAction> addDocumentsToProjectState)
-        where TDocumentState : TextDocumentState
-    {
-        var newCompilationState = this;
-
-        foreach (var (projectId, newDocumentStates) in projectIdAndNewDocuments)
-        {
-            var oldProjectState = newCompilationState.SolutionState.GetRequiredProjectState(projectId);
-            var compilationTranslationAction = addDocumentsToProjectState(oldProjectState, newDocumentStates);
-            var newProjectState = compilationTranslationAction.NewProjectState;
-
-            var stateChange = newCompilationState.SolutionState.ForkProject(
-                oldProjectState,
-                newProjectState);
-
-            newCompilationState = newCompilationState.ForkProject(
-                stateChange,
-                static (_, compilationTranslationAction) => compilationTranslationAction,
-                forkTracker: true,
-                arg: compilationTranslationAction);
-        }
-
-        return newCompilationState;
-    }
-
-    private SolutionCompilationState RemoveDocumentsFromMultipleProjects<T>(
-        ImmutableArray<DocumentId> documentIds,
-        Func<ProjectState, DocumentId, T> getExistingTextDocumentState,
-        Func<ProjectState, ImmutableArray<DocumentId>, ImmutableArray<T>, TranslationAction> removeDocumentsFromProjectState)
+    public SolutionCompilationState RemoveDocumentsFromMultipleProjects<T>(ImmutableArray<DocumentId> documentIds)
         where T : TextDocumentState
     {
         if (documentIds.IsEmpty)
@@ -1539,38 +1584,58 @@ internal sealed partial class SolutionCompilationState
 
         foreach (var documentIdsInProject in documentIdsByProjectId)
         {
-            var oldProjectState = this.SolutionState.GetProjectState(documentIdsInProject.Key);
-
-            if (oldProjectState == null)
-            {
-                throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, documentIdsInProject.Key));
-            }
-
-            using var _ = ArrayBuilder<T>.GetInstance(out var removedDocumentStates);
-
-            foreach (var documentId in documentIdsInProject)
-            {
-                removedDocumentStates.Add(getExistingTextDocumentState(oldProjectState, documentId));
-            }
-
-            var removedDocumentStatesForProject = removedDocumentStates.ToImmutable();
-
-            var compilationTranslationAction = removeDocumentsFromProjectState(oldProjectState, [.. documentIdsInProject], removedDocumentStatesForProject);
-            var newProjectState = compilationTranslationAction.NewProjectState;
-
-            var stateChange = newCompilationState.SolutionState.ForkProject(
-                oldProjectState,
-                newProjectState);
-
-            newCompilationState = newCompilationState.ForkProject(
-                stateChange,
-                static (_, compilationTranslationAction) => compilationTranslationAction,
-                forkTracker: true,
-                arg: compilationTranslationAction);
+            newCompilationState = newCompilationState.RemoveDocumentsFromSingleProject<T>(documentIdsInProject.Key, [.. documentIdsInProject]);
         }
 
         return newCompilationState;
     }
+
+    private SolutionCompilationState RemoveDocumentsFromSingleProject<T>(ProjectId projectId, ImmutableArray<DocumentId> documentIds)
+        where T : TextDocumentState
+    {
+        using var _ = ArrayBuilder<T>.GetInstance(out var removedDocumentStates);
+
+        var oldProjectState = SolutionState.GetRequiredProjectState(projectId);
+        var oldDocumentStates = oldProjectState.GetDocumentStates<T>();
+
+        foreach (var documentId in documentIds)
+        {
+            removedDocumentStates.Add(oldDocumentStates.GetRequiredState(documentId));
+        }
+
+        var removedDocumentStatesForProject = removedDocumentStates.ToImmutable();
+
+        var compilationTranslationAction = GetRemoveDocumentsTranslationAction(oldProjectState, documentIds, removedDocumentStatesForProject);
+        var newProjectState = compilationTranslationAction.NewProjectState;
+
+        var stateChange = SolutionState.ForkProject(
+            oldProjectState,
+            newProjectState);
+
+        return ForkProject(
+            stateChange,
+            static (_, compilationTranslationAction) => compilationTranslationAction,
+            forkTracker: true,
+            arg: compilationTranslationAction);
+    }
+
+    private static TranslationAction GetRemoveDocumentsTranslationAction<TDocumentState>(ProjectState oldProject, ImmutableArray<DocumentId> documentIds, ImmutableArray<TDocumentState> states)
+        => states switch
+        {
+            ImmutableArray<DocumentState> documentStates => new TranslationAction.RemoveDocumentsAction(oldProject, oldProject.RemoveDocuments(documentIds), documentStates),
+            ImmutableArray<AdditionalDocumentState> additionalDocumentStates => new TranslationAction.RemoveAdditionalDocumentsAction(oldProject, oldProject.RemoveAdditionalDocuments(documentIds), additionalDocumentStates),
+            ImmutableArray<AnalyzerConfigDocumentState> _ => new TranslationAction.TouchAnalyzerConfigDocumentsAction(oldProject, oldProject.RemoveAnalyzerConfigDocuments(documentIds)),
+            _ => throw ExceptionUtilities.UnexpectedValue(states)
+        };
+
+    private static TranslationAction GetAddDocumentsTranslationAction<TDocumentState>(ProjectState oldProject, ImmutableArray<TDocumentState> states)
+        => states switch
+        {
+            ImmutableArray<DocumentState> documentStates => new TranslationAction.AddDocumentsAction(oldProject, oldProject.AddDocuments(documentStates), documentStates),
+            ImmutableArray<AdditionalDocumentState> additionalDocumentStates => new TranslationAction.AddAdditionalDocumentsAction(oldProject, oldProject.AddAdditionalDocuments(additionalDocumentStates), additionalDocumentStates),
+            ImmutableArray<AnalyzerConfigDocumentState> analyzerConfigDocumentStates => new TranslationAction.TouchAnalyzerConfigDocumentsAction(oldProject, oldProject.AddAnalyzerConfigDocuments(analyzerConfigDocumentStates)),
+            _ => throw ExceptionUtilities.UnexpectedValue(states)
+        };
 
     /// <inheritdoc cref="Solution.WithCachedSourceGeneratorState(ProjectId, Project)"/>
     public SolutionCompilationState WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
@@ -1606,7 +1671,7 @@ internal sealed partial class SolutionCompilationState
     /// </summary>
     public SolutionCompilationState WithDocumentText(IEnumerable<DocumentId?> documentIds, SourceText text, PreservationMode mode)
     {
-        var result = this;
+        using var _ = ArrayBuilder<(DocumentId, SourceText)>.GetInstance(out var changedDocuments);
 
         foreach (var documentId in documentIds)
         {
@@ -1618,10 +1683,22 @@ internal sealed partial class SolutionCompilationState
 
             var documentState = this.SolutionState.GetProjectState(documentId.ProjectId)?.DocumentStates.GetState(documentId);
             if (documentState != null)
-                result = result.WithDocumentText(documentId, text, mode);
+            {
+                // before allocating an array below (and calling into a function that does a fair amount of linq work),
+                // do a fast check if the text has actually changed. this shows up in allocation traces and is
+                // worthwhile to avoid for the common case where we're continually being asked to update the same doc to
+                // the same text (for example, when GetOpenDocumentInCurrentContextWithChanges) is called.
+                //
+                // The use of GetRequiredState mirrors what happens in WithDocumentTexts
+                if (!SourceTextIsUnchanged(documentState, text))
+                    changedDocuments.Add((documentId, text));
+            }
         }
 
-        return result;
+        if (changedDocuments.Count == 0)
+            return this;
+
+        return this.WithDocumentTexts(changedDocuments.ToImmutableAndClear(), mode);
     }
 
     internal TestAccessor GetTestAccessor()

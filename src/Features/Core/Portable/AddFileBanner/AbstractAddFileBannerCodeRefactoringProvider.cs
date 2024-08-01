@@ -11,12 +11,9 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
@@ -43,7 +40,7 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
             return;
         }
 
-        var formattingOptions = await document.GetDocumentFormattingOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetDocumentFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         if (!string.IsNullOrEmpty(formattingOptions.FileHeaderTemplate))
         {
             // If we have a defined file header template, allow the analyzer and code fix to handle it
@@ -190,7 +187,6 @@ internal abstract class AbstractAddFileBannerCodeRefactoringProvider : SyntaxEdi
         Document document,
         ImmutableArray<TextSpan> fixAllSpans,
         SyntaxEditor editor,
-        CodeActionOptionsProvider optionsProvider,
         string? equivalenceKey,
         CancellationToken cancellationToken)
     {

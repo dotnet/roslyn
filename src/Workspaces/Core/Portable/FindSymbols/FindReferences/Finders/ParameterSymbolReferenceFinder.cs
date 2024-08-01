@@ -39,7 +39,7 @@ internal sealed class ParameterSymbolReferenceFinder : AbstractReferenceFinder<I
         return FindDocumentsAsync(project, documents, processResult, processResultData, cancellationToken, symbol.Name);
     }
 
-    protected override ValueTask FindReferencesInDocumentAsync<TData>(
+    protected override void FindReferencesInDocument<TData>(
         IParameterSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -48,7 +48,6 @@ internal sealed class ParameterSymbolReferenceFinder : AbstractReferenceFinder<I
         CancellationToken cancellationToken)
     {
         FindReferencesInDocumentUsingIdentifier(symbol, symbol.Name, state, processResult, processResultData, cancellationToken);
-        return ValueTaskFactory.CompletedTask;
     }
 
     protected override async ValueTask<ImmutableArray<ISymbol>> DetermineCascadedSymbolsAsync(
@@ -242,6 +241,7 @@ internal sealed class ParameterSymbolReferenceFinder : AbstractReferenceFinder<I
         IParameterSymbol parameter,
         ArrayBuilder<ISymbol> results)
     {
+        // https://github.com/dotnet/roslyn/issues/73772: also cascade partial indexer parameters
         if (parameter.ContainingSymbol is IMethodSymbol method)
         {
             var ordinal = parameter.Ordinal;

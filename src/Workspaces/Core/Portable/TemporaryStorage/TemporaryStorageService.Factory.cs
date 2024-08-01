@@ -21,8 +21,18 @@ internal partial class TemporaryStorageService
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            var textFactory = workspaceServices.GetRequiredService<ITextFactoryService>();
-            return new TemporaryStorageService(workspaceThreadingService, textFactory);
+            // Only use the memory mapped file version of the temporary storage service on Windows.
+            // It is only required for OOP communication (Windows only) and can cause issues on Linux containers
+            // due to a small amount of space allocated by default to store memory mapped files.
+            if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
+            {
+                var textFactory = workspaceServices.GetRequiredService<ITextFactoryService>();
+                return new TemporaryStorageService(workspaceThreadingService, textFactory);
+            }
+            else
+            {
+                return TrivialTemporaryStorageService.Instance;
+            }
         }
     }
 }

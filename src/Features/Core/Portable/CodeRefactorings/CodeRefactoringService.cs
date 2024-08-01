@@ -80,35 +80,76 @@ internal sealed class CodeRefactoringService(
         }
 
         static ProjectCodeRefactoringProvider.ExtensionInfo GetExtensionInfo(ExportCodeRefactoringProviderAttribute attribute)
-            => new(attribute.DocumentKinds, attribute.DocumentExtensions);
+        {
+            var kinds = EnumArrayConverter.FromStringArray<TextDocumentKind>(attribute.DocumentKinds);
+
+            return new(kinds, attribute.DocumentExtensions);
+        }
     }
 
     public async Task<bool> HasRefactoringsAsync(
         TextDocument document,
         TextSpan state,
-        CodeActionOptionsProvider options,
         CancellationToken cancellationToken)
     {
-        foreach (var provider in GetProviders(document))
-        {
-            cancellationToken.ThrowIfCancellationRequested();
+        // A token for controlling the inner work we do calling out to each provider.  Once we have a single provider
+        // that returns a refactoring, we can cancel the work we're doing with all other providers.
+        using var linkedTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
-            var refactoring = await GetRefactoringFromProviderAsync(
-                document, state, provider, options, cancellationToken).ConfigureAwait(false);
+        // This await will not complete until all providers have been called (though we'll attempt to bail out of any of
+        // them once we have a single refactoring found).  So there's no concern here about produceItems running after
+        // linkedTokenSource has been diposed.
+        return await ProducerConsumer<VoidResult>.RunParallelAsync(
+            source: this.GetProviders(document),
+            produceItems: static async (provider, callback, args, cancellationToken) =>
+            {
+                var (@this, document, state, linkedTokenSource) = args;
 
-            if (refactoring != null)
-                return true;
-        }
+                // Do no work if either the outer request canceled, or another provider already found a refactoring.
+                if (cancellationToken.IsCancellationRequested || linkedTokenSource.Token.IsCancellationRequested)
+                    return;
 
-        return false;
+                try
+                {
+                    // We want to pass linkedTokenSource.Token here so that we can cancel the inner operation once the
+                    // outer ProducerConsumer sees a single refactoring returned by any provider.
+                    var refactoring = await @this.GetRefactoringFromProviderAsync(
+                        document, state, provider, linkedTokenSource.Token).ConfigureAwait(false);
+
+                    // If we have a refactoring, send a single VoidResult value to the consumer so it can cancel the
+                    // other concurrent operations, and can return 'true' to the caller to indicate that there are
+                    // refactorings.
+                    if (refactoring != null)
+                        callback(default(VoidResult));
+                }
+                catch (OperationCanceledException)
+                {
+                    // Ensure that the cancellation of the inner token doesn't bubble outside.  We are not canceling the
+                    // entire operation just because one provider succeeded and canceled the rest.
+                }
+            },
+            consumeItems: static async (items, args, cancellationToken) =>
+            {
+                // Try to consume from the results that produceItems is sending us.  The moment we get a single result,
+                // we know we're done and we have at least one refactoring.
+                await foreach (var unused in items)
+                {
+                    // Cancel all the other items that are still running (or are asked to run in the future).
+                    args.linkedTokenSource.Cancel();
+                    return true;
+                }
+
+                return false;
+            },
+            args: (this, document, state, linkedTokenSource),
+            // intentionally using the outer token here.  The linked token is only used to cancel the inner operations.
+            cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ImmutableArray<CodeRefactoring>> GetRefactoringsAsync(
         TextDocument document,
         TextSpan state,
         CodeActionRequestPriority? priority,
-        CodeActionOptionsProvider options,
-        Func<string, IDisposable?> addOperationScope,
         CancellationToken cancellationToken)
     {
         using (TelemetryLogging.LogBlockTimeAggregated(FunctionId.CodeRefactoring_Summary, $"Pri{priority.GetPriorityInt()}"))
@@ -122,6 +163,8 @@ internal sealed class CodeRefactoringService(
                 source: orderedProviders,
                 produceItems: static async (provider, callback, args, cancellationToken) =>
                 {
+                    var (@this, document, state) = args;
+
                     // Run all providers in parallel to get the set of refactorings for this document.
                     // Log an individual telemetry event for slow code refactoring computations to
                     // allow targeted trace notifications for further investigation. 500 ms seemed like
@@ -134,20 +177,19 @@ internal sealed class CodeRefactoringService(
                     var logMessage = KeyValueLogMessage.Create(m =>
                     {
                         m[TelemetryLogging.KeyName] = providerName;
-                        m[TelemetryLogging.KeyLanguageName] = args.document.Project.Language;
+                        m[TelemetryLogging.KeyLanguageName] = document.Project.Language;
                     });
 
-                    using (args.addOperationScope(providerName))
                     using (RoslynEventSource.LogInformationalBlock(FunctionId.Refactoring_CodeRefactoringService_GetRefactoringsAsync, providerName, cancellationToken))
                     using (TelemetryLogging.LogBlockTime(FunctionId.CodeRefactoring_Delay, logMessage, CodeRefactoringTelemetryDelay))
                     {
-                        var refactoring = await args.@this.GetRefactoringFromProviderAsync(
-                            args.document, args.state, provider, args.options, cancellationToken).ConfigureAwait(false);
+                        var refactoring = await @this.GetRefactoringFromProviderAsync(
+                            document, state, provider, cancellationToken).ConfigureAwait(false);
                         if (refactoring != null)
                             callback((provider, refactoring));
                     }
                 },
-                args: (@this: this, document, state, options, addOperationScope),
+                args: (@this: this, document, state),
                 cancellationToken).ConfigureAwait(false);
 
             // Order the refactorings by the order of the providers.
@@ -164,7 +206,6 @@ internal sealed class CodeRefactoringService(
         TextDocument textDocument,
         TextSpan state,
         CodeRefactoringProvider provider,
-        CodeActionOptionsProvider options,
         CancellationToken cancellationToken)
     {
         RefactoringToMetadataMap.TryGetValue(provider, out var providerMetadata);
@@ -193,7 +234,6 @@ internal sealed class CodeRefactoringService(
                             actions.Add((action, applicableToSpan));
                         }
                     },
-                    options,
                     cancellationToken);
 
                 var task = provider.ComputeRefactoringsAsync(context) ?? Task.CompletedTask;
@@ -206,7 +246,7 @@ internal sealed class CodeRefactoringService(
 
                 var fixAllProviderInfo = extensionManager.PerformFunction(
                     provider, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, provider, FixAllProviderInfo.Create), defaultValue: null);
-                return new CodeRefactoring(provider, actions.ToImmutable(), fixAllProviderInfo, options);
+                return new CodeRefactoring(provider, actions.ToImmutable(), fixAllProviderInfo);
             }, defaultValue: null, cancellationToken);
     }
 

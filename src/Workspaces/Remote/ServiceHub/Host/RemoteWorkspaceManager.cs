@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.AspNetCore.Internal.EmbeddedLanguages;
+using Microsoft.CodeAnalysis.ExternalAccess.Razor;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.ServiceHub.Framework;
 using Microsoft.VisualStudio.Composition;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.Remote
             MefHostServices.DefaultAssemblies
                 .Add(typeof(AspNetCoreEmbeddedLanguageClassifier).Assembly)
                 .Add(typeof(BrokeredServiceBase).Assembly)
+                .Add(typeof(RazorAnalyzerAssemblyResolver).Assembly)
                 .Add(typeof(RemoteWorkspacesResources).Assembly);
 
         /// <summary>
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// </list>
         /// </remarks>
         internal static readonly RemoteWorkspaceManager Default = new(
-            workspace => new SolutionAssetCache(workspace, cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1), gcAfter: TimeSpan.FromMinutes(1)));
+            workspace => new SolutionAssetCache(workspace, cleanupInterval: TimeSpan.FromSeconds(30), purgeAfter: TimeSpan.FromMinutes(1)));
 
         private readonly RemoteWorkspace _workspace;
         internal readonly SolutionAssetCache SolutionAssetCache;
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Remote
         /// the same <paramref name="solutionChecksum"/>). However, this is used by Pythia/Razor/UnitTesting which all
         /// assume they can get that solution instance and use as desired by them.
         /// </summary>
-        [Obsolete("Use RunServiceAsync (that is passsed a Solution) instead", error: false)]
+        [Obsolete("Use RunServiceAsync (that is passed a Solution) instead", error: false)]
         public async ValueTask<Solution> GetSolutionAsync(ServiceBrokerClient client, Checksum solutionChecksum, CancellationToken cancellationToken)
         {
             var assetSource = new SolutionAssetSource(client);

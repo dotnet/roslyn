@@ -49,7 +49,7 @@ internal abstract class AbstractMemberScopedReferenceFinder<TSymbol> : AbstractR
         return Task.CompletedTask;
     }
 
-    protected sealed override ValueTask FindReferencesInDocumentAsync<TData>(
+    protected sealed override void FindReferencesInDocument<TData>(
         TSymbol symbol,
         FindReferencesDocumentState state,
         Action<FinderLocation, TData> processResult,
@@ -67,8 +67,6 @@ internal abstract class AbstractMemberScopedReferenceFinder<TSymbol> : AbstractR
             var tokens = FindMatchingIdentifierTokens(state, symbol.Name, cancellationToken);
             FindReferencesInTokens(symbol, state, tokens, processResult, processResultData, cancellationToken);
         }
-
-        return ValueTaskFactory.CompletedTask;
     }
 
     private static ISymbol? GetContainer(ISymbol symbol)

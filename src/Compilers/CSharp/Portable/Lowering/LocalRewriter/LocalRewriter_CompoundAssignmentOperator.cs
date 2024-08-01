@@ -113,10 +113,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             temps.Free();
             stores.Free();
-
-            result = ConvertResultOfAssignmentToDynamicIfNecessary(node, node.Left, result, used);
-
-            Debug.Assert(used || node.Left is not (BoundIndexerAccess { Indexer.RefKind: RefKind.None } or BoundPropertyAccess { PropertySymbol.RefKind: RefKind.None }) || result.Type?.IsVoidType() == true);
             return result;
 
             BoundExpression rewriteAssignment(BoundExpression leftRead)
@@ -400,6 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentNamesOpt: default(ImmutableArray<string?>),
                 argumentRefKinds,
                 expanded: false,
+                accessorKind: indexerAccess.AccessorKind,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 defaultArguments: default(BitVector),
                 indexerAccess.Type);

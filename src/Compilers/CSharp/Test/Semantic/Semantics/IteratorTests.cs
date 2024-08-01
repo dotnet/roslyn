@@ -106,6 +106,137 @@ class Test
                 );
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72443")]
+        public void YieldInLock_Async()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Threading.Tasks;
+
+                public class C
+                {
+                    public async Task ProcessValueAsync()
+                    {
+                        await foreach (int item in GetValuesAsync())
+                        {
+                            await Task.Yield();
+                            Console.Write(item);
+                        }
+                    }
+
+                    private async IAsyncEnumerable<int> GetValuesAsync()
+                    {
+                        await Task.Yield();
+                        lock (this)
+                        {
+                            for (int i = 0; i < 10; i++)
+                            {
+                                yield return i;
+
+                                if (i == 3)
+                                {
+                                    yield break;
+                                }
+                            }
+                        }
+                    }
+                }
+                """ + AsyncStreamsTypes;
+
+            var comp = CreateCompilationWithTasksExtensions(source);
+            CompileAndVerify(comp).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72443")]
+        public void YieldInLock_Sync()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Threading;
+
+                object o = new object();
+                Console.WriteLine($"Before: {Monitor.IsEntered(o)}");
+                using (IEnumerator<int> e = GetValues(o).GetEnumerator())
+                {
+                    Console.WriteLine($"Inside: {Monitor.IsEntered(o)}");
+                    while (e.MoveNext())
+                    {
+                        Console.WriteLine($"{e.Current}: {Monitor.IsEntered(o)}");
+                    }
+                    Console.WriteLine($"Done: {Monitor.IsEntered(o)}");
+                }
+                Console.WriteLine($"After: {Monitor.IsEntered(o)}");
+
+                static IEnumerable<int> GetValues(object obj)
+                {
+                    lock (obj)
+                    {
+                        for (int i = 0; i < 3; i++)
+                        {
+                            yield return i;
+
+                            if (i == 1)
+                            {
+                                yield break;
+                            }
+                        }
+                    }
+                }
+                """;
+
+            var expectedOutput = """
+                Before: False
+                Inside: False
+                0: True
+                1: True
+                Done: False
+                After: False
+                """;
+
+            CompileAndVerify(source, options: TestOptions.ReleaseExe,
+                expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72443")]
+        public void YieldInLock_Nested()
+        {
+            var source = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    IEnumerable<int> M()
+                    {
+                        yield return 1;
+                        lock (this)
+                        {
+                            yield return 2;
+
+                            local();
+
+                            IEnumerable<int> local()
+                            {
+                                yield return 3;
+
+                                lock (this)
+                                {
+                                    yield return 4;
+
+                                    yield break;
+                                }
+                            }
+
+                            yield break;
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source).VerifyDiagnostics();
+        }
+
         [WorkItem(546081, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546081")]
         [Fact]
         public void IteratorBlockWithUnreachableCode()

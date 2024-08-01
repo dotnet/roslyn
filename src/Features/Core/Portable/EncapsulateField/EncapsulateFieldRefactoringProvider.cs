@@ -5,7 +5,6 @@
 using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
@@ -26,7 +25,7 @@ internal sealed class EncapsulateFieldRefactoringProvider : CodeRefactoringProvi
         var (document, textSpan, cancellationToken) = context;
         var service = document.GetRequiredLanguageService<AbstractEncapsulateFieldService>();
 
-        var actions = await service.GetEncapsulateFieldCodeActionsAsync(document, textSpan, context.Options, cancellationToken).ConfigureAwait(false);
+        var actions = await service.GetEncapsulateFieldCodeActionsAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
         context.RegisterRefactorings(actions);
     }
 }

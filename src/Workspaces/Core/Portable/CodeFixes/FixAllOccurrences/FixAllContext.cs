@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -165,8 +164,7 @@ public partial class FixAllContext : IFixAllContext
                 scope,
                 codeActionEquivalenceKey,
                 PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
-                fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
-                CodeActionOptions.DefaultProvider),
+                fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider))),
               CodeAnalysisProgress.None, cancellationToken)
     {
     }
@@ -201,8 +199,7 @@ public partial class FixAllContext : IFixAllContext
                 scope,
                 codeActionEquivalenceKey,
                 PublicContract.RequireNonNullItems(diagnosticIds, nameof(diagnosticIds)),
-                fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider)),
-                CodeActionOptions.DefaultProvider),
+                fixAllDiagnosticProvider ?? throw new ArgumentNullException(nameof(fixAllDiagnosticProvider))),
               CodeAnalysisProgress.None, cancellationToken)
     {
         if (scope is FixAllScope.ContainingMember or FixAllScope.ContainingType)

@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
@@ -97,7 +96,7 @@ internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactor
             var missingType = missingComparableTypes[0];
             context.RegisterRefactoring(CodeAction.Create(
                 FeaturesResources.Generate_comparison_operators,
-                c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, context.Options, c),
+                c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c),
                 nameof(FeaturesResources.Generate_comparison_operators)));
             return;
         }
@@ -110,7 +109,7 @@ internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactor
             var displayString = typeArg.ToMinimalDisplayString(semanticModel, textSpan.Start);
             nestedActions.Add(CodeAction.Create(
                 string.Format(FeaturesResources.Generate_for_0, displayString),
-                c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, context.Options, c),
+                c => GenerateComparisonOperatorsAsync(document, typeDeclaration, missingType, c),
                 nameof(FeaturesResources.Generate_for_0) + "_" + displayString));
         }
 
@@ -135,7 +134,6 @@ internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactor
         Document document,
         SyntaxNode typeDeclaration,
         INamedTypeSymbol comparableType,
-        CodeAndImportGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -152,8 +150,7 @@ internal class GenerateComparisonOperatorsCodeRefactoringProvider : CodeRefactor
 
         var solutionContext = new CodeGenerationSolutionContext(
             document.Project.Solution,
-            new CodeGenerationContext(contextLocation: typeDeclaration.GetLocation()),
-            fallbackOptions);
+            new CodeGenerationContext(contextLocation: typeDeclaration.GetLocation()));
 
         return await codeGenService.AddMembersAsync(solutionContext, containingType, operators, cancellationToken).ConfigureAwait(false);
     }

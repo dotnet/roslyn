@@ -15,21 +15,14 @@ internal partial class StreamingFindUsagesPresenter
     // Name of the key used to retireve the whole entry object.
     internal const string SelfKeyName = "self";
 
-    private class TableEntriesSnapshot : WpfTableEntriesSnapshotBase
+    private class TableEntriesSnapshot(ImmutableArray<Entry> entries, int versionNumber) : WpfTableEntriesSnapshotBase
     {
-        private readonly int _versionNumber;
-
-        private readonly ImmutableList<Entry> _entries;
-
-        public TableEntriesSnapshot(ImmutableList<Entry> entries, int versionNumber)
-        {
-            _entries = entries;
-            _versionNumber = versionNumber;
-        }
+        private readonly int _versionNumber = versionNumber;
+        private readonly ImmutableArray<Entry> _entries = entries;
 
         public override int VersionNumber => _versionNumber;
 
-        public override int Count => _entries.Count;
+        public override int Count => _entries.Length;
 
         public override int IndexOf(int currentIndex, ITableEntriesSnapshot newSnapshot)
         {

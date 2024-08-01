@@ -479,6 +479,7 @@ namespace Microsoft.CodeAnalysis
 
         System_Span_T__ctor_Pointer,
         System_Span_T__ctor_Array,
+        System_Span_T__ctor_ref_T,
         System_Span_T__get_Item,
         System_Span_T__get_Length,
         System_Span_T__Slice_Int_Int,
@@ -486,6 +487,7 @@ namespace Microsoft.CodeAnalysis
         System_ReadOnlySpan_T__ctor_Pointer,
         System_ReadOnlySpan_T__ctor_Array,
         System_ReadOnlySpan_T__ctor_Array_Start_Length,
+        System_ReadOnlySpan_T__ctor_ref_readonly_T,
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
         System_ReadOnlySpan_T__Slice_Int_Int,
@@ -617,6 +619,7 @@ namespace Microsoft.CodeAnalysis
         System_Span_T__CopyTo_Span_T,
         System_ReadOnlySpan_T__CopyTo_Span_T,
         System_Collections_Immutable_ImmutableArray_T__AsSpan,
+        System_Collections_Immutable_ImmutableArray_T__Empty,
         System_Collections_Generic_List_T__AddRange,
 
         System_Runtime_CompilerServices_ParamCollectionAttribute__ctor,

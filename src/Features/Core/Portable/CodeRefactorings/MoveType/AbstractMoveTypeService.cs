@@ -14,7 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -30,8 +29,8 @@ internal abstract class AbstractMoveTypeService : IMoveTypeService
     /// </summary>
     public static SyntaxAnnotation NamespaceScopeMovedAnnotation = new(nameof(MoveTypeOperationKind.MoveTypeNamespaceScope));
 
-    public abstract Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken);
-    public abstract Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+    public abstract Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken);
+    public abstract Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 }
 
 internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarationSyntax, TNamespaceDeclarationSyntax, TMemberDeclarationSyntax, TCompilationUnitSyntax> :
@@ -43,9 +42,9 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
     where TCompilationUnitSyntax : SyntaxNode
 {
     public override async Task<ImmutableArray<CodeAction>> GetRefactoringAsync(
-        Document document, TextSpan textSpan, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
-        var state = await CreateStateAsync(document, textSpan, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var state = await CreateStateAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
         if (state == null)
         {
@@ -56,9 +55,9 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         return actions;
     }
 
-    public override async Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public override async Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken)
     {
-        var state = await CreateStateAsync(document, textSpan, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var state = await CreateStateAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
         if (state == null)
         {
@@ -80,7 +79,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
 
     protected abstract Task<TTypeDeclarationSyntax> GetRelevantNodeAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
-    private async Task<State> CreateStateAsync(Document document, TextSpan textSpan, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    private async Task<State> CreateStateAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
         var nodeToAnalyze = await GetRelevantNodeAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
         if (nodeToAnalyze == null)
@@ -89,7 +88,7 @@ internal abstract partial class AbstractMoveTypeService<TService, TTypeDeclarati
         }
 
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-        return State.Generate(semanticDocument, nodeToAnalyze, fallbackOptions, cancellationToken);
+        return State.Generate(semanticDocument, nodeToAnalyze, cancellationToken);
     }
 
     private ImmutableArray<CodeAction> CreateActions(State state, CancellationToken cancellationToken)

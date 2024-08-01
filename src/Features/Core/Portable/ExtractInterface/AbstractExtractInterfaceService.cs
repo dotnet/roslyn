@@ -48,9 +48,9 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
 
     internal abstract bool ShouldIncludeAccessibilityModifier(SyntaxNode typeNode);
 
-    public async Task<ImmutableArray<ExtractInterfaceCodeAction>> GetExtractInterfaceCodeActionAsync(Document document, TextSpan span, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<ExtractInterfaceCodeAction>> GetExtractInterfaceCodeActionAsync(Document document, TextSpan span, CancellationToken cancellationToken)
     {
-        var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(document, span.Start, TypeDiscoveryRule.TypeNameOnly, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var typeAnalysisResult = await AnalyzeTypeAtPositionAsync(document, span.Start, TypeDiscoveryRule.TypeNameOnly, cancellationToken).ConfigureAwait(false);
 
         return typeAnalysisResult.CanExtractInterface
             ? [new ExtractInterfaceCodeAction(this, typeAnalysisResult)]
@@ -60,7 +60,6 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
     public async Task<ExtractInterfaceResult> ExtractInterfaceAsync(
         Document documentWithTypeToExtractFrom,
         int position,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         Action<string, NotificationSeverity> errorHandler,
         CancellationToken cancellationToken)
     {
@@ -68,7 +67,6 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             documentWithTypeToExtractFrom,
             position,
             TypeDiscoveryRule.TypeDeclaration,
-            fallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
         if (!typeAnalysisResult.CanExtractInterface)
@@ -77,14 +75,13 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             return new ExtractInterfaceResult(succeeded: false);
         }
 
-        return await ExtractInterfaceFromAnalyzedTypeAsync(typeAnalysisResult, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        return await ExtractInterfaceFromAnalyzedTypeAsync(typeAnalysisResult, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<ExtractInterfaceTypeAnalysisResult> AnalyzeTypeAtPositionAsync(
         Document document,
         int position,
         TypeDiscoveryRule typeDiscoveryRule,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var typeNode = await GetTypeDeclarationAsync(document, position, typeDiscoveryRule, cancellationToken).ConfigureAwait(false);
@@ -110,10 +107,10 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             return new ExtractInterfaceTypeAnalysisResult(errorMessage);
         }
 
-        return new ExtractInterfaceTypeAnalysisResult(document, typeNode, typeToExtractFrom, extractableMembers, fallbackOptions);
+        return new ExtractInterfaceTypeAnalysisResult(document, typeNode, typeToExtractFrom, extractableMembers);
     }
 
-    public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(ExtractInterfaceTypeAnalysisResult refactoringResult, CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    public async Task<ExtractInterfaceResult> ExtractInterfaceFromAnalyzedTypeAsync(ExtractInterfaceTypeAnalysisResult refactoringResult, CancellationToken cancellationToken)
     {
         var containingNamespaceDisplay = refactoringResult.TypeToExtractFrom.ContainingNamespace.IsGlobalNamespace
             ? string.Empty
@@ -124,7 +121,6 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             refactoringResult.TypeToExtractFrom,
             refactoringResult.ExtractableMembers,
             containingNamespaceDisplay,
-            fallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
         if (extractInterfaceOptions.IsCancelled)
@@ -194,7 +190,6 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             refactoringResult.DocumentToExtractFrom.Folders,
             extractedInterfaceSymbol,
             refactoringResult.DocumentToExtractFrom,
-            extractInterfaceOptions.FallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
         var completedUnformattedSolution = await GetSolutionWithOriginalTypeUpdatedAsync(
@@ -210,7 +205,6 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         var completedSolution = await GetFormattedSolutionAsync(
             completedUnformattedSolution,
             symbolMapping.DocumentIdsToSymbolMap.Keys.Concat(unformattedInterfaceDocument.Id),
-            extractInterfaceOptions.FallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
         return new ExtractInterfaceResult(
@@ -236,7 +230,6 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             document,
             extractedInterfaceSymbol,
             symbolMapping,
-            extractInterfaceOptions.FallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
         var unformattedSolution = documentWithInterface.Project.Solution;
@@ -251,7 +244,6 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         var completedSolution = await GetFormattedSolutionAsync(
             unformattedSolutionWithUpdatedType,
             symbolMapping.DocumentIdsToSymbolMap.Keys.Concat(refactoringResult.DocumentToExtractFrom.Id),
-            extractInterfaceOptions.FallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
         return new ExtractInterfaceResult(
@@ -265,7 +257,6 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         INamedTypeSymbol type,
         IEnumerable<ISymbol> extractableMembers,
         string containingNamespace,
-        CleanCodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var conflictingTypeNames = type.ContainingNamespace.GetAllTypes(cancellationToken).Select(t => t.Name);
@@ -273,7 +264,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         var defaultInterfaceName = NameGenerator.GenerateUniqueName(candidateInterfaceName, name => !conflictingTypeNames.Contains(name));
         var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
         var notificationService = document.Project.Solution.Services.GetService<INotificationService>();
-        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var generatedNameTypeParameterSuffix = ExtractTypeHelpers.GetTypeParameterSuffix(document, formattingOptions, type, extractableMembers, cancellationToken);
 
         var service = document.Project.Solution.Services.GetService<IExtractInterfaceOptionsService>();
@@ -286,11 +277,10 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
             containingNamespace,
             generatedNameTypeParameterSuffix,
             document.Project.Language,
-            fallbackOptions,
             cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    private static async Task<Solution> GetFormattedSolutionAsync(Solution unformattedSolution, IEnumerable<DocumentId> documentIds, CancellationToken cancellationToken)
     {
         // Since code action performs formatting and simplification on a single document, 
         // this ensures that anything marked with formatter or simplifier annotations gets 
@@ -300,7 +290,7 @@ internal abstract class AbstractExtractInterfaceService : ILanguageService
         {
             var document = formattedSolution.GetDocument(documentId);
 
-            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var cleanupOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var formattedDocument = await Formatter.FormatAsync(
                 document,

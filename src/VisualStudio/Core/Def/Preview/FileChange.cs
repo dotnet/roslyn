@@ -6,15 +6,13 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Implementation.TextDiffing;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
@@ -33,8 +31,12 @@ internal class FileChange : AbstractChange
     private readonly IComponentModel _componentModel;
     public readonly DocumentId Id;
     private readonly ITextBuffer _buffer;
-    private readonly Encoding _encoding;
     private readonly IVsImageService2 _imageService;
+
+    private static readonly StringDifferenceOptions s_differenceOptions = new()
+    {
+        DifferenceType = StringDifferenceTypes.Line,
+    };
 
     public FileChange(TextDocument left,
         TextDocument right,
@@ -52,11 +54,12 @@ internal class FileChange : AbstractChange
 
         _componentModel = componentModel;
         var bufferFactory = componentModel.GetService<ITextBufferFactoryService>();
+        var bufferCloneService = componentModel.GetService<ITextBufferCloneService>();
         var bufferText = left != null
             ? left.GetTextSynchronously(CancellationToken.None)
             : right.GetTextSynchronously(CancellationToken.None);
-        _buffer = bufferFactory.CreateTextBuffer(bufferText.ToString(), bufferFactory.InertContentType);
-        _encoding = bufferText.Encoding;
+
+        _buffer = bufferCloneService.Clone(bufferText, bufferFactory.InertContentType);
 
         this.Children = ComputeChildren(left, right, CancellationToken.None);
         this.parent = parent;
@@ -191,7 +194,7 @@ internal class FileChange : AbstractChange
             edit.ApplyAndLogExceptions();
         }
 
-        return SourceText.From(_buffer.CurrentSnapshot.GetText(), _encoding);
+        return _buffer.CurrentSnapshot.AsText();
     }
 
     public TextDocument GetOldDocument()
@@ -241,12 +244,6 @@ internal class FileChange : AbstractChange
         var oldText = left.GetTextSynchronously(cancellationToken);
         var newText = right.GetTextSynchronously(cancellationToken);
 
-        var oldString = oldText.ToString();
-        var newString = newText.ToString();
-
-        return diffService.DiffStrings(oldString, newString, new StringDifferenceOptions()
-        {
-            DifferenceType = StringDifferenceTypes.Line,
-        });
+        return diffService.DiffSourceTexts(oldText, newText, s_differenceOptions);
     }
 }

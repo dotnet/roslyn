@@ -5,9 +5,8 @@
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Indentation;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.BraceCompletion;
@@ -63,7 +62,7 @@ internal interface IBraceCompletionService
     /// Returns the brace completion context if the caret is located between an already completed
     /// set of braces with only whitespace in between.
     /// </summary>
-    BraceCompletionContext? GetCompletedBraceContext(ParsedDocument document, int caretLocation);
+    BraceCompletionContext? GetCompletedBraceContext(ParsedDocument document, StructuredAnalyzerConfigOptions fallbackOptions, int caretLocation);
 
     /// <summary>
     /// Returns true if over typing should be allowed given the caret location and completed pair of braces.
@@ -91,9 +90,11 @@ internal readonly struct BraceCompletionResult(ImmutableArray<TextChange> textCh
     public LinePosition CaretLocation { get; } = caretLocation;
 }
 
-internal readonly struct BraceCompletionContext(ParsedDocument document, int openingPoint, int closingPoint, int caretLocation)
+internal readonly struct BraceCompletionContext(ParsedDocument document, StructuredAnalyzerConfigOptions fallbackOptions, int openingPoint, int closingPoint, int caretLocation)
 {
     public ParsedDocument Document { get; } = document;
+
+    public StructuredAnalyzerConfigOptions FallbackOptions { get; } = fallbackOptions;
 
     public int OpeningPoint { get; } = openingPoint;
 
