@@ -1788,6 +1788,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportFieldContextualKeywordConflict(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
         {
+            // PROTOTYPE: Should this diagnostic be dropped when compiling with the latest language version
+            // when 'field' would not otherwise bind to a different symbol?
             string name = identifier.Text;
             var requiredVersion = MessageID.IDS_FeatureFieldKeyword.RequiredVersion();
             diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());

@@ -54,7 +54,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Property_Initializer(
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
-            bool expectedParsedAsToken = false;
             UsingTree($$"""
                 class C
                 {
@@ -95,7 +94,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         N(SyntaxKind.EqualsValueClause);
                         {
                             N(SyntaxKind.EqualsToken);
-                            IdentifierNameOrFieldExpression(languageVersion, escapeIdentifier: false, expectedParsedAsToken);
+                            N(SyntaxKind.IdentifierName);
+                            {
+                                N(SyntaxKind.IdentifierToken, "field");
+                            }
                         }
                         N(SyntaxKind.SemicolonToken);
                     }

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -26,15 +27,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class C
                 {
                     public object P => field = 1;
-                    public object Q { get => field = 2; }
+                    public static object Q { get => field = 2; }
                 }
                 class Program
                 {
                     static void Main()
                     {
-                        var c = new C();
-                        Console.WriteLine((c.P, c.Q));
+                        Console.WriteLine((new C().P, C.Q));
                         foreach (var field in typeof(C).GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
+                            Console.WriteLine("{0}: {1}", field.Name, field.IsInitOnly);
+                        foreach (var field in typeof(C).GetFields(BindingFlags.NonPublic | BindingFlags.Static))
                             Console.WriteLine("{0}: {1}", field.Name, field.IsInitOnly);
                     }
                 }
@@ -61,19 +63,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
             verifier.VerifyIL("C.Q.get", """
                 {
-                  // Code size       16 (0x10)
-                  .maxstack  3
-                  .locals init (object V_0)
-                  IL_0000:  ldarg.0
-                  IL_0001:  ldc.i4.2
-                  IL_0002:  box        "int"
-                  IL_0007:  dup
-                  IL_0008:  stloc.0
-                  IL_0009:  stfld      "object C.<Q>k__BackingField"
-                  IL_000e:  ldloc.0
-                  IL_000f:  ret
+                  // Code size       13 (0xd)
+                  .maxstack  2
+                  IL_0000:  ldc.i4.2
+                  IL_0001:  box        "int"
+                  IL_0006:  dup
+                  IL_0007:  stsfld     "object C.<Q>k__BackingField"
+                  IL_000c:  ret
                 }
                 """);
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object C.<P>k__BackingField",
+                "System.Object C.P { get; }",
+                "System.Object C.P.get",
+                "System.Object C.<Q>k__BackingField",
+                "System.Object C.Q { get; }",
+                "System.Object C.Q.get",
+                "C..ctor()"
+            };
+            Assert.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
@@ -125,6 +136,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0011:  ret
                 }
                 """);
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object C.<P>k__BackingField",
+                "System.Object C.P { get; }",
+                "System.Object C.P.get",
+                "System.Object C.<Q>k__BackingField",
+                "System.Object C.Q { get; }",
+                "System.Object C.Q.get",
+                "System.Object C.Initialize(out System.Object field, System.Object value)",
+                "C..ctor()"
+            };
+            Assert.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
@@ -198,6 +223,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (6,29): error CS1061: 'C' does not contain a definition for 'field' and no accessible extension method 'field' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         set { field = value.field; }
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "field").WithArguments("C", "field").WithLocation(6, 29));
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "C C.<P>k__BackingField",
+                "C C.P { get; set; }",
+                "C C.P.get",
+                "void C.P.set",
+                "C..ctor()"
+            };
+            Assert.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
@@ -238,6 +273,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (3,27): error CS0103: The name 'field' does not exist in the current context
                 //     object P { get; } = F(field);
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 27));
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object C.<P>k__BackingField",
+                "System.Object C.P { get; }",
+                "System.Object C.P.get",
+                "System.Object C.F(System.Object value)",
+                "C..ctor()"
+            };
+            Assert.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
@@ -246,17 +291,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = """
                 class C
                 {
-                    object P { get => null; } = field;
+                    object P { get => field; } = field;
                 }
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (3,12): error CS8050: Only auto-implemented properties can have initializers.
-                //     object P { get => null; } = field;
+                //     object P { get => field; } = field;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(3, 12),
-                // (3,33): error CS0103: The name 'field' does not exist in the current context
-                //     object P { get => null; } = field;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 33));
+                // (3,23): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     object P { get => field; } = field;
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 23),
+                // (3,34): error CS0103: The name 'field' does not exist in the current context
+                //     object P { get => field; } = field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 34));
         }
 
         [Fact]

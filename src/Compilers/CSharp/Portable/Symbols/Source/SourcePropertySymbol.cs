@@ -279,7 +279,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             static bool containsFieldKeyword(SyntaxNode syntax)
             {
-                return syntax.DescendantTokens().Any(static t => t.Kind() == SyntaxKind.FieldKeyword);
+                foreach (var node in syntax.Green.EnumerateNodes())
+                {
+                    if (node.RawKind == (int)SyntaxKind.FieldKeyword)
+                    {
+                        return true;
+                    }
+                }
+                return false;
             }
         }
 

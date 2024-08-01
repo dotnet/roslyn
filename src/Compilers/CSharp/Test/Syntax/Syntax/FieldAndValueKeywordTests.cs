@@ -582,7 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
-                #pragma warning disable 168
+                #pragma warning disable 168 // variable is declared but never used
                 class C
                 {
                     void Deconstruct(out object x, out object y) => throw null;
@@ -907,7 +907,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Field_NameOf_01()
+        public void NameOf_01()
         {
             string source = """
                 class C
@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Field_NameOf_02()
+        public void NameOf_02()
         {
             string source = """
                 class C
