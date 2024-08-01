@@ -1302,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 Debug.Assert(constructed is not null);
                                 var conversions = constructed.ContainingAssembly.CorLibrary.TypeConversions;
-                                var conversion = conversions.ConvertExtensionMethodThisArg(constructed.Parameters[0].Type, receiverType, ref useSiteInfo);
+                                var conversion = conversions.ConvertExtensionMethodThisArg(constructed.Parameters[0].Type, receiverType, ref useSiteInfo, isMethodGroupConversion: false);
                                 if (!conversion.Exists)
                                 {
                                     continue; // Conversion to 'this' parameter failed
@@ -2614,7 +2614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If this is an extension method delegate, the caller should have verified the
             // receiver is compatible with the "this" parameter of the extension method.
             Debug.Assert(!isExtensionMethod ||
-                (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].Type, receiverOpt!.Type, ref useSiteInfo).Exists && useSiteInfo.Diagnostics.IsNullOrEmpty()));
+                (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].Type, receiverOpt!.Type, ref useSiteInfo, isMethodGroupConversion: true).Exists && useSiteInfo.Diagnostics.IsNullOrEmpty()));
 
             useSiteInfo = new CompoundUseSiteInfo<AssemblySymbol>(useSiteInfo);
 

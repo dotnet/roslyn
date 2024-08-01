@@ -236,8 +236,8 @@ public class FirstClassSpanTests : CSharpTestBase
             """);
     }
 
-    [Fact]
-    public void BreakingChange_ExtensionMethodLookup_SpanVsIEnumerable_MethodConversion()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void BreakingChange_ExtensionMethodLookup_SpanVsIEnumerable_MethodConversion(LanguageVersion langVersion)
     {
         var source = """
             using System;
@@ -253,21 +253,8 @@ public class FirstClassSpanTests : CSharpTestBase
                 public static void M<T>(this IEnumerable<T> e, T x) => Console.Write(2);
             }
             """;
-
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
-
-        // PROTOTYPE: Can we avoid this break?
-
-        var expectedDiagnostics = new[]
-        {
-            // (5,5): error CS1113: Extension method 'E.M<int>(Span<int>, int)' defined on value type 'Span<int>' cannot be used to create delegates
-            // E.R(arr.M);
-            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "arr.M").WithArguments("E.M<int>(System.Span<int>, int)", "System.Span<int>").WithLocation(5, 5)
-        };
-
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -1647,9 +1634,9 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (4,5): error CS1113: Extension method 'C.M(Span<int>, int)' defined on value type 'Span<int>' cannot be used to create delegates
+            // (4,5): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Func<int, int>'
             // C.R(a.M);
-            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "a.M").WithArguments("C.M(System.Span<int>, int)", "System.Span<int>").WithLocation(4, 5)
+            Diagnostic(ErrorCode.ERR_BadArgType, "a.M").WithArguments("1", "method group", "System.Func<int, int>").WithLocation(4, 5)
         };
 
         CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
@@ -1686,9 +1673,9 @@ public class FirstClassSpanTests : CSharpTestBase
 
         var expectedDiagnostics = new[]
         {
-            // (4,10): error CS1113: Extension method 'C.M(Span<int>, int)' defined on value type 'Span<int>' cannot be used to create delegates
+            // (4,12): error CS0123: No overload for 'M' matches delegate 'Func<int, int>'
             // var d1 = a.M;
-            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "a.M").WithArguments("C.M(System.Span<int>, int)", "System.Span<int>").WithLocation(4, 10),
+            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M").WithArguments("M", "System.Func<int, int>").WithLocation(4, 12),
             // (5,10): error CS8917: The delegate type could not be inferred.
             // var d2 = x => a.M(x);
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => a.M(x)").WithLocation(5, 10)
@@ -1747,9 +1734,9 @@ public class FirstClassSpanTests : CSharpTestBase
             // (4,5): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             // C.R(a.M);
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "a.M").WithArguments("int[]", "M").WithLocation(4, 5),
-            // (5,5): error CS1113: Extension method 'C.M<int>(Span<int>, int)' defined on value type 'Span<int>' cannot be used to create delegates
+            // (5,5): error CS1503: Argument 1: cannot convert from 'method group' to 'System.Func<int, int>'
             // C.R(a.M<int>);
-            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "a.M<int>").WithArguments("C.M<int>(System.Span<int>, int)", "System.Span<int>").WithLocation(5, 5),
+            Diagnostic(ErrorCode.ERR_BadArgType, "a.M<int>").WithArguments("1", "method group", "System.Func<int, int>").WithLocation(5, 5),
             // (6,12): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             // C.R(x => a.M(x));
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(6, 12)
@@ -1811,9 +1798,9 @@ public class FirstClassSpanTests : CSharpTestBase
             // (6,23): error CS1061: 'int[]' does not contain a definition for 'M' and no accessible extension method 'M' accepting a first argument of type 'int[]' could be found (are you missing a using directive or an assembly reference?)
             // var d3 = (int x) => a.M(x);
             Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("int[]", "M").WithLocation(6, 23),
-            // (7,10): error CS1113: Extension method 'C.M<int>(Span<int>, int)' defined on value type 'Span<int>' cannot be used to create delegates
+            // (7,12): error CS0123: No overload for 'M' matches delegate 'Func<int, int>'
             // var d4 = a.M<int>;
-            Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "a.M<int>").WithArguments("C.M<int>(System.Span<int>, int)", "System.Span<int>").WithLocation(7, 10),
+            Diagnostic(ErrorCode.ERR_MethDelegateMismatch, "M<int>").WithArguments("M", "System.Func<int, int>").WithLocation(7, 12),
             // (8,10): error CS8917: The delegate type could not be inferred.
             // var d5 = x => a.M<int>(x);
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "x => a.M<int>(x)").WithLocation(8, 10)

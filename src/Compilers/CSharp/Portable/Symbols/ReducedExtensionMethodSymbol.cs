@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var conversions = compilation?.Conversions ?? (ConversionsBase)method.ContainingAssembly.CorLibrary.TypeConversions;
-            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteInfo);
+            var conversion = conversions.ConvertExtensionMethodThisArg(method.Parameters[0].Type, receiverType, ref useSiteInfo, isMethodGroupConversion: false);
             if (!conversion.Exists)
             {
                 return null;
