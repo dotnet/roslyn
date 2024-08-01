@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 using Xunit.Abstractions;
@@ -20,7 +19,8 @@ public class RoslynSelfBuildTests : AbstractIntegrationTest
         this.output = output;
     }
 
-    [IdeFact]
+    [ConditionalIdeFact(typeof(DartLabCIOnly), Reason = "We want to monitor the health of F5 deployment")]
+    // [IdeFact]
     public async Task Test()
     {
         // https://github.com/microsoft/vs-extension-testing/issues/172
