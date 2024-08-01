@@ -241,15 +241,36 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class C
                 {
                     Func<object> field;
-                    object P1 { get { return field(); } }
-                    object P2 { get { return @field(); } }
+                    Func<object> P1 { get { _ = field(); return null; } }
+                    Func<object> P2 { get { _ = @field(); return null; } }
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics(
-                // (6,30): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { get { return field(); } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(6, 30));
+                // (6,33): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     Func<object> P1 { get { _ = field(); return null; } }
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(6, 33));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void IdentifierToken_Index(
+            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            string source = """
+                #pragma warning disable 649
+                class C
+                {
+                    object[] field;
+                    object[] P1 { get { _ = field[0]; return null; } }
+                    object[] P2 { get { _ = @field[0]; return null; } }
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics(
+                // (5,29): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     object[] P1 { get { _ = field[0]; return null; } }
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(5, 29));
         }
 
         [Theory]
@@ -561,6 +582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
+                #pragma warning disable 168
                 class C
                 {
                     void Deconstruct(out object x, out object y) => throw null;
@@ -577,12 +599,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics(
-                // (9,20): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                // (10,20): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             object @value;
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(9, 20),
-                // (10,14): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(10, 20),
+                // (11,14): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
                 //             (field, @value) = new C();
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(10, 14));
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(11, 14));
         }
 
         [Theory]
@@ -813,7 +835,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics();
+            if (!escapeIdentifier && languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (12,19): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //         [A(nameof(field))] get { return null; }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(12, 19),
+                    // (12,19): error CS8081: Expression does not have a name.
+                    //         [A(nameof(field))] get { return null; }
+                    Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(12, 19),
+                    // (13,19): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //         [A(nameof(field))] set { }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 19),
+                    // (13,19): error CS8081: Expression does not have a name.
+                    //         [A(nameof(field))] set { }
+                    Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(13, 19));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
@@ -846,6 +887,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 comp.VerifyEmitDiagnostics();
             }
+            else if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (13,23): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //             [A(nameof(field))] void F1(int field) { }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 23),
+                    // (13,23): error CS8081: Expression does not have a name.
+                    //             [A(nameof(field))] void F1(int field) { }
+                    Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(13, 23));
+            }
             else
             {
                 comp.VerifyEmitDiagnostics(
@@ -853,6 +904,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     //             [A(nameof(field))] void F1(int field) { }
                     Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 23));
             }
+        }
+
+        [Fact]
+        public void Field_NameOf_01()
+        {
+            string source = """
+                class C
+                {
+                    object P => nameof(field);
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,24): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     object P => nameof(field);
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 24),
+                // (3,24): error CS8081: Expression does not have a name.
+                //     object P => nameof(field);
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(3, 24));
+        }
+
+        [Fact]
+        public void Field_NameOf_02()
+        {
+            string source = """
+                class C
+                {
+                    object P { set { _ = nameof(field); } }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (3,33): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     object P { set { _ = nameof(field); } }
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 33),
+                // (3,33): error CS8081: Expression does not have a name.
+                //     object P { set { _ = nameof(field); } }
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(3, 33));
         }
     }
 }
