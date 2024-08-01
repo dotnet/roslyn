@@ -246,17 +246,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = """
                 class C
                 {
-                    object P { get => null; } = field;
+                    object P { get => field; } = field;
                 }
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
                 // (3,12): error CS8050: Only auto-implemented properties can have initializers.
-                //     object P { get => null; } = field;
+                //     object P { get => field; } = field;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(3, 12),
-                // (3,33): error CS0103: The name 'field' does not exist in the current context
-                //     object P { get => null; } = field;
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 33));
+                // (3,23): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                //     object P { get => field; } = field;
+                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 23),
+                // (3,34): error CS0103: The name 'field' does not exist in the current context
+                //     object P { get => field; } = field;
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 34));
         }
 
         [Fact]
