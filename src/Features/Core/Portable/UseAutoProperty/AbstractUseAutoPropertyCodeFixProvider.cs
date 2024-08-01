@@ -41,7 +41,7 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
 
     protected abstract TPropertyDeclaration GetPropertyDeclaration(SyntaxNode node);
     protected abstract SyntaxNode GetNodeToRemove(TVariableDeclarator declarator);
-    protected abstract TPropertyDeclaration RewriteReferencesInProperty(
+    protected abstract TPropertyDeclaration RewriteFieldReferencesInProperty(
         TPropertyDeclaration property, LightweightRenameLocations fieldLocations, CancellationToken cancellationToken);
 
     protected abstract ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document);
@@ -112,9 +112,9 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
 
         if (!isTrivialGetAccessor || !isTrivialSetAccessor)
         {
-            // We have at least a non-trivial getter/setter.  We need to update the property to reference `field`
-            // instead of the actual field.
-            property = RewriteReferencesInProperty(property, fieldLocations);
+            // We have at least a non-trivial getter/setter.  Those will not be rewritten to `get;/set;`.  As such, we
+            // need to update the property to reference `field` or itself instead of the actual field.
+            property = RewriteFieldReferencesInProperty(property, fieldLocations, cancellationToken);
         }
 
         var updatedProperty = await UpdatePropertyAsync(

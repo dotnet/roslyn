@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -40,6 +41,9 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
     protected override PropertyDeclarationSyntax GetPropertyDeclaration(SyntaxNode node)
         => (PropertyDeclarationSyntax)node;
 
+    private static bool SupportsReadOnlyProperties(Compilation compilation)
+        => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
+
     protected override SyntaxNode GetNodeToRemove(VariableDeclaratorSyntax declarator)
     {
         var fieldDeclaration = (FieldDeclarationSyntax)declarator.GetRequiredParent().GetRequiredParent();
@@ -47,18 +51,12 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
         return nodeToRemove;
     }
 
-    private sealed class UseAutoPropertyRewriter : CSharpSyntaxRewriter
+    private sealed class UseAutoPropertyRewriter(
+        IdentifierNameSyntax propertyIdentifierName,
+        ISet<IdentifierNameSyntax> identifierNames) : CSharpSyntaxRewriter
     {
-        private readonly IdentifierNameSyntax _propertyIdentifierName;
-        private readonly ISet<IdentifierNameSyntax> _identifierNames;
-
-        public UseAutoPropertyRewriter(
-            IdentifierNameSyntax propertyIdentifierName,
-            ISet<IdentifierNameSyntax> identifierNames)
-        {
-            _propertyIdentifierName = propertyIdentifierName;
-            _identifierNames = identifierNames;
-        }
+        private readonly IdentifierNameSyntax _propertyIdentifierName = propertyIdentifierName;
+        private readonly ISet<IdentifierNameSyntax> _identifierNames = identifierNames;
 
         public override SyntaxNode? VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
         {
@@ -87,7 +85,7 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
                 if (node.Parent is AssignmentExpressionSyntax
                     {
                         Parent: InitializerExpressionSyntax { RawKind: (int)SyntaxKind.ObjectInitializerExpression }
-                    } assigment && assigment.Left == node)
+                    } assignment && assignment.Left == node)
                 {
                     // `new X { fieldName = ... }` gets rewritten to `new X { propName = ... }`
                     return _propertyIdentifierName.WithTriviaFrom(node);
@@ -101,7 +99,7 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
         }
     }
 
-    protected override PropertyDeclarationSyntax RewriteReferencesInProperty(
+    protected override PropertyDeclarationSyntax RewriteFieldReferencesInProperty(
         PropertyDeclarationSyntax property,
         LightweightRenameLocations fieldLocations,
         CancellationToken cancellationToken)
@@ -115,7 +113,7 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
             .ToSet();
 
         var rewriter = new UseAutoPropertyRewriter(propertyIdentifierName, identifierNames);
-        return rewriter.Visit(property);
+        return (PropertyDeclarationSyntax)rewriter.Visit(property);
     }
 
     protected override Task<SyntaxNode> UpdatePropertyAsync(
@@ -132,22 +130,27 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
         var project = propertyDocument.Project;
         var generator = SyntaxGenerator.GetGenerator(project);
 
+        // We may need to add a setter if the field is written to outside of the constructor
+        // of it's class.
+
         var needsSetter = NeedsSetter(compilation, propertyDeclaration, isWrittenOutsideOfConstructor);
 
-        if (isTrivialGetAccessor || isTrivialSetAccessor || needsSetter)
-        {
-            var trailingTrivia = propertyDeclaration.GetTrailingTrivia();
+        var fieldInitializer = GetFieldInitializer(fieldSymbol, cancellationToken);
 
-            var accessorList = UpdateAccessorList(
-                propertyDeclaration.AccessorList, isTrivialGetAccessor, isTrivialSetAccessor);
+        if (isTrivialGetAccessor || isTrivialSetAccessor || needsSetter || fieldInitializer != null)
+        {
+            // If we have a trivial getters/setter then we want to convert to an accessor list to have `get;set;`.  If
+            // we need a setter, we have to convert to having an accessor list.  If we have a field initializer, we need
+            // to convert to an accessor list to add the initializer expression after.
+            var accessorList = ConvertToAccessorList(
+                propertyDeclaration, isTrivialGetAccessor, isTrivialSetAccessor);
+
             var updatedProperty = propertyDeclaration
                 .WithAccessorList(accessorList)
                 .WithExpressionBody(null)
-                .WithSemicolonToken(Token(SyntaxKind.None));
+                .WithSemicolonToken(default);
 
-            // We may need to add a setter if the field is written to outside of the constructor
-            // of it's class.
-            if ()
+            if (needsSetter)
             {
                 var accessor = AccessorDeclaration(SyntaxKind.SetAccessorDeclaration).WithSemicolonToken(SemicolonToken);
 
@@ -161,7 +164,6 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
                                                  .AddAccessorListAccessors(accessor);
             }
 
-            var fieldInitializer = GetFieldInitializer(fieldSymbol, cancellationToken);
             if (fieldInitializer != null)
             {
                 updatedProperty = updatedProperty.WithInitializer(EqualsValueClause(fieldInitializer))
@@ -169,10 +171,42 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
             }
 
             var finalProperty = updatedProperty
-                .WithTrailingTrivia(trailingTrivia)
+                .WithTrailingTrivia(propertyDeclaration.GetTrailingTrivia())
                 .WithAdditionalAnnotations(SpecializedFormattingAnnotation);
-            return Task.FromResult(finalProperty);
+            return Task.FromResult<SyntaxNode>(finalProperty);
+
         }
+        else
+        {
+            // Nothing to actually do.  We're not changing the accessors to `get;set;` accessors, and we didn't have to
+            // add an setter.  We also had no field initializer to move over.  This can happen when we're converting to
+            // using `field` and that rewrite already happened.
+            return Task.FromResult<SyntaxNode>(propertyDeclaration);
+        }
+    }
+
+    private static AccessorListSyntax ConvertToAccessorList(
+        PropertyDeclarationSyntax propertyDeclaration, bool isTrivialGetAccessor, bool isTrivialSetAccessor)
+    {
+        // If we don't have an accessor list at all, convert the property's expr body to a `get => ...` accessor.
+        var accessorList = propertyDeclaration.AccessorList ?? AccessorList(SingletonList(
+            AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                .WithExpressionBody(propertyDeclaration.ExpressionBody)
+                .WithSemicolonToken(SemicolonToken)));
+
+        // Now that we have an accessor list, convert the getter/setter to `get;`/`set;` form if requested.
+        return accessorList.WithAccessors(List(accessorList.Accessors.Select(
+            accessor =>
+            {
+                var convert =
+                    (isTrivialGetAccessor && accessor.Kind() is SyntaxKind.GetAccessorDeclaration) ||
+                    (isTrivialSetAccessor && accessor.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration);
+
+                if (convert)
+                    return accessor.WithExpressionBody(null).WithBody(null).WithSemicolonToken(SemicolonToken);
+
+                return accessor;
+            })));
     }
 
     protected override ImmutableArray<AbstractFormattingRule> GetFormattingRules(Document document)
@@ -240,34 +274,5 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
 
         // If we're written outside a constructor we need a setter.
         return isWrittenOutsideOfConstructor;
-    }
-
-    private static bool SupportsReadOnlyProperties(Compilation compilation)
-        => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
-
-    private static AccessorListSyntax? UpdateAccessorList(
-        AccessorListSyntax accessorList,
-        bool isTrivialGetAccessor,
-        bool isTrivialSetAccessor)
-    {
-        if (accessorList == null)
-        {
-            var getter = AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                .WithSemicolonToken(SemicolonToken);
-            return AccessorList([getter]);
-        }
-
-        return accessorList.WithAccessors([.. GetAccessors(accessorList.Accessors)]);
-    }
-
-    private static IEnumerable<AccessorDeclarationSyntax> GetAccessors(SyntaxList<AccessorDeclarationSyntax> accessors)
-    {
-        foreach (var accessor in accessors)
-        {
-            yield return accessor
-                .WithBody(null)
-                .WithExpressionBody(null)
-                .WithSemicolonToken(SemicolonToken);
-        }
     }
 }

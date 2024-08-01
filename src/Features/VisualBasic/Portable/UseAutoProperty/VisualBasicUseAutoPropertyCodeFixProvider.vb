@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return Nothing
         End Function
 
-        Protected Overrides Function RewriteReferencesInProperty([property] As PropertyBlockSyntax, fieldLocations As LightweightRenameLocations) As PropertyBlockSyntax
+        Protected Overrides Function RewriteReferencesInProperty([property] As PropertyBlockSyntax, fieldLocations As LightweightRenameLocations, cancellationToken As CancellationToken) As PropertyBlockSyntax
             ' Only called to rewrite to `field` (which VB does not support).
             Throw ExceptionUtilities.Unreachable
         End Function
