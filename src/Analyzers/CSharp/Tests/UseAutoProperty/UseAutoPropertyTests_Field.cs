@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseAutoProperty;
 public sealed partial class UseAutoPropertyTests
 {
     private readonly ParseOptions CSharp13 = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp13);
+    private readonly ParseOptions Preview = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
 
     [Fact]
     public async Task TestFieldSimplestCase()
@@ -110,6 +111,7 @@ public sealed partial class UseAutoPropertyTests
                 int P
                 {
                     get;
+
                     set
                     {
                         ;
@@ -203,10 +205,7 @@ public sealed partial class UseAutoPropertyTests
                 int Total
                 {
                     get => field + y;
-                    set
-                    {
-                        field = value;
-                    }
+                    set;
                 }
             }
             """);
@@ -228,6 +227,149 @@ public sealed partial class UseAutoPropertyTests
                         var v = field.Trim();
                         return s.Trim();
                     }
+                }
+            }
+            """, new TestParameters(parseOptions: Preview));
+    }
+
+    [Fact]
+    public async Task TestNotWhenUsingNameof1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|string s|];
+
+                string P
+                {
+                    get
+                    {
+                        if (s is null)
+                            throw new ArgumentNullException(nameof(s));
+                        return s.Trim();
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotWhenUsingNameof2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|string s|];
+
+                string P
+                {
+                    get
+                    {
+                        if (s is null)
+                            throw new ArgumentNullException(nameof(this.s));
+                        return s.Trim();
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotWhenUsingNameof3()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|string s|];
+
+                string P
+                {
+                    get
+                    {
+                        return s.Trim();
+                    }
+                }
+
+                void M()
+                {
+                    if (s is null)
+                        throw new ArgumentNullException(nameof(s));
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotWhenUsingNameof4()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|string s|];
+
+                string P
+                {
+                    get
+                    {
+                        return s.Trim();
+                    }
+                }
+
+                void M()
+                {
+                    if (s is null)
+                        throw new ArgumentNullException(nameof(this.s));
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestWithRefUseInside()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|string s|];
+
+                string P => Init(ref s);
+
+                void Init(ref string s)
+                {
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                string P => Init(ref field);
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotWithRefUseOutside()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|string s|];
+
+                string P => s.Trim();
+
+                void M()
+                {
+                    Init(ref s);
+                }
+
+                void Init(ref string s)
+                {
                 }
             }
             """);

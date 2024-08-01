@@ -203,7 +203,13 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
                     (isTrivialSetAccessor && accessor.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration);
 
                 if (convert)
-                    return accessor.WithExpressionBody(null).WithBody(null).WithSemicolonToken(SemicolonToken);
+                {
+                    if (accessor.ExpressionBody != null)
+                        return accessor.WithExpressionBody(null);
+
+                    if (accessor.Body != null)
+                        return accessor.WithBody(null).WithSemicolonToken(SemicolonToken.WithTrailingTrivia(accessor.Body.CloseBraceToken.TrailingTrivia));
+                }
 
                 return accessor;
             })));
@@ -234,6 +240,9 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
                 return true;
 
             if (currentToken.IsKind(SyntaxKind.CloseBraceToken) && currentToken.Parent.IsKind(SyntaxKind.AccessorList))
+                return true;
+
+            if (previousToken.IsKind(SyntaxKind.SemicolonToken) && currentToken.Parent is AccessorDeclarationSyntax)
                 return true;
 
             return false;
