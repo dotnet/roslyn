@@ -96,7 +96,7 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
         var propertySymbol = (IPropertySymbol)propertySemanticModel.GetRequiredDeclaredSymbol(property, cancellationToken);
 
         var isTrivialGetAccessor = diagnostic.Properties.ContainsKey(IsTrivialGetAccessor);
-        var isTrivialSetAccessor = propertySymbol.SetMethod is null || diagnostic.Properties.ContainsKey(IsTrivialSetAccessor);
+        var isTrivialSetAccessor = diagnostic.Properties.ContainsKey(IsTrivialSetAccessor);
 
         Debug.Assert(fieldDocument.Project == propertyDocument.Project);
         var project = fieldDocument.Project;
@@ -111,7 +111,8 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
         var isWrittenToOutsideOfConstructor = IsWrittenToOutsideOfConstructorOrProperty(
             fieldSymbol, fieldLocations, property, cancellationToken);
 
-        if (!isTrivialGetAccessor || !isTrivialSetAccessor)
+        if (!isTrivialGetAccessor ||
+            (propertySymbol.SetMethod != null && !isTrivialSetAccessor))
         {
             // We have at least a non-trivial getter/setter.  Those will not be rewritten to `get;/set;`.  As such, we
             // need to update the property to reference `field` or itself instead of the actual field.

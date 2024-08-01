@@ -139,4 +139,97 @@ public sealed partial class UseAutoPropertyTests
             }
             """);
     }
+
+    [Fact]
+    public async Task TestMultipleFields_NoClearChoice()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                int [|x|], y;
+
+                int Total => x + y;
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMultipleFields_NoClearChoice2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                int [|x|], y;
+
+                int Total
+                {
+                    get => x + y;
+                    set
+                    {
+                        x = value;
+                        y = value;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMultipleFields_ClearChoice()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                int [|x|], y;
+
+                int Total
+                {
+                    get => x + y;
+                    set
+                    {
+                        x = value;
+                    }
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                int y;
+
+                int Total
+                {
+                    get => field + y;
+                    set
+                    {
+                        field = value;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNotWhenAlreadyUsingField()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|string s|];
+
+                string P
+                {
+                    get
+                    {
+                        var v = field.Trim();
+                        return s.Trim();
+                    }
+                }
+            }
+            """);
+    }
 }
