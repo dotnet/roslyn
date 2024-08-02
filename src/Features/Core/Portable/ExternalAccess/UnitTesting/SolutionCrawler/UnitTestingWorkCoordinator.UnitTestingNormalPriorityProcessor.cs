@@ -95,6 +95,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                 protected override Task WaitAsync(CancellationToken cancellationToken)
                     => _workItemQueue.WaitAsync(cancellationToken);
 
+                /// <summary>whether this processor is running or not</summary>
                 public Task Running { get; private set; }
                 public int WorkItemCount => _workItemQueue.WorkItemCount;
                 public bool HasAnyWork => _workItemQueue.HasAnyWork;

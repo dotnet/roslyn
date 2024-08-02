@@ -113,6 +113,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         public static SemanticTokensSchema LegacyTokenSchemaForRazor
             => LegacyTokensSchemaForLSIF;
 
+        /// <summary>
+        /// A schema for mapping classification type names to VS LSP token names.  This maps a few classification type names
+        /// directly to LSP semantic token types, but otherwise generally returns the classification type name as a custom token type.
+        /// </summary>
         public static SemanticTokensSchema LegacyTokensSchemaForLSIF { get; } = new(ClassificationTypeNames.AllTypeNames
             .Where(classificationTypeName => !ClassificationTypeNames.AdditiveTypeNames.Contains(classificationTypeName))
             .ToImmutableDictionary(
