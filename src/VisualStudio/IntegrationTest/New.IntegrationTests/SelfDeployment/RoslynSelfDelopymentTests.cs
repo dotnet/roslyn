@@ -12,15 +12,8 @@ using Xunit.Abstractions;
 namespace Roslyn.VisualStudio.NewIntegrationTests.DevLoop;
 
 [IdeSettings(MinVersion = VisualStudioVersion.VS2022, RootSuffix = "RoslynDev", MaxAttempts = 1)]
-public class RoslynSelfBuildTests : AbstractIntegrationTest
+public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIntegrationTest
 {
-    private readonly ITestOutputHelper output;
-
-    public RoslynSelfBuildTests(ITestOutputHelper output)
-    {
-        this.output = output;
-    }
-
     [ConditionalIdeFact(typeof(WindowsOnly), Reason = "We want to monitor the health of F5 deployment")]
     public async Task Test()
     {
@@ -34,7 +27,6 @@ public class RoslynSelfBuildTests : AbstractIntegrationTest
         var outputResult = await this.TestServices.SolutionExplorer.GetBuildOutputContentAsync(HangMitigatingCancellationToken);
         output.WriteLine(outputResult);
         Assert.Contains("0 failed", result);
-        // await this.TestServices.Shell.ExecuteCommandAsync("Debug.StartWithoutDebugging", HangMitigatingCancellationToken);
         await this.TestServices.Shell.ExecuteCommandAsync("Debug.StartWithoutDebugging", HangMitigatingCancellationToken);
     }
 }
