@@ -276,6 +276,50 @@ public sealed partial class UseAutoPropertyTests
     }
 
     [Fact]
+    public async Task TestMultipleFields_PickByName1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                int [|x|], y;
+
+                int X => x + y;
+            }
+            """,
+            """
+            class Class
+            {
+                int y;
+
+                int X => field + y;
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestMultipleFields_PickByName2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                int [|_x|], y;
+
+                int X => _x + y;
+            }
+            """,
+            """
+            class Class
+            {
+                int y;
+
+                int X => field + y;
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestNotWhenAlreadyUsingField()
     {
         await TestMissingInRegularAndScriptAsync(
@@ -706,7 +750,7 @@ public sealed partial class UseAutoPropertyTests
             class C
             {
                 [field: Something]
-                public int Prop { get => prop; set => prop = value; }
+                public int Prop { get; set; }
             }
             """);
     }
@@ -720,14 +764,72 @@ public sealed partial class UseAutoPropertyTests
             {
                 [Something]
                 [|private string prop;|]
-                public int Prop => prop.Trim();
+                public string Prop => prop.Trim();
             }
             """,
             """
             class C
             {
                 [field: Something]
-                public int Prop => field.Trim();
+                public string Prop => field.Trim();
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestAttributesOnField3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                [Something]
+                [|private string prop;|]
+
+                [PropAttribute]
+                public string Prop => prop.Trim();
+            }
+            """,
+            """
+            class C
+            {
+                [field: Something]
+                [PropAttribute]
+                public string Prop => field.Trim();
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestFieldUsedInObjectInitializer()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                [|private string prop;|]
+
+                public int Prop
+                {
+                    get
+                    {
+                        var v = new C { prop = "" };
+                        return prop.Trim();
+                    }
+                }
+            }
+            """,
+            """
+            class C
+            {
+                public int Prop
+                {
+                    get
+                    {
+                        var v = new C { Prop = "" };
+                        return field.Trim();
+                    }
+                }
             }
             """);
     }

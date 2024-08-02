@@ -1155,9 +1155,9 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task TestNotWithFieldWithAttribute()
+    public async Task TestWithFieldWithAttribute()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1171,6 +1171,13 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
                         return i;
                     }
                 }
+            }
+            """,
+            """
+            class Class
+            {
+                [field: A]
+                int P { get; }
             }
             """);
     }
