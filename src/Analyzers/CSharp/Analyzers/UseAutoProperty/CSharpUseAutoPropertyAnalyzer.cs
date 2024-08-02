@@ -62,7 +62,7 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
         return false;
     }
 
-    protected override void RegisterIneligibleFieldsAction(
+    protected override void RecordIneligibleFieldLocations(
         HashSet<string> fieldNames,
         ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFields,
         SemanticModel semanticModel,

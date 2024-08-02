@@ -99,7 +99,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
     protected abstract void AddAccessedFields(
         SemanticModel semanticModel, IMethodSymbol accessor, HashSet<string> fieldNames, HashSet<IFieldSymbol> result, CancellationToken cancellationToken);
 
-    protected abstract void RegisterIneligibleFieldsAction(
+    protected abstract void RecordIneligibleFieldLocations(
         HashSet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
 
     protected sealed override void InitializeWorker(AnalysisContext context)
@@ -149,18 +149,16 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
             }
 
             // Examine each property-declaration we find within this named type to see if it looks like it can be converted.
-            context.RegisterSyntaxNodeAction(context =>
-            {
-                AnalyzePropertyDeclaration(context, namedType, fieldNames, analysisResults);
-            }, PropertyDeclarationKind);
+            context.RegisterSyntaxNodeAction(
+                context => AnalyzePropertyDeclaration(context, namedType, fieldNames, analysisResults),
+                PropertyDeclarationKind);
 
             // Concurrently, examine the usages of the fields of this type within itself to see how those may impact if
             // a field/prop pair can actually be converted.
             context.RegisterCodeBlockStartAction<TSyntaxKind>(context =>
             {
-                RegisterIneligibleFieldsAction(fieldNames, ineligibleFields, context.SemanticModel, context.CodeBlock, context.CancellationToken);
-                RegisterFieldReferences(
-                    fieldNames, fieldReads, fieldWrites, context.SemanticModel, context.CodeBlock, context.CancellationToken);
+                RecordIneligibleFieldLocations(fieldNames, ineligibleFields, context.SemanticModel, context.CodeBlock, context.CancellationToken);
+                RecordAllFieldReferences(fieldNames, fieldReads, fieldWrites, context.SemanticModel, context.CodeBlock, context.CancellationToken);
             });
 
             context.RegisterSymbolEndAction(context =>
@@ -226,7 +224,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
             }
         }, SymbolKind.NamedType);
 
-    private void RegisterFieldReferences(
+    private void RecordAllFieldReferences(
         HashSet<string> fieldNames,
         ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldReads,
         ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites,

@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return False
         End Function
 
-        Protected Overrides Sub RegisterIneligibleFieldsAction(
+        Protected Overrides Sub RecordIneligibleFieldLocations(
                 fieldNames As HashSet(Of String),
                 ineligibleFields As ConcurrentDictionary(Of IFieldSymbol, ConcurrentSet(Of SyntaxNode)),
                 semanticModel As SemanticModel,
