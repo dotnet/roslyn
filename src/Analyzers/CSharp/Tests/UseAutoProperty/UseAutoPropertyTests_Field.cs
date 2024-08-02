@@ -1084,7 +1084,7 @@ public sealed partial class UseAutoPropertyTests
             {
                 [|int i|];
 
-                public string I => i / 2;
+                public int I => i / 2;
 
                 void M()
                 {
@@ -1103,7 +1103,7 @@ public sealed partial class UseAutoPropertyTests
             {
                 [|int i|];
 
-                public string I => i / 2;
+                public int I => i / 2;
 
                 void M()
                 {
@@ -1122,7 +1122,7 @@ public sealed partial class UseAutoPropertyTests
             {
                 [|int i|];
 
-                public string I => i / 2;
+                public int I => i / 2;
 
                 void M()
                 {
@@ -1141,7 +1141,7 @@ public sealed partial class UseAutoPropertyTests
             {
                 [|int i|];
 
-                public string I => i / 2;
+                public int I => i / 2;
 
                 void M()
                 {
@@ -1160,11 +1160,49 @@ public sealed partial class UseAutoPropertyTests
             {
                 [|int i|];
 
-                public string I => i / 2;
+                public int I => i / 2;
 
                 void M()
                 {
                     Console.WriteLine(this.i++);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestTrivialGetterWithExternalRead1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                public int I => i;
+
+                void M()
+                {
+                    Console.WriteLine(i);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNoSetterWithExternalWrite1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                public int I => i;
+
+                void M()
+                {
+                    i = 1;
                 }
             }
             """);
