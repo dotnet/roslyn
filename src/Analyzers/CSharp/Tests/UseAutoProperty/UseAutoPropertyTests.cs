@@ -669,7 +669,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task TestGetterWithMultipleStatements()
+    public async Task TestGetterWithMultipleStatements_CSharp12()
     {
         await TestMissingInRegularAndScriptAsync(
             """
@@ -690,7 +690,7 @@ public sealed partial class UseAutoPropertyTests(ITestOutputHelper logger)
     }
 
     [Fact]
-    public async Task TestSetterWithMultipleStatements()
+    public async Task TestSetterWithMultipleStatements_CSharp12()
     {
         await TestMissingInRegularAndScriptAsync(
             """
