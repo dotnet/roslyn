@@ -50,8 +50,7 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
     protected override SyntaxNode GetNodeToRemove(VariableDeclaratorSyntax declarator)
     {
         var fieldDeclaration = GetFieldDeclaration(declarator);
-        var nodeToRemove = fieldDeclaration.Declaration.Variables.Count > 1 ? declarator : (SyntaxNode)fieldDeclaration;
-        return nodeToRemove;
+        return fieldDeclaration.Declaration.Variables.Count > 1 ? declarator : fieldDeclaration;
     }
 
     protected override PropertyDeclarationSyntax RewriteFieldReferencesInProperty(
