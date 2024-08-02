@@ -607,15 +607,15 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
                 fieldNode.GetLocation(),
                 result.Notification,
                 context.Options,
-                additionalLocations: additionalLocations,
-                properties: properties));
+                additionalLocations,
+                properties));
 
             // Also, place a hidden marker on the property.  If they bring up a lightbulb there, they'll be able to see that
             // they can convert it to an auto-prop.
             context.ReportDiagnostic(Diagnostic.Create(
                 Descriptor, propertyDeclaration.GetLocation(),
-                additionalLocations: additionalLocations,
-                properties: properties));
+                additionalLocations,
+                properties));
         }
     }
 }
