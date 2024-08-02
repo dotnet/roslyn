@@ -20,8 +20,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis;
 
-using static System.Runtime.InteropServices.JavaScript.JSType;
-
 // On NetFx, frozen dictionary is very expensive when you give it a case insensitive comparer.  This is due to
 // unavoidable allocations it performs while doing its key-analysis that involve going through the non-span-aware
 // culture types.  So, on netfx, we use a plain ReadOnlyDictionary here.
