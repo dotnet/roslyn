@@ -794,8 +794,108 @@ public sealed partial class UseAutoPropertyTests
             class C
             {
                 [field: Something]
-
                 [PropAttribute]
+                public string Prop => field.Trim();
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestAttributesOnField4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                [Something]
+                [|private string prop;|]
+
+                /// Docs
+                [PropAttribute]
+                public string Prop => prop.Trim();
+            }
+            """,
+            """
+            class C
+            {
+                /// Docs
+                [field: Something]
+                [PropAttribute]
+                public string Prop => field.Trim();
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestAttributesOnField5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                [Something]
+                [|private string prop;|]
+
+                /// Docs
+                [PropAttribute][PropAttribute2]
+                public string Prop => prop.Trim();
+            }
+            """,
+            """
+            class C
+            {
+                /// Docs
+                [field: Something]
+                [PropAttribute][PropAttribute2]
+                public string Prop => field.Trim();
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestAttributesOnField6()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                [Something]
+                [|private string prop;|]
+
+                /// Docs
+                public string Prop => prop.Trim();
+            }
+            """,
+            """
+            class C
+            {
+                /// Docs
+                [field: Something]
+                public string Prop => field.Trim();
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestAttributesOnField7()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                /// FieldDocs
+                [Something]
+                [|private string prop;|]
+
+                /// Docs
+                public string Prop => prop.Trim();
+            }
+            """,
+            """
+            class C
+            {
+                /// Docs
+                [field: Something]
                 public string Prop => field.Trim();
             }
             """);
@@ -823,7 +923,7 @@ public sealed partial class UseAutoPropertyTests
             """
             class C
             {
-                public int Prop
+                public string Prop
                 {
                     get
                     {

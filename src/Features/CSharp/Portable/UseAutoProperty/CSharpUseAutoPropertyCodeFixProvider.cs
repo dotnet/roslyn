@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
@@ -207,9 +206,12 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
             using var _ = ArrayBuilder<AttributeListSyntax>.GetInstance(out var finalAttributes);
             foreach (var attributeList in fieldAttributes)
             {
-                // Change any field attributes to be `[field: ...]` attributes.  Ensure they're indented the right amount.
+                // Change any field attributes to be `[field: ...]` attributes. Take the property's trivia and place it
+                // on the first field attribute we move over.
                 var converted = ConvertAttributeList(attributeList);
-                finalAttributes.Add(converted.WithLeadingTrivia(indentation));
+                finalAttributes.Add(attributeList == fieldAttributes[0]
+                    ? converted.WithLeadingTrivia(leadingTrivia)
+                    : converted);
             }
 
             foreach (var attributeList in property.AttributeLists)
@@ -222,8 +224,9 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
             }
 
             return property
-                .WithAttributeLists(List(finalAttributes))
-                .WithLeadingTrivia(leadingTrivia.Take(leadingTrivia.Count - 1));
+                .WithAttributeLists([])
+                .WithLeadingTrivia(indentation)
+                .WithAttributeLists(List(finalAttributes));
         }
 
         static AttributeListSyntax ConvertAttributeList(AttributeListSyntax attributeList)
@@ -314,18 +317,16 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
 
     private static bool NeedsSetter(Compilation compilation, PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor)
     {
-        if (propertyDeclaration.AccessorList?.Accessors.Any(SyntaxKind.SetAccessorDeclaration) == true)
+        // Don't need to add if we already have a setter.
+        if (propertyDeclaration.AccessorList != null &&
+            propertyDeclaration.AccessorList.Accessors.Any(a => a.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration))
         {
-            // Already has a setter.
             return false;
         }
 
+        // If the language doesn't have readonly properties, then we'll need a setter here.
         if (!SupportsReadOnlyProperties(compilation))
-        {
-            // If the language doesn't have readonly properties, then we'll need a 
-            // setter here.
             return true;
-        }
 
         // If we're written outside a constructor we need a setter.
         return isWrittenOutsideOfConstructor;
