@@ -261,21 +261,15 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
         CancellationToken cancellationToken)
     {
         var syntax = accessor.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-        foreach (var identifierName in syntax.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>())
+        foreach (var descendant in syntax.DescendantNodesAndSelf())
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // Quick check to avoid costly binding.  Only look at identifiers that match the name of a private field in
-            // the containing type.
-            if (!fieldNames.Contains(identifierName.Identifier.ValueText))
-                continue;
-
-            var expr = identifierName.IsSimpleMemberAccessExpressionName()
-                ? (ExpressionSyntax)identifierName.GetRequiredParent()
-                : identifierName;
-
-            result.AddIfNotNull(TryGetDirectlyAccessedFieldSymbol(
-                semanticModel, expr, cancellationToken));
+            if (descendant is IdentifierNameSyntax identifierName)
+            {
+                result.AddIfNotNull(TryGetDirectlyAccessedFieldSymbol(
+                    semanticModel, identifierName, fieldNames, cancellationToken));
+            }
         }
     }
 }

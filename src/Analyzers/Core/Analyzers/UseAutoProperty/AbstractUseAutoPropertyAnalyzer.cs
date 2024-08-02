@@ -480,9 +480,26 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
     protected virtual bool CanConvert(IPropertySymbol property)
         => true;
 
-    protected static IFieldSymbol? TryGetDirectlyAccessedFieldSymbol(
-        SemanticModel semanticModel, TExpression expression, CancellationToken cancellationToken)
+    protected IFieldSymbol? TryGetDirectlyAccessedFieldSymbol(
+        SemanticModel semanticModel,
+        TIdentifierName? identifierName,
+        HashSet<string> fieldNames,
+        CancellationToken cancellationToken)
     {
+        if (identifierName is null)
+            return null;
+
+        var syntaxFacts = this.SyntaxFacts;
+
+        // Quick check to avoid costly binding.  Only look at identifiers that match the name of a private field in
+        // the containing type.
+        if (!fieldNames.Contains(syntaxFacts.GetIdentifierOfIdentifierName(identifierName).ValueText))
+            return null;
+
+        TExpression expression = identifierName;
+        if (this.SyntaxFacts.IsNameOfAnyMemberAccessExpression(expression))
+            expression = (TExpression)expression.GetRequiredParent();
+
         var operation = semanticModel.GetOperation(expression, cancellationToken);
         if (operation is not IFieldReferenceOperation
             {
@@ -516,14 +533,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         if (syntaxFacts.IsMemberAccessExpression(expression))
             name = (TExpression)SyntaxFacts.GetNameOfMemberAccessExpression(expression);
 
-        if (!syntaxFacts.IsIdentifierName(name))
-            return null;
-
-        // Avoid binding identifiers that couldn't possibly bind to a field we care about.
-        if (!fieldNames.Contains(syntaxFacts.GetIdentifierOfIdentifierName(name).ValueText))
-            return null;
-
-        return TryGetDirectlyAccessedFieldSymbol(semanticModel, expression, cancellationToken);
+        return TryGetDirectlyAccessedFieldSymbol(semanticModel, name as TIdentifierName, fieldNames, cancellationToken);
     }
 
     private void Process(
