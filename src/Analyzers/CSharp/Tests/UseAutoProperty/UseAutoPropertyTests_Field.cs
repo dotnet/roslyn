@@ -32,8 +32,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """,
-            """
+            """, """
             class Class
             {
                 string P
@@ -64,8 +63,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """,
-            """
+            """, """
             class Class
             {
                 string P
@@ -96,8 +94,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """,
-            """
+            """, """
             class Class
             {
                 static string P
@@ -129,8 +126,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """,
-            """
+            """, """
             class Class
             {
                 int P
@@ -168,8 +164,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """,
-            """
+            """, """
             class Class
             {
                 int P
@@ -197,8 +192,7 @@ public sealed partial class UseAutoPropertyTests
 
                 string P => s.Trim();
             }
-            """,
-            """
+            """, """
             class Class
             {
                 string P => field.Trim();
@@ -260,8 +254,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """,
-            """
+            """, """
             class Class
             {
                 int y;
@@ -286,8 +279,7 @@ public sealed partial class UseAutoPropertyTests
 
                 int X => x + y;
             }
-            """,
-            """
+            """, """
             class Class
             {
                 int y;
@@ -308,8 +300,7 @@ public sealed partial class UseAutoPropertyTests
 
                 int X => _x + y;
             }
-            """,
-            """
+            """, """
             class Class
             {
                 int y;
@@ -451,8 +442,7 @@ public sealed partial class UseAutoPropertyTests
                 {
                 }
             }
-            """,
-            """
+            """, """
             class Class
             {
                 string P => Init(ref field);
@@ -505,8 +495,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """,
-            """
+            """, """
             class Class
             {
                 string P
@@ -567,8 +556,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """,
-            """
+            """, """
             class Class
             {
                 int P
@@ -630,8 +618,7 @@ public sealed partial class UseAutoPropertyTests
                     set { this._strictMode = value; }
                 }
             }
-            """,
-            """
+            """, """
             class Builder
             {
                 private Builder _builder;
@@ -658,8 +645,7 @@ public sealed partial class UseAutoPropertyTests
 
                 public List<int> List => _list ??= new();
             }
-            """,
-            """
+            """, """
             using System.Collections.Generic;
 
             class Builder
@@ -681,8 +667,7 @@ public sealed partial class UseAutoPropertyTests
 
                 void Set(ref int a, int b) { }
             }
-            """,
-            """
+            """, """
             class Builder
             {
                 public int Prop { get; set => Set(ref field, value); }
@@ -714,8 +699,7 @@ public sealed partial class UseAutoPropertyTests
                 void Set(ref int a, int b) { }
                 void OnPropChanged() { }
             }
-            """,
-            """
+            """, """
             class Builder
             {
                 public int Prop
@@ -745,8 +729,7 @@ public sealed partial class UseAutoPropertyTests
                 [|private int prop;|]
                 public int Prop { get => prop; set => prop = value; }
             }
-            """,
-            """
+            """, """
             class C
             {
                 [field: Something]
@@ -766,8 +749,7 @@ public sealed partial class UseAutoPropertyTests
                 [|private string prop;|]
                 public string Prop => prop.Trim();
             }
-            """,
-            """
+            """, """
             class C
             {
                 [field: Something]
@@ -789,8 +771,7 @@ public sealed partial class UseAutoPropertyTests
                 [PropAttribute]
                 public string Prop => prop.Trim();
             }
-            """,
-            """
+            """, """
             class C
             {
                 [field: Something]
@@ -814,8 +795,7 @@ public sealed partial class UseAutoPropertyTests
                 [PropAttribute]
                 public string Prop => prop.Trim();
             }
-            """,
-            """
+            """, """
             class C
             {
                 /// Docs
@@ -840,8 +820,7 @@ public sealed partial class UseAutoPropertyTests
                 [PropAttribute][PropAttribute2]
                 public string Prop => prop.Trim();
             }
-            """,
-            """
+            """, """
             class C
             {
                 /// Docs
@@ -865,8 +844,7 @@ public sealed partial class UseAutoPropertyTests
                 /// Docs
                 public string Prop => prop.Trim();
             }
-            """,
-            """
+            """, """
             class C
             {
                 /// Docs
@@ -890,8 +868,7 @@ public sealed partial class UseAutoPropertyTests
                 /// Docs
                 public string Prop => prop.Trim();
             }
-            """,
-            """
+            """, """
             class C
             {
                 /// Docs
@@ -919,8 +896,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """,
-            """
+            """, """
             class C
             {
                 public string Prop
@@ -951,8 +927,7 @@ public sealed partial class UseAutoPropertyTests
                     s = "";
                 }
             }
-            """,
-            """
+            """, """
             class Class
             {
                 public string P { get => field.Trim(); private set; }
@@ -981,8 +956,7 @@ public sealed partial class UseAutoPropertyTests
                     s = "";
                 }
             }
-            """,
-            """
+            """, """
             class Class
             {
                 public string P { get => field ??= ""; private set; }
@@ -1014,8 +988,7 @@ public sealed partial class UseAutoPropertyTests
                     s = "";
                 }
             }
-            """,
-            """
+            """, """
             class Class
             {
                 public string P
@@ -1053,8 +1026,7 @@ public sealed partial class UseAutoPropertyTests
                     s = "";
                 }
             }
-            """,
-            """
+            """, """
             class Class
             {
                 public string P
@@ -1162,8 +1134,7 @@ public sealed partial class UseAutoPropertyTests
 
                 public int I { get => i; set => i = value / 2; }
             }
-            """,
-            """
+            """, """
             class Class
             {
                 public int I { get; set => field = value / 2; }
@@ -1225,8 +1196,7 @@ public sealed partial class UseAutoPropertyTests
                     Console.WriteLine(i);
                 }
             }
-            """,
-            """
+            """, """
             class Class
             {
                 public int I { get; }
@@ -1255,8 +1225,7 @@ public sealed partial class UseAutoPropertyTests
                     i = 1;
                 }
             }
-            """,
-            """
+            """, """
             class Class
             {
                 public int I { get; private set; }
