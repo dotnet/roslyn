@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Threading.Tasks;
 using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
@@ -19,12 +20,13 @@ public class RoslynSelfBuildTests : AbstractIntegrationTest
         this.output = output;
     }
 
-    [ConditionalIdeFact(typeof(DartLabCIOnly), Reason = "We want to monitor the health of F5 deployment")]
-    // [IdeFact]
+    // TODO: Debug the test discover why test can't be find
+    // [ConditionalIdeFact(typeof(DartLabCIOnly), Reason = "We want to monitor the health of F5 deployment")]
+    [IdeFact]
     public async Task Test()
     {
         // https://github.com/microsoft/vs-extension-testing/issues/172
-        System.Environment.SetEnvironmentVariable("RoslynSelfBuildTest", "true");
+        Environment.SetEnvironmentVariable("RoslynSelfBuildTest", "true");
         var solutionDir = @"D:\Sample\roslyn\roslyn.sln";
         await this.TestServices.SolutionExplorer.OpenSolutionAsync(solutionDir, HangMitigatingCancellationToken);
         var result = await this.TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);

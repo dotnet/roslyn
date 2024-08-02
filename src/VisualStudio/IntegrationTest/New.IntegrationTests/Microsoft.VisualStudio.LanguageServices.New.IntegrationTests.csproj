@@ -59,5 +59,6 @@
     <PackageReference Include="System.IO.Hashing" />
     <PackageReference Include="UIAComWrapper" />
     <PackageReference Include="xunit.extensibility.core" />
+    <PackageReference Include="LibGit2Sharp" />
   </ItemGroup>
 </Project>
