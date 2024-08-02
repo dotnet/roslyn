@@ -61,6 +61,9 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
         LightweightRenameLocations fieldLocations,
         CancellationToken cancellationToken)
     {
+        // We're going to walk this property body, converting most reference of the field to use the `field` keyword
+        // instead.  However, not all reference can be updated.  For example, reference through another instance.  Those
+        // we update to point at the property instead.  So we grab that property name here to use in the rewriter.
         var propertyIdentifier = property.Identifier.WithoutTrivia();
         var propertyIdentifierName = IdentifierName(propertyIdentifier);
 
