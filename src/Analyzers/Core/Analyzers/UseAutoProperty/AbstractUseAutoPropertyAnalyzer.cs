@@ -111,30 +111,47 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
             if (!ShouldAnalyze(context, namedType))
                 return;
 
-            var fieldNames = _fieldNamesPool.Allocate();
+            // Results of our analysis pass that we will use to determine which fields and properties to offer to fixup.
             var analysisResults = s_analysisResultPool.Allocate();
+
+            // Fields whose usage may disqualify them from being removed (depending on the usage location). For example,
+            // a field taken by ref normally can't be converted (as a property can't be taken by ref).  However, this
+            // doesn't apply within the property itself (as it can refer to `field` after the rewrite).
             var ineligibleFields = s_fieldToUsageLocationPool.Allocate();
+
+            // Locations where the field is written (outside of a constructor).  Used to disallow converting an init
+            // property, as it would not be possible to write to that field through the property.
             var nonConstructorFieldWrites = s_fieldToUsageLocationPool.Allocate();
 
             // Record the names of all the private fields in this type.  We can use this to greatly reduce the amount of
             // binding we need to perform when looking for restrictions in the type.
+            var fieldNames = _fieldNamesPool.Allocate();
             foreach (var member in namedType.GetMembers())
             {
                 if (member is IFieldSymbol
                     {
+                        // Can only convert fields that are private, as otherwise we don't know how they may be used
+                        // outside of this type.
                         DeclaredAccessibility: Accessibility.Private,
+                        // Only care about actual user-defined fields, not compiler generated ones.
                         CanBeReferencedByName: true,
+                        // To make processing later on easier, limit to well-behaved fields (versus having multiple
+                        // fields merged together in error recoery scenarios).
+                        DeclaringSyntaxReferences.Length: 1,
                     } field)
                 {
                     fieldNames.Add(field.Name);
                 }
             }
 
+            // Examine each property-declaration we find within this named type to see if it looks like it can be converted.
             context.RegisterSyntaxNodeAction(context =>
             {
                 AnalyzePropertyDeclaration(context, namedType, fieldNames, analysisResults);
             }, PropertyDeclarationKind);
 
+            // Concurrently, examine the usages of the fields of this type within itself to see how those may impact if
+            // a field/prop pair can actually be converted.
             context.RegisterCodeBlockStartAction<TSyntaxKind>(context =>
             {
                 RegisterIneligibleFieldsAction(fieldNames, ineligibleFields, context.SemanticModel, context.CodeBlock, context.CancellationToken);
@@ -273,7 +290,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         [NotNullWhen(true)] out TVariableDeclarator? variableDeclarator,
         CancellationToken cancellationToken)
     {
-        if (field.DeclaringSyntaxReferences is [var fieldReference, ..])
+        if (field.DeclaringSyntaxReferences is [var fieldReference])
         {
             variableDeclarator = fieldReference.GetSyntax(cancellationToken) as TVariableDeclarator;
             fieldDeclaration = variableDeclarator?.Parent?.Parent as TFieldDeclaration;
@@ -297,11 +314,12 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
         var propertyDeclaration = (TPropertyDeclaration)context.Node;
 
-        // If the property already contains a `field` expression, then we can't do anything more here.
-        if (SupportsFieldExpression(compilation) && ContainsFieldExpression(propertyDeclaration, cancellationToken))
+        if (semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) is not IPropertySymbol property)
             return;
 
-        if (semanticModel.GetDeclaredSymbol(propertyDeclaration, cancellationToken) is not IPropertySymbol property)
+        // To make processing later on easier, limit to well-behaved properties (versus having multiple
+        // properties merged together in error recovery scenarios).
+        if (property.DeclaringSyntaxReferences.Length != 1)
             return;
 
         if (!containingType.Equals(property.ContainingType))
@@ -336,6 +354,10 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         // helper diagnostic which is not otherwise influenced by the severity settings.
         var notification = preferAutoProps.Notification;
         if (notification.Severity == ReportDiagnostic.Suppress)
+            return;
+
+        // If the property already contains a `field` expression, then we can't do anything more here.
+        if (SupportsFieldExpression(compilation) && ContainsFieldExpression(propertyDeclaration, cancellationToken))
             return;
 
         var getterFields = GetGetterFields(semanticModel, property.GetMethod, fieldNames, cancellationToken);
