@@ -934,4 +934,144 @@ public sealed partial class UseAutoPropertyTests
             }
             """);
     }
+
+    [Fact]
+    public async Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere1()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Class
+            {
+                [|string s|];
+
+                public string P => s.Trim();
+
+                void M()
+                {
+                    s = "";
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public string P { get => field.Trim(); private set; }
+            
+                void M()
+                {
+                    P = "";
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere2()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Class
+            {
+                [|string s|];
+
+                public string P => s ??= "";
+
+                void M()
+                {
+                    s = "";
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public string P { get => field ??= ""; private set; }
+            
+                void M()
+                {
+                    P = "";
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere3()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Class
+            {
+                [|string s|];
+
+                public string P
+                {
+                    get => s ??= "";
+                }
+
+                void M()
+                {
+                    s = "";
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public string P
+                {
+                    get => field ??= ""; private set;
+                }
+            
+                void M()
+                {
+                    P = "";
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere4()
+    {
+        await TestInRegularAndScript1Async(
+            """
+            class Class
+            {
+                [|string s|];
+
+                public string P
+                {
+                    get
+                    {
+                        return s ??= "";
+                    }
+                }
+
+                void M()
+                {
+                    s = "";
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public string P
+                {
+                    get
+                    {
+                        return field ??= "";
+                    }
+
+                    private set;
+                }
+            
+                void M()
+                {
+                    P = "";
+                }
+            }
+            """);
+    }
 }
