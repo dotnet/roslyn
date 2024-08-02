@@ -15,12 +15,11 @@ namespace Microsoft.CodeAnalysis.Differencing;
 /// </summary>
 public sealed partial class EditScript<TNode>
 {
-    private readonly Match<TNode> _match;
     private readonly ImmutableArray<Edit<TNode>> _edits;
 
     internal EditScript(Match<TNode> match)
     {
-        _match = match;
+        Match = match;
 
         var edits = new List<Edit<TNode>>();
         AddUpdatesInsertsMoves(edits);
@@ -31,13 +30,13 @@ public sealed partial class EditScript<TNode>
 
     public ImmutableArray<Edit<TNode>> Edits => _edits;
 
-    public Match<TNode> Match => _match;
+    public Match<TNode> Match { get; }
 
-    private TreeComparer<TNode> Comparer => _match.Comparer;
+    private TreeComparer<TNode> Comparer => Match.Comparer;
 
-    private TNode Root1 => _match.OldRoot;
+    private TNode Root1 => Match.OldRoot;
 
-    private TNode Root2 => _match.NewRoot;
+    private TNode Root2 => Match.NewRoot;
 
     private void AddUpdatesInsertsMoves(List<Edit<TNode>> edits)
     {
@@ -86,7 +85,7 @@ public sealed partial class EditScript<TNode>
         //
         // NOTE:
         // If we needed z then we would need to be updating M' as we encounter insertions.
-        var hasPartner = _match.TryGetPartnerInTree1(x, out var w);
+        var hasPartner = Match.TryGetPartnerInTree1(x, out var w);
         var hasParent = Comparer.TryGetParent(x, out var y);
 
         if (!hasPartner)
@@ -120,7 +119,7 @@ public sealed partial class EditScript<TNode>
             // If parents of w and x don't match, it's a move.
             // iii. if not (v, y) in M'             
             // NOTE: The paper says (y, v) but that seems wrong since M': T1 -> T2 and w,v in T1 and x,y in T2.
-            if (!_match.Contains(v, y))
+            if (!Match.Contains(v, y))
             {
                 // A. Let z be the partner of y in M'. (NOTE: z not needed)
                 // B. k := FindPos(x)
@@ -154,7 +153,7 @@ public sealed partial class EditScript<TNode>
 
         foreach (var w in Comparer.GetDescendants(Root1))
         {
-            if (!_match.HasPartnerInTree2(w))
+            if (!Match.HasPartnerInTree2(w))
             {
                 edits.Add(new Edit<TNode>(EditKind.Delete, Comparer, oldNode: w, newNode: default));
             }
@@ -183,7 +182,7 @@ public sealed partial class EditScript<TNode>
         List<TNode> s1 = null;
         foreach (var e in wChildren)
         {
-            if (_match.TryGetPartnerInTree2(e, out var pw) && Comparer.GetParent(pw).Equals(x))
+            if (Match.TryGetPartnerInTree2(e, out var pw) && Comparer.GetParent(pw).Equals(x))
             {
                 s1 ??= [];
 
@@ -194,7 +193,7 @@ public sealed partial class EditScript<TNode>
         List<TNode> s2 = null;
         foreach (var e in xChildren)
         {
-            if (_match.TryGetPartnerInTree1(e, out var px) && Comparer.GetParent(px).Equals(w))
+            if (Match.TryGetPartnerInTree1(e, out var px) && Comparer.GetParent(px).Equals(w))
             {
                 s2 ??= [];
 
@@ -210,7 +209,7 @@ public sealed partial class EditScript<TNode>
         // Step 3, 4
         //  Define the function Equal(a,b) to be true if and only if  (a,c) in M'
         //  Let S <- LCS(S1, S2, Equal)
-        var lcs = new Match<TNode>.LongestCommonSubsequence(_match);
+        var lcs = new Match<TNode>.LongestCommonSubsequence(Match);
         var s = lcs.GetMatchingNodes(s1, s2);
 
         // Step 5
@@ -229,7 +228,7 @@ public sealed partial class EditScript<TNode>
             // (a,b) in M
             // => b in S2 since S2 == { b | parent(b) == x && parent(partner(b)) == w }
             // (a,b) not in S
-            if (_match.TryGetPartnerInTree2(a, out var b) &&
+            if (Match.TryGetPartnerInTree2(a, out var b) &&
                 Comparer.GetParent(b).Equals(x) &&
                 !ContainsPair(s, a, b))
             {

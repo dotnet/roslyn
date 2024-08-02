@@ -14,56 +14,51 @@ namespace Microsoft.CodeAnalysis.Host;
 /// </summary>
 public sealed class SolutionServices
 {
-    /// <remarks>
-    /// Note: do not expose publicly.  <see cref="HostWorkspaceServices"/> exposes a <see
-    /// cref="HostWorkspaceServices.Workspace"/> which we want to avoid doing from our immutable snapshots.
-    /// </remarks>
-    private readonly HostWorkspaceServices _services;
 
     // This ensures a single instance of this type associated with each HostWorkspaceServices.
     [Obsolete("Do not call directly.  Use HostWorkspaceServices.SolutionServices to acquire an instance")]
     internal SolutionServices(HostWorkspaceServices services)
     {
-        _services = services;
+        WorkspaceServices = services;
     }
 
     [Obsolete("Only use to implement obsolete public API")]
-    internal HostWorkspaceServices WorkspaceServices => _services;
+    internal HostWorkspaceServices WorkspaceServices { get; }
 
-    internal IMefHostExportProvider ExportProvider => (IMefHostExportProvider)_services.HostServices;
+    internal IMefHostExportProvider ExportProvider => (IMefHostExportProvider)WorkspaceServices.HostServices;
 
     /// <inheritdoc cref="HostWorkspaceServices.GetService"/>
     public TWorkspaceService? GetService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService
-        => _services.GetService<TWorkspaceService>();
+        => WorkspaceServices.GetService<TWorkspaceService>();
 
     /// <inheritdoc cref="HostWorkspaceServices.GetRequiredService"/>
     public TWorkspaceService GetRequiredService<TWorkspaceService>() where TWorkspaceService : IWorkspaceService
-        => _services.GetRequiredService<TWorkspaceService>();
+        => WorkspaceServices.GetRequiredService<TWorkspaceService>();
 
     /// <inheritdoc cref="HostWorkspaceServices.SupportedLanguages"/>
     public IEnumerable<string> SupportedLanguages
-        => _services.SupportedLanguages;
+        => WorkspaceServices.SupportedLanguages;
 
     internal ImmutableArray<string> SupportedLanguagesArray
-        => _services.SupportedLanguagesArray;
+        => WorkspaceServices.SupportedLanguagesArray;
 
     /// <inheritdoc cref="HostWorkspaceServices.IsSupported"/>
     public bool IsSupported(string languageName)
-        => _services.IsSupported(languageName);
+        => WorkspaceServices.IsSupported(languageName);
 
     /// <summary>
     /// Gets the <see cref="LanguageServices"/> for the language name.
     /// </summary>
     /// <exception cref="NotSupportedException">Thrown if the language isn't supported.</exception>
     public LanguageServices GetLanguageServices(string languageName)
-        => _services.GetLanguageServices(languageName).LanguageServices;
+        => WorkspaceServices.GetLanguageServices(languageName).LanguageServices;
 
     public TLanguageService GetRequiredLanguageService<TLanguageService>(string language) where TLanguageService : ILanguageService
         => this.GetLanguageServices(language).GetRequiredService<TLanguageService>();
 
     internal HostLanguageServices GetExtendedLanguageServices(string language)
-        => _services.GetLanguageServices(language);
+        => WorkspaceServices.GetLanguageServices(language);
 
     internal IEnumerable<T> FindLanguageServices<T>(HostWorkspaceServices.MetadataFilter filter)
-        => _services.FindLanguageServices<T>(filter);
+        => WorkspaceServices.FindLanguageServices<T>(filter);
 }

@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis;
 [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
 public partial class Project
 {
-    private readonly Solution _solution;
     private readonly ProjectState _projectState;
     private ImmutableDictionary<DocumentId, Document?> _idToDocumentMap = ImmutableDictionary<DocumentId, Document?>.Empty;
     private ImmutableDictionary<DocumentId, SourceGeneratedDocument> _idToSourceGeneratedDocumentMap = ImmutableDictionary<DocumentId, SourceGeneratedDocument>.Empty;
@@ -38,7 +37,7 @@ public partial class Project
         Contract.ThrowIfNull(solution);
         Contract.ThrowIfNull(projectState);
 
-        _solution = solution;
+        Solution = solution;
         _projectState = projectState;
     }
 
@@ -47,7 +46,7 @@ public partial class Project
     /// <summary>
     /// The solution this project is part of.
     /// </summary>
-    public Solution Solution => _solution;
+    public Solution Solution { get; }
 
     /// <summary>
     /// The ID of the project. Multiple <see cref="Project"/> instances may share the same ID. However, only
@@ -224,13 +223,13 @@ public partial class Project
     /// Get the documentId in this project with the specified syntax tree.
     /// </summary>
     public DocumentId? GetDocumentId(SyntaxTree? syntaxTree)
-        => _solution.GetDocumentId(syntaxTree, this.Id);
+        => Solution.GetDocumentId(syntaxTree, this.Id);
 
     /// <summary>
     /// Get the document in this project with the specified syntax tree.
     /// </summary>
     public Document? GetDocument(SyntaxTree? syntaxTree)
-        => _solution.GetDocument(syntaxTree, this.Id);
+        => Solution.GetDocument(syntaxTree, this.Id);
 
     /// <summary>
     /// Get the document in this project with the specified document Id.
@@ -281,7 +280,7 @@ public partial class Project
     /// </summary>
     public async ValueTask<IEnumerable<SourceGeneratedDocument>> GetSourceGeneratedDocumentsAsync(CancellationToken cancellationToken = default)
     {
-        var generatedDocumentStates = await _solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
+        var generatedDocumentStates = await Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
 
         // return an iterator to avoid eagerly allocating all the document instances
         return generatedDocumentStates.States.Values.Select(state =>
@@ -313,7 +312,7 @@ public partial class Project
             return sourceGeneratedDocument;
 
         // We'll have to run generators if we haven't already and now try to find it.
-        var generatedDocumentStates = await _solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(State, cancellationToken).ConfigureAwait(false);
+        var generatedDocumentStates = await Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(State, cancellationToken).ConfigureAwait(false);
         var generatedDocumentState = generatedDocumentStates.GetState(documentId);
         if (generatedDocumentState is null)
             return null;
@@ -349,7 +348,7 @@ public partial class Project
 
         // Trickier case now: it's possible we generated this, but we don't actually have the SourceGeneratedDocument for it, so let's go
         // try to fetch the state.
-        var documentState = _solution.CompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
+        var documentState = Solution.CompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
         if (documentState == null)
             return null;
 
@@ -358,12 +357,12 @@ public partial class Project
 
     internal ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(CancellationToken cancellationToken)
     {
-        return _solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(this.State, cancellationToken);
+        return Solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(this.State, cancellationToken);
     }
 
     internal ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(CancellationToken cancellationToken)
     {
-        return _solution.CompilationState.GetSourceGeneratorRunResultAsync(this.State, cancellationToken);
+        return Solution.CompilationState.GetSourceGeneratorRunResultAsync(this.State, cancellationToken);
     }
 
     internal Task<bool> ContainsSymbolsWithNameAsync(
@@ -477,7 +476,7 @@ public partial class Project
     /// or create a new one otherwise.
     /// </summary>
     public bool TryGetCompilation([NotNullWhen(returnValue: true)] out Compilation? compilation)
-        => _solution.CompilationState.TryGetCompilation(this.Id, out compilation);
+        => Solution.CompilationState.TryGetCompilation(this.Id, out compilation);
 
     /// <summary>
     /// Get the <see cref="Compilation"/> for this project asynchronously.
@@ -488,14 +487,14 @@ public partial class Project
     /// return the same value if called multiple times.
     /// </returns>
     public Task<Compilation?> GetCompilationAsync(CancellationToken cancellationToken = default)
-        => _solution.CompilationState.GetCompilationAsync(_projectState, cancellationToken);
+        => Solution.CompilationState.GetCompilationAsync(_projectState, cancellationToken);
 
     /// <summary>
     /// Determines if the compilation returned by <see cref="GetCompilationAsync"/> and all its referenced compilation are from fully loaded projects.
     /// </summary>
     // TODO: make this public
     internal Task<bool> HasSuccessfullyLoadedAsync(CancellationToken cancellationToken)
-        => _solution.CompilationState.HasSuccessfullyLoadedAsync(_projectState, cancellationToken);
+        => Solution.CompilationState.HasSuccessfullyLoadedAsync(_projectState, cancellationToken);
 
     /// <summary>
     /// Gets an object that lists the added, changed and removed documents between this project and the specified project.
@@ -525,14 +524,14 @@ public partial class Project
     /// The most recent version of the project, its documents and all dependent projects and documents.
     /// </summary>
     public Task<VersionStamp> GetDependentVersionAsync(CancellationToken cancellationToken = default)
-        => _solution.CompilationState.GetDependentVersionAsync(this.Id, cancellationToken);
+        => Solution.CompilationState.GetDependentVersionAsync(this.Id, cancellationToken);
 
     /// <summary>
     /// The semantic version of this project including the semantics of referenced projects.
     /// This version changes whenever the consumable declarations of this project and/or projects it depends on change.
     /// </summary>
     public Task<VersionStamp> GetDependentSemanticVersionAsync(CancellationToken cancellationToken = default)
-        => _solution.CompilationState.GetDependentSemanticVersionAsync(this.Id, cancellationToken);
+        => Solution.CompilationState.GetDependentSemanticVersionAsync(this.Id, cancellationToken);
 
     /// <summary>
     /// The semantic version of this project not including the semantics of referenced projects.
@@ -567,7 +566,7 @@ public partial class Project
     /// </para>
     /// </remarks>
     internal Task<Checksum> GetDependentChecksumAsync(CancellationToken cancellationToken)
-        => _solution.CompilationState.GetDependentChecksumAsync(this.Id, cancellationToken);
+        => Solution.CompilationState.GetDependentChecksumAsync(this.Id, cancellationToken);
 
     /// <summary>
     /// Creates a new instance of this project updated to have the new assembly name.
@@ -806,7 +805,7 @@ public partial class Project
     /// Retrieves fallback analyzer options for this project's language.
     /// </summary>
     internal StructuredAnalyzerConfigOptions GetFallbackAnalyzerOptions()
-        => _solution.FallbackAnalyzerOptions.GetValueOrDefault(Language, StructuredAnalyzerConfigOptions.Empty);
+        => Solution.FallbackAnalyzerOptions.GetValueOrDefault(Language, StructuredAnalyzerConfigOptions.Empty);
 
     private string GetDebuggerDisplay()
         => this.Name;

@@ -26,8 +26,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences>
 {
     private const int s_serializationVersion = 5;
+    [DataMember(Order = 0)]
+    public readonly ImmutableArray<SymbolSpecification> SymbolSpecifications;
 
-    private static readonly string _defaultNamingPreferencesString = $@"
+    [DataMember(Order = 1)]
+    public readonly ImmutableArray<NamingStyle> NamingStyles;
+
+    [DataMember(Order = 2)]
+    public readonly ImmutableArray<SerializableNamingRule> NamingRules;
+
+    private readonly Lazy<NamingStyleRules> _lazyRules;
+
+    public NamingStylePreferences(
+        ImmutableArray<SymbolSpecification> symbolSpecifications,
+        ImmutableArray<NamingStyle> namingStyles,
+        ImmutableArray<SerializableNamingRule> namingRules)
+    {
+        SymbolSpecifications = symbolSpecifications;
+        NamingStyles = namingStyles;
+        NamingRules = namingRules;
+
+        _lazyRules = new Lazy<NamingStyleRules>(CreateRules, isThreadSafe: true);
+    }
+
+    public static NamingStylePreferences Default { get; } = FromXElement(XElement.Parse(DefaultNamingPreferencesString));
+    public static NamingStylePreferences Empty { get; } = new([], [], []);
+
+    public static string DefaultNamingPreferencesString { get; } = $@"
 <NamingPreferencesInfo SerializationVersion=""{s_serializationVersion}"">
   <SymbolSpecifications>
     <SymbolSpecification ID=""5c545a62-b14d-460a-88d8-e936c0a39316"" Name=""{CompilerExtensionsResources.Class}"">
@@ -273,34 +298,6 @@ internal sealed class NamingStylePreferences : IEquatable<NamingStylePreferences
   </NamingRules>
 </NamingPreferencesInfo>
 ";
-
-    [DataMember(Order = 0)]
-    public readonly ImmutableArray<SymbolSpecification> SymbolSpecifications;
-
-    [DataMember(Order = 1)]
-    public readonly ImmutableArray<NamingStyle> NamingStyles;
-
-    [DataMember(Order = 2)]
-    public readonly ImmutableArray<SerializableNamingRule> NamingRules;
-
-    private readonly Lazy<NamingStyleRules> _lazyRules;
-
-    public NamingStylePreferences(
-        ImmutableArray<SymbolSpecification> symbolSpecifications,
-        ImmutableArray<NamingStyle> namingStyles,
-        ImmutableArray<SerializableNamingRule> namingRules)
-    {
-        SymbolSpecifications = symbolSpecifications;
-        NamingStyles = namingStyles;
-        NamingRules = namingRules;
-
-        _lazyRules = new Lazy<NamingStyleRules>(CreateRules, isThreadSafe: true);
-    }
-
-    public static NamingStylePreferences Default { get; } = FromXElement(XElement.Parse(DefaultNamingPreferencesString));
-    public static NamingStylePreferences Empty { get; } = new([], [], []);
-
-    public static string DefaultNamingPreferencesString => _defaultNamingPreferencesString;
 
     public bool IsEmpty
         => SymbolSpecifications.IsEmpty && NamingStyles.IsEmpty && NamingRules.IsEmpty;

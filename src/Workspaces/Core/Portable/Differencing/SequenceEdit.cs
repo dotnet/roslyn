@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis.Differencing;
 [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
 internal readonly struct SequenceEdit : IEquatable<SequenceEdit>
 {
-    private readonly int _oldIndex;
     private readonly int _newIndex;
 
     internal SequenceEdit(int oldIndex, int newIndex)
@@ -25,7 +24,7 @@ internal readonly struct SequenceEdit : IEquatable<SequenceEdit>
         Debug.Assert(newIndex >= -1);
         Debug.Assert(newIndex != -1 || oldIndex != -1);
 
-        _oldIndex = oldIndex;
+        OldIndex = oldIndex;
         _newIndex = newIndex;
     }
 
@@ -36,7 +35,7 @@ internal readonly struct SequenceEdit : IEquatable<SequenceEdit>
     {
         get
         {
-            if (_oldIndex == -1)
+            if (OldIndex == -1)
             {
                 return EditKind.Insert;
             }
@@ -53,7 +52,7 @@ internal readonly struct SequenceEdit : IEquatable<SequenceEdit>
     /// <summary>
     /// Index in the old sequence, or -1 if the edit is insert.
     /// </summary>
-    public int OldIndex => _oldIndex;
+    public int OldIndex { get; }
 
     /// <summary>
     /// Index in the new sequence, or -1 if the edit is delete.
@@ -62,7 +61,7 @@ internal readonly struct SequenceEdit : IEquatable<SequenceEdit>
 
     public bool Equals(SequenceEdit other)
     {
-        return _oldIndex == other._oldIndex
+        return OldIndex == other.OldIndex
             && _newIndex == other._newIndex;
     }
 
@@ -70,7 +69,7 @@ internal readonly struct SequenceEdit : IEquatable<SequenceEdit>
         => obj is SequenceEdit && Equals((SequenceEdit)obj);
 
     public override int GetHashCode()
-        => Hash.Combine(_oldIndex, _newIndex);
+        => Hash.Combine(OldIndex, _newIndex);
 
     private string GetDebuggerDisplay()
     {
@@ -78,13 +77,13 @@ internal readonly struct SequenceEdit : IEquatable<SequenceEdit>
         switch (Kind)
         {
             case EditKind.Delete:
-                return result + " (" + _oldIndex + ")";
+                return result + " (" + OldIndex + ")";
 
             case EditKind.Insert:
                 return result + " (" + _newIndex + ")";
 
             case EditKind.Update:
-                return result + " (" + _oldIndex + " -> " + _newIndex + ")";
+                return result + " (" + OldIndex + " -> " + _newIndex + ")";
         }
 
         return result;

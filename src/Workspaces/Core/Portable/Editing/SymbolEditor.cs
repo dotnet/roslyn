@@ -19,12 +19,11 @@ namespace Microsoft.CodeAnalysis.Editing;
 /// </summary>
 public sealed class SymbolEditor
 {
-    private readonly Solution _originalSolution;
     private Solution _currentSolution;
 
     private SymbolEditor(Solution solution)
     {
-        _originalSolution = solution;
+        OriginalSolution = solution;
         _currentSolution = solution;
     }
 
@@ -57,7 +56,7 @@ public sealed class SymbolEditor
     /// <summary>
     /// The original solution.
     /// </summary>
-    public Solution OriginalSolution => _originalSolution;
+    public Solution OriginalSolution { get; }
 
     /// <summary>
     /// The solution with the edits applied.
@@ -69,7 +68,7 @@ public sealed class SymbolEditor
     /// </summary>
     public IEnumerable<Document> GetChangedDocuments()
     {
-        var solutionChanges = _currentSolution.GetChanges(_originalSolution);
+        var solutionChanges = _currentSolution.GetChanges(OriginalSolution);
 
         foreach (var projectChanges in solutionChanges.GetProjectChanges())
         {
@@ -110,7 +109,7 @@ public sealed class SymbolEditor
         }
 
         // check to see if it is from original solution
-        project = _originalSolution.GetProject(symbol.ContainingAssembly, cancellationToken);
+        project = OriginalSolution.GetProject(symbol.ContainingAssembly, cancellationToken);
         if (project != null)
         {
             return await GetSymbolAsync(_currentSolution, project.Id, symbolId, cancellationToken).ConfigureAwait(false);
@@ -133,7 +132,7 @@ public sealed class SymbolEditor
 
     private ImmutableArray<ProjectId> GetProjectsForAssembly(IAssemblySymbol assembly)
     {
-        _assemblyNameToProjectIdMap ??= _originalSolution.Projects
+        _assemblyNameToProjectIdMap ??= OriginalSolution.Projects
                 .ToLookup(p => p.AssemblyName, p => p.Id)
                 .ToImmutableDictionary(g => g.Key, g => ImmutableArray.CreateRange(g));
 
@@ -196,7 +195,7 @@ public sealed class SymbolEditor
     {
         return symbol.DeclaringSyntaxReferences
                      .Select(sr => sr.GetSyntax())
-                     .Select(n => SyntaxGenerator.GetGenerator(_originalSolution.Workspace, n.Language).GetDeclaration(n))
+                     .Select(n => SyntaxGenerator.GetGenerator(OriginalSolution.Workspace, n.Language).GetDeclaration(n))
                      .Where(d => d != null);
     }
 
@@ -329,7 +328,7 @@ public sealed class SymbolEditor
     {
         var sourceTree = location.SourceTree;
 
-        var doc = _currentSolution.GetDocument(sourceTree) ?? _originalSolution.GetDocument(sourceTree);
+        var doc = _currentSolution.GetDocument(sourceTree) ?? OriginalSolution.GetDocument(sourceTree);
         if (doc != null)
         {
             return EditOneDeclarationAsync(symbol, doc.Id, location.SourceSpan.Start, editAction, cancellationToken);
