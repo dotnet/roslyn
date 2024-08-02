@@ -95,52 +95,49 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
 
         propertyDeclaration = MoveAttributes(propertyDeclaration, GetFieldDeclaration(fieldDeclarator));
 
-        if (isTrivialGetAccessor || isTrivialSetAccessor || needsSetter || fieldInitializer != null)
-        {
-            // If we have a trivial getters/setter then we want to convert to an accessor list to have `get;set;`.  If
-            // we need a setter, we have to convert to having an accessor list.  If we have a field initializer, we need
-            // to convert to an accessor list to add the initializer expression after.
-            var accessorList = ConvertToAccessorList(
-                propertyDeclaration, isTrivialGetAccessor, isTrivialSetAccessor);
-
-            var updatedProperty = propertyDeclaration
-                .WithAccessorList(accessorList)
-                .WithExpressionBody(null)
-                .WithSemicolonToken(default);
-
-            if (needsSetter)
-            {
-                var accessor = AccessorDeclaration(SyntaxKind.SetAccessorDeclaration).WithSemicolonToken(SemicolonToken);
-
-                if (fieldSymbol.DeclaredAccessibility != propertySymbol.DeclaredAccessibility)
-                    accessor = (AccessorDeclarationSyntax)generator.WithAccessibility(accessor, fieldSymbol.DeclaredAccessibility);
-
-                var modifiers = TokenList(
-                    updatedProperty.Modifiers.Where(token => !token.IsKind(SyntaxKind.ReadOnlyKeyword)));
-
-                updatedProperty = updatedProperty.WithModifiers(modifiers)
-                                                 .AddAccessorListAccessors(accessor);
-            }
-
-            if (fieldInitializer != null)
-            {
-                updatedProperty = updatedProperty.WithInitializer(EqualsValueClause(fieldInitializer))
-                                                 .WithSemicolonToken(SemicolonToken);
-            }
-
-            var finalProperty = updatedProperty
-                .WithTrailingTrivia(propertyDeclaration.GetTrailingTrivia())
-                .WithAdditionalAnnotations(SpecializedFormattingAnnotation);
-            return Task.FromResult<SyntaxNode>(finalProperty);
-
-        }
-        else
+        if (!isTrivialGetAccessor && !isTrivialSetAccessor && !needsSetter && fieldInitializer == null)
         {
             // Nothing to actually do.  We're not changing the accessors to `get;set;` accessors, and we didn't have to
             // add an setter.  We also had no field initializer to move over.  This can happen when we're converting to
             // using `field` and that rewrite already happened.
             return Task.FromResult<SyntaxNode>(propertyDeclaration);
         }
+
+        // If we have a trivial getters/setter then we want to convert to an accessor list to have `get;set;`.  If we
+        // need a setter, we have to convert to having an accessor list.  If we have a field initializer, we need to
+        // convert to an accessor list to add the initializer expression after.
+        var accessorList = ConvertToAccessorList(
+            propertyDeclaration, isTrivialGetAccessor, isTrivialSetAccessor);
+
+        var updatedProperty = propertyDeclaration
+            .WithAccessorList(accessorList)
+            .WithExpressionBody(null)
+            .WithSemicolonToken(default);
+
+        if (needsSetter)
+        {
+            var accessor = AccessorDeclaration(SyntaxKind.SetAccessorDeclaration).WithSemicolonToken(SemicolonToken);
+
+            if (fieldSymbol.DeclaredAccessibility != propertySymbol.DeclaredAccessibility)
+                accessor = (AccessorDeclarationSyntax)generator.WithAccessibility(accessor, fieldSymbol.DeclaredAccessibility);
+
+            var modifiers = TokenList(
+                updatedProperty.Modifiers.Where(token => !token.IsKind(SyntaxKind.ReadOnlyKeyword)));
+
+            updatedProperty = updatedProperty.WithModifiers(modifiers)
+                                             .AddAccessorListAccessors(accessor);
+        }
+
+        if (fieldInitializer != null)
+        {
+            updatedProperty = updatedProperty.WithInitializer(EqualsValueClause(fieldInitializer))
+                                             .WithSemicolonToken(SemicolonToken);
+        }
+
+        var finalProperty = updatedProperty
+            .WithTrailingTrivia(propertyDeclaration.GetTrailingTrivia())
+            .WithAdditionalAnnotations(SpecializedFormattingAnnotation);
+        return Task.FromResult<SyntaxNode>(finalProperty);
 
         static PropertyDeclarationSyntax MoveAttributes(
             PropertyDeclarationSyntax property,
