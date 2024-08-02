@@ -135,6 +135,10 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
                         DeclaredAccessibility: Accessibility.Private,
                         // Only care about actual user-defined fields, not compiler generated ones.
                         CanBeReferencedByName: true,
+                        // Will never convert a constant into an auto-prop
+                        IsConst: false,
+                        // Can't preserve volatile semantics on a property.
+                        IsVolatile: false,
                         // To make processing later on easier, limit to well-behaved fields (versus having multiple
                         // fields merged together in error recoery scenarios).
                         DeclaringSyntaxReferences.Length: 1,
