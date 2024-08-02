@@ -274,9 +274,8 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
                 ? (ExpressionSyntax)identifierName.GetRequiredParent()
                 : identifierName;
 
-            var field = TryGetDirectlyAccessedFieldSymbol(
-                semanticModel, expr, cancellationToken);
-            result.AddIfNotNull(field);
+            result.AddIfNotNull(TryGetDirectlyAccessedFieldSymbol(
+                semanticModel, expr, cancellationToken));
         }
     }
 }
