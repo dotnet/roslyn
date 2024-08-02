@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Rename;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseAutoProperty;
@@ -141,12 +142,7 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
 
         var fieldInitializer = fieldDeclarator.Initializer?.Value;
 
-        var fieldAttributes = GetFieldDeclaration(fieldDeclarator).AttributeLists;
-        if (fieldAttributes.Count > 0)
-        {
-            propertyDeclaration = propertyDeclaration.WithAttributeLists(
-                List(fieldAttributes.Select(ConvertAttributeList).Concat(propertyDeclaration.AttributeLists)));
-        }
+        propertyDeclaration = MoveAttributes(propertyDeclaration, GetFieldDeclaration(fieldDeclarator));
 
         if (isTrivialGetAccessor || isTrivialSetAccessor || needsSetter || fieldInitializer != null)
         {
@@ -193,6 +189,41 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
             // add an setter.  We also had no field initializer to move over.  This can happen when we're converting to
             // using `field` and that rewrite already happened.
             return Task.FromResult<SyntaxNode>(propertyDeclaration);
+        }
+
+        static PropertyDeclarationSyntax MoveAttributes(
+            PropertyDeclarationSyntax property,
+            FieldDeclarationSyntax field)
+        {
+            var fieldAttributes = field.AttributeLists;
+            if (fieldAttributes.Count == 0)
+                return property;
+
+            var leadingTrivia = property.GetLeadingTrivia();
+            var indentation = leadingTrivia is [.., (kind: SyntaxKind.WhitespaceTrivia) whitespaceTrivia]
+                ? whitespaceTrivia
+                : default;
+
+            using var _ = ArrayBuilder<AttributeListSyntax>.GetInstance(out var finalAttributes);
+            foreach (var attributeList in fieldAttributes)
+            {
+                // Change any field attributes to be `[field: ...]` attributes.  Ensure they're indented the right amount.
+                var converted = ConvertAttributeList(attributeList);
+                finalAttributes.Add(converted.WithLeadingTrivia(indentation));
+            }
+
+            foreach (var attributeList in property.AttributeLists)
+            {
+                // Remove the leading trivia off of the first attribute.  We're going to move it before all the new
+                // field attributes we're adding.
+                finalAttributes.Add(attributeList == property.AttributeLists[0]
+                    ? attributeList.WithLeadingTrivia(indentation)
+                    : attributeList);
+            }
+
+            return property
+                .WithAttributeLists(List(finalAttributes))
+                .WithLeadingTrivia(leadingTrivia.Take(leadingTrivia.Count - 1));
         }
 
         static AttributeListSyntax ConvertAttributeList(AttributeListSyntax attributeList)

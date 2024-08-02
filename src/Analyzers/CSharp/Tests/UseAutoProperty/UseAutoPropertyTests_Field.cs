@@ -794,6 +794,7 @@ public sealed partial class UseAutoPropertyTests
             class C
             {
                 [field: Something]
+
                 [PropAttribute]
                 public string Prop => field.Trim();
             }
@@ -809,7 +810,7 @@ public sealed partial class UseAutoPropertyTests
             {
                 [|private string prop;|]
 
-                public int Prop
+                public string Prop
                 {
                     get
                     {
