@@ -498,10 +498,13 @@
   <data name="Removing_compilation_options_is_not_supported" xml:space="preserve">
     <value>Removing compilation options is not supported</value>
   </data>
+  <data name="Removing_parse_options_is_not_supported" xml:space="preserve">
+    <value>Removing parse options is not supported</value>
+  </data>
   <data name="Changing_project_language_is_not_supported" xml:space="preserve">
     <value>Changing project language is not supported</value>
   </data>
-  <data name="Changing_project_from_ordinary_to_interactive_submission_or_vice_versa_is_not_supported" xml:space="preserve">
-    <value>Changing project from ordinary to interactive submission or vice versa is not supported</value>
+  <data name="Changing_project_between_ordinary_and_interactive_submission_is_not_supported" xml:space="preserve">
+    <value>Changing project between ordinary and interactive submission is not supported</value>
   </data>
 </root>

@@ -42,9 +42,9 @@
         <target state="translated">ドキュメント '{0}' の変更はサポートされていません。</target>
         <note />
       </trans-unit>
-      <trans-unit id="Changing_project_from_ordinary_to_interactive_submission_or_vice_versa_is_not_supported">
-        <source>Changing project from ordinary to interactive submission or vice versa is not supported</source>
-        <target state="new">Changing project from ordinary to interactive submission or vice versa is not supported</target>
+      <trans-unit id="Changing_project_between_ordinary_and_interactive_submission_is_not_supported">
+        <source>Changing project between ordinary and interactive submission is not supported</source>
+        <target state="new">Changing project between ordinary and interactive submission is not supported</target>
         <note />
       </trans-unit>
       <trans-unit id="Changing_project_language_is_not_supported">
@@ -135,6 +135,11 @@
       <trans-unit id="Removing_compilation_options_is_not_supported">
         <source>Removing compilation options is not supported</source>
         <target state="new">Removing compilation options is not supported</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Removing_parse_options_is_not_supported">
+        <source>Removing parse options is not supported</source>
+        <target state="new">Removing parse options is not supported</target>
         <note />
       </trans-unit>
       <trans-unit id="Rename_0_to_1">

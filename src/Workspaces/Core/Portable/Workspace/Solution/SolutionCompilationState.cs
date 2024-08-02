@@ -563,7 +563,7 @@ internal sealed partial class SolutionCompilationState
 
         if (oldProject.ProjectInfo.Attributes.IsSubmission != attributes.IsSubmission)
         {
-            throw new NotSupportedException(WorkspacesResources.Changing_project_from_ordinary_to_interactive_submission_or_vice_versa_is_not_supported);
+            throw new NotSupportedException(WorkspacesResources.Changing_project_between_ordinary_and_interactive_submission_is_not_supported);
         }
 
         return
@@ -591,6 +591,7 @@ internal sealed partial class SolutionCompilationState
 
         var oldProjectState = SolutionState.GetRequiredProjectState(projectId);
 
+        // Note: buffers are reused across all calls to UpdateDocuments and cleared after each:
         using var _1 = ArrayBuilder<DocumentInfo>.GetInstance(out var addedDocumentInfos);
         using var _2 = ArrayBuilder<DocumentId>.GetInstance(out var removedDocumentInfos);
 
@@ -598,9 +599,14 @@ internal sealed partial class SolutionCompilationState
         UpdateDocuments<AdditionalDocumentState>(info.AdditionalDocuments);
         UpdateDocuments<AnalyzerConfigDocumentState>(info.AnalyzerConfigDocuments);
 
+        return newState;
+
         void UpdateDocuments<TDocumentState>(IReadOnlyList<DocumentInfo> newDocumentInfos)
             where TDocumentState : TextDocumentState
         {
+            Debug.Assert(addedDocumentInfos.IsEmpty);
+            Debug.Assert(removedDocumentInfos.IsEmpty);
+
             using var _3 = ArrayBuilder<TDocumentState>.GetInstance(out var updatedDocuments);
 
             var oldDocumentStates = oldProjectState.GetDocumentStates<TDocumentState>();
@@ -623,10 +629,10 @@ internal sealed partial class SolutionCompilationState
 
             if (!oldDocumentStates.Ids.IsEmpty())
             {
-                var newDocumentsLookup = newDocumentInfos.ToLookup(static d => d.Id);
+                var newDocumentIdSet = newDocumentInfos.Select(static d => d.Id).ToSet();
                 foreach (var oldDocumentId in oldDocumentStates.Ids)
                 {
-                    if (!newDocumentsLookup.Contains(oldDocumentId))
+                    if (!newDocumentIdSet.Contains(oldDocumentId))
                     {
                         removedDocumentInfos.Add(oldDocumentId);
                     }
@@ -638,8 +644,6 @@ internal sealed partial class SolutionCompilationState
                 .AddDocumentsToMultipleProjects<TDocumentState>(addedDocumentInfos.ToImmutableAndClear())
                 .RemoveDocumentsFromSingleProject<TDocumentState>(projectId, removedDocumentInfos.ToImmutableAndClear());
         }
-
-        return newState;
     }
 
     /// <inheritdoc cref="SolutionState.AddProjectReferences"/>

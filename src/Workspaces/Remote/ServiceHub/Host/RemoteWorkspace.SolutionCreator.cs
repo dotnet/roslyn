@@ -328,7 +328,6 @@ namespace Microsoft.CodeAnalysis.Remote
                                 assetPath: projectId, newProjectChecksums.Info, cancellationToken).ConfigureAwait(false));
                         }
 
-
                         solution = await UpdateProjectAsync(
                             solution.GetRequiredProject(projectId), oldProjectChecksums, newProjectChecksums, cancellationToken).ConfigureAwait(false);
                     }

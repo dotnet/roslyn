@@ -336,7 +336,7 @@ internal partial class DocumentState : TextDocumentState
             newTreeSource);
     }
 
-    public DocumentState UpdateParseOptionsAndSourceCodeKind(ParseOptions? options, bool onlyPreprocessorDirectiveChange)
+    public DocumentState UpdateParseOptionsAndSourceCodeKind(ParseOptions options, bool onlyPreprocessorDirectiveChange)
     {
         Contract.ThrowIfFalse(SupportsSyntaxTree);
 
@@ -350,8 +350,6 @@ internal partial class DocumentState : TextDocumentState
         if (onlyPreprocessorDirectiveChange &&
             TreeSource.TryGetValue(out var existingTreeAndVersion))
         {
-            Debug.Assert(options != null);
-
             var existingTree = existingTreeAndVersion.Tree;
 
             SyntaxTree? newTree = null;
@@ -367,25 +365,18 @@ internal partial class DocumentState : TextDocumentState
                 newTreeSource = SimpleTreeAndVersionSource.Create(new TreeAndVersion(newTree, existingTreeAndVersion.Version));
         }
 
-        if (options != null)
-        {
-            // If we weren't able to reuse in a smart way, just reparse
-            newTreeSource ??= CreateLazyFullyParsedTree(
-                TextAndVersionSource,
-                LoadTextOptions,
-                Attributes.SyntaxTreeFilePath,
-                options,
-                LanguageServices);
-        }
-        else
-        {
-            newTreeSource = null;
-        }
+        // If we weren't able to reuse in a smart way, just reparse
+        newTreeSource ??= CreateLazyFullyParsedTree(
+            TextAndVersionSource,
+            LoadTextOptions,
+            Attributes.SyntaxTreeFilePath,
+            options,
+            LanguageServices);
 
         return new DocumentState(
             LanguageServices,
             DocumentServiceProvider,
-            (options != null) ? Attributes.With(sourceCodeKind: options.Kind) : Attributes,
+            Attributes.With(sourceCodeKind: options.Kind),
             TextAndVersionSource,
             LoadTextOptions,
             options,

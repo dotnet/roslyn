@@ -662,9 +662,14 @@ internal partial class ProjectState
             return this;
         }
 
+        if (options == null)
+        {
+            throw new NotSupportedException(WorkspacesResources.Removing_compilation_options_is_not_supported);
+        }
+
         var newProvider = new ProjectSyntaxTreeOptionsProvider(_analyzerConfigOptionsCache);
 
-        return With(projectInfo: ProjectInfo.WithCompilationOptions(options?.WithSyntaxTreeOptionsProvider(newProvider))
+        return With(projectInfo: ProjectInfo.WithCompilationOptions(options.WithSyntaxTreeOptionsProvider(newProvider))
                    .WithVersion(Version.GetNewerVersion()));
     }
 
@@ -675,7 +680,12 @@ internal partial class ProjectState
             return this;
         }
 
-        var onlyPreprocessorDirectiveChange = options != null && ParseOptions != null &&
+        if (options == null)
+        {
+            throw new NotSupportedException(WorkspacesResources.Removing_parse_options_is_not_supported);
+        }
+
+        var onlyPreprocessorDirectiveChange = ParseOptions != null &&
             LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>().OptionsDifferOnlyByPreprocessorDirectives(options, ParseOptions);
 
         return With(

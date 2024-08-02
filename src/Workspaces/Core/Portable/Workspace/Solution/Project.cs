@@ -590,7 +590,7 @@ public partial class Project
     /// <summary>
     /// Creates a new instance of this project updated to have the specified parse options.
     /// </summary>
-    public Project WithParseOptions(ParseOptions? options)
+    public Project WithParseOptions(ParseOptions options)
         => this.Solution.WithProjectParseOptions(this.Id, options).GetRequiredProject(Id);
 
     /// <summary>

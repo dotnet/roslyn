@@ -26,7 +26,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.VisualBasic;
@@ -1220,6 +1219,41 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 filePath: "newFilePath.cs",
                 outputFilePath: "newOutputFilePath",
                 outputRefFilePath: "newOutputRef",
+                compilationOptions: new CSharpCompilationOptions(OutputKind.WindowsApplication, moduleName: "newModuleName"),
+                parseOptions: null,
+                documents: [],
+                additionalDocuments: [],
+                projectReferences: [],
+                metadataReferences: [],
+                analyzerReferences: [],
+                isSubmission: false,
+                hostObjectType: null);
+
+            Assert.Throws<NotSupportedException>(() => solution.WithProjectInfo(newInfo));
+        }
+
+        [Fact]
+        public void WithProjectInfo_Unsupported_RemovingParseOptions()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            using var workspace = CreateWorkspace();
+
+            var solution = workspace.CurrentSolution
+                .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, "proj1", "proj1", LanguageNames.CSharp, Path.Combine(s_projectDir, "proj1.dll")));
+
+            var oldProject = solution.GetRequiredProject(projectId);
+            var documentIds = oldProject.DocumentIds;
+
+            var newInfo = ProjectInfo.Create(
+                projectId,
+                VersionStamp.Create(),
+                name: "newProjectName",
+                assemblyName: "newAssemblyName",
+                language: LanguageNames.CSharp,
+                filePath: "newFilePath.cs",
+                outputFilePath: "newOutputFilePath",
+                outputRefFilePath: "newOutputRef",
                 compilationOptions: null,
                 parseOptions: new CSharpParseOptions(CS.LanguageVersion.CSharp5),
                 documents: [],
@@ -1297,7 +1331,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 projectReferences: [],
                 metadataReferences: [],
                 analyzerReferences: [],
-                isSubmission: false,
+                isSubmission: true,
                 hostObjectType: null);
 
             Assert.Throws<NotSupportedException>(() => solution.WithProjectInfo(newInfo));
@@ -1614,6 +1648,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 defaultThrows: true);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectParseOptions(null!, options));
+            Assert.Throws<ArgumentNullException>("options", () => solution.WithProjectParseOptions(projectId, options: null!));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectParseOptions(ProjectId.CreateNewId(), options));
         }
 
@@ -1640,29 +1675,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(document.Project.ParseOptions, newTree.Options);
 
             Assert.False(oldTree.GetRoot().IsIncrementallyIdenticalTo(newTree.GetRoot()));
-        }
-
-        [Fact]
-        public async Task RemovingParseOptionsRemovesSyntaxTree()
-        {
-            var projectId = ProjectId.CreateNewId();
-            var documentId = DocumentId.CreateNewId(projectId);
-
-            using var workspace = CreateWorkspace();
-            var document = workspace.CurrentSolution
-                            .AddProject(projectId, "proj1", "proj1.dll", LanguageNames.CSharp)
-                            .AddDocument(documentId, "Test.cs", "// File")
-                            .GetRequiredDocument(documentId);
-
-            var oldTree = await document.GetRequiredSyntaxTreeAsync(CancellationToken.None);
-
-            Assert.Equal(document.Project.ParseOptions, oldTree.Options);
-
-            document = document.Project.WithParseOptions(null).GetRequiredDocument(documentId);
-            Assert.Null(document.Project.ParseOptions);
-            Assert.Null(await document.GetSyntaxTreeAsync(CancellationToken.None));
-            Assert.False(document.SupportsSyntaxTree);
-            Assert.Equal(SourceCodeKind.Regular, document.SourceCodeKind);
         }
 
         [Theory]

@@ -234,18 +234,10 @@ internal partial class SolutionCompilationState
             }
         }
 
-        internal sealed class ProjectCompilationOptionsAction : TranslationAction
+        internal sealed class ProjectCompilationOptionsAction(
+            ProjectState oldProjectState,
+            ProjectState newProjectState) : TranslationAction(oldProjectState, newProjectState)
         {
-            public ProjectCompilationOptionsAction(
-                ProjectState oldProjectState,
-                ProjectState newProjectState) : base(oldProjectState, newProjectState)
-            {
-                if (NewProjectState.CompilationOptions == null)
-                {
-                    throw new NotSupportedException(WorkspacesResources.Removing_compilation_options_is_not_supported);
-                }
-            }
-
             public override Task<Compilation> TransformCompilationAsync(Compilation oldCompilation, CancellationToken cancellationToken)
             {
                 Contract.ThrowIfNull(this.NewProjectState.CompilationOptions);

@@ -490,9 +490,15 @@ public partial class Solution
     /// Create a new solution instance with the project specified updated to have
     /// the specified parse options.
     /// </summary>
-    public Solution WithProjectParseOptions(ProjectId projectId, ParseOptions? options)
+    public Solution WithProjectParseOptions(ProjectId projectId, ParseOptions options)
     {
         CheckContainsProject(projectId);
+
+        if (options == null)
+        {
+            throw new ArgumentNullException(nameof(options));
+        }
+
         return WithCompilationState(_compilationState.WithProjectParseOptions(projectId, options));
     }
 
