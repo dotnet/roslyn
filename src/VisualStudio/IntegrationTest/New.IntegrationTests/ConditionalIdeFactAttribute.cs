@@ -5,11 +5,9 @@
 using System;
 using Roslyn.Test.Utilities;
 using Xunit;
-using Xunit.Sdk;
 
 namespace Roslyn.VisualStudio.NewIntegrationTests;
 
-[XunitTestCaseDiscoverer("Xunit.Threading.IdeFactDiscoverer", "Microsoft.VisualStudio.Extensibility.Testing.Xunit")]
 internal class ConditionalIdeFactAttribute : IdeFactAttribute
 {
     /// <summary>
