@@ -97,7 +97,8 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
         foreach (var memberAccess in codeBlock.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>())
         {
             if (CouldReferenceField(memberAccess))
-                AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(semanticModel, memberAccess, ineligibleFields, cancellationToken);
+
+                AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(memberAccess, cancellationToken);
         }
 
         return;
@@ -117,33 +118,31 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
             AddIneligibleFields(ineligibleFields, symbolInfo, expression, alwaysRestricted);
         }
-    }
 
-    private static void AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(
-        SemanticModel semanticModel,
-        MemberAccessExpressionSyntax memberAccess,
-        ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFields,
-        CancellationToken cancellationToken)
-    {
-        // `c.x = ...` can't be converted to `c.X = ...` if `c` is a struct and isn't definitely assigned as that point.
+        void AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(
+            MemberAccessExpressionSyntax memberAccess,
+            CancellationToken cancellationToken)
+        {
+            // `c.x = ...` can't be converted to `c.X = ...` if `c` is a struct and isn't definitely assigned as that point.
 
-        // only care about writes.  if this was a read, then it must be def assigned and thus is safe to convert to a prop.
-        if (!memberAccess.IsOnlyWrittenTo())
-            return;
+            // only care about writes.  if this was a read, then it must be def assigned and thus is safe to convert to a prop.
+            if (!memberAccess.IsOnlyWrittenTo())
+                return;
 
-        // this only matters for a field access off of a struct.  They can be declared unassigned and have their
-        // fields directly written into.
-        var symbolInfo = semanticModel.GetSymbolInfo(memberAccess, cancellationToken);
-        if (symbolInfo.GetAnySymbol() is not IFieldSymbol { ContainingType.TypeKind: TypeKind.Struct })
-            return;
+            // this only matters for a field access off of a struct.  They can be declared unassigned and have their
+            // fields directly written into.
+            var symbolInfo = semanticModel.GetSymbolInfo(memberAccess, cancellationToken);
+            if (symbolInfo.GetAnySymbol() is not IFieldSymbol { ContainingType.TypeKind: TypeKind.Struct })
+                return;
 
-        var exprSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).GetAnySymbol();
-        if (exprSymbol is not IParameterSymbol and not ILocalSymbol)
-            return;
+            var exprSymbol = semanticModel.GetSymbolInfo(memberAccess.Expression, cancellationToken).GetAnySymbol();
+            if (exprSymbol is not IParameterSymbol and not ILocalSymbol)
+                return;
 
-        var dataFlow = semanticModel.AnalyzeDataFlow(memberAccess.Expression);
-        if (dataFlow != null && !dataFlow.DefinitelyAssignedOnEntry.Contains(exprSymbol))
-            AddIneligibleFields(ineligibleFields, symbolInfo, memberAccess);
+            var dataFlow = semanticModel.AnalyzeDataFlow(memberAccess.Expression);
+            if (dataFlow != null && !dataFlow.DefinitelyAssignedOnEntry.Contains(exprSymbol))
+                AddIneligibleFields(ineligibleFields, symbolInfo, memberAccess);
+        }
     }
 
     private static void AddIneligibleFields(
