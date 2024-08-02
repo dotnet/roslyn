@@ -571,6 +571,7 @@ namespace Microsoft.CodeAnalysis.PooledObjects
 
         public void AddRange<U>(ImmutableArray<U> items, Func<U, T> selector)
         {
+            EnsureCapacity(Count + items.Length);
             foreach (var item in items)
             {
                 _builder.Add(selector(item));

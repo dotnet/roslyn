@@ -15,8 +15,8 @@ namespace Microsoft.Cci
 {
     internal abstract class ReferenceIndexerBase : MetadataVisitor
     {
-        private readonly HashSet<IReferenceOrISignature> _alreadySeen = new();
-        private readonly HashSet<IReferenceOrISignature> _alreadyHasToken = new();
+        private readonly HashSet<IReferenceOrISignature> _alreadySeen = new HashSet<IReferenceOrISignature>();
+        private readonly HashSet<IReferenceOrISignature> _alreadyHasToken = new HashSet<IReferenceOrISignature>();
 
         /// <summary>
         /// Set true before a type reference is visited but only if a token needs to be created for the type reference.
