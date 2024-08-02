@@ -554,6 +554,24 @@ public partial class Solution
     }
 
     /// <summary>
+    /// Updates the solution with project information stored in <paramref name="attributes"/>.
+    /// </summary>
+    internal Solution WithProjectAttributes(ProjectInfo.ProjectAttributes attributes)
+    {
+        CheckContainsProject(attributes.Id);
+        return WithCompilationState(_compilationState.WithProjectAttributes(attributes));
+    }
+
+    /// <summary>
+    /// Updates the solution with project information stored in <paramref name="info"/>.
+    /// </summary>
+    internal Solution WithProjectInfo(ProjectInfo info)
+    {
+        CheckContainsProject(info.Id);
+        return WithCompilationState(_compilationState.WithProjectInfo(info));
+    }
+
+    /// <summary>
     /// Create a new solution instance with the project specified updated to include
     /// the specified project reference.
     /// </summary>
