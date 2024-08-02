@@ -117,9 +117,11 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
             // doesn't apply within the property itself (as it can refer to `field` after the rewrite).
             var ineligibleFields = s_fieldToUsageLocationPool.Allocate();
 
-            // Locations where the field is written (outside of a constructor).  Used to disallow converting an init
-            // property, as it would not be possible to write to that field through the property.
-            var nonConstructorFieldWrites = s_fieldToUsageLocationPool.Allocate();
+            // Locations where this field is read or written.  If it is read or written outside of hte property being
+            // changed, and the property getter/setter is non-trivial, then we cannot use 'field' for it, as that would 
+            // change the semantics in those locations.
+            var fieldReads = s_fieldToUsageLocationPool.Allocate();
+            var fieldWrites = s_fieldToUsageLocationPool.Allocate();
 
             // Record the names of all the private fields in this type.  We can use this to greatly reduce the amount of
             // binding we need to perform when looking for restrictions in the type.
@@ -153,14 +155,15 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
             context.RegisterCodeBlockStartAction<TSyntaxKind>(context =>
             {
                 RegisterIneligibleFieldsAction(fieldNames, ineligibleFields, context.SemanticModel, context.CodeBlock, context.CancellationToken);
-                RegisterNonConstructorFieldWrites(fieldNames, nonConstructorFieldWrites, context.SemanticModel, context.CodeBlock, context.CancellationToken);
+                RegisterFieldReferences(
+                    fieldNames, fieldReads, fieldWrites, context.SemanticModel, context.CodeBlock, context.CancellationToken);
             });
 
             context.RegisterSymbolEndAction(context =>
             {
                 try
                 {
-                    Process(analysisResults, ineligibleFields, nonConstructorFieldWrites, context);
+                    Process(analysisResults, ineligibleFields, fieldReads, fieldWrites, context);
                 }
                 finally
                 {
@@ -169,7 +172,8 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
                     s_analysisResultPool.ClearAndFree(analysisResults);
 
                     ClearAndFree(ineligibleFields);
-                    ClearAndFree(nonConstructorFieldWrites);
+                    ClearAndFree(fieldReads);
+                    ClearAndFree(fieldWrites);
                 }
             });
 
@@ -218,16 +222,14 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
             }
         }, SymbolKind.NamedType);
 
-    private void RegisterNonConstructorFieldWrites(
+    private void RegisterFieldReferences(
         HashSet<string> fieldNames,
+        ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldReads,
         ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites,
         SemanticModel semanticModel,
         SyntaxNode codeBlock,
         CancellationToken cancellationToken)
     {
-        if (codeBlock.FirstAncestorOrSelf<TConstructorDeclaration>() != null)
-            return;
-
         var semanticFacts = this.SemanticFacts;
         var syntaxFacts = this.SyntaxFacts;
         foreach (var identifierName in codeBlock.DescendantNodesAndSelf().OfType<TIdentifierName>())
@@ -239,10 +241,19 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
             if (semanticModel.GetSymbolInfo(identifierName, cancellationToken).Symbol is not IFieldSymbol field)
                 continue;
 
-            if (!semanticFacts.IsWrittenTo(semanticModel, identifierName, cancellationToken))
-                continue;
-
-            AddFieldUsage(fieldWrites, field, identifierName);
+            if (semanticFacts.IsOnlyWrittenTo(semanticModel, identifierName, cancellationToken))
+            {
+                AddFieldUsage(fieldWrites, field, identifierName);
+            }
+            else if (semanticFacts.IsWrittenTo(semanticModel, identifierName, cancellationToken))
+            {
+                AddFieldUsage(fieldWrites, field, identifierName);
+                AddFieldUsage(fieldReads, field, identifierName);
+            }
+            else
+            {
+                AddFieldUsage(fieldReads, field, identifierName);
+            }
         }
     }
 
@@ -514,7 +525,8 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
     private void Process(
         ConcurrentStack<AnalysisResult> analysisResults,
         ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFields,
-        ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> nonConstructorFieldWrites,
+        ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldReads,
+        ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites,
         SymbolAnalysisContext context)
     {
         using var _1 = PooledHashSet<IFieldSymbol>.GetInstance(out var reportedFields);
@@ -545,8 +557,8 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
             {
                 if (result.Property.DeclaredAccessibility != Accessibility.Private &&
                     result.Property.SetMethod is null &&
-                    nonConstructorFieldWrites.TryGetValue(result.Field, out var writeLocations1) &&
-                    writeLocations1.Any(loc => !loc.Ancestors().Contains(result.PropertyDeclaration)))
+                    fieldWrites.TryGetValue(result.Field, out var writeLocations1) &&
+                    NonConstructorLocations(writeLocations1).Any(loc => !loc.Ancestors().Contains(result.PropertyDeclaration)))
                 {
                     continue;
                 }
@@ -557,8 +569,27 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
             // it a `setter` as that would allow arbitrary writing outside the type, despite the original `init`
             // semantics.
             if (result.Property.SetMethod is { IsInitOnly: true } &&
-                nonConstructorFieldWrites.TryGetValue(result.Field, out var writeLocations2) &&
-                writeLocations2.Any(loc => !loc.Ancestors().Contains(result.PropertyDeclaration)))
+                fieldWrites.TryGetValue(result.Field, out var writeLocations2) &&
+                NonConstructorLocations(writeLocations2).Any(loc => !loc.Ancestors().Contains(result.PropertyDeclaration)))
+            {
+                continue;
+            }
+
+            // If we have a non-trivial getter, then we can't convert this if the field is read outside of the property.
+            // The read will go through the property getter now, which may change semantics.
+            if (!result.IsTrivialGetAccessor &&
+                fieldReads.TryGetValue(result.Field, out var specificFieldReads) &&
+                NotWithinProperty(specificFieldReads, result.PropertyDeclaration))
+            {
+                continue;
+            }
+
+            // If we have a non-trivial getter, then we can't convert this if the field is written outside of the
+            // property. The write will go through the property setter now, which may change semantics.
+            if (result.Property.SetMethod != null &&
+                !result.IsTrivialSetAccessor &&
+                fieldWrites.TryGetValue(result.Field, out var specificFieldWrites) &&
+                NotWithinProperty(specificFieldWrites, result.PropertyDeclaration))
             {
                 continue;
             }
@@ -579,6 +610,20 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
             ReportDiagnostics(result);
         }
+
+        static bool NotWithinProperty(IEnumerable<SyntaxNode> nodes, TPropertyDeclaration propertyDeclaration)
+        {
+            foreach (var node in nodes)
+            {
+                if (!node.AncestorsAndSelf().Contains(propertyDeclaration))
+                    return true;
+            }
+
+            return false;
+        }
+
+        static IEnumerable<SyntaxNode> NonConstructorLocations(IEnumerable<SyntaxNode> nodes)
+            => nodes.Where(n => n.FirstAncestorOrSelf<TConstructorDeclaration>() is null);
 
         void ReportDiagnostics(AnalysisResult result)
         {
