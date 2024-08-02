@@ -1074,4 +1074,99 @@ public sealed partial class UseAutoPropertyTests
             }
             """);
     }
+
+    [Fact]
+    public async Task TestNonTrivialGetterWithExternalRead1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                public string I => i / 2;
+
+                void M()
+                {
+                    Console.WriteLine(i);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNonTrivialGetterWithExternalRead2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                public string I => i / 2;
+
+                void M()
+                {
+                    Console.WriteLine(this.i);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNonTrivialSetterWithExternalWrite1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                public string I => i / 2;
+
+                void M()
+                {
+                    i = 1;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNonTrivialSetterWithExternalWrite2()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                public string I => i / 2;
+
+                void M()
+                {
+                    this.i = 1;
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNonTrivialGetterWithExternalReadWrite1()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                public string I => i / 2;
+
+                void M()
+                {
+                    Console.WriteLine(this.i++);
+                }
+            }
+            """);
+    }
 }
