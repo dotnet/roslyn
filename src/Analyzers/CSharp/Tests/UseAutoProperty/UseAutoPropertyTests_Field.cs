@@ -1122,7 +1122,7 @@ public sealed partial class UseAutoPropertyTests
             {
                 [|int i|];
 
-                public int I => i / 2;
+                public int I { get => i; set => value = i / 2; }
 
                 void M()
                 {
@@ -1140,13 +1140,33 @@ public sealed partial class UseAutoPropertyTests
             class Class
             {
                 [|int i|];
-
-                public int I => i / 2;
+            
+                public int I { get => i; set => value = i / 2; }
 
                 void M()
                 {
                     this.i = 1;
                 }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestNonTrivialSetterWithNoExternalWrite1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                public int I { get => i; set => i = value / 2; }
+            }
+            """,
+            """
+            class Class
+            {
+                public int I { get; set => field = value / 2; }
             }
             """);
     }
@@ -1171,9 +1191,28 @@ public sealed partial class UseAutoPropertyTests
     }
 
     [Fact]
-    public async Task TestTrivialGetterWithExternalRead1()
+    public async Task TestNonTrivialSetterWithExternalReadWrite1()
     {
         await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|int i|];
+
+                public int I { get => i; set => i = value / 2; }
+
+                void M()
+                {
+                    Console.WriteLine(this.i++);
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestTrivialGetterWithExternalRead1()
+    {
+        await TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1186,16 +1225,27 @@ public sealed partial class UseAutoPropertyTests
                     Console.WriteLine(i);
                 }
             }
+            """,
+            """
+            class Class
+            {
+                public int I { get; }
+
+                void M()
+                {
+                    Console.WriteLine(I);
+                }
+            }
             """);
     }
 
     [Fact]
     public async Task TestNoSetterWithExternalWrite1()
     {
-        await TestMissingInRegularAndScriptAsync(
+        await TestInRegularAndScriptAsync(
             """
             class Class
-            {
+            {r
                 [|int i|];
 
                 public int I => i;
@@ -1203,6 +1253,17 @@ public sealed partial class UseAutoPropertyTests
                 void M()
                 {
                     i = 1;
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                public int I { get; private set; }
+
+                void M()
+                {
+                    I = 1;
                 }
             }
             """);
