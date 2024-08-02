@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty;
 
 using static UseAutoPropertiesHelpers;
 
-internal abstract class AbstractUseAutoPropertyAnalyzer<
+internal abstract partial class AbstractUseAutoPropertyAnalyzer<
     TSyntaxKind,
     TPropertyDeclaration,
     TConstructorDeclaration,
@@ -598,14 +598,4 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             additionalLocations: additionalLocations,
             properties: properties));
     }
-
-    private sealed record AnalysisResult(
-        IPropertySymbol Property,
-        IFieldSymbol Field,
-        TPropertyDeclaration PropertyDeclaration,
-        TFieldDeclaration FieldDeclaration,
-        TVariableDeclarator VariableDeclarator,
-        NotificationOption2 Notification,
-        bool IsTrivialGetAccessor,
-        bool IsTrivialSetAccessor);
 }
