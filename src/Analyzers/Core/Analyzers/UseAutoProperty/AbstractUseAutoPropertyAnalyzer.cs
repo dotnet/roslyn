@@ -294,6 +294,24 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         return new(TrivialField: null, set.ToImmutableArray());
     }
 
+    private IFieldSymbol? CheckFieldAccessExpression(
+        SemanticModel semanticModel,
+        TExpression? expression,
+        HashSet<string> fieldNames,
+        CancellationToken cancellationToken)
+    {
+        if (expression == null)
+            return null;
+
+        // needs to be of the form `x` or `this.x`.
+        var syntaxFacts = this.SyntaxFacts;
+        var name = expression;
+        if (syntaxFacts.IsMemberAccessExpression(expression))
+            name = (TExpression)SyntaxFacts.GetNameOfMemberAccessExpression(expression);
+
+        return TryGetDirectlyAccessedFieldSymbol(semanticModel, name as TIdentifierName, fieldNames, cancellationToken);
+    }
+
     private static bool TryGetSyntax(
         IFieldSymbol field,
         [NotNullWhen(true)] out TFieldDeclaration? fieldDeclaration,
@@ -514,24 +532,6 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         }
 
         return fieldReference.Field;
-    }
-
-    private IFieldSymbol? CheckFieldAccessExpression(
-        SemanticModel semanticModel,
-        TExpression? expression,
-        HashSet<string> fieldNames,
-        CancellationToken cancellationToken)
-    {
-        if (expression == null)
-            return null;
-
-        // needs to be of the form `x` or `this.x`.
-        var syntaxFacts = this.SyntaxFacts;
-        var name = expression;
-        if (syntaxFacts.IsMemberAccessExpression(expression))
-            name = (TExpression)SyntaxFacts.GetNameOfMemberAccessExpression(expression);
-
-        return TryGetDirectlyAccessedFieldSymbol(semanticModel, name as TIdentifierName, fieldNames, cancellationToken);
     }
 
     private void Process(
