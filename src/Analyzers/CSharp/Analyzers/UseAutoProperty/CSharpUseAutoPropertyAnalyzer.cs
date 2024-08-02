@@ -97,8 +97,7 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
         foreach (var memberAccess in codeBlock.DescendantNodesAndSelf().OfType<MemberAccessExpressionSyntax>())
         {
             if (CouldReferenceField(memberAccess))
-
-                AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(memberAccess, cancellationToken);
+                AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(memberAccess);
         }
 
         return;
@@ -116,12 +115,11 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
                 return;
 
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-            AddIneligibleFields(ineligibleFields, symbolInfo, expression, alwaysRestricted);
+            AddIneligibleFields(symbolInfo, expression, alwaysRestricted);
         }
 
         void AddIneligibleFieldsIfAccessedOffNotDefinitelyAssignedValue(
-            MemberAccessExpressionSyntax memberAccess,
-            CancellationToken cancellationToken)
+            MemberAccessExpressionSyntax memberAccess)
         {
             // `c.x = ...` can't be converted to `c.X = ...` if `c` is a struct and isn't definitely assigned as that point.
 
@@ -141,26 +139,32 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
 
             var dataFlow = semanticModel.AnalyzeDataFlow(memberAccess.Expression);
             if (dataFlow != null && !dataFlow.DefinitelyAssignedOnEntry.Contains(exprSymbol))
-                AddIneligibleFields(ineligibleFields, symbolInfo, memberAccess);
+                AddIneligibleFields(symbolInfo, memberAccess);
         }
-    }
 
-    private static void AddIneligibleFields(
-        ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFields,
-        SymbolInfo symbolInfo,
-        SyntaxNode location,
-        bool alwaysRestricted = false)
-    {
-        AddIneligibleField(symbolInfo.Symbol);
-        foreach (var symbol in symbolInfo.CandidateSymbols)
-            AddIneligibleField(symbol);
+        void AddIneligibleFields(
+            SymbolInfo symbolInfo,
+            SyntaxNode location,
+            bool alwaysRestricted = false)
+        {
+            AddIneligibleField(symbolInfo.Symbol, location, alwaysRestricted);
+            foreach (var symbol in symbolInfo.CandidateSymbols)
+                AddIneligibleField(symbol, location, alwaysRestricted);
+        }
 
-        void AddIneligibleField(ISymbol? symbol)
+        void AddIneligibleField(
+            ISymbol? symbol,
+            SyntaxNode location,
+            bool alwaysRestricted)
         {
             // If the field is always restricted, then add the compilation unit itself to the ineligibility locations.
             // that way we never think we can convert this field. 
             if (symbol is IFieldSymbol field)
-                AddFieldUsage(ineligibleFields, field, alwaysRestricted ? location.SyntaxTree.GetRoot() : location);
+            {
+                AddFieldUsage(ineligibleFields, field, alwaysRestricted
+                    ? location.SyntaxTree.GetRoot(cancellationToken)
+                    : location);
+            }
         }
     }
 
