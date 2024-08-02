@@ -64,7 +64,7 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
 
     protected override void RecordIneligibleFieldLocations(
         HashSet<string> fieldNames,
-        ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFields,
+        ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFieldUsageIfOutsideProperty,
         SemanticModel semanticModel,
         SyntaxNode codeBlock,
         CancellationToken cancellationToken)
@@ -161,7 +161,7 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
             // that way we never think we can convert this field. 
             if (symbol is IFieldSymbol field)
             {
-                AddFieldUsage(ineligibleFields, field, alwaysRestricted
+                AddFieldUsage(ineligibleFieldUsageIfOutsideProperty, field, alwaysRestricted
                     ? location.SyntaxTree.GetRoot(cancellationToken)
                     : location);
             }

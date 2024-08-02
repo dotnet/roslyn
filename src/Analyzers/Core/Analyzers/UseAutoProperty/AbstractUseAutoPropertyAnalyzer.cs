@@ -100,7 +100,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
         SemanticModel semanticModel, IMethodSymbol accessor, HashSet<string> fieldNames, HashSet<IFieldSymbol> result, CancellationToken cancellationToken);
 
     protected abstract void RecordIneligibleFieldLocations(
-        HashSet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFields, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
+        HashSet<string> fieldNames, ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFieldUsageIfOutsideProperty, SemanticModel semanticModel, SyntaxNode codeBlock, CancellationToken cancellationToken);
 
     protected sealed override void InitializeWorker(AnalysisContext context)
         => context.RegisterSymbolStartAction(context =>
@@ -115,7 +115,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
             // Fields whose usage may disqualify them from being removed (depending on the usage location). For example,
             // a field taken by ref normally can't be converted (as a property can't be taken by ref).  However, this
             // doesn't apply within the property itself (as it can refer to `field` after the rewrite).
-            var ineligibleFields = s_fieldToUsageLocationPool.Allocate();
+            var ineligibleFieldUsageIfOutsideProperty = s_fieldToUsageLocationPool.Allocate();
 
             // Locations where this field is read or written.  If it is read or written outside of hte property being
             // changed, and the property getter/setter is non-trivial, then we cannot use 'field' for it, as that would 
@@ -157,7 +157,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
             // a field/prop pair can actually be converted.
             context.RegisterCodeBlockStartAction<TSyntaxKind>(context =>
             {
-                RecordIneligibleFieldLocations(fieldNames, ineligibleFields, context.SemanticModel, context.CodeBlock, context.CancellationToken);
+                RecordIneligibleFieldLocations(fieldNames, ineligibleFieldUsageIfOutsideProperty, context.SemanticModel, context.CodeBlock, context.CancellationToken);
                 RecordAllFieldReferences(fieldNames, fieldReads, fieldWrites, context.SemanticModel, context.CodeBlock, context.CancellationToken);
             });
 
@@ -165,7 +165,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
             {
                 try
                 {
-                    Process(analysisResults, ineligibleFields, fieldReads, fieldWrites, context);
+                    Process(analysisResults, ineligibleFieldUsageIfOutsideProperty, fieldReads, fieldWrites, context);
                 }
                 finally
                 {
@@ -173,7 +173,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
                     _fieldNamesPool.ClearAndFree(fieldNames);
                     s_analysisResultPool.ClearAndFree(analysisResults);
 
-                    ClearAndFree(ineligibleFields);
+                    ClearAndFree(ineligibleFieldUsageIfOutsideProperty);
                     ClearAndFree(fieldReads);
                     ClearAndFree(fieldWrites);
                 }
@@ -536,7 +536,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
     private void Process(
         ConcurrentStack<AnalysisResult> analysisResults,
-        ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFields,
+        ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> ineligibleFieldUsageIfOutsideProperty,
         ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldReads,
         ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites,
         SymbolAnalysisContext context)
@@ -546,10 +546,9 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
         foreach (var result in analysisResults)
         {
-            // C# specific check.
-            if (ineligibleFields.TryGetValue(result.Field, out var ineligibleFieldUsages))
+            // Check If we had any invalid field usage outside of the property we're converting.
+            if (ineligibleFieldUsageIfOutsideProperty.TryGetValue(result.Field, out var ineligibleFieldUsages))
             {
-                // We had a usage of the field outside of the property in a way that disqualifies it.
                 if (!ineligibleFieldUsages.All(loc => loc.Ancestors().Contains(result.PropertyDeclaration)))
                     continue;
 
@@ -576,10 +575,11 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
                 }
             }
 
-            // If this was an `init` property, and there was a write to the field, then we can't support this.
-            // That's because we can't still keep this `init` as that write will not be allowed, and we can't make
-            // it a `setter` as that would allow arbitrary writing outside the type, despite the original `init`
-            // semantics.
+            // C# specific check.
+            //
+            // If this was an `init` property, and there was a write to the field, then we can't support this. That's
+            // because we can't still keep this `init` as that write will not be allowed, and we can't make it a
+            // `setter` as that would allow arbitrary writing outside the type, despite the original `init` semantics.
             if (result.Property.SetMethod is { IsInitOnly: true } &&
                 fieldWrites.TryGetValue(result.Field, out var writeLocations2) &&
                 NonConstructorLocations(writeLocations2).Any(loc => !loc.Ancestors().Contains(result.PropertyDeclaration)))

@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
 
         Protected Overrides Sub RecordIneligibleFieldLocations(
                 fieldNames As HashSet(Of String),
-                ineligibleFields As ConcurrentDictionary(Of IFieldSymbol, ConcurrentSet(Of SyntaxNode)),
+                ineligibleFieldUsageIfOutsideProperty As ConcurrentDictionary(Of IFieldSymbol, ConcurrentSet(Of SyntaxNode)),
                 semanticModel As SemanticModel,
                 codeBlock As SyntaxNode,
                 cancellationToken As CancellationToken)
