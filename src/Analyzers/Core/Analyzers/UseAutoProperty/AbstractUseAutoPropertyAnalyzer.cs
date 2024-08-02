@@ -578,44 +578,44 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
             reportedFields.Add(result.Field);
             reportedProperties.Add(result.Property);
 
-            Process(result, context);
+            ReportDiagnostics(result);
         }
-    }
 
-    private void Process(AnalysisResult result, SymbolAnalysisContext context)
-    {
-        var propertyDeclaration = result.PropertyDeclaration;
-        var variableDeclarator = result.VariableDeclarator;
-        var fieldNode = GetFieldNode(result.FieldDeclaration, variableDeclarator);
+        void ReportDiagnostics(AnalysisResult result)
+        {
+            var propertyDeclaration = result.PropertyDeclaration;
+            var variableDeclarator = result.VariableDeclarator;
+            var fieldNode = GetFieldNode(result.FieldDeclaration, variableDeclarator);
 
-        // Now add diagnostics to both the field and the property saying we can convert it to 
-        // an auto property.  For each diagnostic store both location so we can easily retrieve
-        // them when performing the code fix.
-        var additionalLocations = ImmutableArray.Create(
-            propertyDeclaration.GetLocation(),
-            variableDeclarator.GetLocation());
+            // Now add diagnostics to both the field and the property saying we can convert it to 
+            // an auto property.  For each diagnostic store both location so we can easily retrieve
+            // them when performing the code fix.
+            var additionalLocations = ImmutableArray.Create(
+                propertyDeclaration.GetLocation(),
+                variableDeclarator.GetLocation());
 
-        var properties = ImmutableDictionary<string, string?>.Empty;
-        if (result.IsTrivialGetAccessor)
-            properties = properties.Add(IsTrivialGetAccessor, IsTrivialGetAccessor);
+            var properties = ImmutableDictionary<string, string?>.Empty;
+            if (result.IsTrivialGetAccessor)
+                properties = properties.Add(IsTrivialGetAccessor, IsTrivialGetAccessor);
 
-        if (result.IsTrivialSetAccessor)
-            properties = properties.Add(IsTrivialSetAccessor, IsTrivialSetAccessor);
+            if (result.IsTrivialSetAccessor)
+                properties = properties.Add(IsTrivialSetAccessor, IsTrivialSetAccessor);
 
-        // Place the appropriate marker on the field depending on the user option.
-        context.ReportDiagnostic(DiagnosticHelper.Create(
-            Descriptor,
-            fieldNode.GetLocation(),
-            result.Notification,
-            context.Options,
-            additionalLocations: additionalLocations,
-            properties: properties));
+            // Place the appropriate marker on the field depending on the user option.
+            context.ReportDiagnostic(DiagnosticHelper.Create(
+                Descriptor,
+                fieldNode.GetLocation(),
+                result.Notification,
+                context.Options,
+                additionalLocations: additionalLocations,
+                properties: properties));
 
-        // Also, place a hidden marker on the property.  If they bring up a lightbulb there, they'll be able to see that
-        // they can convert it to an auto-prop.
-        context.ReportDiagnostic(Diagnostic.Create(
-            Descriptor, propertyDeclaration.GetLocation(),
-            additionalLocations: additionalLocations,
-            properties: properties));
+            // Also, place a hidden marker on the property.  If they bring up a lightbulb there, they'll be able to see that
+            // they can convert it to an auto-prop.
+            context.ReportDiagnostic(Diagnostic.Create(
+                Descriptor, propertyDeclaration.GetLocation(),
+                additionalLocations: additionalLocations,
+                properties: properties));
+        }
     }
 }
