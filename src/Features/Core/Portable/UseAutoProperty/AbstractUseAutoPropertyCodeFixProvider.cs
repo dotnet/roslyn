@@ -52,6 +52,7 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
         Compilation compilation,
         IFieldSymbol fieldSymbol,
         IPropertySymbol propertySymbol,
+        TVariableDeclarator fieldDeclarator,
         TPropertyDeclaration propertyDeclaration,
         bool isWrittenOutsideConstructor,
         bool isTrivialGetAccessor,
@@ -121,7 +122,8 @@ internal abstract class AbstractUseAutoPropertyCodeFixProvider<TTypeDeclarationS
 
         var updatedProperty = await UpdatePropertyAsync(
             propertyDocument, compilation,
-            fieldSymbol, propertySymbol, property,
+            fieldSymbol, propertySymbol,
+            declarator, property,
             isWrittenToOutsideOfConstructor, isTrivialGetAccessor, isTrivialSetAccessor,
             cancellationToken).ConfigureAwait(false);
 

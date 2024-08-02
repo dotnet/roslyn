@@ -85,11 +85,13 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
 
     protected abstract TSyntaxKind PropertyDeclarationKind { get; }
 
+    protected abstract bool CanExplicitInterfaceImplementationsBeFixed { get; }
+    protected abstract bool SupportsFieldAttributesOnProperties { get; }
+
     protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
     protected abstract bool SupportsPropertyInitializer(Compilation compilation);
     protected abstract bool SupportsFieldExpression(Compilation compilation);
 
-    protected abstract bool CanExplicitInterfaceImplementationsBeFixed();
     protected abstract bool ContainsFieldExpression(TPropertyDeclaration propertyDeclaration, CancellationToken cancellationToken);
 
     protected abstract TExpression? GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
@@ -323,7 +325,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
         if (property.GetMethod == null)
             return;
 
-        if (!CanExplicitInterfaceImplementationsBeFixed() && property.ExplicitInterfaceImplementations.Length != 0)
+        if (!CanExplicitInterfaceImplementationsBeFixed && property.ExplicitInterfaceImplementations.Length != 0)
             return;
 
         var preferAutoProps = context.GetAnalyzerOptions().PreferAutoProperties;
@@ -384,12 +386,8 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
 
                 // Can't remove the field if it has attributes on it.
                 var attributes = getterField.GetAttributes();
-                var suppressMessageAttributeType = compilation.SuppressMessageAttributeType();
-                foreach (var attribute in attributes)
-                {
-                    if (attribute.AttributeClass != suppressMessageAttributeType)
-                        return false;
-                }
+                if (attributes.Length > 0 && !@this.SupportsFieldAttributesOnProperties)
+                    return false;
 
                 return true;
             },

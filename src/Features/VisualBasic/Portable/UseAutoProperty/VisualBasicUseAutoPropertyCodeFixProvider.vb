@@ -49,6 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
                 compilation As Compilation,
                 fieldSymbol As IFieldSymbol,
                 propertySymbol As IPropertySymbol,
+                fieldDeclarator As ModifiedIdentifierSyntax,
                 propertyDeclaration As PropertyBlockSyntax,
                 isWrittenToOutsideOfConstructor As Boolean,
                 isTrivialGetAccessor As Boolean,

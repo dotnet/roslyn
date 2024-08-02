@@ -80,6 +80,38 @@ public sealed partial class UseAutoPropertyTests
     }
 
     [Fact]
+    public async Task TestStaticField()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|static string s|];
+
+                static string P
+                {
+                    get
+                    {
+                        return s.Trim();
+                    }
+                }
+            }
+            """,
+            """
+            class Class
+            {
+                static string P
+                {
+                    get
+                    {
+                        return field.Trim();
+                    }
+                }
+            }
+            """, parseOptions: CSharp13);
+    }
+
+    [Fact]
     public async Task TestGetterWithMultipleStatements_Field()
     {
         await TestInRegularAndScriptAsync(

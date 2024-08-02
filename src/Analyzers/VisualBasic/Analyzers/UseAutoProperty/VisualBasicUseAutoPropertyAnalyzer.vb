@@ -39,9 +39,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseAutoProperty
             Return False
         End Function
 
-        Protected Overrides Function CanExplicitInterfaceImplementationsBeFixed() As Boolean
-            Return True
-        End Function
+        Protected Overrides ReadOnly Property CanExplicitInterfaceImplementationsBeFixed As Boolean = False
+        Protected Overrides ReadOnly Property SupportsFieldAttributesOnProperties As Boolean = False
 
         Protected Overrides Function ContainsFieldExpression(propertyDeclaration As PropertyBlockSyntax, cancellationToken As CancellationToken) As Boolean
             Return False

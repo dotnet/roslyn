@@ -44,9 +44,12 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
     private static bool SupportsReadOnlyProperties(Compilation compilation)
         => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
+    private static FieldDeclarationSyntax GetFieldDeclaration(VariableDeclaratorSyntax declarator)
+        => (FieldDeclarationSyntax)declarator.GetRequiredParent().GetRequiredParent();
+
     protected override SyntaxNode GetNodeToRemove(VariableDeclaratorSyntax declarator)
     {
-        var fieldDeclaration = (FieldDeclarationSyntax)declarator.GetRequiredParent().GetRequiredParent();
+        var fieldDeclaration = GetFieldDeclaration(declarator);
         var nodeToRemove = fieldDeclaration.Declaration.Variables.Count > 1 ? declarator : (SyntaxNode)fieldDeclaration;
         return nodeToRemove;
     }
@@ -121,6 +124,7 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
         Compilation compilation,
         IFieldSymbol fieldSymbol,
         IPropertySymbol propertySymbol,
+        VariableDeclaratorSyntax fieldDeclarator,
         PropertyDeclarationSyntax propertyDeclaration,
         bool isWrittenOutsideOfConstructor,
         bool isTrivialGetAccessor,
@@ -135,7 +139,14 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
 
         var needsSetter = NeedsSetter(compilation, propertyDeclaration, isWrittenOutsideOfConstructor);
 
-        var fieldInitializer = GetFieldInitializer(fieldSymbol, cancellationToken);
+        var fieldInitializer = fieldDeclarator.Initializer?.Value;
+
+        var fieldAttributes = GetFieldDeclaration(fieldDeclarator).AttributeLists;
+        if (fieldAttributes.Count > 0)
+        {
+            propertyDeclaration = propertyDeclaration.WithAttributeLists(
+                List(fieldAttributes.Select(ConvertAttributeList).Concat(propertyDeclaration.AttributeLists)));
+        }
 
         if (isTrivialGetAccessor || isTrivialSetAccessor || needsSetter || fieldInitializer != null)
         {
@@ -183,36 +194,41 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
             // using `field` and that rewrite already happened.
             return Task.FromResult<SyntaxNode>(propertyDeclaration);
         }
-    }
 
-    private static AccessorListSyntax ConvertToAccessorList(
-        PropertyDeclarationSyntax propertyDeclaration, bool isTrivialGetAccessor, bool isTrivialSetAccessor)
-    {
-        // If we don't have an accessor list at all, convert the property's expr body to a `get => ...` accessor.
-        var accessorList = propertyDeclaration.AccessorList ?? AccessorList(SingletonList(
-            AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
-                .WithExpressionBody(propertyDeclaration.ExpressionBody)
-                .WithSemicolonToken(SemicolonToken)));
+        static AttributeListSyntax ConvertAttributeList(AttributeListSyntax attributeList)
+            => attributeList.WithTarget(AttributeTargetSpecifier(Identifier(SyntaxFacts.GetText(SyntaxKind.FieldKeyword)), ColonToken.WithTrailingTrivia(Space)));
 
-        // Now that we have an accessor list, convert the getter/setter to `get;`/`set;` form if requested.
-        return accessorList.WithAccessors(List(accessorList.Accessors.Select(
-            accessor =>
-            {
-                var convert =
-                    (isTrivialGetAccessor && accessor.Kind() is SyntaxKind.GetAccessorDeclaration) ||
-                    (isTrivialSetAccessor && accessor.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration);
+        static AccessorListSyntax ConvertToAccessorList(
+            PropertyDeclarationSyntax propertyDeclaration,
+            bool isTrivialGetAccessor,
+            bool isTrivialSetAccessor)
+        {
+            // If we don't have an accessor list at all, convert the property's expr body to a `get => ...` accessor.
+            var accessorList = propertyDeclaration.AccessorList ?? AccessorList(SingletonList(
+                AccessorDeclaration(SyntaxKind.GetAccessorDeclaration)
+                    .WithExpressionBody(propertyDeclaration.ExpressionBody)
+                    .WithSemicolonToken(SemicolonToken)));
 
-                if (convert)
+            // Now that we have an accessor list, convert the getter/setter to `get;`/`set;` form if requested.
+            return accessorList.WithAccessors(List(accessorList.Accessors.Select(
+                accessor =>
                 {
-                    if (accessor.ExpressionBody != null)
-                        return accessor.WithExpressionBody(null).WithKeyword(accessor.Keyword.WithoutTrailingTrivia());
+                    var convert =
+                        (isTrivialGetAccessor && accessor.Kind() is SyntaxKind.GetAccessorDeclaration) ||
+                        (isTrivialSetAccessor && accessor.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration);
 
-                    if (accessor.Body != null)
-                        return accessor.WithBody(null).WithSemicolonToken(SemicolonToken.WithTrailingTrivia(accessor.Body.CloseBraceToken.TrailingTrivia));
-                }
+                    if (convert)
+                    {
+                        if (accessor.ExpressionBody != null)
+                            return accessor.WithExpressionBody(null).WithKeyword(accessor.Keyword.WithoutTrailingTrivia());
 
-                return accessor;
-            })));
+                        if (accessor.Body != null)
+                            return accessor.WithBody(null).WithSemicolonToken(SemicolonToken.WithTrailingTrivia(accessor.Body.CloseBraceToken.TrailingTrivia));
+                    }
+
+                    return accessor;
+                })));
+        }
     }
 
     protected override ImmutableArray<AbstractFormattingRule> GetFormattingRules(
@@ -263,12 +279,6 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
 
             return base.GetAdjustSpacesOperation(in previousToken, in currentToken, in nextOperation);
         }
-    }
-
-    private static ExpressionSyntax? GetFieldInitializer(IFieldSymbol fieldSymbol, CancellationToken cancellationToken)
-    {
-        var variableDeclarator = (VariableDeclaratorSyntax)fieldSymbol.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
-        return variableDeclarator.Initializer?.Value;
     }
 
     private static bool NeedsSetter(Compilation compilation, PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor)

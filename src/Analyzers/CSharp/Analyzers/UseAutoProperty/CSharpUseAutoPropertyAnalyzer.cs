@@ -30,6 +30,12 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
     protected override SyntaxKind PropertyDeclarationKind
         => SyntaxKind.PropertyDeclaration;
 
+    protected override bool CanExplicitInterfaceImplementationsBeFixed
+        => false;
+
+    protected override bool SupportsFieldAttributesOnProperties
+        => true;
+
     protected override ISemanticFacts SemanticFacts
         => CSharpSemanticFacts.Instance;
 
@@ -41,9 +47,6 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
 
     protected override bool SupportsFieldExpression(Compilation compilation)
         => compilation.LanguageVersion() >= LanguageVersion.CSharp13;
-
-    protected override bool CanExplicitInterfaceImplementationsBeFixed()
-        => false;
 
     protected override ExpressionSyntax? GetFieldInitializer(VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
         => variable.Initializer?.Value;
@@ -262,8 +265,12 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
             if (!fieldNames.Contains(identifierName.Identifier.ValueText))
                 continue;
 
+            var expr = identifierName.IsSimpleMemberAccessExpressionName()
+                ? (ExpressionSyntax)identifierName.GetRequiredParent()
+                : identifierName;
+
             var field = TryGetDirectlyAccessedFieldSymbol(
-                semanticModel, identifierName, cancellationToken);
+                semanticModel, expr, cancellationToken);
             result.AddIfNotNull(field);
         }
     }
