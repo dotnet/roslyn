@@ -44,6 +44,9 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
     private static bool SupportsReadOnlyProperties(Compilation compilation)
         => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
+    private static bool IsSetOrInitAccessor(AccessorDeclarationSyntax accessor)
+        => accessor.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration;
+
     private static FieldDeclarationSyntax GetFieldDeclaration(VariableDeclaratorSyntax declarator)
         => (FieldDeclarationSyntax)declarator.GetRequiredParent().GetRequiredParent();
 
@@ -85,14 +88,13 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
         var project = propertyDocument.Project;
         var generator = SyntaxGenerator.GetGenerator(project);
 
+        // Ensure that any attributes on the field are moved over to the property.
+        propertyDeclaration = MoveAttributes(propertyDeclaration, GetFieldDeclaration(fieldDeclarator));
+
         // We may need to add a setter if the field is written to outside of the constructor
         // of it's class.
-
         var needsSetter = NeedsSetter(compilation, propertyDeclaration, isWrittenOutsideOfConstructor);
-
         var fieldInitializer = fieldDeclarator.Initializer?.Value;
-
-        propertyDeclaration = MoveAttributes(propertyDeclaration, GetFieldDeclaration(fieldDeclarator));
 
         if (!isTrivialGetAccessor && !isTrivialSetAccessor && !needsSetter && fieldInitializer == null)
         {
@@ -118,17 +120,17 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
             if (fieldSymbol.DeclaredAccessibility != propertySymbol.DeclaredAccessibility)
                 accessor = (AccessorDeclarationSyntax)generator.WithAccessibility(accessor, fieldSymbol.DeclaredAccessibility);
 
-            var modifiers = TokenList(
-                updatedProperty.Modifiers.Where(token => !token.IsKind(SyntaxKind.ReadOnlyKeyword)));
-
-            updatedProperty = updatedProperty.WithModifiers(modifiers)
-                                             .AddAccessorListAccessors(accessor);
+            updatedProperty = updatedProperty
+                .AddAccessorListAccessors(accessor)
+                .WithModifiers(TokenList(updatedProperty.Modifiers.Where(token => !token.IsKind(SyntaxKind.ReadOnlyKeyword))));
         }
 
+        // Move any field initializer over to the property as well.
         if (fieldInitializer != null)
         {
-            updatedProperty = updatedProperty.WithInitializer(EqualsValueClause(fieldInitializer))
-                                             .WithSemicolonToken(SemicolonToken);
+            updatedProperty = updatedProperty
+                .WithInitializer(EqualsValueClause(fieldInitializer))
+                .WithSemicolonToken(SemicolonToken);
         }
 
         var finalProperty = updatedProperty
@@ -195,7 +197,7 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
                 {
                     var convert =
                         (isTrivialGetAccessor && accessor.Kind() is SyntaxKind.GetAccessorDeclaration) ||
-                        (isTrivialSetAccessor && accessor.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration);
+                        (isTrivialSetAccessor && IsSetOrInitAccessor(accessor));
 
                     if (convert)
                     {
@@ -229,7 +231,7 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
     {
         // Don't need to add if we already have a setter.
         if (propertyDeclaration.AccessorList != null &&
-            propertyDeclaration.AccessorList.Accessors.Any(a => a.Kind() is SyntaxKind.SetAccessorDeclaration or SyntaxKind.InitAccessorDeclaration))
+            propertyDeclaration.AccessorList.Accessors.Any(IsSetOrInitAccessor))
         {
             return false;
         }
