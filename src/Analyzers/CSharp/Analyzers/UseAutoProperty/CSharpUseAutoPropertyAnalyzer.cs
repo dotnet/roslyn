@@ -265,6 +265,8 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
         {
             cancellationToken.ThrowIfCancellationRequested();
 
+            // Quick check to avoid costly binding.  Only look at identifiers that match the name of a private field in
+            // the containing type.
             if (!fieldNames.Contains(identifierName.Identifier.ValueText))
                 continue;
 
