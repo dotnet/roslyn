@@ -102,9 +102,9 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
             return Task.FromResult<SyntaxNode>(propertyDeclaration);
         }
 
-        // If we have a trivial getters/setter then we want to convert to an accessor list to have `get;set;`.  If we
-        // need a setter, we have to convert to having an accessor list.  If we have a field initializer, we need to
-        // convert to an accessor list to add the initializer expression after.
+        // 1. If we have a trivial getters/setter then we want to convert to an accessor list to have `get;set;`
+        // 2. If we need a setter, we have to convert to having an accessor list to place the setter in.
+        // 3. If we have a field initializer, we need to convert to an accessor list to add the initializer expression after.
         var accessorList = ConvertToAccessorList(
             propertyDeclaration, isTrivialGetAccessor, isTrivialSetAccessor);
 
