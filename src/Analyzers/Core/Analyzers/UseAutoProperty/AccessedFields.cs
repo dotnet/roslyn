@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty;
 
 /// <param name="TrivialField">The single field accessed, when the get/set-accessor is of a trivial form similar to
 /// <c>get => fieldName;</c> or <c>set => fieldName = value;</c>. If we see these forms, we'll want to convert them to
-/// <c>get;/set;</c>.
+/// <c>get;/set;</c>.</param>
 /// <param name="NonTrivialFields">Any fields we saw accessed in more complex expressions. These can be converted to use
 /// the <c>field</c> expression form if we think we can still convert this field/property pair to an auto-prop.</param>
 internal readonly record struct AccessedFields(

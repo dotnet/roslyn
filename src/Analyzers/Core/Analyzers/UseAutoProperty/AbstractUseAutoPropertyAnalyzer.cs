@@ -166,7 +166,6 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
                 {
                     // Cleanup after doing all our work.
                     _fieldNamesPool.ClearAndFree(fieldNames);
-
                     s_analysisResultPool.ClearAndFree(analysisResults);
 
                     ClearAndFree(ineligibleFields);
