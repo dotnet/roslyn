@@ -16,15 +16,13 @@ namespace Microsoft.CodeAnalysis;
 [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
 public sealed class ProjectReference : IEquatable<ProjectReference>
 {
-    private readonly bool _embedInteropTypes;
-
     public ProjectReference(ProjectId projectId, ImmutableArray<string> aliases = default, bool embedInteropTypes = false)
     {
         Contract.ThrowIfNull(projectId);
 
         ProjectId = projectId;
         Aliases = aliases.NullToEmpty();
-        _embedInteropTypes = embedInteropTypes;
+        EmbedInteropTypes = embedInteropTypes;
     }
 
     public ProjectId ProjectId { get; }
@@ -37,7 +35,7 @@ public sealed class ProjectReference : IEquatable<ProjectReference>
     /// <summary>
     /// True if interop types defined in the referenced project should be embedded into the referencing project.
     /// </summary>
-    public bool EmbedInteropTypes => _embedInteropTypes;
+    public bool EmbedInteropTypes { get; }
 
     public override bool Equals(object obj)
         => this.Equals(obj as ProjectReference);
@@ -52,7 +50,7 @@ public sealed class ProjectReference : IEquatable<ProjectReference>
         return reference is object &&
                ProjectId == reference.ProjectId &&
                Aliases.SequenceEqual(reference.Aliases) &&
-               _embedInteropTypes == reference._embedInteropTypes;
+               EmbedInteropTypes == reference.EmbedInteropTypes;
     }
 
     public static bool operator ==(ProjectReference left, ProjectReference right)
@@ -62,7 +60,7 @@ public sealed class ProjectReference : IEquatable<ProjectReference>
         => !(left == right);
 
     public override int GetHashCode()
-        => Hash.CombineValues(Aliases, Hash.Combine(ProjectId, _embedInteropTypes.GetHashCode()));
+        => Hash.CombineValues(Aliases, Hash.Combine(ProjectId, EmbedInteropTypes.GetHashCode()));
 
     private string GetDebuggerDisplay()
         => ProjectId.ToString();

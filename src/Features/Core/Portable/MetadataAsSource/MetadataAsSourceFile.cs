@@ -8,18 +8,16 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource;
 
 internal sealed class MetadataAsSourceFile
 {
-    private readonly string _documentTooltip;
-
     internal MetadataAsSourceFile(string filePath, Location identifierLocation, string documentTitle, string documentTooltip)
     {
         FilePath = filePath;
         IdentifierLocation = identifierLocation;
         DocumentTitle = documentTitle;
-        _documentTooltip = documentTooltip;
+        DocumentTooltip = documentTooltip;
     }
 
     public string FilePath { get; }
     public Location IdentifierLocation { get; }
     public string DocumentTitle { get; }
-    public string DocumentTooltip => _documentTooltip;
+    public string DocumentTooltip { get; }
 }

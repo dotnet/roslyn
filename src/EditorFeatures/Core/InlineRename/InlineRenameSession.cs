@@ -56,7 +56,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private bool _dismissed;
     private bool _isApplyingEdit;
     private string _replacementText;
-    private SymbolRenameOptions _options;
     private readonly Dictionary<ITextBuffer, OpenTextBufferManager> _openTextBuffers = [];
 
     /// <summary>
@@ -179,7 +178,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         _triggerView = textBufferAssociatedViewService.GetAssociatedTextViews(triggerSpan.Snapshot.TextBuffer).FirstOrDefault(v => v.HasAggregateFocus) ??
             textBufferAssociatedViewService.GetAssociatedTextViews(triggerSpan.Snapshot.TextBuffer).First();
 
-        _options = options;
+        Options = options;
         PreviewChanges = previewChanges;
 
         _initialRenameText = triggerSpan.GetText();
@@ -304,7 +303,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
         var asyncToken = _asyncListener.BeginAsyncOperation("UpdateReferencesTask");
 
-        var currentOptions = _options;
+        var currentOptions = Options;
         var currentRenameLocationsTask = AllRenameLocationsTask;
         var cancellationToken = _cancellationTokenSource.Token;
 
@@ -336,7 +335,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     }
 
     public Workspace Workspace { get; }
-    public SymbolRenameOptions Options => _options;
+    public SymbolRenameOptions Options { get; private set; }
     public bool PreviewChanges { get; private set; }
     public bool HasRenameOverloads => RenameInfo.HasOverloads;
     public bool MustRenameOverloads => RenameInfo.MustRenameOverloads;
@@ -355,7 +354,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
     public void RefreshRenameSessionWithOptionsChanged(SymbolRenameOptions newOptions)
     {
-        if (_options == newOptions)
+        if (Options == newOptions)
         {
             return;
         }
@@ -363,7 +362,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         _threadingContext.ThrowIfNotOnUIThread();
         VerifyNotDismissed();
 
-        _options = newOptions;
+        Options = newOptions;
         UpdateReferenceLocationsTask();
     }
 
@@ -523,7 +522,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         }
 
         var replacementText = this.ReplacementText;
-        var options = _options;
+        var options = Options;
         var cancellationToken = _conflictResolutionTaskCancellationSource.Token;
 
         var asyncToken = _asyncListener.BeginAsyncOperation(nameof(UpdateConflictResolutionTask));
@@ -623,7 +622,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             var replacementKinds = result.GetAllReplacementKinds().ToList();
 
             Logger.Log(FunctionId.Rename_InlineSession_Session, RenameLogMessage.Create(
-                _options,
+                Options,
                 outcome,
                 conflictResolutionFinishedComputing,
                 previewChanges,
@@ -633,7 +632,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         {
             Debug.Assert(outcome.HasFlag(RenameLogMessage.UserActionOutcome.Canceled));
             Logger.Log(FunctionId.Rename_InlineSession_Session, RenameLogMessage.Create(
-                _options,
+                Options,
                 outcome,
                 conflictResolutionFinishedComputing,
                 previewChanges,

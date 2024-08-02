@@ -20,7 +20,6 @@ internal class CallHierarchyDetail : ICallHierarchyItemDetails
     private readonly TextSpan _span;
     private readonly DocumentId _documentId;
     private readonly Workspace _workspace;
-    private readonly int _startLine;
 
     public CallHierarchyDetail(
         CallHierarchyProvider provider,
@@ -35,7 +34,7 @@ internal class CallHierarchyDetail : ICallHierarchyItemDetails
         EndLine = location.GetLineSpan().EndLinePosition.Line;
         File = location.SourceTree.FilePath;
         StartColumn = location.GetLineSpan().StartLinePosition.Character;
-        _startLine = location.GetLineSpan().StartLinePosition.Line;
+        StartLine = location.GetLineSpan().StartLinePosition.Line;
         Text = ComputeText(location);
     }
 
@@ -54,7 +53,7 @@ internal class CallHierarchyDetail : ICallHierarchyItemDetails
     public int EndColumn { get; }
     public int EndLine { get; }
     public int StartColumn { get; }
-    public int StartLine => _startLine;
+    public int StartLine { get; }
 
     public void NavigateTo()
     {

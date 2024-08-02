@@ -20,15 +20,13 @@ public sealed partial class Match<TNode>
     private const double MatchingDistance2 = 0.5;
     private const double MatchingDistance3 = 0.75;
     private const double MaxDistance = 1.0;
-    private readonly TNode _root2;
-
     private readonly Dictionary<TNode, TNode> _oneToTwo = [];
     private readonly Dictionary<TNode, TNode> _twoToOne = [];
 
     internal Match(TNode root1, TNode root2, TreeComparer<TNode> comparer, IEnumerable<KeyValuePair<TNode, TNode>> knownMatches)
     {
         OldRoot = root1;
-        _root2 = root2;
+        NewRoot = root2;
         Comparer = comparer;
 
         var labelCount = comparer.LabelCount;
@@ -282,7 +280,7 @@ public sealed partial class Match<TNode>
     internal bool TryAdd(TNode node1, TNode node2)
     {
         Debug.Assert(Comparer.TreesEqual(node1, OldRoot));
-        Debug.Assert(Comparer.TreesEqual(node2, _root2));
+        Debug.Assert(Comparer.TreesEqual(node2, NewRoot));
 
         if (_oneToTwo.ContainsKey(node1) || _twoToOne.ContainsKey(node2))
         {
@@ -297,14 +295,14 @@ public sealed partial class Match<TNode>
     internal bool TryGetPartnerInTree1(TNode node2, out TNode partner1)
     {
         var result = _twoToOne.TryGetValue(node2, out partner1);
-        Debug.Assert(Comparer.TreesEqual(node2, _root2));
+        Debug.Assert(Comparer.TreesEqual(node2, NewRoot));
         Debug.Assert(!result || Comparer.TreesEqual(partner1, OldRoot));
         return result;
     }
 
     internal bool HasPartnerInTree1(TNode node2)
     {
-        Debug.Assert(Comparer.TreesEqual(node2, _root2));
+        Debug.Assert(Comparer.TreesEqual(node2, NewRoot));
         return _twoToOne.ContainsKey(node2);
     }
 
@@ -312,7 +310,7 @@ public sealed partial class Match<TNode>
     {
         var result = _oneToTwo.TryGetValue(node1, out partner2);
         Debug.Assert(Comparer.TreesEqual(node1, OldRoot));
-        Debug.Assert(!result || Comparer.TreesEqual(partner2, _root2));
+        Debug.Assert(!result || Comparer.TreesEqual(partner2, NewRoot));
         return result;
     }
 
@@ -324,7 +322,7 @@ public sealed partial class Match<TNode>
 
     internal bool Contains(TNode node1, TNode node2)
     {
-        Debug.Assert(Comparer.TreesEqual(node2, _root2));
+        Debug.Assert(Comparer.TreesEqual(node2, NewRoot));
         return TryGetPartnerInTree2(node1, out var partner2) && node2.Equals(partner2);
     }
 
@@ -332,7 +330,7 @@ public sealed partial class Match<TNode>
 
     public TNode OldRoot { get; }
 
-    public TNode NewRoot => _root2;
+    public TNode NewRoot { get; }
 
     public IReadOnlyDictionary<TNode, TNode> Matches
     {

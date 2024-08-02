@@ -12,12 +12,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 
 internal class FieldInitializerItem : ICallHierarchyNameItem
 {
-    private readonly string _sortText;
-
     public FieldInitializerItem(string name, string sortText, ImageSource displayGlyph, IEnumerable<CallHierarchyDetail> details)
     {
         Name = name;
-        _sortText = sortText;
+        SortText = sortText;
         DisplayGlyph = displayGlyph;
         Details = details;
     }
@@ -28,5 +26,5 @@ internal class FieldInitializerItem : ICallHierarchyNameItem
 
     public string Name { get; }
 
-    public string SortText => _sortText;
+    public string SortText { get; }
 }

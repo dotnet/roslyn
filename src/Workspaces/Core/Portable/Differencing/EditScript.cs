@@ -15,8 +15,6 @@ namespace Microsoft.CodeAnalysis.Differencing;
 /// </summary>
 public sealed partial class EditScript<TNode>
 {
-    private readonly ImmutableArray<Edit<TNode>> _edits;
-
     internal EditScript(Match<TNode> match)
     {
         Match = match;
@@ -25,10 +23,10 @@ public sealed partial class EditScript<TNode>
         AddUpdatesInsertsMoves(edits);
         AddDeletes(edits);
 
-        _edits = edits.AsImmutable();
+        Edits = edits.AsImmutable();
     }
 
-    public ImmutableArray<Edit<TNode>> Edits => _edits;
+    public ImmutableArray<Edit<TNode>> Edits { get; }
 
     public Match<TNode> Match { get; }
 

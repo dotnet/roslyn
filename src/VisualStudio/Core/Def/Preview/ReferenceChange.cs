@@ -15,14 +15,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 
 internal abstract partial class ReferenceChange : AbstractChange
 {
-    private readonly bool _isAddedReference;
-
     protected ReferenceChange(ProjectId projectId, string projectName, bool isAddedReference, PreviewEngine engine)
         : base(engine)
     {
         ProjectId = projectId;
         ProjectName = projectName;
-        _isAddedReference = isAddedReference;
+        IsAddedReference = isAddedReference;
     }
 
     public static void AppendReferenceChanges(IEnumerable<ProjectChanges> projectChangesList, PreviewEngine engine, ArrayBuilder<AbstractChange> builder)
@@ -70,7 +68,7 @@ internal abstract partial class ReferenceChange : AbstractChange
     }
 
     protected ProjectId ProjectId { get; }
-    internal bool IsAddedReference { get { return _isAddedReference; } }
+    internal bool IsAddedReference { get; }
     protected string ProjectName { get; }
 
     protected abstract string GetDisplayText();

@@ -15,13 +15,11 @@ namespace Microsoft.CodeAnalysis.Editing;
 /// </summary>
 public class DocumentEditor : SyntaxEditor
 {
-    private readonly SemanticModel _model;
-
     private DocumentEditor(Document document, SemanticModel model, SyntaxNode root)
         : base(root, document.Project.Solution.Services)
     {
         OriginalDocument = document;
-        _model = model;
+        SemanticModel = model;
     }
 
     /// <summary>
@@ -47,7 +45,7 @@ public class DocumentEditor : SyntaxEditor
     /// <summary>
     /// The <see cref="CodeAnalysis.SemanticModel"/> of the original document.
     /// </summary>
-    public SemanticModel SemanticModel => _model;
+    public SemanticModel SemanticModel { get; }
 
     /// <summary>
     /// Returns the changed <see cref="Document"/>.

@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 
 internal readonly record struct VirtualTreePoint : IComparable<VirtualTreePoint>
 {
-    private readonly int _virtualSpaces;
-
     public VirtualTreePoint(SyntaxTree tree, SourceText text, int position, int virtualSpaces = 0)
     {
         Contract.ThrowIfNull(tree);
@@ -22,7 +20,7 @@ internal readonly record struct VirtualTreePoint : IComparable<VirtualTreePoint>
         Tree = tree;
         Text = text;
         Position = position;
-        _virtualSpaces = virtualSpaces;
+        VirtualSpaces = virtualSpaces;
     }
 
     public static bool operator <(VirtualTreePoint left, VirtualTreePoint right)
@@ -39,12 +37,12 @@ internal readonly record struct VirtualTreePoint : IComparable<VirtualTreePoint>
 
     public bool IsInVirtualSpace
     {
-        get { return _virtualSpaces != 0; }
+        get { return VirtualSpaces != 0; }
     }
 
     public int Position { get; }
 
-    public int VirtualSpaces => _virtualSpaces;
+    public int VirtualSpaces { get; }
 
     public SourceText Text { get; }
 

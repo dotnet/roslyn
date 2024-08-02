@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 internal class CallHierarchyItem : ICallHierarchyMemberItem
 {
     private readonly Workspace _workspace;
-    private readonly string _containingTypeName;
     private readonly INavigableLocation _navigableLocation;
     private readonly IEnumerable<CallHierarchyDetail> _callsites;
     private readonly IEnumerable<AbstractCallFinder> _finders;
@@ -42,7 +41,7 @@ internal class CallHierarchyItem : ICallHierarchyMemberItem
         _provider = provider;
         _navigableLocation = navigableLocation;
         _finders = finders;
-        _containingTypeName = symbol.ContainingType.ToDisplayString(ContainingTypeFormat);
+        ContainingTypeName = symbol.ContainingType.ToDisplayString(ContainingTypeFormat);
         ContainingNamespaceName = symbol.ContainingNamespace.ToDisplayString(ContainingNamespaceFormat);
         _glyphCreator = glyphCreator;
         MemberName = symbol.ToDisplayString(MemberNameFormat);
@@ -82,7 +81,7 @@ internal class CallHierarchyItem : ICallHierarchyMemberItem
 
     public string ContainingNamespaceName { get; }
 
-    public string ContainingTypeName => _containingTypeName;
+    public string ContainingTypeName { get; }
 
     public IEnumerable<ICallHierarchyItemDetails> Details => _callsites;
 

@@ -11,12 +11,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
 internal class MemberListItem : SymbolListItem<ISymbol>
 {
-    private readonly bool _isInherited;
-
     internal MemberListItem(ProjectId projectId, ISymbol symbol, string displayText, string fullNameText, string searchText, bool isHidden, bool isInherited)
         : base(projectId, symbol, displayText, fullNameText, searchText, isHidden)
     {
-        _isInherited = isInherited;
+        IsInherited = isInherited;
 
         switch (symbol.Kind)
         {
@@ -59,10 +57,7 @@ internal class MemberListItem : SymbolListItem<ISymbol>
         }
     }
 
-    public bool IsInherited
-    {
-        get { return _isInherited; }
-    }
+    public bool IsInherited { get; }
 
     public MemberKind Kind { get; }
 }

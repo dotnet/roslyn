@@ -15,8 +15,6 @@ using Workspace = Microsoft.CodeAnalysis.Workspace;
 
 internal abstract class ObjectListItem
 {
-    private readonly bool _isHidden;
-
     protected ObjectListItem(
         ProjectId projectId,
         StandardGlyphGroup glyphGroup,
@@ -29,7 +27,7 @@ internal abstract class ObjectListItem
             ? (ushort)((int)glyphGroup + (int)glyphItem)
             : (ushort)glyphGroup;
 
-        _isHidden = isHidden;
+        IsHidden = isHidden;
     }
 
     internal void SetParentList(ObjectList parentList)
@@ -86,8 +84,5 @@ internal abstract class ObjectListItem
 
     public ushort GlyphIndex { get; }
 
-    public bool IsHidden
-    {
-        get { return _isHidden; }
-    }
+    public bool IsHidden { get; }
 }

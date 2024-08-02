@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.Differencing;
 [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
 internal readonly struct SequenceEdit : IEquatable<SequenceEdit>
 {
-    private readonly int _newIndex;
-
     internal SequenceEdit(int oldIndex, int newIndex)
     {
         Debug.Assert(oldIndex >= -1);
@@ -25,7 +23,7 @@ internal readonly struct SequenceEdit : IEquatable<SequenceEdit>
         Debug.Assert(newIndex != -1 || oldIndex != -1);
 
         OldIndex = oldIndex;
-        _newIndex = newIndex;
+        NewIndex = newIndex;
     }
 
     /// <summary>
@@ -40,7 +38,7 @@ internal readonly struct SequenceEdit : IEquatable<SequenceEdit>
                 return EditKind.Insert;
             }
 
-            if (_newIndex == -1)
+            if (NewIndex == -1)
             {
                 return EditKind.Delete;
             }
@@ -57,19 +55,19 @@ internal readonly struct SequenceEdit : IEquatable<SequenceEdit>
     /// <summary>
     /// Index in the new sequence, or -1 if the edit is delete.
     /// </summary>
-    public int NewIndex => _newIndex;
+    public int NewIndex { get; }
 
     public bool Equals(SequenceEdit other)
     {
         return OldIndex == other.OldIndex
-            && _newIndex == other._newIndex;
+            && NewIndex == other.NewIndex;
     }
 
     public override bool Equals(object obj)
         => obj is SequenceEdit && Equals((SequenceEdit)obj);
 
     public override int GetHashCode()
-        => Hash.Combine(OldIndex, _newIndex);
+        => Hash.Combine(OldIndex, NewIndex);
 
     private string GetDebuggerDisplay()
     {
@@ -80,10 +78,10 @@ internal readonly struct SequenceEdit : IEquatable<SequenceEdit>
                 return result + " (" + OldIndex + ")";
 
             case EditKind.Insert:
-                return result + " (" + _newIndex + ")";
+                return result + " (" + NewIndex + ")";
 
             case EditKind.Update:
-                return result + " (" + OldIndex + " -> " + _newIndex + ")";
+                return result + " (" + OldIndex + " -> " + NewIndex + ")";
         }
 
         return result;
