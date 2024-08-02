@@ -55,16 +55,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
         }).ToImmutableDictionary();
 
         /// <summary>
-        /// A schema for mapping classification type names to VS LSP token names.  This maps a few classification type names
-        /// directly to LSP semantic token types, but otherwise generally returns the classification type name as a custom token type.
-        /// </summary>
-        private static readonly SemanticTokensSchema s_vsTokenSchema = new(ClassificationTypeNames.AllTypeNames
-            .Where(classificationTypeName => !ClassificationTypeNames.AdditiveTypeNames.Contains(classificationTypeName))
-            .ToImmutableDictionary(
-                classificationTypeName => classificationTypeName,
-                classificationTypeName => IDictionaryExtensions.GetValueOrDefault(s_vsDirectTypeMap, classificationTypeName) ?? classificationTypeName));
-
-        /// <summary>
         /// A schema for mapping classification type names to 'pure' LSP token names.  This includes classification type names
         /// that are directly mapped to LSP semantic token types as well as mappings from roslyn classification type names to
         /// LSP compatible custom token type names.
@@ -117,14 +107,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens
 
         public static SemanticTokensSchema GetSchema(bool clientSupportsVisualStudioExtensions)
             => clientSupportsVisualStudioExtensions
-                ? s_vsTokenSchema
+                ? LegacyTokensSchemaForLSIF
                 : s_pureLspTokenSchema;
 
         public static SemanticTokensSchema LegacyTokenSchemaForRazor
-            => s_vsTokenSchema;
+            => LegacyTokensSchemaForLSIF;
 
-        public static SemanticTokensSchema LegacyTokensSchemaForLSIF
-            => s_vsTokenSchema;
+        public static SemanticTokensSchema LegacyTokensSchemaForLSIF { get; } = new(ClassificationTypeNames.AllTypeNames
+            .Where(classificationTypeName => !ClassificationTypeNames.AdditiveTypeNames.Contains(classificationTypeName))
+            .ToImmutableDictionary(
+                classificationTypeName => classificationTypeName,
+                classificationTypeName => IDictionaryExtensions.GetValueOrDefault(s_vsDirectTypeMap, classificationTypeName) ?? classificationTypeName));
 
         public static string[] TokenModifiers =
         [
