@@ -45,8 +45,6 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
 
     private static readonly ObjectPool<ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>>> s_fieldToUsageLocationPool = new(() => []);
 
-    private static readonly Func<IFieldSymbol, ConcurrentSet<SyntaxNode>> s_createFieldUsageSet = _ => s_nodeSetPool.Allocate();
-
     /// <summary>
     /// Not static as this has different semantics around case sensitivity for C# and VB.
     /// </summary>
@@ -63,7 +61,7 @@ internal abstract partial class AbstractUseAutoPropertyAnalyzer<
     }
 
     protected static void AddFieldUsage(ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> fieldWrites, IFieldSymbol field, SyntaxNode location)
-        => fieldWrites.GetOrAdd(field, s_createFieldUsageSet).Add(location);
+        => fieldWrites.GetOrAdd(field, static _ => s_nodeSetPool.Allocate()).Add(location);
 
     private static void ClearAndFree(ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>> multiMap)
     {
