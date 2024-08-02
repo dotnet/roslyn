@@ -220,7 +220,7 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
         => accessorDeclaration is { Body.Statements: [T statement] } ? statement : null;
 
     protected override ExpressionSyntax? GetSetterExpression(
-         SemanticModel semanticModel, IMethodSymbol setMethod, CancellationToken cancellationToken)
+        SemanticModel semanticModel, IMethodSymbol setMethod, CancellationToken cancellationToken)
     {
         // Setter has to be of the form:
         //
