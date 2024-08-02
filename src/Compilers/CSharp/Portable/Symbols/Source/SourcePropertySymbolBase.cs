@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             HasInitializer = 1 << 3,
             AccessorsHaveImplementation = 1 << 4,
             HasExplicitAccessModifier = 1 << 5,
+            UsesFieldKeyword = 1 << 6,
         }
 
         // TODO (tomat): consider splitting into multiple subclasses/rare data.
@@ -123,6 +124,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (isAutoProperty)
             {
                 _propertyFlags |= Flags.IsAutoProperty;
+            }
+
+            if (usesFieldKeyword)
+            {
+                _propertyFlags |= Flags.UsesFieldKeyword;
             }
 
             if (hasInitializer)
@@ -643,6 +649,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsAutoPropertyWithGetAccessor
             => IsAutoProperty && _getMethod is object;
 
+        internal bool UsesFieldKeyword
+            => (_propertyFlags & Flags.UsesFieldKeyword) != 0;
+
         protected bool HasExplicitAccessModifier
             => (_propertyFlags & Flags.HasExplicitAccessModifier) != 0;
 
@@ -1084,7 +1093,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-            => IsAutoPropertyWithGetAccessor
+            => (IsAutoPropertyWithGetAccessor || UsesFieldKeyword)
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
 

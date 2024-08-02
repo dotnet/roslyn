@@ -34,9 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         Console.WriteLine((new C().P, C.Q));
-                        foreach (var field in typeof(C).GetFields(BindingFlags.NonPublic | BindingFlags.Instance))
-                            Console.WriteLine("{0}: {1}", field.Name, field.IsInitOnly);
-                        foreach (var field in typeof(C).GetFields(BindingFlags.NonPublic | BindingFlags.Static))
+                        foreach (var field in typeof(C).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
                             Console.WriteLine("{0}: {1}", field.Name, field.IsInitOnly);
                     }
                 }
@@ -398,6 +396,82 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             argument = attributeArguments[1];
             Assert.IsType<FieldExpressionSyntax>(argument);
             Assert.Equal("System.Object C.<P3>k__BackingField", model.GetSymbolInfo(argument).Symbol.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void Attribute_03()
+        {
+            string source = $$"""
+                #pragma warning disable 9258 // 'field' is a contextual keyword
+                using System;
+                using System.Reflection;
+                class A : Attribute
+                {
+                    private readonly object _obj;
+                    public A(object obj) { _obj = obj; }
+                    public override string ToString() => $"A({_obj})";
+                }
+                class B
+                {
+                    [A(0)][field: A(1)] public object P1 { get; }
+                    [field: A(2)] public static object P2 { get; set; }
+                    [field: A(3)] public object P3 { get; init; }
+                    public object P4 { [field: A(4)] get; }
+                    public static object P5 { get; [field: A(5)] set; }
+                    [A(0)][field: A(1)] public object Q1 => field;
+                    [field: A(2)] public static object Q2 { get { return field; } set { } }
+                    [field: A(3)] public object Q3 { get { return field; } init { } }
+                    public object Q4 { [field: A(4)] get => field; }
+                    public static object Q5 { get { return field; } [field: A(5)] set { } }
+                    [field: A(6)] public static object Q6 { set { _ = field; } }
+                    [field: A(7)] public object Q7 { init { _ = field; } }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        foreach (var field in typeof(B).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
+                            ReportField(field);
+                    }
+                    static void ReportField(FieldInfo field)
+                    {
+                        Console.Write("{0}.{1}:", field.DeclaringType.Name, field.Name);
+                        foreach (var obj in field.GetCustomAttributes())
+                            Console.Write(" {0},", obj.ToString());
+                        Console.WriteLine();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (15,25): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                //     public object P4 { [field: A(4)] get; }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(15, 25),
+                // (16,37): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
+                //     public static object P5 { get; [field: A(5)] set; }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(16, 37),
+                // (20,25): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                //     public object Q4 { [field: A(4)] get => field; }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(20, 25),
+                // (21,54): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
+                //     public static object Q5 { get { return field; } [field: A(5)] set { } }
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(21, 54));
+
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("""
+                B.<P1>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(1),
+                B.<P3>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(3),
+                B.<P4>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                B.<Q1>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(1),
+                B.<Q3>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(3),
+                B.<Q4>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                B.<Q7>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(7),
+                B.<P2>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(2),
+                B.<P5>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                B.<Q2>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(2),
+                B.<Q5>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                B.<Q6>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(6),
+                """));
         }
     }
 }
