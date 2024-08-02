@@ -228,42 +228,6 @@ internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
         return default;
     }
 
-    private class SingleLinePropertyFormattingRule : AbstractFormattingRule
-    {
-        private static bool ForceSingleSpace(SyntaxToken previousToken, SyntaxToken currentToken)
-        {
-            if (currentToken.IsKind(SyntaxKind.OpenBraceToken) && currentToken.Parent.IsKind(SyntaxKind.AccessorList))
-                return true;
-
-            if (previousToken.IsKind(SyntaxKind.OpenBraceToken) && previousToken.Parent.IsKind(SyntaxKind.AccessorList))
-                return true;
-
-            if (currentToken.IsKind(SyntaxKind.CloseBraceToken) && currentToken.Parent.IsKind(SyntaxKind.AccessorList))
-                return true;
-
-            if (previousToken.IsKind(SyntaxKind.SemicolonToken) && currentToken.Parent is AccessorDeclarationSyntax)
-                return true;
-
-            return false;
-        }
-
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
-        {
-            if (ForceSingleSpace(previousToken, currentToken))
-                return null;
-
-            return base.GetAdjustNewLinesOperation(in previousToken, in currentToken, in nextOperation);
-        }
-
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
-        {
-            if (ForceSingleSpace(previousToken, currentToken))
-                return new AdjustSpacesOperation(1, AdjustSpacesOption.ForceSpaces);
-
-            return base.GetAdjustSpacesOperation(in previousToken, in currentToken, in nextOperation);
-        }
-    }
-
     private static bool NeedsSetter(Compilation compilation, PropertyDeclarationSyntax propertyDeclaration, bool isWrittenOutsideOfConstructor)
     {
         // Don't need to add if we already have a setter.
