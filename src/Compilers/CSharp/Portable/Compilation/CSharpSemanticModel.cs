@@ -3389,6 +3389,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if (resultKind == LookupResultKind.NotCreatable)
                             {
+                                if (expr.Type is TypeParameterSymbol)
+                                {
+                                    resultKind = LookupResultKind.Empty;
+                                    return symbols;
+                                }
+
                                 return OneOrMany.Create(expr.Symbols);
                             }
                             else if (expr.Type.IsDelegateType())
