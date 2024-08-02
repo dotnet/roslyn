@@ -27,7 +27,8 @@ public class RoslynSelfBuildTests : AbstractIntegrationTest
     {
         // https://github.com/microsoft/vs-extension-testing/issues/172
         Environment.SetEnvironmentVariable("RoslynSelfBuildTest", "true");
-        var solutionDir = @"D:\Sample\roslyn\roslyn.sln";
+        Environment.SetEnvironmentVariable("MSBUILDTERMINALLOGGER ", "auto");
+        var solutionDir = @"D:\repo\roslyn\roslyn.sln";
         await this.TestServices.SolutionExplorer.OpenSolutionAsync(solutionDir, HangMitigatingCancellationToken);
         var result = await this.TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
         var outputResult = await this.TestServices.SolutionExplorer.GetBuildOutputContentAsync(HangMitigatingCancellationToken);

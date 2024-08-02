@@ -9,6 +9,7 @@
     <ThirdPartyNoticesFilePath>$(MSBuildThisFileDirectory)..\..\src\NuGet\ThirdPartyNotices.rtf</ThirdPartyNoticesFilePath>
 
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
+    <VSSDKTargetPlatformRegRootSuffix Condition="'$(RoslynSelfBuildTest)' == 'true'">SampleRoslynDev</VSSDKTargetPlatformRegRootSuffix>
 
     <!-- Workaround for old Microsoft.VisualStudio.Progression.* packages -->
     <NoWarn>$(NoWarn);VSIXCompatibility1001</NoWarn>
