@@ -30,7 +30,7 @@ using static SyntaxFactory;
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseAutoProperty), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class CSharpUseAutoPropertyCodeFixProvider()
+internal sealed partial class CSharpUseAutoPropertyCodeFixProvider()
     : AbstractUseAutoPropertyCodeFixProvider<
         TypeDeclarationSyntax,
         PropertyDeclarationSyntax,
@@ -52,54 +52,6 @@ internal sealed class CSharpUseAutoPropertyCodeFixProvider()
         var fieldDeclaration = GetFieldDeclaration(declarator);
         var nodeToRemove = fieldDeclaration.Declaration.Variables.Count > 1 ? declarator : (SyntaxNode)fieldDeclaration;
         return nodeToRemove;
-    }
-
-    private sealed class UseAutoPropertyRewriter(
-        IdentifierNameSyntax propertyIdentifierName,
-        ISet<IdentifierNameSyntax> identifierNames) : CSharpSyntaxRewriter
-    {
-        private readonly IdentifierNameSyntax _propertyIdentifierName = propertyIdentifierName;
-        private readonly ISet<IdentifierNameSyntax> _identifierNames = identifierNames;
-
-        public override SyntaxNode? VisitMemberAccessExpression(MemberAccessExpressionSyntax node)
-        {
-            if (node.Name is IdentifierNameSyntax identifierName &&
-                _identifierNames.Contains(identifierName))
-            {
-                if (node.Expression.IsKind(SyntaxKind.ThisExpression))
-                {
-                    // `this.fieldName` gets rewritten to `field`.
-                    return FieldExpression().WithTriviaFrom(node);
-                }
-                else
-                {
-                    // `obj.fieldName` gets rewritten to `obj.PropName`
-                    return node.WithName(_propertyIdentifierName.WithTriviaFrom(identifierName));
-                }
-            }
-
-            return base.VisitMemberAccessExpression(node);
-        }
-
-        public override SyntaxNode? VisitIdentifierName(IdentifierNameSyntax node)
-        {
-            if (_identifierNames.Contains(node))
-            {
-                if (node.Parent is AssignmentExpressionSyntax
-                    {
-                        Parent: InitializerExpressionSyntax { RawKind: (int)SyntaxKind.ObjectInitializerExpression }
-                    } assignment && assignment.Left == node)
-                {
-                    // `new X { fieldName = ... }` gets rewritten to `new X { propName = ... }`
-                    return _propertyIdentifierName.WithTriviaFrom(node);
-                }
-
-                // Any other naked reference to fieldName within the property gets updated to `field`.
-                return FieldExpression().WithTriviaFrom(node);
-            }
-
-            return base.VisitIdentifierName(node);
-        }
     }
 
     protected override PropertyDeclarationSyntax RewriteFieldReferencesInProperty(
