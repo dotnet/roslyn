@@ -20,13 +20,7 @@ internal class CallHierarchyDetail : ICallHierarchyItemDetails
     private readonly TextSpan _span;
     private readonly DocumentId _documentId;
     private readonly Workspace _workspace;
-
-    private readonly int _endColumn;
-    private readonly int _endLine;
-    private readonly string _sourceFile;
-    private readonly int _startColumn;
     private readonly int _startLine;
-    private readonly string _text;
 
     public CallHierarchyDetail(
         CallHierarchyProvider provider,
@@ -37,12 +31,12 @@ internal class CallHierarchyDetail : ICallHierarchyItemDetails
         _span = location.SourceSpan;
         _documentId = workspace.CurrentSolution.GetDocumentId(location.SourceTree);
         _workspace = workspace;
-        _endColumn = location.GetLineSpan().Span.End.Character;
-        _endLine = location.GetLineSpan().EndLinePosition.Line;
-        _sourceFile = location.SourceTree.FilePath;
-        _startColumn = location.GetLineSpan().StartLinePosition.Character;
+        EndColumn = location.GetLineSpan().Span.End.Character;
+        EndLine = location.GetLineSpan().EndLinePosition.Line;
+        File = location.SourceTree.FilePath;
+        StartColumn = location.GetLineSpan().StartLinePosition.Character;
         _startLine = location.GetLineSpan().StartLinePosition.Line;
-        _text = ComputeText(location);
+        Text = ComputeText(location);
     }
 
     private static string ComputeText(Location location)
@@ -53,13 +47,13 @@ internal class CallHierarchyDetail : ICallHierarchyItemDetails
         return location.SourceTree.GetText().GetSubText(TextSpan.FromBounds(start, end)).ToString();
     }
 
-    public string File => _sourceFile;
-    public string Text => _text;
+    public string File { get; }
+    public string Text { get; }
     public bool SupportsNavigateTo => true;
 
-    public int EndColumn => _endColumn;
-    public int EndLine => _endLine;
-    public int StartColumn => _startColumn;
+    public int EndColumn { get; }
+    public int EndLine { get; }
+    public int StartColumn { get; }
     public int StartLine => _startLine;
 
     public void NavigateTo()

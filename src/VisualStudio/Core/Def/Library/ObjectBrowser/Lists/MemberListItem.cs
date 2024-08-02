@@ -11,7 +11,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
 internal class MemberListItem : SymbolListItem<ISymbol>
 {
-    private readonly MemberKind _kind;
     private readonly bool _isInherited;
 
     internal MemberListItem(ProjectId projectId, ISymbol symbol, string displayText, string fullNameText, string searchText, bool isHidden, bool isInherited)
@@ -22,18 +21,18 @@ internal class MemberListItem : SymbolListItem<ISymbol>
         switch (symbol.Kind)
         {
             case SymbolKind.Event:
-                _kind = MemberKind.Event;
+                Kind = MemberKind.Event;
                 break;
 
             case SymbolKind.Field:
                 var fieldSymbol = (IFieldSymbol)symbol;
                 if (fieldSymbol.ContainingType.TypeKind == TypeKind.Enum)
                 {
-                    _kind = MemberKind.EnumMember;
+                    Kind = MemberKind.EnumMember;
                 }
                 else
                 {
-                    _kind = fieldSymbol.IsConst
+                    Kind = fieldSymbol.IsConst
                         ? MemberKind.Constant
                         : MemberKind.Field;
                 }
@@ -42,7 +41,7 @@ internal class MemberListItem : SymbolListItem<ISymbol>
 
             case SymbolKind.Method:
                 var methodSymbol = (IMethodSymbol)symbol;
-                _kind = methodSymbol.MethodKind is MethodKind.Conversion or
+                Kind = methodSymbol.MethodKind is MethodKind.Conversion or
                                   MethodKind.UserDefinedOperator
                     ? MemberKind.Operator
                     : MemberKind.Method;
@@ -50,12 +49,12 @@ internal class MemberListItem : SymbolListItem<ISymbol>
                 break;
 
             case SymbolKind.Property:
-                _kind = MemberKind.Property;
+                Kind = MemberKind.Property;
                 break;
 
             default:
                 Debug.Fail("Unsupported symbol for member: " + symbol.Kind.ToString());
-                _kind = MemberKind.None;
+                Kind = MemberKind.None;
                 break;
         }
     }
@@ -65,8 +64,5 @@ internal class MemberListItem : SymbolListItem<ISymbol>
         get { return _isInherited; }
     }
 
-    public MemberKind Kind
-    {
-        get { return _kind; }
-    }
+    public MemberKind Kind { get; }
 }
