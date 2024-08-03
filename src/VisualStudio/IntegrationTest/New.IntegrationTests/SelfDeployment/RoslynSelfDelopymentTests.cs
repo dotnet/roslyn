@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.IO;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
@@ -20,8 +21,13 @@ public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIntegratio
         // https://github.com/microsoft/vs-extension-testing/issues/172
         Environment.SetEnvironmentVariable("RoslynSelfBuildTest", "true");
         Environment.SetEnvironmentVariable("MSBUILDTERMINALLOGGER ", "auto");
-        Environment.SetEnvironmentVariable("MSBuildDebugEngine ", "1");
-        var solutionDir = @"D:\Sample\roslyn\roslyn.sln";
+        Environment.SetEnvironmentVariable("MSBuildDebugEngine", "1");
+        Environment.SetEnvironmentVariable("RoslynSelfBuildTestAsset", @"D:\Sample\roslyn\");
+        var testAssetDirectory = Environment.GetEnvironmentVariable("RoslynSelfBuildTestAsset");
+        Assert.NotNull(testAssetDirectory);
+        var solutionDir = Path.Combine(testAssetDirectory, "roslyn.sln");
+        Assert.True(File.Exists(solutionDir));
+
         await this.TestServices.SolutionExplorer.OpenSolutionAsync(solutionDir, HangMitigatingCancellationToken);
         var result = await this.TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
         var outputResult = await this.TestServices.SolutionExplorer.GetBuildOutputContentAsync(HangMitigatingCancellationToken);
