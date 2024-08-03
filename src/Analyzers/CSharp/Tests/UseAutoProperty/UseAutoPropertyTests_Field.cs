@@ -1348,4 +1348,18 @@ public sealed partial class UseAutoPropertyTests
             }
             """);
     }
+
+    [Fact]
+    public async Task TestNotWithNameofInAttribute()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class C
+            {
+                [|private string prop;|]
+                [ThisIsMyBackingField(nameof(prop))]
+                public string Prop { get => prop; set => prop = value; }
+            }
+            """);
+    }
 }
