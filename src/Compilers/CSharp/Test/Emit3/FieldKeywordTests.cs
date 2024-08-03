@@ -478,5 +478,166 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 B.<Q6>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(6),
                 """));
         }
+
+        [Fact]
+        public void RestrictedTypes()
+        {
+            string source = """
+                #pragma warning disable 9258 // 'field' is a contextual keyword
+                using System;
+                class C
+                {
+                    static TypedReference P1 { get; }
+                    ArgIterator P2 { get; set; }
+                    static TypedReference Q1 => field;
+                    ArgIterator Q2 { get { return field; } set { } }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (5,12): error CS0610: Field or property cannot be of type 'TypedReference'
+                //     static TypedReference P1 { get; }
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "TypedReference").WithArguments("System.TypedReference").WithLocation(5, 12),
+                // (6,5): error CS0610: Field or property cannot be of type 'ArgIterator'
+                //     ArgIterator P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(6, 5),
+                // (7,12): error CS0610: Field or property cannot be of type 'TypedReference'
+                //     static TypedReference Q1 => field;
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "TypedReference").WithArguments("System.TypedReference").WithLocation(7, 12),
+                // (8,5): error CS0610: Field or property cannot be of type 'ArgIterator'
+                //     ArgIterator Q2 { get { return field; } set { } }
+                Diagnostic(ErrorCode.ERR_FieldCantBeRefAny, "ArgIterator").WithArguments("System.ArgIterator").WithLocation(8, 5));
+        }
+
+        [Theory]
+        [InlineData("class", false)]
+        [InlineData("struct", false)]
+        [InlineData("ref struct", true)]
+        [InlineData("record", false)]
+        [InlineData("record struct", false)]
+        public void ByRefLikeType_01(string typeKind, bool allow)
+        {
+            string source = $$"""
+                #pragma warning disable 9258 // 'field' is a contextual keyword
+                ref struct R
+                {
+                }
+                {{typeKind}} C
+                {
+                    R P1 { get; }
+                    R P2 { get; set; }
+                    R Q1 => field;
+                    R Q2 { get => field; }
+                    R Q3 { set { _ = field; } }
+                    public override string ToString() => "C";
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C();
+                        System.Console.WriteLine("{0}", c.ToString());
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            if (allow)
+            {
+                CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: "C");
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (7,5): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                    //     R P1 { get; }
+                    Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(7, 5),
+                    // (8,5): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                    //     R P2 { get; set; }
+                    Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(8, 5),
+                    // (9,5): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                    //     R Q1 => field;
+                    Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(9, 5),
+                    // (10,5): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                    //     R Q2 { get => field; }
+                    Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(10, 5),
+                    // (11,5): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                    //     R Q3 { set { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(11, 5));
+            }
+        }
+
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("ref struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void ByRefLikeType_02(string typeKind)
+        {
+            string source = $$"""
+                #pragma warning disable 9258 // 'field' is a contextual keyword
+                ref struct R
+                {
+                }
+                {{typeKind}} C
+                {
+                    static R P1 { get; }
+                    static R P2 { get; set; }
+                    static R Q1 => field;
+                    static R Q2 { get => field; }
+                    static R Q3 { set { _ = field; } }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,12): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                //     static R P1 { get; }
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(7, 12),
+                // (8,12): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                //     static R P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(8, 12),
+                // (9,12): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                //     static R Q1 => field;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(9, 12),
+                // (10,12): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                //     static R Q2 { get => field; }
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(10, 12),
+                // (11,12): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                //     static R Q3 { set { _ = field; } }
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(11, 12));
+        }
+
+        [Fact]
+        public void ByRefLikeType_03()
+        {
+            string source = """
+                #pragma warning disable 9258 // 'field' is a contextual keyword
+                ref struct R
+                {
+                }
+                interface I
+                {
+                    static R P1 { get; }
+                    R P2 { get; set; }
+                    static R Q1 => field;
+                    R Q2 { get => field; }
+                    R Q3 { set { _ = field; } }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (7,12): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                //     static R P1 { get; }
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(7, 12),
+                // (9,12): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                //     static R Q1 => field;
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(9, 12),
+                // (10,5): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                //     R Q2 { get => field; }
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(10, 5),
+                // (11,5): error CS8345: Field or auto-implemented property cannot be of type 'R' unless it is an instance member of a ref struct.
+                //     R Q3 { set { _ = field; } }
+                Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(11, 5));
+        }
     }
 }

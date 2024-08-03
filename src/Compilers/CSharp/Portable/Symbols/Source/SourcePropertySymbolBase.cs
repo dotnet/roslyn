@@ -649,7 +649,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsAutoPropertyWithGetAccessor
             => IsAutoProperty && _getMethod is object;
 
-        internal bool UsesFieldKeyword
+        internal bool IsAutoPropertyWithGetAccessorOrUsesFieldKeyword
+            => IsAutoPropertyWithGetAccessor || UsesFieldKeyword;
+
+        protected bool UsesFieldKeyword
             => (_propertyFlags & Flags.UsesFieldKeyword) != 0;
 
         protected bool HasExplicitAccessModifier
@@ -1093,7 +1096,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-            => (IsAutoPropertyWithGetAccessor || UsesFieldKeyword)
+            => IsAutoPropertyWithGetAccessorOrUsesFieldKeyword
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
 
@@ -1658,7 +1661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeLocation, type);
             }
-            else if (this.IsAutoPropertyWithGetAccessor && type.IsRefLikeOrAllowsRefLikeType() && (this.IsStatic || !this.ContainingType.IsRefLikeType))
+            else if (this.IsAutoPropertyWithGetAccessorOrUsesFieldKeyword && type.IsRefLikeOrAllowsRefLikeType() && (this.IsStatic || !this.ContainingType.IsRefLikeType))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
             }
