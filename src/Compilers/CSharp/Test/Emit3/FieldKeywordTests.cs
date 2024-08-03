@@ -324,6 +324,152 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 28));
         }
 
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("ref struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void ImplicitAccessorBody_01(string typeKind)
+        {
+            string source = $$"""
+                {{typeKind}} A
+                {
+                    public static object P1 { get; set { _ = field; } }
+                    public static object P2 { get { return field; } set; }
+                    public object Q1 { get; set { _ = field; } }
+                    public object Q2 { get { return field; } set; }
+                    public object Q3 { get { return field; } init; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        _ = new A();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, targetFramework: TargetFramework.Net80);
+            verifier.VerifyIL("A.P1.get", """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  ldsfld     "object A.<P1>k__BackingField"
+                  IL_0005:  ret
+                }
+                """);
+            verifier.VerifyIL("A.P2.set", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  stsfld     "object A.<P2>k__BackingField"
+                  IL_0006:  ret
+                }
+                """);
+            verifier.VerifyIL("A.Q1.get", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "object A.<Q1>k__BackingField"
+                  IL_0006:  ret
+                }
+                """);
+            verifier.VerifyIL("A.Q2.set", """
+                {
+                  // Code size        8 (0x8)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  stfld      "object A.<Q2>k__BackingField"
+                  IL_0007:  ret
+                }
+                """);
+            verifier.VerifyIL("A.Q3.init", """
+                {
+                  // Code size        8 (0x8)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  stfld      "object A.<Q3>k__BackingField"
+                  IL_0007:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ImplicitAccessorBody_02()
+        {
+            string source = """
+                interface I
+                {
+                    static object P1 { get; set { _ = field; } }
+                    static object P2 { get { return field; } set; }
+                    object Q1 { get; set { _ = field; } }
+                    object Q2 { get { return field; } set; }
+                    object Q3 { get { return field; } init; }
+                }
+                class A : I
+                {
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        _ = new A();
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, verify: Verification.Skipped, targetFramework: TargetFramework.Net80);
+            verifier.VerifyIL("I.P1.get", """
+                {
+                  // Code size        6 (0x6)
+                  .maxstack  1
+                  IL_0000:  ldsfld     "object I.<P1>k__BackingField"
+                  IL_0005:  ret
+                }
+                """);
+            verifier.VerifyIL("I.P2.set", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  stsfld     "object I.<P2>k__BackingField"
+                  IL_0006:  ret
+                }
+                """);
+            verifier.VerifyIL("I.Q1.get", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldfld      "object I.<Q1>k__BackingField"
+                  IL_0006:  ret
+                }
+                """);
+            verifier.VerifyIL("I.Q2.set", """
+                {
+                  // Code size        8 (0x8)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  stfld      "object I.<Q2>k__BackingField"
+                  IL_0007:  ret
+                }
+                """);
+            verifier.VerifyIL("I.Q3.init", """
+                {
+                  // Code size        8 (0x8)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldarg.1
+                  IL_0002:  stfld      "object I.<Q3>k__BackingField"
+                  IL_0007:  ret
+                }
+                """);
+        }
+
         [Fact]
         public void Attribute_01()
         {
