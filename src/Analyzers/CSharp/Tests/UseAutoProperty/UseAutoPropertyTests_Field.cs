@@ -1325,4 +1325,27 @@ public sealed partial class UseAutoPropertyTests
             }
             """);
     }
+
+    [Fact]
+    public async Task TestNoSetterButWrittenOutside()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                [|private string prop;|]
+                public string Prop => prop ?? "";
+
+                void M() { prop = "..."; }
+            }
+            """,
+            """
+            class C
+            {
+                public string Prop { get => field ?? ""; private set; }
+            
+                void M() { Prop = "..."; }
+            }
+            """);
+    }
 }
