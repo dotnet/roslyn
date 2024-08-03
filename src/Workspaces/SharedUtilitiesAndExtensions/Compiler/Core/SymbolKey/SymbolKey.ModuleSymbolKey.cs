@@ -43,8 +43,7 @@ internal partial struct SymbolKey
                 }
                 else
                 {
-                    // Visual Basic implementation of IAssemblySymbol.Modules relies on covariance of IEnumerable<T>, so
-                    // the preceding concrete type check will fail.
+                    // Otherwise fall back to generic enumeration
                     result.AddValuesIfNotNull(assemblyModules);
                 }
             }
