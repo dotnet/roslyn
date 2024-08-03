@@ -3600,10 +3600,8 @@ namespace N
                     SemanticEdit.Create(SemanticEditKind.Insert, null, g1)));
 
             diff1.VerifySynthesizedMembers(
-                "<global namespace>: {Microsoft}",
-                "Microsoft: {CodeAnalysis}",
-                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
-                "System.Runtime.CompilerServices: {IsReadOnlyAttribute}");
+                 "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                "System.Runtime.CompilerServices.IsReadOnlyAttribute");
 
             diff1.VerifyIL("N.C.Main", @"
 {
@@ -3692,10 +3690,10 @@ namespace N
 
             // synthesized member for nullable annotations added:
             diff2.VerifySynthesizedMembers(
-                "<global namespace>: {Microsoft}",
-                "Microsoft: {CodeAnalysis}",
-                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
-                "System.Runtime.CompilerServices: {IsReadOnlyAttribute, NullableAttribute, NullableContextAttribute}");
+                "System.Runtime.CompilerServices.IsReadOnlyAttribute",
+                "System.Runtime.CompilerServices.NullableAttribute",
+                "System.Runtime.CompilerServices.NullableContextAttribute",
+                "Microsoft.CodeAnalysis.EmbeddedAttribute");
 
             // Verify delta metadata contains expected rows.
             using var md2 = diff2.GetMetadata();
@@ -3787,10 +3785,10 @@ namespace N
 
             // no change in synthesized members:
             diff3.VerifySynthesizedMembers(
-                "<global namespace>: {Microsoft}",
-                "Microsoft: {CodeAnalysis}",
-                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
-                "System.Runtime.CompilerServices: {IsReadOnlyAttribute, NullableAttribute, NullableContextAttribute}");
+                "System.Runtime.CompilerServices.IsReadOnlyAttribute",
+                "System.Runtime.CompilerServices.NullableAttribute",
+                "System.Runtime.CompilerServices.NullableContextAttribute",
+                "Microsoft.CodeAnalysis.EmbeddedAttribute");
 
             // Verify delta metadata contains expected rows.
             using var md3 = diff3.GetMetadata();
@@ -15599,10 +15597,9 @@ namespace N
                     SemanticEdit.Create(SemanticEditKind.Update, printMembers0, printMembers1)));
 
             diff1.VerifySynthesizedMembers(
-                "<global namespace>: {Microsoft}",
-                "Microsoft: {CodeAnalysis}",
-                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
-                "System.Runtime.CompilerServices: {NullableAttribute, NullableContextAttribute}");
+                "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                "System.Runtime.CompilerServices.NullableAttribute",
+                "System.Runtime.CompilerServices.NullableContextAttribute");
 
             // Verify delta metadata contains expected rows.
             using var md1 = diff1.GetMetadata();
@@ -15681,10 +15678,9 @@ namespace N
                     SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
 
             diff1.VerifySynthesizedMembers(
-                "<global namespace>: {Microsoft}",
-                "Microsoft: {CodeAnalysis}",
-                "Microsoft.CodeAnalysis: {EmbeddedAttribute}",
-                "System.Runtime.CompilerServices: {NullableAttribute, NullableContextAttribute}");
+                "Microsoft.CodeAnalysis.EmbeddedAttribute",
+                "System.Runtime.CompilerServices.NullableAttribute",
+                "System.Runtime.CompilerServices.NullableContextAttribute");
         }
 
         [Fact]

@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             CompilationDifference diff = compilation.EmitDifference(previousGeneration.Baseline, semanticEdits);
 
             diff.EmitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error).Verify(expectedErrors);
-            if (expectedErrors != null)
+            if (expectedErrors is not [])
             {
                 return This;
             }

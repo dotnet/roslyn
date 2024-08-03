@@ -3804,7 +3804,7 @@ namespace Microsoft.CodeAnalysis
                  0,                                                                                                                           // Arity
                     0,                                                                                                                        // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32, // Return Type
-                    
+
                  // System_Exception__ctorString
                  (byte)MemberFlags.Constructor,                                                                                               // Flags
                  (byte)WellKnownType.System_Exception,                                                                                        // DeclaringTypeId
