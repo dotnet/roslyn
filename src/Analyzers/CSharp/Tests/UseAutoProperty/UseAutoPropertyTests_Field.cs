@@ -475,6 +475,20 @@ public sealed partial class UseAutoPropertyTests
     }
 
     [Fact]
+    public async Task TestNotWhenUsingNameof5()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|string s = nameof(s)|];
+
+                string P => s;
+            }
+            """);
+    }
+
+    [Fact]
     public async Task TestWithRefArgumentUseInside()
     {
         await TestInRegularAndScriptAsync(
