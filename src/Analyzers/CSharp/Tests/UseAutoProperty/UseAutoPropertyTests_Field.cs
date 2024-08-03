@@ -1306,4 +1306,23 @@ public sealed partial class UseAutoPropertyTests
             }
             """);
     }
+
+    [Fact]
+    public async Task TestFormatString()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                [|private string prop;|]
+                public string Prop => $"{prop:prop}";
+            }
+            """,
+            """
+            class C
+            {
+                public string Prop => $"{field:prop}";
+            }
+            """);
+    }
 }
