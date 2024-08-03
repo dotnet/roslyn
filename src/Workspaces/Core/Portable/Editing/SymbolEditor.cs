@@ -19,13 +19,10 @@ namespace Microsoft.CodeAnalysis.Editing;
 /// </summary>
 public sealed class SymbolEditor
 {
-    private readonly Solution _originalSolution;
-    private Solution _currentSolution;
-
     private SymbolEditor(Solution solution)
     {
-        _originalSolution = solution;
-        _currentSolution = solution;
+        OriginalSolution = solution;
+        ChangedSolution = solution;
     }
 
     /// <summary>
@@ -57,30 +54,30 @@ public sealed class SymbolEditor
     /// <summary>
     /// The original solution.
     /// </summary>
-    public Solution OriginalSolution => _originalSolution;
+    public Solution OriginalSolution { get; }
 
     /// <summary>
     /// The solution with the edits applied.
     /// </summary>
-    public Solution ChangedSolution => _currentSolution;
+    public Solution ChangedSolution { get; private set; }
 
     /// <summary>
     /// The documents changed since the <see cref="SymbolEditor"/> was constructed.
     /// </summary>
     public IEnumerable<Document> GetChangedDocuments()
     {
-        var solutionChanges = _currentSolution.GetChanges(_originalSolution);
+        var solutionChanges = ChangedSolution.GetChanges(OriginalSolution);
 
         foreach (var projectChanges in solutionChanges.GetProjectChanges())
         {
             foreach (var id in projectChanges.GetAddedDocuments())
             {
-                yield return _currentSolution.GetDocument(id);
+                yield return ChangedSolution.GetDocument(id);
             }
 
             foreach (var id in projectChanges.GetChangedDocuments())
             {
-                yield return _currentSolution.GetDocument(id);
+                yield return ChangedSolution.GetDocument(id);
             }
         }
 
@@ -103,23 +100,23 @@ public sealed class SymbolEditor
             return null;
 
         // check to see if symbol is from current solution
-        var project = _currentSolution.GetProject(symbol.ContainingAssembly, cancellationToken);
+        var project = ChangedSolution.GetProject(symbol.ContainingAssembly, cancellationToken);
         if (project != null)
         {
-            return await GetSymbolAsync(_currentSolution, project.Id, symbolId, cancellationToken).ConfigureAwait(false);
+            return await GetSymbolAsync(ChangedSolution, project.Id, symbolId, cancellationToken).ConfigureAwait(false);
         }
 
         // check to see if it is from original solution
-        project = _originalSolution.GetProject(symbol.ContainingAssembly, cancellationToken);
+        project = OriginalSolution.GetProject(symbol.ContainingAssembly, cancellationToken);
         if (project != null)
         {
-            return await GetSymbolAsync(_currentSolution, project.Id, symbolId, cancellationToken).ConfigureAwait(false);
+            return await GetSymbolAsync(ChangedSolution, project.Id, symbolId, cancellationToken).ConfigureAwait(false);
         }
 
         // try to find symbol from any project (from current solution) with matching assembly name
         foreach (var projectId in this.GetProjectsForAssembly(symbol.ContainingAssembly))
         {
-            var currentSymbol = await GetSymbolAsync(_currentSolution, projectId, symbolId, cancellationToken).ConfigureAwait(false);
+            var currentSymbol = await GetSymbolAsync(ChangedSolution, projectId, symbolId, cancellationToken).ConfigureAwait(false);
             if (currentSymbol != null)
             {
                 return currentSymbol;
@@ -133,7 +130,7 @@ public sealed class SymbolEditor
 
     private ImmutableArray<ProjectId> GetProjectsForAssembly(IAssemblySymbol assembly)
     {
-        _assemblyNameToProjectIdMap ??= _originalSolution.Projects
+        _assemblyNameToProjectIdMap ??= OriginalSolution.Projects
                 .ToLookup(p => p.AssemblyName, p => p.Id)
                 .ToImmutableDictionary(g => g.Key, g => ImmutableArray.CreateRange(g));
 
@@ -196,7 +193,7 @@ public sealed class SymbolEditor
     {
         return symbol.DeclaringSyntaxReferences
                      .Select(sr => sr.GetSyntax())
-                     .Select(n => SyntaxGenerator.GetGenerator(_originalSolution.Workspace, n.Language).GetDeclaration(n))
+                     .Select(n => SyntaxGenerator.GetGenerator(OriginalSolution.Workspace, n.Language).GetDeclaration(n))
                      .Where(d => d != null);
     }
 
@@ -287,14 +284,14 @@ public sealed class SymbolEditor
         AsyncDeclarationEditAction editAction,
         CancellationToken cancellationToken)
     {
-        var doc = _currentSolution.GetDocument(declaration.SyntaxTree);
+        var doc = ChangedSolution.GetDocument(declaration.SyntaxTree);
         var editor = await DocumentEditor.CreateAsync(doc, cancellationToken).ConfigureAwait(false);
 
         editor.TrackNode(declaration);
         await editAction(editor, declaration, cancellationToken).ConfigureAwait(false);
 
         var newDoc = editor.GetChangedDocument();
-        _currentSolution = newDoc.Project.Solution;
+        ChangedSolution = newDoc.Project.Solution;
 
         // try to find new symbol by looking up via original declaration
         var model = await newDoc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -329,7 +326,7 @@ public sealed class SymbolEditor
     {
         var sourceTree = location.SourceTree;
 
-        var doc = _currentSolution.GetDocument(sourceTree) ?? _originalSolution.GetDocument(sourceTree);
+        var doc = ChangedSolution.GetDocument(sourceTree) ?? OriginalSolution.GetDocument(sourceTree);
         if (doc != null)
         {
             return EditOneDeclarationAsync(symbol, doc.Id, location.SourceSpan.Start, editAction, cancellationToken);
@@ -376,7 +373,7 @@ public sealed class SymbolEditor
 
         var decl = this.GetDeclarations(currentSymbol).FirstOrDefault(d =>
         {
-            var doc = _currentSolution.GetDocument(d.SyntaxTree);
+            var doc = ChangedSolution.GetDocument(d.SyntaxTree);
             return doc != null && doc.Id == documentId && d.FullSpan.IntersectsWith(position);
         });
 
@@ -463,9 +460,9 @@ public sealed class SymbolEditor
         var currentSymbol = await this.GetCurrentSymbolAsync(symbol, cancellationToken).ConfigureAwait(false);
         CheckSymbolArgument(currentSymbol, symbol);
 
-        var declsByDocId = this.GetDeclarations(currentSymbol).ToLookup(d => _currentSolution.GetDocument(d.SyntaxTree).Id);
+        var declsByDocId = this.GetDeclarations(currentSymbol).ToLookup(d => ChangedSolution.GetDocument(d.SyntaxTree).Id);
 
-        var solutionEditor = new SolutionEditor(_currentSolution);
+        var solutionEditor = new SolutionEditor(ChangedSolution);
 
         foreach (var declGroup in declsByDocId)
         {
@@ -479,12 +476,12 @@ public sealed class SymbolEditor
             }
         }
 
-        _currentSolution = solutionEditor.GetChangedSolution();
+        ChangedSolution = solutionEditor.GetChangedSolution();
 
         // try to find new symbol by looking up via original declarations
         foreach (var declGroup in declsByDocId)
         {
-            var doc = _currentSolution.GetDocument(declGroup.Key);
+            var doc = ChangedSolution.GetDocument(declGroup.Key);
             var model = await doc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             foreach (var decl in declGroup)

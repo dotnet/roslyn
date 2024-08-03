@@ -26,8 +26,6 @@ namespace Microsoft.CodeAnalysis;
 [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
 public partial class Project
 {
-    private readonly Solution _solution;
-    private readonly ProjectState _projectState;
     private ImmutableDictionary<DocumentId, Document?> _idToDocumentMap = ImmutableDictionary<DocumentId, Document?>.Empty;
     private ImmutableDictionary<DocumentId, SourceGeneratedDocument> _idToSourceGeneratedDocumentMap = ImmutableDictionary<DocumentId, SourceGeneratedDocument>.Empty;
     private ImmutableDictionary<DocumentId, AdditionalDocument?> _idToAdditionalDocumentMap = ImmutableDictionary<DocumentId, AdditionalDocument?>.Empty;
@@ -38,42 +36,42 @@ public partial class Project
         Contract.ThrowIfNull(solution);
         Contract.ThrowIfNull(projectState);
 
-        _solution = solution;
-        _projectState = projectState;
+        Solution = solution;
+        State = projectState;
     }
 
-    internal ProjectState State => _projectState;
+    internal ProjectState State { get; }
 
     /// <summary>
     /// The solution this project is part of.
     /// </summary>
-    public Solution Solution => _solution;
+    public Solution Solution { get; }
 
     /// <summary>
     /// The ID of the project. Multiple <see cref="Project"/> instances may share the same ID. However, only
     /// one project may have this ID in any given solution.
     /// </summary>
-    public ProjectId Id => _projectState.Id;
+    public ProjectId Id => State.Id;
 
     /// <summary>
     /// The path to the project file or null if there is no project file.
     /// </summary>
-    public string? FilePath => _projectState.FilePath;
+    public string? FilePath => State.FilePath;
 
     /// <summary>
     /// The path to the output file, or null if it is not known.
     /// </summary>
-    public string? OutputFilePath => _projectState.OutputFilePath;
+    public string? OutputFilePath => State.OutputFilePath;
 
     /// <summary>
     /// The path to the reference assembly output file, or null if it is not known.
     /// </summary>
-    public string? OutputRefFilePath => _projectState.OutputRefFilePath;
+    public string? OutputRefFilePath => State.OutputRefFilePath;
 
     /// <summary>
     /// Compilation output file paths.
     /// </summary>
-    public CompilationOutputInfo CompilationOutputInfo => _projectState.CompilationOutputInfo;
+    public CompilationOutputInfo CompilationOutputInfo => State.CompilationOutputInfo;
 
     /// <summary>
     /// The default namespace of the project ("" if not defined, which means global namespace),
@@ -86,7 +84,7 @@ public partial class Project
     /// In the future, we might consider officially exposing "default namespace" for VB project 
     /// (e.g. through a "defaultnamespace" msbuild property)
     /// </remarks>
-    public string? DefaultNamespace => _projectState.DefaultNamespace;
+    public string? DefaultNamespace => State.DefaultNamespace;
 
     /// <summary>
     /// <see langword="true"/> if this <see cref="Project"/> supports providing data through the
@@ -101,90 +99,90 @@ public partial class Project
     /// </summary>
     [Obsolete($"Use {nameof(Services)} instead.")]
 #pragma warning disable CS0618 // Member is obsolete -- shouldn't be reported here https://github.com/dotnet/roslyn/issues/66409
-    public HostLanguageServices LanguageServices => _projectState.LanguageServices.HostLanguageServices;
+    public HostLanguageServices LanguageServices => State.LanguageServices.HostLanguageServices;
 #pragma warning restore
 
     /// <summary>
     /// Immutable snapshot of language services from the host environment associated with this project's language.
     /// Use this over <see cref="LanguageServices"/> when possible.
     /// </summary>
-    public LanguageServices Services => _projectState.LanguageServices;
+    public LanguageServices Services => State.LanguageServices;
 
     /// <summary>
     /// The language associated with the project.
     /// </summary>
-    public string Language => _projectState.Language;
+    public string Language => State.Language;
 
     /// <summary>
     /// The name of the assembly this project represents.
     /// </summary>
-    public string AssemblyName => _projectState.AssemblyName;
+    public string AssemblyName => State.AssemblyName;
 
     /// <summary>
     /// The name of the project. This may be different than the assembly name.
     /// </summary>
-    public string Name => _projectState.Name;
+    public string Name => State.Name;
 
     /// <summary>
     /// The list of all other metadata sources (assemblies) that this project references.
     /// </summary>
-    public IReadOnlyList<MetadataReference> MetadataReferences => _projectState.MetadataReferences;
+    public IReadOnlyList<MetadataReference> MetadataReferences => State.MetadataReferences;
 
     /// <summary>
     /// The list of all other projects within the same solution that this project references.
     /// </summary>
-    public IEnumerable<ProjectReference> ProjectReferences => _projectState.ProjectReferences.Where(pr => this.Solution.ContainsProject(pr.ProjectId));
+    public IEnumerable<ProjectReference> ProjectReferences => State.ProjectReferences.Where(pr => this.Solution.ContainsProject(pr.ProjectId));
 
     /// <summary>
     /// The list of all other projects that this project references, including projects that 
     /// are not part of the solution.
     /// </summary>
-    public IReadOnlyList<ProjectReference> AllProjectReferences => _projectState.ProjectReferences;
+    public IReadOnlyList<ProjectReference> AllProjectReferences => State.ProjectReferences;
 
     /// <summary>
     /// The list of all the diagnostic analyzer references for this project.
     /// </summary>
-    public IReadOnlyList<AnalyzerReference> AnalyzerReferences => _projectState.AnalyzerReferences;
+    public IReadOnlyList<AnalyzerReference> AnalyzerReferences => State.AnalyzerReferences;
 
     /// <summary>
     /// The options used by analyzers for this project.
     /// </summary>
-    public AnalyzerOptions AnalyzerOptions => _projectState.AnalyzerOptions;
+    public AnalyzerOptions AnalyzerOptions => State.AnalyzerOptions;
 
     /// <summary>
     /// The options used when building the compilation for this project.
     /// </summary>
-    public CompilationOptions? CompilationOptions => _projectState.CompilationOptions;
+    public CompilationOptions? CompilationOptions => State.CompilationOptions;
 
     /// <summary>
     /// The options used when parsing documents for this project.
     /// </summary>
-    public ParseOptions? ParseOptions => _projectState.ParseOptions;
+    public ParseOptions? ParseOptions => State.ParseOptions;
 
     /// <summary>
     /// Returns true if this is a submission project.
     /// </summary>
-    public bool IsSubmission => _projectState.IsSubmission;
+    public bool IsSubmission => State.IsSubmission;
 
     /// <summary>
     /// True if the project has any documents.
     /// </summary>
-    public bool HasDocuments => !_projectState.DocumentStates.IsEmpty;
+    public bool HasDocuments => !State.DocumentStates.IsEmpty;
 
     /// <summary>
     /// All the document IDs associated with this project.
     /// </summary>
-    public IReadOnlyList<DocumentId> DocumentIds => _projectState.DocumentStates.Ids;
+    public IReadOnlyList<DocumentId> DocumentIds => State.DocumentStates.Ids;
 
     /// <summary>
     /// All the additional document IDs associated with this project.
     /// </summary>
-    public IReadOnlyList<DocumentId> AdditionalDocumentIds => _projectState.AdditionalDocumentStates.Ids;
+    public IReadOnlyList<DocumentId> AdditionalDocumentIds => State.AdditionalDocumentStates.Ids;
 
     /// <summary>
     /// All the additional document IDs associated with this project.
     /// </summary>
-    internal IReadOnlyList<DocumentId> AnalyzerConfigDocumentIds => _projectState.AnalyzerConfigDocumentStates.Ids;
+    internal IReadOnlyList<DocumentId> AnalyzerConfigDocumentIds => State.AnalyzerConfigDocumentStates.Ids;
 
     /// <summary>
     /// All the regular documents associated with this project. Documents produced from source generators are returned by
@@ -206,31 +204,31 @@ public partial class Project
     /// True if the project contains a document with the specified ID.
     /// </summary>
     public bool ContainsDocument(DocumentId documentId)
-        => _projectState.DocumentStates.Contains(documentId);
+        => State.DocumentStates.Contains(documentId);
 
     /// <summary>
     /// True if the project contains an additional document with the specified ID.
     /// </summary>
     public bool ContainsAdditionalDocument(DocumentId documentId)
-        => _projectState.AdditionalDocumentStates.Contains(documentId);
+        => State.AdditionalDocumentStates.Contains(documentId);
 
     /// <summary>
     /// True if the project contains an <see cref="AnalyzerConfigDocument"/> with the specified ID.
     /// </summary>
     public bool ContainsAnalyzerConfigDocument(DocumentId documentId)
-        => _projectState.AnalyzerConfigDocumentStates.Contains(documentId);
+        => State.AnalyzerConfigDocumentStates.Contains(documentId);
 
     /// <summary>
     /// Get the documentId in this project with the specified syntax tree.
     /// </summary>
     public DocumentId? GetDocumentId(SyntaxTree? syntaxTree)
-        => _solution.GetDocumentId(syntaxTree, this.Id);
+        => Solution.GetDocumentId(syntaxTree, this.Id);
 
     /// <summary>
     /// Get the document in this project with the specified syntax tree.
     /// </summary>
     public Document? GetDocument(SyntaxTree? syntaxTree)
-        => _solution.GetDocument(syntaxTree, this.Id);
+        => Solution.GetDocument(syntaxTree, this.Id);
 
     /// <summary>
     /// Get the document in this project with the specified document Id.
@@ -281,7 +279,7 @@ public partial class Project
     /// </summary>
     public async ValueTask<IEnumerable<SourceGeneratedDocument>> GetSourceGeneratedDocumentsAsync(CancellationToken cancellationToken = default)
     {
-        var generatedDocumentStates = await _solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
+        var generatedDocumentStates = await Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(this.State, cancellationToken).ConfigureAwait(false);
 
         // return an iterator to avoid eagerly allocating all the document instances
         return generatedDocumentStates.States.Values.Select(state =>
@@ -313,7 +311,7 @@ public partial class Project
             return sourceGeneratedDocument;
 
         // We'll have to run generators if we haven't already and now try to find it.
-        var generatedDocumentStates = await _solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(State, cancellationToken).ConfigureAwait(false);
+        var generatedDocumentStates = await Solution.CompilationState.GetSourceGeneratedDocumentStatesAsync(State, cancellationToken).ConfigureAwait(false);
         var generatedDocumentState = generatedDocumentStates.GetState(documentId);
         if (generatedDocumentState is null)
             return null;
@@ -349,7 +347,7 @@ public partial class Project
 
         // Trickier case now: it's possible we generated this, but we don't actually have the SourceGeneratedDocument for it, so let's go
         // try to fetch the state.
-        var documentState = _solution.CompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
+        var documentState = Solution.CompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentId);
         if (documentState == null)
             return null;
 
@@ -358,12 +356,12 @@ public partial class Project
 
     internal ValueTask<ImmutableArray<Diagnostic>> GetSourceGeneratorDiagnosticsAsync(CancellationToken cancellationToken)
     {
-        return _solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(this.State, cancellationToken);
+        return Solution.CompilationState.GetSourceGeneratorDiagnosticsAsync(this.State, cancellationToken);
     }
 
     internal ValueTask<GeneratorDriverRunResult?> GetSourceGeneratorRunResultAsync(CancellationToken cancellationToken)
     {
-        return _solution.CompilationState.GetSourceGeneratorRunResultAsync(this.State, cancellationToken);
+        return Solution.CompilationState.GetSourceGeneratorRunResultAsync(this.State, cancellationToken);
     }
 
     internal Task<bool> ContainsSymbolsWithNameAsync(
@@ -460,13 +458,13 @@ public partial class Project
     }
 
     private static readonly Func<DocumentId, Project, Document?> s_tryCreateDocumentFunction =
-        (documentId, project) => project._projectState.DocumentStates.TryGetState(documentId, out var state) ? new Document(project, state) : null;
+        (documentId, project) => project.State.DocumentStates.TryGetState(documentId, out var state) ? new Document(project, state) : null;
 
     private static readonly Func<DocumentId, Project, AdditionalDocument?> s_tryCreateAdditionalDocumentFunction =
-        (documentId, project) => project._projectState.AdditionalDocumentStates.TryGetState(documentId, out var state) ? new AdditionalDocument(project, state) : null;
+        (documentId, project) => project.State.AdditionalDocumentStates.TryGetState(documentId, out var state) ? new AdditionalDocument(project, state) : null;
 
     private static readonly Func<DocumentId, Project, AnalyzerConfigDocument?> s_tryCreateAnalyzerConfigDocumentFunction =
-        (documentId, project) => project._projectState.AnalyzerConfigDocumentStates.TryGetState(documentId, out var state) ? new AnalyzerConfigDocument(project, state) : null;
+        (documentId, project) => project.State.AnalyzerConfigDocumentStates.TryGetState(documentId, out var state) ? new AnalyzerConfigDocument(project, state) : null;
 
     private static readonly Func<DocumentId, (SourceGeneratedDocumentState state, Project project), SourceGeneratedDocument> s_createSourceGeneratedDocumentFunction =
         (documentId, stateAndProject) => new SourceGeneratedDocument(stateAndProject.project, stateAndProject.state);
@@ -477,7 +475,7 @@ public partial class Project
     /// or create a new one otherwise.
     /// </summary>
     public bool TryGetCompilation([NotNullWhen(returnValue: true)] out Compilation? compilation)
-        => _solution.CompilationState.TryGetCompilation(this.Id, out compilation);
+        => Solution.CompilationState.TryGetCompilation(this.Id, out compilation);
 
     /// <summary>
     /// Get the <see cref="Compilation"/> for this project asynchronously.
@@ -488,14 +486,14 @@ public partial class Project
     /// return the same value if called multiple times.
     /// </returns>
     public Task<Compilation?> GetCompilationAsync(CancellationToken cancellationToken = default)
-        => _solution.CompilationState.GetCompilationAsync(_projectState, cancellationToken);
+        => Solution.CompilationState.GetCompilationAsync(State, cancellationToken);
 
     /// <summary>
     /// Determines if the compilation returned by <see cref="GetCompilationAsync"/> and all its referenced compilation are from fully loaded projects.
     /// </summary>
     // TODO: make this public
     internal Task<bool> HasSuccessfullyLoadedAsync(CancellationToken cancellationToken)
-        => _solution.CompilationState.HasSuccessfullyLoadedAsync(_projectState, cancellationToken);
+        => Solution.CompilationState.HasSuccessfullyLoadedAsync(State, cancellationToken);
 
     /// <summary>
     /// Gets an object that lists the added, changed and removed documents between this project and the specified project.
@@ -513,33 +511,33 @@ public partial class Project
     /// <summary>
     /// The project version. This equates to the version of the project file.
     /// </summary>
-    public VersionStamp Version => _projectState.Version;
+    public VersionStamp Version => State.Version;
 
     /// <summary>
     /// The version of the most recently modified document.
     /// </summary>
     public Task<VersionStamp> GetLatestDocumentVersionAsync(CancellationToken cancellationToken = default)
-        => _projectState.GetLatestDocumentVersionAsync(cancellationToken);
+        => State.GetLatestDocumentVersionAsync(cancellationToken);
 
     /// <summary>
     /// The most recent version of the project, its documents and all dependent projects and documents.
     /// </summary>
     public Task<VersionStamp> GetDependentVersionAsync(CancellationToken cancellationToken = default)
-        => _solution.CompilationState.GetDependentVersionAsync(this.Id, cancellationToken);
+        => Solution.CompilationState.GetDependentVersionAsync(this.Id, cancellationToken);
 
     /// <summary>
     /// The semantic version of this project including the semantics of referenced projects.
     /// This version changes whenever the consumable declarations of this project and/or projects it depends on change.
     /// </summary>
     public Task<VersionStamp> GetDependentSemanticVersionAsync(CancellationToken cancellationToken = default)
-        => _solution.CompilationState.GetDependentSemanticVersionAsync(this.Id, cancellationToken);
+        => Solution.CompilationState.GetDependentSemanticVersionAsync(this.Id, cancellationToken);
 
     /// <summary>
     /// The semantic version of this project not including the semantics of referenced projects.
     /// This version changes only when the consumable declarations of this project change.
     /// </summary>
     public Task<VersionStamp> GetSemanticVersionAsync(CancellationToken cancellationToken = default)
-        => _projectState.GetSemanticVersionAsync(cancellationToken);
+        => State.GetSemanticVersionAsync(cancellationToken);
 
     /// <summary>
     /// Calculates a checksum that contains a project's checksum along with a checksum for each of the project's 
@@ -567,7 +565,7 @@ public partial class Project
     /// </para>
     /// </remarks>
     internal Task<Checksum> GetDependentChecksumAsync(CancellationToken cancellationToken)
-        => _solution.CompilationState.GetDependentChecksumAsync(this.Id, cancellationToken);
+        => Solution.CompilationState.GetDependentChecksumAsync(this.Id, cancellationToken);
 
     /// <summary>
     /// Creates a new instance of this project updated to have the new assembly name.
@@ -807,13 +805,13 @@ public partial class Project
     }
 
     internal AnalyzerConfigData? GetAnalyzerConfigOptions()
-        => _projectState.GetAnalyzerConfigOptions();
+        => State.GetAnalyzerConfigOptions();
 
     /// <summary>
     /// Retrieves fallback analyzer options for this project's language.
     /// </summary>
     internal StructuredAnalyzerConfigOptions GetFallbackAnalyzerOptions()
-        => _solution.FallbackAnalyzerOptions.GetValueOrDefault(Language, StructuredAnalyzerConfigOptions.Empty);
+        => Solution.FallbackAnalyzerOptions.GetValueOrDefault(Language, StructuredAnalyzerConfigOptions.Empty);
 
     private string GetDebuggerDisplay()
         => this.Name;
@@ -823,7 +821,7 @@ public partial class Project
 
     internal async ValueTask<Document?> GetDocumentAsync(ImmutableArray<byte> contentHash, CancellationToken cancellationToken)
     {
-        var documentId = await _projectState.GetDocumentIdAsync(contentHash, cancellationToken).ConfigureAwait(false);
+        var documentId = await State.GetDocumentIdAsync(contentHash, cancellationToken).ConfigureAwait(false);
         return documentId is null ? null : GetDocument(documentId);
     }
 }

@@ -47,20 +47,6 @@ internal sealed partial class SolutionCompilationState
     private ImmutableSegmentedDictionary<ProjectId, ICompilationTracker> _projectIdToTrackerMap;
 
     /// <summary>
-    /// Map from each project to the <see cref="SourceGeneratorExecutionVersion"/> it is currently at. Loosely, the
-    /// execution version allows us to have the generated documents for a project get fixed at some point in the past
-    /// when they were generated, up until events happen in the host that cause a need for them to be brought up to
-    /// date.  This is ambient, compilation-level, information about our projects, which is why it is stored at this
-    /// compilation-state level.  When syncing to our OOP process, this information is included, allowing the oop side
-    /// to move its own generators forward when a host changes these versions.
-    /// </summary>
-    /// <remarks>
-    /// Contains information for all projects, even non-C#/VB ones.  Though this will have no meaning for those project
-    /// types.
-    /// </remarks>
-    private readonly SourceGeneratorExecutionVersionMap _sourceGeneratorExecutionVersionMap;
-
-    /// <summary>
     /// Cache we use to map between unrooted symbols (i.e. assembly, module and dynamic symbols) and the project
     /// they came from.  That way if we are asked about many symbols from the same assembly/module we can answer the
     /// question quickly after computing for the first one.  Created on demand.
@@ -81,7 +67,7 @@ internal sealed partial class SolutionCompilationState
         SolutionState = solution;
         PartialSemanticsEnabled = partialSemanticsEnabled;
         _projectIdToTrackerMap = projectIdToTrackerMap;
-        _sourceGeneratorExecutionVersionMap = sourceGeneratorExecutionVersionMap;
+        SourceGeneratorExecutionVersionMap = sourceGeneratorExecutionVersionMap;
         FrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates;
 
         // when solution state is changed, we recalculate its checksum
@@ -123,7 +109,7 @@ internal sealed partial class SolutionCompilationState
         // Solution and SG version maps must correspond to the same set of projects.
         Contract.ThrowIfFalse(this.SolutionState.ProjectStates
             .Select(kvp => kvp.Key)
-            .SetEquals(_sourceGeneratorExecutionVersionMap.Map.Keys));
+            .SetEquals(SourceGeneratorExecutionVersionMap.Map.Keys));
     }
 
     private SolutionCompilationState Branch(
@@ -134,12 +120,12 @@ internal sealed partial class SolutionCompilationState
         AsyncLazy<SolutionCompilationState>? cachedFrozenSnapshot = null)
     {
         projectIdToTrackerMap ??= _projectIdToTrackerMap;
-        sourceGeneratorExecutionVersionMap ??= _sourceGeneratorExecutionVersionMap;
+        sourceGeneratorExecutionVersionMap ??= SourceGeneratorExecutionVersionMap;
         var newFrozenSourceGeneratedDocumentStates = frozenSourceGeneratedDocumentStates.HasValue ? frozenSourceGeneratedDocumentStates.Value : FrozenSourceGeneratedDocumentStates;
 
         if (newSolutionState == this.SolutionState &&
             projectIdToTrackerMap == _projectIdToTrackerMap &&
-            sourceGeneratorExecutionVersionMap == _sourceGeneratorExecutionVersionMap &&
+            sourceGeneratorExecutionVersionMap == SourceGeneratorExecutionVersionMap &&
             Equals(newFrozenSourceGeneratedDocumentStates, FrozenSourceGeneratedDocumentStates))
         {
             return this;
@@ -316,7 +302,19 @@ internal sealed partial class SolutionCompilationState
         return projectIdToTrackerMapBuilder.ToImmutable();
     }
 
-    public SourceGeneratorExecutionVersionMap SourceGeneratorExecutionVersionMap => _sourceGeneratorExecutionVersionMap;
+    /// <summary>
+    /// Map from each project to the <see cref="SourceGeneratorExecutionVersion"/> it is currently at. Loosely, the
+    /// execution version allows us to have the generated documents for a project get fixed at some point in the past
+    /// when they were generated, up until events happen in the host that cause a need for them to be brought up to
+    /// date.  This is ambient, compilation-level, information about our projects, which is why it is stored at this
+    /// compilation-state level.  When syncing to our OOP process, this information is included, allowing the oop side
+    /// to move its own generators forward when a host changes these versions.
+    /// </summary>
+    /// <remarks>
+    /// Contains information for all projects, even non-C#/VB ones.  Though this will have no meaning for those project
+    /// types.
+    /// </remarks>
+    public SourceGeneratorExecutionVersionMap SourceGeneratorExecutionVersionMap { get; }
 
     /// <inheritdoc cref="SolutionState.AddProjects(ArrayBuilder{ProjectInfo})"/>
     public SolutionCompilationState AddProjects(ArrayBuilder<ProjectInfo> projectInfos)
@@ -346,7 +344,7 @@ internal sealed partial class SolutionCompilationState
         // non-C#/VB projects.  These will have no effect in-proc as we won't have compilation-trackers for these
         // projects.  And, when communicating with the OOP process, we'll filter out these projects before sending them
         // across in SolutionCompilationState.GetFilteredSourceGenerationExecutionMap.
-        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
+        var versionMapBuilder = SourceGeneratorExecutionVersionMap.Map.ToBuilder();
         foreach (var projectInfo in projectInfos)
             versionMapBuilder.Add(projectInfo.Id, new());
 
@@ -393,7 +391,7 @@ internal sealed partial class SolutionCompilationState
             projectIds,
             skipEmptyCallback: true);
 
-        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
+        var versionMapBuilder = SourceGeneratorExecutionVersionMap.Map.ToBuilder();
         foreach (var projectId in projectIds)
             versionMapBuilder.Remove(projectId);
 
@@ -1416,7 +1414,7 @@ internal sealed partial class SolutionCompilationState
     }
 
     /// <summary>
-    /// Updates entries in our <see cref="_sourceGeneratorExecutionVersionMap"/> to the corresponding values in the
+    /// Updates entries in our <see cref="SourceGeneratorExecutionVersionMap"/> to the corresponding values in the
     /// given <paramref name="sourceGeneratorExecutionVersions"/>.  Importantly, <paramref
     /// name="sourceGeneratorExecutionVersions"/> must refer to projects in this solution.  Projects not mentioned in
     /// <paramref name="sourceGeneratorExecutionVersions"/> will not be touched (and they will stay in the map).
@@ -1424,7 +1422,7 @@ internal sealed partial class SolutionCompilationState
     public SolutionCompilationState UpdateSpecificSourceGeneratorExecutionVersions(
         SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersions)
     {
-        var versionMapBuilder = _sourceGeneratorExecutionVersionMap.Map.ToBuilder();
+        var versionMapBuilder = SourceGeneratorExecutionVersionMap.Map.ToBuilder();
         var newIdToTrackerMapBuilder = _projectIdToTrackerMap.ToBuilder();
         var changed = false;
 
