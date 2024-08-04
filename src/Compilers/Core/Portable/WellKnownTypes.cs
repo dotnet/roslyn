@@ -375,6 +375,9 @@ namespace Microsoft.CodeAnalysis
         System_Runtime_CompilerServices_InlineArray15,
         System_Runtime_CompilerServices_InlineArray16,
 
+        System_Memory_T,
+        System_ReadOnlyMemory_T,
+
         NextAvailable,
         // Remember to update MissingSpecialMember.AllWellKnownTypes and WellKnownTypeValidationTests.AllWellKnownTypes tests when making changes here
     }
@@ -735,6 +738,9 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.InlineArray14`1",
             "System.Runtime.CompilerServices.InlineArray15`1",
             "System.Runtime.CompilerServices.InlineArray16`1",
+
+            "System.Memory`1",
+            "System.ReadOnlyMemory`1",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

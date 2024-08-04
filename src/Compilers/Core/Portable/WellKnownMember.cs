@@ -720,6 +720,14 @@ namespace Microsoft.CodeAnalysis
         System_Text_Encoding__get_UTF8,
         System_Text_Encoding__GetString,
 
+        System_Span_T__Slice_Int,
+        System_ReadOnlySpan_T__Slice_Int,
+
+        System_Memory_T__Slice_Int_Int,
+        System_ReadOnlyMemory_T__Slice_Int_Int,
+        System_Memory_T__Slice_Int,
+        System_ReadOnlyMemory_T__Slice_Int,
+
         Count,
 
         // Remember to update the AllWellKnownTypeMembers tests when making changes here
