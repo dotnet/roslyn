@@ -29,12 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private enum Flags : byte
         {
             IsExpressionBodied = 1 << 0,
-            IsAutoProperty = 1 << 1,
-            IsExplicitInterfaceImplementation = 1 << 2,
-            HasInitializer = 1 << 3,
-            AccessorsHaveImplementation = 1 << 4,
-            HasExplicitAccessModifier = 1 << 5,
-            UsesFieldKeyword = 1 << 6,
+            HasAutoPropertyGet = 1 << 1,
+            HasAutoPropertySet = 1 << 2,
+            UsesFieldKeyword = 1 << 3,
+            IsExplicitInterfaceImplementation = 1 << 4,
+            HasInitializer = 1 << 5,
+            AccessorsHaveImplementation = 1 << 6,
+            HasExplicitAccessModifier = 1 << 7,
         }
 
         // TODO (tomat): consider splitting into multiple subclasses/rare data.
@@ -75,15 +76,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpSyntaxNode syntax,
             bool hasGetAccessor,
             bool hasSetAccessor,
-            bool hasAutoPropertyGet,
-            bool hasAutoPropertySet,
             bool isExplicitInterfaceImplementation,
             TypeSymbol? explicitInterfaceType,
             string? aliasQualifierOpt,
             DeclarationModifiers modifiers,
             bool hasInitializer,
             bool hasExplicitAccessMod,
-            bool isAutoProperty,
+            bool hasAutoPropertyGet,
+            bool hasAutoPropertySet,
             bool isExpressionBodied,
             bool isInitOnly,
             bool accessorsHaveImplementation,
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(!isExpressionBodied || !isAutoProperty);
+            Debug.Assert(!isExpressionBodied || !(hasAutoPropertyGet || hasAutoPropertySet));
             Debug.Assert(!isExpressionBodied || !hasInitializer);
             Debug.Assert(!isExpressionBodied || accessorsHaveImplementation);
             Debug.Assert((modifiers & DeclarationModifiers.Required) == 0 || this is SourcePropertySymbol);
@@ -116,11 +116,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             bool isIndexer = IsIndexer;
-            if (isAutoProperty)
+            if ((!hasGetAccessor || hasAutoPropertyGet) && (!hasSetAccessor || hasAutoPropertySet))
             {
                 if (!(!(containingType.IsInterface && !IsStatic) && !IsAbstract && !IsExtern && !isIndexer))
                 {
-                    isAutoProperty = false;
                     hasAutoPropertyGet = false;
                     hasAutoPropertySet = false;
                 }
@@ -131,9 +130,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _propertyFlags |= Flags.HasExplicitAccessModifier;
             }
 
-            if (isAutoProperty)
+            if (hasAutoPropertyGet)
             {
-                _propertyFlags |= Flags.IsAutoProperty;
+                _propertyFlags |= Flags.HasAutoPropertyGet;
+            }
+
+            if (hasAutoPropertySet)
+            {
+                _propertyFlags |= Flags.HasAutoPropertySet;
             }
 
             if (usesFieldKeyword)
@@ -174,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _name = _lazySourceName = memberName;
             }
 
-            if (usesFieldKeyword || isAutoProperty || hasInitializer)
+            if (usesFieldKeyword || hasAutoPropertyGet || hasAutoPropertySet || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
                 string fieldName = GeneratedNames.MakeBackingFieldName(_name);
@@ -666,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => (_propertyFlags & Flags.HasExplicitAccessModifier) != 0;
 
         internal bool IsAutoProperty
-            => (_propertyFlags & Flags.IsAutoProperty) != 0;
+            => (_propertyFlags & (Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet)) != 0;
 
         protected bool AccessorsHaveImplementation
             => (_propertyFlags & Flags.AccessorsHaveImplementation) != 0;

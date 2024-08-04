@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object C.Q.get",
                 "C..ctor()"
             };
-            Assert.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object C.Initialize(out System.Object field, System.Object value)",
                 "C..ctor()"
             };
-            Assert.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "void C.P.set",
                 "C..ctor()"
             };
-            Assert.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 "System.Object C.F(System.Object value)",
                 "C..ctor()"
             };
-            Assert.Equal(expectedMembers, actualMembers);
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
@@ -337,9 +337,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     public static object P1 { get; set { _ = field; } }
                     public static object P2 { get { return field; } set; }
+                    public static object P3 { get { return null; } set; }
                     public object Q1 { get; set { _ = field; } }
                     public object Q2 { get { return field; } set; }
                     public object Q3 { get { return field; } init; }
+                    public object Q4 { get; set { } }
+                    public object Q5 { get; init { } }
                 }
                 class Program
                 {
@@ -396,6 +399,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0007:  ret
                 }
                 """);
+            if (!typeKind.StartsWith("record"))
+            {
+                var comp = (CSharpCompilation)verifier.Compilation;
+                var actualMembers = comp.GetMember<NamedTypeSymbol>("A").GetMembers().ToTestDisplayStrings();
+                string readonlyQualifier = typeKind.EndsWith("struct") ? "readonly " : "";
+                var expectedMembers = new[]
+                {
+                    "System.Object A.<P1>k__BackingField",
+                    "System.Object A.P1 { get; set; }",
+                    "System.Object A.P1.get",
+                    "void A.P1.set",
+                    "System.Object A.<P2>k__BackingField",
+                    "System.Object A.P2 { get; set; }",
+                    "System.Object A.P2.get",
+                    "void A.P2.set",
+                    "System.Object A.<P3>k__BackingField",
+                    "System.Object A.P3 { get; set; }",
+                    "System.Object A.P3.get",
+                    "void A.P3.set",
+                    "System.Object A.<Q1>k__BackingField",
+                    "System.Object A.Q1 { get; set; }",
+                    readonlyQualifier + "System.Object A.Q1.get",
+                    "void A.Q1.set",
+                    "System.Object A.<Q2>k__BackingField",
+                    "System.Object A.Q2 { get; set; }",
+                    "System.Object A.Q2.get",
+                    "void A.Q2.set",
+                    "System.Object A.<Q3>k__BackingField",
+                    "System.Object A.Q3 { get; init; }",
+                    "System.Object A.Q3.get",
+                    "void modreq(System.Runtime.CompilerServices.IsExternalInit) A.Q3.init",
+                    "System.Object A.<Q4>k__BackingField",
+                    "System.Object A.Q4 { get; set; }",
+                    readonlyQualifier + "System.Object A.Q4.get",
+                    "void A.Q4.set",
+                    "System.Object A.<Q5>k__BackingField",
+                    "System.Object A.Q5 { get; init; }",
+                    readonlyQualifier + "System.Object A.Q5.get",
+                    "void modreq(System.Runtime.CompilerServices.IsExternalInit) A.Q5.init",
+                    "A..ctor()"
+                };
+                AssertEx.Equal(expectedMembers, actualMembers);
+            }
         }
 
         [Fact]
