@@ -41,11 +41,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax,
                 diagnostics,
                 out bool isExpressionBodied,
+                out bool hasGetAccessorImplementation,
+                out bool hasSetAccessorImplementation,
+                out bool usesFieldKeyword,
                 out bool isInitOnly,
-                out var getAccessorInfo,
-                out var setAccessorInfo);
+                out var getSyntax,
+                out var setSyntax);
 
-            bool accessorsHaveImplementation = getAccessorInfo.HasImplementation || setAccessorInfo.HasImplementation; // PROTOTYPE: Remove if not needed.
+            bool accessorsHaveImplementation = hasGetAccessorImplementation || hasSetAccessorImplementation; // PROTOTYPE: Remove if not needed.
 
             var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier(syntax);
             SyntaxTokenList modifiersTokenList = GetModifierTokensSyntax(syntax);
@@ -60,8 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 out _);
 
-            bool hasAutoPropertyGet = (modifiers & DeclarationModifiers.Partial) == 0 && !getAccessorInfo.IsDefault && !getAccessorInfo.HasImplementation;
-            bool hasAutoPropertySet = (modifiers & DeclarationModifiers.Partial) == 0 && !setAccessorInfo.IsDefault && !setAccessorInfo.HasImplementation;
+            bool hasAutoPropertyGet = (modifiers & DeclarationModifiers.Partial) == 0 && getSyntax != null && !hasGetAccessorImplementation;
+            bool hasAutoPropertySet = (modifiers & DeclarationModifiers.Partial) == 0 && setSyntax != null && !hasSetAccessorImplementation;
 
             binder = binder.SetOrClearUnsafeRegionIfNecessary(modifiersTokenList);
             TypeSymbol? explicitInterfaceType;
@@ -71,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new SourcePropertySymbol(
                 containingType,
                 syntax,
-                hasGetAccessor: !getAccessorInfo.IsDefault || isExpressionBodied,
-                hasSetAccessor: !setAccessorInfo.IsDefault,
+                hasGetAccessor: getSyntax != null || isExpressionBodied,
+                hasSetAccessor: setSyntax != null,
                 isExplicitInterfaceImplementation,
                 explicitInterfaceType,
                 aliasQualifierOpt,
@@ -83,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
                 accessorsHaveImplementation: accessorsHaveImplementation,
-                usesFieldKeyword: getAccessorInfo.UsesFieldKeyword || setAccessorInfo.UsesFieldKeyword,
+                usesFieldKeyword: usesFieldKeyword,
                 memberName,
                 location,
                 diagnostics);
@@ -202,46 +205,37 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override IAttributeTargetSymbol AttributesOwner => this;
 
-        private readonly struct AccessorInfo
-        {
-            public AccessorInfo(CSharpSyntaxNode syntax, bool hasImplementation, bool usesFieldKeyword)
-            {
-                Syntax = syntax;
-                HasImplementation = hasImplementation;
-                UsesFieldKeyword = usesFieldKeyword;
-            }
-
-            public readonly CSharpSyntaxNode? Syntax;
-            public readonly bool HasImplementation;
-            public readonly bool UsesFieldKeyword;
-
-            public bool IsDefault => Syntax is null;
-        }
-
         private static void GetAccessorDeclarations(
             CSharpSyntaxNode syntaxNode,
             BindingDiagnosticBag diagnostics,
             out bool isExpressionBodied,
+            out bool hasGetAccessorImplementation,
+            out bool hasSetAccessorImplementation,
+            out bool usesFieldKeyword,
             out bool isInitOnly,
-            out AccessorInfo getAccessor,
-            out AccessorInfo setAccessor)
+            out CSharpSyntaxNode? getSyntax,
+            out CSharpSyntaxNode? setSyntax)
         {
             var syntax = (BasePropertyDeclarationSyntax)syntaxNode;
             isExpressionBodied = syntax.AccessorList is null;
+            getSyntax = null;
+            setSyntax = null;
             isInitOnly = false;
-            getAccessor = default;
-            setAccessor = default;
 
             if (!isExpressionBodied)
             {
+                usesFieldKeyword = false;
+                hasGetAccessorImplementation = false;
+                hasSetAccessorImplementation = false;
                 foreach (var accessor in syntax.AccessorList!.Accessors)
                 {
                     switch (accessor.Kind())
                     {
                         case SyntaxKind.GetAccessorDeclaration:
-                            if (getAccessor.IsDefault)
+                            if (getSyntax == null)
                             {
-                                getAccessor = getAccessorInfo(accessor);
+                                getSyntax = accessor;
+                                hasGetAccessorImplementation = hasImplementation(accessor);
                             }
                             else
                             {
@@ -250,9 +244,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             break;
                         case SyntaxKind.SetAccessorDeclaration:
                         case SyntaxKind.InitAccessorDeclaration:
-                            if (setAccessor.IsDefault)
+                            if (setSyntax == null)
                             {
-                                setAccessor = getAccessorInfo(accessor);
+                                setSyntax = accessor;
+                                hasSetAccessorImplementation = hasImplementation(accessor);
                                 if (accessor.Keyword.IsKind(SyntaxKind.InitKeyword))
                                 {
                                     isInitOnly = true;
@@ -274,19 +269,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         default:
                             throw ExceptionUtilities.UnexpectedValue(accessor.Kind());
                     }
+
+                    usesFieldKeyword = usesFieldKeyword || containsFieldKeyword(accessor);
                 }
             }
             else
             {
                 var body = GetArrowExpression(syntax);
-                Debug.Assert(body is { }); // it's not clear how this even parsed as a property if it has no accessor list and no arrow expression.
-                getAccessor = new AccessorInfo(body, hasImplementation: true, usesFieldKeyword: body is { } && containsFieldKeyword(body));
+                hasGetAccessorImplementation = body is object;
+                hasSetAccessorImplementation = false;
+                usesFieldKeyword = body is { } && containsFieldKeyword(body);
+                Debug.Assert(hasGetAccessorImplementation); // it's not clear how this even parsed as a property if it has no accessor list and no arrow expression.
             }
 
-            static AccessorInfo getAccessorInfo(AccessorDeclarationSyntax accessor)
+            static bool hasImplementation(AccessorDeclarationSyntax accessor)
             {
                 var body = (SyntaxNode?)accessor.Body ?? accessor.ExpressionBody;
-                return new AccessorInfo(accessor, hasImplementation: body is { }, usesFieldKeyword: containsFieldKeyword(accessor));
+                return body != null;
             }
 
             static bool containsFieldKeyword(SyntaxNode syntax)
