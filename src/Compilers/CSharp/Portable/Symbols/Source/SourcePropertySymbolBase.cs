@@ -75,8 +75,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             CSharpSyntaxNode syntax,
             bool hasGetAccessor,
             bool hasSetAccessor,
-            bool generateGetAccessorBody,
-            bool generateSetAccessorBody,
+            bool hasAutoPropertyGet,
+            bool hasAutoPropertySet,
             bool isExplicitInterfaceImplementation,
             TypeSymbol? explicitInterfaceType,
             string? aliasQualifierOpt,
@@ -98,8 +98,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!isExpressionBodied || !hasInitializer);
             Debug.Assert(!isExpressionBodied || accessorsHaveImplementation);
             Debug.Assert((modifiers & DeclarationModifiers.Required) == 0 || this is SourcePropertySymbol);
-            //Debug.Assert(isAutoProperty || usesFieldKeyword || !generateGetAccessorBody);
-            //Debug.Assert(isAutoProperty || usesFieldKeyword || !generateSetAccessorBody);
 
             _syntaxRef = syntax.GetReference();
             Location = location;
@@ -123,8 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (!(!(containingType.IsInterface && !IsStatic) && !IsAbstract && !IsExtern && !isIndexer))
                 {
                     isAutoProperty = false;
-                    generateGetAccessorBody = false;
-                    generateSetAccessorBody = false;
+                    hasAutoPropertyGet = false;
+                    hasAutoPropertySet = false;
                 }
             }
 
@@ -193,12 +191,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasGetAccessor)
             {
-                _getMethod = CreateGetAccessorSymbol(generateGetAccessorBody, diagnostics);
+                _getMethod = CreateGetAccessorSymbol(hasAutoPropertyGet, diagnostics);
             }
 
             if (hasSetAccessor)
             {
-                _setMethod = CreateSetAccessorSymbol(generateSetAccessorBody, diagnostics);
+                _setMethod = CreateSetAccessorSymbol(hasAutoPropertySet, diagnostics);
             }
         }
 
@@ -569,7 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The implementation may depend only on information available from the <see cref="SourcePropertySymbolBase"/> type.
         /// </summary>
         protected abstract SourcePropertyAccessorSymbol CreateGetAccessorSymbol(
-            bool generateAccessorBody,
+            bool isAutoPropertyAccessor,
             BindingDiagnosticBag diagnostics);
 
         /// <summary>
@@ -577,7 +575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// The implementation may depend only on information available from the <see cref="SourcePropertySymbolBase"/> type.
         /// </summary>
         protected abstract SourcePropertyAccessorSymbol CreateSetAccessorSymbol(
-            bool generateAccessorBody,
+            bool isAutoPropertyAccessor,
             BindingDiagnosticBag diagnostics);
 
         public sealed override MethodSymbol? GetMethod

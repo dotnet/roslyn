@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax: (CSharpSyntaxNode)containingType.SyntaxReferences[0].GetSyntax(),
                 hasGetAccessor: true,
                 hasSetAccessor: false,
-                generateGetAccessorBody: false,
-                generateSetAccessorBody: false,
+                hasAutoPropertyGet: false,
+                hasAutoPropertySet: false,
                 isExplicitInterfaceImplementation: false,
                 explicitInterfaceType: null,
                 aliasQualifierOpt: null,
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override Location TypeLocation
             => ContainingType.GetFirstLocation();
 
-        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool generateAccessorBody, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
                 ContainingType,
@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics);
         }
 
-        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool generateAccessorBody, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
             throw ExceptionUtilities.Unreachable();
         }
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                        modifiers: default,
                        MethodKind.PropertyGet,
                        usesInit: false,
-                       generateAccessorBody: false,
+                       isAutoPropertyAccessor: false,
                        isNullableAnalysisEnabled: false,
                        diagnostics)
             {

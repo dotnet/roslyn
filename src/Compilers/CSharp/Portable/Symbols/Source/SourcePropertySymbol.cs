@@ -60,28 +60,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 out _);
 
-            bool isAutoProperty = (modifiers & DeclarationModifiers.Partial) == 0 && !accessorsHaveImplementation;
+            bool isAutoProperty = (modifiers & DeclarationModifiers.Partial) == 0 && !accessorsHaveImplementation; // PROTOTYPE: Remove if not needed.
+            bool hasAutoPropertyGet = (modifiers & DeclarationModifiers.Partial) == 0 && !getAccessorInfo.IsDefault && !getAccessorInfo.HasImplementation;
+            bool hasAutoPropertySet = (modifiers & DeclarationModifiers.Partial) == 0 && !setAccessorInfo.IsDefault && !setAccessorInfo.HasImplementation;
 
             binder = binder.SetOrClearUnsafeRegionIfNecessary(modifiersTokenList);
             TypeSymbol? explicitInterfaceType;
             string? aliasQualifierOpt;
             string memberName = ExplicitInterfaceHelpers.GetMemberNameAndInterfaceSymbol(binder, explicitInterfaceSpecifier, name, diagnostics, out explicitInterfaceType, out aliasQualifierOpt);
-            // PROTOTYPE: Rename corresponding parameters to match these names.
-            bool isAutoGetAccessor = false;
-            bool isAutoSetAccessor = false;
-            if ((modifiers & DeclarationModifiers.Partial) == 0)
-            {
-                isAutoGetAccessor = !getAccessorInfo.IsDefault && !getAccessorInfo.HasImplementation;
-                isAutoSetAccessor = !setAccessorInfo.IsDefault && !setAccessorInfo.HasImplementation;
-            }
 
             return new SourcePropertySymbol(
                 containingType,
                 syntax,
                 hasGetAccessor: !getAccessorInfo.IsDefault || isExpressionBodied,
                 hasSetAccessor: !setAccessorInfo.IsDefault,
-                generateGetAccessorBody: isAutoGetAccessor,
-                generateSetAccessorBody: isAutoSetAccessor,
+                hasAutoPropertyGet: hasAutoPropertyGet,
+                hasAutoPropertySet: hasAutoPropertySet,
                 isExplicitInterfaceImplementation,
                 explicitInterfaceType,
                 aliasQualifierOpt,
@@ -102,14 +96,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BasePropertyDeclarationSyntax syntax,
             bool hasGetAccessor,
             bool hasSetAccessor,
-            bool generateGetAccessorBody,
-            bool generateSetAccessorBody,
+            bool hasAutoPropertyGet,
+            bool hasAutoPropertySet,
             bool isExplicitInterfaceImplementation,
             TypeSymbol? explicitInterfaceType,
             string? aliasQualifierOpt,
             DeclarationModifiers modifiers,
             bool hasExplicitAccessMod,
-            bool isAutoProperty,
+            bool isAutoProperty, // PROTOTYPE: Do we need this in addition to hasAutoPropertyGet, hasAutoPropertySet?
             bool isExpressionBodied,
             bool isInitOnly,
             bool accessorsHaveImplementation,
@@ -122,8 +116,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax,
                 hasGetAccessor: hasGetAccessor,
                 hasSetAccessor: hasSetAccessor,
-                generateGetAccessorBody: generateGetAccessorBody,
-                generateSetAccessorBody: generateSetAccessorBody,
+                hasAutoPropertyGet: hasAutoPropertyGet,
+                hasAutoPropertySet: hasAutoPropertySet,
                 isExplicitInterfaceImplementation,
                 explicitInterfaceType,
                 aliasQualifierOpt,
@@ -473,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (mods, hasExplicitAccessMod);
         }
 
-        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool generateAccessorBody, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
             var syntax = (BasePropertyDeclarationSyntax)CSharpSyntaxNode;
             ArrowExpressionClauseSyntax? arrowExpression = GetArrowExpression(syntax);
@@ -486,21 +480,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                return CreateAccessorSymbol(GetGetAccessorDeclaration(syntax), generateAccessorBody, diagnostics);
+                return CreateAccessorSymbol(GetGetAccessorDeclaration(syntax), isAutoPropertyAccessor, diagnostics);
             }
         }
 
-        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool generateAccessorBody, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
             var syntax = (BasePropertyDeclarationSyntax)CSharpSyntaxNode;
             Debug.Assert(!(syntax.AccessorList is null && GetArrowExpression(syntax) != null));
 
-            return CreateAccessorSymbol(GetSetAccessorDeclaration(syntax), generateAccessorBody, diagnostics);
+            return CreateAccessorSymbol(GetSetAccessorDeclaration(syntax), isAutoPropertyAccessor, diagnostics);
         }
 
         private SourcePropertyAccessorSymbol CreateAccessorSymbol(
             AccessorDeclarationSyntax syntax,
-            bool generateAccessorBody,
+            bool isAutoPropertyAccessor,
             BindingDiagnosticBag diagnostics)
         {
             return SourcePropertyAccessorSymbol.CreateAccessorSymbol(
@@ -508,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 this,
                 _modifiers,
                 syntax,
-                generateAccessorBody,
+                isAutoPropertyAccessor,
                 diagnostics);
         }
 

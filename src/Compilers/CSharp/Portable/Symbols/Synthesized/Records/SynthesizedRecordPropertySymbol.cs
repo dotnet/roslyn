@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 syntax: syntax,
                 hasGetAccessor: true,
                 hasSetAccessor: true,
-                generateGetAccessorBody: true,
-                generateSetAccessorBody: true,
+                hasAutoPropertyGet: true,
+                hasAutoPropertySet: true,
                 isExplicitInterfaceImplementation: false,
                 explicitInterfaceType: null,
                 aliasQualifierOpt: null,
@@ -56,15 +56,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
             => OneOrMany.Create(BackingParameter.AttributeDeclarationList);
 
-        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool generateAccessorBody, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateGetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(generateAccessorBody);
+            Debug.Assert(isAutoPropertyAccessor);
             return CreateAccessorSymbol(isGet: true, CSharpSyntaxNode, diagnostics);
         }
 
-        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool generateAccessorBody, BindingDiagnosticBag diagnostics)
+        protected override SourcePropertyAccessorSymbol CreateSetAccessorSymbol(bool isAutoPropertyAccessor, BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(generateAccessorBody);
+            Debug.Assert(isAutoPropertyAccessor);
             return CreateAccessorSymbol(isGet: false, CSharpSyntaxNode, diagnostics);
         }
 
