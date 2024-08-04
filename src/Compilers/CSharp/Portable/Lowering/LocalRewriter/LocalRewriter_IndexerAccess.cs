@@ -997,30 +997,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (
                     TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__Substring, out var stringSubstring, isOptional: true)
                     && sliceCall.Method.Equals(stringSubstring)
-                    && TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__SubstringInt, out var stringOverload, isOptional: true)
                 )
                 {
-                    singleArgumentOverload = stringOverload;
+                    // If the overload is missing, we won't try the other `else if`
+                    if (TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__SubstringInt, out var stringOverload, isOptional: true))
+                        singleArgumentOverload = stringOverload;
                 }
                 // with single type parameter ((ReadOnly)Span)
                 else if (sliceCall is { Method: SubstitutedMethodSymbol { UnderlyingMethod: var generalizedMethod }, Type: NamedTypeSymbol typeWithElementType })
                 {
+                    // We use the return type of the current overload to simplify the logic
                     typeContainingElementType = typeWithElementType;
                     if (
                         TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Span_T__Slice_Int_Int, out MethodSymbol? spanSlice, isOptional: true)
                         && generalizedMethod.Equals(spanSlice)
-                        && TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Span_T__Slice_Int, out MethodSymbol? spanOverload, isOptional: true)
                     )
                     {
-                        singleArgumentOverload = spanOverload;
+                        if (TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Span_T__Slice_Int, out MethodSymbol? spanOverload, isOptional: true))
+                            singleArgumentOverload = spanOverload;
                     }
                     else if (
                         TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int, out MethodSymbol? readOnlySpanSlice, isOptional: true)
                         && generalizedMethod.Equals(readOnlySpanSlice)
-                        && TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_ReadOnlySpan_T__Slice_Int, out MethodSymbol? readOnlySpanOverLoad, isOptional: true)
                     )
                     {
-                        singleArgumentOverload = readOnlySpanOverLoad;
+                        if (TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_ReadOnlySpan_T__Slice_Int, out MethodSymbol? readOnlySpanOverLoad, isOptional: true))
+                            singleArgumentOverload = readOnlySpanOverLoad;
 
                     }
                 }
