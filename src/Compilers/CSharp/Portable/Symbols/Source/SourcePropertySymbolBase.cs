@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _name = _lazySourceName = memberName;
             }
 
-            if (usesFieldKeyword || (isAutoProperty && hasGetAccessor) || hasInitializer)
+            if (usesFieldKeyword || isAutoProperty || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
                 string fieldName = GeneratedNames.MakeBackingFieldName(_name);
@@ -658,11 +658,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool IsAutoPropertyWithGetAccessor
-            => IsAutoProperty && _getMethod is object;
-
-        internal bool IsAutoPropertyWithGetAccessorOrUsesFieldKeyword
-            => IsAutoPropertyWithGetAccessor || UsesFieldKeyword;
+        internal bool IsAutoPropertyOrUsesFieldKeyword
+            => IsAutoProperty || UsesFieldKeyword;
 
         protected bool UsesFieldKeyword
             => (_propertyFlags & Flags.UsesFieldKeyword) != 0;
@@ -670,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected bool HasExplicitAccessModifier
             => (_propertyFlags & Flags.HasExplicitAccessModifier) != 0;
 
-        protected bool IsAutoProperty
+        internal bool IsAutoProperty
             => (_propertyFlags & Flags.IsAutoProperty) != 0;
 
         protected bool AccessorsHaveImplementation
@@ -726,10 +723,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_RefReturningPropertiesCannotBeRequired, Location);
             }
 
-            if (IsAutoPropertyWithGetAccessor)
+            if (IsAutoProperty)
             {
-                Debug.Assert(GetMethod is object);
-
                 if (!IsStatic && SetMethod is { IsInitOnly: false })
                 {
                     if (ContainingType.IsReadOnly)
@@ -1108,7 +1103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-            => IsAutoPropertyWithGetAccessorOrUsesFieldKeyword
+            => IsAutoPropertyOrUsesFieldKeyword
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
 
@@ -1673,7 +1668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeLocation, type);
             }
-            else if (this.IsAutoPropertyWithGetAccessorOrUsesFieldKeyword && type.IsRefLikeOrAllowsRefLikeType() && (this.IsStatic || !this.ContainingType.IsRefLikeType))
+            else if (this.IsAutoPropertyOrUsesFieldKeyword && type.IsRefLikeOrAllowsRefLikeType() && (this.IsStatic || !this.ContainingType.IsRefLikeType))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
             }
