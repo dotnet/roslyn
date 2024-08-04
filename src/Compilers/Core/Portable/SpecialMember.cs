@@ -194,6 +194,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Type__GetTypeFromHandle,
 
+        System_String__SubstringInt,
+
         Count
     }
 }

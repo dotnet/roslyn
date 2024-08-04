@@ -984,7 +984,57 @@ namespace Microsoft.CodeAnalysis.CSharp
             AddPlaceholderReplacement(node.ArgumentPlaceholders[1], rangeSizeExpr);
 
             var sliceCall = (BoundCall)node.IndexerOrSliceAccess;
-            var rewrittenIndexerAccess = VisitExpression(sliceCall);
+
+            // [start..] can be simplified to .Substring(start) or .Slice(start) for some built-in types
+            // e.g. string and (ReadOnly)Span
+
+            BoundExpression? moreEfficientIndexerAccess = null;
+            if (endMakeOffsetInput is null)
+            {
+                MethodSymbol? singleArgumentOverload = null;
+                NamedTypeSymbol? typeContainingElementType = null;
+
+                if (
+                    TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__Substring, out var stringSubstring, isOptional: true)
+                    && sliceCall.Method.Equals(stringSubstring)
+                    && TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_String__SubstringInt, out var stringOverload, isOptional: true)
+                )
+                {
+                    singleArgumentOverload = stringOverload;
+                }
+                // with single type parameter ((ReadOnly)Span)
+                else if (sliceCall is { Method: SubstitutedMethodSymbol { UnderlyingMethod: var generalizedMethod }, Type: NamedTypeSymbol typeWithElementType })
+                {
+                    typeContainingElementType = typeWithElementType;
+                    if (
+                        TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Span_T__Slice_Int_Int, out MethodSymbol? spanSlice, isOptional: true)
+                        && generalizedMethod.Equals(spanSlice)
+                        && TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Span_T__Slice_Int, out MethodSymbol? spanOverload, isOptional: true)
+                    )
+                    {
+                        singleArgumentOverload = spanOverload;
+                    }
+                    else if (
+                        TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int, out MethodSymbol? readOnlySpanSlice, isOptional: true)
+                        && generalizedMethod.Equals(readOnlySpanSlice)
+                        && TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_ReadOnlySpan_T__Slice_Int, out MethodSymbol? readOnlySpanOverLoad, isOptional: true)
+                    )
+                    {
+                        singleArgumentOverload = readOnlySpanOverLoad;
+
+                    }
+                }
+
+                if (singleArgumentOverload is not null)
+                {
+                    var overloadWithMaybeT = typeContainingElementType is not null
+                        ? new SubstitutedMethodSymbol(typeContainingElementType, singleArgumentOverload)
+                        : singleArgumentOverload;
+                    moreEfficientIndexerAccess = F.Call(receiver, overloadWithMaybeT, startExpr);
+                }
+            }
+
+            var rewrittenIndexerAccess = moreEfficientIndexerAccess ?? VisitExpression(sliceCall);
 
             RemovePlaceholderReplacement(node.ArgumentPlaceholders[0]);
             RemovePlaceholderReplacement(node.ArgumentPlaceholders[1]);

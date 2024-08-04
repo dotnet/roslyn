@@ -1313,6 +1313,14 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)InternalSpecialType.System_Type, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_RuntimeTypeHandle,
+
+                // System_String__SubstringInt
+                (byte)MemberFlags.Method,                                                                                   // Flags
+                (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String, // Return Type
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
             };
 
             string[] allNames = new string[(int)SpecialMember.Count]
@@ -1474,6 +1482,7 @@ namespace Microsoft.CodeAnalysis
                 "Empty",                                    // System_Array__Empty
                 "SetValue",                                 // System_Array__SetValue
                 "GetTypeFromHandle",                        // System_Type__GetTypeFromHandle
+                "Substring",                                // System_String__SubstringInt
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
