@@ -105,14 +105,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
             }
             """;
-        internal const string s_collectionExtensionsWithSpan = s_collectionExtensions +
+        internal const string s_collectionExtensionsWithReadOnlySpan = s_collectionExtensions +
             """
             static partial class CollectionExtensions
             {
-                internal static void Report<T>(this in Span<T> s)
-                {
-                    Report((ReadOnlySpan<T>)s);
-                }
                 internal static void Report<T>(this in ReadOnlySpan<T> s)
                 {
                     var builder = new StringBuilder();
@@ -126,6 +122,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     builder.Append("]");
                     Console.Write(builder.ToString());
                     Console.Write(", ");
+                }
+            }
+            """;
+        internal const string s_collectionExtensionsWithSpan = s_collectionExtensionsWithReadOnlySpan +
+            """
+            static partial class CollectionExtensions
+            {
+                internal static void Report<T>(this in Span<T> s)
+                {
+                    Report((ReadOnlySpan<T>)s);
                 }
             }
             """;
@@ -8155,7 +8161,7 @@ static class Program
                 """;
 
             var verifier = CompileAndVerify(
-                new[] { source, s_collectionExtensionsWithSpan },
+                new[] { source, s_collectionExtensionsWithReadOnlySpan },
                 options: TestOptions.ReleaseExe,
                 targetFramework: TargetFramework.Net70,
                 verify: Verification.Skipped,
@@ -8182,32 +8188,37 @@ static class Program
                 ("IEnumerable<int>", "int[]") =>
                     """
                     {
-                      // Code size       24 (0x18)
+                      // Code size       31 (0x1f)
                       .maxstack  3
+                      .locals init (System.ReadOnlySpan<int> V_0)
                       IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"
                       IL_0005:  dup
                       IL_0006:  ldarg.0
                       IL_0007:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
                       IL_000c:  callvirt   "int[] System.Collections.Generic.List<int>.ToArray()"
-                      IL_0011:  ldc.i4.0
-                      IL_0012:  call       "void CollectionExtensions.Report(object, bool)"
-                      IL_0017:  ret
+                      IL_0011:  call       "System.ReadOnlySpan<int> System.ReadOnlySpan<int>.op_Implicit(int[])"
+                      IL_0016:  stloc.0
+                      IL_0017:  ldloca.s   V_0
+                      IL_0019:  call       "void CollectionExtensions.Report<int>(in System.ReadOnlySpan<int>)"
+                      IL_001e:  ret
                     }
                     """,
                 ("int[]", "int[]") =>
                     """
                     {
-                      // Code size       21 (0x15)
-                      .maxstack  2
+                      // Code size       28 (0x1c)
+                      .maxstack  1
                       .locals init (System.ReadOnlySpan<int> V_0)
                       IL_0000:  ldarg.0
                       IL_0001:  newobj     "System.ReadOnlySpan<int>..ctor(int[])"
                       IL_0006:  stloc.0
                       IL_0007:  ldloca.s   V_0
                       IL_0009:  call       "int[] System.ReadOnlySpan<int>.ToArray()"
-                      IL_000e:  ldc.i4.0
-                      IL_000f:  call       "void CollectionExtensions.Report(object, bool)"
-                      IL_0014:  ret
+                      IL_000e:  call       "System.ReadOnlySpan<int> System.ReadOnlySpan<int>.op_Implicit(int[])"
+                      IL_0013:  stloc.0
+                      IL_0014:  ldloca.s   V_0
+                      IL_0016:  call       "void CollectionExtensions.Report<int>(in System.ReadOnlySpan<int>)"
+                      IL_001b:  ret
                     }
                     """,
                 ("ReadOnlySpan<int>", "ReadOnlySpan<int>") =>
@@ -32096,10 +32107,29 @@ partial class Program
                 """;
 
             CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics(
-                // (9,9): error CS1929: 'Span<byte>' does not contain a definition for 'SequenceEqual' and the best extension method overload 'MemoryExtensions.SequenceEqual<int>(ReadOnlySpan<int>, ReadOnlySpan<int>)' requires a receiver of type 'System.ReadOnlySpan<int>'
+                // (9,20): error CS0411: The type arguments for method 'MemoryExtensions.SequenceEqual<T>(ReadOnlySpan<T>, ReadOnlySpan<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         a.AsSpan().SequenceEqual([0, 1]);
-                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "a.AsSpan()").WithArguments("System.Span<byte>", "SequenceEqual", "System.MemoryExtensions.SequenceEqual<int>(System.ReadOnlySpan<int>, System.ReadOnlySpan<int>)", "System.ReadOnlySpan<int>").WithLocation(9, 9)
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "SequenceEqual").WithArguments("System.MemoryExtensions.SequenceEqual<T>(System.ReadOnlySpan<T>, System.ReadOnlySpan<T>)").WithLocation(9, 20)
                 );
+        }
+
+        [Fact]
+        public void ElementNullability_Inference_BadCall_02()
+        {
+            string src = """
+                #nullable enable
+                using System;
+
+                class C
+                {
+                    void M()
+                    {
+                        byte[] a = [1, 2];
+                        a.AsSpan().SequenceEqual<byte>([0, 1]);
+                    }
+                }
+                """;
+            CreateCompilation(src, targetFramework: TargetFramework.Net80).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -32333,10 +32363,11 @@ partial class Program
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       68 (0x44)
+                  // Code size       75 (0x4b)
                   .maxstack  2
                   .locals init (System.Span<int> V_0, //li
-                                <>y__InlineArray3<int> V_1)
+                                <>y__InlineArray3<int> V_1,
+                                System.Span<int> V_2)
                   IL_0000:  ldloca.s   V_1
                   IL_0002:  initobj    "<>y__InlineArray3<int>"
                   IL_0008:  ldloca.s   V_1
@@ -32362,9 +32393,11 @@ partial class Program
                   IL_0031:  call       "void CollectionExtensions.Report<int>(in System.Span<int>)"
                   IL_0036:  ldloca.s   V_0
                   IL_0038:  call       "int[] System.Span<int>.ToArray()"
-                  IL_003d:  ldc.i4.0
-                  IL_003e:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0043:  ret
+                  IL_003d:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+                  IL_0042:  stloc.2
+                  IL_0043:  ldloca.s   V_2
+                  IL_0045:  call       "void CollectionExtensions.Report<int>(in System.Span<int>)"
+                  IL_004a:  ret
                 }
                 """);
         }
@@ -32391,9 +32424,10 @@ partial class Program
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       32 (0x20)
-                  .maxstack  2
-                  .locals init (System.ReadOnlySpan<int> V_0) //li
+                  // Code size       39 (0x27)
+                  .maxstack  1
+                  .locals init (System.ReadOnlySpan<int> V_0, //li
+                                System.Span<int> V_1)
                   IL_0000:  ldtoken    "<PrivateImplementationDetails>.__StaticArrayInitTypeSize=12_Align=4 <PrivateImplementationDetails>.4636993D3E1DA4E9D6B8F87B79E8F7C6D018580D52661950EABC3845C5897A4D4"
                   IL_0005:  call       "System.ReadOnlySpan<int> System.Runtime.CompilerServices.RuntimeHelpers.CreateSpan<int>(System.RuntimeFieldHandle)"
                   IL_000a:  stloc.0
@@ -32401,9 +32435,11 @@ partial class Program
                   IL_000d:  call       "void CollectionExtensions.Report<int>(in System.ReadOnlySpan<int>)"
                   IL_0012:  ldloca.s   V_0
                   IL_0014:  call       "int[] System.ReadOnlySpan<int>.ToArray()"
-                  IL_0019:  ldc.i4.0
-                  IL_001a:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_001f:  ret
+                  IL_0019:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+                  IL_001e:  stloc.1
+                  IL_001f:  ldloca.s   V_1
+                  IL_0021:  call       "void CollectionExtensions.Report<int>(in System.Span<int>)"
+                  IL_0026:  ret
                 }
                 """);
         }
@@ -32432,7 +32468,7 @@ partial class Program
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size      162 (0xa2)
+                  // Code size      170 (0xaa)
                   .maxstack  4
                   .locals init (System.ReadOnlySpan<int> V_0, //li1
                                 System.ReadOnlySpan<int> V_1, //li2
@@ -32495,9 +32531,11 @@ partial class Program
                   IL_0096:  add
                   IL_0097:  stloc.s    V_4
                   IL_0099:  ldloc.s    V_5
-                  IL_009b:  ldc.i4.0
-                  IL_009c:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_00a1:  ret
+                  IL_009b:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+                  IL_00a0:  stloc.s    V_6
+                  IL_00a2:  ldloca.s   V_6
+                  IL_00a4:  call       "void CollectionExtensions.Report<int>(in System.Span<int>)"
+                  IL_00a9:  ret
                 }
                 """);
         }
@@ -32522,7 +32560,7 @@ partial class Program
                 class D : C { }
                 """;
 
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[D, D],"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[D, D],"), verify: Verification.Skipped, targetFramework: TargetFramework.Net80);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
@@ -32885,11 +32923,11 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput("[Derived], [Derived], "), targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithReadOnlySpan }, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput("[Derived], [Derived], "), targetFramework: TargetFramework.Net80);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       43 (0x2b)
+                  // Code size       57 (0x39)
                   .maxstack  4
                   .locals init (Base[] V_0,
                                 System.ReadOnlySpan<Base> V_1)
@@ -32902,15 +32940,19 @@ partial class Program
                   IL_000e:  stloc.0
                   IL_000f:  ldloc.0
                   IL_0010:  dup
-                  IL_0011:  ldc.i4.0
-                  IL_0012:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0017:  newobj     "System.ReadOnlySpan<Base>..ctor(Base[])"
-                  IL_001c:  stloc.1
-                  IL_001d:  ldloca.s   V_1
-                  IL_001f:  call       "Base[] System.ReadOnlySpan<Base>.ToArray()"
-                  IL_0024:  ldc.i4.0
-                  IL_0025:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_002a:  ret
+                  IL_0011:  call       "System.ReadOnlySpan<Base> System.ReadOnlySpan<Base>.op_Implicit(Base[])"
+                  IL_0016:  stloc.1
+                  IL_0017:  ldloca.s   V_1
+                  IL_0019:  call       "void CollectionExtensions.Report<Base>(in System.ReadOnlySpan<Base>)"
+                  IL_001e:  newobj     "System.ReadOnlySpan<Base>..ctor(Base[])"
+                  IL_0023:  stloc.1
+                  IL_0024:  ldloca.s   V_1
+                  IL_0026:  call       "Base[] System.ReadOnlySpan<Base>.ToArray()"
+                  IL_002b:  call       "System.ReadOnlySpan<Base> System.ReadOnlySpan<Base>.op_Implicit(Base[])"
+                  IL_0030:  stloc.1
+                  IL_0031:  ldloca.s   V_1
+                  IL_0033:  call       "void CollectionExtensions.Report<Base>(in System.ReadOnlySpan<Base>)"
+                  IL_0038:  ret
                 }
                 """);
         }
@@ -32937,20 +32979,21 @@ partial class Program
 
             // In the event that the ReadOnlySpan ctor is missing, we do not fall back to converting the array spread value to Span.
             // Instead, we lower the spread without optimizing it.
-            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithSpan }, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(new[] { source, s_collectionExtensionsWithReadOnlySpan }, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__ctor_Array);
 
             var verifier = CompileAndVerify(comp, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput("[Derived], [Derived], "));
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       71 (0x47)
+                  // Code size       90 (0x5a)
                   .maxstack  4
                   .locals init (Base[] V_0,
-                                int V_1,
-                                Base[] V_2,
-                                int V_3,
-                                Base V_4)
+                                System.ReadOnlySpan<Base> V_1,
+                                int V_2,
+                                Base[] V_3,
+                                int V_4,
+                                Base V_5)
                   IL_0000:  ldc.i4.1
                   IL_0001:  newarr     "Derived"
                   IL_0006:  dup
@@ -32960,44 +33003,48 @@ partial class Program
                   IL_000e:  stloc.0
                   IL_000f:  ldloc.0
                   IL_0010:  dup
-                  IL_0011:  ldc.i4.0
-                  IL_0012:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0017:  ldc.i4.0
-                  IL_0018:  stloc.1
-                  IL_0019:  dup
-                  IL_001a:  ldlen
-                  IL_001b:  conv.i4
-                  IL_001c:  newarr     "Base"
-                  IL_0021:  stloc.0
-                  IL_0022:  stloc.2
-                  IL_0023:  ldc.i4.0
-                  IL_0024:  stloc.3
-                  IL_0025:  br.s       IL_0039
-                  IL_0027:  ldloc.2
-                  IL_0028:  ldloc.3
-                  IL_0029:  ldelem.ref
-                  IL_002a:  stloc.s    V_4
-                  IL_002c:  ldloc.0
-                  IL_002d:  ldloc.1
-                  IL_002e:  ldloc.s    V_4
-                  IL_0030:  stelem.ref
-                  IL_0031:  ldloc.1
-                  IL_0032:  ldc.i4.1
-                  IL_0033:  add
-                  IL_0034:  stloc.1
-                  IL_0035:  ldloc.3
-                  IL_0036:  ldc.i4.1
-                  IL_0037:  add
-                  IL_0038:  stloc.3
-                  IL_0039:  ldloc.3
+                  IL_0011:  call       "System.ReadOnlySpan<Base> System.ReadOnlySpan<Base>.op_Implicit(Base[])"
+                  IL_0016:  stloc.1
+                  IL_0017:  ldloca.s   V_1
+                  IL_0019:  call       "void CollectionExtensions.Report<Base>(in System.ReadOnlySpan<Base>)"
+                  IL_001e:  ldc.i4.0
+                  IL_001f:  stloc.2
+                  IL_0020:  dup
+                  IL_0021:  ldlen
+                  IL_0022:  conv.i4
+                  IL_0023:  newarr     "Base"
+                  IL_0028:  stloc.0
+                  IL_0029:  stloc.3
+                  IL_002a:  ldc.i4.0
+                  IL_002b:  stloc.s    V_4
+                  IL_002d:  br.s       IL_0044
+                  IL_002f:  ldloc.3
+                  IL_0030:  ldloc.s    V_4
+                  IL_0032:  ldelem.ref
+                  IL_0033:  stloc.s    V_5
+                  IL_0035:  ldloc.0
+                  IL_0036:  ldloc.2
+                  IL_0037:  ldloc.s    V_5
+                  IL_0039:  stelem.ref
                   IL_003a:  ldloc.2
-                  IL_003b:  ldlen
-                  IL_003c:  conv.i4
-                  IL_003d:  blt.s      IL_0027
-                  IL_003f:  ldloc.0
-                  IL_0040:  ldc.i4.0
-                  IL_0041:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0046:  ret
+                  IL_003b:  ldc.i4.1
+                  IL_003c:  add
+                  IL_003d:  stloc.2
+                  IL_003e:  ldloc.s    V_4
+                  IL_0040:  ldc.i4.1
+                  IL_0041:  add
+                  IL_0042:  stloc.s    V_4
+                  IL_0044:  ldloc.s    V_4
+                  IL_0046:  ldloc.3
+                  IL_0047:  ldlen
+                  IL_0048:  conv.i4
+                  IL_0049:  blt.s      IL_002f
+                  IL_004b:  ldloc.0
+                  IL_004c:  call       "System.ReadOnlySpan<Base> System.ReadOnlySpan<Base>.op_Implicit(Base[])"
+                  IL_0051:  stloc.1
+                  IL_0052:  ldloca.s   V_1
+                  IL_0054:  call       "void CollectionExtensions.Report<Base>(in System.ReadOnlySpan<Base>)"
+                  IL_0059:  ret
                 }
                 """);
         }
@@ -33022,17 +33069,17 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput("[Derived], [Derived, Derived],"), targetFramework: TargetFramework.Net80);
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithReadOnlySpan }, verify: Verification.FailsPEVerify, expectedOutput: IncludeExpectedOutput("[Derived], [Derived, Derived],"), targetFramework: TargetFramework.Net80);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size      145 (0x91)
+                  // Code size      164 (0xa4)
                   .maxstack  4
                   .locals init (Base[] V_0,
-                                Base[] V_1,
-                                int V_2,
-                                Base[] V_3,
-                                System.ReadOnlySpan<Base> V_4,
+                                System.ReadOnlySpan<Base> V_1,
+                                Base[] V_2,
+                                int V_3,
+                                Base[] V_4,
                                 System.ReadOnlySpan<Base> V_5,
                                 System.Span<Base> V_6)
                   IL_0000:  ldc.i4.1
@@ -33044,62 +33091,66 @@ partial class Program
                   IL_000e:  stloc.0
                   IL_000f:  ldloc.0
                   IL_0010:  dup
-                  IL_0011:  ldc.i4.0
-                  IL_0012:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0017:  dup
-                  IL_0018:  stloc.0
-                  IL_0019:  stloc.1
-                  IL_001a:  ldc.i4.0
-                  IL_001b:  stloc.2
-                  IL_001c:  ldloc.0
-                  IL_001d:  ldlen
-                  IL_001e:  conv.i4
-                  IL_001f:  ldloc.1
-                  IL_0020:  ldlen
-                  IL_0021:  conv.i4
-                  IL_0022:  add
-                  IL_0023:  newarr     "Base"
-                  IL_0028:  stloc.3
-                  IL_0029:  ldloca.s   V_4
-                  IL_002b:  ldloc.0
-                  IL_002c:  call       "System.ReadOnlySpan<Base>..ctor(Base[])"
-                  IL_0031:  ldloca.s   V_4
-                  IL_0033:  ldloc.3
-                  IL_0034:  newobj     "System.Span<Base>..ctor(Base[])"
-                  IL_0039:  stloc.s    V_6
-                  IL_003b:  ldloca.s   V_6
-                  IL_003d:  ldloc.2
-                  IL_003e:  ldloca.s   V_4
-                  IL_0040:  call       "int System.ReadOnlySpan<Base>.Length.get"
-                  IL_0045:  call       "System.Span<Base> System.Span<Base>.Slice(int, int)"
-                  IL_004a:  call       "void System.ReadOnlySpan<Base>.CopyTo(System.Span<Base>)"
-                  IL_004f:  ldloc.2
-                  IL_0050:  ldloca.s   V_4
-                  IL_0052:  call       "int System.ReadOnlySpan<Base>.Length.get"
-                  IL_0057:  add
-                  IL_0058:  stloc.2
-                  IL_0059:  ldloca.s   V_5
-                  IL_005b:  ldloc.1
-                  IL_005c:  call       "System.ReadOnlySpan<Base>..ctor(Base[])"
-                  IL_0061:  ldloca.s   V_5
-                  IL_0063:  ldloc.3
-                  IL_0064:  newobj     "System.Span<Base>..ctor(Base[])"
-                  IL_0069:  stloc.s    V_6
-                  IL_006b:  ldloca.s   V_6
-                  IL_006d:  ldloc.2
-                  IL_006e:  ldloca.s   V_5
-                  IL_0070:  call       "int System.ReadOnlySpan<Base>.Length.get"
-                  IL_0075:  call       "System.Span<Base> System.Span<Base>.Slice(int, int)"
-                  IL_007a:  call       "void System.ReadOnlySpan<Base>.CopyTo(System.Span<Base>)"
-                  IL_007f:  ldloc.2
-                  IL_0080:  ldloca.s   V_5
-                  IL_0082:  call       "int System.ReadOnlySpan<Base>.Length.get"
-                  IL_0087:  add
-                  IL_0088:  stloc.2
+                  IL_0011:  call       "System.ReadOnlySpan<Base> System.ReadOnlySpan<Base>.op_Implicit(Base[])"
+                  IL_0016:  stloc.1
+                  IL_0017:  ldloca.s   V_1
+                  IL_0019:  call       "void CollectionExtensions.Report<Base>(in System.ReadOnlySpan<Base>)"
+                  IL_001e:  dup
+                  IL_001f:  stloc.0
+                  IL_0020:  stloc.2
+                  IL_0021:  ldc.i4.0
+                  IL_0022:  stloc.3
+                  IL_0023:  ldloc.0
+                  IL_0024:  ldlen
+                  IL_0025:  conv.i4
+                  IL_0026:  ldloc.2
+                  IL_0027:  ldlen
+                  IL_0028:  conv.i4
+                  IL_0029:  add
+                  IL_002a:  newarr     "Base"
+                  IL_002f:  stloc.s    V_4
+                  IL_0031:  ldloca.s   V_1
+                  IL_0033:  ldloc.0
+                  IL_0034:  call       "System.ReadOnlySpan<Base>..ctor(Base[])"
+                  IL_0039:  ldloca.s   V_1
+                  IL_003b:  ldloc.s    V_4
+                  IL_003d:  newobj     "System.Span<Base>..ctor(Base[])"
+                  IL_0042:  stloc.s    V_6
+                  IL_0044:  ldloca.s   V_6
+                  IL_0046:  ldloc.3
+                  IL_0047:  ldloca.s   V_1
+                  IL_0049:  call       "int System.ReadOnlySpan<Base>.Length.get"
+                  IL_004e:  call       "System.Span<Base> System.Span<Base>.Slice(int, int)"
+                  IL_0053:  call       "void System.ReadOnlySpan<Base>.CopyTo(System.Span<Base>)"
+                  IL_0058:  ldloc.3
+                  IL_0059:  ldloca.s   V_1
+                  IL_005b:  call       "int System.ReadOnlySpan<Base>.Length.get"
+                  IL_0060:  add
+                  IL_0061:  stloc.3
+                  IL_0062:  ldloca.s   V_5
+                  IL_0064:  ldloc.2
+                  IL_0065:  call       "System.ReadOnlySpan<Base>..ctor(Base[])"
+                  IL_006a:  ldloca.s   V_5
+                  IL_006c:  ldloc.s    V_4
+                  IL_006e:  newobj     "System.Span<Base>..ctor(Base[])"
+                  IL_0073:  stloc.s    V_6
+                  IL_0075:  ldloca.s   V_6
+                  IL_0077:  ldloc.3
+                  IL_0078:  ldloca.s   V_5
+                  IL_007a:  call       "int System.ReadOnlySpan<Base>.Length.get"
+                  IL_007f:  call       "System.Span<Base> System.Span<Base>.Slice(int, int)"
+                  IL_0084:  call       "void System.ReadOnlySpan<Base>.CopyTo(System.Span<Base>)"
                   IL_0089:  ldloc.3
-                  IL_008a:  ldc.i4.0
-                  IL_008b:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0090:  ret
+                  IL_008a:  ldloca.s   V_5
+                  IL_008c:  call       "int System.ReadOnlySpan<Base>.Length.get"
+                  IL_0091:  add
+                  IL_0092:  stloc.3
+                  IL_0093:  ldloc.s    V_4
+                  IL_0095:  call       "System.ReadOnlySpan<Base> System.ReadOnlySpan<Base>.op_Implicit(Base[])"
+                  IL_009a:  stloc.s    V_5
+                  IL_009c:  ldloca.s   V_5
+                  IL_009e:  call       "void CollectionExtensions.Report<Base>(in System.ReadOnlySpan<Base>)"
+                  IL_00a3:  ret
                 }
                 """);
         }
@@ -34000,7 +34051,7 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[1, 2, 2],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[1, 2, 2],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.<Main>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", """
                 {
@@ -34243,11 +34294,12 @@ partial class Program
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {
-                  // Code size       54 (0x36)
+                  // Code size       61 (0x3d)
                   .maxstack  3
                   .locals init (int[] V_0, //arr
                                 System.Span<int> V_1, //span
-                                System.ReadOnlySpan<int> V_2)
+                                System.Span<int> V_2,
+                                System.ReadOnlySpan<int> V_3)
                   IL_0000:  ldc.i4.3
                   IL_0001:  newarr     "int"
                   IL_0006:  dup
@@ -34255,18 +34307,20 @@ partial class Program
                   IL_000c:  call       "void System.Runtime.CompilerServices.RuntimeHelpers.InitializeArray(System.Array, System.RuntimeFieldHandle)"
                   IL_0011:  stloc.0
                   IL_0012:  ldloc.0
-                  IL_0013:  ldc.i4.0
-                  IL_0014:  call       "void CollectionExtensions.Report(object, bool)"
-                  IL_0019:  ldloca.s   V_1
-                  IL_001b:  ldloc.0
-                  IL_001c:  newobj     "System.ReadOnlySpan<int>..ctor(int[])"
-                  IL_0021:  stloc.2
-                  IL_0022:  ldloca.s   V_2
-                  IL_0024:  call       "int[] System.ReadOnlySpan<int>.ToArray()"
-                  IL_0029:  call       "System.Span<int>..ctor(int[])"
-                  IL_002e:  ldloca.s   V_1
-                  IL_0030:  call       "void CollectionExtensions.Report<int>(in System.Span<int>)"
-                  IL_0035:  ret
+                  IL_0013:  call       "System.Span<int> System.Span<int>.op_Implicit(int[])"
+                  IL_0018:  stloc.2
+                  IL_0019:  ldloca.s   V_2
+                  IL_001b:  call       "void CollectionExtensions.Report<int>(in System.Span<int>)"
+                  IL_0020:  ldloca.s   V_1
+                  IL_0022:  ldloc.0
+                  IL_0023:  newobj     "System.ReadOnlySpan<int>..ctor(int[])"
+                  IL_0028:  stloc.3
+                  IL_0029:  ldloca.s   V_3
+                  IL_002b:  call       "int[] System.ReadOnlySpan<int>.ToArray()"
+                  IL_0030:  call       "System.Span<int>..ctor(int[])"
+                  IL_0035:  ldloca.s   V_1
+                  IL_0037:  call       "void CollectionExtensions.Report<int>(in System.Span<int>)"
+                  IL_003c:  ret
                 }
                 """);
         }
@@ -34288,7 +34342,7 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { source, s_collectionExtensionsWithSpan }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            var verifier = CompileAndVerify(new[] { source, s_collectionExtensions }, expectedOutput: IncludeExpectedOutput("[1, 2, 3], [1, 2, 3],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C.Main", """
                 {

@@ -600,7 +600,7 @@ internal sealed class UseRecursivePatternsCodeRefactoringProvider : SyntaxEditor
 
         // Process all nodes to refactor in reverse to ensure nested nodes
         // are processed before the outer nodes to refactor.
-        foreach (var originalNode in nodes.Reverse())
+        foreach (var originalNode in Enumerable.Reverse(nodes))
         {
             // Only process nodes fully within a fixAllSpan
             if (!fixAllSpans.Any(fixAllSpan => fixAllSpan.Contains(originalNode.Span)))
