@@ -4188,6 +4188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // If right operand is bad, but we know its type, make sure conversion is in place for better error recovery
             else if (rightOperand.HasAnyErrors)
             {
+                leftOperand = BindToTypeForErrorRecovery(leftOperand);
                 var conversion = GenerateConversionForAssignment(rightOperandTargetType, rightOperand, diagnostics, ConversionForAssignmentFlags.CompoundAssignment);
                 return new BoundNullCoalescingAssignmentOperator(node, leftOperand, conversion, rightOperandTargetType, hasErrors: true);
             }
