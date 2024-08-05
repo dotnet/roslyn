@@ -30,7 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal abstract NamedTypeSymbol MapToImplementationSymbol();
 
-            internal abstract AnonymousTypeOrDelegatePublicSymbol SubstituteTypes(AbstractTypeMap typeMap);
+            internal AnonymousTypeOrDelegatePublicSymbol SubstituteTypes(AbstractTypeMap map)
+            {
+                var typeDescr = TypeDescriptor.SubstituteTypes(map, out bool changed);
+                return changed ?
+                    WithTypeDescriptor(typeDescr) :
+                    this;
+            }
+
+            internal abstract AnonymousTypeOrDelegatePublicSymbol WithTypeDescriptor(AnonymousTypeDescriptor typeDescr);
 
             protected override NamedTypeSymbol WithTupleDataCore(TupleExtraData newData)
                 => throw ExceptionUtilities.Unreachable();

@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             int previousSlotIndex;
                             if (mapToPreviousFields && slotAllocatorOpt.TryGetPreviousHoistedLocalSlotIndex(
                                 declaratorSyntax,
-                                F.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, diagnostics.DiagnosticBag),
+                                F.ModuleBuilderOpt.Translate(fieldType, declaratorSyntax, diagnostics.DiagnosticBag, eraseExtensions: true),
                                 synthesizedKind,
                                 id,
                                 diagnostics.DiagnosticBag,

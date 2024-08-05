@@ -18,6 +18,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
@@ -845,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return (Cci.INamedTypeReference)Translate(specialTypeSymbol,
                              diagnostics: diagnostics,
                              syntaxNodeOpt: syntaxNodeOpt,
-                             keepExtension: false, needDeclaration: true);
+                             extensionsEraseMode: ExtensionsEraseMode.None, needDeclaration: true);
         }
 
         public sealed override Cci.IMethodReference GetInitArrayHelper()
@@ -963,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
         }
 
-        /// <param name="keepExtension">
+        /// <param name="extensionsEraseMode">
         /// There are a few reasons to keep an extension type un-erased:
         /// - translating a container type: `E.X` (we should keep the extension type `E`)
         /// - serializing a type into a string for the extension erasure attribute (we should keep all extensions)
@@ -974,23 +975,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             NamedTypeSymbol namedTypeSymbol,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
-            bool keepExtension,
+            ExtensionsEraseMode extensionsEraseMode,
             bool fromImplements = false,
             bool needDeclaration = false)
         {
             Debug.Assert(namedTypeSymbol.IsDefinitionOrDistinct());
             Debug.Assert(diagnostics != null);
+            Debug.Assert(!needDeclaration || extensionsEraseMode == ExtensionsEraseMode.None);
 
-            if (!keepExtension
-                && namedTypeSymbol.GetExtendedTypeNoUseSiteDiagnostics(basesBeingResolved: null) is { } extendedType)
+            if (extensionsEraseMode != ExtensionsEraseMode.None)
             {
-                if (extendedType is NamedTypeSymbol extendedNamedType)
+                if (extensionsEraseMode == ExtensionsEraseMode.ExcludeSelf)
                 {
-                    namedTypeSymbol = extendedNamedType;
+                    namedTypeSymbol = ExtensionTypeEraser.TransformExcludingSelf(namedTypeSymbol, out _);
                 }
                 else
                 {
-                    return Translate(extendedType, syntaxNodeOpt, diagnostics);
+                    TypeSymbol transformed = ExtensionTypeEraser.TransformType(namedTypeSymbol, out _);
+
+                    if (transformed is NamedTypeSymbol transformedNamedType)
+                    {
+                        namedTypeSymbol = transformedNamedType;
+                    }
+                    else
+                    {
+                        return Translate(transformed, syntaxNodeOpt, diagnostics, eraseExtensions: false);
+                    }
                 }
             }
 
@@ -1165,14 +1175,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return param.GetCciAdapter();
         }
 
-        /// <param name="keepExtension">
+        internal override Cci.ITypeReference TranslateTypeOfConstant(TypeSymbol symbol, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
+        {
+            return Translate(symbol, syntaxNodeOpt, diagnostics, eraseExtensions: true);
+        }
+
+        internal override Cci.ITypeReference EncTranslateLocalVariableType(TypeSymbol type, DiagnosticBag diagnostics)
+        {
+            return Translate(type, syntaxNodeOpt: null, diagnostics, eraseExtensions: true);
+        }
+
+        internal override Cci.ITypeReference TranslateMarshallingTypeReference(ITypeSymbolInternal symbol, SyntaxNode syntaxOpt, DiagnosticBag diagnostics)
+        {
+            return Translate((TypeSymbol)symbol, syntaxOpt, diagnostics, eraseExtensions: true);
+        }
+
+        /// <param name="eraseExtensions">
         /// When translating for purpose of serializing a type into a string for the extension erasure attribute, we should keep extensions.
         /// </param>
-        internal sealed override Cci.ITypeReference Translate(
+        internal Cci.ITypeReference Translate(
             TypeSymbol typeSymbol,
             SyntaxNode syntaxNodeOpt,
             DiagnosticBag diagnostics,
-            bool keepExtension = false)
+            bool eraseExtensions)
         {
             Debug.Assert(diagnostics != null);
 
@@ -1182,20 +1207,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     return Translate(syntaxNodeOpt, diagnostics);
 
                 case SymbolKind.ArrayType:
-                    return Translate((ArrayTypeSymbol)typeSymbol);
+                    return Translate((ArrayTypeSymbol)typeSymbol, eraseExtensions);
 
                 case SymbolKind.ErrorType:
                 case SymbolKind.NamedType:
-                    return Translate((NamedTypeSymbol)typeSymbol, syntaxNodeOpt, diagnostics, keepExtension: keepExtension);
+                    return Translate((NamedTypeSymbol)typeSymbol, syntaxNodeOpt, diagnostics, eraseExtensions ? ExtensionsEraseMode.IncludeSelf : ExtensionsEraseMode.None);
 
                 case SymbolKind.PointerType:
-                    return Translate((PointerTypeSymbol)typeSymbol);
+                    return Translate((PointerTypeSymbol)typeSymbol, eraseExtensions);
 
                 case SymbolKind.TypeParameter:
                     return Translate((TypeParameterSymbol)typeSymbol);
 
                 case SymbolKind.FunctionPointerType:
-                    return Translate((FunctionPointerTypeSymbol)typeSymbol);
+                    return Translate((FunctionPointerTypeSymbol)typeSymbol, eraseExtensions);
             }
 
             throw ExceptionUtilities.UnexpectedValue(typeSymbol.Kind);
@@ -1263,7 +1288,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 {
                     @params[i] = new ArgListParameterTypeInformation(ordinal,
                                                                     !optArgList.ArgumentRefKindsOpt.IsDefaultOrEmpty && optArgList.ArgumentRefKindsOpt[i] != RefKind.None,
-                                                                    Translate(optArgList.Arguments[i].Type, syntaxNodeOpt, diagnostics));
+                                                                    Translate(optArgList.Arguments[i].Type, syntaxNodeOpt, diagnostics, eraseExtensions: true));
                     ordinal++;
                 }
 
@@ -1485,18 +1510,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return GetSpecialType(SpecialType.System_Object, syntaxNodeOpt, diagnostics);
         }
 
-        internal Cci.IArrayTypeReference Translate(ArrayTypeSymbol symbol)
+        internal Cci.IArrayTypeReference Translate(ArrayTypeSymbol symbol, bool eraseExtensions)
         {
+            if (eraseExtensions)
+            {
+                symbol = (ArrayTypeSymbol)ExtensionTypeEraser.TransformType(symbol, out _);
+            }
+
             return (Cci.IArrayTypeReference)GetCciAdapter(symbol);
         }
 
-        internal Cci.IPointerTypeReference Translate(PointerTypeSymbol symbol)
+        internal Cci.IPointerTypeReference Translate(PointerTypeSymbol symbol, bool eraseExtensions)
         {
+            if (eraseExtensions)
+            {
+                symbol = (PointerTypeSymbol)ExtensionTypeEraser.TransformType(symbol, out _);
+            }
+
             return (Cci.IPointerTypeReference)GetCciAdapter(symbol);
         }
 
-        internal Cci.IFunctionPointerTypeReference Translate(FunctionPointerTypeSymbol symbol)
+        internal Cci.IFunctionPointerTypeReference Translate(FunctionPointerTypeSymbol symbol, bool eraseExtensions)
         {
+            if (eraseExtensions)
+            {
+                symbol = (FunctionPointerTypeSymbol)ExtensionTypeEraser.TransformType(symbol, out _);
+            }
+
             return (Cci.IFunctionPointerTypeReference)GetCciAdapter(symbol);
         }
 
@@ -2133,5 +2173,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             return _translatedImportsMap.GetOrAdd(chain, imports);
         }
+    }
+
+    /// <summary>
+    /// Extension erasure mode for named types.
+    /// </summary>
+    internal enum ExtensionsEraseMode
+    {
+        None,
+        ExcludeSelf,
+        IncludeSelf
     }
 }

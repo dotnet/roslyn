@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (slotAllocator == null ||
                             !slotAllocator.TryGetPreviousHoistedLocalSlotIndex(
                                 awaitSyntaxOpt,
-                                F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics.DiagnosticBag),
+                                F.ModuleBuilderOpt.Translate(fieldType, awaitSyntaxOpt, Diagnostics.DiagnosticBag, eraseExtensions: true),
                                 kind,
                                 id,
                                 Diagnostics.DiagnosticBag,

@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis
             var typeSymbol = _marshalTypeNameOrSymbol as ITypeSymbolInternal;
             if (typeSymbol != null)
             {
-                return ((CommonPEModuleBuilder)context.Module).Translate(typeSymbol, context.SyntaxNode, context.Diagnostics);
+                return ((CommonPEModuleBuilder)context.Module).TranslateMarshallingTypeReference(typeSymbol, context.SyntaxNode, context.Diagnostics);
             }
             else
             {
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return ((CommonPEModuleBuilder)context.Module).Translate((ITypeSymbolInternal)_marshalTypeNameOrSymbol, context.SyntaxNode, context.Diagnostics);
+            return ((CommonPEModuleBuilder)context.Module).TranslateMarshallingTypeReference((ITypeSymbolInternal)_marshalTypeNameOrSymbol, context.SyntaxNode, context.Diagnostics);
         }
 
         /// <summary>

@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         protected override Cci.ITypeReference GetType(PEModuleBuilder moduleBuilder, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            return moduleBuilder.Translate(UnderlyingEvent.AdaptedEventSymbol.Type, syntaxNodeOpt, diagnostics);
+            return moduleBuilder.Translate(UnderlyingEvent.AdaptedEventSymbol.Type, syntaxNodeOpt, diagnostics, eraseExtensions: true);
         }
 
         protected override EmbeddedType ContainingType

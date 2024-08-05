@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var visited = (TypeSymbol)_deepTranslator.Visit(type);
             Debug.Assert((object)visited != null);
             //Debug.Assert(visited != null || type is LambdaFrame || ((NamedTypeSymbol)type).ConstructedFrom is LambdaFrame);
-            return Translate(visited ?? type, null, diagnostics);
+            return Translate(visited ?? type, null, diagnostics, eraseExtensions: true);
         }
 
         private static EmitBaseline.MetadataSymbols GetOrCreateMetadataSymbols(EmitBaseline initialBaseline, CSharpCompilation compilation)

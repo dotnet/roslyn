@@ -18,7 +18,6 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public bool IncludePrivateMembers => (_flags & Flags.IncludePrivateMembers) != 0;
         public bool MetadataOnly => (_flags & Flags.MetadataOnly) != 0;
-        public bool KeepExtensions => (_flags & Flags.KeepExtensions) != 0;
         public bool IsRefAssembly => MetadataOnly && !IncludePrivateMembers;
         public SyntaxNode? SyntaxNode => _syntaxNode ?? SyntaxReference?.GetSyntax();
         public Location? Location => _syntaxNode?.Location ?? SyntaxReference?.GetLocation();
@@ -35,8 +34,7 @@ namespace Microsoft.CodeAnalysis.Emit
             bool includePrivateMembers,
             SyntaxNode? syntaxNode = null,
             RebuildData? rebuildData = null,
-            SyntaxReference? syntaxReference = null,
-            bool keepExtensions = false)
+            SyntaxReference? syntaxReference = null)
         {
             Debug.Assert(rebuildData is null || !metadataOnly);
             RebuildData = rebuildData;
@@ -60,16 +58,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 flags |= Flags.IncludePrivateMembers;
             }
-            if (keepExtensions)
-            {
-                flags |= Flags.KeepExtensions;
-            }
             _flags = flags;
-        }
-
-        public EmitContext WithKeepExtensions()
-        {
-            return new EmitContext(Module, Diagnostics, MetadataOnly, IncludePrivateMembers, _syntaxNode, RebuildData, SyntaxReference, keepExtensions: true);
         }
 
         [Flags]
@@ -78,7 +67,6 @@ namespace Microsoft.CodeAnalysis.Emit
             None = 0,
             MetadataOnly = 1,
             IncludePrivateMembers = 2,
-            KeepExtensions = 4
         }
     }
 }

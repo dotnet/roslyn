@@ -17,7 +17,7 @@ namespace Microsoft.Cci
     /// </summary>
     internal abstract class MetadataVisitor
     {
-        public EmitContext Context;
+        public readonly EmitContext Context;
 
         public MetadataVisitor(EmitContext context)
         {
@@ -263,10 +263,7 @@ namespace Microsoft.Cci
         {
             if (serializedType.TypeToGet != null)
             {
-                var oldContext = this.Context;
-                this.Context = this.Context.WithKeepExtensions();
                 this.Visit(serializedType.TypeToGet);
-                this.Context = oldContext;
             }
         }
 

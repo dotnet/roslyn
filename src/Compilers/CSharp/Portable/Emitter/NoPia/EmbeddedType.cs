@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             foreach (NamedTypeSymbol @interface in UnderlyingNamedType.AdaptedNamedTypeSymbol.GetInterfacesToEmit())
             {
                 Debug.Assert(!@interface.IsExtension);
-                TypeManager.ModuleBeingBuilt.Translate(@interface, syntaxNodeOpt, diagnostics, keepExtension: false, fromImplements: true);
+                TypeManager.ModuleBeingBuilt.Translate(@interface, syntaxNodeOpt, diagnostics, ExtensionsEraseMode.ExcludeSelf, fromImplements: true);
             }
         }
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             NamedTypeSymbol baseType = UnderlyingNamedType.AdaptedNamedTypeSymbol.BaseTypeNoUseSiteDiagnostics;
             Debug.Assert(baseType?.IsExtension != true);
-            return (object)baseType != null ? moduleBuilder.Translate(baseType, syntaxNodeOpt, diagnostics, keepExtension: false) : null;
+            return (object)baseType != null ? moduleBuilder.Translate(baseType, syntaxNodeOpt, diagnostics, ExtensionsEraseMode.ExcludeSelf) : null;
         }
 
         protected override IEnumerable<FieldSymbolAdapter> GetFieldsToEmit()
@@ -136,7 +136,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                 var typeRef = moduleBeingBuilt.Translate(
                     @interface,
                     (CSharpSyntaxNode)context.SyntaxNode,
-                    context.Diagnostics, keepExtension: false);
+                    context.Diagnostics,
+                    ExtensionsEraseMode.ExcludeSelf);
 
                 var type = TypeWithAnnotations.Create(@interface);
                 yield return type.GetTypeRefWithAttributes(

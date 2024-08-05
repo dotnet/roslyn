@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return new LocalDefinition(
                 local,
                 local.Name,
-                Translate(type, syntaxNodeOpt: null, diagnostics),
+                Translate(type, syntaxNodeOpt: null, diagnostics, eraseExtensions: true),
                 slot: index,
                 synthesizedKind: local.SynthesizedKind,
                 id: LocalDebugId.None,

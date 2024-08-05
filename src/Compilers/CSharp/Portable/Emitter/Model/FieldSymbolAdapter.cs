@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var implType = isFixed ? AdaptedFieldSymbol.FixedImplementationType(moduleBeingBuilt) : fieldTypeWithAnnotations.Type;
             var type = moduleBeingBuilt.Translate(implType,
                                                   syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
-                                                  diagnostics: context.Diagnostics);
+                                                  diagnostics: context.Diagnostics,
+                                                  eraseExtensions: true);
 
             if (isFixed || customModifiers.Length == 0)
             {
@@ -97,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return moduleBeingBuilt.Translate(AdaptedFieldSymbol.ContainingType,
                                               syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                                               diagnostics: context.Diagnostics,
-                                              keepExtension: true,
+                                              AdaptedFieldSymbol.IsDefinition ? ExtensionsEraseMode.None : ExtensionsEraseMode.ExcludeSelf,
                                               needDeclaration: AdaptedFieldSymbol.IsDefinition);
         }
 

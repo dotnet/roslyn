@@ -65,7 +65,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return scopeBuilder.ToImmutableAndFree()
         End Function
 
-        Private Shared Function GetTypeReference(type As TypeSymbol, moduleBuilder As CommonPEModuleBuilder, diagnostics As DiagnosticBag) As Cci.ITypeReference
+        Private Shared Function GetTypeReference(type As TypeSymbol, moduleBuilder As Emit.PEModuleBuilder, diagnostics As DiagnosticBag) As Cci.ITypeReference
             Return moduleBuilder.Translate(type, Nothing, diagnostics)
         End Function
     End Class

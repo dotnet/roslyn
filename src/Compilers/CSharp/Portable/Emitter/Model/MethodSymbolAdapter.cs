@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return moduleBeingBuilt.Translate(containingType,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                 diagnostics: context.Diagnostics,
-                keepExtension: true,
+                AdaptedMethodSymbol.IsDefinition ? ExtensionsEraseMode.None : ExtensionsEraseMode.ExcludeSelf,
                 needDeclaration: AdaptedMethodSymbol.IsDefinition);
         }
 
@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return ((PEModuleBuilder)context.Module).Translate(AdaptedMethodSymbol.ReturnType,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
                 diagnostics: context.Diagnostics,
-                keepExtension: false);
+                eraseExtensions: true);
         }
 
         IEnumerable<Cci.ITypeReference> Cci.IGenericMethodInstanceReference.GetGenericArguments(EmitContext context)
@@ -257,7 +257,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(arg.CustomModifiers.IsEmpty);
                 yield return moduleBeingBuilt.Translate(arg.Type,
                                                         syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode,
-                                                        diagnostics: context.Diagnostics);
+                                                        diagnostics: context.Diagnostics,
+                                                        eraseExtensions: true);
             }
         }
 

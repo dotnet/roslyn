@@ -3544,7 +3544,7 @@ namespace Microsoft.Cci
             else if (expression is MetadataSerializedType t)
             {
                 var scalarEncoder = encoder.Scalar();
-                string serializedTypeName = t.TypeToGet.GetSerializedTypeName(context.WithKeepExtensions(), allowTypeParameters: true);
+                string serializedTypeName = t.TypeToGet.GetSerializedTypeName(context, allowTypeParameters: true);
                 scalarEncoder.Constant(serializedTypeName);
             }
             else

@@ -1093,7 +1093,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayElementLoad(_module.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type), arrayAccess.Expression.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitArrayElementLoad(_module.Translate((ArrayTypeSymbol)arrayAccess.Expression.Type, eraseExtensions: true), arrayAccess.Expression.Syntax, _diagnostics.DiagnosticBag);
             }
 
             EmitPopIfUnused(used);
@@ -2366,7 +2366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayCreation(_module.Translate(arrayType), expression.Syntax, _diagnostics.DiagnosticBag);
+                _builder.EmitArrayCreation(_module.Translate(arrayType, eraseExtensions: true), expression.Syntax, _diagnostics.DiagnosticBag);
             }
 
             if (expression.InitializerOpt != null)
@@ -3184,7 +3184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                _builder.EmitArrayElementStore(_module.Translate(arrayType), syntaxNode, _diagnostics.DiagnosticBag);
+                _builder.EmitArrayElementStore(_module.Translate(arrayType, eraseExtensions: true), syntaxNode, _diagnostics.DiagnosticBag);
             }
         }
 
@@ -3585,18 +3585,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitModuleVersionIdToken(BoundModuleVersionId node)
         {
             _builder.EmitToken(
-                _module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag),
+                _module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag, eraseExtensions: true), node.Syntax, _diagnostics.DiagnosticBag),
                 node.Syntax,
                 _diagnostics.DiagnosticBag);
         }
 
         private void EmitThrowIfModuleCancellationRequested(SyntaxNode syntax)
         {
-            var cancellationTokenType = _module.CommonCompilation.CommonGetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+            var cancellationTokenType = _module.Compilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
 
             _builder.EmitOpCode(ILOpCode.Ldsflda);
             _builder.EmitToken(
-                _module.GetModuleCancellationToken(_module.Translate(cancellationTokenType, syntax, _diagnostics.DiagnosticBag), syntax, _diagnostics.DiagnosticBag),
+                _module.GetModuleCancellationToken(_module.Translate(cancellationTokenType, syntax, _diagnostics.DiagnosticBag, Emit.ExtensionsEraseMode.None), syntax, _diagnostics.DiagnosticBag),
                 syntax,
                 _diagnostics.DiagnosticBag);
 
@@ -3614,11 +3614,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitModuleCancellationTokenLoad(SyntaxNode syntax)
         {
-            var cancellationTokenType = _module.CommonCompilation.CommonGetWellKnownType(WellKnownType.System_Threading_CancellationToken);
+            var cancellationTokenType = _module.Compilation.GetWellKnownType(WellKnownType.System_Threading_CancellationToken);
 
             _builder.EmitOpCode(ILOpCode.Ldsfld);
             _builder.EmitToken(
-                _module.GetModuleCancellationToken(_module.Translate(cancellationTokenType, syntax, _diagnostics.DiagnosticBag), syntax, _diagnostics.DiagnosticBag),
+                _module.GetModuleCancellationToken(_module.Translate(cancellationTokenType, syntax, _diagnostics.DiagnosticBag, Emit.ExtensionsEraseMode.None), syntax, _diagnostics.DiagnosticBag),
                 syntax,
                 _diagnostics.DiagnosticBag);
         }
@@ -3643,7 +3643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void EmitInstrumentationPayloadRootToken(BoundInstrumentationPayloadRoot node)
         {
-            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag);
+            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics.DiagnosticBag, eraseExtensions: true), node.Syntax, _diagnostics.DiagnosticBag), node.Syntax, _diagnostics.DiagnosticBag);
         }
 
         private void EmitSourceDocumentIndex(BoundSourceDocumentIndex node)

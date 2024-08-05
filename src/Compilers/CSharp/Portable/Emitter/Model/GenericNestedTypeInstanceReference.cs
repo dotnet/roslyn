@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         Cci.ITypeReference Cci.ITypeMemberReference.GetContainingType(EmitContext context)
         {
             return ((PEModuleBuilder)context.Module).Translate(UnderlyingNamedType.ContainingType, syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNode, diagnostics: context.Diagnostics,
-                keepExtension: true);
+                ExtensionsEraseMode.None);
         }
 
         public override Cci.IGenericTypeInstanceReference AsGenericTypeInstanceReference

@@ -131,7 +131,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static Cci.ITypeReference GetTypeReference(TypeSymbol type, SyntaxNode syntaxNode, Emit.PEModuleBuilder moduleBuilder, DiagnosticBag diagnostics)
         {
-            return moduleBuilder.Translate(type, syntaxNode, diagnostics);
+            // PROTOTYPE(roles): Does this go to PDB only? Do we care about constraint violations there?
+            //                   If so, we might need an alternative way to encode extension references.
+            return moduleBuilder.Translate(type, syntaxNode, diagnostics, eraseExtensions: false);
         }
 
         private static Cci.IAssemblyReference TryGetAssemblyScope(NamespaceSymbol @namespace, Emit.PEModuleBuilder moduleBuilder, DiagnosticBag diagnostics)

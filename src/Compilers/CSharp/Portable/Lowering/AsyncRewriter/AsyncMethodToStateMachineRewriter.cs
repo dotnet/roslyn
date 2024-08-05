@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_awaiterFields.TryGetValue(awaiterType, out result))
             {
                 int slotIndex;
-                if (slotAllocator == null || !slotAllocator.TryGetPreviousAwaiterSlotIndex(F.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics.DiagnosticBag), F.Diagnostics.DiagnosticBag, out slotIndex))
+                if (slotAllocator == null || !slotAllocator.TryGetPreviousAwaiterSlotIndex(F.ModuleBuilderOpt.Translate(awaiterType, F.Syntax, F.Diagnostics.DiagnosticBag, eraseExtensions: true), F.Diagnostics.DiagnosticBag, out slotIndex))
                 {
                     slotIndex = _nextAwaiterId++;
                 }

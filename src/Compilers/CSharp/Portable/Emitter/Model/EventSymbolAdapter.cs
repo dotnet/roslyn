@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         Cci.ITypeReference Cci.IEventDefinition.GetType(EmitContext context)
         {
-            return ((PEModuleBuilder)context.Module).Translate(AdaptedEventSymbol.Type, syntaxNodeOpt: (CSharpSyntaxNode?)context.SyntaxNode, diagnostics: context.Diagnostics);
+            return ((PEModuleBuilder)context.Module).Translate(AdaptedEventSymbol.Type, syntaxNodeOpt: (CSharpSyntaxNode?)context.SyntaxNode, diagnostics: context.Diagnostics, eraseExtensions: true);
         }
 
         #endregion
