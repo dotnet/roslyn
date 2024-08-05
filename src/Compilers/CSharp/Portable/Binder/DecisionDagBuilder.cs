@@ -1428,7 +1428,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             relationCondition = Tests.AndSequence.Create(conditions);
                             // At this point, we have determined that two non-identical inputs refer to the same element.
                             // We represent this correspondence with an assignment node in order to merge the remaining values.
-                            // If tests are related unconditionally, we won't need to do so as the remaining values are updated right away.
                             relationEffect = new Tests.One(new BoundDagAssignmentEvaluation(syntax, target: other.Input, input: test.Input));
                         }
                         return true;
@@ -1454,6 +1453,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 continue;
                             }
 
+                            if (_forLowering)
+                            {
+                                break;
+                            }
+
                             if (s1Index < 0 != s2Index < 0)
                             {
                                 Debug.Assert(state.RemainingValues.ContainsKey(s1LengthTemp));
@@ -1467,10 +1471,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (lengthValues.All(BinaryOperatorKind.Equal, lengthValue))
                                 {
                                     // If the length is known to be exact, the two are considered to point to the same element.
+                                    (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(Tests.True.Instance); // Triggers merging of values unconditionally
                                     continue;
                                 }
 
-                                if (!_forLowering && lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
+                                if (lengthValues.Any(BinaryOperatorKind.Equal, lengthValue))
                                 {
                                     // Otherwise, we add a test to make the result conditional on the length value.
                                     (conditions ??= ArrayBuilder<Tests>.GetInstance()).Add(new Tests.One(new BoundDagValueTest(syntax, ConstantValue.Create(lengthValue), s1LengthTemp)));
