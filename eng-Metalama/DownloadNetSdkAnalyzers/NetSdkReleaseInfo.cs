@@ -60,8 +60,8 @@ static class NetSdkReleaseInfo
 
         var releasesIndex = await s_httpClient.GetFromJsonAsync<ReleasesIndexDocument>(ReleasesIndexUrl, s_jsonOptions);
 
-        // The three most recent .Net releases should be sufficient.
-        var channels = releasesIndex!.Channels.Take(3);
+        // The four most recent .Net releases should be sufficient: preview (e.g. 9.0), current LTS (8.0), out-of support (7.0) and the previous LTS (6.0).
+        var channels = releasesIndex!.Channels.Take(4);
 
         var change = false;
 

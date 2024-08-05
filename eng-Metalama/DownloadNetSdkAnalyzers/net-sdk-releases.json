@@ -100,6 +100,34 @@
       "sdk-zip-url": "https://download.visualstudio.microsoft.com/download/pr/9fdcd0fd-467c-43ee-b118-1f163533e8f1/f1031bccbf9327fc69f4bf5826d557f3/dotnet-sdk-6.0.417-win-x64.zip",
       "roslyn-version": "4.3.1-3.22526.13"
     },
+    "6.0.418": {
+      "sdk-zip-url": "https://download.visualstudio.microsoft.com/download/pr/a33e6436-92cf-4659-9dfd-8ccbfde6255e/39f2eb8d138db0053747e1e530b56475/dotnet-sdk-6.0.418-win-x64.zip",
+      "roslyn-version": "4.3.1-3.22526.13"
+    },
+    "6.0.419": {
+      "sdk-zip-url": "https://download.visualstudio.microsoft.com/download/pr/5216ba35-4818-4ccc-bfea-423167b2c2e0/e879920a65ee5b5dc13d884d823b8469/dotnet-sdk-6.0.419-win-x64.zip",
+      "roslyn-version": "4.3.1-3.22526.13"
+    },
+    "6.0.420": {
+      "sdk-zip-url": "https://download.visualstudio.microsoft.com/download/pr/98372669-0339-4a65-8a48-7f8b6426339a/204e48e8157b031ecb0149a44827863c/dotnet-sdk-6.0.420-win-x64.zip",
+      "roslyn-version": "4.3.1-3.22526.13"
+    },
+    "6.0.421": {
+      "sdk-zip-url": "https://download.visualstudio.microsoft.com/download/pr/14804c03-4206-411a-80a5-8e26cd6ddcbc/e4e1e88d75be3a6f5c84ea3d39f60c19/dotnet-sdk-6.0.421-win-x64.zip",
+      "roslyn-version": "4.3.1-3.22526.13"
+    },
+    "6.0.422": {
+      "sdk-zip-url": "https://download.visualstudio.microsoft.com/download/pr/078b7ea9-b26e-4c4e-80eb-3a79be9906d8/a20046f51d2e14c20ac4d5872f29d174/dotnet-sdk-6.0.422-win-x64.zip",
+      "roslyn-version": "4.3.1-3.22526.13"
+    },
+    "6.0.423": {
+      "sdk-zip-url": "https://download.visualstudio.microsoft.com/download/pr/99a9fa70-dc10-4b3e-8f5e-9e88b322de31/03c298ff8e31897c16ad36618e3042e7/dotnet-sdk-6.0.423-win-x64.zip",
+      "roslyn-version": "4.3.1-3.22526.13"
+    },
+    "6.0.424": {
+      "sdk-zip-url": "https://download.visualstudio.microsoft.com/download/pr/b298579b-5779-4a53-bd04-19749f22eb28/5e0f54a5a0de540dba50e8379a4e3ff7/dotnet-sdk-6.0.424-win-x64.zip",
+      "roslyn-version": "4.3.1-3.22526.13"
+    },
     "7.0.100": {
       "sdk-zip-url": "https://download.visualstudio.microsoft.com/download/pr/1fb808dc-d017-4460-94f8-bf1ac83e6cd8/756b301e714755e411b84684b885a516/dotnet-sdk-7.0.100-win-x64.zip",
       "roslyn-version": "4.4.0-4.22520.11"
