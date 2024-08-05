@@ -387,7 +387,12 @@ class C
             Assert.Equal("T", typeInfo.ConvertedType.ToTestDisplayString());
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.True(symbolInfo.IsEmpty);
+            Assert.Null(symbolInfo.Symbol);
+            // INCONSISTENCY: Having type itself as a symbol info candidate for a constructor invocation node is odd.
+            // If there were no errors symbol info would be completely empty (no symbol & no candidates).
+            // Given that we know type of the expression, shouldn't symbol info be identical for normal and error cases?
+            Assert.Collection(symbolInfo.CandidateSymbols,
+                static c => Assert.Equal("T", c.ToTestDisplayString()));
 
             var assignmentNode = descendantNodes.OfType<AssignmentExpressionSyntax>().Single();
             var assignmentTypeInfo = model.GetTypeInfo(assignmentNode);
@@ -468,7 +473,12 @@ class C
             Assert.Equal("T", typeInfo.ConvertedType.ToTestDisplayString());
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.True(symbolInfo.IsEmpty);
+            Assert.Null(symbolInfo.Symbol);
+            // INCONSISTENCY: Having type itself as a symbol info candidate for a constructor invocation node is odd.
+            // If there were no errors symbol info would be completely empty (no symbol & no candidates).
+            // Given that we know type of the expression, shouldn't symbol info be identical for normal and error cases?
+            Assert.Collection(symbolInfo.CandidateSymbols,
+                static c => Assert.Equal("T", c.ToTestDisplayString()));
 
             var assignmentNode = descendantNodes.OfType<AssignmentExpressionSyntax>().Single();
             var assignmentTypeInfo = model.GetTypeInfo(assignmentNode);
@@ -543,7 +553,12 @@ class C
             Assert.Equal("T", typeInfo.ConvertedType.ToTestDisplayString());
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.True(symbolInfo.IsEmpty);
+            Assert.Null(symbolInfo.Symbol);
+            // INCONSISTENCY: Having type itself as a symbol info candidate for a constructor invocation node is odd.
+            // If there were no errors symbol info would be completely empty (no symbol & no candidates).
+            // Given that we know type of the expression, shouldn't symbol info be identical for normal and error cases?
+            Assert.Collection(symbolInfo.CandidateSymbols,
+                static c => Assert.Equal("T", c.ToTestDisplayString()));
 
             var assignmentNode = descendantNodes.OfType<AssignmentExpressionSyntax>().Single();
             var assignmentTypeInfo = model.GetTypeInfo(assignmentNode);

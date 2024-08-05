@@ -12325,8 +12325,9 @@ class Program<T>
             Assert.Equal(ConversionKind.Boxing, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
-            Assert.Empty(semanticInfo.CandidateSymbols);
+            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
+            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal("T", semanticInfo.CandidateSymbols.First().Name);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
