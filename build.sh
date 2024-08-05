@@ -2,6 +2,8 @@
 
 source="${BASH_SOURCE[0]}"
 
+apt update && apt -vvvvvvvv moo
+
 # resolve $SOURCE until the file is no longer a symlink
 while [[ -h $source ]]; do
   scriptroot="$( cd -P "$( dirname "$source" )" && pwd )"
