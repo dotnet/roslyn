@@ -305,8 +305,7 @@ class C
             Assert.True(typeInfo.ConvertedType.IsErrorType());
 
             var symbolInfo = model.GetSymbolInfo(node);
-            Assert.Null(symbolInfo.Symbol);
-            Assert.Empty(symbolInfo.CandidateSymbols);
+            Assert.True(symbolInfo.IsEmpty);
 
             var assignmentNode = descendantNodes.OfType<AssignmentExpressionSyntax>().Single();
             var assignmentTypeInfo = model.GetTypeInfo(assignmentNode);
