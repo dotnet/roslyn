@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Diagnostics;
 using System.Text;
 using Roslyn.Utilities;
 
@@ -12,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Text
     /// <summary>
     /// Implementation of <see cref="SourceText"/> based on a <see cref="StringBuilder"/> input
     /// </summary>
-    internal sealed partial class StringBuilderText : SourceText
+    internal sealed class StringBuilderText : SourceText
     {
         /// <summary>
         /// Underlying string on which this SourceText instance is based
@@ -77,16 +76,15 @@ namespace Microsoft.CodeAnalysis.Text
         /// <exception cref="ArgumentOutOfRangeException">When given span is outside of the text range.</exception>
         public override string ToString(TextSpan span)
         {
-            if (span.End > _builder.Length)
-            {
-                throw new ArgumentOutOfRangeException(nameof(span));
-            }
+            ValidateSubSpan(span);
 
             return _builder.ToString(span.Start, span.Length);
         }
 
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
+            ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count);
+
             _builder.CopyTo(sourceIndex, destination, destinationIndex, count);
         }
     }

@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -77,7 +75,13 @@ namespace Microsoft.CodeAnalysis.Text
 
         public override SourceText GetSubText(TextSpan span)
         {
-            CheckSubSpan(span);
+            ValidateSubSpan(span);
+
+            if (span.Length == 0)
+                return From(string.Empty, Encoding, ChecksumAlgorithm);
+
+            if (span.Start == 0 && span.Length == Length)
+                return this;
 
             var sourceIndex = span.Start;
             var count = span.Length;
@@ -117,30 +121,11 @@ namespace Microsoft.CodeAnalysis.Text
             offset = position - _segmentOffsets[index];
         }
 
-        /// <summary>
-        /// Validates the arguments passed to <see cref="CopyTo"/> against the published contract.
-        /// </summary>
-        /// <returns>True if should bother to proceed with copying.</returns>
-        private bool CheckCopyToArguments(int sourceIndex, char[] destination, int destinationIndex, int count)
-        {
-            if (destination == null)
-                throw new ArgumentNullException(nameof(destination));
-
-            if (sourceIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(sourceIndex));
-
-            if (destinationIndex < 0)
-                throw new ArgumentOutOfRangeException(nameof(destinationIndex));
-
-            if (count < 0 || count > this.Length - sourceIndex || count > destination.Length - destinationIndex)
-                throw new ArgumentOutOfRangeException(nameof(count));
-
-            return count > 0;
-        }
-
         public override void CopyTo(int sourceIndex, char[] destination, int destinationIndex, int count)
         {
-            if (!CheckCopyToArguments(sourceIndex, destination, destinationIndex, count))
+            ValidateCopyToArguments(sourceIndex, destination, destinationIndex, count);
+
+            if (count == 0)
                 return;
 
             int segIndex;
