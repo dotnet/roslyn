@@ -310,13 +310,255 @@ public class FirstClassSpanTests : CSharpTestBase
             """);
     }
 
+    [Theory, CombinatorialData]
+    public void Conversion_Span_ReadOnlySpan_Implicit(
+        [CombinatorialLangVersions] LanguageVersion langVersion,
+        bool cast)
+    {
+        var source = $$"""
+            using System;
+            ReadOnlySpan<int> s = {{(cast ? "(ReadOnlySpan<int>)" : "")}}source();
+            report(s);
+            static Span<int> source() => new Span<int>(new int[] { 1, 2, 3 });
+            static void report(ReadOnlySpan<int> s) { foreach (var x in s) { Console.Write(x); } }
+            """;
+
+        var expectedOutput = "123";
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       16 (0x10)
+              .maxstack  1
+              IL_0000:  call       "System.Span<int> Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+              IL_000a:  call       "void Program.<<Main>$>g__report|0_1(System.ReadOnlySpan<int>)"
+              IL_000f:  ret
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_Span_ReadOnlySpan_CastUp_Implicit(bool cast)
+    {
+        var source = $$"""
+            using System;
+            ReadOnlySpan<object> s = {{(cast ? "(ReadOnlySpan<object>)" : "")}}source();
+            report(s);
+            static Span<string> source() => new Span<string>(new[] { "a", "b" });
+            static void report(ReadOnlySpan<object> s) { foreach (var x in s) { Console.Write(x); } }
+            """;
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        if (!cast)
+        {
+            comp.VerifyDiagnostics(
+                // (2,26): error CS0029: Cannot implicitly convert type 'System.Span<string>' to 'System.ReadOnlySpan<object>'
+                // ReadOnlySpan<object> s = source();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "source()").WithArguments("System.Span<string>", "System.ReadOnlySpan<object>").WithLocation(2, 26));
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (2,26): error CS0030: Cannot convert type 'System.Span<string>' to 'System.ReadOnlySpan<object>'
+                // ReadOnlySpan<object> s = (ReadOnlySpan<object>)source();
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<object>)source()").WithArguments("System.Span<string>", "System.ReadOnlySpan<object>").WithLocation(2, 26));
+        }
+
+        var expectedOutput = "ab";
+
+        var expectedIL = """
+            {
+              // Code size       21 (0x15)
+              .maxstack  1
+              IL_0000:  call       "System.Span<string> Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<string> System.Span<string>.op_Implicit(System.Span<string>)"
+              IL_000a:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+              IL_000f:  call       "void Program.<<Main>$>g__report|0_1(System.ReadOnlySpan<object>)"
+              IL_0014:  ret
+            }
+            """;
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
+        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_Span_ReadOnlySpan_Implicit_IdentityInnerConversion(
+        [CombinatorialLangVersions] LanguageVersion langVersion,
+        bool cast)
+    {
+        var source = $$"""
+            using System;
+            ReadOnlySpan<object> s = {{(cast ? "(ReadOnlySpan<object>)" : "")}}source();
+            report(s);
+            static Span<dynamic> source() => new Span<dynamic>(new object[] { "a", "b" });
+            static void report(ReadOnlySpan<object> s) { foreach (var x in s) { Console.Write(x); } }
+            """;
+
+        var expectedOutput = "ab";
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       16 (0x10)
+              .maxstack  1
+              IL_0000:  call       "System.Span<dynamic> Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<dynamic> System.Span<dynamic>.op_Implicit(System.Span<dynamic>)"
+              IL_000a:  call       "void Program.<<Main>$>g__report|0_1(System.ReadOnlySpan<object>)"
+              IL_000f:  ret
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit(bool cast)
+    {
+        var source = $$"""
+            using System;
+            ReadOnlySpan<object> s = {{(cast ? "(ReadOnlySpan<object>)" : "")}}source();
+            report(s);
+            static ReadOnlySpan<string> source() => new ReadOnlySpan<string>(new[] { "a", "b" });
+            static void report(ReadOnlySpan<object> s) { foreach (var x in s) { Console.Write(x); } }
+            """;
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        if (!cast)
+        {
+            comp.VerifyDiagnostics(
+                // (2,26): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<string>' to 'System.ReadOnlySpan<object>'
+                // ReadOnlySpan<object> s = source();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "source()").WithArguments("System.ReadOnlySpan<string>", "System.ReadOnlySpan<object>").WithLocation(2, 26));
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (2,26): error CS0030: Cannot convert type 'System.ReadOnlySpan<string>' to 'System.ReadOnlySpan<object>'
+                // ReadOnlySpan<object> s = (ReadOnlySpan<object>)source();
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<object>)source()").WithArguments("System.ReadOnlySpan<string>", "System.ReadOnlySpan<object>").WithLocation(2, 26));
+        }
+
+        var expectedOutput = "ab";
+
+        var expectedIL = """
+            {
+              // Code size       16 (0x10)
+              .maxstack  1
+              IL_0000:  call       "System.ReadOnlySpan<string> Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+              IL_000a:  call       "void Program.<<Main>$>g__report|0_1(System.ReadOnlySpan<object>)"
+              IL_000f:  ret
+            }
+            """;
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
+        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_IdentityInnerConversion(
+        [CombinatorialLangVersions] LanguageVersion langVersion,
+        bool cast)
+    {
+        var source = $$"""
+            using System;
+            ReadOnlySpan<object> s = {{(cast ? "(ReadOnlySpan<object>)" : "")}}source();
+            report(s);
+            static ReadOnlySpan<dynamic> source() => new ReadOnlySpan<dynamic>(new string[] { "a", "b" });
+            static void report(ReadOnlySpan<object> s) { foreach (var x in s) { Console.Write(x); } }
+            """;
+
+        var expectedOutput = "ab";
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       11 (0xb)
+              .maxstack  1
+              IL_0000:  call       "System.ReadOnlySpan<dynamic> Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "void Program.<<Main>$>g__report|0_1(System.ReadOnlySpan<object>)"
+              IL_000a:  ret
+            }
+            """);
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_string_ReadOnlySpan_Implicit(bool cast)
+    {
+        var source = $$"""
+            using System;
+            ReadOnlySpan<char> s = {{(cast ? "(ReadOnlySpan<char>)" : "")}}source();
+            report(s);
+            static string source() => "abc";
+            static void report(ReadOnlySpan<char> s) { foreach (var x in s) { Console.Write(x + " "); } }
+            """;
+
+        var expectedOutput = "a b c";
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+        verifier.VerifyDiagnostics();
+        var owner = ExecutionConditionUtil.IsCoreClr ? "string" : "System.ReadOnlySpan<char>";
+        verifier.VerifyIL("<top-level-statements-entry-point>", $$"""
+            {
+              // Code size       16 (0x10)
+              .maxstack  1
+              IL_0000:  call       "string Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<char> {{owner}}.op_Implicit(string)"
+              IL_000a:  call       "void Program.<<Main>$>g__report|0_1(System.ReadOnlySpan<char>)"
+              IL_000f:  ret
+            }
+            """);
+
+        var expectedIL = """
+            {
+              // Code size       16 (0x10)
+              .maxstack  1
+              IL_0000:  call       "string Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_000a:  call       "void Program.<<Main>$>g__report|0_1(System.ReadOnlySpan<char>)"
+              IL_000f:  ret
+            }         
+            """;
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", expectedIL);
+    }
+
     [Fact]
     public void Conversion_Array_Span_Implicit_MissingHelper()
     {
         var source = """
             using System;
             Span<int> s = arr();
-            static int[] arr() => new int[] { 1, 2, 3 };
+            static int[] arr() => throw null;
 
             namespace System
             {
@@ -325,10 +567,214 @@ public class FirstClassSpanTests : CSharpTestBase
                 }
             }
             """;
-        CreateCompilation(source).VerifyDiagnostics(
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (2,15): error CS0029: Cannot implicitly convert type 'int[]' to 'System.Span<int>'
+            // Span<int> s = arr();
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arr()").WithArguments("int[]", "System.Span<int>").WithLocation(2, 15));
+
+        var expectedDiagnostics = new[]
+        {
             // (2,15): error CS0656: Missing compiler required member 'System.Span<T>.op_Implicit'
             // Span<int> s = arr();
-            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 15));
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 15)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_Implicit_MissingHelper()
+    {
+        var source = """
+            using System;
+            ReadOnlySpan<int> s = source();
+            static Span<int> source() => throw null;
+
+            namespace System
+            {
+                public readonly ref struct Span<T> { }
+                public readonly ref struct ReadOnlySpan<T> { }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (2,23): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'System.ReadOnlySpan<int>'
+            // ReadOnlySpan<int> s = source();
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "source()").WithArguments("System.Span<int>", "System.ReadOnlySpan<int>").WithLocation(2, 23));
+
+        var expectedDiagnostics = new[]
+        {
+            // (2,23): error CS0656: Missing compiler required member 'Span<T>.op_Implicit'
+            // ReadOnlySpan<int> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 23)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_CastUp_Implicit_MissingHelper_01()
+    {
+        var source = """
+            using System;
+            ReadOnlySpan<object> s = source();
+            static Span<string> source() => throw null;
+
+            namespace System
+            {
+                public readonly ref struct Span<T> { }
+                public readonly ref struct ReadOnlySpan<T> { }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (2,26): error CS0029: Cannot implicitly convert type 'System.Span<string>' to 'System.ReadOnlySpan<object>'
+            // ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "source()").WithArguments("System.Span<string>", "System.ReadOnlySpan<object>").WithLocation(2, 26));
+
+        var expectedDiagnostics = new[]
+        {
+            // (2,26): error CS0656: Missing compiler required member 'Span<T>.op_Implicit'
+            // ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 26),
+            // (2,26): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+            // ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(2, 26)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_CastUp_Implicit_MissingHelper_02()
+    {
+        var source = """
+            using System;
+            ReadOnlySpan<object> s = source();
+            static Span<string> source() => throw null;
+
+            namespace System
+            {
+                public readonly ref struct Span<T>
+                {
+                    public static implicit operator ReadOnlySpan<T>(Span<T> s) => throw null;
+                }
+                public readonly ref struct ReadOnlySpan<T> { }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (2,26): error CS0029: Cannot implicitly convert type 'System.Span<string>' to 'System.ReadOnlySpan<object>'
+            // ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "source()").WithArguments("System.Span<string>", "System.ReadOnlySpan<object>").WithLocation(2, 26));
+
+        var expectedDiagnostics = new[]
+        {
+            // (2,26): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+            // ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(2, 26)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_CastUp_Implicit_MissingHelper_03()
+    {
+        var source = """
+            using System;
+            ReadOnlySpan<object> s = source();
+            static Span<string> source() => throw null;
+
+            namespace System
+            {
+                public readonly ref struct Span<T> { }
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> s) where TDerived : class, T => throw null;
+                }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (2,26): error CS0029: Cannot implicitly convert type 'System.Span<string>' to 'System.ReadOnlySpan<object>'
+            // ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "source()").WithArguments("System.Span<string>", "System.ReadOnlySpan<object>").WithLocation(2, 26));
+
+        var expectedDiagnostics = new[]
+        {
+            // (2,26): error CS0656: Missing compiler required member 'Span<T>.op_Implicit'
+            // ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 26)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_MissingHelper()
+    {
+        var source = """
+            using System;
+            ReadOnlySpan<object> s = source();
+            static ReadOnlySpan<string> source() => throw null;
+
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T> { }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (2,26): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<string>' to 'System.ReadOnlySpan<object>'
+            // ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "source()").WithArguments("System.ReadOnlySpan<string>", "System.ReadOnlySpan<object>").WithLocation(2, 26));
+
+        var expectedDiagnostics = new[]
+        {
+            // (2,26): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+            // ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(2, 26)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Conversion_string_ReadOnlySpan_Implicit_MissingHelper()
+    {
+        var source = """
+            using System;
+            ReadOnlySpan<char> s = source();
+            static string source() => throw null;
+
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T> { }
+            }
+            """;
+
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (2,24): error CS0029: Cannot implicitly convert type 'string' to 'System.ReadOnlySpan<char>'
+            // ReadOnlySpan<char> s = source();
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "source()").WithArguments("string", "System.ReadOnlySpan<char>").WithLocation(2, 24));
+
+        var expectedDiagnostics = new[]
+        {
+            // (2,24): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+            // ReadOnlySpan<char> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(2, 24)
+        };
+
+        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
@@ -374,6 +820,137 @@ public class FirstClassSpanTests : CSharpTestBase
             // (2,15): error CS0656: Missing compiler required member 'System.Span<T>.op_Implicit'
             // Span<int> s = arr();
             Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "arr()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 15));
+    }
+
+    [Theory]
+    [InlineData("ReadOnlySpan<char> AsSpan(string s)", true)]
+    [InlineData("ReadOnlySpan<int> AsSpan(string s)", false)]
+    [InlineData("ReadOnlySpan<T> AsSpan<T>(string s)", false)]
+    [InlineData("ReadOnlySpan<char> AsSpan(object o)", false)]
+    [InlineData("Span<char> AsSpan(string s)", false)]
+    public void Conversion_string_ReadOnlySpan_Implicit_DifferentHelper(string signature, bool works)
+    {
+        var source = $$"""
+            using System;
+            ReadOnlySpan<char> s = source();
+            static string source() => "";
+
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T> { }
+                public readonly ref struct Span<T> { }
+                public static class MemoryExtensions
+                {
+                    public static {{signature}} => default;
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        if (works)
+        {
+            // Make sure the code above can work so we are testing something useful.
+            comp.VerifyDiagnostics();
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (2,24): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                // ReadOnlySpan<char> s = source();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(2, 24));
+        }
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_string_ReadOnlySpan_Implicit_HelperAccessibility_01(
+        [CombinatorialValues("public", "internal")] string classModifier,
+        [CombinatorialValues("public", "internal")] string methodModifier)
+    {
+        var source = $$"""
+            using System;
+            ReadOnlySpan<char> s = source();
+            static string source() => "";
+
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T> { }
+                {{classModifier}} static class MemoryExtensions
+                {
+                    {{methodModifier}} static ReadOnlySpan<char> AsSpan(string s) => default;
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        if (classModifier == "internal" || methodModifier == "internal")
+        {
+            comp.VerifyDiagnostics(
+                // (2,24): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                // ReadOnlySpan<char> s = source();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(2, 24));
+        }
+        else
+        {
+            comp.VerifyDiagnostics();
+        }
+    }
+
+    [Fact]
+    public void Conversion_string_ReadOnlySpan_Implicit_HelperAccessibility_02()
+    {
+        var source1 = """
+            namespace System;
+            public readonly ref struct ReadOnlySpan<T>;
+            internal static class MemoryExtensions
+            {
+                public static ReadOnlySpan<char> AsSpan(string s) => default;
+            }
+            """;
+        var comp1 = CreateCompilation(source1).VerifyDiagnostics().EmitToImageReference();
+
+        var source2 = """
+            using System;
+            ReadOnlySpan<char> s1 = source();
+            ReadOnlySpan<char> s2 = MemoryExtensions.AsSpan(source());
+            static string source() => "";
+            """;
+        CreateCompilation(source2, [comp1]).VerifyDiagnostics(
+            // (2,25): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+            // ReadOnlySpan<char> s1 = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(2, 25),
+            // (3,25): error CS0122: 'MemoryExtensions' is inaccessible due to its protection level
+            // ReadOnlySpan<char> s2 = MemoryExtensions.AsSpan(source());
+            Diagnostic(ErrorCode.ERR_BadAccess, "MemoryExtensions").WithArguments("System.MemoryExtensions").WithLocation(3, 25));
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_string_ReadOnlySpan_Implicit_RedefinedHelper(
+        [CombinatorialValues("public", "internal")] string classModifier,
+        [CombinatorialValues("public", "internal")] string methodModifier)
+    {
+        var source = $$"""
+            using System;
+            ReadOnlySpan<char> s = source();
+            static string source() => "";
+
+            namespace System
+            {
+                {{classModifier}} static class MemoryExtensions
+                {
+                    {{methodModifier}} static ReadOnlySpan<char> AsSpan(string s) => default;
+                }
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        if (classModifier == "public" && methodModifier == "public")
+        {
+            comp.VerifyDiagnostics(
+                // (2,24): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+                // ReadOnlySpan<char> s = source();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(2, 24));
+        }
+        else
+        {
+            comp.VerifyDiagnostics();
+        }
     }
 
     [Fact]
@@ -519,6 +1096,119 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_000f:  ret
             }
             """);
+    }
+
+    [Theory]
+    [InlineData("where TDerived : T")]
+    [InlineData("")]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_MissingClassConstraint(string constraints)
+    {
+        var source = $$"""
+            using System;
+            ReadOnlySpan<object> s = source();
+            static ReadOnlySpan<string> source() => throw null;
+            
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> items) {{constraints}} => throw null;
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,26): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+            // ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(2, 26));
+    }
+
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_MissingInheritsConstraint()
+    {
+        var source = """
+            using System;
+            ReadOnlySpan<object> s = source();
+            static ReadOnlySpan<string> source() => throw null;
+            
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> items) where TDerived : class => throw null;
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       12 (0xc)
+              .maxstack  1
+              IL_0000:  call       "System.ReadOnlySpan<string> Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+              IL_000a:  pop
+              IL_000b:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_AdditionalConstraint()
+    {
+        var source = """
+            using System;
+            ReadOnlySpan<object> s = source();
+            static ReadOnlySpan<string> source() => throw null;
+
+            public class C { }
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> items) where TDerived : C => throw null;
+                }
+            }
+            """;
+        CreateCompilation(source).VerifyDiagnostics(
+            // (2,26): error CS0311: The type 'string' cannot be used as type parameter 'TDerived' in the generic type or method 'ReadOnlySpan<object>.CastUp<TDerived>(ReadOnlySpan<TDerived>)'. There is no implicit reference conversion from 'string' to 'C'.
+            // ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "source()").WithArguments("System.ReadOnlySpan<object>.CastUp<TDerived>(System.ReadOnlySpan<TDerived>)", "C", "TDerived", "string").WithLocation(2, 26));
+    }
+
+    [Theory]
+    [InlineData("T", "T", false)]
+    [InlineData("T", "TDerived", false)]
+    [InlineData("TDerived", "TDerived", false)]
+    [InlineData("TDerived", "T", true)]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_WrongTypeArgument(string arg, string result, bool works)
+    {
+        var source = $$"""
+            using System;
+            ReadOnlySpan<object> s = source();
+            static ReadOnlySpan<string> source() => throw null;
+
+            public class C { }
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static ReadOnlySpan<{{result}}> CastUp<TDerived>(ReadOnlySpan<{{arg}}> items) where TDerived : class, T => throw null;
+                }
+            }
+            """;
+        var comp = CreateCompilation(source);
+        if (works)
+        {
+            // Make sure the code above can work so we are testing something useful.
+            comp.VerifyDiagnostics();
+        }
+        else
+        {
+            comp.VerifyDiagnostics(
+                // (2,26): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+                // ReadOnlySpan<object> s = source();
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(2, 26));
+        }
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -741,14 +1431,654 @@ public class FirstClassSpanTests : CSharpTestBase
             """);
     }
 
-    [Theory, CombinatorialData]
-    public void Conversion_Array_Span_Implicit_SemanticModel(
-        [CombinatorialValues("Span", "ReadOnlySpan")] string destination)
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_Implicit_MultipleSpans_01()
+    {
+        static string getSpanSource(string output) => $$"""
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T>;
+                public readonly ref struct Span<T>
+                {
+                    public static implicit operator ReadOnlySpan<T>(Span<T> span)
+                    {
+                        Console.Write("{{output}}");
+                        return default;
+                    }
+                }
+            }
+            """;
+
+        var spanComp = CreateCompilation(getSpanSource("External"), assemblyName: "Span1")
+            .VerifyDiagnostics()
+            .EmitToImageReference();
+
+        var source = """
+            using System;
+            ReadOnlySpan<int> s = source();
+            use(s);
+            static Span<int> source() => default;
+            static void use(ReadOnlySpan<int> s) { }
+            """;
+
+        var comp = CreateCompilation([source, getSpanSource("Internal")], [spanComp], assemblyName: "Consumer",
+            // warning CS0436: Type conflicts with imported type
+            options: TestOptions.UnsafeReleaseExe.WithSpecificDiagnosticOptions("CS0436", ReportDiagnostic.Suppress));
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "Internal");
+        verifier.VerifyDiagnostics();
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       16 (0x10)
+              .maxstack  1
+              IL_0000:  call       "System.Span<int> Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+              IL_000a:  call       "void Program.<<Main>$>g__use|0_1(System.ReadOnlySpan<int>)"
+              IL_000f:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_Implicit_MultipleSpans_02()
+    {
+        static string getSpanSource(string output) => $$"""
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T>;
+                public readonly ref struct Span<T>
+                {
+                    public static implicit operator ReadOnlySpan<T>(Span<T> span)
+                    {
+                        Console.Write("{{output}}");
+                        return default;
+                    }
+                }
+            }
+            """;
+
+        var spanComp = CreateCompilation(getSpanSource("External"), assemblyName: "Span1")
+            .VerifyDiagnostics()
+            .EmitToImageReference(aliases: ["lib"]);
+
+        var source = """
+            extern alias lib;
+            lib::System.ReadOnlySpan<int> s = source();
+            static lib::System.Span<int> source() => default;
+            """;
+
+        var comp = CreateCompilation([source, getSpanSource("Internal")], [spanComp], assemblyName: "Consumer");
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "External");
+        verifier.VerifyDiagnostics();
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       12 (0xc)
+              .maxstack  1
+              IL_0000:  call       "System.Span<int> Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+              IL_000a:  pop
+              IL_000b:  ret
+            }
+            """);
+
+        source = """
+            extern alias lib;
+            lib::System.ReadOnlySpan<int> s = source();
+            static System.Span<int> source() => default;
+            """;
+        CreateCompilation([source, getSpanSource("Internal")], [spanComp], assemblyName: "Consumer").VerifyDiagnostics(
+            // (2,35): error CS0656: Missing compiler required member 'Span<T>.op_Implicit'
+            // lib::System.ReadOnlySpan<int> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 35));
+
+        source = """
+            extern alias lib;
+            System.ReadOnlySpan<int> s = source();
+            static lib::System.Span<int> source() => default;
+            """;
+        CreateCompilation([source, getSpanSource("Internal")], [spanComp], assemblyName: "Consumer").VerifyDiagnostics(
+            // (2,30): error CS0656: Missing compiler required member 'Span<T>.op_Implicit'
+            // System.ReadOnlySpan<int> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 30));
+    }
+
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_Implicit_MultipleSpans_03()
+    {
+        var span1 = CreateCompilation("""
+            namespace System;
+            public readonly ref struct ReadOnlySpan<T>;
+            public readonly ref struct Span<T>;
+            """, assemblyName: "Span1")
+            .VerifyDiagnostics()
+            .EmitToImageReference(aliases: ["span1"]);
+        var span2 = CreateCompilation("""
+            extern alias span1;
+            namespace System;
+            public readonly ref struct ReadOnlySpan<T>;
+            public readonly ref struct Span<T>
+            {
+                public static implicit operator span1::System.ReadOnlySpan<T>(Span<T> span)
+                {
+                    Console.Write("Span2");
+                    return default;
+                }
+            }
+            """, [span1], assemblyName: "Span2")
+            .VerifyDiagnostics()
+            .EmitToImageReference(aliases: ["span2"]);
+
+        var source = """
+            extern alias span1;
+            extern alias span2;
+            span1::System.ReadOnlySpan<int> s = source();
+            static span2::System.Span<int> source() => default;
+            """;
+
+        var comp = CreateCompilation(source, [span1, span2], assemblyName: "Consumer");
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "Span2");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       12 (0xc)
+              .maxstack  1
+              IL_0000:  call       "System.Span<int> Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+              IL_000a:  pop
+              IL_000b:  ret
+            }
+            """);
+
+        source = """
+            extern alias span2;
+            span2::System.ReadOnlySpan<int> s = source();
+            static span2::System.Span<int> source() => default;
+            """;
+        CreateCompilation(source, [span2], assemblyName: "Consumer").VerifyDiagnostics(
+            // (2,37): error CS0656: Missing compiler required member 'Span<T>.op_Implicit'
+            // span2::System.ReadOnlySpan<int> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(2, 37));
+
+        source = """
+            extern alias span1;
+            extern alias span2;
+            span2::System.ReadOnlySpan<int> s = source();
+            static span1::System.Span<int> source() => default;
+            """;
+        CreateCompilation(source, [span1, span2], assemblyName: "Consumer").VerifyDiagnostics(
+            // (3,37): error CS0656: Missing compiler required member 'Span<T>.op_Implicit'
+            // span2::System.ReadOnlySpan<int> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.Span<T>", "op_Implicit").WithLocation(3, 37));
+    }
+
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_CastUp_Implicit_MultipleSpans()
+    {
+        var span1 = CreateCompilation("""
+            namespace System;
+            public readonly ref struct Span<T>;
+            public readonly ref struct ReadOnlySpan<T>
+            {
+                public static ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> span) where TDerived : class, T
+                {
+                    Console.WriteLine("CastUp");
+                    return default;
+                }
+            }
+            """, assemblyName: "Span1")
+            .VerifyDiagnostics()
+            .EmitToImageReference(aliases: ["span1"]);
+        var span2 = CreateCompilation("""
+            extern alias span1;
+            namespace System;
+            public readonly ref struct Span<T>
+            {
+                public static implicit operator span1::System.ReadOnlySpan<T>(Span<T> span)
+                {
+                    Console.WriteLine("Span2 to ReadOnlySpan1");
+                    return default;
+                }
+            }
+            """, [span1], assemblyName: "Span2")
+            .VerifyDiagnostics()
+            .EmitToImageReference(aliases: ["span2"]);
+
+        var source = """
+            extern alias span1;
+            extern alias span2;
+            span1::System.ReadOnlySpan<object> s = source();
+            static span2::System.Span<string> source() => default;
+            """;
+
+        var comp = CreateCompilation(source, [span1, span2], assemblyName: "Consumer");
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: """
+            Span2 to ReadOnlySpan1
+            CastUp
+            """);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       17 (0x11)
+              .maxstack  1
+              IL_0000:  call       "System.Span<string> Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<string> System.Span<string>.op_Implicit(System.Span<string>)"
+              IL_000a:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+              IL_000f:  pop
+              IL_0010:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_MultipleSpans_01()
+    {
+        static string getSpanSource(string output) => $$"""
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> other) where TDerived : class, T
+                    {
+                        Console.Write("{{output}}");
+                        return default;
+                    }
+                }
+            }
+            """;
+
+        var spanComp = CreateCompilation(getSpanSource("External"), assemblyName: "Span1")
+            .VerifyDiagnostics()
+            .EmitToImageReference();
+
+        var source = """
+            using System;
+            ReadOnlySpan<object> s = source();
+            use(s);
+            static ReadOnlySpan<string> source() => default;
+            static void use(ReadOnlySpan<object> s) { }
+            """;
+
+        var comp = CreateCompilation([source, getSpanSource("Internal")], [spanComp], assemblyName: "Consumer",
+            // warning CS0436: Type conflicts with imported type
+            options: TestOptions.UnsafeReleaseExe.WithSpecificDiagnosticOptions("CS0436", ReportDiagnostic.Suppress));
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "Internal");
+        verifier.VerifyDiagnostics();
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       16 (0x10)
+              .maxstack  1
+              IL_0000:  call       "System.ReadOnlySpan<string> Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+              IL_000a:  call       "void Program.<<Main>$>g__use|0_1(System.ReadOnlySpan<object>)"
+              IL_000f:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_MultipleSpans_02()
+    {
+        static string getSpanSource(string output) => $$"""
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> other) where TDerived : class, T
+                    {
+                        Console.Write("{{output}}");
+                        return default;
+                    }
+                }
+            }
+            """;
+
+        var spanComp = CreateCompilation(getSpanSource("External"), assemblyName: "Span1")
+            .VerifyDiagnostics()
+            .EmitToImageReference(aliases: ["lib"]);
+
+        var source = """
+            extern alias lib;
+            lib::System.ReadOnlySpan<object> s = source();
+            static lib::System.ReadOnlySpan<string> source() => default;
+            """;
+
+        var comp = CreateCompilation([source, getSpanSource("Internal")], [spanComp], assemblyName: "Consumer");
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "External");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       12 (0xc)
+              .maxstack  1
+              IL_0000:  call       "System.ReadOnlySpan<string> Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+              IL_000a:  pop
+              IL_000b:  ret
+            }
+            """);
+
+        source = """
+            extern alias lib;
+            lib::System.ReadOnlySpan<object> s = source();
+            static System.ReadOnlySpan<string> source() => default;
+            """;
+        CreateCompilation([source, getSpanSource("Internal")], [spanComp], assemblyName: "Consumer").VerifyDiagnostics(
+            // (2,38): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+            // lib::System.ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(2, 38));
+
+        source = """
+            extern alias lib;
+            System.ReadOnlySpan<object> s = source();
+            static lib::System.ReadOnlySpan<string> source() => default;
+            """;
+        CreateCompilation([source, getSpanSource("Internal")], [spanComp], assemblyName: "Consumer").VerifyDiagnostics(
+            // (2,33): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+            // System.ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(2, 33));
+    }
+
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_MultipleSpans_03()
+    {
+        var span1 = CreateCompilation("""
+            namespace System;
+            public readonly ref struct ReadOnlySpan<T>;
+            """, assemblyName: "Span1")
+            .VerifyDiagnostics()
+            .EmitToImageReference(aliases: ["span1"]);
+        var span2 = CreateCompilation("""
+            extern alias span1;
+            namespace System;
+            public readonly ref struct ReadOnlySpan<T>
+            {
+                public static span1::System.ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> other) where TDerived : class, T
+                {
+                    Console.Write("Span2");
+                    return default;
+                }
+            }
+            """, [span1], assemblyName: "Span2")
+            .VerifyDiagnostics()
+            .EmitToImageReference(aliases: ["span2"]);
+
+        var source = """
+            extern alias span1;
+            extern alias span2;
+            span1::System.ReadOnlySpan<object> s = source();
+            static span2::System.ReadOnlySpan<string> source() => default;
+            """;
+        CreateCompilation(source, [span1, span2], assemblyName: "Consumer").VerifyDiagnostics(
+            // (3,40): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+            // span1::System.ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(3, 40));
+
+        source = """
+            extern alias span2;
+            span2::System.ReadOnlySpan<object> s = source();
+            static span2::System.ReadOnlySpan<string> source() => default;
+            """;
+        CreateCompilation(source, [span2], assemblyName: "Consumer").VerifyDiagnostics(
+            // (2,40): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+            // span2::System.ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(2, 40));
+
+        source = """
+            extern alias span1;
+            extern alias span2;
+            span2::System.ReadOnlySpan<object> s = source();
+            static span1::System.ReadOnlySpan<string> source() => default;
+            """;
+        CreateCompilation(source, [span1, span2], assemblyName: "Consumer").VerifyDiagnostics(
+            // (3,40): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+            // span2::System.ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(3, 40));
+    }
+
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_MultipleSpans_04()
+    {
+        var span1 = CreateCompilation("""
+            namespace System;
+            public readonly ref struct ReadOnlySpan<T>;
+            """, assemblyName: "Span1")
+            .VerifyDiagnostics()
+            .EmitToImageReference(aliases: ["span1"]);
+        var span2 = CreateCompilation("""
+            extern alias span1;
+            namespace System;
+            public readonly ref struct ReadOnlySpan<T>
+            {
+                public static ReadOnlySpan<T> CastUp<TDerived>(span1::System.ReadOnlySpan<TDerived> other) where TDerived : class, T
+                {
+                    Console.Write("Span2");
+                    return default;
+                }
+            }
+            """, [span1], assemblyName: "Span2")
+            .VerifyDiagnostics()
+            .EmitToImageReference(aliases: ["span2"]);
+
+        var source = """
+            extern alias span1;
+            extern alias span2;
+            span1::System.ReadOnlySpan<object> s = source();
+            static span2::System.ReadOnlySpan<string> source() => default;
+            """;
+        CreateCompilation(source, [span1, span2], assemblyName: "Consumer").VerifyDiagnostics(
+            // (3,40): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+            // span1::System.ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(3, 40));
+
+        source = """
+            extern alias span2;
+            span2::System.ReadOnlySpan<object> s = source();
+            static span2::System.ReadOnlySpan<string> source() => default;
+            """;
+        CreateCompilation(source, [span2], assemblyName: "Consumer").VerifyDiagnostics(
+            // (2,40): error CS0656: Missing compiler required member 'ReadOnlySpan<T>.CastUp'
+            // span2::System.ReadOnlySpan<object> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.ReadOnlySpan<T>", "CastUp").WithLocation(2, 40));
+
+        source = """
+            extern alias span1;
+            extern alias span2;
+            span2::System.ReadOnlySpan<object> s = source();
+            static span1::System.ReadOnlySpan<string> source() => default;
+            """;
+        var comp = CreateCompilation(source, [span1, span2], assemblyName: "Consumer");
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "Span2");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       12 (0xc)
+              .maxstack  1
+              IL_0000:  call       "System.ReadOnlySpan<string> Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+              IL_000a:  pop
+              IL_000b:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Conversion_string_ReadOnlySpan_Implicit_MultipleSpans_01()
+    {
+        static string getSpanSource(string output) => $$"""
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T>;
+                public static class MemoryExtensions
+                {
+                    public static ReadOnlySpan<char> AsSpan(string s)
+                    {
+                        Console.Write("{{output}}");
+                        return default;
+                    }
+                }
+            }
+            """;
+
+        var spanComp = CreateCompilation(getSpanSource("External"), assemblyName: "Span1")
+            .VerifyDiagnostics()
+            .EmitToImageReference();
+
+        var source = """
+            using System;
+            ReadOnlySpan<char> s = source();
+            use(s);
+            static string source() => "";
+            static void use(ReadOnlySpan<char> s) { }
+            """;
+
+        var comp = CreateCompilation([source, getSpanSource("Internal")], [spanComp], assemblyName: "Consumer",
+            // warning CS0436: Type conflicts with imported type
+            options: TestOptions.UnsafeReleaseExe.WithSpecificDiagnosticOptions("CS0436", ReportDiagnostic.Suppress));
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "Internal");
+        verifier.VerifyDiagnostics();
+
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       16 (0x10)
+              .maxstack  1
+              IL_0000:  call       "string Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_000a:  call       "void Program.<<Main>$>g__use|0_1(System.ReadOnlySpan<char>)"
+              IL_000f:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Conversion_string_ReadOnlySpan_Implicit_MultipleSpans_02()
+    {
+        static string getSpanSource(string output) => $$"""
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T>;
+                public static class MemoryExtensions
+                {
+                    public static ReadOnlySpan<char> AsSpan(string s)
+                    {
+                        Console.Write("{{output}}");
+                        return default;
+                    }
+                }
+            }
+            """;
+
+        var spanComp = CreateCompilation(getSpanSource("External"), assemblyName: "Span1")
+            .VerifyDiagnostics()
+            .EmitToImageReference(aliases: ["lib"]);
+
+        var source = """
+            extern alias lib;
+            lib::System.ReadOnlySpan<char> s = source();
+            static string source() => "";
+            """;
+
+        var comp = CreateCompilation([source, getSpanSource("Internal")], [spanComp], assemblyName: "Consumer");
+        var verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "External");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       12 (0xc)
+              .maxstack  1
+              IL_0000:  call       "string Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_000a:  pop
+              IL_000b:  ret
+            }
+            """);
+
+        source = """
+            System.ReadOnlySpan<char> s = source();
+            static string source() => "";
+            """;
+
+        comp = CreateCompilation([source, getSpanSource("Internal")], [spanComp], assemblyName: "Consumer");
+        verifier = CompileAndVerify(comp, verify: Verification.FailsILVerify, expectedOutput: "Internal");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       12 (0xc)
+              .maxstack  1
+              IL_0000:  call       "string Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_000a:  pop
+              IL_000b:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Conversion_string_ReadOnlySpan_Implicit_MultipleSpans_03()
+    {
+        var span1 = CreateCompilation("""
+            namespace System;
+            public readonly ref struct ReadOnlySpan<T>;
+            """, assemblyName: "Span1")
+            .VerifyDiagnostics()
+            .EmitToImageReference(aliases: ["span1"]);
+        var span2 = CreateCompilation($$"""
+            extern alias span1;
+            namespace System;
+            public readonly ref struct ReadOnlySpan<T>;
+            public static class MemoryExtensions
+            {
+                public static span1::System.ReadOnlySpan<char> AsSpan(string s)
+                {
+                    Console.Write("Span2");
+                    return default;
+                }
+            }
+            """, [span1], assemblyName: "Span2")
+            .VerifyDiagnostics()
+            .EmitToImageReference(aliases: ["span2"]);
+
+        var source = """
+            extern alias span1;
+            span1::System.ReadOnlySpan<char> s = source();
+            static string source() => "";
+            """;
+        var comp = CreateCompilation(source, [span1, span2], assemblyName: "Consumer");
+        var verifier = CompileAndVerify(comp, expectedOutput: "Span2");
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("<top-level-statements-entry-point>", """
+            {
+              // Code size       12 (0xc)
+              .maxstack  1
+              IL_0000:  call       "string Program.<<Main>$>g__source|0_0()"
+              IL_0005:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_000a:  pop
+              IL_000b:  ret
+            }
+            """);
+
+        source = """
+            extern alias span2;
+            span2::System.ReadOnlySpan<char> s = source();
+            static string source() => "";
+            """;
+        CreateCompilation(source, [span2], assemblyName: "Consumer").VerifyDiagnostics(
+            // (2,38): error CS0656: Missing compiler required member 'System.MemoryExtensions.AsSpan'
+            // span2::System.ReadOnlySpan<char> s = source();
+            Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "source()").WithArguments("System.MemoryExtensions", "AsSpan").WithLocation(2, 38));
+    }
+
+    [Theory]
+    [InlineData("System.Int32[]", "System.Span<System.Int32>")]
+    [InlineData("System.Int32[]", "System.ReadOnlySpan<System.Int32>")]
+    [InlineData("System.Span<System.Int32>", "System.ReadOnlySpan<System.Int32>")]
+    [InlineData("System.ReadOnlySpan<System.String>", "System.ReadOnlySpan<System.Object>")]
+    [InlineData("System.String", "System.ReadOnlySpan<System.Char>")]
+    public void Conversion_Span_Implicit_SemanticModel(string sourceType, string targetType)
     {
         var source = $$"""
             class C
             {
-                System.{{destination}}<int> M(int[] arg) { return arg; }
+                {{targetType}} M({{sourceType}} arg) { return arg; }
             }
             """;
 
@@ -760,8 +2090,8 @@ public class FirstClassSpanTests : CSharpTestBase
         Assert.Equal("arg", arg!.ToString());
 
         var argType = model.GetTypeInfo(arg);
-        Assert.Equal("System.Int32[]", argType.Type.ToTestDisplayString());
-        Assert.Equal($"System.{destination}<System.Int32>", argType.ConvertedType.ToTestDisplayString());
+        Assert.Equal(sourceType, argType.Type.ToTestDisplayString());
+        Assert.Equal(targetType, argType.ConvertedType.ToTestDisplayString());
 
         var argConv = model.GetConversion(arg);
         Assert.Equal(ConversionKind.ImplicitSpan, argConv.Kind);
@@ -840,6 +2170,563 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("int[]", "System.Span<string>").WithLocation(3, 41));
     }
 
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Explicit_UnrelatedElementType(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                Span<string> M(int[] arg) => (Span<string>)arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,34): error CS0030: Cannot convert type 'int[]' to 'System.Span<string>'
+            //     Span<string> M(int[] arg) => (Span<string>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Span<string>)arg").WithArguments("int[]", "System.Span<string>").WithLocation(4, 34));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_ReadOnlySpan_Implicit_UnrelatedElementType(LanguageVersion langVersion)
+    {
+        var source = """
+            class C
+            {
+                System.ReadOnlySpan<string> M(int[] arg) => arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (3,49): error CS0029: Cannot implicitly convert type 'int[]' to 'System.ReadOnlySpan<string>'
+            //     System.ReadOnlySpan<string> M(int[] arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("int[]", "System.ReadOnlySpan<string>").WithLocation(3, 49));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Span_Array_Implicit_UserDefined(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                string[] M(Span<string> arg) => arg;
+            }
+            namespace System
+            {
+                public readonly ref struct Span<T>
+                {
+                    public static implicit operator T[](Span<T> span) => default;
+                }
+            }
+            """;
+        CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion))
+            .VerifyDiagnostics()
+            .VerifyIL("C.M", """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.1
+              IL_0001:  call       "string[] System.Span<string>.op_Implicit(System.Span<string>)"
+              IL_0006:  ret
+            }
+            """);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_ReadOnlySpan_Explicit_UnrelatedElementType(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                ReadOnlySpan<string> M(int[] arg) => (ReadOnlySpan<string>)arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,42): error CS0030: Cannot convert type 'int[]' to 'System.ReadOnlySpan<string>'
+            //     ReadOnlySpan<string> M(int[] arg) => (ReadOnlySpan<string>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<string>)arg").WithArguments("int[]", "System.ReadOnlySpan<string>").WithLocation(4, 42));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Span_ReadOnlySpan_Implicit_UnrelatedElementType(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                ReadOnlySpan<string> M(Span<int> arg) => arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,46): error CS0029: Cannot implicitly convert type 'System.Span<int>' to 'System.ReadOnlySpan<string>'
+            //     ReadOnlySpan<string> M(Span<int> arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.Span<int>", "System.ReadOnlySpan<string>").WithLocation(4, 46));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Span_ReadOnlySpan_Explicit_UnrelatedElementType(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                ReadOnlySpan<string> M(Span<int> arg) => (ReadOnlySpan<string>)arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,46): error CS0030: Cannot convert type 'System.Span<int>' to 'System.ReadOnlySpan<string>'
+            //     ReadOnlySpan<string> M(Span<int> arg) => (ReadOnlySpan<string>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<string>)arg").WithArguments("System.Span<int>", "System.ReadOnlySpan<string>").WithLocation(4, 46));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Span_ReadOnlySpan_Implicit_Struct(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                ReadOnlySpan<int> M(Span<int> arg) => arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Span_ReadOnlySpan_Implicit_Struct_Generic(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                ReadOnlySpan<S<object>> M(Span<S<string>> arg) => arg;
+            }
+            struct S<T>;
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,55): error CS0029: Cannot implicitly convert type 'System.Span<S<string>>' to 'System.ReadOnlySpan<S<object>>'
+            //     ReadOnlySpan<S<object>> M(Span<S<string>> arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.Span<S<string>>", "System.ReadOnlySpan<S<object>>").WithLocation(4, 55));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Span_ReadOnlySpan_Implicit_Struct_Generic_NullabilityAnnotation(LanguageVersion langVersion)
+    {
+        var source = """
+            #nullable enable
+            using System;
+            class C
+            {
+                ReadOnlySpan<S<string?>> M(Span<S<string>> arg) => arg;
+            }
+            struct S<T>;
+            """;
+        var targetType = langVersion > LanguageVersion.CSharp13 ? "System.Span<S<string>>" : "System.ReadOnlySpan<S<string>>";
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (5,56): warning CS8619: Nullability of reference types in value of type 'Span<S<string>>' doesn't match target type 'ReadOnlySpan<S<string?>>'.
+            //     ReadOnlySpan<S<string?>> M(Span<S<string>> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments(targetType, "System.ReadOnlySpan<S<string?>>").WithLocation(5, 56));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_UnrelatedElementType(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                ReadOnlySpan<string> M(ReadOnlySpan<int> arg) => arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,54): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<int>' to 'System.ReadOnlySpan<string>'
+            //     ReadOnlySpan<string> M(ReadOnlySpan<int> arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.ReadOnlySpan<int>", "System.ReadOnlySpan<string>").WithLocation(4, 54));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Explicit_UnrelatedElementType(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                ReadOnlySpan<string> M(ReadOnlySpan<int> arg) => (ReadOnlySpan<string>)arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,54): error CS0030: Cannot convert type 'System.ReadOnlySpan<int>' to 'System.ReadOnlySpan<string>'
+            //     ReadOnlySpan<string> M(ReadOnlySpan<int> arg) => (ReadOnlySpan<string>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<string>)arg").WithArguments("System.ReadOnlySpan<int>", "System.ReadOnlySpan<string>").WithLocation(4, 54));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_Struct(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                ReadOnlySpan<int> M(ReadOnlySpan<int> arg) => arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_Struct_Generic(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                ReadOnlySpan<S<object>> M(ReadOnlySpan<S<string>> arg) => arg;
+            }
+            struct S<T>;
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,63): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<S<string>>' to 'System.ReadOnlySpan<S<object>>'
+            //     ReadOnlySpan<S<object>> M(ReadOnlySpan<S<string>> arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.ReadOnlySpan<S<string>>", "System.ReadOnlySpan<S<object>>").WithLocation(4, 63));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_Struct_Generic_NullabilityAnnotation(LanguageVersion langVersion)
+    {
+        var source = """
+            #nullable enable
+            using System;
+            class C
+            {
+                ReadOnlySpan<S<string?>> M(ReadOnlySpan<S<string>> arg) => arg;
+            }
+            struct S<T>;
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (5,64): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<S<string>>' doesn't match target type 'ReadOnlySpan<S<string?>>'.
+            //     ReadOnlySpan<S<string?>> M(ReadOnlySpan<S<string>> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.ReadOnlySpan<S<string>>", "System.ReadOnlySpan<S<string?>>").WithLocation(5, 64));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_UserDefined_01(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                ReadOnlySpan<string> M(ReadOnlySpan<object> arg) => arg;
+            }
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static implicit operator ReadOnlySpan<string>(ReadOnlySpan<T> span) => default;
+                }
+            }
+            """;
+        CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion), verify: Verification.FailsILVerify)
+            .VerifyDiagnostics()
+            .VerifyIL("C.M", """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.1
+              IL_0001:  call       "System.ReadOnlySpan<string> System.ReadOnlySpan<object>.op_Implicit(System.ReadOnlySpan<object>)"
+              IL_0006:  ret
+            }
+            """);
+    }
+
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_UserDefined_02()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                ReadOnlySpan<object> M(ReadOnlySpan<string> arg) => arg;
+            }
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static implicit operator ReadOnlySpan<object>(ReadOnlySpan<T> span) => default;
+                    public static ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> s) where TDerived : class, T => throw null;
+                }
+            }
+            """;
+
+        CompileAndVerify(source, parseOptions: TestOptions.Regular13, verify: Verification.FailsILVerify)
+            .VerifyDiagnostics()
+            .VerifyIL("C.M", """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.1
+              IL_0001:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<string>.op_Implicit(System.ReadOnlySpan<string>)"
+              IL_0006:  ret
+            }
+            """);
+
+        var expectedIl = """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.1
+              IL_0001:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+              IL_0006:  ret
+            }
+            """;
+
+        CompileAndVerify(source, parseOptions: TestOptions.RegularNext, verify: Verification.FailsILVerify)
+            .VerifyDiagnostics().VerifyIL("C.M", expectedIl);
+        CompileAndVerify(source, verify: Verification.FailsILVerify)
+            .VerifyDiagnostics().VerifyIL("C.M", expectedIl);
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_ReadOnlySpan_Span_Implicit(
+        [CombinatorialLangVersions] LanguageVersion langVersion,
+        [CombinatorialValues("string", "object")] string type)
+    {
+        var source = $$"""
+            using System;
+            class C
+            {
+                Span<{{type}}> M(ReadOnlySpan<string> arg) => arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,49): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<string>' to 'System.Span<string>'
+            //     Span<string> M(ReadOnlySpan<string> arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.ReadOnlySpan<string>", $"System.Span<{type}>").WithLocation(4, 49));
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_ReadOnlySpan_Span_Explicit(
+        [CombinatorialLangVersions] LanguageVersion langVersion,
+        [CombinatorialValues("string", "object")] string type)
+    {
+        var source = $$"""
+            using System;
+            class C
+            {
+                Span<{{type}}> M(ReadOnlySpan<string> arg) => (Span<{{type}}>)arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,49): error CS0030: Cannot convert type 'System.ReadOnlySpan<string>' to 'System.Span<string>'
+            //     Span<string> M(ReadOnlySpan<string> arg) => (Span<string>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, $"(Span<{type}>)arg").WithArguments("System.ReadOnlySpan<string>", $"System.Span<{type}>").WithLocation(4, 49));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_Span_Implicit_UserDefined(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                Span<string> M(ReadOnlySpan<string> arg) => arg;
+            }
+            namespace System
+            {
+                public readonly ref struct Span<T>;
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static implicit operator Span<T>(ReadOnlySpan<T> span) => default;
+                }
+            }
+            """;
+        CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion), verify: Verification.FailsILVerify)
+            .VerifyDiagnostics()
+            .VerifyIL("C.M", """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.1
+              IL_0001:  call       "System.Span<string> System.ReadOnlySpan<string>.op_Implicit(System.ReadOnlySpan<string>)"
+              IL_0006:  ret
+            }
+            """);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_Span_Explicit_UserDefined(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                Span<string> M(ReadOnlySpan<string> arg) => (Span<string>)arg;
+            }
+            namespace System
+            {
+                public readonly ref struct Span<T>;
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static explicit operator Span<T>(ReadOnlySpan<T> span) => default;
+                }
+            }
+            """;
+        CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion), verify: Verification.FailsILVerify)
+            .VerifyDiagnostics()
+            .VerifyIL("C.M", """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.1
+              IL_0001:  call       "System.Span<string> System.ReadOnlySpan<string>.op_Explicit(System.ReadOnlySpan<string>)"
+              IL_0006:  ret
+            }
+            """);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_Span_Explicit_UserDefined_Covariant(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                Span<string> M(ReadOnlySpan<object> arg) => (Span<string>)arg;
+            }
+            namespace System
+            {
+                public readonly ref struct Span<T>;
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static explicit operator Span<string>(ReadOnlySpan<T> span) => default;
+                }
+            }
+            """;
+        CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion), verify: Verification.FailsILVerify)
+            .VerifyDiagnostics()
+            .VerifyIL("C.M", """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.1
+              IL_0001:  call       "System.Span<string> System.ReadOnlySpan<object>.op_Explicit(System.ReadOnlySpan<object>)"
+              IL_0006:  ret
+            }
+            """);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_string_ReadOnlySpan_Implicit_UnrelatedElementType(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                ReadOnlySpan<short> M(string arg) => arg;
+            }
+
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T>;
+            }
+            """;
+        CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,42): error CS0029: Cannot implicitly convert type 'string' to 'System.ReadOnlySpan<short>'
+            //     ReadOnlySpan<short> M(string arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("string", "System.ReadOnlySpan<short>").WithLocation(4, 42));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_string_Span_Implicit(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                Span<char> M(string arg) => arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,33): error CS0029: Cannot implicitly convert type 'string' to 'System.Span<char>'
+            //     Span<char> M(string arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("string", "System.Span<char>").WithLocation(4, 33));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_string_Span_Explicit(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                Span<char> M(string arg) => (Span<char>)arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,33): error CS0030: Cannot convert type 'string' to 'System.Span<char>'
+            //     Span<char> M(string arg) => (Span<char>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Span<char>)arg").WithArguments("string", "System.Span<char>").WithLocation(4, 33));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_string_Span_Implicit_UserDefined(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                Span<char> M(string arg) => arg;
+            }
+            namespace System
+            {
+                public readonly ref struct Span<T>
+                {
+                    public static implicit operator Span<T>(string s) => default;
+                }
+            }
+            """;
+        CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion), verify: Verification.FailsILVerify)
+            .VerifyDiagnostics()
+            .VerifyIL("C.M", """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.1
+              IL_0001:  call       "System.Span<char> System.Span<char>.op_Implicit(string)"
+              IL_0006:  ret
+            }
+            """);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_string_Implicit_UserDefined(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                string M(ReadOnlySpan<char> arg) => arg;
+            }
+            namespace System
+            {
+                public readonly ref struct ReadOnlySpan<T>
+                {
+                    public static implicit operator string(ReadOnlySpan<T> span) => default;
+                }
+            }
+            """;
+        CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion))
+            .VerifyDiagnostics()
+            .VerifyIL("C.M", """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.1
+              IL_0001:  call       "string System.ReadOnlySpan<char>.op_Implicit(System.ReadOnlySpan<char>)"
+              IL_0006:  ret
+            }
+            """);
+    }
+
     [Fact]
     public void Conversion_Array_Span_Implicit_NullableAnalysis()
     {
@@ -916,6 +2803,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
                 ReadOnlySpan<string> M6(string?[] arg) => (ReadOnlySpan<string>)arg;
                 ReadOnlySpan<string> M7(object?[] arg) => (ReadOnlySpan<string>)arg;
+                ReadOnlySpan<object> M8(string?[] arg) => (ReadOnlySpan<object>)arg;
             }
             """;
 
@@ -931,7 +2819,10 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("string?[]", "string[]").WithLocation(11, 47),
             // (12,47): warning CS8619: Nullability of reference types in value of type 'object?[]' doesn't match target type 'string[]'.
             //     ReadOnlySpan<string> M7(object?[] arg) => (ReadOnlySpan<string>)arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("object?[]", "string[]").WithLocation(12, 47));
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("object?[]", "string[]").WithLocation(12, 47),
+            // (13,47): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'object[]'.
+            //     ReadOnlySpan<object> M8(string?[] arg) => (ReadOnlySpan<object>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<object>)arg").WithArguments("string?[]", "object[]").WithLocation(13, 47));
 
         var expectedDiagnostics = new[]
         {
@@ -946,11 +2837,155 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("string?[]", "System.ReadOnlySpan<string>").WithLocation(11, 47),
             // (12,47): warning CS8619: Nullability of reference types in value of type 'object?[]' doesn't match target type 'ReadOnlySpan<string>'.
             //     ReadOnlySpan<string> M7(object?[] arg) => (ReadOnlySpan<string>)arg;
-            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("object?[]", "System.ReadOnlySpan<string>").WithLocation(12, 47)
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("object?[]", "System.ReadOnlySpan<string>").WithLocation(12, 47),
+            // (13,47): warning CS8619: Nullability of reference types in value of type 'string?[]' doesn't match target type 'ReadOnlySpan<object>'.
+            //     ReadOnlySpan<object> M8(string?[] arg) => (ReadOnlySpan<object>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<object>)arg").WithArguments("string?[]", "System.ReadOnlySpan<object>").WithLocation(13, 47)
         };
 
         CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_Implicit_NullableAnalysis()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            class C
+            {
+                ReadOnlySpan<string> M1(Span<string> arg) => arg;
+                ReadOnlySpan<string> M2(Span<string?> arg) => arg;
+                ReadOnlySpan<string?> M3(Span<string> arg) => arg;
+                ReadOnlySpan<string?> M4(Span<string?> arg) => arg;
+                ReadOnlySpan<object> M5(Span<string?> arg) => arg;
+
+                ReadOnlySpan<string> M6(Span<string?> arg) => (ReadOnlySpan<string>)arg;
+                ReadOnlySpan<string> M7(Span<object?> arg) => (ReadOnlySpan<string>)arg;
+                ReadOnlySpan<object> M8(Span<string?> arg) => (ReadOnlySpan<object>)arg;
+            }
+            """;
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (6,51): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<string?>' doesn't match target type 'ReadOnlySpan<string>'.
+            //     ReadOnlySpan<string> M2(Span<string?> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.ReadOnlySpan<string?>", "System.ReadOnlySpan<string>").WithLocation(6, 51),
+            // (7,51): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<string>' doesn't match target type 'ReadOnlySpan<string?>'.
+            //     ReadOnlySpan<string?> M3(Span<string> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.ReadOnlySpan<string>", "System.ReadOnlySpan<string?>").WithLocation(7, 51),
+            // (9,51): error CS0029: Cannot implicitly convert type 'System.Span<string?>' to 'System.ReadOnlySpan<object>'
+            //     ReadOnlySpan<object> M5(Span<string?> arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.Span<string?>", "System.ReadOnlySpan<object>").WithLocation(9, 51),
+            // (11,51): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<string?>' doesn't match target type 'ReadOnlySpan<string>'.
+            //     ReadOnlySpan<string> M6(Span<string?> arg) => (ReadOnlySpan<string>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("System.ReadOnlySpan<string?>", "System.ReadOnlySpan<string>").WithLocation(11, 51),
+            // (12,51): error CS0030: Cannot convert type 'System.Span<object?>' to 'System.ReadOnlySpan<string>'
+            //     ReadOnlySpan<string> M7(Span<object?> arg) => (ReadOnlySpan<string>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<string>)arg").WithArguments("System.Span<object?>", "System.ReadOnlySpan<string>").WithLocation(12, 51),
+            // (13,51): error CS0030: Cannot convert type 'System.Span<string?>' to 'System.ReadOnlySpan<object>'
+            //     ReadOnlySpan<object> M8(Span<string?> arg) => (ReadOnlySpan<object>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<object>)arg").WithArguments("System.Span<string?>", "System.ReadOnlySpan<object>").WithLocation(13, 51));
+
+        var expectedDiagnostics = new[]
+        {
+            // (6,51): warning CS8619: Nullability of reference types in value of type 'Span<string?>' doesn't match target type 'ReadOnlySpan<string>'.
+            //     ReadOnlySpan<string> M2(Span<string?> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.Span<string?>", "System.ReadOnlySpan<string>").WithLocation(6, 51),
+            // (9,51): warning CS8619: Nullability of reference types in value of type 'Span<string?>' doesn't match target type 'ReadOnlySpan<object>'.
+            //     ReadOnlySpan<object> M5(Span<string?> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.Span<string?>", "System.ReadOnlySpan<object>").WithLocation(9, 51),
+            // (11,51): warning CS8619: Nullability of reference types in value of type 'Span<string?>' doesn't match target type 'ReadOnlySpan<string>'.
+            //     ReadOnlySpan<string> M6(Span<string?> arg) => (ReadOnlySpan<string>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("System.Span<string?>", "System.ReadOnlySpan<string>").WithLocation(11, 51),
+            // (12,51): error CS0030: Cannot convert type 'System.Span<object?>' to 'System.ReadOnlySpan<string>'
+            //     ReadOnlySpan<string> M7(Span<object?> arg) => (ReadOnlySpan<string>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<string>)arg").WithArguments("System.Span<object?>", "System.ReadOnlySpan<string>").WithLocation(12, 51),
+            // (13,51): warning CS8619: Nullability of reference types in value of type 'Span<string?>' doesn't match target type 'ReadOnlySpan<object>'.
+            //     ReadOnlySpan<object> M8(Span<string?> arg) => (ReadOnlySpan<object>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<object>)arg").WithArguments("System.Span<string?>", "System.ReadOnlySpan<object>").WithLocation(13, 51)
+        };
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_NullableAnalysis()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            class C
+            {
+                ReadOnlySpan<string> M1(ReadOnlySpan<string> arg) => arg;
+                ReadOnlySpan<string> M2(ReadOnlySpan<string?> arg) => arg;
+                ReadOnlySpan<string?> M3(ReadOnlySpan<string> arg) => arg;
+                ReadOnlySpan<string?> M4(ReadOnlySpan<string?> arg) => arg;
+                ReadOnlySpan<object> M5(ReadOnlySpan<string?> arg) => arg;
+
+                ReadOnlySpan<string> M6(ReadOnlySpan<string?> arg) => (ReadOnlySpan<string>)arg;
+                ReadOnlySpan<string> M7(ReadOnlySpan<object?> arg) => (ReadOnlySpan<string>)arg;
+                ReadOnlySpan<object> M8(ReadOnlySpan<string?> arg) => (ReadOnlySpan<object>)arg;
+            }
+            """;
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (6,59): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<string?>' doesn't match target type 'ReadOnlySpan<string>'.
+            //     ReadOnlySpan<string> M2(ReadOnlySpan<string?> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.ReadOnlySpan<string?>", "System.ReadOnlySpan<string>").WithLocation(6, 59),
+            // (7,59): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<string>' doesn't match target type 'ReadOnlySpan<string?>'.
+            //     ReadOnlySpan<string?> M3(ReadOnlySpan<string> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.ReadOnlySpan<string>", "System.ReadOnlySpan<string?>").WithLocation(7, 59),
+            // (9,59): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<string?>' to 'System.ReadOnlySpan<object>'
+            //     ReadOnlySpan<object> M5(ReadOnlySpan<string?> arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.ReadOnlySpan<string?>", "System.ReadOnlySpan<object>").WithLocation(9, 59),
+            // (11,59): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<string?>' doesn't match target type 'ReadOnlySpan<string>'.
+            //     ReadOnlySpan<string> M6(ReadOnlySpan<string?> arg) => (ReadOnlySpan<string>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("System.ReadOnlySpan<string?>", "System.ReadOnlySpan<string>").WithLocation(11, 59),
+            // (12,59): error CS0030: Cannot convert type 'System.ReadOnlySpan<object?>' to 'System.ReadOnlySpan<string>'
+            //     ReadOnlySpan<string> M7(ReadOnlySpan<object?> arg) => (ReadOnlySpan<string>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<string>)arg").WithArguments("System.ReadOnlySpan<object?>", "System.ReadOnlySpan<string>").WithLocation(12, 59),
+            // (13,59): error CS0030: Cannot convert type 'System.ReadOnlySpan<string?>' to 'System.ReadOnlySpan<object>'
+            //     ReadOnlySpan<object> M8(ReadOnlySpan<string?> arg) => (ReadOnlySpan<object>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<object>)arg").WithArguments("System.ReadOnlySpan<string?>", "System.ReadOnlySpan<object>").WithLocation(13, 59));
+
+        var expectedDiagnostics = new[]
+        {
+            // (6,59): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<string?>' doesn't match target type 'ReadOnlySpan<string>'.
+            //     ReadOnlySpan<string> M2(ReadOnlySpan<string?> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.ReadOnlySpan<string?>", "System.ReadOnlySpan<string>").WithLocation(6, 59),
+            // (9,59): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<string?>' doesn't match target type 'ReadOnlySpan<object>'.
+            //     ReadOnlySpan<object> M5(ReadOnlySpan<string?> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.ReadOnlySpan<string?>", "System.ReadOnlySpan<object>").WithLocation(9, 59),
+            // (11,59): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<string?>' doesn't match target type 'ReadOnlySpan<string>'.
+            //     ReadOnlySpan<string> M6(ReadOnlySpan<string?> arg) => (ReadOnlySpan<string>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<string>)arg").WithArguments("System.ReadOnlySpan<string?>", "System.ReadOnlySpan<string>").WithLocation(11, 59),
+            // (12,59): error CS0030: Cannot convert type 'System.ReadOnlySpan<object?>' to 'System.ReadOnlySpan<string>'
+            //     ReadOnlySpan<string> M7(ReadOnlySpan<object?> arg) => (ReadOnlySpan<string>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<string>)arg").WithArguments("System.ReadOnlySpan<object?>", "System.ReadOnlySpan<string>").WithLocation(12, 59),
+            // (13,59): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<string?>' doesn't match target type 'ReadOnlySpan<object>'.
+            //     ReadOnlySpan<object> M8(ReadOnlySpan<string?> arg) => (ReadOnlySpan<object>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<object>)arg").WithArguments("System.ReadOnlySpan<string?>", "System.ReadOnlySpan<object>").WithLocation(13, 59)
+        };
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_string_ReadOnlySpan_Implicit_NullableAnalysis(LanguageVersion langVersion)
+    {
+        var source = """
+            #nullable enable
+            using System;
+            class C
+            {
+                ReadOnlySpan<char> M1(string arg) => arg;
+                ReadOnlySpan<char> M2(string? arg) => arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics();
     }
 
     [Fact]
@@ -1117,6 +3152,99 @@ public class FirstClassSpanTests : CSharpTestBase
             => langVersion > LanguageVersion.CSharp13 ? $"System.ReadOnlySpan<S<{inner}>>" : $"S<{inner}>[]";
     }
 
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_Implicit_NullableAnalysis_NestedNullability()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            class C
+            {
+                ReadOnlySpan<I<string>> M1(Span<I<string>> arg) => arg;
+                ReadOnlySpan<I<string>> M2(Span<I<string?>> arg) => arg;
+                ReadOnlySpan<I<string?>> M3(Span<I<string>> arg) => arg;
+                ReadOnlySpan<I<string?>> M4(Span<I<string?>> arg) => arg;
+                ReadOnlySpan<I<object>> M5(Span<I<string?>> arg) => arg;
+
+                ReadOnlySpan<I<string>> M6(Span<I<string?>> arg) => (ReadOnlySpan<I<string>>)arg;
+                ReadOnlySpan<I<string>> M7(Span<I<object?>> arg) => (ReadOnlySpan<I<string>>)arg;
+            }
+            interface I<out T> { }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (6,57): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<I<string?>>' doesn't match target type 'ReadOnlySpan<I<string>>'.
+            //     ReadOnlySpan<I<string>> M2(Span<I<string?>> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.ReadOnlySpan<I<string?>>", "System.ReadOnlySpan<I<string>>").WithLocation(6, 57),
+            // (7,57): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<I<string>>' doesn't match target type 'ReadOnlySpan<I<string?>>'.
+            //     ReadOnlySpan<I<string?>> M3(Span<I<string>> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.ReadOnlySpan<I<string>>", "System.ReadOnlySpan<I<string?>>").WithLocation(7, 57),
+            // (9,57): error CS0029: Cannot implicitly convert type 'System.Span<I<string?>>' to 'System.ReadOnlySpan<I<object>>'
+            //     ReadOnlySpan<I<object>> M5(Span<I<string?>> arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.Span<I<string?>>", "System.ReadOnlySpan<I<object>>").WithLocation(9, 57),
+            // (11,57): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<I<string?>>' doesn't match target type 'ReadOnlySpan<I<string>>'.
+            //     ReadOnlySpan<I<string>> M6(Span<I<string?>> arg) => (ReadOnlySpan<I<string>>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<I<string>>)arg").WithArguments("System.ReadOnlySpan<I<string?>>", "System.ReadOnlySpan<I<string>>").WithLocation(11, 57),
+            // (12,57): error CS0030: Cannot convert type 'System.Span<I<object?>>' to 'System.ReadOnlySpan<I<string>>'
+            //     ReadOnlySpan<I<string>> M7(Span<I<object?>> arg) => (ReadOnlySpan<I<string>>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<I<string>>)arg").WithArguments("System.Span<I<object?>>", "System.ReadOnlySpan<I<string>>").WithLocation(12, 57));
+
+        var expectedDiagnostics = new[]
+        {
+            // (6,57): warning CS8619: Nullability of reference types in value of type 'Span<I<string?>>' doesn't match target type 'ReadOnlySpan<I<string>>'.
+            //     ReadOnlySpan<I<string>> M2(Span<I<string?>> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.Span<I<string?>>", "System.ReadOnlySpan<I<string>>").WithLocation(6, 57),
+            // (9,57): warning CS8619: Nullability of reference types in value of type 'Span<I<string?>>' doesn't match target type 'ReadOnlySpan<I<object>>'.
+            //     ReadOnlySpan<I<object>> M5(Span<I<string?>> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.Span<I<string?>>", "System.ReadOnlySpan<I<object>>").WithLocation(9, 57),
+            // (11,57): warning CS8619: Nullability of reference types in value of type 'Span<I<string?>>' doesn't match target type 'ReadOnlySpan<I<string>>'.
+            //     ReadOnlySpan<I<string>> M6(Span<I<string?>> arg) => (ReadOnlySpan<I<string>>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<I<string>>)arg").WithArguments("System.Span<I<string?>>", "System.ReadOnlySpan<I<string>>").WithLocation(11, 57),
+            // (12,57): error CS0030: Cannot convert type 'System.Span<I<object?>>' to 'System.ReadOnlySpan<I<string>>'
+            //     ReadOnlySpan<I<string>> M7(Span<I<object?>> arg) => (ReadOnlySpan<I<string>>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<I<string>>)arg").WithArguments("System.Span<I<object?>>", "System.ReadOnlySpan<I<string>>").WithLocation(12, 57)
+        };
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_NullableAnalysis_NestedNullability(LanguageVersion langVersion)
+    {
+        var source = """
+            #nullable enable
+            using System;
+            class C
+            {
+                ReadOnlySpan<S<string>> M1(ReadOnlySpan<S<string>> arg) => arg;
+                ReadOnlySpan<S<string>> M2(ReadOnlySpan<S<string?>> arg) => arg;
+                ReadOnlySpan<S<string?>> M3(ReadOnlySpan<S<string>> arg) => arg;
+                ReadOnlySpan<S<string?>> M4(ReadOnlySpan<S<string?>> arg) => arg;
+                ReadOnlySpan<S<object>> M5(ReadOnlySpan<S<string?>> arg) => arg;
+
+                ReadOnlySpan<S<string>> M6(ReadOnlySpan<S<string?>> arg) => (ReadOnlySpan<S<string>>)arg;
+                ReadOnlySpan<S<string>> M7(ReadOnlySpan<S<object?>> arg) => (ReadOnlySpan<S<string>>)arg;
+            }
+            struct S<T> { }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion), targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (6,65): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<S<string?>>' doesn't match target type 'ReadOnlySpan<S<string>>'.
+            //     ReadOnlySpan<S<string>> M2(ReadOnlySpan<S<string?>> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.ReadOnlySpan<S<string?>>", "System.ReadOnlySpan<S<string>>").WithLocation(6, 65),
+            // (7,65): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<S<string>>' doesn't match target type 'ReadOnlySpan<S<string?>>'.
+            //     ReadOnlySpan<S<string?>> M3(ReadOnlySpan<S<string>> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.ReadOnlySpan<S<string>>", "System.ReadOnlySpan<S<string?>>").WithLocation(7, 65),
+            // (9,65): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<S<string?>>' to 'System.ReadOnlySpan<S<object>>'
+            //     ReadOnlySpan<S<object>> M5(ReadOnlySpan<S<string?>> arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.ReadOnlySpan<S<string?>>", "System.ReadOnlySpan<S<object>>").WithLocation(9, 65),
+            // (11,65): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<S<string?>>' doesn't match target type 'ReadOnlySpan<S<string>>'.
+            //     ReadOnlySpan<S<string>> M6(ReadOnlySpan<S<string?>> arg) => (ReadOnlySpan<S<string>>)arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "(ReadOnlySpan<S<string>>)arg").WithArguments("System.ReadOnlySpan<S<string?>>", "System.ReadOnlySpan<S<string>>").WithLocation(11, 65),
+            // (12,65): error CS0030: Cannot convert type 'System.ReadOnlySpan<S<object?>>' to 'System.ReadOnlySpan<S<string>>'
+            //     ReadOnlySpan<S<string>> M7(ReadOnlySpan<S<object?>> arg) => (ReadOnlySpan<S<string>>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<S<string>>)arg").WithArguments("System.ReadOnlySpan<S<object?>>", "System.ReadOnlySpan<S<string>>").WithLocation(12, 65));
+    }
+
     [Theory, MemberData(nameof(LangVersions))]
     public void Conversion_Array_ReadOnlySpan_Implicit_NullableAnalysis_NestedNullability_Covariant(LanguageVersion langVersion)
     {
@@ -1134,6 +3262,35 @@ public class FirstClassSpanTests : CSharpTestBase
             // (5,52): warning CS8619: Nullability of reference types in value of type 'I<string?>[]' doesn't match target type 'I<object>[]'.
             //     ReadOnlySpan<I<object>> M(I<string?>[] arg) => arg;
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("I<string?>[]", targetType).WithLocation(5, 52));
+    }
+
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_NullableAnalysis_NestedNullability_Covariant()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            class C
+            {
+                ReadOnlySpan<I<object>> M(ReadOnlySpan<I<string?>> arg) => arg;
+            }
+            interface I<out T> { }
+            """;
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (5,64): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<I<string?>>' to 'System.ReadOnlySpan<I<object>>'
+            //     ReadOnlySpan<I<object>> M(ReadOnlySpan<I<string?>> arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.ReadOnlySpan<I<string?>>", "System.ReadOnlySpan<I<object>>").WithLocation(5, 64));
+
+        var expectedDiagnostics = new[]
+        {
+            // (5,64): warning CS8619: Nullability of reference types in value of type 'ReadOnlySpan<I<string?>>' doesn't match target type 'ReadOnlySpan<I<object>>'.
+            //     ReadOnlySpan<I<object>> M(ReadOnlySpan<I<string?>> arg) => arg;
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "arg").WithArguments("System.ReadOnlySpan<I<string?>>", "System.ReadOnlySpan<I<object>>").WithLocation(5, 64)
+        };
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -1188,6 +3345,71 @@ public class FirstClassSpanTests : CSharpTestBase
             // (9,17): warning CS8620: Argument of type 'string?[]' cannot be used for parameter 'arg' of type 'ReadOnlySpan<string>' in 'void C.M3(ReadOnlySpan<string> arg)' due to differences in the nullability of reference types.
             //         a.M3(); b.M3();
             Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "b").WithArguments("string?[]", "System.ReadOnlySpan<string>", "arg", "void C.M3(ReadOnlySpan<string> arg)").WithLocation(9, 17));
+    }
+
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_Implicit_NullableAnalysis_ExtensionMethodReceiver()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            static class C
+            {
+                static void MS(Span<string> a, Span<string?> b)
+                {
+                    a.M1(); b.M1();
+                    a.M2(); b.M2();
+                }
+                static void M1(this ReadOnlySpan<string> arg) { }
+                static void M2(this ReadOnlySpan<string?> arg) { }
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(
+            // (7,17): warning CS8620: Argument of type 'Span<string?>' cannot be used for parameter 'arg' of type 'ReadOnlySpan<string>' in 'void C.M1(ReadOnlySpan<string> arg)' due to differences in the nullability of reference types.
+            //         a.M1(); b.M1();
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "b").WithArguments("System.Span<string?>", "System.ReadOnlySpan<string>", "arg", "void C.M1(ReadOnlySpan<string> arg)").WithLocation(7, 17));
+    }
+
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_NullableAnalysis_ExtensionMethodReceiver()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            static class C
+            {
+                static void MS(ReadOnlySpan<string> a, ReadOnlySpan<string?> b)
+                {
+                    a.M1(); b.M1();
+                    a.M2(); b.M2();
+                }
+                static void M1(this ReadOnlySpan<object> arg) { }
+                static void M2(this ReadOnlySpan<object?> arg) { }
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (7,17): warning CS8620: Argument of type 'ReadOnlySpan<string?>' cannot be used for parameter 'arg' of type 'ReadOnlySpan<object>' in 'void C.M1(ReadOnlySpan<object> arg)' due to differences in the nullability of reference types.
+            //         a.M1(); b.M1();
+            Diagnostic(ErrorCode.WRN_NullabilityMismatchInArgument, "b").WithArguments("System.ReadOnlySpan<string?>", "System.ReadOnlySpan<object>", "arg", "void C.M1(ReadOnlySpan<object> arg)").WithLocation(7, 17));
+    }
+
+    [Fact]
+    public void Conversion_string_ReadOnlySpan_Implicit_NullableAnalysis_ExtensionMethodReceiver()
+    {
+        var source = """
+            #nullable enable
+            using System;
+            static class C
+            {
+                static void MS(string a, string? b)
+                {
+                    a.M();
+                    b.M();
+                }
+                static void M(this ReadOnlySpan<char> arg) { }
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -1388,6 +3610,54 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Span_ReadOnlySpan_Opposite_Implicit(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                 Span<int> M1(ReadOnlySpan<int> arg) => arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,45): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<int>' to 'System.Span<int>'
+            //      Span<int> M1(ReadOnlySpan<int> arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.ReadOnlySpan<int>", "System.Span<int>").WithLocation(4, 45));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Opposite_Implicit(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                 ReadOnlySpan<string> M1(ReadOnlySpan<object> arg) => arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,59): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<object>' to 'System.ReadOnlySpan<string>'
+            //      ReadOnlySpan<string> M1(ReadOnlySpan<object> arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.ReadOnlySpan<object>", "System.ReadOnlySpan<string>").WithLocation(4, 59));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_string_ReadOnlySpan_Opposite_Implicit(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                 string M1(ReadOnlySpan<char> arg) => arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,43): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<char>' to 'string'
+            //      string M1(ReadOnlySpan<char> arg) => arg;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg").WithArguments("System.ReadOnlySpan<char>", "string").WithLocation(4, 43));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
     public void Conversion_Array_Span_Opposite_Explicit(LanguageVersion langVersion)
     {
         var source = """
@@ -1414,8 +3684,56 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoExplicitConv, "(string[])arg").WithArguments("System.ReadOnlySpan<object>", "string[]").WithLocation(6, 54));
     }
 
-    [Fact]
-    public void Conversion_Array_Span_Opposite_Explicit_UserDefined()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Span_ReadOnlySpan_Opposite_Explicit(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                 Span<int> M1(ReadOnlySpan<int> arg) => (Span<int>)arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,45): error CS0030: Cannot convert type 'System.ReadOnlySpan<int>' to 'System.Span<int>'
+            //      Span<int> M1(ReadOnlySpan<int> arg) => (Span<int>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(Span<int>)arg").WithArguments("System.ReadOnlySpan<int>", "System.Span<int>").WithLocation(4, 45));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Opposite_Explicit(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                 ReadOnlySpan<string> M1(ReadOnlySpan<object> arg) => (ReadOnlySpan<string>)arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,59): error CS0030: Cannot convert type 'System.ReadOnlySpan<object>' to 'System.ReadOnlySpan<string>'
+            //      ReadOnlySpan<string> M1(ReadOnlySpan<object> arg) => (ReadOnlySpan<string>)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<string>)arg").WithArguments("System.ReadOnlySpan<object>", "System.ReadOnlySpan<string>").WithLocation(4, 59));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_string_ReadOnlySpan_Opposite_Explicit(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                 string M1(ReadOnlySpan<char> arg) => (string)arg;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,43): error CS0030: Cannot convert type 'System.ReadOnlySpan<char>' to 'string'
+            //      string M1(ReadOnlySpan<char> arg) => (string)arg;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(string)arg").WithArguments("System.ReadOnlySpan<char>", "string").WithLocation(4, 43));
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Opposite_Explicit_UserDefined(LanguageVersion langVersion)
     {
         var source = """
             class C
@@ -1431,7 +3749,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular13);
+        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         verifier.VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
@@ -1442,20 +3760,73 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0006:  ret
             }
             """);
-
-        var expectedDiagnostics = new[]
-        {
-            // (3,39): error CS0030: Cannot convert type 'System.Span<int>' to 'int[]'
-            //      int[] M(System.Span<int> arg) => (int[])arg;
-            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int[])arg").WithArguments("System.Span<int>", "int[]").WithLocation(3, 39)
-        };
-
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
-    [Fact]
-    public void Conversion_Array_Span_Implicit_Params()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Span_ReadOnlySpan_Opposite_Explicit_UserDefined(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                 Span<int> M(ReadOnlySpan<int> arg) => (Span<int>)arg;
+            }
+
+            namespace System
+            {
+                readonly ref struct Span<T>;
+                readonly ref struct ReadOnlySpan<T>
+                {
+                    public static explicit operator Span<T>(ReadOnlySpan<T> span) => throw null;
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion), verify: Verification.FailsILVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.1
+              IL_0001:  call       "System.Span<int> System.ReadOnlySpan<int>.op_Explicit(System.ReadOnlySpan<int>)"
+              IL_0006:  ret
+            }
+            """);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_string_ReadOnlySpan_Opposite_Explicit_UserDefined(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                 string M(ReadOnlySpan<char> arg) => (string)arg;
+            }
+
+            namespace System
+            {
+                readonly ref struct ReadOnlySpan<T>
+                {
+                    public static explicit operator string(ReadOnlySpan<T> span) => throw null;
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.M", """
+            {
+              // Code size        7 (0x7)
+              .maxstack  1
+              IL_0000:  ldarg.1
+              IL_0001:  call       "string System.ReadOnlySpan<char>.op_Explicit(System.ReadOnlySpan<char>)"
+              IL_0006:  ret
+            }
+            """);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_Implicit_Params(LanguageVersion langVersion)
     {
         var source = """
             using System;
@@ -1473,7 +3844,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 void M3(params string[] s) { }
             }
             """;
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
@@ -1514,9 +3885,35 @@ public class FirstClassSpanTests : CSharpTestBase
                 void M3(params object[] p) { }
             }
             """;
-        var comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
         var verifier = CompileAndVerify(comp).VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
+            {
+              // Code size       38 (0x26)
+              .maxstack  2
+              .locals init (object[] V_0)
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  stloc.0
+              IL_0003:  ldloc.0
+              IL_0004:  call       "System.Span<object> System.Span<object>.op_Implicit(object[])"
+              IL_0009:  call       "void C.M1(params System.Span<object>)"
+              IL_000e:  ldarg.0
+              IL_000f:  ldarg.1
+              IL_0010:  stloc.0
+              IL_0011:  ldloc.0
+              IL_0012:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.op_Implicit(object[])"
+              IL_0017:  call       "void C.M2(params System.ReadOnlySpan<object>)"
+              IL_001c:  ldarg.0
+              IL_001d:  ldarg.1
+              IL_001e:  stloc.0
+              IL_001f:  ldloc.0
+              IL_0020:  call       "void C.M3(params object[])"
+              IL_0025:  ret
+            }
+            """);
+
+        var expectedIl = """
             {
               // Code size       45 (0x2d)
               .maxstack  5
@@ -1543,7 +3940,165 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_0027:  call       "void C.M3(params object[])"
               IL_002c:  ret
             }
+            """;
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Span_ReadOnlySpan_Implicit_Params(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(Span<string> a)
+                {
+                    M1(a);
+                }
+                void M1(params ReadOnlySpan<string> s) { }
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", """
+            {
+              // Code size       13 (0xd)
+              .maxstack  2
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  call       "System.ReadOnlySpan<string> System.Span<string>.op_Implicit(System.Span<string>)"
+              IL_0007:  call       "void C.M1(params System.ReadOnlySpan<string>)"
+              IL_000c:  ret
+            }
             """);
+    }
+
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_CastUp_Implicit_Params()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(Span<string> a)
+                {
+                    M1(a);
+                }
+                void M1(params ReadOnlySpan<object> s) { }
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (6,12): error CS1503: Argument 1: cannot convert from 'System.Span<string>' to 'object'
+            //         M1(a);
+            Diagnostic(ErrorCode.ERR_BadArgType, "a").WithArguments("1", "System.Span<string>", "object").WithLocation(6, 12));
+
+        var expectedIl = """
+            {
+              // Code size       18 (0x12)
+              .maxstack  2
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  call       "System.ReadOnlySpan<string> System.Span<string>.op_Implicit(System.Span<string>)"
+              IL_0007:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+              IL_000c:  call       "void C.M1(params System.ReadOnlySpan<object>)"
+              IL_0011:  ret
+            }
+            """;
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
+        verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
+    }
+
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_CastUp_Implicit_Params()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(ReadOnlySpan<string> a)
+                {
+                    M1(a);
+                }
+                void M1(params ReadOnlySpan<object> s) { }
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (6,12): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<string>' to 'object'
+            //         M1(a);
+            Diagnostic(ErrorCode.ERR_BadArgType, "a").WithArguments("1", "System.ReadOnlySpan<string>", "object").WithLocation(6, 12));
+
+        var expectedIl = """
+            {
+              // Code size       13 (0xd)
+              .maxstack  2
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+              IL_0007:  call       "void C.M1(params System.ReadOnlySpan<object>)"
+              IL_000c:  ret
+            }
+            """;
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
+        verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
+    }
+
+    [Fact]
+    public void Conversion_string_ReadOnlySpan_CastUp_Implicit_Params()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(ReadOnlySpan<string> a)
+                {
+                    M1(a);
+                }
+                void M1(params ReadOnlySpan<object> s) { }
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (6,12): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<string>' to 'object'
+            //         M1(a);
+            Diagnostic(ErrorCode.ERR_BadArgType, "a").WithArguments("1", "System.ReadOnlySpan<string>", "object").WithLocation(6, 12));
+
+        var expectedIl = """
+            {
+              // Code size       13 (0xd)
+              .maxstack  2
+              IL_0000:  ldarg.0
+              IL_0001:  ldarg.1
+              IL_0002:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+              IL_0007:  call       "void C.M1(params System.ReadOnlySpan<object>)"
+              IL_000c:  ret
+            }
+            """;
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        var verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
+        verifier = CompileAndVerify(comp).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
     }
 
     [Theory, MemberData(nameof(LangVersions))]
@@ -2122,6 +4677,123 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "default").WithArguments(type).WithLocation(4, 15));
     }
 
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Span_ReadOnlySpan_Implicit_ExpressionTree(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+
+            C.R(x => C.M(x));
+
+            delegate void D(Span<string> x);
+
+            static class C
+            {
+                public static void R(Expression<D> e) { }
+                public static void M(ReadOnlySpan<string> x) { }
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+            // (4,5): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Span'.
+            // C.R(x => C.M(x));
+            Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("Span").WithLocation(4, 5),
+            // (4,14): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Span'.
+            // C.R(x => C.M(x));
+            Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("Span").WithLocation(4, 14));
+    }
+
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_CastUp_Implicit_ExpressionTree()
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+
+            C.R(x => C.M(x));
+
+            delegate void D(Span<string> x);
+
+            static class C
+            {
+                public static void R(Expression<D> e) { }
+                public static void M(ReadOnlySpan<object> x) { }
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (4,14): error CS1503: Argument 1: cannot convert from 'System.Span<string>' to 'System.ReadOnlySpan<object>'
+            // C.R(x => C.M(x));
+            Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.Span<string>", "System.ReadOnlySpan<object>").WithLocation(4, 14));
+
+        var expectedDiagnostics = new[]
+        {
+            // (4,5): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Span'.
+            // C.R(x => C.M(x));
+            Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("Span").WithLocation(4, 5),
+            // (4,14): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'Span'.
+            // C.R(x => C.M(x));
+            Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("Span").WithLocation(4, 14)
+        };
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Implicit_ExpressionTree()
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+
+            C.R(x => C.M(x));
+
+            delegate void D(ReadOnlySpan<string> x);
+
+            static class C
+            {
+                public static void R(Expression<D> e) { }
+                public static void M(ReadOnlySpan<object> x) { }
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (4,14): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<string>' to 'System.ReadOnlySpan<object>'
+            // C.R(x => C.M(x));
+            Diagnostic(ErrorCode.ERR_BadArgType, "x").WithArguments("1", "System.ReadOnlySpan<string>", "System.ReadOnlySpan<object>").WithLocation(4, 14));
+
+        var expectedDiagnostics = new[]
+        {
+            // (4,5): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'ReadOnlySpan'.
+            // C.R(x => C.M(x));
+            Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("ReadOnlySpan").WithLocation(4, 5),
+            // (4,14): error CS8640: Expression tree cannot contain value of ref struct or restricted type 'ReadOnlySpan'.
+            // C.R(x => C.M(x));
+            Diagnostic(ErrorCode.ERR_ExpressionTreeCantContainRefStruct, "x").WithArguments("ReadOnlySpan").WithLocation(4, 14)
+        };
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_string_ReadOnlySpan_Implicit_ExpressionTree(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            using System.Linq.Expressions;
+
+            C.R(x => C.M(x));
+
+            static class C
+            {
+                public static void R(Expression<Action<string>> e) => e.Compile()("s");
+                public static void M(ReadOnlySpan<char> x) => Console.Write(x.Length + " " + x[0]);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "1 s").VerifyDiagnostics();
+    }
+
     [Theory, CombinatorialData]
     public void Conversion_Array_ReadOnlySpan_Covariant(
         [CombinatorialLangVersions] LanguageVersion langVersion,
@@ -2515,6 +5187,54 @@ public class FirstClassSpanTests : CSharpTestBase
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_Variance()
+    {
+        var source = """
+            using System;
+            class C<T, U>
+                where T : class
+                where U : class, T
+            {
+                ReadOnlySpan<U> F1(Span<T> x) => x;
+                ReadOnlySpan<U> F2(Span<T> x) => (ReadOnlySpan<U>)x;
+                ReadOnlySpan<T> F3(Span<U> x) => x;
+                ReadOnlySpan<T> F4(Span<U> x) => (ReadOnlySpan<T>)x;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (6,38): error CS0029: Cannot implicitly convert type 'System.Span<T>' to 'System.ReadOnlySpan<U>'
+            //     ReadOnlySpan<U> F1(Span<T> x) => x;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("System.Span<T>", "System.ReadOnlySpan<U>").WithLocation(6, 38),
+            // (7,38): error CS0030: Cannot convert type 'System.Span<T>' to 'System.ReadOnlySpan<U>'
+            //     ReadOnlySpan<U> F2(Span<T> x) => (ReadOnlySpan<U>)x;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<U>)x").WithArguments("System.Span<T>", "System.ReadOnlySpan<U>").WithLocation(7, 38));
+    }
+
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_Variance()
+    {
+        var source = """
+            using System;
+            class C<T, U>
+                where T : class
+                where U : class, T
+            {
+                ReadOnlySpan<U> F1(ReadOnlySpan<T> x) => x;
+                ReadOnlySpan<U> F2(ReadOnlySpan<T> x) => (ReadOnlySpan<U>)x;
+                ReadOnlySpan<T> F3(ReadOnlySpan<U> x) => x;
+                ReadOnlySpan<T> F4(ReadOnlySpan<U> x) => (ReadOnlySpan<T>)x;
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (6,46): error CS0029: Cannot implicitly convert type 'System.ReadOnlySpan<T>' to 'System.ReadOnlySpan<U>'
+            //     ReadOnlySpan<U> F1(ReadOnlySpan<T> x) => x;
+            Diagnostic(ErrorCode.ERR_NoImplicitConv, "x").WithArguments("System.ReadOnlySpan<T>", "System.ReadOnlySpan<U>").WithLocation(6, 46),
+            // (7,46): error CS0030: Cannot convert type 'System.ReadOnlySpan<T>' to 'System.ReadOnlySpan<U>'
+            //     ReadOnlySpan<U> F2(ReadOnlySpan<T> x) => (ReadOnlySpan<U>)x;
+            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(ReadOnlySpan<U>)x").WithArguments("System.ReadOnlySpan<T>", "System.ReadOnlySpan<U>").WithLocation(7, 46));
+    }
+
     [Theory, CombinatorialData]
     public void Conversion_Array_Span_ThroughUserImplicit(
         [CombinatorialValues("Span", "ReadOnlySpan")] string destination)
@@ -2547,6 +5267,138 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_BadArgType, "new C()").WithArguments("1", "C", $"System.{destination}<int>").WithLocation(3, 5));
 
         var expectedOutput = "456";
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_ThroughUserImplicit()
+    {
+        var source = """
+            using System;
+
+            D.M(new C());
+
+            class C
+            {
+                public static implicit operator Span<int>(C c) => new Span<int>(new int[] { 4, 5, 6 });
+            }
+
+            static class D
+            {
+                public static void M(ReadOnlySpan<int> xs) => Console.Write(xs.Length + " " + xs[0]);
+            }
+            """;
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (3,5): error CS1503: Argument 1: cannot convert from 'C' to 'System.ReadOnlySpan<int>'
+            // D.M(new C());
+            Diagnostic(ErrorCode.ERR_BadArgType, "new C()").WithArguments("1", "C", "System.ReadOnlySpan<int>").WithLocation(3, 5));
+
+        var expectedOutput = "3 4";
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_CastUp_ThroughUserImplicit()
+    {
+        var source = """
+            using System;
+
+            D.M(new C());
+
+            class C
+            {
+                public static implicit operator Span<string>(C c) => new Span<string>(new string[] { "x" });
+            }
+
+            static class D
+            {
+                public static void M(ReadOnlySpan<object> xs) => Console.Write(xs.Length + " " + xs[0]);
+            }
+            """;
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (3,5): error CS1503: Argument 1: cannot convert from 'C' to 'System.ReadOnlySpan<object>'
+            // D.M(new C());
+            Diagnostic(ErrorCode.ERR_BadArgType, "new C()").WithArguments("1", "C", "System.ReadOnlySpan<object>").WithLocation(3, 5));
+
+        var expectedOutput = "1 x";
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_ThroughUserImplicit()
+    {
+        var source = """
+            using System;
+
+            D.M(new C());
+
+            class C
+            {
+                public static implicit operator ReadOnlySpan<string>(C c) => new ReadOnlySpan<string>(new string[] { "x" });
+            }
+
+            static class D
+            {
+                public static void M(ReadOnlySpan<object> xs) => Console.Write(xs.Length + " " + xs[0]);
+            }
+            """;
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (3,5): error CS1503: Argument 1: cannot convert from 'C' to 'System.ReadOnlySpan<object>'
+            // D.M(new C());
+            Diagnostic(ErrorCode.ERR_BadArgType, "new C()").WithArguments("1", "C", "System.ReadOnlySpan<object>").WithLocation(3, 5));
+
+        var expectedOutput = "1 x";
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void Conversion_string_ReadOnlySpan_ThroughUserImplicit()
+    {
+        var source = """
+            using System;
+
+            D.M(new C());
+
+            class C
+            {
+                public static implicit operator string(C c) => "x";
+            }
+
+            static class D
+            {
+                public static void M(ReadOnlySpan<char> xs) => Console.Write(xs.Length + " " + xs[0]);
+            }
+            """;
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (3,5): error CS1503: Argument 1: cannot convert from 'C' to 'System.ReadOnlySpan<char>'
+            // D.M(new C());
+            Diagnostic(ErrorCode.ERR_BadArgType, "new C()").WithArguments("1", "C", "System.ReadOnlySpan<char>").WithLocation(3, 5));
+
+        var expectedOutput = "1 x";
 
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
@@ -2809,7 +5661,172 @@ public class FirstClassSpanTests : CSharpTestBase
         var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
 
-        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
+    }
+
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_ExtensionMethodReceiver_Implicit()
+    {
+        var source = """
+            using System;
+
+            C.M(new Span<int>(new int[] { 7, 8, 9 }));
+
+            static class C
+            {
+                public static void M(Span<int> arg) => arg.E();
+                public static void E(this ReadOnlySpan<int> arg) => Console.Write(arg[1]);
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (7,44): error CS1929: 'Span<int>' does not contain a definition for 'E' and the best extension method overload 'C.E(ReadOnlySpan<int>)' requires a receiver of type 'System.ReadOnlySpan<int>'
+            //     public static void M(Span<int> arg) => arg.E();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "arg").WithArguments("System.Span<int>", "E", "C.E(System.ReadOnlySpan<int>)", "System.ReadOnlySpan<int>").WithLocation(7, 44));
+
+        var expectedOutput = "8";
+
+        var expectedIl = """
+            {
+              // Code size       12 (0xc)
+              .maxstack  1
+              IL_0000:  ldarg.0
+              IL_0001:  call       "System.ReadOnlySpan<int> System.Span<int>.op_Implicit(System.Span<int>)"
+              IL_0006:  call       "void C.E(System.ReadOnlySpan<int>)"
+              IL_000b:  ret
+            }
+            """;
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
+    }
+
+    [Fact]
+    public void Conversion_Span_ReadOnlySpan_CastUp_ExtensionMethodReceiver_Implicit()
+    {
+        var source = """
+            using System;
+
+            C.M(new Span<string>(new string[] { "x", "y" }));
+
+            static class C
+            {
+                public static void M(Span<string> arg) => arg.E();
+                public static void E(this ReadOnlySpan<object> arg) => Console.Write(arg[1]);
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (7,47): error CS1929: 'Span<string>' does not contain a definition for 'E' and the best extension method overload 'C.E(ReadOnlySpan<object>)' requires a receiver of type 'System.ReadOnlySpan<object>'
+            //     public static void M(Span<string> arg) => arg.E();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "arg").WithArguments("System.Span<string>", "E", "C.E(System.ReadOnlySpan<object>)", "System.ReadOnlySpan<object>").WithLocation(7, 47));
+
+        var expectedOutput = "y";
+
+        var expectedIl = """
+            {
+              // Code size       17 (0x11)
+              .maxstack  1
+              IL_0000:  ldarg.0
+              IL_0001:  call       "System.ReadOnlySpan<string> System.Span<string>.op_Implicit(System.Span<string>)"
+              IL_0006:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+              IL_000b:  call       "void C.E(System.ReadOnlySpan<object>)"
+              IL_0010:  ret
+            }
+            """;
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
+        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
+    }
+
+    [Fact]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_ExtensionMethodReceiver_Implicit()
+    {
+        var source = """
+            using System;
+
+            C.M(new ReadOnlySpan<string>(new string[] { "x", "y" }));
+
+            static class C
+            {
+                public static void M(ReadOnlySpan<string> arg) => arg.E();
+                public static void E(this ReadOnlySpan<object> arg) => Console.Write(arg[1]);
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (7,55): error CS1929: 'ReadOnlySpan<string>' does not contain a definition for 'E' and the best extension method overload 'C.E(ReadOnlySpan<object>)' requires a receiver of type 'System.ReadOnlySpan<object>'
+            //     public static void M(ReadOnlySpan<string> arg) => arg.E();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "arg").WithArguments("System.ReadOnlySpan<string>", "E", "C.E(System.ReadOnlySpan<object>)", "System.ReadOnlySpan<object>").WithLocation(7, 55));
+
+        var expectedOutput = "y";
+
+        var expectedIl = """
+            {
+              // Code size       12 (0xc)
+              .maxstack  1
+              IL_0000:  ldarg.0
+              IL_0001:  call       "System.ReadOnlySpan<object> System.ReadOnlySpan<object>.CastUp<string>(System.ReadOnlySpan<string>)"
+              IL_0006:  call       "void C.E(System.ReadOnlySpan<object>)"
+              IL_000b:  ret
+            }
+            """;
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
+        verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
+    }
+
+    [Fact]
+    public void Conversion_string_ReadOnlySpan_ExtensionMethodReceiver_Implicit()
+    {
+        var source = """
+            using System;
+
+            C.M("xyz");
+
+            static class C
+            {
+                public static void M(string arg) => arg.E();
+                public static void E(this ReadOnlySpan<char> arg) => Console.Write(arg[1]);
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            // (7,41): error CS1929: 'string' does not contain a definition for 'E' and the best extension method overload 'C.E(ReadOnlySpan<char>)' requires a receiver of type 'System.ReadOnlySpan<char>'
+            //     public static void M(string arg) => arg.E();
+            Diagnostic(ErrorCode.ERR_BadInstanceArgType, "arg").WithArguments("string", "E", "C.E(System.ReadOnlySpan<char>)", "System.ReadOnlySpan<char>").WithLocation(7, 41));
+
+        var expectedOutput = "y";
+
+        var expectedIl = """
+            {
+              // Code size       12 (0xc)
+              .maxstack  1
+              IL_0000:  ldarg.0
+              IL_0001:  call       "System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)"
+              IL_0006:  call       "void C.E(System.ReadOnlySpan<char>)"
+              IL_000b:  ret
+            }
+            """;
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        var verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+        verifier.VerifyIL("C.M", expectedIl);
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
         verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
     }
@@ -3305,8 +6322,8 @@ public class FirstClassSpanTests : CSharpTestBase
             Diagnostic(ErrorCode.ERR_NoExplicitConv, "(string[])arg").WithArguments("System.ReadOnlySpan<object>", "string[]").WithLocation(6, 57));
     }
 
-    [Fact]
-    public void Conversion_Array_Span_ExtensionMethodReceiver_Opposite_Explicit_UserDefined()
+    [Theory, MemberData(nameof(LangVersions))]
+    public void Conversion_Array_Span_ExtensionMethodReceiver_Opposite_Explicit_UserDefined(LanguageVersion langVersion)
     {
         var source = """
             static class C
@@ -3323,7 +6340,7 @@ public class FirstClassSpanTests : CSharpTestBase
                 }
             }
             """;
-        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular13);
+        var verifier = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
         verifier.VerifyDiagnostics();
         verifier.VerifyIL("C.M", """
             {
@@ -3335,16 +6352,6 @@ public class FirstClassSpanTests : CSharpTestBase
               IL_000b:  ret
             }
             """);
-
-        var expectedDiagnostics = new[]
-        {
-            // (3,45): error CS0030: Cannot convert type 'System.Span<int>' to 'int[]'
-            //     static void M(System.Span<int> arg) => ((int[])arg).E();
-            Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int[])arg").WithArguments("System.Span<int>", "int[]").WithLocation(3, 45)
-        };
-
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
-        CreateCompilation(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory]
@@ -3447,6 +6454,46 @@ public class FirstClassSpanTests : CSharpTestBase
         comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
         verifier = CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
         verifier.VerifyIL("C.M", expectedIl);
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_Span_ReadOnlySpan_RefSafety(bool cast)
+    {
+        var source = $$"""
+            using System;
+            class C
+            {
+                ReadOnlySpan<string> M()
+                {
+                    Span<string> x = {{(cast ? "(Span<string>)" : "")}}["a"];
+                    return x;
+                }
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (7,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         return x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(7, 16));
+    }
+
+    [Theory, CombinatorialData]
+    public void Conversion_ReadOnlySpan_ReadOnlySpan_RefSafety(bool cast)
+    {
+        var source = $$"""
+            using System;
+            class C
+            {
+                ReadOnlySpan<object> M()
+                {
+                    ReadOnlySpan<string> x = {{(cast ? "(ReadOnlySpan<string>)" : "")}}["a"];
+                    return x;
+                }
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (7,16): error CS8352: Cannot use variable 'x' in this context because it may expose referenced variables outside of their declaration scope
+            //         return x;
+            Diagnostic(ErrorCode.ERR_EscapeVariable, "x").WithArguments("x").WithLocation(7, 16));
     }
 
     [Fact]
@@ -3726,11 +6773,11 @@ public class FirstClassSpanTests : CSharpTestBase
         var source = """
             using System;
             using System.Linq.Expressions;
-            
+
             C.R(() => C.M(null));
             C.R(() => C.M(default));
             C.R(() => C.M(default(object[])));
-            
+
             static class C
             {
                 public static void R(Expression<Action> e) => e.Compile()();
@@ -4111,8 +7158,8 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
-    [Theory, MemberData(nameof(LangVersions))]
-    public void OverloadResolution_SpanVsReadOnlySpan_03(LanguageVersion langVersion)
+    [Fact]
+    public void OverloadResolution_SpanVsReadOnlySpan_03()
     {
         var source = """
             using System;
@@ -4122,17 +7169,25 @@ public class FirstClassSpanTests : CSharpTestBase
 
             static class C
             {
-                public static void M(Span<object> arg) { }
-                public static void M(ReadOnlySpan<object> arg) { }
+                public static void M(Span<object> arg) => Console.Write(1);
+                public static void M(ReadOnlySpan<object> arg) => Console.Write(2);
             }
             """;
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
             // (3,5): error CS1503: Argument 1: cannot convert from 'System.Span<string>' to 'System.Span<object>'
             // C.M(default(Span<string>));
             Diagnostic(ErrorCode.ERR_BadArgType, "default(Span<string>)").WithArguments("1", "System.Span<string>", "System.Span<object>").WithLocation(3, 5),
             // (4,5): error CS1503: Argument 1: cannot convert from 'System.ReadOnlySpan<string>' to 'System.Span<object>'
             // C.M(default(ReadOnlySpan<string>));
             Diagnostic(ErrorCode.ERR_BadArgType, "default(ReadOnlySpan<string>)").WithArguments("1", "System.ReadOnlySpan<string>", "System.Span<object>").WithLocation(4, 5));
+
+        var expectedOutput = "22";
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
     [Fact]
@@ -4214,8 +7269,8 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
-    [Theory, MemberData(nameof(LangVersions))]
-    public void OverloadResolution_SpanVsReadOnlySpan_ExtensionMethodReceiver_04(LanguageVersion langVersion)
+    [Fact]
+    public void OverloadResolution_SpanVsReadOnlySpan_ExtensionMethodReceiver_04()
     {
         var source = """
             using System;
@@ -4225,11 +7280,11 @@ public class FirstClassSpanTests : CSharpTestBase
 
             static class C
             {
-                public static void E(this Span<object> arg) { }
-                public static void E(this ReadOnlySpan<object> arg) { }
+                public static void E(this Span<object> arg) => Console.Write(1);
+                public static void E(this ReadOnlySpan<object> arg) => Console.Write(2);
             }
             """;
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics(
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
             // (3,1): error CS1929: 'Span<string>' does not contain a definition for 'E' and the best extension method overload 'C.E(Span<object>)' requires a receiver of type 'System.Span<object>'
             // default(Span<string>).E();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "default(Span<string>)").WithArguments("System.Span<string>", "E", "C.E(System.Span<object>)", "System.Span<object>").WithLocation(3, 1),
@@ -4237,7 +7292,13 @@ public class FirstClassSpanTests : CSharpTestBase
             // default(ReadOnlySpan<string>).E();
             Diagnostic(ErrorCode.ERR_BadInstanceArgType, "default(ReadOnlySpan<string>)").WithArguments("System.ReadOnlySpan<string>", "E", "C.E(System.Span<object>)", "System.Span<object>").WithLocation(4, 1));
 
-        // PROTOTYPE: Should work in C# 13 when ROS->ROS conversion is implemented.
+        var expectedOutput = "22";
+
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
     [Fact]

@@ -32,10 +32,10 @@ namespace System
             this.arr = arr;
             this.Length = arr is null ? 0 : arr.Length;
         }
-        
+
         public Span(T[] arr, int start, int length)
         {
-            if (start + length > arr.Length)
+            if (start + length > arr?.Length)
             {
                 throw new ArgumentOutOfRangeException();
             }
@@ -117,10 +117,10 @@ namespace System
             this.arr = arr;
             this.Length = arr is null ? 0 : arr.Length;
         }
-        
+
         public ReadOnlySpan(T[] arr, int start, int length)
         {
-            if (start + length > arr.Length)
+            if (start + length > arr?.Length)
             {
                 throw new ArgumentOutOfRangeException();
             }
@@ -180,6 +180,13 @@ namespace System
         public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue) ? default : new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
 
         public ReadOnlySpan<T> Slice(int offset, int length) => new ReadOnlySpan<T>(this.arr, offset, length);
+
+#nullable enable
+        public static ReadOnlySpan<T> CastUp<TDerived>(ReadOnlySpan<TDerived> items) where TDerived : class?, T
+        {
+            return new ReadOnlySpan<T>(items.arr, items.start, items.Length);
+        }
+#nullable restore
     }
 
     public readonly ref struct SpanLike<T>

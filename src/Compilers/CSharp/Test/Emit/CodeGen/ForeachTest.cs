@@ -504,7 +504,7 @@ class Test
   .locals init (System.ReadOnlySpan<char> V_0,
                 int V_1)
   IL_0000:  ldstr      ""hello""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldc.i4.0
   IL_000c:  stloc.1

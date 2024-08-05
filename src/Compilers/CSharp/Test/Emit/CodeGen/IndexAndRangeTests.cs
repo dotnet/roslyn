@@ -826,7 +826,7 @@ class C
         }
     }
 }";
-            var comp = CreateCompilationWithIndexAndRangeAndSpan(src, TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithIndexAndRangeAndSpanAndMemoryExtensions(src, TestOptions.ReleaseExe);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 abcd
 abcd");
@@ -848,7 +848,7 @@ abcd");
       IL_000a:  callvirt   ""int string.Length.get""
       IL_000f:  callvirt   ""string string.Substring(int, int)""
       IL_0014:  call       ""void System.Console.WriteLine(string)""
-      IL_0019:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)""
+      IL_0019:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
       IL_001e:  stloc.0
       IL_001f:  ldloca.s   V_0
       IL_0021:  stloc.s    V_4
@@ -1081,7 +1081,7 @@ class C
         [Fact]
         public void PatternIndexAndRangeSpanChar()
         {
-            var comp = CreateCompilationWithIndexAndRangeAndSpan(@"
+            var comp = CreateCompilationWithIndexAndRangeAndSpanAndMemoryExtensions(@"
 using System;
 class C
 {
@@ -1110,7 +1110,7 @@ g");
                 int V_3,
                 int V_4)
   IL_0000:  ldstr      ""abcdefg""
-  IL_0005:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldloca.s   V_0
   IL_000d:  dup

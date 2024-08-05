@@ -17019,12 +17019,22 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (16,31): error CS0457: Ambiguous user defined conversions 'C.implicit operator C(ReadOnlySpan<int>)' and 'C.implicit operator C(Span<int>)' when converting from 'Buffer10<int>' to 'C'
                 //         System.Console.Write(((C)b).F);
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "(C)b").WithArguments("C.implicit operator C(System.ReadOnlySpan<int>)", "C.implicit operator C(System.Span<int>)", "Buffer10<int>", "C").WithLocation(16, 31)
                 );
+
+            // NOTE: No longer ambiguous because there is a standard implicit span conversion from Span to ReadOnlySpan which makes the Span operator better.
+
+            var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "110" : null;
+
+            comp = CreateCompilation(src + Buffer10Definition, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
+
+            comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyDiagnostics();
         }
 
         [Fact]
@@ -17054,12 +17064,27 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilation(src + Buffer10Definition, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (21,31): error CS0457: Ambiguous user defined conversions 'C.implicit operator C(ReadOnlySpan<int>)' and 'C.implicit operator C(Span<int>)' when converting from 'Buffer10<int>' to 'C'
                 //         System.Console.Write(((C)b).F);
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "(C)b").WithArguments("C.implicit operator C(System.ReadOnlySpan<int>)", "C.implicit operator C(System.Span<int>)", "Buffer10<int>", "C").WithLocation(21, 31)
                 );
+
+            // NOTE: No longer ambiguous because there is a standard implicit span conversion from Span to ReadOnlySpan which makes the Span operator better.
+
+            var expectedDiagnostics = new[]
+            {
+                // (21,34): error CS9164: Cannot convert expression to 'Span<int>' because it is not an assignable variable
+                //         System.Console.Write(((C)b).F);
+                Diagnostic(ErrorCode.ERR_InlineArrayConversionToSpanNotSupported, "b").WithArguments("System.Span<int>").WithLocation(21, 34)
+            };
+
+            comp = CreateCompilation(src + Buffer10Definition, parseOptions: TestOptions.RegularNext, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(expectedDiagnostics);
+
+            comp = CreateCompilation(src + Buffer10Definition, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            comp.VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]

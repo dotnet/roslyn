@@ -7512,7 +7512,7 @@ class C
   .locals init (System.ReadOnlySpan<char> V_0, //chars
                 int V_1)
   IL_0000:  ldstr      ""string 2""
-  IL_0005:  call       ""System.ReadOnlySpan<char> string.op_Implicit(string)""
+  IL_0005:  call       ""System.ReadOnlySpan<char> System.MemoryExtensions.AsSpan(string)""
   IL_000a:  stloc.0
   IL_000b:  ldloca.s   V_0
   IL_000d:  call       ""int System.ReadOnlySpan<char>.Length.get""

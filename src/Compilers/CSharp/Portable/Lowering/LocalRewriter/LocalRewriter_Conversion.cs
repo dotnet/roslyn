@@ -617,25 +617,98 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.ImplicitSpan:
                 case ConversionKind.ExplicitSpan:
                     {
-                        var spanType = (NamedTypeSymbol)rewrittenType;
+                        var sourceType = rewrittenOperand.Type;
+                        var destinationType = (NamedTypeSymbol)rewrittenType;
 
-                        if (Binder.TryFindImplicitOperatorFromArray(spanType.OriginalDefinition) is not { } methodDefinition)
+                        Debug.Assert(sourceType is not null);
+
+                        // array to Span/ReadOnlySpan (implicit or explicit)
+                        if (sourceType is ArrayTypeSymbol)
                         {
-                            throw ExceptionUtilities.Unreachable();
-                        }
-                        else
-                        {
-                            MethodSymbol method = methodDefinition.AsMember(spanType);
+                            if (Binder.TryFindImplicitOperatorFromArray(destinationType.OriginalDefinition) is not { } methodDefinition)
+                            {
+                                throw ExceptionUtilities.Unreachable();
+                            }
+
+                            MethodSymbol method = methodDefinition.AsMember(destinationType);
 
                             rewrittenOperand = _factory.Convert(method.ParameterTypesWithAnnotations[0].Type, rewrittenOperand);
 
-                            if (!_inExpressionLambda && _compilation.IsReadOnlySpanType(spanType))
+                            if (!_inExpressionLambda && _compilation.IsReadOnlySpanType(destinationType))
                             {
-                                return new BoundReadOnlySpanFromArray(syntax, rewrittenOperand, method, spanType) { WasCompilerGenerated = true };
+                                return new BoundReadOnlySpanFromArray(syntax, rewrittenOperand, method, destinationType) { WasCompilerGenerated = true };
                             }
 
                             return _factory.Call(null, method, rewrittenOperand);
                         }
+
+                        // Span to ReadOnlySpan (implicit only)
+                        if (sourceType.IsSpan())
+                        {
+                            Debug.Assert(destinationType.IsReadOnlySpan());
+                            Debug.Assert(conversion.Kind is ConversionKind.ImplicitSpan);
+
+                            if (Binder.TryFindImplicitOperatorFromSpan(sourceType.OriginalDefinition, destinationType.OriginalDefinition) is not { } implicitOperatorDefinition)
+                            {
+                                throw ExceptionUtilities.Unreachable();
+                            }
+
+                            MethodSymbol implicitOperator = implicitOperatorDefinition.AsMember((NamedTypeSymbol)sourceType);
+
+                            rewrittenOperand = _factory.Convert(implicitOperator.ParameterTypesWithAnnotations[0].Type, rewrittenOperand);
+                            rewrittenOperand = _factory.Call(null, implicitOperator, rewrittenOperand);
+
+                            if (Binder.NeedsSpanCastUp(sourceType, destinationType))
+                            {
+                                if (Binder.TryFindCastUpMethod(implicitOperator.ReturnType.OriginalDefinition, destinationType.OriginalDefinition) is not { } castUpMethodDefinition)
+                                {
+                                    throw ExceptionUtilities.Unreachable();
+                                }
+
+                                TypeWithAnnotations sourceElementType = ((NamedTypeSymbol)sourceType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                                MethodSymbol castUpMethod = castUpMethodDefinition.AsMember(destinationType).Construct([sourceElementType]);
+
+                                return _factory.Call(null, castUpMethod, rewrittenOperand);
+                            }
+
+                            return rewrittenOperand;
+                        }
+
+                        // ReadOnlySpan to ReadOnlySpan (implicit only)
+                        if (sourceType.IsReadOnlySpan())
+                        {
+                            Debug.Assert(destinationType.IsReadOnlySpan());
+                            Debug.Assert(conversion.Kind is ConversionKind.ImplicitSpan);
+                            Debug.Assert(Binder.NeedsSpanCastUp(sourceType, destinationType));
+
+                            if (Binder.TryFindCastUpMethod(sourceType.OriginalDefinition, destinationType.OriginalDefinition) is not { } methodDefinition)
+                            {
+                                throw ExceptionUtilities.Unreachable();
+                            }
+
+                            TypeWithAnnotations sourceElementType = ((NamedTypeSymbol)sourceType).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
+                            MethodSymbol method = methodDefinition.AsMember(destinationType).Construct([sourceElementType]);
+
+                            rewrittenOperand = _factory.Convert(method.ParameterTypesWithAnnotations[0].Type, rewrittenOperand);
+                            return _factory.Call(null, method, rewrittenOperand);
+                        }
+
+                        // string to ReadOnlySpan (implicit only)
+                        if (sourceType.IsStringType())
+                        {
+                            Debug.Assert(destinationType.IsReadOnlySpan());
+                            Debug.Assert(conversion.Kind is ConversionKind.ImplicitSpan);
+
+                            if (Binder.TryFindAsSpanCharMethod(_compilation, destinationType) is not { } method)
+                            {
+                                throw ExceptionUtilities.Unreachable();
+                            }
+
+                            rewrittenOperand = _factory.Convert(method.ParameterTypesWithAnnotations[0].Type, rewrittenOperand);
+                            return _factory.Call(null, method, rewrittenOperand);
+                        }
+
+                        throw ExceptionUtilities.Unreachable();
                     }
 
                 default:
