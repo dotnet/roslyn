@@ -1561,10 +1561,10 @@ namespace System
                 => throw new NotImplementedException();
 
             public override INamedTypeSymbolInternal TryGetOrCreateSynthesizedHotReloadExceptionType()
-                => throw new NotImplementedException();
+                => null;
 
             public override INamedTypeSymbolInternal GetUsedSynthesizedHotReloadExceptionType()
-                => throw new NotImplementedException();
+                => null;
 
             AssemblyIdentity IAssemblyReference.Identity => ((IAssemblyReference)_builder).Identity;
 

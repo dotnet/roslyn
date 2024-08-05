@@ -991,11 +991,11 @@ End Class"
             End Function
 
             Public Overrides Function TryGetOrCreateSynthesizedHotReloadExceptionType() As INamedTypeSymbolInternal
-                Throw New NotImplementedException()
+                Return Nothing
             End Function
 
             Public Overrides Function GetUsedSynthesizedHotReloadExceptionType() As INamedTypeSymbolInternal
-                Throw New NotImplementedException()
+                Return Nothing
             End Function
 
             Friend Overrides ReadOnly Property AllowOmissionOfConditionalCalls As Boolean
