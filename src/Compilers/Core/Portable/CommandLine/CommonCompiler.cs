@@ -1586,7 +1586,7 @@ namespace Microsoft.CodeAnalysis
                     if (HasUnsuppressableErrors(transformersDiagnostics))
                     {
                         MapDiagnosticsToFinalCompilation(transformersDiagnostics, diagnostics, compilation, logger);
-                        logger.Error?.Log($"RunTransformers reported errors.");
+                        logger.Warning?.Log($"RunTransformers reported errors.");
                         return;
                     }
 
@@ -1598,7 +1598,7 @@ namespace Microsoft.CodeAnalysis
                     // Don't continue if transformers failed.
                     if (!transformersResult.Success)
                     {
-                        logger.Error?.Log($"RunTransformers was not successful.");
+                        logger.Warning?.Log($"RunTransformers was not successful.");
                         return;
                     }
 
@@ -2023,7 +2023,7 @@ namespace Microsoft.CodeAnalysis
                         }
                         else
                         {
-                            logger?.Error?.Log(
+                            logger?.Warning?.Log(
                                 $"The compilation failed because there are errors emitting the PE file.");
                         }
                         // </Metalama>
