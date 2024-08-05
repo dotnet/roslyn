@@ -558,7 +558,7 @@ public partial class Solution
     internal Solution WithProjectAttributes(ProjectInfo.ProjectAttributes attributes)
     {
         CheckContainsProject(attributes.Id);
-        return WithCompilationState(_compilationState.WithProjectAttributes(attributes));
+        return WithCompilationState(CompilationState.WithProjectAttributes(attributes));
     }
 
     /// <summary>
@@ -567,7 +567,7 @@ public partial class Solution
     internal Solution WithProjectInfo(ProjectInfo info)
     {
         CheckContainsProject(info.Id);
-        return WithCompilationState(_compilationState.WithProjectInfo(info));
+        return WithCompilationState(CompilationState.WithProjectInfo(info));
     }
 
     /// <summary>
