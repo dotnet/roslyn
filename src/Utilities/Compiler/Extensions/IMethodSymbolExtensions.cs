@@ -301,13 +301,13 @@ namespace Analyzer.Utilities.Extensions
         }
 
         /// <summary>
-        /// Checks if the given method has the signature "virtual ValueTask DisposeCoreAsync()" or "virtual ValueTask DisposeAsyncCore()".
+        /// Checks if the given method has the signature "{virtual|override} ValueTask DisposeCoreAsync()" or "{virtual|override} ValueTask DisposeAsyncCore()".
         /// </summary>
-        private static bool HasVirtualDisposeCoreAsyncMethodSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? valueTask)
+        private static bool HasVirtualOrOverrideDisposeCoreAsyncMethodSignature(this IMethodSymbol method, [NotNullWhen(returnValue: true)] INamedTypeSymbol? valueTask)
         {
             return (method.Name == "DisposeAsyncCore" || method.Name == "DisposeCoreAsync") &&
                 method.MethodKind == MethodKind.Ordinary &&
-                method.IsVirtual &&
+                (method.IsVirtual || method.IsOverride) &&
                 SymbolEqualityComparer.Default.Equals(method.ReturnType, valueTask) &&
                 method.Parameters.Length == 0;
         }
@@ -363,7 +363,7 @@ namespace Analyzer.Utilities.Extensions
                 {
                     return DisposeMethodKind.DisposeCoreAsync;
                 }
-                else if (method.HasVirtualDisposeCoreAsyncMethodSignature(valueTask))
+                else if (method.HasVirtualOrOverrideDisposeCoreAsyncMethodSignature(valueTask))
                 {
                     return DisposeMethodKind.DisposeCoreAsync;
                 }
