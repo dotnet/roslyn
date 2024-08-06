@@ -121,8 +121,8 @@ End Namespace
         await TestServices.SolutionExplorer.CloseActiveWindow(HangMitigatingCancellationToken);
 
         // Build and verify build failure in the output window.
-        var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
-        Assert.Equal("========== Build: 0 succeeded, 1 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
+        var buildSucceeds = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
+        Assert.False(buildSucceeds);
 
         await TestServices.Workspace.WaitForAllAsyncOperationsAsync([FeatureAttribute.Workspace, FeatureAttribute.SolutionCrawlerLegacy, FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles, FeatureAttribute.ErrorList], HangMitigatingCancellationToken);
 

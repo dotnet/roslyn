@@ -29,10 +29,8 @@ public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIntegratio
         Assert.True(File.Exists(solutionDir));
 
         await this.TestServices.SolutionExplorer.OpenSolutionAsync(solutionDir, HangMitigatingCancellationToken);
-        var result = await this.TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
-        var outputResult = await this.TestServices.SolutionExplorer.GetBuildOutputContentAsync(HangMitigatingCancellationToken);
-        output.WriteLine(outputResult);
-        Assert.Contains("0 failed", result);
+        var buildSucceeds = await this.TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
+        Assert.True(buildSucceeds);
         await this.TestServices.Shell.ExecuteCommandAsync("Debug.StartWithoutDebugging", HangMitigatingCancellationToken);
     }
 }

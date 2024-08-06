@@ -10,11 +10,13 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Documents;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Microsoft.VisualStudio.Progression.CodeSchema.Api;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -630,67 +632,31 @@ internal partial class SolutionExplorerInProcess
     }
 
     /// <returns>
-    /// The summary line for the build, which generally looks something like this:
-    ///
-    /// <code>
-    /// ========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========
-    /// </code>
+    /// true if build succeeds, otherwise false.
     /// </returns>
-    public async Task<string> BuildSolutionAndWaitAsync(CancellationToken cancellationToken)
+    public async Task<bool> BuildSolutionAndWaitAsync(CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-
-        var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
-        buildOutputWindowPane.Clear();
 
         var buildManager = await GetRequiredGlobalServiceAsync<SVsSolutionBuildManager, IVsSolutionBuildManager2>(cancellationToken);
         using var solutionEvents = new UpdateSolutionEvents(buildManager);
         var buildCompleteTaskCompletionSource = new TaskCompletionSource<bool>();
 
-        void HandleUpdateSolutionDone() => buildCompleteTaskCompletionSource.SetResult(true);
+        void HandleUpdateSolutionDone(bool buildSucceed) => buildCompleteTaskCompletionSource.SetResult(buildSucceed);
         solutionEvents.OnUpdateSolutionDone += HandleUpdateSolutionDone;
+        var buildSucceeds = false;
         try
         {
             await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.BuildSln, cancellationToken);
 
-            await buildCompleteTaskCompletionSource.Task;
+            buildSucceeds = await buildCompleteTaskCompletionSource.Task;
         }
         finally
         {
             solutionEvents.OnUpdateSolutionDone -= HandleUpdateSolutionDone;
         }
 
-        // Force the error list to update
-        ErrorHandler.ThrowOnFailure(buildOutputWindowPane.FlushToTaskList());
-
-        var textView = (IVsTextView)buildOutputWindowPane;
-        var wpfTextViewHost = await textView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken);
-        var lines = wpfTextViewHost.TextView.TextViewLines;
-        if (lines.Count < 1)
-        {
-            return string.Empty;
-        }
-
-        // Find the build summary line
-        for (var index = lines.Count - 1; index >= 0; index--)
-        {
-            var lineText = lines[index].Extent.GetText();
-            if (lineText.StartsWith("========== Build:"))
-            {
-                return lineText;
-            }
-        }
-
-        return string.Empty;
-    }
-
-    public async Task<string> GetBuildOutputContentAsync(CancellationToken cancellationToken)
-    {
-        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
-        var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
-        var textView = (IVsTextView)buildOutputWindowPane;
-        var wpfTextViewHost = await textView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken);
-        return wpfTextViewHost.TextView.TextSnapshot.GetText();
+        return buildSucceeds;
     }
 
     public async Task<IVsOutputWindowPane> GetBuildOutputWindowPaneAsync(CancellationToken cancellationToken)
@@ -818,7 +784,7 @@ internal sealed class UpdateSolutionEvents : IVsUpdateSolutionEvents, IDisposabl
     private uint _cookie;
     private readonly IVsSolutionBuildManager2 _solutionBuildManager;
 
-    public event Action? OnUpdateSolutionDone;
+    public event Action<bool>? OnUpdateSolutionDone;
 
     internal UpdateSolutionEvents(IVsSolutionBuildManager2 solutionBuildManager)
     {
@@ -835,8 +801,9 @@ internal sealed class UpdateSolutionEvents : IVsUpdateSolutionEvents, IDisposabl
 
     int IVsUpdateSolutionEvents.UpdateSolution_Done(int fSucceeded, int fModified, int fCancelCommand)
     {
-        OnUpdateSolutionDone?.Invoke();
-        return 0;
+        var buildSucceeded = fSucceeded == 1;
+        OnUpdateSolutionDone?.Invoke(buildSucceeded);
+        return VSConstants.S_OK;
     }
 
     void IDisposable.Dispose()
