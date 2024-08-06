@@ -67,6 +67,10 @@ stages:
         arguments: -DropNamePrefix 'Products' -VstsDropUrlsJson '$(Pipeline.Workspace)\VisualStudioBuildUnderTest\BuildArtifacts\VstsDropUrls.json' -OutVariableName 'VisualStudio.BuildUnderTest.ProductsDropName'
     deployAndRunTestsStepList:
     - checkout: RoslynMirror
+    - checkout: RoslynMirror
+      path: $(Pipeline.Workspace)\RoslynTestAssets
+    - pwsh: .\$(Pipeline.Workspace)\RoslynTestAssets\roslyn\Restore.cmd
+      displayName: "Restore TestAssets"
     - template: eng/pipelines/test-integration-job.yml
       parameters:
         configuration: $(_configuration)

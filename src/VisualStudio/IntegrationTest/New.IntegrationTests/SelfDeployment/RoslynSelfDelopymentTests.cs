@@ -23,12 +23,11 @@ public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIntegratio
         Environment.SetEnvironmentVariable("RoslynSelfBuildTest", "true");
         Environment.SetEnvironmentVariable("MSBUILDTERMINALLOGGER ", "auto");
         Environment.SetEnvironmentVariable("MSBuildDebugEngine", "1");
-        Environment.SetEnvironmentVariable("RoslynSelfBuildTestAsset", @"D:\Sample\roslyn\");
+        Environment.SetEnvironmentVariable("RoslynSelfBuildTestAsset", @"C:\Users\shech\Workspace\Sample\roslyn");
         var testAssetDirectory = Environment.GetEnvironmentVariable("RoslynSelfBuildTestAsset");
         Assert.NotNull(testAssetDirectory);
         var solutionDir = Path.Combine(testAssetDirectory, "roslyn.sln");
         Assert.True(File.Exists(solutionDir));
-
         await this.TestServices.SolutionExplorer.OpenSolutionAsync(solutionDir, HangMitigatingCancellationToken);
 
         await this.TestOperationAndReportIfFailedAsync(

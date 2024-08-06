@@ -22,11 +22,11 @@ steps:
   # Pipelines like the DartLab integration pipeline skip checkout because it is performed elsewhere.
   - ${{ if eq(parameters.skipCheckout, false) }}:
     - template: checkout-windows-task.yml
-
   - task: PowerShell@2
     displayName: Build and Test
     env:
       isDartLab: $(isDartLab)
+      RoslynSelfBuildTestAsset: $(Pipeline.Workspace)\RoslynTestAssets
     inputs:
       filePath: eng/build.ps1
       arguments: -ci -restore -build -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine -testVsi -oop64bit:$${{ parameters.oop64bit }} -collectDumps -lspEditor:$${{ parameters.lspEditor }}
