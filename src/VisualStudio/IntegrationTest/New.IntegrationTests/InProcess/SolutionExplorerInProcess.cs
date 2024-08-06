@@ -644,22 +644,49 @@ internal partial class SolutionExplorerInProcess
 
         void HandleUpdateSolutionDone(bool buildSucceed) => buildCompleteTaskCompletionSource.SetResult(buildSucceed);
         solutionEvents.OnUpdateSolutionDone += HandleUpdateSolutionDone;
-        var buildSucceeds = false;
         try
         {
-            await TestServices.Shell.ExecuteCommandAsync(VSConstants.VSStd97CmdID.BuildSln, cancellationToken);
-
-            buildSucceeds = await buildCompleteTaskCompletionSource.Task;
+            ErrorHandler.ThrowOnFailure(buildManager.StartSimpleUpdateSolutionConfiguration((uint)VSSOLNBUILDUPDATEFLAGS.SBF_OPERATION_BUILD, 0, 0));
+            return await buildCompleteTaskCompletionSource.Task;
         }
         finally
         {
             solutionEvents.OnUpdateSolutionDone -= HandleUpdateSolutionDone;
         }
-
-        return buildSucceeds;
     }
 
-    public async Task<IVsOutputWindowPane> GetBuildOutputWindowPaneAsync(CancellationToken cancellationToken)
+    public async Task<bool> DeploySolutionAsync(bool attachingDebugger, CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        var buildManager = await GetRequiredGlobalServiceAsync<SVsSolutionBuildManager, IVsSolutionBuildManager2>(cancellationToken);
+        using var solutionEvents = new UpdateSolutionEvents(buildManager);
+        var buildCompleteTaskCompletionSource = new TaskCompletionSource<bool>();
+
+        void HandleUpdateSolutionDone(bool buildSucceed) => buildCompleteTaskCompletionSource.SetResult(buildSucceed);
+        solutionEvents.OnUpdateSolutionDone += HandleUpdateSolutionDone;
+        try
+        {
+            var operation = attachingDebugger ? VSSOLNBUILDUPDATEFLAGS.SBF_OPERATION_LAUNCHDEBUG : VSSOLNBUILDUPDATEFLAGS.SBF_OPERATION_LAUNCH;
+            ErrorHandler.ThrowOnFailure(buildManager.StartSimpleUpdateSolutionConfiguration(
+                (uint)operation, 0, 0));
+            return await buildCompleteTaskCompletionSource.Task;
+        }
+        finally
+        {
+            solutionEvents.OnUpdateSolutionDone -= HandleUpdateSolutionDone;
+        }
+    }
+
+    public async Task<string> GetBuildOutputContentAsync(CancellationToken cancellationToken)
+    {
+        await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        var buildOutputWindowPane = await GetBuildOutputWindowPaneAsync(cancellationToken);
+        var textView = (IVsTextView)buildOutputWindowPane;
+        var wpfTextViewHost = await textView.GetTextViewHostAsync(JoinableTaskFactory, cancellationToken);
+        return wpfTextViewHost.TextView.TextSnapshot.GetText();
+    }
+
+    private async Task<IVsOutputWindowPane> GetBuildOutputWindowPaneAsync(CancellationToken cancellationToken)
     {
         await JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
 

@@ -4,6 +4,7 @@
 
 using System;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
@@ -29,8 +30,22 @@ public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIntegratio
         Assert.True(File.Exists(solutionDir));
 
         await this.TestServices.SolutionExplorer.OpenSolutionAsync(solutionDir, HangMitigatingCancellationToken);
-        var buildSucceeds = await this.TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
-        Assert.True(buildSucceeds);
-        await this.TestServices.Shell.ExecuteCommandAsync("Debug.StartWithoutDebugging", HangMitigatingCancellationToken);
+
+        await this.TestOperationAndReportIfFailedAsync(
+            () => this.TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken), HangMitigatingCancellationToken);
+
+        await this.TestOperationAndReportIfFailedAsync(
+            () => this.TestServices.SolutionExplorer.DeploySolutionAsync(attachingDebugger: false, HangMitigatingCancellationToken), HangMitigatingCancellationToken);
+    }
+
+    private async Task TestOperationAndReportIfFailedAsync(Func<Task<bool>> operation, CancellationToken cancellationToken)
+    {
+        var result = await operation();
+        if (!result)
+        {
+            var buildOutput = await this.TestServices.SolutionExplorer.GetBuildOutputContentAsync(cancellationToken);
+            output.WriteLine(buildOutput);
+        }
+        Assert.True(result);
     }
 }
