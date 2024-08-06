@@ -275,7 +275,7 @@ internal partial class SolutionCompilationState
             if (compilationWithStaleGeneratedTrees != null)
             {
                 var generatedTreeCount =
-                    runResult.Results.Sum(r => IsGeneratorRunResultToIgnore(r) ? 0 : r.GeneratedSources.Length);
+                    runResult.Results.Sum(r => IsGeneratorRunResultToIgnore(r) || r.GeneratedSources.IsDefaultOrEmpty ? 0 : r.GeneratedSources.Length);
 
                 if (oldGeneratedDocuments.Count != generatedTreeCount)
                     compilationWithStaleGeneratedTrees = null;
@@ -287,7 +287,7 @@ internal partial class SolutionCompilationState
             var generationDateTime = DateTime.Now;
             foreach (var generatorResult in runResult.Results)
             {
-                if (IsGeneratorRunResultToIgnore(generatorResult))
+                if (IsGeneratorRunResultToIgnore(generatorResult) || generatorResult.GeneratedSources.IsDefaultOrEmpty)
                     continue;
 
                 var generatorAnalyzerReference = GetAnalyzerReference(this.ProjectState, generatorResult.Generator);
