@@ -23,7 +23,7 @@
     <ProjectReference Include="..\..\..\Scripting\Core\Microsoft.CodeAnalysis.Scripting.csproj" />
     <ProjectReference Include="..\..\..\Scripting\CSharp\Microsoft.CodeAnalysis.CSharp.Scripting.csproj" />
     <ProjectReference Include="..\..\Host\Microsoft.CodeAnalysis.InteractiveHost.csproj" />
-    <Content Include="..\App.config" />
+    <Content Include="..\App.config" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
     <Compile Include="..\InteractiveHostEntryPoint.cs" />
   </ItemGroup>
   

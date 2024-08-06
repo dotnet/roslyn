@@ -22,9 +22,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
 internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManager>
 {
-    private readonly ObjectListKind _kind;
     private readonly ObjectList _parentList;
-    private readonly ObjectListItem _parentListItem;
     private readonly uint _flags;
     private readonly ImmutableArray<ObjectListItem> _items;
 
@@ -46,10 +44,10 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         ImmutableArray<ObjectListItem> items)
         : base(manager)
     {
-        _kind = kind;
+        Kind = kind;
         _flags = flags;
         _parentList = parentList;
-        _parentListItem = parentListItem;
+        ParentListItem = parentListItem;
 
         _items = items;
 
@@ -77,7 +75,7 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         {
             case VSTREETEXTOPTIONS.TTO_SORTTEXT:
             case VSTREETEXTOPTIONS.TTO_DISPLAYTEXT:
-                switch (_kind)
+                switch (Kind)
                 {
                     case ObjectListKind.BaseTypes:
                     case ObjectListKind.Hierarchy:
@@ -116,7 +114,7 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
 
     private bool TryGetListType(out uint categoryField)
     {
-        switch (_kind)
+        switch (Kind)
         {
             case ObjectListKind.BaseTypes:
                 categoryField = (uint)_LIB_LISTTYPE.LLT_CLASSES | (uint)_LIB_LISTTYPE.LLT_MEMBERS;
@@ -359,7 +357,7 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
                 return TryGetClassType(index, out categoryField);
 
             case (int)_LIB_CATEGORY2.LC_HIERARCHYTYPE:
-                if (_kind == ObjectListKind.Hierarchy)
+                if (Kind == ObjectListKind.Hierarchy)
                 {
                     categoryField = this.ParentKind == ObjectListKind.Projects
                         ? (uint)_LIBCAT_HIERARCHYTYPE.LCHT_PROJECTREFERENCES
@@ -400,7 +398,7 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
 
     protected override bool GetExpandable(uint index, uint listTypeExcluded)
     {
-        switch (_kind)
+        switch (Kind)
         {
             case ObjectListKind.Hierarchy:
             case ObjectListKind.Namespaces:
@@ -463,7 +461,7 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         var listItem = GetListItem(index);
 
         // We need to do a little massaging of the list type and parent item in a couple of cases.
-        switch (_kind)
+        switch (Kind)
         {
             case ObjectListKind.Hierarchy:
                 // LLT_USESCLASSES is for displaying base classes and interfaces
@@ -473,7 +471,7 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
                     : Helpers.LLT_PROJREF;
 
                 // Use the parent of this list as the parent of the new list.
-                listItem = listItem.ParentList._parentListItem;
+                listItem = listItem.ParentList.ParentListItem;
 
                 break;
 
@@ -577,7 +575,7 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         var listItem = GetListItem(index);
 
         var name = listItem.DisplayText;
-        var type = Helpers.ObjectListKindToListType(_kind);
+        var type = Helpers.ObjectListKindToListType(Kind);
 
         if (type == (uint)_LIB_LISTTYPE.LLT_USESCLASSES)
         {
@@ -611,7 +609,7 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         {
             var name = GetText(i, VSTREETEXTOPTIONS.TTO_DISPLAYTEXT);
 
-            if (_kind is ObjectListKind.Types or
+            if (Kind is ObjectListKind.Types or
                 ObjectListKind.Namespaces or
                 ObjectListKind.Members)
             {
@@ -628,7 +626,7 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
                     index = i;
                     break;
                 }
-                else if (_kind == ObjectListKind.Projects)
+                else if (Kind == ObjectListKind.Projects)
                 {
                     if (matchName.IndexOf(name, StringComparison.OrdinalIgnoreCase) >= 0)
                     {
@@ -767,7 +765,7 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
 
     protected override uint GetUpdateCounter()
     {
-        switch (_kind)
+        switch (Kind)
         {
             case ObjectListKind.Projects:
             case ObjectListKind.References:
@@ -782,7 +780,7 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
                 return LibraryManager.ClassVersion | LibraryManager.MembersVersion;
 
             default:
-                Debug.Fail("Unsupported object list kind: " + _kind.ToString());
+                Debug.Fail("Unsupported object list kind: " + Kind.ToString());
                 throw new InvalidOperationException();
         }
     }
@@ -804,7 +802,7 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         const int IDM_VS_CTXT_CV_GROUPINGFOLDER = 0x0435;
         const int IDM_VS_CTXT_CV_MEMBER = 0x0438;
 
-        switch (_kind)
+        switch (Kind)
         {
             case ObjectListKind.Projects:
                 menuId = IDM_VS_CTXT_CV_PROJECT;
@@ -949,10 +947,7 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         return true;
     }
 
-    public ObjectListKind Kind
-    {
-        get { return _kind; }
-    }
+    public ObjectListKind Kind { get; }
 
     public ObjectListKind ParentKind
     {
@@ -964,8 +959,5 @@ internal class ObjectList : AbstractObjectList<AbstractObjectBrowserLibraryManag
         }
     }
 
-    public ObjectListItem ParentListItem
-    {
-        get { return _parentListItem; }
-    }
+    public ObjectListItem ParentListItem { get; }
 }
