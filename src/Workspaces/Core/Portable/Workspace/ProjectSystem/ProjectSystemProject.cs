@@ -69,10 +69,7 @@ internal sealed partial class ProjectSystemProject
     private CompilationOptions? _compilationOptions;
     private ParseOptions? _parseOptions;
     private SourceHashAlgorithm _checksumAlgorithm = SourceHashAlgorithms.Default;
-    private bool _hasAllInformation = true;
     private string? _compilationOutputAssemblyFilePath;
-    private string? _outputFilePath;
-    private string? _outputRefFilePath;
     private string? _defaultNamespace;
 
     /// <summary>
@@ -82,9 +79,6 @@ internal sealed partial class ProjectSystemProject
     /// </summary>
     internal bool IsPrimary { get; set; } = true;
 
-    // Actual property values for 'RunAnalyzers' and 'RunAnalyzersDuringLiveAnalysis' properties from the project file.
-    // Both these properties can be used to configure running analyzers, with RunAnalyzers overriding RunAnalyzersDuringLiveAnalysis.
-    private bool? _runAnalyzersPropertyValue;
     private bool? _runAnalyzersDuringLiveAnalysisPropertyValue;
 
     // Effective boolean value to determine if analyzers should be executed based on _runAnalyzersPropertyValue and _runAnalyzersDuringLiveAnalysisPropertyValue.
@@ -390,14 +384,14 @@ internal sealed partial class ProjectSystemProject
 
     public string? OutputFilePath
     {
-        get => _outputFilePath;
-        set => ChangeProjectOutputPath(ref _outputFilePath, value, s => s.WithProjectOutputFilePath(Id, value));
+        get;
+        set => ChangeProjectOutputPath(ref field, value, s => s.WithProjectOutputFilePath(Id, value));
     }
 
     public string? OutputRefFilePath
     {
-        get => _outputRefFilePath;
-        set => ChangeProjectOutputPath(ref _outputRefFilePath, value, s => s.WithProjectOutputRefFilePath(Id, value));
+        get;
+        set => ChangeProjectOutputPath(ref field, value, s => s.WithProjectOutputRefFilePath(Id, value));
     }
 
     public string? FilePath
@@ -422,16 +416,16 @@ internal sealed partial class ProjectSystemProject
     // we use but we haven't made officially public yet.
     internal bool HasAllInformation
     {
-        get => _hasAllInformation;
-        set => ChangeProjectProperty(ref _hasAllInformation, value, s => s.WithHasAllInformation(Id, value));
-    }
+        get;
+        set => ChangeProjectProperty(ref field, value, s => s.WithHasAllInformation(Id, value));
+    } = true;
 
     internal bool? RunAnalyzers
     {
-        get => _runAnalyzersPropertyValue;
+        get;
         set
         {
-            _runAnalyzersPropertyValue = value;
+            field = value;
             UpdateRunAnalyzers();
         }
     }
@@ -449,7 +443,7 @@ internal sealed partial class ProjectSystemProject
     private void UpdateRunAnalyzers()
     {
         // Property RunAnalyzers overrides RunAnalyzersDuringLiveAnalysis, and default when both properties are not set is 'true'.
-        var runAnalyzers = _runAnalyzersPropertyValue ?? _runAnalyzersDuringLiveAnalysisPropertyValue ?? true;
+        var runAnalyzers = RunAnalyzers ?? _runAnalyzersDuringLiveAnalysisPropertyValue ?? true;
         ChangeProjectProperty(ref _runAnalyzers, runAnalyzers, s => s.WithRunAnalyzers(Id, runAnalyzers));
     }
 

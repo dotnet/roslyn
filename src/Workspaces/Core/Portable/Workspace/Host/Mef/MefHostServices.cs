@@ -73,33 +73,35 @@ public class MefHostServices(CompositionContext compositionContext) : HostServic
 
     #region Defaults
 
-    private static MefHostServices s_defaultHost;
     public static MefHostServices DefaultHost
     {
         get
         {
-            if (s_defaultHost == null)
+            if (field == null)
             {
                 var host = Create(DefaultAssemblies);
-                Interlocked.CompareExchange(ref s_defaultHost, host, null);
+                Interlocked.CompareExchange(ref field, host, null);
             }
 
-            return s_defaultHost;
+            return field;
         }
+
+        private set;
     }
 
-    private static ImmutableArray<Assembly> s_defaultAssemblies;
     public static ImmutableArray<Assembly> DefaultAssemblies
     {
         get
         {
-            if (s_defaultAssemblies.IsDefault)
+            if (field.IsDefault)
             {
-                ImmutableInterlocked.InterlockedInitialize(ref s_defaultAssemblies, LoadDefaultAssemblies());
+                ImmutableInterlocked.InterlockedInitialize(ref field, LoadDefaultAssemblies());
             }
 
-            return s_defaultAssemblies;
+            return field;
         }
+
+        private set;
     }
 
     // Used to build a MEF composition using the main workspaces assemblies and the known VisualBasic/CSharp workspace assemblies.
@@ -135,7 +137,7 @@ public class MefHostServices(CompositionContext compositionContext) : HostServic
             s_creationHook = hook;
 
             // The existing host, if any, is not retained past this call.
-            s_defaultHost = null;
+            DefaultHost = null;
         }
     }
 }
