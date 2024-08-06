@@ -820,69 +820,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">단일 어셈블리를 찾았습니다. '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_abstract_method_0">
-        <source>Generate abstract method '{0}'</source>
-        <target state="translated">'{0}' 요약 메서드 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_property_0">
-        <source>Generate abstract property '{0}'</source>
-        <target state="translated">'{0}' 요약 속성 생성</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">비교 연산자 생성</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constant_0">
-        <source>Generate constant '{0}'</source>
-        <target state="translated">'{0}' 상수 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_enum_member_0">
-        <source>Generate enum member '{0}'</source>
-        <target state="translated">'{0}' 열거형 멤버 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_0">
-        <source>Generate field '{0}'</source>
-        <target state="translated">'{0}' 필드 생성</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">'{0}'에 대해 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_method_0">
-        <source>Generate method '{0}'</source>
-        <target state="translated">‘{0}’ 메서드 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_parameter_0">
-        <source>Generate parameter '{0}'</source>
-        <target state="translated">'{0}' 매개 변수 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_parameter_0_and_overrides_implementations">
-        <source>Generate parameter '{0}' (and overrides/implementations)</source>
-        <target state="translated">'{0}' 매개 변수(및 재정의/구현) 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_property_0">
-        <source>Generate property '{0}'</source>
-        <target state="translated">'{0}' 속성 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_field_0">
-        <source>Generate read-only field '{0}'</source>
-        <target state="translated">'{0}' 읽기 전용 필드 생성</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_property_0">
-        <source>Generate read-only property '{0}'</source>
-        <target state="translated">'{0}' 읽기 전용 속성 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -2975,6 +2920,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">{0}의 크기를 업데이트하려면 응용 프로그램을 다시 시작해야 합니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
+        <target state="new">Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
         <source>Updating the type of {0} requires restarting the application.</source>
         <target state="translated">{0} 유형을 업데이트하려면 애플리케이션을 다시 시작해야 합니다.</target>
@@ -3885,11 +3835,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">GetHashCode() 생성</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_local_0">
-        <source>Generate local '{0}'</source>
-        <target state="translated">'{0}' 로컬을 생성합니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_0_1_in_new_file">
         <source>Generate {0} '{1}' in new file</source>
         <target state="translated">새 파일에서 {0} '{1}' 생성</target>
@@ -4553,11 +4498,6 @@ This version used in: {2}</source>
       <trans-unit id="Install_version_0">
         <source>Install version '{0}'</source>
         <target state="translated">'{0}' 버전 설치</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_variable_0">
-        <source>Generate variable '{0}'</source>
-        <target state="translated">'{0}' 변수 생성</target>
         <note />
       </trans-unit>
       <trans-unit id="Classes">

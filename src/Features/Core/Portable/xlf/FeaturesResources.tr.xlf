@@ -820,69 +820,14 @@ AM ve PM arasındaki farkın korunmasının gerekli olduğu diller için "tt" be
         <target state="translated">Tek bütünleştirilmiş kod bulundu: '{0}'</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_abstract_method_0">
-        <source>Generate abstract method '{0}'</source>
-        <target state="translated">'{0}' soyut metodunu üret</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_property_0">
-        <source>Generate abstract property '{0}'</source>
-        <target state="translated">'{0}' soyut özelliğini üret</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Karşılaştırma işleçlerini oluştur</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constant_0">
-        <source>Generate constant '{0}'</source>
-        <target state="translated">'{0}' sabitini üret</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_enum_member_0">
-        <source>Generate enum member '{0}'</source>
-        <target state="translated">'{0}' sabit listesi üyesini üret</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_0">
-        <source>Generate field '{0}'</source>
-        <target state="translated">'{0}' alanını üret</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">'{0}' için oluştur</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_method_0">
-        <source>Generate method '{0}'</source>
-        <target state="translated">'{0}' metodunu üret</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_parameter_0">
-        <source>Generate parameter '{0}'</source>
-        <target state="translated">'{0}' parametresini üret</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_parameter_0_and_overrides_implementations">
-        <source>Generate parameter '{0}' (and overrides/implementations)</source>
-        <target state="translated">'{0}' parametresini (ve geçersiz kılmaları/uygulamaları) üret</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_property_0">
-        <source>Generate property '{0}'</source>
-        <target state="translated">'{0}' özelliğini üret</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_field_0">
-        <source>Generate read-only field '{0}'</source>
-        <target state="translated">'{0}' salt okunur alanını üret</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_property_0">
-        <source>Generate read-only property '{0}'</source>
-        <target state="translated">'{0}' salt okunur özelliğini üret</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -2975,6 +2920,11 @@ Sıfır genişlikli pozitif geri yönlü onaylamalar genellikle normal ifadeleri
         <target state="translated">{0} öğesinin boyutunu güncelleştirmek, uygulamanın yeniden başlatılmasını gerektirir.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
+        <target state="new">Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
         <source>Updating the type of {0} requires restarting the application.</source>
         <target state="translated">{0} öğesinin türünün güncelleştirilmesi, uygulamanın yeniden başlatılmasını gerektirir.</target>
@@ -3885,11 +3835,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">GetHashCode() oluştur</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_local_0">
-        <source>Generate local '{0}'</source>
-        <target state="translated">Yerel '{0}' üretin</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_0_1_in_new_file">
         <source>Generate {0} '{1}' in new file</source>
         <target state="translated">Yeni dosyada {0} '{1}' oluştur</target>
@@ -4553,11 +4498,6 @@ Bu sürüm şurada kullanılır: {2}</target>
       <trans-unit id="Install_version_0">
         <source>Install version '{0}'</source>
         <target state="translated">'{0}' sürümünü yükle</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_variable_0">
-        <source>Generate variable '{0}'</source>
-        <target state="translated">'{0}' değişkenini oluştur</target>
         <note />
       </trans-unit>
       <trans-unit id="Classes">

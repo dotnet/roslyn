@@ -820,69 +820,14 @@ Asegúrese de usar el especificador "tt" para los idiomas para los que es necesa
         <target state="translated">Se encontró un solo ensamblado: "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_abstract_method_0">
-        <source>Generate abstract method '{0}'</source>
-        <target state="translated">Generar método abstracto "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_property_0">
-        <source>Generate abstract property '{0}'</source>
-        <target state="translated">Generar propiedad abstracta "{0}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Generar operadores de comparación</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constant_0">
-        <source>Generate constant '{0}'</source>
-        <target state="translated">Generar constante "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_enum_member_0">
-        <source>Generate enum member '{0}'</source>
-        <target state="translated">Generar miembro de enumeración "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_0">
-        <source>Generate field '{0}'</source>
-        <target state="translated">Generar campo "{0}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">Generar para "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_method_0">
-        <source>Generate method '{0}'</source>
-        <target state="translated">Generar método "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_parameter_0">
-        <source>Generate parameter '{0}'</source>
-        <target state="translated">Generar el parámetro "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_parameter_0_and_overrides_implementations">
-        <source>Generate parameter '{0}' (and overrides/implementations)</source>
-        <target state="translated">Generar el parámetro "{0}" (y reemplazos/implementaciones)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_property_0">
-        <source>Generate property '{0}'</source>
-        <target state="translated">Generar propiedad "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_field_0">
-        <source>Generate read-only field '{0}'</source>
-        <target state="translated">Generar un campo de sólo lectura "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_property_0">
-        <source>Generate read-only property '{0}'</source>
-        <target state="translated">Generar propiedad de solo lectura "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -2975,6 +2920,11 @@ Las aserciones de búsqueda retrasada (lookbehind) positivas de ancho cero se us
         <target state="translated">Para actualizar el tamaño de un {0} es necesario reiniciar la aplicación.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
+        <target state="new">Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
         <source>Updating the type of {0} requires restarting the application.</source>
         <target state="translated">Para actualizar el tipo de {0} es necesario reiniciar la aplicación.</target>
@@ -3885,11 +3835,6 @@ Si el especificador de formato "M" se usa sin otros especificadores de formato p
         <target state="translated">Generar "GetHashCode()"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_local_0">
-        <source>Generate local '{0}'</source>
-        <target state="translated">Generar la variable local '{0}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_0_1_in_new_file">
         <source>Generate {0} '{1}' in new file</source>
         <target state="translated">Generar {0} '{1}' en archivo nuevo</target>
@@ -4553,11 +4498,6 @@ Esta versión se utiliza en: {2}</target>
       <trans-unit id="Install_version_0">
         <source>Install version '{0}'</source>
         <target state="translated">Instalar la versión '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_variable_0">
-        <source>Generate variable '{0}'</source>
-        <target state="translated">Generar variable '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Classes">

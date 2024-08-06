@@ -13,11 +13,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         internal class BrowseObject : LocalizableProperties
         {
-            private readonly AnalyzerItem _analyzerItem;
-
             public BrowseObject(AnalyzerItem analyzerItem)
             {
-                _analyzerItem = analyzerItem;
+                AnalyzerItem = analyzerItem;
             }
 
             [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Name))]
@@ -25,7 +23,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 get
                 {
-                    return _analyzerItem.AnalyzerReference.Display;
+                    return AnalyzerItem.AnalyzerReference.Display;
                 }
             }
 
@@ -34,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 get
                 {
-                    return _analyzerItem.AnalyzerReference.FullPath;
+                    return AnalyzerItem.AnalyzerReference.FullPath;
                 }
             }
 
@@ -45,14 +43,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             public override string GetComponentName()
             {
-                return _analyzerItem.Text;
+                return AnalyzerItem.Text;
             }
 
             [Browsable(false)]
-            public AnalyzerItem AnalyzerItem
-            {
-                get { return _analyzerItem; }
-            }
+            public AnalyzerItem AnalyzerItem { get; }
         }
     }
 }

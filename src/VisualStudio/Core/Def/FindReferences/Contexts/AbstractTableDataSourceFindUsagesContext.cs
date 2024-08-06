@@ -462,7 +462,7 @@ internal partial class StreamingFindUsagesPresenter
             var document = documentSpan.Document;
             var sourceSpan = documentSpan.SourceSpan;
 
-            var excerptService = document.Services.GetService<IDocumentExcerptService>();
+            var excerptService = document.DocumentServiceProvider.GetService<IDocumentExcerptService>();
 
             // Fetching options is expensive enough to try to avoid it if we can.  So only fetch this if absolutely necessary.
             ClassificationOptions? options = null;

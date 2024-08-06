@@ -59,7 +59,7 @@ internal partial class DocumentState : TextDocumentState
         ParseOptions? options,
         LoadTextOptions loadTextOptions)
     {
-        var textSource = CreateTextAndVersionSource(languageServices.SolutionServices, info, loadTextOptions);
+        var textSource = CreateTextAndVersionSource(languageServices.SolutionServices, info.TextLoader, info.FilePath, loadTextOptions);
 
         // If this is document that doesn't support syntax, then don't even bother holding
         // onto any tree source.  It will never be used to get a tree, and can only hurt us
@@ -429,6 +429,16 @@ internal partial class DocumentState : TextDocumentState
             ParseOptions,
             newTreeSource);
     }
+
+    protected override TextDocumentState UpdateDocumentServiceProvider(IDocumentServiceProvider? newProvider)
+        => new DocumentState(
+            LanguageServices,
+            newProvider,
+            Attributes,
+            TextAndVersionSource,
+            LoadTextOptions,
+            ParseOptions,
+            TreeSource);
 
     public new DocumentState WithAttributes(DocumentInfo.DocumentAttributes newAttributes)
         => (DocumentState)base.WithAttributes(newAttributes);

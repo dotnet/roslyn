@@ -20,14 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.Extenders
             return (ICSAutoImplementedPropertyExtender)ComAggregate.CreateAggregatedObject(result);
         }
 
-        private readonly bool _isAutoImplemented;
-
         private AutoImplementedPropertyExtender(bool isAutoImplemented)
-            => _isAutoImplemented = isAutoImplemented;
+            => IsAutoImplemented = isAutoImplemented;
 
-        public bool IsAutoImplemented
-        {
-            get { return _isAutoImplemented; }
-        }
+        public bool IsAutoImplemented { get; }
     }
 }
