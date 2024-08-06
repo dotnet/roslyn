@@ -108,11 +108,15 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         // We might get symbol w/o name but CanBeReferencedByName is still set to true, 
         // need to filter them out.
         // https://github.com/dotnet/roslyn/issues/47690
-        var symbolGroups = from symbol in symbols
-                           let texts = GetDisplayAndSuffixAndInsertionText(symbol.Symbol, contextLookup(symbol))
-                           where !string.IsNullOrWhiteSpace(texts.displayText)
-                           group symbol by texts into g
-                           select g;
+        var symbolGroups = new MultiDictionary<(string displayText, string suffix, string insertionText), SymbolAndSelectionInfo>(symbols.Length, comparer: EqualityComparer<(string, string, string)>.Default);
+        foreach (var symbol in symbols)
+        {
+            var texts = GetDisplayAndSuffixAndInsertionText(symbol.Symbol, contextLookup(symbol));
+            if (!string.IsNullOrWhiteSpace(texts.displayText))
+            {
+                symbolGroups.Add(texts, symbol);
+            }
+        }
 
         using var _ = ArrayBuilder<CompletionItem>.GetInstance(out var itemListBuilder);
         var typeConvertibilityCache = new Dictionary<ITypeSymbol, bool>(SymbolEqualityComparer.Default);
@@ -120,8 +124,12 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         foreach (var symbolGroup in symbolGroups)
         {
             var includeItemInTargetTypedCompletion = false;
-            var arbitraryFirstContext = contextLookup(symbolGroup.First());
-            var symbolList = symbolGroup.ToImmutableArray();
+            using var symbolListBuilder = TemporaryArray<SymbolAndSelectionInfo>.Empty;
+            foreach (var symbol in symbolGroup.Value)
+                symbolListBuilder.Add(symbol);
+
+            var symbolList = symbolListBuilder.ToImmutableAndClear();
+            var arbitraryFirstContext = contextLookup(symbolList[0]);
 
             if (completionContext.CompletionOptions.TargetTypedCompletionFilter)
             {
