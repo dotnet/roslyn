@@ -121,7 +121,7 @@
     <!--
       VS Debugger
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.11.0-beta.24274.2" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.12.0-beta.24403.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="17.8.1072001-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="17.8.1072001-preview" />
 
