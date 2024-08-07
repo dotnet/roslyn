@@ -6,7 +6,7 @@ using System;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests;
+Microsoft.VisualStudio.LanguageServices.Experiment.IntegrationTests;
 
 internal class ConditionalIdeFactAttribute : IdeFactAttribute
 {
@@ -44,9 +44,9 @@ internal class ConditionalIdeFactAttribute : IdeFactAttribute
     }
 }
 
-public class DartLabCIOnly : ExecutionCondition
+public class ExperimentOnly : ExecutionCondition
 {
-    public override bool ShouldSkip => Environment.GetEnvironmentVariable("inDartLab").Equals("true", StringComparison.InvariantCultureIgnoreCase);
+    public override bool ShouldSkip => Environment.GetEnvironmentVariable("runExperimentTest").Equals("true", StringComparison.InvariantCultureIgnoreCase);
 
-    public override string SkipReason => "Test should only run in DartLab CI";
+    public override string SkipReason => "Experiment tests should not run.";
 }

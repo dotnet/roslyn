@@ -67,6 +67,8 @@ param (
   [switch]$helix,
   [string]$helixQueueName = "",
   [string]$helixApiAccessToken = "",
+  [switch]$runExperimentTest = $false,
+  [string]$experimentTestAssetsDir=""
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -372,7 +374,7 @@ function TestUsingRunTests() {
   # Tests need to locate .NET Core SDK
   $dotnet = InitializeDotNetCli
 
-  if ($testVsi) {
+  if ($testVsi -or $runExperimentTest) {
     Deploy-VsixViaTool
 
     if ($ci) {
@@ -439,6 +441,9 @@ function TestUsingRunTests() {
     if ($lspEditor) {
       $args += " --testfilter Editor=LanguageServerProtocol"
     }
+  } else if ($runExperimentTest) {
+    $args += " --timeout 110"
+    $args += " --include 'Microsoft.VisualStudio.LanguageServices.Experiment.IntegrationTests'"
   }
 
   if (-not $ci -and -not $testVsi) {
@@ -467,6 +472,11 @@ function TestUsingRunTests() {
 
   if ($helixApiAccessToken) {
     $args += " --helixApiAccessToken $helixApiAccessToken"
+  }
+
+  if ($runExperimentTest) {
+    $env:runExperimentTest = "true"
+    $env:experimentTestAssetsDir = $experimentTestAssetsDir
   }
 
   try {
@@ -765,7 +775,7 @@ try {
 
   try
   {
-    if ($testDesktop -or $testVsi -or $testIOperation -or $testCoreClr) {
+    if ($testDesktop -or $testVsi -or $testIOperation -or $testCoreClr -or $runExperimentTest) {
       TestUsingRunTests
     }
   }

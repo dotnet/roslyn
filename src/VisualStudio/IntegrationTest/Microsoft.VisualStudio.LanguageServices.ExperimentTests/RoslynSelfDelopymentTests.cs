@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.IntegrationTests;
+using Roslyn.VisualStudio.NewIntegrationTests;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -20,11 +21,11 @@ public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIntegratio
     public async Task SelfBuildAndDeploy()
     {
         // https://github.com/microsoft/vs-extension-testing/issues/172
-        Environment.SetEnvironmentVariable("RoslynSelfBuildTest", "true");
+        Environment.SetEnvironmentVariable("runExperimentTest", "true");
         Environment.SetEnvironmentVariable("MSBUILDTERMINALLOGGER ", "auto");
         Environment.SetEnvironmentVariable("MSBuildDebugEngine", "1");
-        Environment.SetEnvironmentVariable("RoslynSelfBuildTestAsset", @"C:\Users\shech\Workspace\Sample\roslyn");
-        var testAssetDirectory = Environment.GetEnvironmentVariable("RoslynSelfBuildTestAsset");
+        Environment.SetEnvironmentVariable("experimentTestAssetsDir", @"C:\Users\shech\Workspace\Sample\roslyn");
+        var testAssetDirectory = Environment.GetEnvironmentVariable("experimentTestAssetsDir");
         Assert.NotNull(testAssetDirectory);
         var solutionDir = Path.Combine(testAssetDirectory, "roslyn.sln");
         Assert.True(File.Exists(solutionDir));
