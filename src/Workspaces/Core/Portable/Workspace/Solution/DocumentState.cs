@@ -485,23 +485,8 @@ internal partial class DocumentState : TextDocumentState
         var newTextVersion = GetNewerVersion();
         var newTreeVersion = GetNewTreeVersionForUpdatedTree(newRoot, newTextVersion, mode);
 
-        // determine encoding
-        Encoding? encoding;
-
-        if (TryGetSyntaxTree(out var priorTree))
-        {
-            // this is most likely available since UpdateTree is normally called after modifying the existing tree.
-            encoding = priorTree.Encoding;
-        }
-        else if (TryGetText(out var priorText))
-        {
-            encoding = priorText.Encoding;
-        }
-        else
-        {
-            // the existing encoding was never observed so we try to use the one from the desired root.
-            encoding = newRoot.SyntaxTree.Encoding;
-        }
+        // use the encoding that we get from the new root
+        var encoding = newRoot.SyntaxTree.Encoding;
 
         var syntaxTreeFactory = LanguageServices.GetRequiredService<ISyntaxTreeFactoryService>();
 
