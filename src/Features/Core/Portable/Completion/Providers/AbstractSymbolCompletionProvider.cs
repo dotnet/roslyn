@@ -108,7 +108,15 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         // We might get symbol w/o name but CanBeReferencedByName is still set to true, 
         // need to filter them out.
         // https://github.com/dotnet/roslyn/issues/47690
-        var symbolGroups = new MultiDictionary<(string displayText, string suffix, string insertionText), SymbolAndSelectionInfo>(symbols.Length, comparer: EqualityComparer<(string, string, string)>.Default);
+        //
+        // Use SymbolReferenceEquivalenceComparer.Instance as the value comparer as we
+        // don't want symbols with just the same name to necessarily match
+        // (as the default comparer on SymbolAndSelectionInfo does)
+        var symbolGroups = new MultiDictionary<(string displayText, string suffix, string insertionText), SymbolAndSelectionInfo>(
+            capacity: symbols.Length,
+            comparer: EqualityComparer<(string, string, string)>.Default,
+            valueComparer: SymbolReferenceEquivalenceComparer.Instance);
+
         foreach (var symbol in symbols)
         {
             var texts = GetDisplayAndSuffixAndInsertionText(symbol.Symbol, contextLookup(symbol));
@@ -157,6 +165,20 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
         }
 
         return itemListBuilder.ToImmutableAndClear();
+    }
+
+    /// <summary>
+    /// Alternative comparer to SymbolAndSelectionInfo's default which considers both the full symbol and preselect.
+    /// </summary>
+    protected sealed class SymbolReferenceEquivalenceComparer : IEqualityComparer<SymbolAndSelectionInfo>
+    {
+        public static readonly SymbolReferenceEquivalenceComparer Instance = new();
+
+        public bool Equals(SymbolAndSelectionInfo x, SymbolAndSelectionInfo y)
+            => x.Symbol == y.Symbol && x.Preselect == y.Preselect;
+
+        public int GetHashCode(SymbolAndSelectionInfo symbol)
+            => Hash.Combine(symbol.Symbol.GetHashCode(), symbol.Preselect ? 1 : 0);
     }
 
     protected static bool TryFindFirstSymbolMatchesTargetTypes(
