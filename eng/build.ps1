@@ -476,7 +476,17 @@ function TestUsingRunTests() {
 
   if ($runExperimentTest) {
     $env:runExperimentTest = "true"
-    $env:experimentTestAssetsDir = $experimentTestAssetsDir
+    if ($experimentTestAssetsDir -eq "") {
+      Write-LogIssue "To run experiment test, specify experimentTestAssetsDir when run build.cmd."
+      ExitWithExitCode 1
+    }
+    else if (not (Test-Path $experimentTestAssetsDir)) {
+      Write-LogIssue "experimentTestAssetsDir doesn't exist"
+      ExitWithExitCode 1
+    }
+    else {
+      $env:experimentTestAssetsDir = $experimentTestAssetsDir
+    }
   }
 
   try {
@@ -532,6 +542,11 @@ function TestUsingRunTests() {
           Write-Host "No telemetry logs found to copy"
         }
       }
+    }
+
+    if ($runExperimentTest) {
+      Remove-Item env:\runExperimentTest
+      Remove-Item env:\experimentTestAssetsDir
     }
   }
 }
