@@ -11,13 +11,13 @@ using Roslyn.VisualStudio.IntegrationTests;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Roslyn.VisualStudio.NewIntegrationTests.DevLoop;
+namespace Microsoft.VisualStudio.LanguageServices.Experiment.IntegrationTests;
 
 [IdeSettings(MinVersion = VisualStudioVersion.VS2022, RootSuffix = "RoslynDev", MaxAttempts = 1)]
 public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIntegrationTest
 {
     [ConditionalIdeFact(typeof(WindowsOnly), Reason = "We want to monitor the health of F5 deployment")]
-    public async Task Test()
+    public async Task SelfBuildAndDeploy()
     {
         // https://github.com/microsoft/vs-extension-testing/issues/172
         Environment.SetEnvironmentVariable("RoslynSelfBuildTest", "true");
