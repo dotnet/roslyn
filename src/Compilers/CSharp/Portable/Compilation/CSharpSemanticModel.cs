@@ -3369,6 +3369,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (expr.Syntax.Kind() is SyntaxKind.ObjectCreationExpression or SyntaxKind.ImplicitObjectCreationExpression)
                         {
+                            // Type parameters don't have associated constructor symbols.
+                            // Therefore to make API behavior consistent with non-error scenario
+                            // we return empty symbol list here
+                            if (expr.Type?.TypeKind == TypeKind.TypeParameter)
+                            {
+                                return symbols;
+                            }
+
                             if (resultKind == LookupResultKind.NotCreatable)
                             {
                                 return OneOrMany.Create(expr.Symbols);
