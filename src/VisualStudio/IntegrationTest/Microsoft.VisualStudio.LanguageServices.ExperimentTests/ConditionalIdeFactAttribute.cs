@@ -28,7 +28,7 @@ internal class ConditionalIdeFactAttribute : IdeFactAttribute
         set { base.Skip = value; }
     }
 
-    public required string Reason { get; set; }
+    public string Reason { get; set; }
 
     public ConditionalIdeFactAttribute(params Type[] skipConditions)
     {

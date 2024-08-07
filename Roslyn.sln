@@ -571,6 +571,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ExternalAccess", "ExternalA
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities", "src\LanguageServer\Protocol.TestUtilities\Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities.csproj", "{7465CE63-A7B7-475F-8C57-48D2F8BC665A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.VisualStudio.LanguageServices.ExperimentTests", "src\VisualStudio\IntegrationTest\Microsoft.VisualStudio.LanguageServices.ExperimentTests\Microsoft.VisualStudio.LanguageServices.ExperimentTests.csproj", "{0FEB82BB-2D5C-488A-909F-36DF46FB19C1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1405,6 +1407,10 @@ Global
 		{7465CE63-A7B7-475F-8C57-48D2F8BC665A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7465CE63-A7B7-475F-8C57-48D2F8BC665A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7465CE63-A7B7-475F-8C57-48D2F8BC665A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0FEB82BB-2D5C-488A-909F-36DF46FB19C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0FEB82BB-2D5C-488A-909F-36DF46FB19C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0FEB82BB-2D5C-488A-909F-36DF46FB19C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0FEB82BB-2D5C-488A-909F-36DF46FB19C1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -1668,6 +1674,7 @@ Global
 		{1AE9182D-B03E-4B00-B32E-37AE01715F57} = {EE97CB90-33BB-4F3A-9B3D-69375DEC6AC6}
 		{806F0C6F-3640-4C92-8D55-6767B1535467} = {D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}
 		{7465CE63-A7B7-475F-8C57-48D2F8BC665A} = {D449D505-CC6A-4E0B-AF1B-976E2D0AE67A}
+		{0FEB82BB-2D5C-488A-909F-36DF46FB19C1} = {CC126D03-7EAC-493F-B187-DCDEE1EF6A70}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {604E6B91-7BC0-4126-AE07-D4D2FEFC3D29}
