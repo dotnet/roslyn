@@ -28,12 +28,12 @@ steps:
       filePath: eng/build.ps1
       arguments: -ci -restore -build -binaryLog -configuration ${{ parameters.configuration }} -prepareMachine -testVsi -oop64bit:$${{ parameters.oop64bit }} -collectDumps -lspEditor:$${{ parameters.lspEditor }}
   - powershell: |
-      .\Build.cmd -runExperimentTest -experimentTestAssetsDir "$(Pipeline.Workspace)\RoslynTestAssets"
+      .\Build.cmd -runExperimentTest -experimentTestAssetsDir "$(Pipeline.Workspace)\RoslynTestAssets\Roslyn"
     displayName: Run Experiment Test
     condition: ${{ parameters.runExperimentTest }}
     continueOnError: true
     env:
-      experimentTestAssetsDir: $(Pipeline.Workspace)\RoslynTestAssets
+      experimentTestAssetsDir: $(Pipeline.Workspace)\RoslynTestAssets\Roslyn
 
   - task: PublishTestResults@2
     displayName: Publish xUnit Test Results
