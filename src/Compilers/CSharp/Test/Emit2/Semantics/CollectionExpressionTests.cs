@@ -11438,6 +11438,11 @@ static class Program
                     var synthesizedType = module.GlobalNamespace.GetTypeMember("<>z__ReadOnlyArray");
                     Assert.Equal("<>z__ReadOnlyArray<T>", synthesizedType.ToTestDisplayString());
                     Assert.Equal("<>z__ReadOnlyArray`1", synthesizedType.MetadataName);
+
+                    Assert.Contains(synthesizedType.GetAttributes(),
+                        a => a.AttributeClass?.ToTestDisplayString() == "System.Runtime.CompilerServices.CompilerGeneratedAttribute");
+                    Assert.DoesNotContain(synthesizedType.GetMembers(),
+                        m => m.GetAttributes().Any(a => a.AttributeClass?.ToTestDisplayString() == "System.Runtime.CompilerServices.CompilerGeneratedAttribute"));
                 },
                 expectedOutput: """
                     IEnumerable.GetEnumerator(): (System.Int32[]) [], 
