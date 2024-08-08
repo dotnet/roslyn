@@ -3376,7 +3376,18 @@ class Test1 : I1
             // PROTOTYPE: Confirm that we now allow one accessor to have an implementation.
             // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
             // we don't want to allow only one accessor to have an implementation.
-            compilation1.VerifyDiagnostics();
+            if (isStatic)
+            {
+                compilation1.VerifyDiagnostics();
+            }
+            else
+            {
+                compilation1.VerifyDiagnostics(
+                    // (11,9): error CS0501: 'I1.P1.set' must declare a body because it is not marked abstract, extern, or partial
+                    //         set;
+                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P1.set").WithLocation(11, 9)
+                    );
+            }
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
             var getP1 = p1.GetMethod;
@@ -3429,7 +3440,18 @@ class Test1 : I1
             // PROTOTYPE: Confirm that we now allow one accessor to have an implementation.
             // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
             // we don't want to allow only one accessor to have an implementation.
-            compilation1.VerifyDiagnostics();
+            if (isStatic)
+            {
+                compilation1.VerifyDiagnostics();
+            }
+            else
+            {
+                compilation1.VerifyDiagnostics(
+                    // (6,9): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
+                    //         get;
+                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P1.get").WithLocation(6, 9)
+                    );
+            }
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
             var getP1 = p1.GetMethod;

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             bool isIndexer = IsIndexer;
-            if ((!hasGetAccessor || hasAutoPropertyGet) && (!hasSetAccessor || hasAutoPropertySet))
+            if (hasAutoPropertyGet || hasAutoPropertySet)
             {
                 if ((containingType.IsInterface && !IsStatic) || IsAbstract || IsExtern || isIndexer)
                 {
