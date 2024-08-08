@@ -30,7 +30,7 @@ steps:
   - powershell: |
       .\Build.cmd -runExperimentTest -experimentTestAssetsDir "$(Pipeline.Workspace)\RoslynTestAssets"
     displayName: Run Experiment Test
-    condition: $(runExperimentTest)
+    condition: ${{ parameters.runExperimentTest }}
     continueOnError: true
     env:
       experimentTestAssetsDir: $(Pipeline.Workspace)\RoslynTestAssets
