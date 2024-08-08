@@ -61,6 +61,6 @@
     <PackageReference Include="xunit.extensibility.core" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExperimentTests"/> 
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Experiment.IntegrationTests" /> 
   </ItemGroup>
 </Project>

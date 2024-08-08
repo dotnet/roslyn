@@ -6,7 +6,7 @@ using System;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-Microsoft.VisualStudio.LanguageServices.Experiment.IntegrationTests;
+namespace Microsoft.VisualStudio.LanguageServices.Experiment.IntegrationTests;
 
 internal class ConditionalIdeFactAttribute : IdeFactAttribute
 {
@@ -28,7 +28,7 @@ internal class ConditionalIdeFactAttribute : IdeFactAttribute
         set { base.Skip = value; }
     }
 
-    public string Reason { get; set; }
+    public string? Reason { get; set; }
 
     public ConditionalIdeFactAttribute(params Type[] skipConditions)
     {

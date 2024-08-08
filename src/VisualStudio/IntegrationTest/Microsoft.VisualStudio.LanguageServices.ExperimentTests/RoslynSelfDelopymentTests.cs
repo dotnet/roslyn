@@ -17,6 +17,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Experiment.IntegrationTests;
 [IdeSettings(MinVersion = VisualStudioVersion.VS2022, RootSuffix = "RoslynDev", MaxAttempts = 1)]
 public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIntegrationTest
 {
+    private readonly CancellationTokenSource _longTimeTestExecutionCancellationTokenSource = new(TimeSpan.FromMinutes(30));
+
     [ConditionalIdeFact(typeof(WindowsOnly), Reason = "We want to monitor the health of F5 deployment")]
     public async Task SelfBuildAndDeploy()
     {
@@ -29,13 +31,13 @@ public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIntegratio
         Assert.NotNull(testAssetDirectory);
         var solutionDir = Path.Combine(testAssetDirectory, "roslyn.sln");
         Assert.True(File.Exists(solutionDir));
-        await this.TestServices.SolutionExplorer.OpenSolutionAsync(solutionDir, HangMitigatingCancellationToken);
+        await this.TestServices.SolutionExplorer.OpenSolutionAsync(solutionDir, _longTimeTestExecutionCancellationTokenSource.Token);
 
         await this.TestOperationAndReportIfFailedAsync(
-            () => this.TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken), HangMitigatingCancellationToken);
+            () => this.TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(_longTimeTestExecutionCancellationTokenSource.Token), _longTimeTestExecutionCancellationTokenSource.Token);
 
         await this.TestOperationAndReportIfFailedAsync(
-            () => this.TestServices.SolutionExplorer.DeploySolutionAsync(attachingDebugger: false, HangMitigatingCancellationToken), HangMitigatingCancellationToken);
+            () => this.TestServices.SolutionExplorer.DeploySolutionAsync(attachingDebugger: false, _longTimeTestExecutionCancellationTokenSource.Token), _longTimeTestExecutionCancellationTokenSource.Token);
     }
 
     private async Task TestOperationAndReportIfFailedAsync(Func<Task<bool>> operation, CancellationToken cancellationToken)
@@ -47,5 +49,11 @@ public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIntegratio
             output.WriteLine(buildOutput);
         }
         Assert.True(result);
+    }
+
+    public override void Dispose()
+    {
+        _longTimeTestExecutionCancellationTokenSource.Dispose();
+        base.Dispose();
     }
 }
