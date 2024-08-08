@@ -79,7 +79,7 @@ internal abstract class AbstractDelayStartedService
         _optionChangedWorkQueue.AddWork();
     }
 
-    private void OnOptionChanged(object sender, OptionChangedEventArgs e)
+    private void OnOptionChanged(object sender, object target, OptionChangedEventArgs e)
         => _optionChangedWorkQueue.AddWork();
 
     private async ValueTask ProcessOptionChangesAsync(CancellationToken arg)

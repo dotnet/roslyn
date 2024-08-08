@@ -90,7 +90,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         if (syntaxFacts.SupportsRecordStruct(syntaxTree.Options))
         {
-            var recordChildActions = CreateChildActions(document, textSpan, tupleExprOrTypeNode, fields, capturedTypeParameters, context.Options, isRecord: true);
+            var recordChildActions = CreateChildActions(document, textSpan, tupleExprOrTypeNode, fields, capturedTypeParameters, isRecord: true);
             if (recordChildActions.Length > 0)
             {
                 context.RegisterRefactoring(
@@ -102,7 +102,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
             }
         }
 
-        var childActions = CreateChildActions(document, textSpan, tupleExprOrTypeNode, fields, capturedTypeParameters, context.Options, isRecord: false);
+        var childActions = CreateChildActions(document, textSpan, tupleExprOrTypeNode, fields, capturedTypeParameters, isRecord: false);
         if (childActions.Length > 0)
         {
             context.RegisterRefactoring(
@@ -121,14 +121,13 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
             SyntaxNode tupleExprOrTypeNode,
             ImmutableArray<IFieldSymbol> fields,
             ImmutableArray<ITypeParameterSymbol> capturedTypeParameters,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
             bool isRecord)
         {
             using var scopes = TemporaryArray<CodeAction>.Empty;
             var containingMember = GetContainingMember(context.Document, tupleExprOrTypeNode);
 
             if (containingMember != null)
-                scopes.Add(CreateAction(document, span, Scope.ContainingMember, fallbackOptions, isRecord));
+                scopes.Add(CreateAction(document, span, Scope.ContainingMember, isRecord));
 
             // If we captured any Method type-parameters, we can only replace the tuple types we
             // find in the containing method.  No other tuple types in other members would be able
@@ -137,7 +136,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
             {
                 var containingType = tupleExprOrTypeNode.GetAncestor<TTypeBlockSyntax>();
                 if (containingType != null)
-                    scopes.Add(CreateAction(document, span, Scope.ContainingType, fallbackOptions, isRecord));
+                    scopes.Add(CreateAction(document, span, Scope.ContainingType, isRecord));
 
                 // If we captured any Type type-parameters, we can only replace the tuple
                 // types we find in the containing type.  No other tuple types in other
@@ -152,8 +151,8 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
                     // latter has members called Item1 and Item2, but those names don't show up in source.
                     if (fields.All(f => f.CorrespondingTupleField != f))
                     {
-                        scopes.Add(CreateAction(document, span, Scope.ContainingProject, fallbackOptions, isRecord));
-                        scopes.Add(CreateAction(document, span, Scope.DependentProjects, fallbackOptions, isRecord));
+                        scopes.Add(CreateAction(document, span, Scope.ContainingProject, isRecord));
+                        scopes.Add(CreateAction(document, span, Scope.DependentProjects, isRecord));
                     }
                 }
             }
@@ -168,8 +167,8 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
         return tupleExprOrTypeNode.FirstAncestorOrSelf<SyntaxNode, ISyntaxFactsService>((node, syntaxFacts) => syntaxFacts.IsMethodLevelMember(node), syntaxFacts);
     }
 
-    private CodeAction CreateAction(Document document, TextSpan span, Scope scope, CleanCodeGenerationOptionsProvider fallbackOptions, bool isRecord)
-        => CodeAction.Create(GetTitle(scope), c => ConvertToStructAsync(document, span, scope, fallbackOptions, isRecord, c), scope.ToString());
+    private CodeAction CreateAction(Document document, TextSpan span, Scope scope, bool isRecord)
+        => CodeAction.Create(GetTitle(scope), c => ConvertToStructAsync(document, span, scope, isRecord, c), scope.ToString());
 
     private static string GetTitle(Scope scope)
         => scope switch
@@ -215,7 +214,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
     }
 
     public async Task<Solution> ConvertToStructAsync(
-        Document document, TextSpan span, Scope scope, CleanCodeGenerationOptionsProvider fallbackOptions, bool isRecord, CancellationToken cancellationToken)
+        Document document, TextSpan span, Scope scope, bool isRecord, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -227,8 +226,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
             {
                 var result = await client.TryInvokeAsync<IRemoteConvertTupleToStructCodeRefactoringService, SerializableConvertTupleToStructResult>(
                     solution,
-                    (service, solutionInfo, callbackId, cancellationToken) => service.ConvertToStructAsync(solutionInfo, callbackId, document.Id, span, scope, isRecord, cancellationToken),
-                    callbackTarget: new RemoteOptionsProvider<CleanCodeGenerationOptions>(solution.Services, fallbackOptions),
+                    (service, solutionInfo, cancellationToken) => service.ConvertToStructAsync(solutionInfo, document.Id, span, scope, isRecord, cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 if (!result.HasValue)
@@ -245,7 +243,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
         }
 
         return await ConvertToStructInCurrentProcessAsync(
-            document, span, scope, fallbackOptions, isRecord, cancellationToken).ConfigureAwait(false);
+            document, span, scope, isRecord, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<Solution> AddRenameTokenAsync(
@@ -262,7 +260,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
     }
 
     private async Task<Solution> ConvertToStructInCurrentProcessAsync(
-        Document document, TextSpan span, Scope scope, CleanCodeGenerationOptionsProvider fallbackOptions, bool isRecord, CancellationToken cancellationToken)
+        Document document, TextSpan span, Scope scope, bool isRecord, CancellationToken cancellationToken)
     {
         var (tupleExprOrTypeNode, tupleType) = await TryGetTupleInfoAsync(
             document, span, cancellationToken).ConfigureAwait(false);
@@ -294,7 +292,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
         // (and importantly not any of the documents where we change the call sites, below)
         // For records we don't use this however, but rather leave the parameters exactly as the tuple elements
         // were defined, since they function as both the parameters and the property names.
-        var parameterNamingRule = await document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var parameterNamingRule = await document.GetApplicableNamingRuleAsync(SymbolKind.Parameter, Accessibility.NotApplicable, cancellationToken).ConfigureAwait(false);
 
         // Next, generate the full struct that will be used to replace all instances of this
         // tuple type.
@@ -315,10 +313,10 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
 
         await GenerateStructIntoContainingNamespaceAsync(
             document, tupleExprOrTypeNode, namedTypeSymbol,
-            documentToEditorMap, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            documentToEditorMap, cancellationToken).ConfigureAwait(false);
 
         var updatedSolution = await ApplyChangesAsync(
-            document, documentToEditorMap, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            document, documentToEditorMap, cancellationToken).ConfigureAwait(false);
 
         return updatedSolution;
     }
@@ -554,7 +552,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
     private static async Task GenerateStructIntoContainingNamespaceAsync(
         Document document, SyntaxNode tupleExprOrTypeNode, INamedTypeSymbol namedTypeSymbol,
         Dictionary<Document, SyntaxEditor> documentToEditorMap,
-        CleanCodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
@@ -575,7 +573,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
             sortMembers: false,
             autoInsertionLocation: false);
 
-        var info = await document.GetCodeGenerationInfoAsync(context, fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var info = await document.GetCodeGenerationInfoAsync(context, cancellationToken).ConfigureAwait(false);
 
         // Then, actually insert the new class in the appropriate container.
         editor.ReplaceNode(container, (currentContainer, _) =>
@@ -583,7 +581,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
     }
 
     private static async Task<Solution> ApplyChangesAsync(
-        Document startingDocument, Dictionary<Document, SyntaxEditor> documentToEditorMap, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document startingDocument, Dictionary<Document, SyntaxEditor> documentToEditorMap, CancellationToken cancellationToken)
     {
         var currentSolution = startingDocument.Project.Solution;
 
@@ -600,7 +598,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
                 // so that our generated methods follow any special formatting rules specific to
                 // them.
                 var equalsAndGetHashCodeService = startingDocument.GetRequiredLanguageService<IGenerateEqualsAndGetHashCodeService>();
-                var formattingOptions = await updatedDocument.GetSyntaxFormattingOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var formattingOptions = await updatedDocument.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
                 updatedDocument = await equalsAndGetHashCodeService.FormatDocumentAsync(
                     updatedDocument, formattingOptions, cancellationToken).ConfigureAwait(false);
@@ -940,6 +938,7 @@ internal abstract partial class AbstractConvertTupleToStructCodeRefactoringProvi
         });
 
         var assignmentStatements = generator.CreateAssignmentStatements(
+            generator.SyntaxGeneratorInternal,
             semanticModel, parameters, parameterToPropMap, ImmutableDictionary<string, string>.Empty,
             addNullChecks: false, preferThrowExpression: false);
 

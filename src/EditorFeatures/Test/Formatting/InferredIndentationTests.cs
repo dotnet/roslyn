@@ -23,7 +23,7 @@ public class InferredIndentationTests
     {
         using var testWorkspace = CreateWithLines(
             "");
-        var options = await testWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetLineFormattingOptionsAsync(testWorkspace.GlobalOptions, CancellationToken.None);
+        var options = await testWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetLineFormattingOptionsAsync(CancellationToken.None);
 
         Assert.Equal(FormattingOptions.UseTabs.DefaultValue, options.UseTabs);
     }
@@ -36,7 +36,7 @@ public class InferredIndentationTests
             "{",
             "\tvoid M() { }",
             "}");
-        var options = await testWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetLineFormattingOptionsAsync(testWorkspace.GlobalOptions, CancellationToken.None);
+        var options = await testWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetLineFormattingOptionsAsync(CancellationToken.None);
 
         // the indentation is only inferred by a command handler:
         Assert.False(options.UseTabs);
@@ -50,7 +50,7 @@ public class InferredIndentationTests
             "{",
             "    void M() { }",
             "}");
-        var options = await testWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetLineFormattingOptionsAsync(testWorkspace.GlobalOptions, CancellationToken.None);
+        var options = await testWorkspace.CurrentSolution.Projects.Single().Documents.Single().GetLineFormattingOptionsAsync(CancellationToken.None);
 
         Assert.False(options.UseTabs);
         Assert.Equal(4, options.IndentationSize);

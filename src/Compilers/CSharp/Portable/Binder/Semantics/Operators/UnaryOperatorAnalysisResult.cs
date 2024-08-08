@@ -5,12 +5,10 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
-    internal readonly struct UnaryOperatorAnalysisResult
+    internal readonly struct UnaryOperatorAnalysisResult : IMemberResolutionResultWithPriority<MethodSymbol>
     {
         public readonly UnaryOperatorSignature Signature;
         public readonly Conversion Conversion;
@@ -32,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get { return this.Kind != OperatorAnalysisResultKind.Undefined; }
         }
+
+        MethodSymbol IMemberResolutionResultWithPriority<MethodSymbol>.MemberWithPriority => Signature.Method;
 
         public static UnaryOperatorAnalysisResult Applicable(UnaryOperatorSignature signature, Conversion conversion)
         {

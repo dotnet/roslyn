@@ -13,14 +13,6 @@ In a typical project, this setting is controlled by the `AnalysisLevel` property
 which determines the `WarningLevel` property (passed to the `Csc` task).
 For more information on `AnalysisLevel`, see https://devblogs.microsoft.com/dotnet/automatically-find-latent-bugs-in-your-code-with-net-5/
 
-## Warning level 9
-
-The compiler shipped with .NET 9 (the C# 13 compiler) contains the following warnings which are reported only under `/warn:9` or higher.
-
-| Warning ID | Description |
-|------------|-------------|
-| CS9237 | ['yield return' should not be used in the body of a lock statement](https://github.com/dotnet/roslyn/issues/72443) |
-
 ## Warning level 8
 
 The compiler shipped with .NET 8 (the C# 12 compiler) contains the following warnings which are reported only under `/warn:8` or higher.

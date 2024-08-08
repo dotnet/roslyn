@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (inherited)
                 {
                     Location location = typeParameter.GetFirstLocation();
-                    Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_FeatureRefStructInterfaces, diagnostics, location);
+                    Binder.CheckFeatureAvailability(location.SourceTree, MessageID.IDS_FeatureAllowsRefStructConstraint, diagnostics, location);
 
                     if (!typeParameter.DeclaringCompilation.Assembly.RuntimeSupportsByRefLikeGenerics)
                     {
@@ -945,7 +945,7 @@ hasRelatedInterfaces:
                 {
                     if (args.CurrentCompilation.SourceModule != typeParameter.ContainingModule)
                     {
-                        if (MessageID.IDS_FeatureRefStructInterfaces.GetFeatureAvailabilityDiagnosticInfo(args.CurrentCompilation) is { } diagnosticInfo)
+                        if (MessageID.IDS_FeatureAllowsRefStructConstraint.GetFeatureAvailabilityDiagnosticInfo(args.CurrentCompilation) is { } diagnosticInfo)
                         {
                             diagnosticsBuilder.Add(new TypeParameterDiagnosticInfo(typeParameter, new UseSiteInfo<AssemblySymbol>(diagnosticInfo)));
                         }

@@ -35,20 +35,6 @@ namespace Microsoft.CodeAnalysis.Remote
             private readonly AssetProvider _assetProvider = assetService;
             private readonly Solution _baseSolution = baseSolution;
 
-            public async Task<bool> IsIncrementalUpdateAsync(Checksum newSolutionChecksum, CancellationToken cancellationToken)
-            {
-                var newSolutionCompilationChecksums = await _assetProvider.GetAssetAsync<SolutionCompilationStateChecksums>(
-                    AssetPathKind.SolutionCompilationStateChecksums, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
-                var newSolutionChecksums = await _assetProvider.GetAssetAsync<SolutionStateChecksums>(
-                    AssetPathKind.SolutionStateChecksums, newSolutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
-
-                var newSolutionInfo = await _assetProvider.GetAssetAsync<SolutionInfo.SolutionAttributes>(
-                    AssetPathKind.SolutionAttributes, newSolutionChecksums.Attributes, cancellationToken).ConfigureAwait(false);
-
-                // if either solution id or file path changed, then we consider it as new solution
-                return _baseSolution.Id == newSolutionInfo.Id && _baseSolution.FilePath == newSolutionInfo.FilePath;
-            }
-
             public async Task<Solution> CreateSolutionAsync(Checksum newSolutionChecksum, CancellationToken cancellationToken)
             {
                 try
@@ -86,6 +72,12 @@ namespace Microsoft.CodeAnalysis.Remote
                     {
                         solution = solution.WithAnalyzerReferences(await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
                             AssetPathKind.SolutionAnalyzerReferences, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
+                    }
+
+                    if (oldSolutionChecksums.FallbackAnalyzerOptions != newSolutionChecksums.FallbackAnalyzerOptions)
+                    {
+                        solution = solution.WithFallbackAnalyzerOptions(await _assetProvider.GetAssetAsync<ImmutableDictionary<string, StructuredAnalyzerConfigOptions>>(
+                            AssetPathKind.SolutionFallbackAnalyzerOptions, newSolutionChecksums.FallbackAnalyzerOptions, cancellationToken).ConfigureAwait(false));
                     }
 
                     if (newSolutionCompilationChecksums.FrozenSourceGeneratedDocumentIdentities.HasValue &&
@@ -328,6 +320,14 @@ namespace Microsoft.CodeAnalysis.Remote
                         // If this project was in the old map, then the project must have changed.  Otherwise, we would
                         // have removed it earlier on.
                         Contract.ThrowIfTrue(oldProjectChecksums.Checksum == newProjectChecksums.Checksum);
+
+                        // changed info
+                        if (oldProjectChecksums.Info != newProjectChecksums.Info)
+                        {
+                            solution = solution.WithProjectAttributes(await _assetProvider.GetAssetAsync<ProjectInfo.ProjectAttributes>(
+                                assetPath: projectId, newProjectChecksums.Info, cancellationToken).ConfigureAwait(false));
+                        }
+
                         solution = await UpdateProjectAsync(
                             solution.GetRequiredProject(projectId), oldProjectChecksums, newProjectChecksums, cancellationToken).ConfigureAwait(false);
                     }
@@ -338,12 +338,6 @@ namespace Microsoft.CodeAnalysis.Remote
 
             private async Task<Solution> UpdateProjectAsync(Project project, ProjectStateChecksums oldProjectChecksums, ProjectStateChecksums newProjectChecksums, CancellationToken cancellationToken)
             {
-                // changed info
-                if (oldProjectChecksums.Info != newProjectChecksums.Info)
-                {
-                    project = await UpdateProjectInfoAsync(project, newProjectChecksums.Info, cancellationToken).ConfigureAwait(false);
-                }
-
                 // changed compilation options
                 if (oldProjectChecksums.CompilationOptions != newProjectChecksums.CompilationOptions)
                 {
@@ -418,71 +412,6 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 return project.Solution;
-            }
-
-            private async Task<Project> UpdateProjectInfoAsync(Project project, Checksum infoChecksum, CancellationToken cancellationToken)
-            {
-                var newProjectAttributes = await _assetProvider.GetAssetAsync<ProjectInfo.ProjectAttributes>(
-                    assetPath: project.Id, infoChecksum, cancellationToken).ConfigureAwait(false);
-
-                // there is no API to change these once project is created
-                Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.Id == newProjectAttributes.Id);
-                Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.Language == newProjectAttributes.Language);
-                Contract.ThrowIfFalse(project.State.ProjectInfo.Attributes.IsSubmission == newProjectAttributes.IsSubmission);
-
-                var projectId = project.Id;
-
-                if (project.State.ProjectInfo.Attributes.Name != newProjectAttributes.Name)
-                {
-                    project = project.Solution.WithProjectName(projectId, newProjectAttributes.Name).GetRequiredProject(projectId);
-                }
-
-                if (project.State.ProjectInfo.Attributes.AssemblyName != newProjectAttributes.AssemblyName)
-                {
-                    project = project.Solution.WithProjectAssemblyName(projectId, newProjectAttributes.AssemblyName).GetRequiredProject(projectId);
-                }
-
-                if (project.State.ProjectInfo.Attributes.FilePath != newProjectAttributes.FilePath)
-                {
-                    project = project.Solution.WithProjectFilePath(projectId, newProjectAttributes.FilePath).GetRequiredProject(projectId);
-                }
-
-                if (project.State.ProjectInfo.Attributes.OutputFilePath != newProjectAttributes.OutputFilePath)
-                {
-                    project = project.Solution.WithProjectOutputFilePath(projectId, newProjectAttributes.OutputFilePath).GetRequiredProject(projectId);
-                }
-
-                if (project.State.ProjectInfo.Attributes.OutputRefFilePath != newProjectAttributes.OutputRefFilePath)
-                {
-                    project = project.Solution.WithProjectOutputRefFilePath(projectId, newProjectAttributes.OutputRefFilePath).GetRequiredProject(projectId);
-                }
-
-                if (project.State.ProjectInfo.Attributes.CompilationOutputInfo != newProjectAttributes.CompilationOutputInfo)
-                {
-                    project = project.Solution.WithProjectCompilationOutputInfo(project.Id, newProjectAttributes.CompilationOutputInfo).GetRequiredProject(project.Id);
-                }
-
-                if (project.State.ProjectInfo.Attributes.DefaultNamespace != newProjectAttributes.DefaultNamespace)
-                {
-                    project = project.Solution.WithProjectDefaultNamespace(projectId, newProjectAttributes.DefaultNamespace).GetRequiredProject(projectId);
-                }
-
-                if (project.State.ProjectInfo.Attributes.HasAllInformation != newProjectAttributes.HasAllInformation)
-                {
-                    project = project.Solution.WithHasAllInformation(projectId, newProjectAttributes.HasAllInformation).GetRequiredProject(projectId);
-                }
-
-                if (project.State.ProjectInfo.Attributes.RunAnalyzers != newProjectAttributes.RunAnalyzers)
-                {
-                    project = project.Solution.WithRunAnalyzers(projectId, newProjectAttributes.RunAnalyzers).GetRequiredProject(projectId);
-                }
-
-                if (project.State.ProjectInfo.Attributes.ChecksumAlgorithm != newProjectAttributes.ChecksumAlgorithm)
-                {
-                    project = project.Solution.WithProjectChecksumAlgorithm(projectId, newProjectAttributes.ChecksumAlgorithm).GetRequiredProject(projectId);
-                }
-
-                return project;
             }
 
             private async Task<Project> UpdateDocumentsAsync<TDocumentState>(

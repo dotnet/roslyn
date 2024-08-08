@@ -37,8 +37,12 @@
     <!-- Full IVT is through ExternalAccess for functionality -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Razor" />
     <!-- Restricted IVT is direct for protocol types only -->
+    <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.Razor.Workspaces" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.Remote.Razor" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
+    <!-- Restricted IVT for protocol types for Razor tests -->
+    <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Razor.Test" Namespace="Roslyn.LanguageServer.Protocol" Partner="Razor" Key="$(RazorKey)" />
+    <!-- Full IVT is through ExternalAccess for functionality -->
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.ExternalAccess.Xaml" />
     <!-- Restricted IVT is direct for protocol types only -->
     <RestrictedInternalsVisibleTo Include="Microsoft.VisualStudio.DesignTools.CodeAnalysis" Namespace="Roslyn.LanguageServer.Protocol" Partner="Xaml" Key="$(VisualStudioKey)" />
@@ -84,6 +88,7 @@
     <InternalsVisibleTo Include="Microsoft.CommonLanguageServerProtocol.Framework.UnitTests" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.DiagnosticsTests.Utilities" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.Features.Test.Utilities" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.LanguageServer.Protocol.Test.Utilities" />
   </ItemGroup>
 
   <ItemGroup>

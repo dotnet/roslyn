@@ -27,7 +27,7 @@ internal class ExtractInterfaceCodeRefactoringProvider : CodeRefactoringProvider
     {
         var (document, textSpan, cancellationToken) = context;
         var service = document.GetLanguageService<AbstractExtractInterfaceService>();
-        var actions = await service.GetExtractInterfaceCodeActionAsync(document, textSpan, context.Options, cancellationToken).ConfigureAwait(false);
+        var actions = await service.GetExtractInterfaceCodeActionAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
         context.RegisterRefactorings(actions);
     }
 }

@@ -23,9 +23,6 @@ internal static class DiagnosticAnalyzerExtensions
     public static bool IsBuiltInAnalyzer(this DiagnosticAnalyzer analyzer)
         => analyzer is IBuiltInAnalyzer || analyzer.IsWorkspaceDiagnosticAnalyzer() || analyzer.IsCompilerAnalyzer();
 
-    public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, SimplifierOptions? options)
-        => analyzer is IBuiltInAnalyzer builtInAnalyzer && builtInAnalyzer.OpenFileOnly(options);
-
     public static ReportDiagnostic GetEffectiveSeverity(this DiagnosticDescriptor descriptor, CompilationOptions options)
     {
         return options == null

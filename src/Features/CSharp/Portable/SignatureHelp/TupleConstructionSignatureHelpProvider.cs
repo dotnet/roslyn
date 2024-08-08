@@ -50,10 +50,10 @@ internal class TupleConstructionSignatureHelpProvider : AbstractCSharpSignatureH
             if (currentSpan.Start == parenthesizedExpression.SpanStart)
             {
                 return new SignatureHelpState(
-                    argumentIndex: 0,
-                    argumentCount: 0,
-                    argumentName: string.Empty,
-                    argumentNames: default);
+                    SemanticParameterIndex: 0,
+                    SyntacticArgumentCount: 0,
+                    ArgumentName: string.Empty,
+                    ArgumentNames: default);
             }
         }
 
@@ -104,7 +104,7 @@ internal class TupleConstructionSignatureHelpProvider : AbstractCSharpSignatureH
     public override Boolean IsTriggerCharacter(Char ch)
         => ch is '(' or ',';
 
-    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
+    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);

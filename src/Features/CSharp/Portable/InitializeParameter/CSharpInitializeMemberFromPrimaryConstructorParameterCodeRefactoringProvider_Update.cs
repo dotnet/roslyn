@@ -30,7 +30,6 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
         TypeDeclarationSyntax typeDeclaration,
         ImmutableArray<IParameterSymbol> parameters,
         ImmutableArray<ISymbol> fieldsOrProperties,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         Debug.Assert(parameters.Length >= 1);
@@ -66,7 +65,6 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
                 currentTypeDeclaration,
                 currentParameter,
                 fieldOrProperty,
-                fallbackOptions,
                 cancellationToken).ConfigureAwait(false);
         }
 
@@ -81,7 +79,6 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             TypeDeclarationSyntax typeDeclaration,
             IParameterSymbol parameter,
             ISymbol fieldOrProperty,
-            CodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             var project = document.Project;
@@ -92,7 +89,7 @@ internal sealed partial class CSharpInitializeMemberFromPrimaryConstructorParame
             var parseOptions = document.DocumentState.ParseOptions!;
 
             var solutionEditor = new SolutionEditor(solution);
-            var options = await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var options = await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
             var codeGenerator = document.GetRequiredLanguageService<ICodeGenerationService>();
 
             // We're assigning the parameter to a new field/prop .  Convert all existing references to this primary

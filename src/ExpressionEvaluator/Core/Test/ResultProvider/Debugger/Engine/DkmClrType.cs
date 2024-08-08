@@ -34,9 +34,6 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                                                          BindingFlags.NonPublic |
                                                          BindingFlags.Instance |
                                                          BindingFlags.Static;
-
-        private readonly DkmClrModuleInstance _module;
-        private readonly DkmClrAppDomain _appDomain;
         private readonly Type _lmrType;
         private readonly ReadOnlyCollection<DkmClrEvalAttribute> _evalAttributes;
         private readonly DkmClrObjectFavoritesInfo _favorites;
@@ -44,8 +41,8 @@ namespace Microsoft.VisualStudio.Debugger.Clr
 
         internal DkmClrType(DkmClrModuleInstance module, DkmClrAppDomain appDomain, Type lmrType, DkmClrObjectFavoritesInfo favorites = null)
         {
-            _module = module;
-            _appDomain = appDomain;
+            ModuleInstance = module;
+            AppDomain = appDomain;
             _lmrType = lmrType;
             _evalAttributes = GetEvalAttributes(lmrType);
             _favorites = favorites;
@@ -61,17 +58,14 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         {
         }
 
-        public DkmClrAppDomain AppDomain
-        {
-            get { return _appDomain; }
-        }
+        public DkmClrAppDomain AppDomain { get; }
 
         public DkmClrType ElementType
         {
             get
             {
                 var elementType = _lmrType.GetElementType();
-                return (elementType == null) ? null : Create(_appDomain, elementType);
+                return (elementType == null) ? null : Create(AppDomain, elementType);
             }
         }
 
@@ -83,8 +77,8 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         internal DkmClrType MakeGenericType(params DkmClrType[] genericArguments)
         {
             var type = new DkmClrType(
-                _module,
-                _appDomain,
+                ModuleInstance,
+                AppDomain,
                 _lmrType.MakeGenericType(genericArguments.Select(t => t._lmrType).ToArray()),
                 _favorites);
             type._lazyGenericArguments = new ReadOnlyCollection<DkmClrType>(genericArguments);
@@ -94,8 +88,8 @@ namespace Microsoft.VisualStudio.Debugger.Clr
         internal DkmClrType MakeArrayType()
         {
             return new DkmClrType(
-                _module,
-                _appDomain,
+                ModuleInstance,
+                AppDomain,
                 _lmrType.MakeArrayType());
         }
 
@@ -131,7 +125,7 @@ namespace Microsoft.VisualStudio.Debugger.Clr
                     var typeArgs = _lmrType.GetGenericArguments();
                     var genericArgs = (typeArgs.Length == 0)
                         ? s_emptyTypes
-                        : new ReadOnlyCollection<DkmClrType>(typeArgs.Select(t => DkmClrType.Create(_appDomain, t)).ToArray());
+                        : new ReadOnlyCollection<DkmClrType>(typeArgs.Select(t => DkmClrType.Create(AppDomain, t)).ToArray());
                     Interlocked.CompareExchange(ref _lazyGenericArguments, genericArgs, null);
                 }
                 return _lazyGenericArguments;
@@ -148,14 +142,11 @@ namespace Microsoft.VisualStudio.Debugger.Clr
             return _evalAttributes;
         }
 
-        public DkmClrModuleInstance ModuleInstance
-        {
-            get { return _module; }
-        }
+        public DkmClrModuleInstance ModuleInstance { get; }
 
         public DkmClrRuntimeInstance RuntimeInstance
         {
-            get { return _module.RuntimeInstance; }
+            get { return ModuleInstance.RuntimeInstance; }
         }
 
         private string GetDebuggerDisplay()

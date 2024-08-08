@@ -27,13 +27,11 @@ public static partial class Renamer
     internal sealed class SyncNamespaceDocumentAction : RenameDocumentAction
     {
         private readonly AnalysisResult _analysis;
-        private readonly CodeCleanupOptionsProvider _fallbackOptions;
 
-        private SyncNamespaceDocumentAction(AnalysisResult analysis, CodeCleanupOptionsProvider fallbackOptions)
+        private SyncNamespaceDocumentAction(AnalysisResult analysis)
             : base([])
         {
             _analysis = analysis;
-            _fallbackOptions = fallbackOptions;
         }
 
         public override string GetDescription(CultureInfo? culture)
@@ -42,7 +40,7 @@ public static partial class Renamer
         internal override async Task<Solution> GetModifiedSolutionAsync(Document document, DocumentRenameOptions options, CancellationToken cancellationToken)
         {
             var changeNamespaceService = document.GetRequiredLanguageService<IChangeNamespaceService>();
-            var solution = await changeNamespaceService.TryChangeTopLevelNamespacesAsync(document, _analysis.TargetNamespace, _fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var solution = await changeNamespaceService.TryChangeTopLevelNamespacesAsync(document, _analysis.TargetNamespace, cancellationToken).ConfigureAwait(false);
 
             // If the solution fails to update fail silently. The user will see no large
             // negative impact from not doing this modification, and it's possible the document
@@ -50,13 +48,13 @@ public static partial class Renamer
             return solution ?? document.Project.Solution;
         }
 
-        public static SyncNamespaceDocumentAction? TryCreate(Document document, IReadOnlyList<string> newFolders, CodeCleanupOptionsProvider fallbackOptions)
+        public static SyncNamespaceDocumentAction? TryCreate(Document document, IReadOnlyList<string> newFolders)
         {
             var analysisResult = Analyze(document, newFolders);
 
             if (analysisResult.HasValue)
             {
-                return new SyncNamespaceDocumentAction(analysisResult.Value, fallbackOptions);
+                return new SyncNamespaceDocumentAction(analysisResult.Value);
             }
 
             return null;

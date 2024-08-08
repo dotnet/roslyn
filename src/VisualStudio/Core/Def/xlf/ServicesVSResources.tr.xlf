@@ -1037,6 +1037,11 @@
         <target state="translated">'GetHashCode' içinde 'System.HashCode' tercih et</target>
         <note />
       </trans-unit>
+      <trans-unit id="Prefer_System_Threading_Lock">
+        <source>Prefer 'System.Threading.Lock'</source>
+        <target state="new">Prefer 'System.Threading.Lock'</target>
+        <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
+      </trans-unit>
       <trans-unit id="Prefer_Utf8_string_literals">
         <source>Prefer UTF-8 string literals</source>
         <target state="translated">UTF-8 sabit değerli dizelerini tercih et</target>
@@ -1232,11 +1237,6 @@
         <target state="translated">Değişiklikleri Gözden Geçir</target>
         <note />
       </trans-unit>
-      <trans-unit id="Roslyn_save_command_handler">
-        <source>Roslyn save command handler</source>
-        <target state="translated">Roslyn save komut işleyicisi</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">{0} Öğesinde Code Analysis Çalıştır</target>
@@ -1360,6 +1360,11 @@
       <trans-unit id="Show_guides_for_comments_and_preprocessor_regions">
         <source>Show guides for comments and preprocessor regions</source>
         <target state="translated">Açıklamalar ve ön işlemci bölgeleri için kılavuzları göster</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Show_hints_for_collection_expressions">
+        <source>Show hints for collection expressions</source>
+        <target state="translated">Koleksiyon ifadeleri için ipuçlarını göster</target>
         <note />
       </trans-unit>
       <trans-unit id="Show_hints_for_everything_else">

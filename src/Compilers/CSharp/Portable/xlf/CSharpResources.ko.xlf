@@ -332,6 +332,16 @@
         <target state="translated">AsyncMethodBuilder 특성은 명시적 반환 형식이 없는 익명 메서드에서 허용되지 않습니다.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToMember">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on this member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on this member.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_CannotApplyOverloadResolutionPriorityToOverride">
+        <source>Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</source>
+        <target state="new">Cannot use 'OverloadResolutionPriorityAttribute' on an overriding member.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_CannotBeConvertedToUtf8">
         <source>The input string cannot be converted into the equivalent UTF-8 byte representation. {0}</source>
         <target state="translated">입력 문자열은 해당 UTF-8 바이트 표현으로 변환할 수 없습니다. {0}</target>
@@ -772,6 +782,11 @@
         <target state="translated">'{0}' 기능은 C# 12.0에서 사용할 수 없습니다. 언어 버전 {1} 이상을 사용하세요.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_FeatureNotAvailableInVersion13">
+        <source>Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</source>
+        <target state="new">Feature '{0}' is not available in C# 13.0. Please use language version {1} or greater.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_FeatureNotAvailableInVersion8">
         <source>Feature '{0}' is not available in C# 8.0. Please use language version {1} or greater.</source>
         <target state="translated">'{0}' 기능은 C# 8.0에서 사용할 수 없습니다. 언어 버전 {1} 이상을 사용하세요.</target>
@@ -970,6 +985,11 @@
       <trans-unit id="ERR_InitCannotBeReadonly">
         <source>'init' accessors cannot be marked 'readonly'. Mark '{0}' readonly instead.</source>
         <target state="translated">'init' 접근자는 'readonly'로 표시할 수 없습니다. 대신 '{0}' 읽기 전용으로 표시합니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InlineArrayAttributeOnRecord">
+        <source>Attribute 'System.Runtime.CompilerServices.InlineArray' cannot be applied to a record struct.</source>
+        <target state="translated">'System.Runtime.CompilerServices.InlineArray' 특성은 레코드 구조체에 적용할 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InlineArrayBadIndex">
@@ -1443,13 +1463,13 @@
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDispWrongAsync">
-        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
-        <target state="translated">'{0}': 비동기 using 문에 사용된 형식은 암시적으로 'System.IAsyncDisposable'로 변환할 수 있거나 적합한 'DisposeAsync' 메서드를 구현해야 합니다. 'await using' 대신 'using'을 사용하시겠습니까?</target>
+        <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method. Did you mean 'using' rather than 'await using'?</source>
+        <target state="needs-review-translation">'{0}': 비동기 using 문에 사용된 형식은 암시적으로 'System.IAsyncDisposable'로 변환할 수 있거나 적합한 'DisposeAsync' 메서드를 구현해야 합니다. 'await using' 대신 'using'을 사용하시겠습니까?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDispWrongAsync">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
-        <target state="translated">'{0}': using 문에 사용된 형식은 암시적으로 'System.IDisposable'로 변환할 수 있어야 합니다. 'using' 대신 'await using'을 사용하시겠습니까?</target>
+        <source>'{0}': type used in a using statement must implement 'System.IDisposable'. Did you mean 'await using' rather than 'using'?</source>
+        <target state="needs-review-translation">'{0}': using 문에 사용된 형식은 암시적으로 'System.IDisposable'로 변환할 수 있어야 합니다. 'using' 대신 'await using'을 사용하시겠습니까?</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConversionForCallerArgumentExpressionParam">
@@ -1602,11 +1622,6 @@
         <target state="translated">'parameter null-checking' 기능은 지원되지 않습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ParamsCollectionAmbiguousDynamicArgument">
-        <source>Ambiguity between expanded and normal forms of non-array params collection parameter of '{0}', the only corresponding argument has the type 'dynamic'. Consider casting the dynamic argument.</source>
-        <target state="translated">'{0}'의 배열 매개 변수가 아닌 params 컬렉션 매개 변수의 확장된 형식과 일반 형식 간의 모호성입니다. 해당 인수에는 'dynamic' 형식만 있습니다. 동적 인수를 캐스팅하는 것이 좋습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember">
         <source>Constructor '{0}' leaves required member '{1}' uninitialized.</source>
         <target state="translated">생성자 '{0}'은(는) 필수 멤버 '{1}'을(를) 초기화되지 않은 상태로 둡니다.</target>
@@ -1644,47 +1659,47 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMemberAccessibilityDifference">
         <source>Both partial member declarations must have identical accessibility modifiers.</source>
-        <target state="new">Both partial member declarations must have identical accessibility modifiers.</target>
+        <target state="translated">두 부분 멤버 선언에는 동일한 접근성 한정자를 갖어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberCannotBeAbstract">
         <source>A partial member cannot have the 'abstract' modifier</source>
-        <target state="new">A partial member cannot have the 'abstract' modifier</target>
+        <target state="translated">부분 멤버는 'abstract' 한정자를 갖을 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberInconsistentTupleNames">
         <source>Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</source>
-        <target state="new">Both partial member declarations, '{0}' and '{1}', must use the same tuple element names.</target>
+        <target state="translated">두 부분 멤버 선언은 '{0}' 및 '{1}' 모두에서 동일한 튜플 요소 이름을 사용해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberOnlyInPartialClass">
         <source>A partial member must be declared within a partial type</source>
-        <target state="new">A partial member must be declared within a partial type</target>
+        <target state="translated">부분 멤버 내에 부분 메서드가 선언되어야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberParamsDifference">
         <source>Both partial member declarations must use a params parameter or neither may use a params parameter</source>
-        <target state="new">Both partial member declarations must use a params parameter or neither may use a params parameter</target>
+        <target state="translated">두 부분 멤버 선언은 모두 params 매개 변수를 사용하거나 params 매개 변수를 사용할 수 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberReadOnlyDifference">
         <source>Both partial member declarations must be readonly or neither may be readonly</source>
-        <target state="new">Both partial member declarations must be readonly or neither may be readonly</target>
+        <target state="translated">두 부분 멤버 선언은 모두 readonly이거나 readonly가 아니어야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberExtendedModDifference">
         <source>Both partial member declarations must have identical combinations of 'virtual', 'override', 'sealed', and 'new' modifiers.</source>
-        <target state="translated">두 부분 메서드 선언에는 동일한 조합의 'virtual', 'override', 'sealed' 및 'new' 한정자가 있어야 합니다.</target>
+        <target state="translated">두 부분 멤버 선언에는 동일한 조합의 'virtual', 'override', 'sealed' 및 'new' 한정자가 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberRefReturnDifference">
         <source>Partial member declarations must have matching ref return values.</source>
-        <target state="translated">부분 메서드 선언에는 일치하는 참조 반환 값이 있어야 합니다.</target>
+        <target state="translated">부분 멤버 선언에는 일치하는 참조 반환 값이 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMemberUnsafeDifference">
         <source>Both partial member declarations must be unsafe or neither may be unsafe</source>
-        <target state="new">Both partial member declarations must be unsafe or neither may be unsafe</target>
+        <target state="translated">두 부분 멤버 선언은 모두 unsafe이거나 unsafe가 아니어야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodReturnTypeDifference">
@@ -1714,47 +1729,47 @@
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyDuplicateDefinition">
         <source>A partial property may not have multiple defining declarations, and cannot be an auto-property.</source>
-        <target state="new">A partial property may not have multiple defining declarations, and cannot be an auto-property.</target>
+        <target state="translated">부분 속성에는 정의 선언이 여러 개 있을 수 없으며 자동 속성일 수 없습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyDuplicateImplementation">
         <source>A partial property may not have multiple implementing declarations</source>
-        <target state="new">A partial property may not have multiple implementing declarations</target>
+        <target state="translated">부분 속성에는 하나의 구현 선언만 사용할 수 있음</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyInitMismatch">
         <source>Property accessor '{0}' must be '{1}' to match the definition part</source>
-        <target state="new">Property accessor '{0}' must be '{1}' to match the definition part</target>
+        <target state="translated">속성 접근자 '{0}'은(는) 정의 부분과 일치하려면 '{1}'이어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyMissingAccessor">
         <source>Property accessor '{0}' must be implemented because it is declared on the definition part</source>
-        <target state="new">Property accessor '{0}' must be implemented because it is declared on the definition part</target>
+        <target state="translated">속성 접근자 '{0}'은(는) 정의 부분에서 선언되었으므로 반드시 구현해야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyMissingDefinition">
         <source>Partial property '{0}' must have a definition part.</source>
-        <target state="new">Partial property '{0}' must have a definition part.</target>
+        <target state="translated">부분 속성 '{0}'에는 정의 부분이 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyMissingImplementation">
         <source>Partial property '{0}' must have an implementation part.</source>
-        <target state="new">Partial property '{0}' must have an implementation part.</target>
+        <target state="translated">부분 속성 '{0}'에는 구현 부분이 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyRequiredDifference">
         <source>Both partial property declarations must be required or neither may be required</source>
-        <target state="new">Both partial property declarations must be required or neither may be required</target>
+        <target state="translated">두 부분 속성 선언이 모두 필요하거나 둘 다 필요하지 않을 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyTypeDifference">
         <source>Both partial property declarations must have the same type.</source>
-        <target state="new">Both partial property declarations must have the same type.</target>
+        <target state="translated">두 부분 속성 선언의 형식이 같아야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialPropertyUnexpectedAccessor">
         <source>Property accessor '{0}' does not implement any accessor declared on the definition part</source>
-        <target state="new">Property accessor '{0}' does not implement any accessor declared on the definition part</target>
+        <target state="translated">속성 접근자 '{0}'은(는) 정의 부분에 선언된 접근자를 구현하지 않음</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PatternSpanCharCannotBeStringNull">
@@ -2024,7 +2039,7 @@
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfPartial">
         <source>The 'scoped' modifier of parameter '{0}' doesn't match partial definition.</source>
-        <target state="needs-review-translation">매개 변수 '{0}'의 '범위 지정' 한정자가 부분 메서드 선언과 일치하지 않습니다.</target>
+        <target state="translated">매개 변수 '{0}'의 '범위 지정' 한정자가 부분 정의와 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ScopedMismatchInParameterOfTarget">
@@ -2342,6 +2357,11 @@
         <target state="translated">비동기 메서드 빌더 재정의</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureAllowsRefStructConstraint">
+        <source>allows ref struct constraint</source>
+        <target state="translated">ref 구조체 제약 조건 허용</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureAutoDefaultStructs">
         <source>auto default struct fields</source>
         <target state="translated">자동 기본 구조체 필드</target>
@@ -2377,9 +2397,9 @@
         <target state="translated">확장 속성 패턴</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_FeatureFieldAndValueKeywords">
-        <source>field and value keywords</source>
-        <target state="new">field and value keywords</target>
+      <trans-unit id="IDS_FeatureFieldKeyword">
+        <source>field keyword</source>
+        <target state="new">field keyword</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureFileScopedNamespace">
@@ -2582,6 +2602,11 @@
         <target state="translated">&lt;missing&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_OverloadResolutionPriority">
+        <source>overload resolution priority</source>
+        <target state="new">overload resolution priority</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_PointerElementAccess">
         <source>pointer element access</source>
         <target state="translated">포인터 요소 액세스</target>
@@ -2609,12 +2634,12 @@
       </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
         <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
-        <target state="new">'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</target>
+        <target state="translated">'{0}'은(는) 언어 버전 {1} 속성 접근자의 컨텍스트 키워드 대신 '@{0}'을(를) 사용하세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
         <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
-        <target state="new">Identifier is a contextual keyword, with a specific meaning, in a later language version.</target>
+        <target state="translated">식별자는 이후 언어 버전에서 특정 의미를 가진 컨텍스트 키워드입니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="INF_TooManyBoundLambdas">
@@ -2700,16 +2725,6 @@
       <trans-unit id="WRN_BadArgRef_Title">
         <source>The 'ref' modifier for an argument corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.</source>
         <target state="translated">'in' 매개 변수에 해당하는 인수의 'ref' 한정자는 'in'에 해당합니다. 대신 'in'을 사용하는 것이 좋습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="translated">'yield return'은 lock 문의 본문에 사용해서는 안 됩니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="WRN_BadYieldInLock_Title">
-        <source>'yield return' should not be used in the body of a lock statement</source>
-        <target state="translated">'yield return'은 lock 문의 본문에 사용해서는 안 됩니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_ByValArraySizeConstRequired">
@@ -3104,12 +3119,12 @@
       </trans-unit>
       <trans-unit id="WRN_PartialPropertySignatureDifference">
         <source>Partial property declarations '{0}' and '{1}' have signature differences.</source>
-        <target state="new">Partial property declarations '{0}' and '{1}' have signature differences.</target>
+        <target state="translated">부분 속성 선언 '{0}' 및 '{1}'에는 서명 차이가 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PartialPropertySignatureDifference_Title">
         <source>Partial property declarations have signature differences.</source>
-        <target state="new">Partial property declarations have signature differences.</target>
+        <target state="translated">부분 속성 선언에는 서명 차이가 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PrimaryConstructorParameterIsShadowedAndNotPassedToBase">
@@ -4830,12 +4845,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial">
         <source>Nullability of reference types in type of parameter '{0}' doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">'{0}' 매개 변수 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드(Partial Method) 선언과 일치하지 않습니다.</target>
+        <target state="translated">'{0}' 매개 변수 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드(Partial Method) 선언과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInParameterTypeOnPartial_Title">
         <source>Nullability of reference types in type of parameter doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">매개 변수 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드(Partial Method) 선언과 일치하지 않습니다.</target>
+        <target state="translated">매개 변수 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드(Partial Method) 선언과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOfTargetDelegate">
@@ -4880,12 +4895,12 @@
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">반환 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드 선언과 일치하지 않습니다.</target>
+        <target state="translated">반환 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드 선언과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInReturnTypeOnPartial_Title">
         <source>Nullability of reference types in return type doesn't match partial method declaration.</source>
-        <target state="needs-review-translation">반환 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드 선언과 일치하지 않습니다.</target>
+        <target state="translated">반환 형식에 있는 참조 형식 Null 허용 여부가 부분 메서드 선언과 일치하지 않습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullabilityMismatchInTypeOnExplicitImplementation">
@@ -6590,7 +6605,7 @@
       </trans-unit>
       <trans-unit id="ERR_PartialMisplaced">
         <source>The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.</source>
-        <target state="needs-review-translation">'partial' 한정자는 'class', 'record', 'struct', 'interface' 또는 메서드 반환 형식 바로 앞에만 올 수 있습니다.</target>
+        <target state="translated">'partial' 한정자는 'class', 'record', 'struct', 'interface' 또는 메서드 또는 속성 반환 형식 바로 앞에만 올 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImportedCircularBase">
@@ -8199,7 +8214,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PartialMemberNotExplicit">
         <source>A partial member may not explicitly implement an interface member</source>
-        <target state="translated">부분 메서드(Partial Method)는 인터페이스 메서드를 명시적으로 구현할 수 없습니다.</target>
+        <target state="translated">부분 멤버는 인터페이스 멤버를 명시적으로 구현할 수 없음</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodExtensionDifference">
@@ -8234,7 +8249,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_PartialMemberStaticDifference">
         <source>Both partial member declarations must be static or neither may be static</source>
-        <target state="translated">두 부분 메서드(Partial Method) 선언 모두 static이거나 static이 아니어야 합니다.</target>
+        <target state="translated">두 부분 멤버 선언은 모두 static이거나 static이 아니어야 함</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_PartialMethodInExpressionTree">
@@ -9562,8 +9577,8 @@ catch (System.Exception e) 블록 뒤의 catch() 블록은 RuntimeCompatibilityA
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIDisp">
-        <source>'{0}': type used in a using statement must be implicitly convertible to 'System.IDisposable'.</source>
-        <target state="translated">'{0}': using 문에 사용된 형식은 암시적으로 'System.IDisposable'로 변환할 수 있어야 합니다.</target>
+        <source>'{0}': type used in a using statement must implement 'System.IDisposable'.</source>
+        <target state="needs-review-translation">'{0}': using 문에 사용된 형식은 암시적으로 'System.IDisposable'로 변환할 수 있어야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadParamRef">
@@ -13090,8 +13105,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_NoConvToIAsyncDisp">
-        <source>'{0}': type used in an asynchronous using statement must be implicitly convertible to 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
-        <target state="translated">'{0}': 비동기 using 문에 사용된 형식은 암시적으로 'System.IAsyncDisposable'로 변환할 수 있거나 적합한 'DisposeAsync' 메서드를 구현해야 합니다.</target>
+        <source>'{0}': type used in an asynchronous using statement must implement 'System.IAsyncDisposable' or implement a suitable 'DisposeAsync' method.</source>
+        <target state="needs-review-translation">'{0}': 비동기 using 문에 사용된 형식은 암시적으로 'System.IAsyncDisposable'로 변환할 수 있거나 적합한 'DisposeAsync' 메서드를 구현해야 합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadGetAsyncEnumerator">

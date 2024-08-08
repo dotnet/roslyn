@@ -4,11 +4,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.Text.Editor;
+using Microsoft.VisualStudio.Text.Editor.SmartRename;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.EditorFeatures.Lightup;
@@ -19,6 +21,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     internal const string WrappedTypeName = "Microsoft.VisualStudio.Text.Editor.SmartRename.ISmartRenameSession";
     private static readonly Type s_wrappedType;
 
+    private static readonly Func<object, TimeSpan> s_automaticFetchDelayAccessor;
     private static readonly Func<object, bool> s_isAvailableAccessor;
     private static readonly Func<object, bool> s_hasSuggestionsAccessor;
     private static readonly Func<object, bool> s_isInProgressAccessor;
@@ -27,6 +30,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     private static readonly Func<object, IReadOnlyList<string>> s_suggestedNamesAccessor;
 
     private static readonly Func<object, CancellationToken, Task<IReadOnlyList<string>>> s_getSuggestionsAsync;
+    private static readonly Func<object, ImmutableDictionary<string, string[]>, CancellationToken, Task<IReadOnlyList<string>>> s_getSuggestionsAsync_WithContext;
     private static readonly Action<object> s_onCancel;
     private static readonly Action<object, string> s_onSuccess;
 
@@ -36,6 +40,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     {
         s_wrappedType = typeof(AggregateFocusInterceptor).Assembly.GetType(WrappedTypeName, throwOnError: false, ignoreCase: false);
 
+        s_automaticFetchDelayAccessor = LightupHelpers.CreatePropertyAccessor<object, TimeSpan>(s_wrappedType, nameof(AutomaticFetchDelay), TimeSpan.Zero);
         s_isAvailableAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(IsAvailable), false);
         s_hasSuggestionsAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(HasSuggestions), false);
         s_isInProgressAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(IsInProgress), false);
@@ -44,15 +49,17 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
         s_suggestedNamesAccessor = LightupHelpers.CreatePropertyAccessor<object, IReadOnlyList<string>>(s_wrappedType, nameof(SuggestedNames), []);
 
         s_getSuggestionsAsync = LightupHelpers.CreateFunctionAccessor<object, CancellationToken, Task<IReadOnlyList<string>>>(s_wrappedType, nameof(GetSuggestionsAsync), typeof(CancellationToken), SpecializedTasks.EmptyReadOnlyList<string>());
+        s_getSuggestionsAsync_WithContext = LightupHelpers.CreateFunctionAccessor<object, ImmutableDictionary<string, string[]>, CancellationToken, Task<IReadOnlyList<string>>>(s_wrappedType, nameof(GetSuggestionsAsync), typeof(ImmutableDictionary<string, string[]>), typeof(CancellationToken), SpecializedTasks.EmptyReadOnlyList<string>());
         s_onCancel = LightupHelpers.CreateActionAccessor<object>(s_wrappedType, nameof(OnCancel));
         s_onSuccess = LightupHelpers.CreateActionAccessor<object, string>(s_wrappedType, nameof(OnSuccess), typeof(string));
     }
 
     private ISmartRenameSessionWrapper(object instance)
     {
-        this._instance = instance;
+        _instance = instance;
     }
 
+    public TimeSpan AutomaticFetchDelay => s_automaticFetchDelayAccessor(_instance);
     public bool IsAvailable => s_isAvailableAccessor(_instance);
     public bool HasSuggestions => s_hasSuggestionsAccessor(_instance);
     public bool IsInProgress => s_isInProgressAccessor(_instance);
@@ -88,6 +95,9 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
 
     public Task<IReadOnlyList<string>> GetSuggestionsAsync(CancellationToken cancellationToken)
         => s_getSuggestionsAsync(_instance, cancellationToken);
+
+    public Task<IReadOnlyList<string>> GetSuggestionsAsync(ImmutableDictionary<string, string[]> context, CancellationToken cancellationToken)
+        => s_getSuggestionsAsync_WithContext(_instance, context, cancellationToken);
 
     public void OnCancel()
         => s_onCancel(_instance);

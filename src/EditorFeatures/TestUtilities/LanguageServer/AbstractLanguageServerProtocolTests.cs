@@ -42,7 +42,7 @@ namespace Roslyn.Test.Utilities
     [UseExportProvider]
     public abstract partial class AbstractLanguageServerProtocolTests
     {
-        private static readonly SystemTextJsonFormatter s_messageFormatter = RoslynLanguageServer.CreateJsonMessageFormatter();
+        protected static readonly JsonSerializerOptions JsonSerializerOptions = RoslynLanguageServer.CreateJsonMessageFormatter().JsonSerializerOptions;
 
         private protected readonly AbstractLspLogger TestOutputLspLogger;
         protected AbstractLanguageServerProtocolTests(ITestOutputHelper? testOutputHelper)
@@ -54,7 +54,7 @@ namespace Roslyn.Test.Utilities
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService));
 
-        protected static readonly TestComposition FeaturesLspComposition = EditorTestCompositions.LanguageServerProtocol
+        protected static readonly TestComposition FeaturesLspComposition = LspTestCompositions.LanguageServerProtocol
             .AddParts(typeof(TestDocumentTrackingService))
             .AddParts(typeof(TestWorkspaceRegistrationService));
 
@@ -124,8 +124,8 @@ namespace Roslyn.Test.Utilities
         /// <param name="actual">the actual object to be converted to JSON.</param>
         public static void AssertJsonEquals<T1, T2>(T1 expected, T2 actual)
         {
-            var expectedStr = JsonSerializer.Serialize(expected, s_messageFormatter.JsonSerializerOptions);
-            var actualStr = JsonSerializer.Serialize(actual, s_messageFormatter.JsonSerializerOptions);
+            var expectedStr = JsonSerializer.Serialize(expected, JsonSerializerOptions);
+            var actualStr = JsonSerializer.Serialize(actual, JsonSerializerOptions);
             AssertEqualIgnoringWhitespace(expectedStr, actualStr);
         }
 
@@ -269,7 +269,7 @@ namespace Roslyn.Test.Utilities
                 SortText = sortText,
                 InsertTextFormat = LSP.InsertTextFormat.Plaintext,
                 Kind = kind,
-                Data = JsonSerializer.SerializeToElement(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document)), s_messageFormatter.JsonSerializerOptions),
+                Data = JsonSerializer.SerializeToElement(new CompletionResolveData(resultId, ProtocolConversions.DocumentToTextDocumentIdentifier(document)), JsonSerializerOptions),
                 Preselect = preselect,
                 VsResolveTextEditOnCommit = vsResolveTextEditOnCommit,
                 LabelDetails = labelDetails
@@ -642,6 +642,11 @@ namespace Roslyn.Test.Utilities
                 return _clientRpc.NotifyWithParameterObjectAsync(methodName);
             }
 
+            public Task ExecutePreSerializedRequestAsync(string methodName, JsonDocument serializedRequest)
+            {
+                return _clientRpc.InvokeWithParameterObjectAsync(methodName, serializedRequest);
+            }
+
             public async Task OpenDocumentAsync(Uri documentUri, string? text = null, string languageId = "")
             {
                 if (text == null)
@@ -703,6 +708,8 @@ namespace Roslyn.Test.Utilities
             }
 
             public IList<LSP.Location> GetLocations(string locationName) => _locations[locationName];
+
+            public Dictionary<string, IList<LSP.Location>> GetLocations() => _locations;
 
             public Solution GetCurrentSolution() => TestWorkspace.CurrentSolution;
 

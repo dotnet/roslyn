@@ -23,8 +23,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
         /// <summary>UserSelected is true if the SelectedItem is the result of a user selection (up/down arrows).</summary>
         public bool UserSelected { get; }
-        public int ArgumentIndex { get; }
-        public int ArgumentCount { get; }
+
+        /// <inheritdoc cref="SignatureHelpItems.SemanticParameterIndex"/>
+        public int SemanticParameterIndex { get; }
+
+        /// <inheritdoc cref="SignatureHelpItems.SyntacticArgumentCount"/>
+        public int SyntacticArgumentCount { get; }
         public string ArgumentName { get; }
         public int? SelectedParameter { get; }
         public ISignatureHelpProvider Provider { get; }
@@ -35,8 +39,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             ISignatureHelpProvider provider,
             IList<SignatureHelpItem> items,
             SignatureHelpItem selectedItem,
-            int argumentIndex,
-            int argumentCount,
+            int semanticParameterIndex,
+            int syntacticArgumentCount,
             string argumentName,
             int? selectedParameter,
             bool userSelected)
@@ -51,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             this.Provider = provider;
             this.SelectedItem = selectedItem;
             this.UserSelected = userSelected;
-            this.ArgumentIndex = argumentIndex;
-            this.ArgumentCount = argumentCount;
+            this.SemanticParameterIndex = semanticParameterIndex;
+            this.SyntacticArgumentCount = syntacticArgumentCount;
             this.ArgumentName = argumentName;
             this.SelectedParameter = selectedParameter;
         }
@@ -61,14 +65,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         {
             return selectedItem == this.SelectedItem && userSelected == this.UserSelected
                 ? this
-                : new Model(_disconnectedBufferGraph, TextSpan, Provider, Items, selectedItem, ArgumentIndex, ArgumentCount, ArgumentName, SelectedParameter, userSelected);
+                : new Model(_disconnectedBufferGraph, TextSpan, Provider, Items, selectedItem, SemanticParameterIndex, SyntacticArgumentCount, ArgumentName, SelectedParameter, userSelected);
         }
 
         public Model WithSelectedParameter(int? selectedParameter)
         {
             return selectedParameter == this.SelectedParameter
                 ? this
-                : new Model(_disconnectedBufferGraph, TextSpan, Provider, Items, SelectedItem, ArgumentIndex, ArgumentCount, ArgumentName, selectedParameter, UserSelected);
+                : new Model(_disconnectedBufferGraph, TextSpan, Provider, Items, SelectedItem, SemanticParameterIndex, SyntacticArgumentCount, ArgumentName, selectedParameter, UserSelected);
         }
 
         public SnapshotSpan GetCurrentSpanInSubjectBuffer(ITextSnapshot bufferSnapshot)

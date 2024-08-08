@@ -230,7 +230,7 @@ internal static partial class SyntaxTreeExtensions
         if (analyzerOptions != null)
         {
             var analyzerConfigOptions = analyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(syntaxTree);
-            var isUserConfiguredGeneratedCode = GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(analyzerConfigOptions);
+            var isUserConfiguredGeneratedCode = GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(analyzerConfigOptions).ToNullable();
             if (isUserConfiguredGeneratedCode.HasValue)
             {
                 return isUserConfiguredGeneratedCode.Value;
