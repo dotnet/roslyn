@@ -19,17 +19,18 @@ public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIntegratio
 {
     private readonly CancellationTokenSource _longTimeTestExecutionCancellationTokenSource = new(TimeSpan.FromMinutes(30));
 
+    // TODO: this should be changed to based on Environment variable.
     [ConditionalIdeFact(typeof(WindowsOnly), Reason = "We want to monitor the health of F5 deployment")]
     public async Task SelfBuildAndDeploy()
     {
         // https://github.com/microsoft/vs-extension-testing/issues/172
         Environment.SetEnvironmentVariable("runExperimentTest", "true");
         Environment.SetEnvironmentVariable("MSBUILDTERMINALLOGGER ", "auto");
-        Environment.SetEnvironmentVariable("MSBuildDebugEngine", "1");
-        Environment.SetEnvironmentVariable("experimentTestAssetsDir", @"C:\Users\shech\Workspace\Sample\roslyn");
+        // Environment.SetEnvironmentVariable("MSBuildDebugEngine", "1");
+        Environment.SetEnvironmentVariable("experimentTestAssetsDir", @"D:\Sample\roslyn");
         var testAssetDirectory = Environment.GetEnvironmentVariable("experimentTestAssetsDir");
         Assert.NotNull(testAssetDirectory);
-        var solutionDir = Path.Combine(testAssetDirectory, "roslyn.sln");
+        var solutionDir = Path.Combine(testAssetDirectory, "Roslyn.sln");
         Assert.True(File.Exists(solutionDir));
         await this.TestServices.SolutionExplorer.OpenSolutionAsync(solutionDir, _longTimeTestExecutionCancellationTokenSource.Token);
 
