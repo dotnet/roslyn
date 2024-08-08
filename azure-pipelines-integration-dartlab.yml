@@ -68,6 +68,7 @@ stages:
     deployAndRunTestsStepList:
     - checkout: RoslynMirror
     - checkout: RoslynMirror
+      displayName: "Checkout Experiment Test Assets"
       path: $(Pipeline.Workspace)\RoslynTestAssets
     - pwsh: .\$(Pipeline.Workspace)\RoslynTestAssets\Roslyn\Restore.cmd
       displayName: "Restore TestAssets"
