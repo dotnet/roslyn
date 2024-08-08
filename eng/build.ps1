@@ -67,7 +67,7 @@ param (
   [switch]$helix,
   [string]$helixQueueName = "",
   [string]$helixApiAccessToken = "",
-  [switch]$runExperimentTest = $false,
+  [switch]$runExperimentTest,
   [string]$experimentTestAssetsDir="",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
@@ -480,7 +480,7 @@ function TestUsingRunTests() {
       Write-LogIssue "To run experiment test, specify experimentTestAssetsDir when run build.cmd."
       ExitWithExitCode 1
     }
-    elseif (not (Test-Path $experimentTestAssetsDir)) {
+    elseif (-not (Test-Path $experimentTestAssetsDir)) {
       Write-LogIssue "experimentTestAssetsDir doesn't exist"
       ExitWithExitCode 1
     }

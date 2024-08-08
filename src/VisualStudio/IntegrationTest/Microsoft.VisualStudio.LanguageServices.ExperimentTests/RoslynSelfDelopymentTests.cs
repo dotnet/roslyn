@@ -26,8 +26,9 @@ public class RoslynSelfBuildTests(ITestOutputHelper output) : AbstractIntegratio
         // https://github.com/microsoft/vs-extension-testing/issues/172
         Environment.SetEnvironmentVariable("runExperimentTest", "true");
         Environment.SetEnvironmentVariable("MSBUILDTERMINALLOGGER ", "auto");
+        // Will cause msbuild lock dlls...
         // Environment.SetEnvironmentVariable("MSBuildDebugEngine", "1");
-        Environment.SetEnvironmentVariable("experimentTestAssetsDir", @"D:\Sample\roslyn");
+        // Environment.SetEnvironmentVariable("experimentTestAssetsDir", @"D:\Sample\roslyn");
         var testAssetDirectory = Environment.GetEnvironmentVariable("experimentTestAssetsDir");
         Assert.NotNull(testAssetDirectory);
         var solutionDir = Path.Combine(testAssetDirectory, "Roslyn.sln");
