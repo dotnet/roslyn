@@ -24,6 +24,11 @@ resources:
     trigger:
     - main
 
+parameters:
+  - name: prNumber
+    type: string
+    default: ''
+
 variables:
 - name: XUNIT_LOGS
   value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
@@ -33,6 +38,18 @@ variables:
   value: true
 
 stages:
+- ${{ if ne(parameters.prNumber, '') }}:
+  - stage: GitHubComment
+    jobs:
+      - job: GitHubCommentJob
+        steps:
+          - task: GitHubComment@0
+            inputs:
+              gitHubConnection: 'dotnet-comment-bot-service-connection'
+              repositoryName: '$(Build.Repository.Name)'
+              id: ${{ parameters.prNumber }}
+              comment: 'Started DartLab pipeline'
+
 - template: \stages\visual-studio\agent.yml@DartLabTemplates
   parameters:
     displayName: VS Integration
