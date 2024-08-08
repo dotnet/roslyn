@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var sigHelp = new LSP.SignatureHelp
             {
                 ActiveSignature = GetActiveSignature(sigItems),
-                ActiveParameter = sigItems.ArgumentIndex,
+                ActiveParameter = sigItems.SemanticParameterIndex,
                 Signatures = sigInfos.ToArray()
             };
 
@@ -100,7 +100,8 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             // However, the LSP spec expects the language server to make this decision.
             // So implement the logic of picking a signature that has enough arguments here.
 
-            var matchingSignature = items.Items.FirstOrDefault(sig => sig.Parameters.Length > items.ArgumentIndex);
+            var matchingSignature = items.Items.FirstOrDefault(
+                sig => sig.Parameters.Length > items.SemanticParameterIndex);
             return matchingSignature != null ? items.Items.IndexOf(matchingSignature) : 0;
         }
 

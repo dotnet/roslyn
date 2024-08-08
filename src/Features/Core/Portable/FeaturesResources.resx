@@ -201,12 +201,6 @@
   <data name="Generate_delegating_constructor_0_1" xml:space="preserve">
     <value>Generate delegating constructor '{0}({1})'</value>
   </data>
-  <data name="Generate_constructor_0_1" xml:space="preserve">
-    <value>Generate constructor '{0}({1})'</value>
-  </data>
-  <data name="Generate_field_assigning_constructor_0_1" xml:space="preserve">
-    <value>Generate field assigning constructor '{0}({1})'</value>
-  </data>
   <data name="Generate_Equals_and_GetHashCode" xml:space="preserve">
     <value>Generate Equals and GetHashCode</value>
   </data>
@@ -216,50 +210,11 @@
   <data name="Generate_GetHashCode" xml:space="preserve">
     <value>Generate GetHashCode()</value>
   </data>
-  <data name="Generate_constructor_in_0" xml:space="preserve">
-    <value>Generate constructor in '{0}'</value>
-  </data>
-  <data name="Generate_all" xml:space="preserve">
-    <value>Generate all</value>
-  </data>
-  <data name="Generate_enum_member_0" xml:space="preserve">
-    <value>Generate enum member '{0}'</value>
-  </data>
-  <data name="Generate_constant_0" xml:space="preserve">
-    <value>Generate constant '{0}'</value>
-  </data>
-  <data name="Generate_read_only_property_0" xml:space="preserve">
-    <value>Generate read-only property '{0}'</value>
-  </data>
-  <data name="Generate_property_0" xml:space="preserve">
-    <value>Generate property '{0}'</value>
-  </data>
-  <data name="Generate_read_only_field_0" xml:space="preserve">
-    <value>Generate read-only field '{0}'</value>
-  </data>
-  <data name="Generate_field_0" xml:space="preserve">
-    <value>Generate field '{0}'</value>
-  </data>
-  <data name="Generate_local_0" xml:space="preserve">
-    <value>Generate local '{0}'</value>
-  </data>
   <data name="Generate_0_1_in_new_file" xml:space="preserve">
     <value>Generate {0} '{1}' in new file</value>
   </data>
   <data name="Generate_nested_0_1" xml:space="preserve">
     <value>Generate nested {0} '{1}'</value>
-  </data>
-  <data name="Implement_all_members_explicitly" xml:space="preserve">
-    <value>Implement all members explicitly</value>
-  </data>
-  <data name="Implement_interface_abstractly" xml:space="preserve">
-    <value>Implement interface abstractly</value>
-  </data>
-  <data name="Implement_interface_through_0" xml:space="preserve">
-    <value>Implement interface through '{0}'</value>
-  </data>
-  <data name="Implement_interface" xml:space="preserve">
-    <value>Implement interface</value>
   </data>
   <data name="Introduce_field_for_0" xml:space="preserve">
     <value>Introduce field for '{0}'</value>
@@ -499,6 +454,9 @@
   <data name="Updating_a_0_around_an_active_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Updating a {0} around an active statement requires restarting the application.</value>
   </data>
+  <data name="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application" xml:space="preserve">
+    <value>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</value>
+  </data>
   <data name="Updating_async_or_iterator_modifier_around_an_active_statement_requires_restarting_the_application" xml:space="preserve">
     <value>Updating async or iterator modifier around an active statement requires restarting the application.</value>
     <comment>{Locked="async"}{Locked="iterator"} "async" and "iterator" are C#/VB keywords and should not be localized.</comment>
@@ -552,15 +510,6 @@
   </data>
   <data name="Unexpected_interface_member_kind_colon_0" xml:space="preserve">
     <value>Unexpected interface member kind: {0}</value>
-  </data>
-  <data name="Generate_abstract_property_0" xml:space="preserve">
-    <value>Generate abstract property '{0}'</value>
-  </data>
-  <data name="Generate_abstract_method_0" xml:space="preserve">
-    <value>Generate abstract method '{0}'</value>
-  </data>
-  <data name="Generate_method_0" xml:space="preserve">
-    <value>Generate method '{0}'</value>
   </data>
   <data name="The_symbol_does_not_have_an_icon" xml:space="preserve">
     <value>The symbol does not have an icon.</value>
@@ -658,12 +607,6 @@ Do you want to continue?</value>
   <data name="Note_colon_Tab_twice_to_insert_the_0_snippet" xml:space="preserve">
     <value>Note: Tab twice to insert the '{0}' snippet.</value>
   </data>
-  <data name="Implement_interface_explicitly_with_Dispose_pattern" xml:space="preserve">
-    <value>Implement interface explicitly with Dispose pattern</value>
-  </data>
-  <data name="Implement_interface_with_Dispose_pattern" xml:space="preserve">
-    <value>Implement interface with Dispose pattern</value>
-  </data>
   <data name="Suppress_0" xml:space="preserve">
     <value>Suppress {0}</value>
   </data>
@@ -687,12 +630,6 @@ Do you want to continue?</value>
   </data>
   <data name="Containing_Type" xml:space="preserve">
     <value>Containing Type</value>
-  </data>
-  <data name="TODO_colon_dispose_managed_state_managed_objects" xml:space="preserve">
-    <value>TODO: dispose managed state (managed objects)</value>
-  </data>
-  <data name="TODO_colon_set_large_fields_to_null" xml:space="preserve">
-    <value>TODO: set large fields to null</value>
   </data>
   <data name="Modifying_0_which_contains_a_static_variable_requires_restarting_the_application" xml:space="preserve">
     <value>Modifying {0} which contains a static variable requires restarting the application.</value>
@@ -829,9 +766,6 @@ This version used in: {2}</value>
   <data name="Install_version_0" xml:space="preserve">
     <value>Install version '{0}'</value>
   </data>
-  <data name="Generate_variable_0" xml:space="preserve">
-    <value>Generate variable '{0}'</value>
-  </data>
   <data name="Classes" xml:space="preserve">
     <value>Classes</value>
   </data>
@@ -913,9 +847,6 @@ This version used in: {2}</value>
   </data>
   <data name="paren_Unknown_paren" xml:space="preserve">
     <value>(Unknown)</value>
-  </data>
-  <data name="Implement_abstract_class" xml:space="preserve">
-    <value>Implement abstract class</value>
   </data>
   <data name="Use_framework_type" xml:space="preserve">
     <value>Use framework type</value>
@@ -1252,12 +1183,6 @@ This version used in: {2}</value>
   <data name="Target_type_matches" xml:space="preserve">
     <value>Target type matches</value>
   </data>
-  <data name="Generate_parameter_0" xml:space="preserve">
-    <value>Generate parameter '{0}'</value>
-  </data>
-  <data name="Generate_parameter_0_and_overrides_implementations" xml:space="preserve">
-    <value>Generate parameter '{0}' (and overrides/implementations)</value>
-  </data>
   <data name="in_Source_attribute" xml:space="preserve">
     <value>in Source (attribute)</value>
   </data>
@@ -1322,30 +1247,15 @@ This version used in: {2}</value>
   <data name="Value_colon" xml:space="preserve">
     <value>Value:</value>
   </data>
-  <data name="Implement_through_0" xml:space="preserve">
-    <value>Implement through '{0}'</value>
-  </data>
   <data name="Implement_all_interfaces_explicitly" xml:space="preserve">
     <value>Implement all interfaces explicitly</value>
   </data>
   <data name="Implement_explicitly" xml:space="preserve">
     <value>Implement explicitly</value>
   </data>
-  <data name="Base_classes_contain_inaccessible_unimplemented_members" xml:space="preserve">
-    <value>Base classes contain inaccessible unimplemented members</value>
-  </data>
   <data name="Add_DebuggerDisplay_attribute" xml:space="preserve">
     <value>Add 'DebuggerDisplay' attribute</value>
     <comment>{Locked="DebuggerDisplay"} "DebuggerDisplay" is a BCL class and should not be localized.</comment>
-  </data>
-  <data name="Do_not_change_this_code_Put_cleanup_code_in_0_method" xml:space="preserve">
-    <value>Do not change this code. Put cleanup code in '{0}' method</value>
-  </data>
-  <data name="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer" xml:space="preserve">
-    <value>TODO: free unmanaged resources (unmanaged objects) and override finalizer</value>
-  </data>
-  <data name="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources" xml:space="preserve">
-    <value>TODO: override finalizer only if '{0}' has code to free unmanaged resources</value>
   </data>
   <data name="AM_PM_abbreviated" xml:space="preserve">
     <value>AM/PM (abbreviated)</value>
@@ -1803,9 +1713,6 @@ If the "H" format specifier is used without other custom format specifiers, it's
   </data>
   <data name="_24_hour_clock_2_digits_description" xml:space="preserve">
     <value>The "HH" custom format specifier (plus any number of additional "H" specifiers) represents the hour as a number from 00 through 23; that is, the hour is represented by a zero-based 24-hour clock that counts the hours since midnight. A single-digit hour is formatted with a leading zero.</value>
-  </data>
-  <data name="Implement_remaining_members_explicitly" xml:space="preserve">
-    <value>Implement remaining members explicitly</value>
   </data>
   <data name="Generate_for_0" xml:space="preserve">
     <value>Generate for '{0}'</value>
@@ -2627,12 +2534,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   <data name="Document_must_be_contained_in_the_workspace_that_created_this_service" xml:space="preserve">
     <value>Document must be contained in the workspace that created this service</value>
   </data>
-  <data name="Generate_constructor_in_0_with_fields" xml:space="preserve">
-    <value>Generate constructor in '{0}' (with fields)</value>
-  </data>
-  <data name="Generate_constructor_in_0_with_properties" xml:space="preserve">
-    <value>Generate constructor in '{0}' (with properties)</value>
-  </data>
   <data name="Property_reference_cannot_be_updated" xml:space="preserve">
     <value>Property reference cannot be updated</value>
   </data>
@@ -3244,7 +3145,7 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
     <value>Query</value>
   </data>
   <data name="Semantic_search_only_supported_on_net_core" xml:space="preserve">
-    <value>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools > Options > Text Editor > C# > Advanced).</value>
+    <value>Semantic search is only supported when code analysis runs in a separate process on the latest .NET (see Tools &gt; Options &gt; Text Editor &gt; C# &gt; Advanced).</value>
   </data>
   <data name="Semantic_search_query_terminated_with_exception" xml:space="preserve">
     <value>Semantic search query terminated with exception</value>
@@ -3263,9 +3164,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
   </data>
   <data name="Unable_to_load_type_0_1" xml:space="preserve">
     <value>Unable to load type '{0}': '{1}'</value>
-  </data>
-  <data name="Type_members" xml:space="preserve">
-    <value>Type members</value>
   </data>
   <data name="NET_Code_Actions" xml:space="preserve">
     <value>.NET Code Actions</value>

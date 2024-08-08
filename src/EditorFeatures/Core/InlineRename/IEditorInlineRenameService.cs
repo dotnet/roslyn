@@ -255,6 +255,12 @@ internal interface IInlineRenameInfo
 internal interface IEditorInlineRenameService : ILanguageService
 {
     /// <summary>
+    /// Returns true if the service is currently enabled for the language (e.g. the value
+    /// might depend on a feature flag.)
+    /// </summary>
+    bool IsEnabled { get; }
+
+    /// <summary>
     /// Returns <see cref="IInlineRenameInfo"/> necessary to establish the inline rename session.
     /// </summary>
     Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);

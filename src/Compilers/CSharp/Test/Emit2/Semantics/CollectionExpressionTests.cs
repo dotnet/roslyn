@@ -12821,6 +12821,64 @@ namespace System
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72539")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74676")]
+        public void SynthesizedCollections_EnsureCompilerGenerated()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<int> x = [1];
+                        IEnumerable<int> y = [2, 3];
+                        IEnumerable<int> z = [.. x];
+
+                        Report(x);
+                        Report(y);
+                        Report(z);
+                    }
+
+                    static void Report<T>(IEnumerable<T> e)
+                    {
+                        var type = e.GetType();
+                        Console.Write("{0}: ", type.Name);
+                        foreach (var a in type.GetCustomAttributes(inherit: false))
+                            Console.Write("{0}, ", a);
+                        Console.WriteLine();
+                    }
+                }
+                """;
+
+            CompileAndVerify(
+                source,
+                symbolValidator: module =>
+                {
+                    var globalNamespace = module.GlobalNamespace;
+                    verifyCompilerGeneratedType(globalNamespace.GetTypeMember("<>z__ReadOnlySingleElementList"));
+                    verifyCompilerGeneratedType(globalNamespace.GetTypeMember("<>z__ReadOnlyArray"));
+                    verifyCompilerGeneratedType(globalNamespace.GetTypeMember("<>z__ReadOnlyList"));
+                },
+                expectedOutput: """
+                    <>z__ReadOnlySingleElementList`1: System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
+                    <>z__ReadOnlyArray`1: System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
+                    <>z__ReadOnlyList`1: System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
+
+                    """);
+
+            static void verifyCompilerGeneratedType(NamedTypeSymbol type)
+            {
+                Assert.Collection(type.GetAttributes(),
+                    a => Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", a.AttributeClass?.ToTestDisplayString()));
+                Assert.DoesNotContain(type.GetMembers(),
+                    m => m.GetAttributes().Any(a => a.AttributeClass?.ToTestDisplayString() == "System.Runtime.CompilerServices.CompilerGeneratedAttribute"));
+            }
+        }
+
+        [Fact]
         public void Nullable_01()
         {
             string source = """
@@ -29018,8 +29076,8 @@ partial class Program
                 """);
         }
 
-        [Fact]
-        public void ImmutableArray_03()
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71159")]
+        public void ImmutableArray_Empty()
         {
             string sourceA = """
                 using System.Collections.Immutable;
@@ -29034,7 +29092,41 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify(new[] { sourceA, s_collectionExtensions }, targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[],"), verify: Verification.Skipped);
+            var verifier = CompileAndVerify([sourceA, s_collectionExtensions], targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("[],"), verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("Program.Main", """
+                {
+                  // Code size       17 (0x11)
+                  .maxstack  2
+                  IL_0000:  ldsfld     "System.Collections.Immutable.ImmutableArray<int> System.Collections.Immutable.ImmutableArray<int>.Empty"
+                  IL_0005:  box        "System.Collections.Immutable.ImmutableArray<int>"
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  call       "void CollectionExtensions.Report(object, bool)"
+                  IL_0010:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71159")]
+        public void ImmutableArray_Empty_MissingKnownSingleton()
+        {
+            string sourceA = """
+                using System.Collections.Immutable;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        ImmutableArray<int> arr = [];
+                        arr.Report();
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation([sourceA, s_collectionExtensions], options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+            comp.MakeMemberMissing(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty);
+
+            var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[],"), verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Program.Main", """
                 {

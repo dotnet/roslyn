@@ -284,8 +284,7 @@ internal abstract class AbstractRemoveUnusedValuesCodeFixProvider<TExpressionSyn
 
     protected sealed override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
-        var options = await document.GetCodeFixOptionsAsync(cancellationToken).ConfigureAwait(false);
-        var formattingOptions = options.GetFormattingOptions(SyntaxFormatting);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(SyntaxFormatting, cancellationToken).ConfigureAwait(false);
         var preprocessedDocument = await PreprocessDocumentAsync(document, diagnostics, cancellationToken).ConfigureAwait(false);
         var newRoot = await GetNewRootAsync(preprocessedDocument, formattingOptions, diagnostics, cancellationToken).ConfigureAwait(false);
         editor.ReplaceNode(editor.OriginalRoot, newRoot);

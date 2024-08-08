@@ -20,6 +20,8 @@ internal abstract partial class AbstractEditorInlineRenameService : IEditorInlin
         _refactorNotifyServices = refactorNotifyServices;
     }
 
+    public bool IsEnabled => true;
+
     public async Task<IInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var symbolicInfo = await SymbolicRenameInfo.GetRenameInfoAsync(document, position, cancellationToken).ConfigureAwait(false);

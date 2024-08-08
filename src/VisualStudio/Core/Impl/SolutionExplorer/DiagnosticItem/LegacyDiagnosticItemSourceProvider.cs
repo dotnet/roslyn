@@ -21,15 +21,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class LegacyDiagnosticItemSourceProvider(
+    IThreadingContext threadingContext,
     [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler,
-    IDiagnosticAnalyzerService diagnosticAnalyzerService) : AttachedCollectionSourceProvider<AnalyzerItem>
+    IDiagnosticAnalyzerService diagnosticAnalyzerService,
+    IAsynchronousOperationListenerProvider listenerProvider) : AttachedCollectionSourceProvider<AnalyzerItem>
 {
     protected override IAttachedCollectionSource? CreateCollectionSource(AnalyzerItem item, string relationshipName)
     {
         if (relationshipName == KnownRelationships.Contains)
         {
             return new LegacyDiagnosticItemSource(
-                item, commandHandler, diagnosticAnalyzerService);
+                threadingContext, item, commandHandler, diagnosticAnalyzerService, listenerProvider);
         }
 
         return null;

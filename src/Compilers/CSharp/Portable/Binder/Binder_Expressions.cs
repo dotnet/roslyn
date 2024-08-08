@@ -10562,7 +10562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool satisfiesConstraintChecks(MethodSymbol method)
             {
-                if (method.Arity == 0)
+                if (!ConstraintsHelper.RequiresChecking(method))
                 {
                     return true;
                 }

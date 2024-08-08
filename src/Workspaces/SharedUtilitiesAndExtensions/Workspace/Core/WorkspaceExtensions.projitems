@@ -9,10 +9,22 @@
     <Import_RootNamespace>Microsoft.CodeAnalysis.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)CodeCleanup\CodeCleanupOptionsProviders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerationOptionsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\AbstractRefactoringHelpersService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\CodeRefactoringHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CodeRefactorings\IRefactoringHelpersService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Editing\ImportAdderService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IMethodSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IParameterSymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\IPropertySymbolExtensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_CreateEqualsMethod.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\ISyntaxFormattingService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)NamingStyles\NamingStylePreferencesProviders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Options\MemberDisplayOptions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Progress\CodeAnalysisProgressExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixesAndRefactorings\FixAllHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AddImport\AddImportPlacementOptionsProviders.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeActions\CodeFixOptionsProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\ForkingSyntaxEditorBasedCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeFixes\FixAllContextExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\AbstractCodeGenerationService.cs" />
@@ -27,7 +39,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\CodeGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ICodeGenerationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\INamedTypeSymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\ITypeGenerator.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\LiteralSpecialValues.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\NullableSyntaxAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CodeGeneration\Symbols\CodeGenerationAbstractMethodSymbol.cs" />
@@ -71,14 +82,17 @@
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ContextQuery\SyntaxContext.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\HostWorkspaceServicesExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\ISymbolExtensions.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.CollectTypeParameterSymbolsVisitor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Extensions\ITypeSymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\KnownTypes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\StringBuilderExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_CreateGetHashCodeMethod.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Extensions\SyntaxGeneratorExtensions_Negate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Options\OptionsProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\AbstractReducer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\AbstractReducer.IExpressionRewriter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\AbstractSimplificationService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\ISimplificationService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\NodeOrTokenToReduce.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Simplification\SimplificationHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\AbstractIndentationService.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Indentation\IIndentationService.cs" />
@@ -118,6 +132,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Rename\Annotations\RenameNodeSimplificationAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Rename\Annotations\RenameTokenSimplificationAnnotation.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\MefHostServicesHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\Simplifiers\AbstractMemberAccessExpressionSimplifier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\Simplifiers\AbstractSimplifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\AsyncSymbolVisitor`1.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Utilities\ParsedDocument.cs" />
@@ -146,6 +162,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\OrderableLanguageMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\OrderableMetadata.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Workspace\Mef\WorkspaceServiceMetadata.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\LineFormattingOptionsProviders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Formatting\SyntaxFormattingOptionsProviders.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Simplification\SimplifierOptionsProviders.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)WorkspaceExtensionsResources.resx" GenerateSource="true" Link="WorkspaceExtensionsResources.resx" />
@@ -155,5 +174,8 @@
   </ItemGroup>
   <ItemGroup Condition="'$(DefaultLanguageSourceExtension)' != '' AND '$(BuildingInsideVisualStudio)' != 'true'">
     <ExpectedCompile Include="$(MSBuildThisFileDirectory)**\*$(DefaultLanguageSourceExtension)" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)CodeCleanup\" />
   </ItemGroup>
 </Project>

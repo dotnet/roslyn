@@ -8,6 +8,8 @@ using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 
@@ -18,27 +20,24 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
     private readonly IVsHierarchyItem _item;
     private readonly string _projectDirectoryPath;
 
-    /// <summary>
-    /// The analyzer reference that has been found. Once it's been assigned a non-null value, it'll never be assigned null again.
-    /// </summary>
-    private AnalyzerReference? _analyzerReference;
-
     public event PropertyChangedEventHandler? PropertyChanged;
 
     public CpsDiagnosticItemSource(
+        IThreadingContext threadingContext,
         Workspace workspace,
         string projectPath,
         ProjectId projectId,
         IVsHierarchyItem item,
         IAnalyzersCommandHandler commandHandler,
-        IDiagnosticAnalyzerService analyzerService)
-        : base(workspace, projectId, commandHandler, analyzerService)
+        IDiagnosticAnalyzerService analyzerService,
+        IAsynchronousOperationListenerProvider listenerProvider)
+        : base(threadingContext, workspace, projectId, commandHandler, analyzerService, listenerProvider)
     {
         _item = item;
         _projectDirectoryPath = Path.GetDirectoryName(projectPath);
 
-        _analyzerReference = TryGetAnalyzerReference(Workspace.CurrentSolution);
-        if (_analyzerReference == null)
+        this.AnalyzerReference = TryGetAnalyzerReference(Workspace.CurrentSolution);
+        if (this.AnalyzerReference == null)
         {
             // The ProjectId that was given to us was found by enumerating the list of projects in the solution,
             // thus the project must have already been added to the workspace at some point. As long as the project
@@ -55,7 +54,7 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
 
                 if (analyzerReference != null)
                 {
-                    _analyzerReference = analyzerReference;
+                    this.AnalyzerReference = analyzerReference;
                     UnsubscribeFromEvents();
                 }
             }
@@ -81,8 +80,6 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
 
     public override object SourceItem => _item;
 
-    public override AnalyzerReference? AnalyzerReference => _analyzerReference;
-
     private void OnWorkspaceChangedLookForAnalyzer(object sender, WorkspaceChangeEventArgs e)
     {
         // If the project has gone away in this change, it's not coming back, so we can stop looking at this point
@@ -99,7 +96,7 @@ internal sealed partial class CpsDiagnosticItemSource : BaseDiagnosticAndGenerat
             var analyzerReference = TryGetAnalyzerReference(e.NewSolution);
             if (analyzerReference != null)
             {
-                _analyzerReference = analyzerReference;
+                this.AnalyzerReference = analyzerReference;
                 UnsubscribeFromEvents();
 
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(HasItems)));

@@ -315,11 +315,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Ожидаемая задача не возвращает значение.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Base_classes_contain_inaccessible_unimplemented_members">
-        <source>Base classes contain inaccessible unimplemented members</source>
-        <target state="translated">Базовые классы содержат недоступные нереализованные члены</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Built_in_Copilot_analysis">
         <source>Built-in Copilot analysis</source>
         <target state="translated">Встроенный анализ Copilot</target>
@@ -665,11 +660,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Отклонить</target>
         <note />
       </trans-unit>
-      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
-        <source>Do not change this code. Put cleanup code in '{0}' method</source>
-        <target state="translated">Не изменяйте этот код. Разместите код очистки в методе "{0}".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="DocumentIsOutOfSyncWithDebuggee">
         <source>The current content of source file '{0}' does not match the built source. Any changes made to this file while debugging won't be applied until its content matches the built source.</source>
         <target state="translated">Текущее содержимое исходного файла "{0}" не соответствует созданному источнику. Все изменения, внесенные в этот файл во время отладки, не будут применены, пока содержимое файла не будет соответствовать созданному источнику.</target>
@@ -830,79 +820,14 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Найдена одна сборка: "{0}"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_abstract_method_0">
-        <source>Generate abstract method '{0}'</source>
-        <target state="translated">Создать абстрактный метод "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_abstract_property_0">
-        <source>Generate abstract property '{0}'</source>
-        <target state="translated">Создать абстрактное свойство "{0}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_comparison_operators">
         <source>Generate comparison operators</source>
         <target state="translated">Создать операторы сравнения</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constant_0">
-        <source>Generate constant '{0}'</source>
-        <target state="translated">Создать константу "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_fields">
-        <source>Generate constructor in '{0}' (with fields)</source>
-        <target state="translated">Создать конструктор в "{0}" (с полями)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_constructor_in_0_with_properties">
-        <source>Generate constructor in '{0}' (with properties)</source>
-        <target state="translated">Создать конструктор в "{0}" (со свойствами)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_enum_member_0">
-        <source>Generate enum member '{0}'</source>
-        <target state="translated">Создать элемент перечисления "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_0">
-        <source>Generate field '{0}'</source>
-        <target state="translated">Создать поле "{0}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_for_0">
         <source>Generate for '{0}'</source>
         <target state="translated">Создать для "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_method_0">
-        <source>Generate method '{0}'</source>
-        <target state="translated">Создать метод "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_parameter_0">
-        <source>Generate parameter '{0}'</source>
-        <target state="translated">Создать параметр "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_parameter_0_and_overrides_implementations">
-        <source>Generate parameter '{0}' (and overrides/implementations)</source>
-        <target state="translated">Создать параметр "{0}" (а также переопределения или реализации)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_property_0">
-        <source>Generate property '{0}'</source>
-        <target state="translated">Создать свойство "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_field_0">
-        <source>Generate read-only field '{0}'</source>
-        <target state="translated">Создать поле только для чтения "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_read_only_property_0">
-        <source>Generate read-only property '{0}'</source>
-        <target state="translated">Создать свойство только для чтения "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Illegal_backslash_at_end_of_pattern">
@@ -935,11 +860,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Реализовать "{0}" неявно</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_abstract_class">
-        <source>Implement abstract class</source>
-        <target state="translated">Реализовать абстрактный класс</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_all_interfaces_explicitly">
         <source>Implement all interfaces explicitly</source>
         <target state="translated">Реализовать все интерфейсы явно</target>
@@ -950,11 +870,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
         <target state="translated">Реализовать все интерфейсы неявно</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_all_members_explicitly">
-        <source>Implement all members explicitly</source>
-        <target state="translated">Реализовать все элементы явно</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Implement_explicitly">
         <source>Implement explicitly</source>
         <target state="translated">Реализовать явно</target>
@@ -963,16 +878,6 @@ Make sure to use the "tt" specifier for languages for which it's necessary to ma
       <trans-unit id="Implement_implicitly">
         <source>Implement implicitly</source>
         <target state="translated">Реализовать неявно</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_remaining_members_explicitly">
-        <source>Implement remaining members explicitly</source>
-        <target state="translated">Реализовать оставшиеся элементы явно</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_through_0">
-        <source>Implement through '{0}'</source>
-        <target state="translated">Реализовать через "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Incomplete_character_escape">
@@ -2740,16 +2645,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
         <target state="translated">Синтаксическая ошибка</target>
         <note />
       </trans-unit>
-      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
-        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
-        <target state="translated">TODO: освободить неуправляемые ресурсы (неуправляемые объекты) и переопределить метод завершения</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
-        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
-        <target state="translated">TODO: переопределить метод завершения, только если "{0}" содержит код для освобождения неуправляемых ресурсов</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Target_type_matches">
         <source>Target type matches</source>
         <target state="translated">Соответствия целевого типа</target>
@@ -2813,11 +2708,6 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Trailing_comma_not_allowed">
         <source>Trailing comma not allowed</source>
         <target state="translated">Завершающая запятая не разрешена</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Type_members">
-        <source>Type members</source>
-        <target state="new">Type members</target>
         <note />
       </trans-unit>
       <trans-unit id="Types_colon">
@@ -3028,6 +2918,11 @@ Zero-width positive lookbehind assertions are typically used at the beginning of
       <trans-unit id="Updating_the_size_of_a_0_requires_restarting_the_application">
         <source>Updating the size of a {0} requires restarting the application.</source>
         <target state="translated">Для обновления размера {0} требуется перезапустить приложение.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
+        <target state="new">Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</target>
         <note />
       </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
@@ -3925,16 +3820,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">Создать делегирующий конструктор "{0}({1})"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_0_1">
-        <source>Generate constructor '{0}({1})'</source>
-        <target state="translated">Создать конструктор "{0}({1})"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_field_assigning_constructor_0_1">
-        <source>Generate field assigning constructor '{0}({1})'</source>
-        <target state="translated">Создать назначающий поля конструктор "{0}({1})"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_Equals_and_GetHashCode">
         <source>Generate Equals and GetHashCode</source>
         <target state="translated">Создать Equals и GetHashCode</target>
@@ -3950,21 +3835,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
         <target state="translated">Создать "GetHashCode()"</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_constructor_in_0">
-        <source>Generate constructor in '{0}'</source>
-        <target state="translated">Создайте конструктор в "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_all">
-        <source>Generate all</source>
-        <target state="translated">Создать все</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_local_0">
-        <source>Generate local '{0}'</source>
-        <target state="translated">Создайте локальную переменную "{0}"</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Generate_0_1_in_new_file">
         <source>Generate {0} '{1}' in new file</source>
         <target state="translated">Создать {0} "{1}" в новом файле</target>
@@ -3973,21 +3843,6 @@ If the "M" format specifier is used without other custom format specifiers, it's
       <trans-unit id="Generate_nested_0_1">
         <source>Generate nested {0} '{1}'</source>
         <target state="translated">Создать вложенный {0} "{1}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_abstractly">
-        <source>Implement interface abstractly</source>
-        <target state="translated">Реализовать интерфейс абстрактно</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_through_0">
-        <source>Implement interface through '{0}'</source>
-        <target state="translated">Реализовать интерфейс через "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface">
-        <source>Implement interface</source>
-        <target state="translated">Реализовать интерфейс</target>
         <note />
       </trans-unit>
       <trans-unit id="Introduce_field_for_0">
@@ -4270,16 +4125,6 @@ Do you want to continue?</source>
         <target state="translated">Примечание. Два раза нажмите клавишу TAB, чтобы вставить фрагмент кода "{0}".</target>
         <note />
       </trans-unit>
-      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
-        <source>Implement interface explicitly with Dispose pattern</source>
-        <target state="translated">Явно внедрите интерфейс с шаблоном освобождения</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Implement_interface_with_Dispose_pattern">
-        <source>Implement interface with Dispose pattern</source>
-        <target state="translated">Внедрите интерфейс с шаблоном освобождения</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Computing_fix_all_occurrences_code_fix">
         <source>Computing fix all occurrences code fix...</source>
         <target state="translated">Вычисление изменения кода для исправления всех вхождений...</target>
@@ -4303,16 +4148,6 @@ Do you want to continue?</source>
       <trans-unit id="Solution">
         <source>Solution</source>
         <target state="translated">Решение</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
-        <source>TODO: dispose managed state (managed objects)</source>
-        <target state="translated">TODO: освободить управляемое состояние (управляемые объекты)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="TODO_colon_set_large_fields_to_null">
-        <source>TODO: set large fields to null</source>
-        <target state="translated">TODO: установить значение NULL для больших полей</target>
         <note />
       </trans-unit>
       <trans-unit id="Compiler2">
@@ -4663,11 +4498,6 @@ This version used in: {2}</source>
       <trans-unit id="Install_version_0">
         <source>Install version '{0}'</source>
         <target state="translated">Установить версию "{0}"</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_variable_0">
-        <source>Generate variable '{0}'</source>
-        <target state="translated">Создать переменную "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Classes">

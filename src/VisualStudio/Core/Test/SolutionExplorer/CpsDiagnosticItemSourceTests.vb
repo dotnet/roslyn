@@ -40,11 +40,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
                 Dim listenerProvider = workspace.GetService(Of IAsynchronousOperationListenerProvider)
                 Dim source As IAttachedCollectionSource = New CpsDiagnosticItemSource(
+                    workspace.GetService(Of IThreadingContext),
                     workspace,
                     project.FilePath,
                     project.Id,
                     New MockHierarchyItem() With {.CanonicalName = "\net472\analyzerdependency\" + analyzerPath},
-                    New FakeAnalyzersCommandHandler, workspace.GetService(Of IDiagnosticAnalyzerService))
+                    New FakeAnalyzersCommandHandler, workspace.GetService(Of IDiagnosticAnalyzerService),
+                    listenerProvider)
 
                 Assert.True(source.HasItems)
 

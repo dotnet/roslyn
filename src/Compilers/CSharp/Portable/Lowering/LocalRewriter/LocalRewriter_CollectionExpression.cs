@@ -54,15 +54,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert(elementType is { });
                         return VisitArrayOrSpanCollectionExpression(node, collectionTypeKind, node.Type, TypeWithAnnotations.Create(elementType));
                     case CollectionExpressionTypeKind.CollectionBuilder:
-                        // If the collection type is ImmutableArray<T>, then construction is optimized to use
-                        // ImmutableCollectionsMarshal.AsImmutableArray.
-                        // The only exception is when collection expression is just `[.. readOnlySpan]` of the same element type, in such cases
-                        // it is more efficient to emit a direct call of `ImmutableArray.Create`
-                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType) &&
-                            _compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is MethodSymbol asImmutableArray &&
-                            !CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out _))
+                        // A few special cases when a collection type is an ImmutableArray<T>
+                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Immutable_ImmutableArray_T, out var arrayElementType))
                         {
-                            return VisitImmutableArrayCollectionExpression(node, arrayElementType, asImmutableArray);
+                            // For `[]` try to use `ImmutableArray<T>.Empty` singleton if available
+                            if (node.Elements.IsEmpty &&
+                                _compilation.GetWellKnownTypeMember(WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty) is FieldSymbol immutableArrayOfTEmpty)
+                            {
+                                var immutableArrayOfTargetCollectionTypeEmpty = immutableArrayOfTEmpty.AsMember((NamedTypeSymbol)node.Type);
+                                return _factory.Field(receiver: null, immutableArrayOfTargetCollectionTypeEmpty);
+                            }
+
+                            // Otherwise try to optimize construction using `ImmutableCollectionsMarshal.AsImmutableArray`.
+                            // Note, that we skip that path if collection expression is just `[.. readOnlySpan]` of the same element type,
+                            // in such cases it is more efficient to emit a direct call of `ImmutableArray.Create`
+                            if (_compilation.GetWellKnownTypeMember(WellKnownMember.System_Runtime_InteropServices_ImmutableCollectionsMarshal__AsImmutableArray_T) is MethodSymbol asImmutableArray &&
+                                !CanOptimizeSingleSpreadAsCollectionBuilderArgument(node, out _))
+                            {
+                                return VisitImmutableArrayCollectionExpression(node, arrayElementType, asImmutableArray);
+                            }
                         }
                         return VisitCollectionBuilderCollectionExpression(node);
                     case CollectionExpressionTypeKind.ArrayInterface:

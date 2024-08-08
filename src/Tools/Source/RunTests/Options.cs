@@ -141,7 +141,7 @@ namespace RunTests
         internal static Options? Parse(string[] args)
         {
             string? dotnetFilePath = null;
-            var architecture = "x64";
+            var architecture = Microsoft.CodeAnalysis.Test.Utilities.IlasmUtilities.Architecture;
             var includeHtml = false;
             var testRuntime = TestRuntime.Both;
             var configuration = "Debug";

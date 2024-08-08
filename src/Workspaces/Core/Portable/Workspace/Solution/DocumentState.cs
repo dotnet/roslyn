@@ -40,9 +40,9 @@ internal partial class DocumentState : TextDocumentState
         LanguageServices languageServices,
         IDocumentServiceProvider? documentServiceProvider,
         DocumentInfo.DocumentAttributes attributes,
-        ParseOptions? options,
         ITextAndVersionSource textSource,
         LoadTextOptions loadTextOptions,
+        ParseOptions? options,
         ITreeAndVersionSource? treeSource)
         : base(languageServices.SolutionServices, documentServiceProvider, attributes, textSource, loadTextOptions)
     {
@@ -53,33 +53,41 @@ internal partial class DocumentState : TextDocumentState
         TreeSource = treeSource;
     }
 
-    public DocumentState(
+    public static DocumentState Create(
         LanguageServices languageServices,
         DocumentInfo info,
         ParseOptions? options,
         LoadTextOptions loadTextOptions)
-        : base(languageServices.SolutionServices, info, loadTextOptions)
     {
-        LanguageServices = languageServices;
-        ParseOptions = options;
+        var textSource = CreateTextAndVersionSource(languageServices.SolutionServices, info.TextLoader, info.FilePath, loadTextOptions);
 
         // If this is document that doesn't support syntax, then don't even bother holding
         // onto any tree source.  It will never be used to get a tree, and can only hurt us
         // by possibly holding onto data that might cause a slow memory leak.
+        ITreeAndVersionSource? treeSource;
         if (languageServices.GetService<ISyntaxTreeFactoryService>() == null)
         {
-            TreeSource = null;
+            treeSource = null;
         }
         else
         {
             Contract.ThrowIfNull(options);
-            TreeSource = CreateLazyFullyParsedTree(
-                TextAndVersionSource,
-                LoadTextOptions,
+            treeSource = CreateLazyFullyParsedTree(
+                textSource,
+                loadTextOptions,
                 info.Attributes.SyntaxTreeFilePath,
                 options,
                 languageServices);
         }
+
+        return new DocumentState(
+            languageServices,
+            info.DocumentServiceProvider,
+            info.Attributes,
+            textSource,
+            loadTextOptions,
+            options,
+            treeSource);
     }
 
     [MemberNotNullWhen(true, nameof(TreeSource))]
@@ -320,11 +328,11 @@ internal partial class DocumentState : TextDocumentState
 
         return new DocumentState(
             LanguageServices,
-            Services,
+            DocumentServiceProvider,
             Attributes,
-            ParseOptions,
             TextAndVersionSource,
             newLoadTextOptions,
+            ParseOptions,
             newTreeSource);
     }
 
@@ -367,11 +375,11 @@ internal partial class DocumentState : TextDocumentState
 
         return new DocumentState(
             LanguageServices,
-            Services,
+            DocumentServiceProvider,
             Attributes.With(sourceCodeKind: options.Kind),
-            options,
             TextAndVersionSource,
             LoadTextOptions,
+            options,
             newTreeSource);
     }
 
@@ -387,22 +395,12 @@ internal partial class DocumentState : TextDocumentState
             return UpdateParseOptionsAndSourceCodeKind(ParseOptions.WithKind(kind), onlyPreprocessorDirectiveChange: false);
         }
 
-        return UpdateAttributes(Attributes.With(sourceCodeKind: kind));
+        return WithAttributes(Attributes.With(sourceCodeKind: kind));
     }
 
-    public DocumentState UpdateName(string name)
-        => UpdateAttributes(Attributes.With(name: name));
-
-    public DocumentState UpdateFilePath(string? path)
-        => UpdateAttributes(Attributes.With(filePath: path));
-
-    public DocumentState UpdateFolders(IReadOnlyList<string> folders)
-        => UpdateAttributes(Attributes.With(folders: folders));
-
-    private DocumentState UpdateAttributes(DocumentInfo.DocumentAttributes newAttributes)
+    protected override TextDocumentState UpdateAttributes(DocumentInfo.DocumentAttributes newAttributes)
     {
-        Debug.Assert(newAttributes != Attributes);
-
+        Contract.ThrowIfTrue(ReferenceEquals(newAttributes, Attributes));
         ITreeAndVersionSource? newTreeSource;
 
         if (newAttributes.SyntaxTreeFilePath != Attributes.SyntaxTreeFilePath)
@@ -424,13 +422,26 @@ internal partial class DocumentState : TextDocumentState
 
         return new DocumentState(
             LanguageServices,
-            Services,
+            DocumentServiceProvider,
             newAttributes,
-            ParseOptions,
             TextAndVersionSource,
             LoadTextOptions,
+            ParseOptions,
             newTreeSource);
     }
+
+    protected override TextDocumentState UpdateDocumentServiceProvider(IDocumentServiceProvider? newProvider)
+        => new DocumentState(
+            LanguageServices,
+            newProvider,
+            Attributes,
+            TextAndVersionSource,
+            LoadTextOptions,
+            ParseOptions,
+            TreeSource);
+
+    public new DocumentState WithAttributes(DocumentInfo.DocumentAttributes newAttributes)
+        => (DocumentState)base.WithAttributes(newAttributes);
 
     public new DocumentState UpdateText(SourceText newText, PreservationMode mode)
         => (DocumentState)base.UpdateText(newText, mode);
@@ -466,11 +477,11 @@ internal partial class DocumentState : TextDocumentState
 
         return new DocumentState(
             LanguageServices,
-            Services,
+            DocumentServiceProvider,
             Attributes,
-            ParseOptions,
             textSource: newTextSource,
             LoadTextOptions,
+            ParseOptions,
             treeSource: newTreeSource);
     }
 
@@ -509,11 +520,11 @@ internal partial class DocumentState : TextDocumentState
 
         return new DocumentState(
             LanguageServices,
-            Services,
+            DocumentServiceProvider,
             Attributes,
-            ParseOptions,
             textSource: text,
             LoadTextOptions,
+            ParseOptions,
             treeSource: SimpleTreeAndVersionSource.Create(treeAndVersion));
 
         // use static method so we don't capture references to this

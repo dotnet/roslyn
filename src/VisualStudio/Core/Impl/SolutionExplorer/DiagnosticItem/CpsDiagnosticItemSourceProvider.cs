@@ -63,7 +63,7 @@ internal sealed class CpsDiagnosticItemSourceProvider(
                         if (hierarchy.GetCanonicalName(itemId, out var projectCanonicalName) == VSConstants.S_OK)
                         {
                             return new CpsDiagnosticItemSource(
-                                _workspace, projectCanonicalName, projectId, item, _commandHandler, _diagnosticAnalyzerService);
+                                _threadingContext, _workspace, projectCanonicalName, projectId, item, _commandHandler, _diagnosticAnalyzerService, _listenerProvider);
                         }
                     }
                 }
