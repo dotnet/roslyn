@@ -11438,11 +11438,6 @@ static class Program
                     var synthesizedType = module.GlobalNamespace.GetTypeMember("<>z__ReadOnlyArray");
                     Assert.Equal("<>z__ReadOnlyArray<T>", synthesizedType.ToTestDisplayString());
                     Assert.Equal("<>z__ReadOnlyArray`1", synthesizedType.MetadataName);
-
-                    Assert.Contains(synthesizedType.GetAttributes(),
-                        a => a.AttributeClass?.ToTestDisplayString() == "System.Runtime.CompilerServices.CompilerGeneratedAttribute");
-                    Assert.DoesNotContain(synthesizedType.GetMembers(),
-                        m => m.GetAttributes().Any(a => a.AttributeClass?.ToTestDisplayString() == "System.Runtime.CompilerServices.CompilerGeneratedAttribute"));
                 },
                 expectedOutput: """
                     IEnumerable.GetEnumerator(): (System.Int32[]) [], 
@@ -12823,6 +12818,42 @@ namespace System
                 new[] { source, s_collectionExtensions },
                 references: new[] { CSharpRef },
                 expectedOutput: "(<>z__ReadOnlyArray<System.Int32>) [1, 2, 0], (<>z__ReadOnlyArray<System.Object>) [1, 2, null], ");
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72539")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74676")]
+        public void SynthesizedCollections_EnsureCompilerGenerated()
+        {
+            string source = """
+                using System.Collections.Generic;
+
+                class C
+                {
+                    void M()
+                    {
+                        IEnumerable<int> x = [1];
+                        IEnumerable<int> y = [2, 3];
+                        IEnumerable<int> z = [.. x];
+                    }
+                }
+                """;
+
+            CompileAndVerify(source, symbolValidator: module =>
+            {
+                var globalNamespace = module.GlobalNamespace;
+                verifyCompilerGeneratedType(globalNamespace.GetTypeMember("<>z__ReadOnlySingleElementList"));
+                verifyCompilerGeneratedType(globalNamespace.GetTypeMember("<>z__ReadOnlyArray"));
+                verifyCompilerGeneratedType(globalNamespace.GetTypeMember("<>z__ReadOnlyList"));
+            });
+
+            static void verifyCompilerGeneratedType(NamedTypeSymbol type)
+            {
+                Assert.Contains(type.GetAttributes(),
+                        a => a.AttributeClass?.ToTestDisplayString() == "System.Runtime.CompilerServices.CompilerGeneratedAttribute");
+                Assert.DoesNotContain(type.GetMembers(),
+                    m => m.GetAttributes().Any(a => a.AttributeClass?.ToTestDisplayString() == "System.Runtime.CompilerServices.CompilerGeneratedAttribute"));
+            }
         }
 
         [Fact]
