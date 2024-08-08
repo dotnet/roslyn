@@ -70,7 +70,7 @@ stages:
     - checkout: RoslynMirror
       displayName: "Checkout Experiment Test Assets"
       path: RoslynTestAssets
-    - powershell: $(Pipeline.Workspace)\RoslynTestAssets\Roslyn\Restore.cmd
+    - powershell: $(Pipeline.Workspace)\RoslynTestAssets\dotnet-roslyn\Restore.cmd
       displayName: "Restore TestAssets"
     - template: eng/pipelines/test-integration-job.yml
       parameters:
