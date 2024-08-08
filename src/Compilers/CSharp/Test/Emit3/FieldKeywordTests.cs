@@ -516,6 +516,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """);
         }
 
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("ref struct")]
+        [InlineData("record")]
+        [InlineData("record struct")]
+        public void ImplicitAccessorBody_03(string typeKind)
+        {
+            string source = $$"""
+                {{typeKind}} A
+                {
+                    public static int P1 { get; set { field = value + 2; } }
+                    public static int P2 { get { return field - 1; } set; }
+                    public int P3 { get; set { field = value + 2; } }
+                    public int P4 { get { return field - 1; } set; }
+                    public int P5 { get; init { field = value + 2; } }
+                    public int P6 { get { return field - 1; } init; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        A.P1 = 1;
+                        A.P2 = 2;
+                        var a = new A() { P3 = 3, P4 = 4, P5 = 5, P6 = 6 };
+                        System.Console.WriteLine((A.P1, A.P2, a.P3, a.P4, a.P5, a.P6));
+                    }
+                }
+                """;
+            CompileAndVerify(source, verify: Verification.Skipped, targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("(3, 1, 5, 3, 7, 5)"));
+        }
+
         [Fact]
         public void Attribute_01()
         {
