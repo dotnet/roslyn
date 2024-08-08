@@ -122,6 +122,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.VisitCollectionExpression(node);
             }
 
+            public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
+            {
+                Visit(node.Expression);
+                Visit(node.Conversion);
+                if (node.EnumeratorInfoOpt != null)
+                {
+                    VisitForEachEnumeratorInfo(node.EnumeratorInfoOpt);
+                }
+                return null;
+            }
+
             public override BoundNode? VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
             {
                 // https://github.com/dotnet/roslyn/issues/35010: handle
@@ -165,20 +176,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Visit(node.AwaitOpt);
                 if (node.EnumeratorInfoOpt != null)
                 {
-                    Visit(node.EnumeratorInfoOpt.DisposeAwaitableInfo);
-                    if (node.EnumeratorInfoOpt.GetEnumeratorInfo.Method.IsExtensionMethod)
-                    {
-                        foreach (var arg in node.EnumeratorInfoOpt.GetEnumeratorInfo.Arguments)
-                        {
-                            Visit(arg);
-                        }
-                    }
+                    VisitForEachEnumeratorInfo(node.EnumeratorInfoOpt);
                 }
                 Visit(node.Expression);
                 // https://github.com/dotnet/roslyn/issues/35010: handle the deconstruction
                 //this.Visit(node.DeconstructionOpt);
                 Visit(node.Body);
                 return null;
+            }
+
+            private void VisitForEachEnumeratorInfo(ForEachEnumeratorInfo enumeratorInfo)
+            {
+                Visit(enumeratorInfo.DisposeAwaitableInfo);
+                if (enumeratorInfo.GetEnumeratorInfo.Method.IsExtensionMethod)
+                {
+                    foreach (var arg in enumeratorInfo.GetEnumeratorInfo.Arguments)
+                    {
+                        Visit(arg);
+                    }
+                }
             }
 
             public override BoundNode? VisitGotoStatement(BoundGotoStatement node)
