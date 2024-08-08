@@ -33,7 +33,7 @@ steps:
     condition: $(runExperimentTest)
     continueOnError: true
     env:
-      RoslynSelfBuildTestAsset: $(Pipeline.Workspace)\RoslynTestAssets
+      experimentTestAssetsDir: $(Pipeline.Workspace)\RoslynTestAssets
 
   - task: PublishTestResults@2
     displayName: Publish xUnit Test Results
