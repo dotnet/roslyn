@@ -69,7 +69,7 @@ stages:
     - checkout: RoslynMirror
     - checkout: RoslynMirror
       path: $(Pipeline.Workspace)\RoslynTestAssets
-    - pwsh: .\$(Pipeline.Workspace)\RoslynTestAssets\roslyn\Restore.cmd
+    - pwsh: .\$(Pipeline.Workspace)\RoslynTestAssets\Roslyn\Restore.cmd
       displayName: "Restore TestAssets"
     - template: eng/pipelines/test-integration-job.yml
       parameters:
@@ -77,4 +77,4 @@ stages:
         oop64bit: $(_oop64bit)
         lspEditor: false
         skipCheckout: true
-        isDartLab: true
+        runExperimentTest: true
