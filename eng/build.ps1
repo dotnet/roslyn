@@ -68,7 +68,7 @@ param (
   [string]$helixQueueName = "",
   [string]$helixApiAccessToken = "",
   [switch]$runExperimentTest = $false,
-  [string]$experimentTestAssetsDir=""
+  [string]$experimentTestAssetsDir="",
 
   [parameter(ValueFromRemainingArguments=$true)][string[]]$properties)
 
@@ -441,7 +441,7 @@ function TestUsingRunTests() {
     if ($lspEditor) {
       $args += " --testfilter Editor=LanguageServerProtocol"
     }
-  } else if ($runExperimentTest) {
+  } elseif ($runExperimentTest) {
     $args += " --timeout 110"
     $args += " --include 'Microsoft.VisualStudio.LanguageServices.Experiment.IntegrationTests'"
   }
@@ -480,7 +480,7 @@ function TestUsingRunTests() {
       Write-LogIssue "To run experiment test, specify experimentTestAssetsDir when run build.cmd."
       ExitWithExitCode 1
     }
-    else if (not (Test-Path $experimentTestAssetsDir)) {
+    elseif (not (Test-Path $experimentTestAssetsDir)) {
       Write-LogIssue "experimentTestAssetsDir doesn't exist"
       ExitWithExitCode 1
     }
