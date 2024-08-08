@@ -170,7 +170,7 @@ internal abstract partial class AbstractSymbolCompletionProvider<TSyntaxContext>
     /// <summary>
     /// Alternative comparer to SymbolAndSelectionInfo's default which considers both the full symbol and preselect.
     /// </summary>
-    protected sealed class SymbolReferenceEquivalenceComparer : IEqualityComparer<SymbolAndSelectionInfo>
+    private sealed class SymbolReferenceEquivalenceComparer : IEqualityComparer<SymbolAndSelectionInfo>
     {
         public static readonly SymbolReferenceEquivalenceComparer Instance = new();
 
