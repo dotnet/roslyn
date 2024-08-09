@@ -3638,10 +3638,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundCollectionExpressionSpreadElement spread:
                         {
                             Visit(spread);
-                            if (elementType.HasType && spread.ExpressionPlaceholder is { })
+                            if (elementType.HasType && spread.ElementPlaceholder is { })
                             {
                                 var itemState = spread.EnumeratorInfoOpt == null ? default : ResultType;
-                                var completion = VisitOptionalImplicitConversion(spread.ExpressionPlaceholder, elementType,
+                                var completion = VisitOptionalImplicitConversion(spread.ElementPlaceholder, elementType,
                                     useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true,
                                     operand => itemState).completion;
                                 Debug.Assert(completion is not null);
@@ -8205,6 +8205,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             (BoundExpression operand, Conversion conversion) = RemoveConversion(expr, includeExplicitConversions: false);
             SnapshotWalkerThroughConversionGroup(expr, operand);
             var operandType = getOperandState(operand);
+
+            Debug.Assert(AreCloseEnough(operandType.Type, operand.Type));
 
             return visitConversion(expr, targetTypeOpt, useLegacyWarnings, trackMembers, assignmentKind, operand, conversion, operandType, delayCompletionForTargetType);
 
