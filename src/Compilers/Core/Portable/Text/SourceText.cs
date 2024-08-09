@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.Text
                         var charSpan = charBuffer.AsSpan(0, charsToCopy);
 
                         // Ensure everything is always little endian, so we get the same results across all platforms.
-                        // This will eb entirely elided by the jit on a little endian machine.
+                        // This will be entirely elided by the jit on a little endian machine.
                         if (!BitConverter.IsLittleEndian)
                         {
                             var shortSpan = MemoryMarshal.Cast<char, short>(charSpan);
