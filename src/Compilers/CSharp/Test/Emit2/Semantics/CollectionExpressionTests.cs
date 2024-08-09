@@ -40137,6 +40137,70 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "y").WithLocation(14, 16));
         }
 
+        [Fact]
+        public void Spread_Nullable_06()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<string?> x = [null];
+                        IEnumerable<object> y = [..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (8,36): warning CS8601: Possible null reference assignment.
+                //         IEnumerable<object> y = [..x];
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "x").WithLocation(8, 36));
+        }
+
+        [Fact]
+        public void Spread_Nullable_07()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<byte> x = [1, 2, 3];
+                        IEnumerable<int?> y = [..x];
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Spread_Nullable_08()
+        {
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+                class Program
+                {
+                    static IEnumerable<T?> F<T>(IEnumerable<T> x)
+                        where T : struct
+                    {
+                        return [..x];
+                    }
+                    static void Main()
+                    {
+                        F<int>([1, 2, 3]);
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
         [WorkItem("https://github.com/dotnet/roslyn/issues/74185")]
         [Fact]
         public void UserDefinedConversion_Nullable_01()

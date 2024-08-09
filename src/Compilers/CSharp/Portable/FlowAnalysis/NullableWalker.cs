@@ -536,7 +536,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
 #if DEBUG
             Debug.Assert(AreCloseEnough(placeholder.Type, result.RValueType.Type));
-            Debug.Assert(expression != null || placeholder.Kind == BoundKind.InterpolatedStringArgumentPlaceholder);
+            Debug.Assert(expression != null ||
+                placeholder.Kind == BoundKind.InterpolatedStringArgumentPlaceholder ||
+                (placeholder.Kind == BoundKind.ValuePlaceholder && placeholder.Syntax.Parent.IsKind(SyntaxKind.SpreadElement)));
 #endif
 
             _resultForPlaceholdersOpt ??= PooledDictionary<BoundValuePlaceholderBase, (BoundExpression? Replacement, VisitResult Result)>.GetInstance();
@@ -3638,14 +3640,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundCollectionExpressionSpreadElement spread:
                         {
                             Visit(spread);
-                            if (elementType.HasType && spread.ElementPlaceholder is { })
+                            if (elementType.HasType &&
+                                spread.ElementPlaceholder is { } &&
+                                spread.IteratorBody is { })
                             {
-                                var itemState = spread.EnumeratorInfoOpt == null ? default : ResultType;
-                                var completion = VisitOptionalImplicitConversion(spread.ElementPlaceholder, elementType,
-                                    useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true,
-                                    operandTypeOpt: itemState).completion;
+                                var itemResult = spread.EnumeratorInfoOpt == null ? default : _visitResult;
+                                var iteratorBody = ((BoundExpressionStatement)spread.IteratorBody).Expression;
+                                AddPlaceholderReplacement(spread.ElementPlaceholder, expression: null, itemResult);
+                                var completion = VisitOptionalImplicitConversion(iteratorBody, elementType,
+                                    useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
                                 Debug.Assert(completion is not null);
                                 elementConversionCompletions.Add(completion);
+                                RemovePlaceholderReplacement(spread.ElementPlaceholder);
                             }
                         }
                         break;
@@ -3752,12 +3758,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
         {
             VisitRvalue(node.Expression);
-            var result = _visitResult;
 
             if (node.Conversion is BoundConversion { Conversion: var conversion })
             {
                 Debug.Assert(node.ExpressionPlaceholder is { });
-                AddPlaceholderReplacement(node.ExpressionPlaceholder, node.Expression, result);
+                Debug.Assert(node.EnumeratorInfoOpt is { });
+                AddPlaceholderReplacement(node.ExpressionPlaceholder, node.Expression, _visitResult);
                 VisitForEachExpression(
                     node,
                     node.Conversion,
@@ -8181,12 +8187,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useLegacyWarnings,
             bool trackMembers,
             AssignmentKind assignmentKind,
-            bool delayCompletionForTargetType,
-            TypeWithState? operandTypeOpt = null)
+            bool delayCompletionForTargetType)
         {
             (BoundExpression operand, Conversion conversion) = RemoveConversion(expr, includeExplicitConversions: false);
             SnapshotWalkerThroughConversionGroup(expr, operand);
-            var operandType = operandTypeOpt ?? VisitRvalueWithState(operand);
+            var operandType = VisitRvalueWithState(operand);
 
             Debug.Assert(AreCloseEnough(operandType.Type, operand.Type));
 
@@ -10594,6 +10599,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode? VisitCollectionExpressionSpreadExpressionPlaceholder(BoundCollectionExpressionSpreadExpressionPlaceholder node)
+        {
+            VisitPlaceholderWithReplacement(node);
+            return null;
+        }
+
+        public override BoundNode? VisitValuePlaceholder(BoundValuePlaceholder node)
         {
             VisitPlaceholderWithReplacement(node);
             return null;

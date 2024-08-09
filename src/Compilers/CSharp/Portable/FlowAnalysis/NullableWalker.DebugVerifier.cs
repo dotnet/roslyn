@@ -118,17 +118,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.VisitList(node.UnconvertedCollectionExpression.Elements);
                     return null;
                 }
-
-                return base.VisitCollectionExpression(node);
-            }
-
-            public override BoundNode? VisitCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement node)
-            {
-                Visit(node.Expression);
-                Visit(node.Conversion);
-                if (node.EnumeratorInfoOpt != null)
+                else
                 {
-                    VisitForEachEnumeratorInfo(node.EnumeratorInfoOpt);
+                    // See NullableWalker.VisitCollectionExpression.getCollectionDetails() which
+                    // does not have an element type for the ImplementsIEnumerable case.
+                    var hasElementType = node.CollectionTypeKind is not (CollectionExpressionTypeKind.None or CollectionExpressionTypeKind.ImplementsIEnumerable);
+                    foreach (var element in node.Elements)
+                    {
+                        if (element is BoundCollectionExpressionSpreadElement spread)
+                        {
+                            Visit(spread.Expression);
+                            Visit(spread.Conversion);
+                            if (spread.EnumeratorInfoOpt != null)
+                            {
+                                VisitForEachEnumeratorInfo(spread.EnumeratorInfoOpt);
+                            }
+                            if (hasElementType)
+                            {
+                                Visit(((BoundExpressionStatement?)spread.IteratorBody)?.Expression);
+                            }
+                        }
+                        else
+                        {
+                            Visit(element);
+                        }
+                    }
                 }
                 return null;
             }
