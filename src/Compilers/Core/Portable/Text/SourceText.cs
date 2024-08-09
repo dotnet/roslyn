@@ -636,7 +636,6 @@ namespace Microsoft.CodeAnalysis.Text
                 var hash = s_contentHashPool.Allocate();
                 var charBuffer = s_charArrayPool.Allocate();
                 Debug.Assert(charBuffer.Length == CharBufferSize);
-                var isBigEndian = !BitConverter.IsLittleEndian;
                 try
                 {
                     // Grab chunks of this SourceText, copying into 'charBuffer'.  Then reinterpret that buffer as a
@@ -651,7 +650,8 @@ namespace Microsoft.CodeAnalysis.Text
                         var charSpan = charBuffer.AsSpan(0, charsToCopy);
 
                         // Ensure everything is always little endian, so we get the same results across all platforms.
-                        if (isBigEndian)
+                        // This will eb entirely elided by the jit on a little endian machine.
+                        if (!BitConverter.IsLittleEndian)
                         {
                             var shortSpan = MemoryMarshal.Cast<char, short>(charSpan);
                             ReverseEndianness(source: shortSpan, destination: shortSpan);
@@ -1302,114 +1302,6 @@ namespace Microsoft.CodeAnalysis.Text
             // Defer to the platform to do the reversal.  It ships with a fast
             // implementation for this on .Net 8 and above.
             BinaryPrimitives.ReverseEndianness(source, destination);
-        }
-#elif NET7_0_OR_GREATER
-        // Copied from: https://github.com/dotnet/runtime/blob/5535e31a712343a63f5d7d796cd874e563e5ac14/src/libraries/System.Private.CoreLib/src/System/Buffers/Binary/BinaryPrimitives.ReverseEndianness.cs#L181C46-L182C83
-        private static void ReverseEndianness(ReadOnlySpan<short> source, Span<short> destination)
-        {
-            ReverseEndianness<short, Int16EndiannessReverser>(source, destination);
-        }
-
-        private static void ReverseEndianness<T, TReverser>(ReadOnlySpan<T> source, Span<T> destination)
-            where T : struct
-            where TReverser : IEndiannessReverser<T>
-        {
-            if (destination.Length < source.Length)
-            {
-                throw new InvalidOperationException();
-            }
-
-            ref T sourceRef = ref MemoryMarshal.GetReference(source);
-            ref T destRef = ref MemoryMarshal.GetReference(destination);
-
-            if (Unsafe.AreSame(ref sourceRef, ref destRef) ||
-                !source.Overlaps(destination, out int elementOffset) ||
-                elementOffset < 0)
-            {
-                // Either there's no overlap between the source and the destination, or there's overlap but the
-                // destination starts at or before the source.  That means we can safely iterate from beginning
-                // to end of the source and not have to worry about writing into the destination and clobbering
-                // source data we haven't yet read.
-
-                int i = 0;
-
-                if (Vector256.IsHardwareAccelerated)
-                {
-                    while (i <= source.Length - Vector256<T>.Count)
-                    {
-                        Vector256.StoreUnsafe(TReverser.Reverse(Vector256.LoadUnsafe(ref sourceRef, (uint)i)), ref destRef, (uint)i);
-                        i += Vector256<T>.Count;
-                    }
-                }
-
-                if (Vector128.IsHardwareAccelerated)
-                {
-                    while (i <= source.Length - Vector128<T>.Count)
-                    {
-                        Vector128.StoreUnsafe(TReverser.Reverse(Vector128.LoadUnsafe(ref sourceRef, (uint)i)), ref destRef, (uint)i);
-                        i += Vector128<T>.Count;
-                    }
-                }
-
-                while (i < source.Length)
-                {
-                    Unsafe.Add(ref destRef, i) = TReverser.Reverse(Unsafe.Add(ref sourceRef, i));
-                    i++;
-                }
-            }
-            else
-            {
-                // There's overlap between the source and the destination, and the source starts before the destination.
-                // That means if we were to iterate from beginning to end, reading from the source and writing to the
-                // destination, we'd overwrite source elements not yet read.  To avoid that, we iterate from end to beginning.
-
-                int i = source.Length;
-
-                if (Vector256.IsHardwareAccelerated)
-                {
-                    while (i >= Vector256<T>.Count)
-                    {
-                        i -= Vector256<T>.Count;
-                        Vector256.StoreUnsafe(TReverser.Reverse(Vector256.LoadUnsafe(ref sourceRef, (uint)i)), ref destRef, (uint)i);
-                    }
-                }
-
-                if (Vector128.IsHardwareAccelerated)
-                {
-                    while (i >= Vector128<T>.Count)
-                    {
-                        i -= Vector128<T>.Count;
-                        Vector128.StoreUnsafe(TReverser.Reverse(Vector128.LoadUnsafe(ref sourceRef, (uint)i)), ref destRef, (uint)i);
-                    }
-                }
-
-                while (i > 0)
-                {
-                    i--;
-                    Unsafe.Add(ref destRef, i) = TReverser.Reverse(Unsafe.Add(ref sourceRef, i));
-                }
-            }
-        }
-
-        private interface IEndiannessReverser<T> where T : struct
-        {
-            static abstract T Reverse(T value);
-            static abstract Vector128<T> Reverse(Vector128<T> vector);
-            static abstract Vector256<T> Reverse(Vector256<T> vector);
-        }
-
-        private readonly struct Int16EndiannessReverser : IEndiannessReverser<short>
-        {
-            public static short Reverse(short value) =>
-               BinaryPrimitives.ReverseEndianness(value);
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static Vector128<short> Reverse(Vector128<short> vector) =>
-                Vector128.ShiftLeft(vector, 8) | Vector128.ShiftRightLogical(vector, 8);
-
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            public static Vector256<short> Reverse(Vector256<short> vector) =>
-                Vector256.ShiftLeft(vector, 8) | Vector256.ShiftRightLogical(vector, 8);
         }
 #else
         private static void ReverseEndianness(ReadOnlySpan<short> source, Span<short> destination)
