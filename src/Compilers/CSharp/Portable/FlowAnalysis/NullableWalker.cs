@@ -9319,15 +9319,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(conversionOpt.ConversionGroupOpt == conversionGroup);
                 if (!visitResult.LValueType.Type.Equals(conversionOpt.Type, TypeCompareKind.AllNullableIgnoreOptions))
                 {
-                    visitResult = withType(visitResult, conversionOpt.Type);
+                    // visitResult = withType(visitResult, conversionOpt.Type);
                 }
                 SetAnalyzedNullability(conversionOpt, visitResult);
                 conversionOpt = conversionOpt.Operand as BoundConversion;
             }
 
-            static VisitResult withType(VisitResult visitResult, TypeSymbol newType) =>
-                new VisitResult(TypeWithState.Create(newType, visitResult.RValueType.State),
-                                TypeWithAnnotations.Create(newType, visitResult.LValueType.NullableAnnotation));
+            // static VisitResult withType(VisitResult visitResult, TypeSymbol newType) =>
+            //     new VisitResult(TypeWithState.Create(newType, visitResult.RValueType.State),
+            //                     TypeWithAnnotations.Create(newType, visitResult.LValueType.NullableAnnotation));
         }
 
         /// <summary>
