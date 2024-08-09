@@ -9317,7 +9317,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (conversionOpt != null && conversionOpt != convertedNode)
             {
                 Debug.Assert(conversionOpt.ConversionGroupOpt == conversionGroup);
-                Debug.Assert(resultType.Type.Equals(conversionOpt.Type, TypeCompareKind.AllNullableIgnoreOptions));
+                Debug.Assert(conversionOpt.Type.Equals(resultType.Type, TypeCompareKind.AllNullableIgnoreOptions));
                 SetAnalyzedNullability(conversionOpt, visitResult);
                 conversionOpt = conversionOpt.Operand as BoundConversion;
             }
