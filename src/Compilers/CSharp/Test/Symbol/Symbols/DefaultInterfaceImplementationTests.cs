@@ -3346,7 +3346,7 @@ public interface I1
 
         [Theory]
         [CombinatorialData]
-        public void PropertyImplementation_109(bool isStatic)
+        public void PropertyImplementation_109(bool isStatic, bool useCSharp13)
         {
             string declModifiers = isStatic ? "static virtual " : "";
 
@@ -3369,14 +3369,21 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             // PROTOTYPE: Confirm that we now allow one accessor to have an implementation.
             // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
             // we don't want to allow only one accessor to have an implementation.
-            if (isStatic)
+            if (isStatic && useCSharp13)
+            {
+                compilation1.VerifyDiagnostics(
+                    // (6,9): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         get
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(6, 9));
+            }
+            else if (isStatic)
             {
                 compilation1.VerifyDiagnostics();
             }
@@ -3414,7 +3421,7 @@ class Test1 : I1
 
         [Theory]
         [CombinatorialData]
-        public void PropertyImplementation_110(bool isStatic)
+        public void PropertyImplementation_110(bool isStatic, bool useCSharp13)
         {
             string declModifiers = isStatic ? "static virtual " : "";
 
@@ -3433,14 +3440,21 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
             // PROTOTYPE: Confirm that we now allow one accessor to have an implementation.
             // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
             // we don't want to allow only one accessor to have an implementation.
-            if (isStatic)
+            if (isStatic && useCSharp13)
+            {
+                compilation1.VerifyDiagnostics(
+                    // (7,9): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //         set => System.Console.WriteLine("set P1");
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(7, 9));
+            }
+            else if (isStatic)
             {
                 compilation1.VerifyDiagnostics();
             }

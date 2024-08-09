@@ -325,12 +325,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Theory]
-        [InlineData("class")]
-        [InlineData("struct")]
-        [InlineData("ref struct")]
-        [InlineData("record")]
-        [InlineData("record struct")]
-        public void ImplicitAccessorBody_01(string typeKind)
+        [CombinatorialData]
+        public void ImplicitAccessorBody_01(
+            [CombinatorialValues("class", "struct", "ref struct", "record", "record struct")] string typeKind,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 {{typeKind}} A
@@ -352,8 +350,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, targetFramework: TargetFramework.Net80);
-            verifier.VerifyIL("A.P1.get", """
+
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe,
+                targetFramework: TargetFramework.Net80);
+
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,36): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public static object P1 { get; set { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(3, 36),
+                    // (3,46): error CS0103: The name 'field' does not exist in the current context
+                    //     public static object P1 { get; set { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 46),
+                    // (4,31): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public static object P2 { get { return field; } set; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(4, 31),
+                    // (4,44): error CS0103: The name 'field' does not exist in the current context
+                    //     public static object P2 { get { return field; } set; }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 44),
+                    // (5,31): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public static object P3 { get { return null; } set; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(5, 31),
+                    // (6,29): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public object Q1 { get; set { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(6, 29),
+                    // (6,39): error CS0103: The name 'field' does not exist in the current context
+                    //     public object Q1 { get; set { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(6, 39),
+                    // (7,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public object Q2 { get { return field; } set; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(7, 24),
+                    // (7,37): error CS0103: The name 'field' does not exist in the current context
+                    //     public object Q2 { get { return field; } set; }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(7, 37),
+                    // (8,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public object Q3 { get { return field; } init; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(8, 24),
+                    // (8,37): error CS0103: The name 'field' does not exist in the current context
+                    //     public object Q3 { get { return field; } init; }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(8, 37),
+                    // (9,29): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public object Q4 { get; set { } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(9, 29),
+                    // (10,29): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public object Q5 { get; init { } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "init").WithArguments("field keyword").WithLocation(10, 29));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput(""));
+                verifier.VerifyIL("A.P1.get", """
                 {
                   // Code size        6 (0x6)
                   .maxstack  1
@@ -361,7 +411,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0005:  ret
                 }
                 """);
-            verifier.VerifyIL("A.P2.set", """
+                verifier.VerifyIL("A.P2.set", """
                 {
                   // Code size        7 (0x7)
                   .maxstack  1
@@ -370,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0006:  ret
                 }
                 """);
-            verifier.VerifyIL("A.Q1.get", """
+                verifier.VerifyIL("A.Q1.get", """
                 {
                   // Code size        7 (0x7)
                   .maxstack  1
@@ -379,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0006:  ret
                 }
                 """);
-            verifier.VerifyIL("A.Q2.set", """
+                verifier.VerifyIL("A.Q2.set", """
                 {
                   // Code size        8 (0x8)
                   .maxstack  2
@@ -389,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0007:  ret
                 }
                 """);
-            verifier.VerifyIL("A.Q3.init", """
+                verifier.VerifyIL("A.Q3.init", """
                 {
                   // Code size        8 (0x8)
                   .maxstack  2
@@ -399,9 +449,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0007:  ret
                 }
                 """);
+            }
+
             if (!typeKind.StartsWith("record"))
             {
-                var comp = (CSharpCompilation)verifier.Compilation;
                 var actualMembers = comp.GetMember<NamedTypeSymbol>("A").GetMembers().ToTestDisplayStrings();
                 string readonlyQualifier = typeKind.EndsWith("struct") ? "readonly " : "";
                 var expectedMembers = new[]
@@ -444,8 +495,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact]
-        public void ImplicitAccessorBody_02()
+        [Theory]
+        [CombinatorialData]
+        public void ImplicitAccessorBody_02(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 interface I
@@ -454,8 +507,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static object P2 { get { return field; } set; }
                 }
                 """;
-            var verifier = CompileAndVerify(source, verify: Verification.Skipped, targetFramework: TargetFramework.Net80);
-            verifier.VerifyIL("I.P1.get", """
+
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                targetFramework: TargetFramework.Net80);
+
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,29): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static object P1 { get; set { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(3, 29),
+                    // (3,39): error CS0103: The name 'field' does not exist in the current context
+                    //     static object P1 { get; set { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 39),
+                    // (4,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static object P2 { get { return field; } set; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(4, 24),
+                    // (4,37): error CS0103: The name 'field' does not exist in the current context
+                    //     static object P2 { get { return field; } set; }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 37));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(comp, verify: Verification.Skipped);
+                verifier.VerifyIL("I.P1.get", """
                 {
                   // Code size        6 (0x6)
                   .maxstack  1
@@ -463,7 +540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0005:  ret
                 }
                 """);
-            verifier.VerifyIL("I.P2.set", """
+                verifier.VerifyIL("I.P2.set", """
                 {
                   // Code size        7 (0x7)
                   .maxstack  1
@@ -472,10 +549,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0006:  ret
                 }
                 """);
+            }
         }
 
-        [Fact]
-        public void ImplicitAccessorBody_03()
+        [Theory]
+        [CombinatorialData]
+        public void ImplicitAccessorBody_03(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 interface I
@@ -485,26 +565,56 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     object Q3 { get { return field; } init; }
                 }
                 """;
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
-            comp.VerifyEmitDiagnostics(
-                // (3,17): error CS0501: 'I.Q1.get' must declare a body because it is not marked abstract, extern, or partial
-                //     object Q1 { get; set { _ = field; } }
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I.Q1.get").WithLocation(3, 17),
-                // (3,32): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object Q1 { get; set { _ = field; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 32),
-                // (4,30): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object Q2 { get { return field; } set; }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 30),
-                // (4,39): error CS0501: 'I.Q2.set' must declare a body because it is not marked abstract, extern, or partial
-                //     object Q2 { get { return field; } set; }
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I.Q2.set").WithLocation(4, 39),
-                // (5,30): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object Q3 { get { return field; } init; }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(5, 30),
-                // (5,39): error CS0501: 'I.Q3.init' must declare a body because it is not marked abstract, extern, or partial
-                //     object Q3 { get { return field; } init; }
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "init").WithArguments("I.Q3.init").WithLocation(5, 39));
+
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                targetFramework: TargetFramework.Net80);
+
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,17): error CS0501: 'I.Q1.get' must declare a body because it is not marked abstract, extern, or partial
+                    //     object Q1 { get; set { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I.Q1.get").WithLocation(3, 17),
+                    // (3,32): error CS0103: The name 'field' does not exist in the current context
+                    //     object Q1 { get; set { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 32),
+                    // (4,30): error CS0103: The name 'field' does not exist in the current context
+                    //     object Q2 { get { return field; } set; }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 30),
+                    // (4,39): error CS0501: 'I.Q2.set' must declare a body because it is not marked abstract, extern, or partial
+                    //     object Q2 { get { return field; } set; }
+                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I.Q2.set").WithLocation(4, 39),
+                    // (5,30): error CS0103: The name 'field' does not exist in the current context
+                    //     object Q3 { get { return field; } init; }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 30),
+                    // (5,39): error CS0501: 'I.Q3.init' must declare a body because it is not marked abstract, extern, or partial
+                    //     object Q3 { get { return field; } init; }
+                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "init").WithArguments("I.Q3.init").WithLocation(5, 39));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,17): error CS0501: 'I.Q1.get' must declare a body because it is not marked abstract, extern, or partial
+                    //     object Q1 { get; set { _ = field; } }
+                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I.Q1.get").WithLocation(3, 17),
+                    // (3,32): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //     object Q1 { get; set { _ = field; } }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 32),
+                    // (4,30): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //     object Q2 { get { return field; } set; }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 30),
+                    // (4,39): error CS0501: 'I.Q2.set' must declare a body because it is not marked abstract, extern, or partial
+                    //     object Q2 { get { return field; } set; }
+                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I.Q2.set").WithLocation(4, 39),
+                    // (5,30): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    //     object Q3 { get { return field; } init; }
+                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(5, 30),
+                    // (5,39): error CS0501: 'I.Q3.init' must declare a body because it is not marked abstract, extern, or partial
+                    //     object Q3 { get { return field; } init; }
+                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "init").WithArguments("I.Q3.init").WithLocation(5, 39));
+            }
         }
 
         [Theory]

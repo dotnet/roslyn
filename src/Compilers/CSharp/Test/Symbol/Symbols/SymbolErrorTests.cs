@@ -8125,6 +8125,17 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
     protected abstract object S { set; } // no error
 }
 ";
+            CreateCompilation(text, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+                // (3,25): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public int P { get; set { } }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(3, 25),
+                // (4,20): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     public int Q { get { return 0; } set; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(4, 20),
+                // (5,30): warning CS0626: Method, operator, or accessor 'C.R.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
+                //     public extern object R { get; } // no error
+                Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "get").WithArguments("C.R.get").WithLocation(5, 30));
+
             CreateCompilation(text).VerifyDiagnostics(
                 // (5,30): warning CS0626: Method, operator, or accessor 'C.R.get' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 //     public extern object R { get; } // no error

@@ -68,6 +68,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasAutoPropertyGet = allowAutoPropertyAccessors && getSyntax != null && !hasGetAccessorImplementation;
             bool hasAutoPropertySet = allowAutoPropertyAccessors && setSyntax != null && !hasSetAccessorImplementation;
 
+            if (getSyntax != null && setSyntax != null && hasAutoPropertyGet != hasAutoPropertySet)
+            {
+                MessageID.IDS_FeatureFieldKeyword.CheckFeatureAvailability(diagnostics, (hasAutoPropertyGet ? setSyntax : getSyntax).Keyword);
+            }
+
             binder = binder.SetOrClearUnsafeRegionIfNecessary(modifiersTokenList);
             TypeSymbol? explicitInterfaceType;
             string? aliasQualifierOpt;
@@ -215,8 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             out bool hasSetAccessorImplementation,
             out bool usesFieldKeyword,
             out bool isInitOnly,
-            out CSharpSyntaxNode? getSyntax,
-            out CSharpSyntaxNode? setSyntax)
+            out AccessorDeclarationSyntax? getSyntax,
+            out AccessorDeclarationSyntax? setSyntax)
         {
             var syntax = (BasePropertyDeclarationSyntax)syntaxNode;
             isExpressionBodied = syntax.AccessorList is null;
