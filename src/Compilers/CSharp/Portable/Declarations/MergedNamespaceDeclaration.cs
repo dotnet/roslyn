@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         namespaces.Free();
 
-                        foreach (var namespaceGroup in namespaceGroups.Values)
+                        foreach (var (_, namespaceGroup) in namespaceGroups)
                         {
                             children.Add(MergedNamespaceDeclaration.Create(namespaceGroup.ToImmutableAndFree()));
                         }
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        foreach (var typeGroup in typeGroups.Values)
+                        foreach (var (_, typeGroup) in typeGroups)
                         {
                             if (typeGroup is SingleTypeDeclaration t)
                             {
@@ -230,6 +230,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
 
                         types.Free();
+
+                        // ArrayBuilder values were freed above.
                         typeGroups.Free();
                     }
                 }
