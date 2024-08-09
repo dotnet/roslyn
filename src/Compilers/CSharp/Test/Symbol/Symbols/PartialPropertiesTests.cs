@@ -4985,7 +4985,7 @@ public partial class C
                 {
                     public partial int Prop1 { get; set; }
                     public partial int Prop1 { get => 1; set; }
-                    
+
                     public partial int Prop2 { get; set; }
                     public partial int Prop2 { get; set { } }
                 }
@@ -4999,6 +4999,27 @@ public partial class C
                 // (7,32): error CS0501: 'C.Prop2.get' must declare a body because it is not marked abstract, extern, or partial
                 //     public partial int Prop2 { get; set { } }
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C.Prop2.get").WithLocation(7, 32));
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74679")]
+        public void WRN_SequentialOnPartialClass_NotReportedForPartialProperty()
+        {
+            var source = """
+                partial struct S
+                {
+                    partial int I { get; }
+                }
+
+                partial struct S
+                {
+                    public S() => i = 42;
+                    private readonly int i;
+                    partial int I => i;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }
