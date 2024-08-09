@@ -133,9 +133,12 @@ internal partial class DocumentState
             // with our own data (*except* for the new root).  However, we think it's safe as the encoding really is
             // a property of the file, and that should stay the same even if linked into multiple projects.
 
+            siblingTree.TryGetText(out var lazyText);
+
             var newTree = treeFactory.CreateSyntaxTree(
                 filePath,
                 parseOptions,
+                lazyText,
                 siblingTree.Encoding,
                 loadTextOptions.ChecksumAlgorithm,
                 siblingRoot);
