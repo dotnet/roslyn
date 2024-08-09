@@ -5501,7 +5501,22 @@ class C
                 """;
 
             var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (9,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         x[0] = null; // 1
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 16),
+                // (21,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         x[0] = null; // 3
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(21, 16),
+                // (27,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         x[0] = null; // 4
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(27, 16),
+                // (35,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         x[0] = null; // 5
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(35, 16),
+                // (41,16): warning CS8625: Cannot convert null literal to non-nullable reference type.
+                //         x[0] = null; // 6
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(41, 16));
         }
     }
 }
