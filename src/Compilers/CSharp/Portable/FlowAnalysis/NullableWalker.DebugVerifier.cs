@@ -118,30 +118,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                     this.VisitList(node.UnconvertedCollectionExpression.Elements);
                     return null;
                 }
-                else
+
+                // See NullableWalker.VisitCollectionExpression.getCollectionDetails() which
+                // does not have an element type for the ImplementsIEnumerable case.
+                var hasElementType = node.CollectionTypeKind is not (CollectionExpressionTypeKind.None or CollectionExpressionTypeKind.ImplementsIEnumerable);
+                foreach (var element in node.Elements)
                 {
-                    // See NullableWalker.VisitCollectionExpression.getCollectionDetails() which
-                    // does not have an element type for the ImplementsIEnumerable case.
-                    var hasElementType = node.CollectionTypeKind is not (CollectionExpressionTypeKind.None or CollectionExpressionTypeKind.ImplementsIEnumerable);
-                    foreach (var element in node.Elements)
+                    if (element is BoundCollectionExpressionSpreadElement spread)
                     {
-                        if (element is BoundCollectionExpressionSpreadElement spread)
+                        Visit(spread.Expression);
+                        Visit(spread.Conversion);
+                        if (spread.EnumeratorInfoOpt != null)
                         {
-                            Visit(spread.Expression);
-                            Visit(spread.Conversion);
-                            if (spread.EnumeratorInfoOpt != null)
-                            {
-                                VisitForEachEnumeratorInfo(spread.EnumeratorInfoOpt);
-                            }
-                            if (hasElementType)
-                            {
-                                Visit(((BoundExpressionStatement?)spread.IteratorBody)?.Expression);
-                            }
+                            VisitForEachEnumeratorInfo(spread.EnumeratorInfoOpt);
                         }
-                        else
+                        if (hasElementType)
                         {
-                            Visit(element);
+                            Visit(((BoundExpressionStatement?)spread.IteratorBody)?.Expression);
                         }
+                    }
+                    else
+                    {
+                        Visit(element);
                     }
                 }
                 return null;

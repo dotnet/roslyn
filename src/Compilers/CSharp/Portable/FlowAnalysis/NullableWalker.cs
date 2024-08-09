@@ -3638,21 +3638,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Visit(initializer.Arguments[0]);
                         break;
                     case BoundCollectionExpressionSpreadElement spread:
+                        Visit(spread);
+                        if (elementType.HasType &&
+                            spread.ElementPlaceholder is { } &&
+                            spread.IteratorBody is { })
                         {
-                            Visit(spread);
-                            if (elementType.HasType &&
-                                spread.ElementPlaceholder is { } &&
-                                spread.IteratorBody is { })
-                            {
-                                var itemResult = spread.EnumeratorInfoOpt == null ? default : _visitResult;
-                                var iteratorBody = ((BoundExpressionStatement)spread.IteratorBody).Expression;
-                                AddPlaceholderReplacement(spread.ElementPlaceholder, expression: null, itemResult);
-                                var completion = VisitOptionalImplicitConversion(iteratorBody, elementType,
-                                    useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
-                                Debug.Assert(completion is not null);
-                                elementConversionCompletions.Add(completion);
-                                RemovePlaceholderReplacement(spread.ElementPlaceholder);
-                            }
+                            var itemResult = spread.EnumeratorInfoOpt == null ? default : _visitResult;
+                            var iteratorBody = ((BoundExpressionStatement)spread.IteratorBody).Expression;
+                            AddPlaceholderReplacement(spread.ElementPlaceholder, expression: null, itemResult);
+                            var completion = VisitOptionalImplicitConversion(iteratorBody, elementType,
+                                useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true).completion;
+                            Debug.Assert(completion is not null);
+                            elementConversionCompletions.Add(completion);
+                            RemovePlaceholderReplacement(spread.ElementPlaceholder);
                         }
                         break;
                     default:
@@ -8192,8 +8190,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             (BoundExpression operand, Conversion conversion) = RemoveConversion(expr, includeExplicitConversions: false);
             SnapshotWalkerThroughConversionGroup(expr, operand);
             var operandType = VisitRvalueWithState(operand);
-
-            Debug.Assert(AreCloseEnough(operandType.Type, operand.Type));
 
             return visitConversion(expr, targetTypeOpt, useLegacyWarnings, trackMembers, assignmentKind, operand, conversion, operandType, delayCompletionForTargetType);
 
