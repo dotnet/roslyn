@@ -550,6 +550,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """);
             }
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("I").GetMembers().ToTestDisplayStrings();
+            var expectedMembers = new[]
+                {
+                    "System.Object I.<P1>k__BackingField",
+                    "System.Object I.P1 { get; set; }",
+                    "System.Object I.P1.get",
+                    "void I.P1.set",
+                    "System.Object I.<P2>k__BackingField",
+                    "System.Object I.P2 { get; set; }",
+                    "System.Object I.P2.get",
+                    "void I.P2.set",
+                };
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Theory]
@@ -615,25 +629,60 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     //     object Q3 { get { return field; } init; }
                     Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "init").WithArguments("I.Q3.init").WithLocation(5, 39));
             }
+
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("I").GetMembers().ToTestDisplayStrings();
+            string[] expectedMembers;
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                expectedMembers = new[]
+                    {
+                        "System.Object I.Q1 { get; set; }",
+                        "System.Object I.Q1.get",
+                        "void I.Q1.set",
+                        "System.Object I.Q2 { get; set; }",
+                        "System.Object I.Q2.get",
+                        "void I.Q2.set",
+                        "System.Object I.Q3 { get; init; }",
+                        "System.Object I.Q3.get",
+                        "void modreq(System.Runtime.CompilerServices.IsExternalInit) I.Q3.init",
+                    };
+            }
+            else
+            {
+                expectedMembers = new[]
+                    {
+                        "System.Object I.<Q1>k__BackingField",
+                        "System.Object I.Q1 { get; set; }",
+                        "System.Object I.Q1.get",
+                        "void I.Q1.set",
+                        "System.Object I.<Q2>k__BackingField",
+                        "System.Object I.Q2 { get; set; }",
+                        "System.Object I.Q2.get",
+                        "void I.Q2.set",
+                        "System.Object I.<Q3>k__BackingField",
+                        "System.Object I.Q3 { get; init; }",
+                        "System.Object I.Q3.get",
+                        "void modreq(System.Runtime.CompilerServices.IsExternalInit) I.Q3.init",
+                    };
+            }
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Theory]
-        [InlineData("class")]
-        [InlineData("struct")]
-        [InlineData("ref struct")]
-        [InlineData("record")]
-        [InlineData("record struct")]
-        public void ImplicitAccessorBody_04(string typeKind)
+        [CombinatorialData]
+        public void ImplicitAccessorBody_04(
+            [CombinatorialValues("class", "struct", "ref struct", "record", "record struct")] string typeKind,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 {{typeKind}} A
                 {
-                    public static int P1 { get; set { field = value + 2; } }
-                    public static int P2 { get { return field - 1; } set; }
-                    public int P3 { get; set { field = value + 2; } }
-                    public int P4 { get { return field - 1; } set; }
-                    public int P5 { get; init { field = value + 2; } }
-                    public int P6 { get { return field - 1; } init; }
+                    public static int P1 { get; set { } }
+                    public static int P2 { get { return -2; } set; }
+                    public int P3 { get; set { } }
+                    public int P4 { get { return -4; } set; }
+                    public int P5 { get; init { } }
+                    public int P6 { get { return -6; } init; }
                 }
                 class Program
                 {
@@ -646,7 +695,189 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            CompileAndVerify(source, verify: Verification.Skipped, targetFramework: TargetFramework.Net80, expectedOutput: IncludeExpectedOutput("(3, 1, 5, 3, 7, 5)"));
+
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe,
+                targetFramework: TargetFramework.Net80);
+
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,33): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public static int P1 { get; set { } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(3, 33),
+                    // (4,28): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public static int P2 { get { return -2; } set; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(4, 28),
+                    // (5,26): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public int P3 { get; set { } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(5, 26),
+                    // (6,21): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public int P4 { get { return -4; } set; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(6, 21),
+                    // (7,26): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public int P5 { get; init { } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "init").WithArguments("field keyword").WithLocation(7, 26),
+                    // (8,21): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public int P6 { get { return -6; } init; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(8, 21));
+            }
+            else
+            {
+                CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(0, -2, 0, -4, 0, -6)"));
+            }
+
+            if (!typeKind.StartsWith("record"))
+            {
+                var actualMembers = comp.GetMember<NamedTypeSymbol>("A").GetMembers().ToTestDisplayStrings();
+                string readonlyQualifier = typeKind.EndsWith("struct") ? "readonly " : "";
+                var expectedMembers = new[]
+                    {
+                    "System.Int32 A.<P1>k__BackingField",
+                    "System.Int32 A.P1 { get; set; }",
+                    "System.Int32 A.P1.get",
+                    "void A.P1.set",
+                    "System.Int32 A.<P2>k__BackingField",
+                    "System.Int32 A.P2 { get; set; }",
+                    "System.Int32 A.P2.get",
+                    "void A.P2.set",
+                    "System.Int32 A.<P3>k__BackingField",
+                    "System.Int32 A.P3 { get; set; }",
+                    readonlyQualifier + "System.Int32 A.P3.get",
+                    "void A.P3.set",
+                    "System.Int32 A.<P4>k__BackingField",
+                    "System.Int32 A.P4 { get; set; }",
+                    "System.Int32 A.P4.get",
+                    "void A.P4.set",
+                    "System.Int32 A.<P5>k__BackingField",
+                    "System.Int32 A.P5 { get; init; }",
+                    readonlyQualifier + "System.Int32 A.P5.get",
+                    "void modreq(System.Runtime.CompilerServices.IsExternalInit) A.P5.init",
+                    "System.Int32 A.<P6>k__BackingField",
+                    "System.Int32 A.P6 { get; init; }",
+                    "System.Int32 A.P6.get",
+                    "void modreq(System.Runtime.CompilerServices.IsExternalInit) A.P6.init",
+                    "A..ctor()",
+                };
+                AssertEx.Equal(expectedMembers, actualMembers);
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ImplicitAccessorBody_05(
+            [CombinatorialValues("class", "struct", "ref struct", "record", "record struct")] string typeKind,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            string source = $$"""
+                {{typeKind}} A
+                {
+                    public static int P1 { get; set { field = value * 2; } }
+                    public static int P2 { get { return field * -1; } set; }
+                    public int P3 { get; set { field = value * 2; } }
+                    public int P4 { get { return field * -1; } set; }
+                    public int P5 { get; init { field = value * 2; } }
+                    public int P6 { get { return field * -1; } init; }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        A.P1 = 1;
+                        A.P2 = 2;
+                        var a = new A() { P3 = 3, P4 = 4, P5 = 5, P6 = 6 };
+                        System.Console.WriteLine((A.P1, A.P2, a.P3, a.P4, a.P5, a.P6));
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(
+                source,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion),
+                options: TestOptions.ReleaseExe,
+                targetFramework: TargetFramework.Net80);
+
+            if (languageVersion == LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,33): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public static int P1 { get; set { field = value + 2; } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(3, 33),
+                    // (3,39): error CS0103: The name 'field' does not exist in the current context
+                    //     public static int P1 { get; set { field = value + 2; } }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 39),
+                    // (4,28): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public static int P2 { get { return field - 1; } set; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(4, 28),
+                    // (4,41): error CS0103: The name 'field' does not exist in the current context
+                    //     public static int P2 { get { return field - 1; } set; }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 41),
+                    // (5,26): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public int P3 { get; set { field = value + 2; } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(5, 26),
+                    // (5,32): error CS0103: The name 'field' does not exist in the current context
+                    //     public int P3 { get; set { field = value + 2; } }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 32),
+                    // (6,21): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public int P4 { get { return field - 1; } set; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(6, 21),
+                    // (6,34): error CS0103: The name 'field' does not exist in the current context
+                    //     public int P4 { get { return field - 1; } set; }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(6, 34),
+                    // (7,26): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public int P5 { get; init { field = value + 2; } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "init").WithArguments("field keyword").WithLocation(7, 26),
+                    // (7,33): error CS0103: The name 'field' does not exist in the current context
+                    //     public int P5 { get; init { field = value + 2; } }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(7, 33),
+                    // (8,21): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public int P6 { get { return field - 1; } init; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(8, 21),
+                    // (8,34): error CS0103: The name 'field' does not exist in the current context
+                    //     public int P6 { get { return field - 1; } init; }
+                    Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(8, 34));
+            }
+            else
+            {
+                CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(2, -2, 6, -4, 10, -6)"));
+            }
+
+            if (!typeKind.StartsWith("record"))
+            {
+                var actualMembers = comp.GetMember<NamedTypeSymbol>("A").GetMembers().ToTestDisplayStrings();
+                string readonlyQualifier = typeKind.EndsWith("struct") ? "readonly " : "";
+                var expectedMembers = new[]
+                    {
+                    "System.Int32 A.<P1>k__BackingField",
+                    "System.Int32 A.P1 { get; set; }",
+                    "System.Int32 A.P1.get",
+                    "void A.P1.set",
+                    "System.Int32 A.<P2>k__BackingField",
+                    "System.Int32 A.P2 { get; set; }",
+                    "System.Int32 A.P2.get",
+                    "void A.P2.set",
+                    "System.Int32 A.<P3>k__BackingField",
+                    "System.Int32 A.P3 { get; set; }",
+                    readonlyQualifier + "System.Int32 A.P3.get",
+                    "void A.P3.set",
+                    "System.Int32 A.<P4>k__BackingField",
+                    "System.Int32 A.P4 { get; set; }",
+                    "System.Int32 A.P4.get",
+                    "void A.P4.set",
+                    "System.Int32 A.<P5>k__BackingField",
+                    "System.Int32 A.P5 { get; init; }",
+                    readonlyQualifier + "System.Int32 A.P5.get",
+                    "void modreq(System.Runtime.CompilerServices.IsExternalInit) A.P5.init",
+                    "System.Int32 A.<P6>k__BackingField",
+                    "System.Int32 A.P6 { get; init; }",
+                    "System.Int32 A.P6.get",
+                    "void modreq(System.Runtime.CompilerServices.IsExternalInit) A.P6.init",
+                    "A..ctor()",
+                };
+                AssertEx.Equal(expectedMembers, actualMembers);
+            }
         }
 
         [Fact]
