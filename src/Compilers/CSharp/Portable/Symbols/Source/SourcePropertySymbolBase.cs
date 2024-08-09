@@ -115,16 +115,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _lazyExplicitInterfaceImplementations = ImmutableArray<PropertySymbol>.Empty;
             }
 
-            bool isIndexer = IsIndexer;
-            if (hasAutoPropertyGet || hasAutoPropertySet)
-            {
-                if ((containingType.IsInterface && !IsStatic) || IsAbstract || IsExtern || isIndexer)
-                {
-                    hasAutoPropertyGet = false;
-                    hasAutoPropertySet = false;
-                }
-            }
-
             if (hasExplicitAccessMod)
             {
                 _propertyFlags |= Flags.HasExplicitAccessModifier;
@@ -160,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _propertyFlags |= Flags.AccessorsHaveImplementation;
             }
 
-            if (isIndexer)
+            if (IsIndexer)
             {
                 if (indexerNameAttributeLists.Count == 0 || isExplicitInterfaceImplementation)
                 {
