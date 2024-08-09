@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -139,43 +140,100 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var children = ArrayBuilder<MergedNamespaceOrTypeDeclaration>.GetInstance();
 
-            if (namespaces != null)
-            {
-                if (allNamespacesHaveSameName)
-                {
-                    children.Add(MergedNamespaceDeclaration.Create(namespaces.ToImmutableAndFree()));
-                }
-                else
-                {
-                    var namespaceGroups = namespaces.ToDictionary(n => n.Name, StringOrdinalComparer.Instance);
-                    namespaces.Free();
-
-                    foreach (var namespaceGroup in namespaceGroups.Values)
-                    {
-                        children.Add(MergedNamespaceDeclaration.Create(namespaceGroup));
-                    }
-                }
-            }
-
-            if (types != null)
-            {
-                if (allTypesHaveSameIdentity)
-                {
-                    children.Add(new MergedTypeDeclaration(types.ToImmutableAndFree()));
-                }
-                else
-                {
-                    var typeGroups = types.ToDictionary(t => t.Identity);
-                    types.Free();
-
-                    foreach (var typeGroup in typeGroups.Values)
-                    {
-                        children.Add(new MergedTypeDeclaration(typeGroup));
-                    }
-                }
-            }
+            addNamespacesToChildren(namespaces, allNamespacesHaveSameName, children);
+            addTypesToChildren(types, allTypesHaveSameIdentity, children);
 
             return children.ToImmutableAndFree();
+
+            static void addNamespacesToChildren(ArrayBuilder<SingleNamespaceDeclaration> namespaces, bool allNamespacesHaveSameName, ArrayBuilder<MergedNamespaceOrTypeDeclaration> children)
+            {
+                if (namespaces != null)
+                {
+                    if (allNamespacesHaveSameName)
+                    {
+                        children.Add(MergedNamespaceDeclaration.Create(namespaces.ToImmutableAndFree()));
+                    }
+                    else
+                    {
+                        // PERF: Don't use ArrayBuilder.ToDictionary directly as it requires an extra dictionary allocation. Other options such
+                        // as MultiDictionary<string, SingleNamespaceDeclaration> and Dictionary<string, OneOrMany<SingleNamespaceDeclaration>>
+                        // are even less appealing as they don't perform well when their value sets grow to contain a large number of items,
+                        // as typically happens when processing the namespaces.
+                        var namespaceGroups = new Dictionary<string, ArrayBuilder<SingleNamespaceDeclaration>>(StringOrdinalComparer.Instance);
+
+                        foreach (var n in namespaces)
+                        {
+                            var builder = namespaceGroups.GetOrAdd(n.Name, static () => ArrayBuilder<SingleNamespaceDeclaration>.GetInstance());
+
+                            builder.Add(n);
+                        }
+
+                        namespaces.Free();
+
+                        foreach (var namespaceGroup in namespaceGroups.Values)
+                        {
+                            children.Add(MergedNamespaceDeclaration.Create(namespaceGroup.ToImmutableAndFree()));
+                        }
+                    }
+                }
+            }
+
+            static void addTypesToChildren(ArrayBuilder<SingleTypeDeclaration> types, bool allTypesHaveSameIdentity, ArrayBuilder<MergedNamespaceOrTypeDeclaration> children)
+            {
+                if (types != null)
+                {
+                    if (allTypesHaveSameIdentity)
+                    {
+                        children.Add(new MergedTypeDeclaration(types.ToImmutableAndFree()));
+                    }
+                    else
+                    {
+                        // PERF: Use object as the value in this dictionary to efficiently represent single item collections.
+                        // If only a single object has been seen with a given identity, the value will be a SingleTypeDeclaration,
+                        // otherwise, the value will be an ArrayBuilder<SingleTypeDeclaration>. This code differs from
+                        // addNamespacesToChildren intentionally as the vast majority of identities are represented by only a
+                        // single item in the types collection.
+                        var typeGroups = PooledDictionary<SingleTypeDeclaration.TypeDeclarationIdentity, object>.GetInstance();
+
+                        foreach (var t in types)
+                        {
+                            var id = t.Identity;
+
+                            if (typeGroups.TryGetValue(id, out var existingValue))
+                            {
+                                if (existingValue is not ArrayBuilder<SingleTypeDeclaration> builder)
+                                {
+                                    builder = ArrayBuilder<SingleTypeDeclaration>.GetInstance();
+                                    builder.Add((SingleTypeDeclaration)existingValue);
+                                    typeGroups[id] = builder;
+                                }
+
+                                builder.Add(t);
+                            }
+                            else
+                            {
+                                typeGroups.Add(id, t);
+                            }
+                        }
+
+                        foreach (var typeGroup in typeGroups.Values)
+                        {
+                            if (typeGroup is SingleTypeDeclaration t)
+                            {
+                                children.Add(new MergedTypeDeclaration([t]));
+                            }
+                            else
+                            {
+                                var builder = (ArrayBuilder<SingleTypeDeclaration>)typeGroup;
+                                children.Add(new MergedTypeDeclaration(builder.ToImmutableAndFree()));
+                            }
+                        }
+
+                        types.Free();
+                        typeGroups.Free();
+                    }
+                }
+            }
         }
 
         public new ImmutableArray<MergedNamespaceOrTypeDeclaration> Children
