@@ -1760,13 +1760,13 @@ class C
 }
 ";
             CreateCompilation(text, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
-                // (3,23): error CS8503: The modifier 'static' is not valid for this item in C# 7. Please use language version '8.0' or greater.
+                // (3,23): error CS8703: The modifier 'static' is not valid for this item in C# 7.0. Please use language version '8.0' or greater.
                 //     public static int P1 { get; }
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("static", "7.0", "8.0").WithLocation(3, 23),
-                // (3,23): error CS8503: The modifier 'public' is not valid for this item in C# 7. Please use language version '8.0' or greater.
+                // (3,23): error CS8703: The modifier 'public' is not valid for this item in C# 7.0. Please use language version '8.0' or greater.
                 //     public static int P1 { get; }
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P1").WithArguments("public", "7.0", "8.0").WithLocation(3, 23),
-                // (4,18): error CS8503: The modifier 'abstract' is not valid for this item in C# 7. Please use language version '8.0' or greater.
+                // (4,18): error CS8703: The modifier 'abstract' is not valid for this item in C# 7.0. Please use language version '8.0' or greater.
                 //     abstract int P2 { static set; }
                 Diagnostic(ErrorCode.ERR_InvalidModifierForLanguageVersion, "P2").WithArguments("abstract", "7.0", "8.0").WithLocation(4, 18),
                 // (4,30): error CS0106: The modifier 'static' is not valid for this item
@@ -1796,6 +1796,9 @@ class C
                 // (14,21): error CS0106: The modifier 'sealed' is not valid for this item
                 //     int P4 { sealed get { return 0; } }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "get").WithArguments("sealed").WithLocation(14, 21),
+                // (15,36): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                //     protected internal object P5 { get { return null; } extern set; }
+                Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(15, 36),
                 // (15,64): error CS0106: The modifier 'extern' is not valid for this item
                 //     protected internal object P5 { get { return null; } extern set; }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "set").WithArguments("extern").WithLocation(15, 64),
