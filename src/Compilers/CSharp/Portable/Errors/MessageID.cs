@@ -288,9 +288,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRefStructInterfaces = MessageBase + 12844,
 
         IDS_FeaturePartialProperties = MessageBase + 12845,
-        IDS_FeatureFieldAndValueKeywords = MessageBase + 12846,
+        IDS_FeatureFieldKeyword = MessageBase + 12846,
 
         IDS_FeatureAllowsRefStructConstraint = MessageBase + 12847,
+        IDS_OverloadResolutionPriority = MessageBase + 12848,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -471,8 +472,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PREFER reporting diagnostics in binding when diagnostics do not affect the shape of the syntax tree
 
                 // C# preview features.
-                case MessageID.IDS_FeatureRefStructInterfaces:
-                case MessageID.IDS_FeatureFieldAndValueKeywords:
+                case MessageID.IDS_FeatureFieldKeyword:
                     return LanguageVersion.Preview;
 
                 // C# 13.0 features.
@@ -481,8 +481,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureLockObject:
                 case MessageID.IDS_FeatureParamsCollections:
                 case MessageID.IDS_FeatureRefUnsafeInIteratorAsync:
+                case MessageID.IDS_FeatureRefStructInterfaces:
                 case MessageID.IDS_FeatureAllowsRefStructConstraint:
                 case MessageID.IDS_FeaturePartialProperties:
+                case MessageID.IDS_OverloadResolutionPriority:
                     return LanguageVersion.CSharp13;
 
                 // C# 12.0 features.

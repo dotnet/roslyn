@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.SemanticModelReuse;
 
@@ -105,7 +106,8 @@ internal abstract class AbstractSemanticModelReuseLanguageService<
         }
         else
         {
-            var currentMembers = this.SyntaxFacts.GetMethodLevelMembers(currentRoot);
+            using var _1 = ArrayBuilder<SyntaxNode>.GetInstance(out var currentMembers);
+            this.SyntaxFacts.AddMethodLevelMembers(currentRoot, currentMembers);
             var index = currentMembers.IndexOf(currentBodyNode);
             if (index < 0)
             {
@@ -113,7 +115,8 @@ internal abstract class AbstractSemanticModelReuseLanguageService<
                 return null;
             }
 
-            var previousMembers = this.SyntaxFacts.GetMethodLevelMembers(previousRoot);
+            using var _2 = ArrayBuilder<SyntaxNode>.GetInstance(out var previousMembers);
+            this.SyntaxFacts.AddMethodLevelMembers(previousRoot, previousMembers);
             if (currentMembers.Count != previousMembers.Count)
             {
                 Debug.Fail("Member count shouldn't have changed as there were no top level edits.");

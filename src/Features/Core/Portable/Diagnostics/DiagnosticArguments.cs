@@ -68,9 +68,6 @@ internal class DiagnosticArguments
     [DataMember(Order = 7)]
     public string[] AnalyzerIds;
 
-    [DataMember(Order = 8)]
-    public IdeAnalyzerOptions IdeOptions;
-
     /// <summary>
     /// Indicates diagnostic computation for an explicit user-invoked request,
     /// such as a user-invoked Ctrl + Dot operation to bring up the light bulb.
@@ -87,7 +84,6 @@ internal class DiagnosticArguments
         AnalysisKind? documentAnalysisKind,
         ProjectId projectId,
         string[] analyzerIds,
-        IdeAnalyzerOptions ideOptions,
         bool isExplicit)
     {
         Debug.Assert(documentId != null || documentSpan == null);
@@ -104,7 +100,6 @@ internal class DiagnosticArguments
         DocumentAnalysisKind = documentAnalysisKind;
         ProjectId = projectId;
         AnalyzerIds = analyzerIds;
-        IdeOptions = ideOptions;
         IsExplicit = isExplicit;
     }
 }

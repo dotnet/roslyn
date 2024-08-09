@@ -42,8 +42,8 @@ class Program
 
         await TestServices.Editor.SetTextAsync(editorText, HangMitigatingCancellationToken);
 
-        var buildSummary = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
-        Assert.Equal("========== Build: 1 succeeded, 0 failed, 0 up-to-date, 0 skipped ==========", buildSummary);
+        var succeed = await TestServices.SolutionExplorer.BuildSolutionAndWaitAsync(HangMitigatingCancellationToken);
+        Assert.True(succeed);
 
         await TestServices.ErrorList.ShowBuildErrorsAsync(HangMitigatingCancellationToken);
 
@@ -66,10 +66,10 @@ class Program
         var commandLine = $"\"{pathToSolution}\" /Rebuild Debug /Out \"{logFileName}\" /rootsuffix RoslynDev /log";
 
         var process = Process.Start(pathToDevenv, commandLine);
-        Assert.Equal(0, await process.WaitForExitAsync(HangMitigatingCancellationToken));
+        var exitCode = await process.WaitForExitAsync(HangMitigatingCancellationToken);
 
         Assert.Contains("Rebuild All: 1 succeeded, 0 failed, 0 skipped", File.ReadAllText(logFileName));
-
+        Assert.Equal(0, exitCode);
         Assert.Equal(0, process.ExitCode);
     }
 }

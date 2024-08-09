@@ -215,8 +215,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return null;
                 }
 
+                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var members);
+
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                var members = syntaxFacts.GetMethodLevelMembers(root);
+                syntaxFacts.AddMethodLevelMembers(root, members);
                 var memberSpans = members.SelectAsArray(member => member.FullSpan);
                 var changedMemberId = members.IndexOf(changedMember);
 

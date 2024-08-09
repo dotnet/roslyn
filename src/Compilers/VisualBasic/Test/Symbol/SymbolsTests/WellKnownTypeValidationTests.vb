@@ -823,6 +823,7 @@ End Namespace
                          WellKnownMember.System_Span_T__CopyTo_Span_T,
                          WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T,
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan,
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty,
                          WellKnownMember.System_Span_T__ctor_ref_T,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T
                         ' Not always available.
@@ -1030,6 +1031,7 @@ End Namespace
                          WellKnownMember.System_Span_T__CopyTo_Span_T,
                          WellKnownMember.System_ReadOnlySpan_T__CopyTo_Span_T,
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan,
+                         WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty,
                          WellKnownMember.System_Span_T__ctor_ref_T,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T
                         ' Not always available.

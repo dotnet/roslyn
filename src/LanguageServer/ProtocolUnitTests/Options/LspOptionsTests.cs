@@ -32,7 +32,6 @@ public class LspOptionsTests(ITestOutputHelper? testOutputHelper) : AbstractLang
         var project = testLspServer.GetCurrentSolution().Projects.Single().Services;
         Assert.NotNull(globalOptions.GetAddImportPlacementOptions(project, allowInHiddenRegions: null));
         Assert.NotNull(globalOptions.GetCodeGenerationOptions(project));
-        Assert.NotNull(globalOptions.GetCodeStyleOptions(project));
         Assert.NotNull(globalOptions.GetSyntaxFormattingOptions(project));
         Assert.NotNull(globalOptions.GetSimplifierOptions(project));
     }
@@ -46,7 +45,6 @@ public class LspOptionsTests(ITestOutputHelper? testOutputHelper) : AbstractLang
         var project = testLspServer.GetCurrentSolution().Projects.Single().Services;
         Assert.NotNull(globalOptions.GetAddImportPlacementOptions(project, allowInHiddenRegions: null));
         Assert.NotNull(globalOptions.GetCodeGenerationOptions(project));
-        Assert.NotNull(globalOptions.GetCodeStyleOptions(project));
         Assert.NotNull(globalOptions.GetSyntaxFormattingOptions(project));
         Assert.NotNull(globalOptions.GetSimplifierOptions(project));
     }

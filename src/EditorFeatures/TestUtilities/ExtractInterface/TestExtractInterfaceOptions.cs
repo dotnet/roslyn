@@ -47,7 +47,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
             string defaultNamespace,
             string generatedNameTypeParameterSuffix,
             string languageName,
-            CleanCodeGenerationOptionsProvider fallbackOptions,
             CancellationToken cancellationToken)
         {
             this.AllExtractableMembers = extractableMembers;
@@ -63,8 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
                     includedMembers: (ChosenMembers ?? AllExtractableMembers).AsImmutable(),
                     interfaceName: ChosenInterfaceName ?? defaultInterfaceName,
                     fileName: ChosenFileName ?? defaultInterfaceName,
-                    location: SameFile ? ExtractInterfaceOptionsResult.ExtractLocation.SameFile : ExtractInterfaceOptionsResult.ExtractLocation.NewFile,
-                    fallbackOptions);
+                    location: SameFile ? ExtractInterfaceOptionsResult.ExtractLocation.SameFile : ExtractInterfaceOptionsResult.ExtractLocation.NewFile);
 
             return Task.FromResult(result);
         }

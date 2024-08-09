@@ -24,6 +24,8 @@ using IUIThreadOperationExecutor = Microsoft.VisualStudio.Utilities.IUIThreadOpe
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigationBar;
 
+using LastPresentedInfo = (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem, NavigationBarModel? model, NavigationBarSelectedTypeAndMember selectedInfo);
+
 /// <summary>
 /// The controller for navigation bars.
 /// </summary>
@@ -47,7 +49,7 @@ internal partial class NavigationBarController : IDisposable
     /// skip doing that as the UI will already know about this.  This is only ever read or written from <see
     /// cref="_selectItemQueue"/>.  So we don't need to worry about any synchronization over it.
     /// </summary>
-    private (ImmutableArray<NavigationBarProjectItem> projectItems, NavigationBarProjectItem? selectedProjectItem, NavigationBarModel? model, NavigationBarSelectedTypeAndMember selectedInfo) _lastPresentedInfo;
+    private LastPresentedInfo _lastPresentedInfo;
 
     /// <summary>
     /// Source of events that should cause us to update the nav bar model with new information.

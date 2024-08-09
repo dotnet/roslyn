@@ -11,6 +11,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -22,14 +23,10 @@ namespace Microsoft.CodeAnalysis.CSharp.NewLines.EmbeddedStatementPlacement;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.EmbeddedStatementPlacement), Shared]
-internal sealed class EmbeddedStatementPlacementCodeFixProvider : CodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class EmbeddedStatementPlacementCodeFixProvider() : CodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public EmbeddedStatementPlacementCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.EmbeddedStatementPlacementDiagnosticId];
 
@@ -51,7 +48,7 @@ internal sealed class EmbeddedStatementPlacementCodeFixProvider : CodeFixProvide
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var editor = new SyntaxEditor(root, document.Project.Solution.Services);
 
-        var options = await document.GetCSharpCodeFixOptionsProviderAsync(cancellationToken).ConfigureAwait(false);
+        var options = await document.GetCSharpSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var endOfLineTrivia = ElasticEndOfLine(options.NewLine);
 

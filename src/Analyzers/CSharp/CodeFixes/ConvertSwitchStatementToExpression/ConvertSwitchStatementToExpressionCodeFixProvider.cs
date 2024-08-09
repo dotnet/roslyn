@@ -27,14 +27,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertSwitchStatementToExpression;
 using Constants = ConvertSwitchStatementToExpressionConstants;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.ConvertSwitchStatementToExpression), Shared]
-internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed partial class ConvertSwitchStatementToExpressionCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public ConvertSwitchStatementToExpressionCodeFixProvider()
-    {
-    }
-
     public override ImmutableArray<string> FixableDiagnosticIds
         => [IDEDiagnosticIds.ConvertSwitchStatementToExpressionDiagnosticId];
 

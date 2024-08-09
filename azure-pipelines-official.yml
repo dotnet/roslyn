@@ -37,6 +37,18 @@ parameters:
   type: boolean
   default: true
 
+schedules:
+  - cron: "0 8 23-29 * 0"
+    displayName: "Monthly smoke test"
+    branches:
+      include: 
+        - main
+        - release/*
+      exclude: 
+        - ""
+    always: true # Run even if there have been no source code changes since the last successful scheduled run
+    batch: false # Do not run the pipeline if the previously scheduled run is in-progress
+
 # The variables `_DotNetArtifactsCategory` and `_DotNetValidationArtifactsCategory` are required for proper publishing of build artifacts. See https://github.com/dotnet/roslyn/pull/38259
 variables:
   - name: _DotNetArtifactsCategory
@@ -53,6 +65,7 @@ variables:
   - group: DotNet-Versions-Publish
   - group: DotNet-VSTS-Infra-Access
   - group: DotNet-DevDiv-Insertion-Workflow-Variables
+  - group: AzureDevOps-Artifact-Feeds-Pats
   - name: _DevDivDropAccessToken
     value: $(dn-bot-devdiv-drop-rw-code-rw)
   - name: ArtifactServices.Drop.PAT
@@ -77,6 +90,10 @@ variables:
     value: '[Auto Insertion]'
   - name: Insertion.TitleSuffix
     value: ''
+
+  - ${{ if and(notin(variables['Build.Reason'], 'PullRequest'), eq(variables['Build.SourceBranch'], 'refs/heads/main')) }}:
+    - name: enableSourceIndex
+      value: true
 
 extends:
   template: v1/1ES.Official.PipelineTemplate.yml@1ESPipelineTemplates
@@ -338,6 +355,15 @@ extends:
           pool:
             name: NetCore1ESPool-Svc-Internal
             demands: ImageOverride -equals windows.vs2022.amd64
+
+      - ${{ if eq(variables.enableSourceIndex, 'true') }}:
+        - template: /eng/common/templates-official/job/source-index-stage1.yml@self
+          parameters:
+            sourceIndexBuildCommand: powershell -NoLogo -NoProfile -ExecutionPolicy Bypass -Command "eng\build.ps1 -configuration Release -prepareMachine -ci -restore -build -binaryLogName Build.binlog -skipDocumentation -msbuildEngine dotnet /p:UsingToolVSSDK=false /p:GenerateSatelliteAssemblies=false /p:PublishReadyToRun=false"
+            binlogPath: artifacts/log/$(BuildConfiguration)/Build.binlog
+            pool:
+              name: $(DncEngInternalBuildPool)
+              demands: ImageOverride -equals 1es-windows-2022
 
     - stage: insert
       dependsOn:

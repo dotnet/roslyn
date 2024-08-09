@@ -111,8 +111,8 @@
     <PackageVersion Include="Microsoft.VisualStudio.Text.Logic" Version="17.10.191" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI" Version="17.10.191" />
     <PackageVersion Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="17.10.191" />
-    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.10.41" />
-    <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.10.41" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading" Version="17.11.20" />
+    <PackageVersion Include="Microsoft.VisualStudio.Threading.Analyzers" Version="17.11.20" />
     <PackageVersion Include="Microsoft.VisualStudio.Utilities.Internal" Version="16.3.73" />
     <PackageVersion Include="Nerdbank.Streams" Version="2.10.69" />
     <PackageVersion Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
@@ -121,7 +121,7 @@
     <!--
       VS Debugger
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.11.0-beta.24274.2" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.12.0-beta.24403.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="17.8.1072001-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="17.8.1072001-preview" />
 
@@ -144,7 +144,7 @@
     <PackageVersion Include="NuGet.ProjectModel" Version="6.8.0-rc.112" />
     <PackageVersion Include="Microsoft.TestPlatform.TranslationLayer" Version="$(MicrosoftTestPlatformVersion)" />
     <PackageVersion Include="Microsoft.TestPlatform.ObjectModel" Version="$(MicrosoftTestPlatformVersion)" />
-    <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="9.0.0-preview.24327.6" />
+    <PackageVersion Include="Microsoft.AspNetCore.Razor.ExternalAccess.RoslynWorkspace" Version="9.0.0-preview.24366.2" />
 
     <!--
       Analyzers
@@ -228,11 +228,14 @@
     <PackageVersion Include="System.Threading.Channels" Version="7.0.0" />
 
     <!--
-      System.Net.Http and System.Private.Uri are used to eliminate our reference to old packages with vulnerability.
-      They are introduced by other component. Tracked issues:https://github.com/xunit/xunit/issues/2778 and https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1886496
+      Packages that are pinned to avoid component governance alerts.
+      Tracked issues:
+        https://github.com/xunit/xunit/issues/2778 
+        https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1886496
     -->
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
+    <PackageVersion Include="Microsoft.IO.Redist" Version="6.0.1" />
 
     <PackageVersion Include="SQLitePCLRaw.core" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="$(SqliteVersion)" />
@@ -290,9 +293,11 @@
     <PackageVersion Include="xunit.extensibility.execution" Version="$(xunitVersion)" />
     <PackageVersion Include="XunitXml.TestLogger" Version="2.1.26" />
     <PackageVersion Include="runtime.win-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
+    <PackageVersion Include="runtime.linux-arm64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
     <PackageVersion Include="runtime.linux-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
     <PackageVersion Include="runtime.osx-x64.Microsoft.NETCore.ILDAsm" Version="$(ILDAsmPackageVersion)" />
     <PackageVersion Include="runtime.win-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
+    <PackageVersion Include="runtime.linux-arm64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="runtime.linux-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="runtime.osx-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="Basic.CompilerLog.Util" Version="0.6.1" />

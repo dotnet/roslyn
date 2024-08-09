@@ -3863,7 +3863,7 @@ class C
                 EvaluationContext context;
                 context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext", atLineNumber: 500);
                 string unused;
-                var locals = new ArrayBuilder<LocalAndMethod>();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 context.CompileGetLocals(locals, argumentsOnly: true, typeName: out unused, testData: null);
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The order must confirm the order of the arguments in the method signature.
@@ -3877,7 +3877,7 @@ class C
                 EvaluationContext context;
                 context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext", atLineNumber: 500);
                 string unused;
-                var locals = new ArrayBuilder<LocalAndMethod>();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 context.CompileGetLocals(locals, argumentsOnly: true, typeName: out unused, testData: null);
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The problem is not fixed in versions before 4.5: the order of arguments can be wrong.
@@ -3913,7 +3913,7 @@ class C
                 EvaluationContext context;
                 context = CreateMethodContext(runtime, "C.<F>d__0.MoveNext", atLineNumber: 500);
                 string unused;
-                var locals = new ArrayBuilder<LocalAndMethod>();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
                 context.CompileGetLocals(locals, argumentsOnly: true, typeName: out unused, testData: null);
                 var names = locals.Select(l => l.LocalName).ToArray();
                 // The order must confirm the order of the arguments in the method signature.

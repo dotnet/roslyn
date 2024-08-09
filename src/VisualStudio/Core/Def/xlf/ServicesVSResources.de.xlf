@@ -1237,11 +1237,6 @@
         <target state="translated">Änderungen überprüfen</target>
         <note />
       </trans-unit>
-      <trans-unit id="Roslyn_save_command_handler">
-        <source>Roslyn save command handler</source>
-        <target state="translated">Befehlshandler „Roslyn speichern“</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">Code Analysis ausführen für "{0}"</target>

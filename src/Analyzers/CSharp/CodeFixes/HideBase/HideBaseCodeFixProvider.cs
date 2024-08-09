@@ -7,7 +7,6 @@ using System.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -15,15 +14,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.HideBase;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddNew), Shared]
-internal partial class HideBaseCodeFixProvider : CodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class HideBaseCodeFixProvider() : CodeFixProvider
 {
     internal const string CS0108 = nameof(CS0108); // 'SomeClass.SomeMember' hides inherited member 'SomeClass.SomeMember'. Use the new keyword if hiding was intended.
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public HideBaseCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds => [CS0108];
 

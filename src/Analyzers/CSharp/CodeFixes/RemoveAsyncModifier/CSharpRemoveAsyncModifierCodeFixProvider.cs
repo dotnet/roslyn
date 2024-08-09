@@ -19,15 +19,11 @@ using static CSharpSyntaxTokens;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.RemoveAsyncModifier), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.MakeMethodSynchronous)]
-internal partial class CSharpRemoveAsyncModifierCodeFixProvider : AbstractRemoveAsyncModifierCodeFixProvider<ReturnStatementSyntax, ExpressionSyntax>
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class CSharpRemoveAsyncModifierCodeFixProvider() : AbstractRemoveAsyncModifierCodeFixProvider<ReturnStatementSyntax, ExpressionSyntax>
 {
     private const string CS1998 = nameof(CS1998); // This async method lacks 'await' operators and will run synchronously.
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpRemoveAsyncModifierCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS1998];
 

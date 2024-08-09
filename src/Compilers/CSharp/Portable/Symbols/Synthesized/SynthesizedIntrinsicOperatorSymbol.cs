@@ -513,5 +513,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             builderArgument = null;
             return false;
         }
+
+        internal override int? TryGetOverloadResolutionPriority()
+        {
+            return null;
+        }
     }
 }

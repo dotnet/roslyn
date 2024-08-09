@@ -38,30 +38,3 @@ internal sealed record class AddImportPlacementOptions
 
     public static readonly AddImportPlacementOptions Default = new();
 }
-
-internal interface AddImportPlacementOptionsProvider
-#if !CODE_STYLE
-    : OptionsProvider<AddImportPlacementOptions>
-#endif
-{
-}
-
-internal static partial class AddImportPlacementOptionsProviders
-{
-#if !CODE_STYLE
-    public static AddImportPlacementOptions GetAddImportPlacementOptions(this IOptionsReader options, LanguageServices languageServices, bool? allowInHiddenRegions)
-        => languageServices.GetRequiredService<IAddImportsService>().GetAddImportOptions(options, allowInHiddenRegions ?? AddImportPlacementOptions.Default.AllowInHiddenRegions);
-
-    public static async ValueTask<AddImportPlacementOptions> GetAddImportPlacementOptionsAsync(this Document document, CancellationToken cancellationToken)
-    {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetAddImportPlacementOptions(document.Project.Services, document.AllowImportsInHiddenRegions());
-    }
-
-    // Normally we don't allow generation into a hidden region in the file.  However, if we have a
-    // modern span mapper at our disposal, we do allow it as that host span mapper can handle mapping
-    // our edit to their domain appropriate.
-    public static bool AllowImportsInHiddenRegions(this Document document)
-        => document.Services.GetService<ISpanMappingService>()?.SupportsMappingImportDirectives == true;
-#endif
-}

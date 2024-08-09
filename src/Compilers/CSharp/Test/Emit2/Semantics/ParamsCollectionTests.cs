@@ -15756,5 +15756,52 @@ namespace OverloadResolutionRepro
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "2").VerifyDiagnostics();
         }
+
+        [Fact]
+        public void AttributeFromSDK()
+        {
+            var source = """
+                using System;
+
+                C.M(1, 2, 3);
+
+                class C
+                {
+                    public static void M(params Span<int> span)
+                    {
+                        foreach (var item in span)
+                            Console.Write(item);
+                    }
+                }
+                """;
+
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net80,
+                symbolValidator: verify8,
+                verify: Verification.Skipped,
+                expectedOutput: ExpectedOutput("123"));
+            verifier.VerifyDiagnostics();
+
+            void verify8(ModuleSymbol module)
+            {
+                // attribute is embedded.
+                Assert.NotNull(module.GlobalNamespace.GetMember("System.Runtime.CompilerServices.ParamCollectionAttribute"));
+            }
+
+            verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net90,
+                symbolValidator: verify9,
+                verify: Verification.Skipped,
+                expectedOutput: ExpectedOutput("123"));
+            verifier.VerifyDiagnostics();
+
+            void verify9(ModuleSymbol module)
+            {
+                // attribute is not embedded.
+                Assert.Empty(module.GlobalNamespace.GetMembers("System"));
+            }
+        }
     }
 }
