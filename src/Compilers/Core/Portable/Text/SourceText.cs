@@ -1299,6 +1299,8 @@ namespace Microsoft.CodeAnalysis.Text
 #if NET8_0_OR_GREATER
         private static void ReverseEndianness(ReadOnlySpan<short> source, Span<short> destination)
         {
+            // Defer to the platform to do the reversal.  It ships with a fast
+            // implementation for this on .Net 8 and above.
             BinaryPrimitives.ReverseEndianness(source, destination);
         }
 #elif NET7_0_OR_GREATER
