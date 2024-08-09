@@ -15,4 +15,6 @@ internal interface IGeneratedCodeRecognitionService : ILanguageService
 #endif
 
     Task<bool> IsGeneratedCodeAsync(Document document, CancellationToken cancellationToken);
+
+    bool IsGeneratedCode(AdditionalText additionalText, TextDocument document);
 }

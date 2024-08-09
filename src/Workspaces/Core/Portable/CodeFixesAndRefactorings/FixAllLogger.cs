@@ -152,7 +152,7 @@ internal static class FixAllLogger
         }));
     }
 
-    public static void LogDiagnosticsStats(int correlationId, ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap)
+    public static void LogDiagnosticsStats(int correlationId, ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap)
     {
         Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesComputation_Document_Diagnostics, KeyValueLogMessage.Create(m =>
         {

@@ -26,8 +26,13 @@ internal abstract partial class SyntaxEditorBasedCodeRefactoringProvider : CodeR
             return null;
 
         return FixAllProvider.Create(
-            async (fixAllContext, document, fixAllSpans) =>
-                await this.FixAllAsync(document, fixAllSpans, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false),
+            async (fixAllContext, textDocument, fixAllSpans) =>
+            {
+                if (textDocument is not Document document)
+                    return textDocument;
+
+                return await this.FixAllAsync(document, fixAllSpans, fixAllContext.CodeActionEquivalenceKey, fixAllContext.CancellationToken).ConfigureAwait(false);
+            },
             SupportedFixAllScopes);
     }
 

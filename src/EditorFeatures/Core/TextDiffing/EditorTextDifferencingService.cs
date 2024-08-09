@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Immutable;
 using System.Composition;
@@ -24,15 +22,15 @@ internal sealed class EditorTextDifferencingService(ITextDifferencingSelectorSer
 {
     private readonly ITextDifferencingSelectorService _differenceSelectorService = differenceSelectorService;
 
-    public Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, CancellationToken cancellationToken)
+    public Task<ImmutableArray<TextChange>> GetTextChangesAsync(TextDocument oldDocument, TextDocument newDocument, CancellationToken cancellationToken)
         => GetTextChangesAsync(oldDocument, newDocument, TextDifferenceTypes.Word, cancellationToken);
 
-    public async Task<ImmutableArray<TextChange>> GetTextChangesAsync(Document oldDocument, Document newDocument, TextDifferenceTypes preferredDifferenceType, CancellationToken cancellationToken)
+    public async Task<ImmutableArray<TextChange>> GetTextChangesAsync(TextDocument oldDocument, TextDocument newDocument, TextDifferenceTypes preferredDifferenceType, CancellationToken cancellationToken)
     {
         var oldText = await oldDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
         var newText = await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
-        var diffService = _differenceSelectorService.GetTextDifferencingService(oldDocument.Project.Services.GetService<IContentTypeLanguageService>().GetDefaultContentType())
+        var diffService = _differenceSelectorService.GetTextDifferencingService(oldDocument.Project.Services.GetRequiredService<IContentTypeLanguageService>().GetDefaultContentType())
             ?? _differenceSelectorService.DefaultTextDifferencingService;
 
         var differenceOptions = GetDifferenceOptions(preferredDifferenceType);

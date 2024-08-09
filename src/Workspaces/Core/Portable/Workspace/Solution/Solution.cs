@@ -1262,6 +1262,66 @@ public partial class Solution
         return WithCompilationState(CompilationState.WithDocumentTexts(texts, mode));
     }
 
+    internal Solution WithTextDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode = PreservationMode.PreserveValue)
+    {
+        var hasNonDocumentText = false;
+        foreach (var (documentId, text) in texts)
+        {
+            var documentKind = this.GetDocumentKind(documentId);
+            switch (documentKind)
+            {
+                case TextDocumentKind.Document:
+                    break;
+
+                case TextDocumentKind.AnalyzerConfigDocument:
+                case TextDocumentKind.AdditionalDocument:
+                    hasNonDocumentText = true;
+                    break;
+
+                case null:
+                    throw new InvalidOperationException(WorkspaceExtensionsResources.The_solution_does_not_contain_the_specified_document);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(documentKind);
+            }
+
+            if (text == null)
+                throw new ArgumentNullException(nameof(text));
+
+            if (!mode.IsValid())
+                throw new ArgumentOutOfRangeException(nameof(mode));
+        }
+
+        if (!hasNonDocumentText)
+        {
+            return WithCompilationState(CompilationState.WithDocumentTexts(texts, mode));
+        }
+
+        var documentTexts = texts.WhereAsArray((text, self) => self.GetDocumentKind(text.documentId) == TextDocumentKind.Document, this);
+        var resultState = CompilationState.WithDocumentTexts(documentTexts, mode);
+        foreach (var (documentId, text) in texts)
+        {
+            switch (this.GetDocumentKind(documentId))
+            {
+                case TextDocumentKind.Document:
+                    continue;
+
+                case TextDocumentKind.AnalyzerConfigDocument:
+                    resultState = resultState.WithAnalyzerConfigDocumentText(documentId, text, mode);
+                    break;
+
+                case TextDocumentKind.AdditionalDocument:
+                    resultState = resultState.WithAdditionalDocumentText(documentId, text, mode);
+                    break;
+
+                default:
+                    throw ExceptionUtilities.Unreachable();
+            }
+        }
+
+        return WithCompilationState(resultState);
+    }
+
     /// <summary>
     /// Creates a new solution instance with the additional document specified updated to have the text
     /// specified.

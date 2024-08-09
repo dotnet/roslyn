@@ -44,8 +44,11 @@ internal sealed partial class CSharpUsePrimaryConstructorCodeFixProvider
             foreach (var currentContext in contexts)
             {
                 var documentToDiagnostics = await FixAllContextHelper.GetDocumentDiagnosticsToFixAsync(currentContext).ConfigureAwait(false);
-                foreach (var (document, diagnostics) in documentToDiagnostics)
+                foreach (var (textDocument, diagnostics) in documentToDiagnostics)
                 {
+                    if (textDocument is not Document document)
+                        throw ExceptionUtilities.UnexpectedValue(textDocument);
+
                     foreach (var diagnostic in diagnostics.OrderByDescending(d => d.Location.SourceSpan.Start))
                     {
                         if (diagnostic.Location.FindNode(cancellationToken) is not ConstructorDeclarationSyntax constructorDeclaration)

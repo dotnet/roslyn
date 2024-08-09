@@ -24,10 +24,16 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
         private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider = suppressionFixProvider;
 
         protected override async Task AddDocumentFixesAsync(
-            Document document, ImmutableArray<Diagnostic> diagnostics,
+            TextDocument textDocument, ImmutableArray<Diagnostic> diagnostics,
             Action<(Diagnostic diagnostic, CodeAction action)> onItemFound,
             FixAllState fixAllState, CancellationToken cancellationToken)
         {
+            if (textDocument is not Document document)
+            {
+                // '#pragma warning' suppressions cannot be applied to TextDocument that is not also a Document.
+                return;
+            }
+
             var pragmaActionsBuilder = ArrayBuilder<IPragmaBasedCodeAction>.GetInstance();
             var pragmaDiagnosticsBuilder = ArrayBuilder<Diagnostic>.GetInstance();
 

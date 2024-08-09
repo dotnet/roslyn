@@ -26,7 +26,7 @@ internal sealed partial class FixAllState : CommonFixAllState<CodeFixProvider, F
     internal FixAllState(
         FixAllProvider fixAllProvider,
         TextSpan? diagnosticSpan,
-        Document? document,
+        TextDocument? document,
         Project project,
         CodeFixProvider codeFixProvider,
         FixAllScope scope,
@@ -45,7 +45,7 @@ internal sealed partial class FixAllState : CommonFixAllState<CodeFixProvider, F
 
     internal bool IsFixMultiple => DiagnosticProvider is FixMultipleDiagnosticProvider;
 
-    protected override FixAllState With(Document? document, Project project, FixAllScope scope, string? codeActionEquivalenceKey)
+    protected override FixAllState With(TextDocument? document, Project project, FixAllScope scope, string? codeActionEquivalenceKey)
         => new(
             FixAllProvider,
             DiagnosticSpan,
@@ -61,7 +61,7 @@ internal sealed partial class FixAllState : CommonFixAllState<CodeFixProvider, F
 
     internal static FixAllState Create(
         FixAllProvider fixAllProvider,
-        ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsToFix,
+        ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>> diagnosticsToFix,
         CodeFixProvider codeFixProvider,
         string? codeActionEquivalenceKey)
     {

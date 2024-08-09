@@ -44,7 +44,10 @@ internal sealed partial class CodeFixService
         private ImmutableArray<DiagnosticData> Filter(ImmutableArray<DiagnosticData> diagnostics)
             => diagnostics.WhereAsArray(d => _includeSuppressedDiagnostics || !d.IsSuppressed);
 
-        public override async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+        public override Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken)
+            => throw ExceptionUtilities.Unreachable();
+
+        public override async Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(TextDocument document, CancellationToken cancellationToken)
         {
             var diagnostics = Filter(await _diagnosticService.GetDiagnosticsForIdsAsync(
                 document.Project, document.Id, _diagnosticIds, shouldIncludeAnalyzer: null, includeLocalDocumentDiagnostics: true, includeNonLocalDocumentDiagnostics: false, cancellationToken).ConfigureAwait(false));
@@ -52,7 +55,7 @@ internal sealed partial class CodeFixService
             return await diagnostics.ToDiagnosticsAsync(document.Project, cancellationToken).ConfigureAwait(false);
         }
 
-        public override async Task<IEnumerable<Diagnostic>> GetDocumentSpanDiagnosticsAsync(Document document, TextSpan fixAllSpan, CancellationToken cancellationToken)
+        public override async Task<IEnumerable<Diagnostic>> GetDocumentSpanDiagnosticsAsync(TextDocument document, TextSpan fixAllSpan, CancellationToken cancellationToken)
         {
             bool shouldIncludeDiagnostic(string id) => _diagnosticIds == null || _diagnosticIds.Contains(id);
             var diagnostics = Filter(await _diagnosticService.GetDiagnosticsForSpanAsync(

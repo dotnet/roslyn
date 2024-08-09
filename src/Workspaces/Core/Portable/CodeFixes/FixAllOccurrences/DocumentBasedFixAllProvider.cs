@@ -57,6 +57,28 @@ public abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> su
     /// </returns>
     protected abstract Task<Document?> FixAllAsync(FixAllContext fixAllContext, Document document, ImmutableArray<Diagnostic> diagnostics);
 
+    /// <summary>
+    /// Fix all the <paramref name="diagnostics"/> present in <paramref name="document"/>.  The document returned
+    /// will only be examined for its content (e.g. it's <see cref="SyntaxTree"/> or <see cref="SourceText"/>.  No
+    /// other aspects of (like it's properties), or changes to the <see cref="Project"/> or <see cref="Solution"/>
+    /// it points at will be considered.
+    /// </summary>
+    /// <param name="fixAllContext">The context for the Fix All operation.</param>
+    /// <param name="document">The document to fix.</param>
+    /// <param name="diagnostics">The diagnostics to fix in the document.</param>
+    /// <returns>
+    /// <para>The new <see cref="TextDocument"/> representing the content fixed document.</para>
+    /// <para>-or-</para>
+    /// <para><see langword="null"/>, if no changes were made to the document.</para>
+    /// </returns>
+    protected virtual async Task<TextDocument?> FixAllAsync(FixAllContext fixAllContext, TextDocument document, ImmutableArray<Diagnostic> diagnostics)
+    {
+        if (document is Document sourceDocument)
+            return await FixAllAsync(fixAllContext, sourceDocument, diagnostics).ConfigureAwait(false);
+
+        return document;
+    }
+
     public sealed override IEnumerable<FixAllScope> GetSupportedFixAllScopes()
         => _supportedFixAllScopes;
 
@@ -73,7 +95,7 @@ public abstract class DocumentBasedFixAllProvider(ImmutableArray<FixAllScope> su
             DetermineDiagnosticsAndGetFixedDocumentsAsync);
 
     private async Task DetermineDiagnosticsAndGetFixedDocumentsAsync(
-        FixAllContext fixAllContext, Func<Document, Document?, ValueTask> onDocumentFixed)
+        FixAllContext fixAllContext, Func<TextDocument, TextDocument?, ValueTask> onDocumentFixed)
     {
         var cancellationToken = fixAllContext.CancellationToken;
 
