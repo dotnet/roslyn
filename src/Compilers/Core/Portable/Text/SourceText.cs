@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.Text
                         if (!BitConverter.IsLittleEndian)
                         {
                             var shortSpan = MemoryMarshal.Cast<char, short>(charSpan);
-                            ReverseEndianness(source: shortSpan, destination: shortSpan);
+                            reverseEndianness(source: shortSpan, destination: shortSpan);
                         }
 
                         hash.Append(MemoryMarshal.AsBytes(charSpan));
@@ -669,6 +669,21 @@ namespace Microsoft.CodeAnalysis.Text
                     s_contentHashPool.Free(hash);
                 }
             }
+
+#if NET8_0_OR_GREATER
+            static void reverseEndianness(ReadOnlySpan<short> source, Span<short> destination)
+            {
+                // Defer to the platform to do the reversal.  It ships with a fast
+                // implementation for this on .Net 8 and above.
+                BinaryPrimitives.ReverseEndianness(source, destination);
+            }
+#else
+            static void reverseEndianness(ReadOnlySpan<short> source, Span<short> destination)
+            {
+                for (var i = 0; i < source.Length; i++)
+                    destination[i] = BinaryPrimitives.ReverseEndianness(source[i]);
+            }
+#endif
         }
 
         internal static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
@@ -1288,24 +1303,5 @@ namespace Microsoft.CodeAnalysis.Text
 
             throw new IOException(CodeAnalysisResources.StreamIsTooLong);
         }
-
-        #region ReverseEndianness
-
-#if NET8_0_OR_GREATER
-        private static void ReverseEndianness(ReadOnlySpan<short> source, Span<short> destination)
-        {
-            // Defer to the platform to do the reversal.  It ships with a fast
-            // implementation for this on .Net 8 and above.
-            BinaryPrimitives.ReverseEndianness(source, destination);
-        }
-#else
-        private static void ReverseEndianness(ReadOnlySpan<short> source, Span<short> destination)
-        {
-            for (var i = 0; i < source.Length; i++)
-                destination[i] = BinaryPrimitives.ReverseEndianness(source[i]);
-        }
-#endif
-
-        #endregion
     }
 }
