@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                Debug.Assert(!NullableWalker.IsTargetTypedExpression(expr1));
+                Debug.Assert(!NullableWalker.IsTargetTypedExpression(expr2));
                 if (expr2.Type is { } type2)
                 {
                     if (type2.IsErrorType())

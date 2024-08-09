@@ -11297,8 +11297,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // https://github.com/dotnet/roslyn/issues/33344: this fails to produce an updated tuple type for a default expression
-            // (should produce nullable element types for those elements that are of reference types)
             SetResultType(node, TypeWithState.ForType(type));
             return result;
         }

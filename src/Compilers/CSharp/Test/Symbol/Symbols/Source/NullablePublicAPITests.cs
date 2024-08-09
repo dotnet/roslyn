@@ -5445,5 +5445,63 @@ class C
                 Assert.Equal(PublicNullableAnnotation.None, type.ElementNullableAnnotation);
             }
         }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74693")]
+        public void TargetTypedExpressions_NestedNullability()
+        {
+            // Warning (2) is missing because default literals are contributing
+            // their initial bound type to best-type in nullable analysis.
+            // https://github.com/dotnet/roslyn/issues/74693
+            var source = """
+                #nullable enable
+                using System.Collections.Generic;
+
+                public class C
+                {
+                    public void M(bool b)
+                    {
+                        var x = b ? null! : new[] {"1"};
+                        x[0] = null; // 1
+                    }
+
+                    public void M2(bool b)
+                    {
+                        var x = b ? default! : new[] {"1"};
+                        x[0] = null; // 2 (missing)
+                    }
+
+                    public void M3(bool b)
+                    {
+                        var x = b ? (b ? null! : null!) : new[] {"1"};
+                        x[0] = null; // 3
+                    }
+
+                    public void M4(bool b)
+                    {
+                        var x = b ? (b switch { _ => null! }) : new[] {"1"};
+                        x[0] = null; // 4
+                    }
+
+                    List<T> MakeList<T>(T value) => new List<T> { value };
+
+                    public void M5(bool b)
+                    {
+                        var x = b ? new() : MakeList("1");
+                        x[0] = null; // 5
+                    }
+
+                    public void M6(bool b)
+                    {
+                        var x = b ? default! : MakeList("1");
+                        x[0] = null; // 6
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }
