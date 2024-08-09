@@ -32,7 +32,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
             private readonly AbstractSuppressionCodeFixProvider _suppressionFixProvider = suppressionFixProvider;
 
             protected override async Task AddDocumentFixesAsync(
-                Document document, ImmutableArray<Diagnostic> diagnostics,
+                TextDocument textDocument, ImmutableArray<Diagnostic> diagnostics,
                 Action<(Diagnostic diagnostic, CodeAction action)> onItemFound,
                 FixAllState fixAllState, CancellationToken cancellationToken)
             {
@@ -44,7 +44,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 {
                     var span = diagnostic.Location.SourceSpan;
                     var removeSuppressionFixes = await _suppressionFixProvider.GetFixesAsync(
-                        document, span, [diagnostic], cancellationToken).ConfigureAwait(false);
+                        textDocument, span, [diagnostic], cancellationToken).ConfigureAwait(false);
                     var removeSuppressionFix = removeSuppressionFixes.SingleOrDefault();
                     if (removeSuppressionFix != null)
                     {
@@ -69,7 +69,7 @@ internal abstract partial class AbstractSuppressionCodeFixProvider : IConfigurat
                 }
 
                 // Get the pragma batch fix.
-                if (pragmaActionsBuilder.Count > 0)
+                if (pragmaActionsBuilder.Count > 0 && textDocument is Document document)
                 {
                     var pragmaBatchFix = PragmaBatchFixHelpers.CreateBatchPragmaFix(
                         _suppressionFixProvider, document,

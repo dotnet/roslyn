@@ -6,6 +6,8 @@
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.DefaultExpression(Microsoft.CodeAnalysis.SyntaxNode type) -> Microsoft.CodeAnalysis.SyntaxNode
 *REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.IdentifierName(string identifier) -> Microsoft.CodeAnalysis.SyntaxNode
 *REMOVED*virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode memberName) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.CodeFixes.FixAllContext.GetDocumentDiagnosticsAsync(Microsoft.CodeAnalysis.TextDocument document) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>>
+Microsoft.CodeAnalysis.CodeFixes.FixAllContext.TextDocument.get -> Microsoft.CodeAnalysis.TextDocument
 Microsoft.CodeAnalysis.CompilationOutputInfo.GeneratedFilesOutputDirectory.get -> string
 Microsoft.CodeAnalysis.CompilationOutputInfo.WithGeneratedFilesOutputDirectory(string path) -> Microsoft.CodeAnalysis.CompilationOutputInfo
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.BitwiseOrExpression(Microsoft.CodeAnalysis.SyntaxNode left, Microsoft.CodeAnalysis.SyntaxNode right) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -17,5 +19,9 @@ Microsoft.CodeAnalysis.Editing.SyntaxGenerator.IdentifierName(string identifier)
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode memberName) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Project.HostAnalyzerOptions.get -> Microsoft.CodeAnalysis.Diagnostics.AnalyzerOptions
 Microsoft.CodeAnalysis.ProjectInfo.WithId(Microsoft.CodeAnalysis.ProjectId id) -> Microsoft.CodeAnalysis.ProjectInfo
+static Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeFixes.FixAllContext, Microsoft.CodeAnalysis.TextDocument, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextDocument>> fixAllAsync) -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
+static Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.Create(System.Func<Microsoft.CodeAnalysis.CodeFixes.FixAllContext, Microsoft.CodeAnalysis.TextDocument, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>, System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextDocument>> fixAllAsync, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeFixes.FixAllScope> supportedFixAllScopes) -> Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
+virtual Microsoft.CodeAnalysis.CodeFixes.DocumentBasedFixAllProvider.FixAllAsync(Microsoft.CodeAnalysis.CodeFixes.FixAllContext fixAllContext, Microsoft.CodeAnalysis.TextDocument document, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.TextDocument>
+virtual Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider.GetDocumentDiagnosticsAsync(Microsoft.CodeAnalysis.TextDocument document, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic>>
 virtual Microsoft.CodeAnalysis.Host.HostLanguageServices.Dispose() -> void
 virtual Microsoft.CodeAnalysis.Host.HostWorkspaceServices.Dispose() -> void
