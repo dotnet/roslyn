@@ -3643,7 +3643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 var itemState = spread.EnumeratorInfoOpt == null ? default : ResultType;
                                 var completion = VisitOptionalImplicitConversion(spread.ElementPlaceholder, elementType,
                                     useLegacyWarnings: false, trackMembers: false, AssignmentKind.Assignment, delayCompletionForTargetType: true,
-                                    operand => itemState).completion;
+                                    operandTypeOpt: itemState).completion;
                                 Debug.Assert(completion is not null);
                                 elementConversionCompletions.Add(completion);
                             }
@@ -8181,30 +8181,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool useLegacyWarnings,
             bool trackMembers,
             AssignmentKind assignmentKind,
-            bool delayCompletionForTargetType)
-        {
-            return VisitOptionalImplicitConversion(
-                expr,
-                targetTypeOpt,
-                useLegacyWarnings,
-                trackMembers,
-                assignmentKind,
-                delayCompletionForTargetType,
-                operand => VisitRvalueWithState(operand));
-        }
-
-        private (TypeWithState resultType, Func<TypeWithAnnotations, TypeWithState>? completion) VisitOptionalImplicitConversion(
-            BoundExpression expr,
-            TypeWithAnnotations targetTypeOpt,
-            bool useLegacyWarnings,
-            bool trackMembers,
-            AssignmentKind assignmentKind,
             bool delayCompletionForTargetType,
-            Func<BoundExpression, TypeWithState> getOperandState)
+            TypeWithState? operandTypeOpt = null)
         {
             (BoundExpression operand, Conversion conversion) = RemoveConversion(expr, includeExplicitConversions: false);
             SnapshotWalkerThroughConversionGroup(expr, operand);
-            var operandType = getOperandState(operand);
+            var operandType = operandTypeOpt ?? VisitRvalueWithState(operand);
 
             Debug.Assert(AreCloseEnough(operandType.Type, operand.Type));
 
