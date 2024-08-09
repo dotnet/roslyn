@@ -27,6 +27,6 @@ internal interface IFixAllSpanMappingService : ILanguageService
     /// Note that this API is only invoked for span based FixAll scopes, i.e. <see cref="FixAllScope.ContainingMember"/>
     /// and <see cref="FixAllScope.ContainingType"/>.
     /// </summary>
-    Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
-        Document document, TextSpan triggerSpan, FixAllScope fixAllScope, CancellationToken cancellationToken);
+    Task<ImmutableDictionary<TextDocument, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
+        TextDocument document, TextSpan triggerSpan, FixAllScope fixAllScope, CancellationToken cancellationToken);
 }

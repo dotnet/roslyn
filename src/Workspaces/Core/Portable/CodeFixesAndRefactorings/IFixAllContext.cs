@@ -17,7 +17,7 @@ internal interface IFixAllContext
     IFixAllProvider FixAllProvider { get; }
     Solution Solution { get; }
     Project Project { get; }
-    Document? Document { get; }
+    TextDocument? TextDocument { get; }
     object Provider { get; }
     FixAllScope Scope { get; }
     string? CodeActionEquivalenceKey { get; }
@@ -26,7 +26,7 @@ internal interface IFixAllContext
 
     string GetDefaultFixAllTitle();
     IFixAllContext With(
-        Optional<(Document? document, Project project)> documentAndProject = default,
+        Optional<(TextDocument? document, Project project)> documentAndProject = default,
         Optional<FixAllScope> scope = default,
         Optional<string?> codeActionEquivalenceKey = default,
         Optional<CancellationToken> cancellationToken = default);

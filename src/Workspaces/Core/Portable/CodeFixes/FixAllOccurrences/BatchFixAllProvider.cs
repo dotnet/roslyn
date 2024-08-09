@@ -84,7 +84,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
         await AddDocumentChangesAsync(fixAllContext, progressTracker, docIdToTextMerger, documentToDiagnostics).ConfigureAwait(false);
     }
 
-    private static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
+    private static async Task<ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>>> DetermineDiagnosticsAsync(FixAllContext fixAllContext, IProgress<CodeAnalysisProgress> progressTracker)
     {
         using var _ = progressTracker.ItemCompletedScope();
 
@@ -95,7 +95,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
             if (kvp.Key.Project != fixAllContext.Project)
                 return false;
 
-            if (fixAllContext.Document != null && fixAllContext.Document != kvp.Key)
+            if (fixAllContext.TextDocument != null && fixAllContext.TextDocument != kvp.Key)
                 return false;
 
             return true;
@@ -108,7 +108,7 @@ internal sealed class BatchFixAllProvider : FixAllProvider
         FixAllContext fixAllContext,
         IProgress<CodeAnalysisProgress> progressTracker,
         Dictionary<DocumentId, TextChangeMerger> docIdToTextMerger,
-        ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentToDiagnostics)
+        ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>> documentToDiagnostics)
     {
         using var _ = progressTracker.ItemCompletedScope();
 

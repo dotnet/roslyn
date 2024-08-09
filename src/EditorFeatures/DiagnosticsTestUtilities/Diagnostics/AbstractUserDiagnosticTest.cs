@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             IEnumerable<Diagnostic> diagnostics,
             CodeFixProvider fixer,
             TestDiagnosticAnalyzerDriver testDriver,
-            Document document,
+            TextDocument document,
             FixAllScope scope,
             string equivalenceKey)
         {

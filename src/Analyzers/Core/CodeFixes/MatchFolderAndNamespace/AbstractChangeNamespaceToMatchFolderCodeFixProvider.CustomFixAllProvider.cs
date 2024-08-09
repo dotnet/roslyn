@@ -29,7 +29,7 @@ internal abstract partial class AbstractChangeNamespaceToMatchFolderCodeFixProvi
         {
             var diagnostics = fixAllContext.Scope switch
             {
-                FixAllScope.Document when fixAllContext.Document is not null => await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.Document).ConfigureAwait(false),
+                FixAllScope.Document when fixAllContext.TextDocument is not null => await fixAllContext.GetDocumentDiagnosticsAsync(fixAllContext.TextDocument).ConfigureAwait(false),
                 FixAllScope.Project => await fixAllContext.GetAllDiagnosticsAsync(fixAllContext.Project).ConfigureAwait(false),
                 FixAllScope.Solution => await GetSolutionDiagnosticsAsync(fixAllContext).ConfigureAwait(false),
                 _ => default
