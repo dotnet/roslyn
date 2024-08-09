@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.Text
 
 #if NET8_0_OR_GREATER
                             // Defer to the platform to do the reversal.  It ships with a vectorized
-                            // implementation for this on .Net 8 and above.
+                            // implementation for this on .NET 8 and above.
                             BinaryPrimitives.ReverseEndianness(source: shortSpan, destination: shortSpan);
 #else
                             // Otherwise, fallback to the simple approach of reversing each pair of bytes.
