@@ -655,6 +655,7 @@ namespace Microsoft.CodeAnalysis.Text
                             // implementation for this on .Net 8 and above.
                             BinaryPrimitives.ReverseEndianness(source: shortSpan, destination: shortSpan);
 #else
+                            // Otherwise, fallback to the simple approach of reversign each pair of bytes.
                             for (var i = 0; i < shortSpan.Length; i++)
                                 shortSpan[i] = BinaryPrimitives.ReverseEndianness(shortSpan[i]);
 #endif
