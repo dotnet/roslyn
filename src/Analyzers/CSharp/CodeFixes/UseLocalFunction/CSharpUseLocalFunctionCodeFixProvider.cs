@@ -88,12 +88,7 @@ internal sealed class CSharpUseLocalFunctionCodeFixProvider() : SyntaxEditorBase
 
         if (languageVersion >= LanguageVersion.CSharp8)
         {
-#if CODE_STYLE
-            var info = new CSharpCodeGenerationContextInfo(
-                CodeGenerationContext.Default, CSharpCodeGenerationOptions.Default, new CSharpCodeGenerationService(document.Project.GetExtendedLanguageServices().LanguageServices), root.SyntaxTree.Options.LanguageVersion());
-#else
             var info = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
-#endif
 
             var options = (CSharpCodeGenerationOptions)info.Options;
             makeStaticIfPossible = options.PreferStaticLocalFunction.Value;
