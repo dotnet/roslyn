@@ -31,7 +31,7 @@ internal interface ISnippetProvider
     ValueTask<bool> IsValidSnippetLocationAsync(in SnippetContext context, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Gets the Snippet from the corresponding snippet provider.
+    /// Gets the Snippet change from the corresponding snippet provider.
     /// </summary>
-    Task<SnippetChange> GetSnippetAsync(Document document, int position, CancellationToken cancellationToken);
+    Task<SnippetChange> GetSnippetChangeAsync(Document document, int position, CancellationToken cancellationToken);
 }

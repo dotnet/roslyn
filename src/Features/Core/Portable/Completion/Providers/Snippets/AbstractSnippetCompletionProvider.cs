@@ -32,11 +32,11 @@ internal abstract class AbstractSnippetCompletionProvider : CompletionProvider
         Logger.Log(FunctionId.Completion_SemanticSnippets, $"Name: {snippetIdentifier}", LogLevel.Information);
 
         // This retrieves the generated Snippet
-        var snippet = await snippetProvider.GetSnippetAsync(strippedDocument, position, cancellationToken).ConfigureAwait(false);
+        var snippetChange = await snippetProvider.GetSnippetChangeAsync(strippedDocument, position, cancellationToken).ConfigureAwait(false);
         var strippedText = await strippedDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
 
         // This introduces the text changes of the snippet into the document with the completion invoking text
-        var allChangesText = strippedText.WithChanges(snippet.TextChanges);
+        var allChangesText = strippedText.WithChanges(snippetChange.TextChanges);
 
         // This retrieves ALL text changes from the original document which includes the TextChanges from the snippet
         // as well as the clean up.
@@ -46,7 +46,7 @@ internal abstract class AbstractSnippetCompletionProvider : CompletionProvider
         var change = Utilities.Collapse(allChangesText, allTextChanges.AsImmutable());
 
         // Converts the snippet to an LSP formatted snippet string.
-        var lspSnippet = await RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(allChangesDocument, snippet.CursorPosition, snippet.Placeholders, change, item.Span.Start, cancellationToken).ConfigureAwait(false);
+        var lspSnippet = await RoslynLSPSnippetConverter.GenerateLSPSnippetAsync(allChangesDocument, snippetChange.FinalCaretPosition, snippetChange.Placeholders, change, item.Span.Start, cancellationToken).ConfigureAwait(false);
 
         // If the TextChanges retrieved starts after the trigger point of the CompletionItem,
         // then we need to move the bounds backwards and encapsulate the trigger point and adjust the changed text.
@@ -60,7 +60,7 @@ internal abstract class AbstractSnippetCompletionProvider : CompletionProvider
         var props = ImmutableDictionary<string, string>.Empty
             .Add(SnippetCompletionItem.LSPSnippetKey, lspSnippet);
 
-        return CompletionChange.Create(change, allTextChanges.AsImmutable(), properties: props, snippet.CursorPosition, includesCommitCharacter: true);
+        return CompletionChange.Create(change, allTextChanges.AsImmutable(), properties: props, snippetChange.FinalCaretPosition, includesCommitCharacter: true);
     }
 
     public override async Task ProvideCompletionsAsync(CompletionContext context)

@@ -67,7 +67,7 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
     /// Reformats the document with the snippet TextChange and annotates 
     /// appropriately for the cursor to get the target cursor position.
     /// </summary>
-    public async Task<SnippetChange> GetSnippetAsync(Document document, int position, CancellationToken cancellationToken)
+    public async Task<SnippetChange> GetSnippetChangeAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
 
@@ -110,8 +110,8 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
 
         return new SnippetChange(
             textChanges: changesArray,
-            cursorPosition: GetTargetCaretPosition(mainChangeNode, sourceText),
-            placeholders: placeholders);
+            placeholders: placeholders,
+            finalCaretPosition: GetTargetCaretPosition(mainChangeNode, sourceText));
     }
 
     /// <summary>
