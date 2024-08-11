@@ -25,7 +25,7 @@ internal readonly struct SnippetChange
     public readonly ImmutableArray<SnippetPlaceholder> Placeholders;
 
     /// <summary>
-    /// The position that the cursor should end up on
+    /// The position that the caret should end up on
     /// </summary>
     public readonly int FinalCaretPosition;
 
