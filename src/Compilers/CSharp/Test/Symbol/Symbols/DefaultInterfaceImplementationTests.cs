@@ -3379,9 +3379,9 @@ class Test1 : I1
             if (isStatic && useCSharp13)
             {
                 compilation1.VerifyDiagnostics(
-                    // (6,9): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         get
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(6, 9));
+                    // (4,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static virtual int P1 
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 24));
             }
             else if (isStatic)
             {
@@ -3450,9 +3450,9 @@ class Test1 : I1
             if (isStatic && useCSharp13)
             {
                 compilation1.VerifyDiagnostics(
-                    // (7,9): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //         set => System.Console.WriteLine("set P1");
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(7, 9));
+                    // (4,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static virtual int P1 
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 24));
             }
             else if (isStatic)
             {
