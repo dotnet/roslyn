@@ -27,7 +27,7 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
 
     public virtual ImmutableArray<string> AdditionalFilterTexts => [];
 
-    protected readonly SyntaxAnnotation FindSnippetAnnotation = new();
+    protected static readonly SyntaxAnnotation FindSnippetAnnotation = new();
 
     /// <summary>
     /// Implemented by each SnippetProvider to determine if that particular position is a valid
@@ -136,7 +136,7 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
         return nodeWithTrivia;
     }
 
-    private async Task<Document> CleanupDocumentAsync(
+    private static async Task<Document> CleanupDocumentAsync(
         Document document, CancellationToken cancellationToken)
     {
         if (document.SupportsSyntaxTree)
