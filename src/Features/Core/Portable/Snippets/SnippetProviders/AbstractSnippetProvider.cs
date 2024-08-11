@@ -50,25 +50,16 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
     /// </summary>
     protected abstract ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TSnippetSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken);
 
-    /// <summary>
-    /// Determines if the location is valid for a snippet,
-    /// if so, then it creates a SnippetData.
-    /// </summary>
-    public ValueTask<SnippetData?> GetSnippetDataAsync(SnippetContext context, CancellationToken cancellationToken)
+    public ValueTask<bool> IsValidSnippetLocationAsync(in SnippetContext context, CancellationToken cancellationToken)
     {
         var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
         var syntaxTree = context.SyntaxContext.SyntaxTree;
         if (syntaxFacts.IsInNonUserCode(syntaxTree, context.Position, cancellationToken))
         {
-            return ValueTaskFactory.FromResult<SnippetData?>(null);
+            return ValueTaskFactory.FromResult(false);
         }
 
-        if (!IsValidSnippetLocation(in context, cancellationToken))
-        {
-            return ValueTaskFactory.FromResult<SnippetData?>(null);
-        }
-
-        return ValueTaskFactory.FromResult<SnippetData?>(new SnippetData(Description, Identifier, AdditionalFilterTexts));
+        return ValueTaskFactory.FromResult(IsValidSnippetLocation(in context, cancellationToken));
     }
 
     /// <summary>
