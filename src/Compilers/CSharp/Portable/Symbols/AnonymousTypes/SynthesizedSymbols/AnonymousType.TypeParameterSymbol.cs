@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Roslyn.Utilities;
@@ -20,6 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private readonly AnonymousTypeOrDelegateTemplateSymbol _container;
             private readonly int _ordinal;
             private readonly string _name;
+            private readonly Lazy<bool> _LazyAllowsRefLikeType;
 
             public AnonymousTypeParameterSymbol(AnonymousTypeOrDelegateTemplateSymbol container, int ordinal, string name)
             {
@@ -29,6 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _container = container;
                 _ordinal = ordinal;
                 _name = name;
+                _LazyAllowsRefLikeType = new(DoGetAllowsRefLikeType);
             }
 
             public override TypeParameterKind TypeParameterKind
@@ -95,8 +98,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 get
                 {
-                    return _container.IsDelegateType() && ContainingAssembly.RuntimeSupportsByRefLikeGenerics;
+                    return _LazyAllowsRefLikeType.Value;
                 }
+            }
+
+            private bool DoGetAllowsRefLikeType()
+            {
+                if (_container.IsDelegateType() && ContainingAssembly.RuntimeSupportsByRefLikeGenerics)
+                {
+                    //return false if the type parameter is used as params array
+                    var visitor = new AllowsRefLikeTypeSymbolVisitVisitor()
+                    {
+                        TypeParameter = this.GetPublicSymbol()
+                    };
+                    visitor.Visit(_container.GetPublicSymbol());
+                    return visitor.Result;
+                }
+                return false;
             }
 
             public override bool IsValueTypeFromConstraintTypes
