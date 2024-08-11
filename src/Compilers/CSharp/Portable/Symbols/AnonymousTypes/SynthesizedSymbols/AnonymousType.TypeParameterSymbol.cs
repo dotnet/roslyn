@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         TypeParameter = this.GetPublicSymbol()
                     };
-                    visitor.Visit(_container.GetPublicSymbol());
+                    visitor.Visit(_container.GetMembers("Invoke")[0].GetPublicSymbol());
                     return visitor.Result;
                 }
                 return false;
