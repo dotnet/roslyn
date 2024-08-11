@@ -68,11 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasAutoPropertyGet = allowAutoPropertyAccessors && getSyntax != null && !hasGetAccessorImplementation;
             bool hasAutoPropertySet = allowAutoPropertyAccessors && setSyntax != null && !hasSetAccessorImplementation;
 
-            if (getSyntax != null && setSyntax != null && hasAutoPropertyGet != hasAutoPropertySet)
-            {
-                MessageID.IDS_FeatureFieldKeyword.CheckFeatureAvailability(diagnostics, (hasAutoPropertyGet ? setSyntax : getSyntax).Keyword);
-            }
-
             binder = binder.SetOrClearUnsafeRegionIfNecessary(modifiersTokenList);
             TypeSymbol? explicitInterfaceType;
             string? aliasQualifierOpt;
@@ -147,7 +142,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Binder.CheckFeatureAvailability(
                     syntax,
-                    (hasGetAccessor && !hasSetAccessor) ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties : MessageID.IDS_FeatureAutoImplementedProperties,
+                    hasGetAccessor && hasSetAccessor ?
+                        (hasAutoPropertyGet && hasAutoPropertySet ? MessageID.IDS_FeatureAutoImplementedProperties : MessageID.IDS_FeatureFieldKeyword) :
+                        MessageID.IDS_FeatureReadonlyAutoImplementedProperties,
                     diagnostics,
                     location);
             }

@@ -360,45 +360,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,36): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (3,26): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public static object P1 { get; set { _ = field; } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(3, 36),
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(3, 26),
                     // (3,46): error CS0103: The name 'field' does not exist in the current context
                     //     public static object P1 { get; set { _ = field; } }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 46),
-                    // (4,31): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,26): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public static object P2 { get { return field; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(4, 31),
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("field keyword").WithLocation(4, 26),
                     // (4,44): error CS0103: The name 'field' does not exist in the current context
                     //     public static object P2 { get { return field; } set; }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 44),
-                    // (5,31): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (5,26): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public static object P3 { get { return null; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(5, 31),
-                    // (6,29): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P3").WithArguments("field keyword").WithLocation(5, 26),
+                    // (6,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public object Q1 { get; set { _ = field; } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(6, 29),
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q1").WithArguments("field keyword").WithLocation(6, 19),
                     // (6,39): error CS0103: The name 'field' does not exist in the current context
                     //     public object Q1 { get; set { _ = field; } }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(6, 39),
-                    // (7,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (7,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public object Q2 { get { return field; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(7, 24),
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q2").WithArguments("field keyword").WithLocation(7, 19),
                     // (7,37): error CS0103: The name 'field' does not exist in the current context
                     //     public object Q2 { get { return field; } set; }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(7, 37),
-                    // (8,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (8,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public object Q3 { get { return field; } init; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(8, 24),
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q3").WithArguments("field keyword").WithLocation(8, 19),
                     // (8,37): error CS0103: The name 'field' does not exist in the current context
                     //     public object Q3 { get { return field; } init; }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(8, 37),
-                    // (9,29): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (9,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public object Q4 { get; set { } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(9, 29),
-                    // (10,29): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q4").WithArguments("field keyword").WithLocation(9, 19),
+                    // (10,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public object Q5 { get; init { } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "init").WithArguments("field keyword").WithLocation(10, 29));
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "Q5").WithArguments("field keyword").WithLocation(10, 19));
             }
             else
             {
@@ -516,15 +516,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,29): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (3,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static object P1 { get; set { _ = field; } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(3, 29),
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(3, 19),
                     // (3,39): error CS0103: The name 'field' does not exist in the current context
                     //     static object P1 { get; set { _ = field; } }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 39),
-                    // (4,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (4,19): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     static object P2 { get { return field; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(4, 24),
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("field keyword").WithLocation(4, 19),
                     // (4,37): error CS0103: The name 'field' does not exist in the current context
                     //     static object P2 { get { return field; } set; }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 37));
@@ -705,24 +705,24 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,33): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    // (3,23): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public static int P1 { get; set { } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(3, 33),
-                    // (4,28): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(3, 23),
+                    // (4,23): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public static int P2 { get { return -2; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(4, 28),
-                    // (5,26): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("field keyword").WithLocation(4, 23),
+                    // (5,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public int P3 { get; set { } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(5, 26),
-                    // (6,21): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P3").WithArguments("field keyword").WithLocation(5, 16),
+                    // (6,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public int P4 { get { return -4; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(6, 21),
-                    // (7,26): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P4").WithArguments("field keyword").WithLocation(6, 16),
+                    // (7,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public int P5 { get; init { } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "init").WithArguments("field keyword").WithLocation(7, 26),
-                    // (8,21): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P5").WithArguments("field keyword").WithLocation(7, 16),
+                    // (8,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
                     //     public int P6 { get { return -6; } init; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(8, 21));
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P6").WithArguments("field keyword").WithLocation(8, 16));
             }
             else
             {
@@ -802,41 +802,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion == LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,33): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     public static int P1 { get; set { field = value + 2; } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(3, 33),
+                    // (3,23): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public static int P1 { get; set { field = value * 2; } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(3, 23),
                     // (3,39): error CS0103: The name 'field' does not exist in the current context
-                    //     public static int P1 { get; set { field = value + 2; } }
+                    //     public static int P1 { get; set { field = value * 2; } }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 39),
-                    // (4,28): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     public static int P2 { get { return field - 1; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(4, 28),
+                    // (4,23): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public static int P2 { get { return field * -1; } set; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P2").WithArguments("field keyword").WithLocation(4, 23),
                     // (4,41): error CS0103: The name 'field' does not exist in the current context
-                    //     public static int P2 { get { return field - 1; } set; }
+                    //     public static int P2 { get { return field * -1; } set; }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(4, 41),
-                    // (5,26): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     public int P3 { get; set { field = value + 2; } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "set").WithArguments("field keyword").WithLocation(5, 26),
+                    // (5,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public int P3 { get; set { field = value * 2; } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P3").WithArguments("field keyword").WithLocation(5, 16),
                     // (5,32): error CS0103: The name 'field' does not exist in the current context
-                    //     public int P3 { get; set { field = value + 2; } }
+                    //     public int P3 { get; set { field = value * 2; } }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(5, 32),
-                    // (6,21): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     public int P4 { get { return field - 1; } set; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(6, 21),
+                    // (6,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public int P4 { get { return field * -1; } set; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P4").WithArguments("field keyword").WithLocation(6, 16),
                     // (6,34): error CS0103: The name 'field' does not exist in the current context
-                    //     public int P4 { get { return field - 1; } set; }
+                    //     public int P4 { get { return field * -1; } set; }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(6, 34),
-                    // (7,26): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     public int P5 { get; init { field = value + 2; } }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "init").WithArguments("field keyword").WithLocation(7, 26),
+                    // (7,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public int P5 { get; init { field = value * 2; } }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P5").WithArguments("field keyword").WithLocation(7, 16),
                     // (7,33): error CS0103: The name 'field' does not exist in the current context
-                    //     public int P5 { get; init { field = value + 2; } }
+                    //     public int P5 { get; init { field = value * 2; } }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(7, 33),
-                    // (8,21): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
-                    //     public int P6 { get { return field - 1; } init; }
-                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "get").WithArguments("field keyword").WithLocation(8, 21),
+                    // (8,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     public int P6 { get { return field * -1; } init; }
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P6").WithArguments("field keyword").WithLocation(8, 16),
                     // (8,34): error CS0103: The name 'field' does not exist in the current context
-                    //     public int P6 { get { return field - 1; } init; }
+                    //     public int P6 { get { return field * -1; } init; }
                     Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(8, 34));
             }
             else
