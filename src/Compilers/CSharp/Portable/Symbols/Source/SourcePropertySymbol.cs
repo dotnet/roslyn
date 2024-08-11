@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out var getSyntax,
                 out var setSyntax);
 
-            bool accessorsHaveImplementation = hasGetAccessorImplementation || hasSetAccessorImplementation; // PROTOTYPE: Remove if not needed.
+            bool accessorsHaveImplementation = hasGetAccessorImplementation || hasSetAccessorImplementation;
 
             var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier(syntax);
             SyntaxTokenList modifiersTokenList = GetModifierTokensSyntax(syntax);
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             SyntaxTokenList modifiers,
             bool isExplicitInterfaceImplementation,
             bool isIndexer,
-            bool accessorsHaveImplementation, // PROTOTYPE: How is this used?
+            bool accessorsHaveImplementation,
             Location location,
             BindingDiagnosticBag diagnostics,
             out bool modifierErrors)
