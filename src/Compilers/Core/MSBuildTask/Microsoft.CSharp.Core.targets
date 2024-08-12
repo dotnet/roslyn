@@ -41,6 +41,11 @@
   <!--<LangVersion Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">$(_MaxSupportedLangVersion)</LangVersion>-->
 
   <Choose>
+    <When Condition="'$(_MaxSupportedLangVersion)' == ''">
+      <PropertyGroup>
+        <MetalamaTargetFrameworkNotSupported>true</MetalamaTargetFrameworkNotSupported>
+      </PropertyGroup>
+    </When>
     <When Condition="'$(_MaxSupportedLangVersion)' &lt; '$(MetalamaMinSupportedLangVersion)'">
       <PropertyGroup>
         <MetalamaLangVersionOverridden Condition="'$(LangVersion)' == '' AND '$(_MaxSupportedLangVersion)' != ''">true</MetalamaLangVersionOverridden>
@@ -58,6 +63,12 @@
     <Warning
       Code="LAMA0620"
       Text="The C# language version of the current project was updated from $(_MaxSupportedLangVersion) to $(MetalamaMinSupportedLangVersion), because that is the lowest version supported by Metalama. To hide this warning, set &lt;LangVersion&gt; to at least $(MetalamaMinSupportedLangVersion) in your project file." />
+  </Target>
+
+  <Target Name="MetalamaTargetFrameworkNotSupportedWarning" BeforeTargets="CoreCompile" Condition="'$(MetalamaTargetFrameworkNotSupported)' != ''">
+    <Warning
+      Code="LAMA0622"
+      Text="The target framework $(TargetFramework) is not supported and C# language version was likely downgraded. Consider changing the &lt;TargetFramework&gt; property of your project file to a lower version." />
   </Target>
 
   <!-- </Metalama> -->
