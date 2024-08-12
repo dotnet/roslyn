@@ -279,10 +279,11 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: "3").VerifyDiagnostics();
     }
 
-    [Fact]
-    public void BreakingChange_TypeInference_SpanVsIEnumerable_01()
+    [Theory, CombinatorialData]
+    public void BreakingChange_TypeInference_SpanVsIEnumerable_01(
+        [CombinatorialValues("Span", "ReadOnlySpan")] string type)
     {
-        var source = """
+        var source = $$"""
             using System;
             using System.Collections.Generic;
 
@@ -296,7 +297,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
             static class E
             {
-                public static void R<T>(this Span<T> s) => throw null;
+                public static void R<T>(this {{type}}<T> s) => throw null;
                 public static IEnumerable<T> R<T>(this IEnumerable<T> e) => throw null;
             }
             """;
@@ -313,10 +314,12 @@ public class FirstClassSpanTests : CSharpTestBase
         CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
-    [Theory, MemberData(nameof(LangVersions))]
-    public void BreakingChange_TypeInference_SpanVsIEnumerable_01_Workaround(LanguageVersion langVersion)
+    [Theory, CombinatorialData]
+    public void BreakingChange_TypeInference_SpanVsIEnumerable_01_Workaround(
+        [CombinatorialLangVersions] LanguageVersion langVersion,
+        [CombinatorialValues("Span", "ReadOnlySpan")] string type)
     {
-        var source = """
+        var source = $$"""
             using System;
             using System.Collections.Generic;
 
@@ -330,7 +333,7 @@ public class FirstClassSpanTests : CSharpTestBase
 
             static class E
             {
-                public static void R<T>(this Span<T> s) => throw null;
+                public static void R<T>(this {{type}}<T> s) => throw null;
                 public static IEnumerable<T> R<T>(this IEnumerable<T> e) => throw null;
                 public static IEnumerable<T> R<T>(this T[] a) => throw null;
             }
@@ -348,7 +351,7 @@ public class FirstClassSpanTests : CSharpTestBase
             string[] s = new[] { "a" };
             object[] o = s;
 
-            try { C.R(o); } catch { Console.Write(3); }
+            try { C.R(o); } catch (Exception e) { Console.Write(e.GetType().Name); }
 
             static class C
             {
@@ -359,7 +362,37 @@ public class FirstClassSpanTests : CSharpTestBase
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
         CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
 
-        var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "3" : "2";
+        var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "ArrayTypeMismatchException" : "2";
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void BreakingChange_TypeInference_SpanVsIEnumerable_02_ReadOnlySpan()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            string[] s = new[] { "a" };
+            object[] o = s;
+
+            C.R(o);
+
+            static class C
+            {
+                public static void R<T>(IEnumerable<T> e) => Console.Write(1);
+                public static void R<T>(ReadOnlySpan<T> s) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+
+        var expectedOutput = "2";
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
@@ -378,7 +411,7 @@ public class FirstClassSpanTests : CSharpTestBase
             string[] s = new[] { "a" };
             object[] o = s;
 
-            try { o.R<object>(); } catch { Console.Write(3); }
+            try { o.R<object>(); } catch (Exception e) { Console.Write(e.GetType().Name); }
 
             static class E
             {
@@ -389,7 +422,37 @@ public class FirstClassSpanTests : CSharpTestBase
         var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
         CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
 
-        var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "3" : "2";
+        var expectedOutput = ExecutionConditionUtil.IsCoreClr ? "ArrayTypeMismatchException" : "2";
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void BreakingChange_Conversion_SpanVsIEnumerable_ReadOnlySpan()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+
+            string[] s = new[] { "a" };
+            object[] o = s;
+
+            o.R<object>();
+
+            static class E
+            {
+                public static void R<T>(this IEnumerable<T> e) => Console.Write(1);
+                public static void R<T>(this ReadOnlySpan<T> s) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+
+        var expectedOutput = "2";
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
@@ -7547,12 +7610,25 @@ public class FirstClassSpanTests : CSharpTestBase
     private static readonly SymbolDisplayFormat s_typeArgumentsDisplayFormat = SymbolDisplayFormat.TestFormat
         .RemoveMemberOptions(SymbolDisplayMemberOptions.IncludeParameters | SymbolDisplayMemberOptions.IncludeType);
 
-    private static string DisplayInvokedMethodTypeArguments(CSharpCompilation comp)
+    private static string DisplayInvokedMethodTypeArguments(CSharpCompilation comp, CandidateReason failure = CandidateReason.None)
     {
         var invocation = comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
         var model = comp.GetSemanticModel(invocation.SyntaxTree);
-        var symbol = model.GetSymbolInfo(invocation).Symbol.GetSymbol<MethodSymbol>()!;
-        return symbol.ToDisplayString(s_typeArgumentsDisplayFormat);
+        var info = model.GetSymbolInfo(invocation);
+        ISymbol symbol;
+
+        if (failure != CandidateReason.None)
+        {
+            Assert.Null(info.Symbol);
+            Assert.Equal(failure, info.CandidateReason);
+            symbol = info.CandidateSymbols.Single();
+        }
+        else
+        {
+            symbol = info.Symbol!;
+        }
+
+        return symbol.GetSymbol<MethodSymbol>()!.ToDisplayString(s_typeArgumentsDisplayFormat);
     }
 
     [Fact]
@@ -7617,6 +7693,21 @@ public class FirstClassSpanTests : CSharpTestBase
             // (4,43): error CS0411: The type arguments for method 'C.M1<T>(Span<T[]>, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             //     void M(Span<string[]> a, object b) => M1(a, b);
             Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(System.Span<T[]>, T)").WithLocation(4, 43));
+    }
+
+    [Fact]
+    public void TypeInference_Span_Span_05()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(Span<object[]> a, string b) => M1(a, b);
+                void M1<T>(Span<T[]> x, T y) { }
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics();
+        AssertEx.Equal("C.M1<System.Object>", DisplayInvokedMethodTypeArguments(comp));
     }
 
     [Fact]
@@ -7729,6 +7820,94 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Fact]
+    public void TypeInference_Array_ReadOnlySpan_04()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(int[] a, object b) => M1(a, b);
+                void M1<T>(ReadOnlySpan<T> x, T y) { }
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(
+            // (4,34): error CS0411: The type arguments for method 'C.M1<T>(ReadOnlySpan<T>, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            //     void M(int[] a, object b) => M1(a, b);
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(System.ReadOnlySpan<T>, T)").WithLocation(4, 34));
+    }
+
+    [Fact]
+    public void TypeInference_Array_ReadOnlySpan_05()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(object[] a, int b) => M1(a, b);
+                void M1<T>(ReadOnlySpan<T> x, T y) { }
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics();
+        AssertEx.Equal("C.M1<System.Object>", DisplayInvokedMethodTypeArguments(comp));
+    }
+
+    [Fact]
+    public void TypeInference_Array_ReadOnlySpan_06()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(I<object[]> a) => M1(a);
+                void M1<T>(I<ReadOnlySpan<T>> x) { }
+            }
+            interface I<T> where T : allows ref struct { }
+            """;
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (4,33): error CS1503: Argument 1: cannot convert from 'I<object[]>' to 'I<System.ReadOnlySpan<object>>'
+            //     void M(I<object[]> a) => M1(a);
+            Diagnostic(ErrorCode.ERR_BadArgType, "a").WithArguments("1", "I<object[]>", "I<System.ReadOnlySpan<object>>").WithLocation(4, 33));
+        AssertEx.Equal("C.M1<System.Object>", DisplayInvokedMethodTypeArguments(comp, CandidateReason.OverloadResolutionFailure));
+    }
+
+    [Fact]
+    public void TypeInference_Array_ReadOnlySpan_07()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(I<object[]> a) => M1(a);
+                void M1<T>(I<ReadOnlySpan<T>> x) { }
+            }
+            interface I<out T> where T : allows ref struct { }
+            """;
+        var comp = CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (4,33): error CS1503: Argument 1: cannot convert from 'I<object[]>' to 'I<System.ReadOnlySpan<object>>'
+            //     void M(I<object[]> a) => M1(a);
+            Diagnostic(ErrorCode.ERR_BadArgType, "a").WithArguments("1", "I<object[]>", "I<System.ReadOnlySpan<object>>").WithLocation(4, 33));
+        AssertEx.Equal("C.M1<System.Object>", DisplayInvokedMethodTypeArguments(comp, CandidateReason.OverloadResolutionFailure));
+    }
+
+    [Fact]
+    public void TypeInference_Array_ReadOnlySpan_08()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(I<object[]> a) => M1(a);
+                void M1<T>(I<ReadOnlySpan<T>> x) { }
+            }
+            interface I<in T> where T : allows ref struct { }
+            """;
+        CreateCompilation(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics(
+            // (4,30): error CS0411: The type arguments for method 'C.M1<T>(I<ReadOnlySpan<T>>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            //     void M(I<object[]> a) => M1(a);
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(I<System.ReadOnlySpan<T>>)").WithLocation(4, 30));
+    }
+
+    [Fact]
     public void TypeInference_ReadOnlySpan_ReadOnlySpan_01()
     {
         var source = """
@@ -7806,6 +7985,38 @@ public class FirstClassSpanTests : CSharpTestBase
     }
 
     [Fact]
+    public void TypeInference_ReadOnlySpan_ReadOnlySpan_06()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(ReadOnlySpan<int> a, object b) => M1(a, b);
+                void M1<T>(ReadOnlySpan<T> x, T y) { }
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(
+            // (4,46): error CS0411: The type arguments for method 'C.M1<T>(ReadOnlySpan<T>, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            //     void M(ReadOnlySpan<int> a, object b) => M1(a, b);
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(System.ReadOnlySpan<T>, T)").WithLocation(4, 46));
+    }
+
+    [Fact]
+    public void TypeInference_ReadOnlySpan_ReadOnlySpan_07()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(ReadOnlySpan<object> a, int b) => M1(a, b);
+                void M1<T>(ReadOnlySpan<T> x, T y) { }
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics();
+        AssertEx.Equal("C.M1<System.Object>", DisplayInvokedMethodTypeArguments(comp));
+    }
+
+    [Fact]
     public void TypeInference_ReadOnlySpan_Span()
     {
         var source = """
@@ -7820,5 +8031,82 @@ public class FirstClassSpanTests : CSharpTestBase
             // (4,36): error CS0411: The type arguments for method 'C.M1<T>(Span<T>)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
             //     void M(ReadOnlySpan<int> a) => M1(a);
             Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(System.Span<T>)").WithLocation(4, 36));
+    }
+
+    [Fact]
+    public void TypeInference_Span_ReadOnlySpan_01()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(Span<int> a) => M1(a);
+                void M1<T>(ReadOnlySpan<T> x) { }
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics();
+        AssertEx.Equal("C.M1<System.Int32>", DisplayInvokedMethodTypeArguments(comp));
+    }
+
+    [Fact]
+    public void TypeInference_Span_ReadOnlySpan_02()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(Span<string> a, object b) => M1(a, b);
+                void M1<T>(ReadOnlySpan<T> x, T y) { }
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, targetFramework: TargetFramework.Net90).VerifyDiagnostics();
+        AssertEx.Equal("C.M1<System.Object>", DisplayInvokedMethodTypeArguments(comp));
+    }
+
+    [Fact]
+    public void TypeInference_Span_ReadOnlySpan_03()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(Span<object> a, string b) => M1(a, b);
+                void M1<T>(ReadOnlySpan<T> x, T y) { }
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics();
+        AssertEx.Equal("C.M1<System.Object>", DisplayInvokedMethodTypeArguments(comp));
+    }
+
+    [Fact]
+    public void TypeInference_Span_ReadOnlySpan_04()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(Span<int> a, object b) => M1(a, b);
+                void M1<T>(ReadOnlySpan<T> x, T y) { }
+            }
+            """;
+        CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(
+            // (4,38): error CS0411: The type arguments for method 'C.M1<T>(ReadOnlySpan<T>, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
+            //     void M(Span<int> a, object b) => M1(a, b);
+            Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("C.M1<T>(System.ReadOnlySpan<T>, T)").WithLocation(4, 38));
+    }
+
+    [Fact]
+    public void TypeInference_Span_ReadOnlySpan_05()
+    {
+        var source = """
+            using System;
+            class C
+            {
+                void M(Span<object> a, int b) => M1(a, b);
+                void M1<T>(ReadOnlySpan<T> x, T y) { }
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics();
+        AssertEx.Equal("C.M1<System.Object>", DisplayInvokedMethodTypeArguments(comp));
     }
 }

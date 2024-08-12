@@ -1735,6 +1735,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static TypeWithAnnotations GetSpanElementType(TypeSymbol type)
         {
+            Debug.Assert(type.IsSpan() || type.IsReadOnlySpan());
             return ((NamedTypeSymbol)type).TypeArgumentsWithAnnotationsNoUseSiteDiagnostics[0];
         }
 
