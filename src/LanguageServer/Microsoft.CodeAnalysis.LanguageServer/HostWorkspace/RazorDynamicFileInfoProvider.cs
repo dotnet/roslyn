@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.LanguageServer;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.LanguageServer.Protocol;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
@@ -20,22 +21,22 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 
     private class ProvideDynamicFileParams
     {
-        [JsonPropertyName("razorFiles")]
-        public required Uri[] RazorFiles { get; set; }
+        [JsonPropertyName("document")]
+        public required TextDocumentIdentifier Document { get; set; }
     }
 
     private class ProvideDynamicFileResponse
     {
-        [JsonPropertyName("generatedFiles")]
-        public required Uri[] GeneratedFiles { get; set; }
+        [JsonPropertyName("document")]
+        public required TextDocumentIdentifier Document { get; set; }
     }
 
     private const string RemoveRazorDynamicFileInfoMethodName = "razor/removeDynamicFileInfo";
 
     private class RemoveDynamicFileParams
     {
-        [JsonPropertyName("razorFiles")]
-        public required Uri[] RazorFiles { get; set; }
+        [JsonPropertyName("document")]
+        public required TextDocumentIdentifier Document { get; set; }
     }
 
 #pragma warning disable CS0067 // We won't fire the Updated event -- we expect Razor to send us textual changes via didChange instead
@@ -55,7 +56,13 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
     {
         _razorWorkspaceListenerInitializer.Value.NotifyDynamicFile(projectId);
 
-        var requestParams = new ProvideDynamicFileParams { RazorFiles = [ProtocolConversions.CreateAbsoluteUri(filePath)] };
+        var requestParams = new ProvideDynamicFileParams
+        {
+            Document = new()
+            {
+                Uri = ProtocolConversions.CreateAbsoluteUri(filePath)
+            }
+        };
 
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
         var clientLanguageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
@@ -64,7 +71,7 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
             ProvideRazorDynamicFileInfoMethodName, requestParams, cancellationToken);
 
         // Since we only sent one file over, we should get either zero or one URI back
-        var responseUri = response.GeneratedFiles.SingleOrDefault();
+        var responseUri = response.Document?.Uri;
 
         if (responseUri == null)
         {
@@ -79,7 +86,13 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 
     public Task RemoveDynamicFileInfoAsync(ProjectId projectId, string? projectFilePath, string filePath, CancellationToken cancellationToken)
     {
-        var notificationParams = new RemoveDynamicFileParams { RazorFiles = [ProtocolConversions.CreateAbsoluteUri(filePath)] };
+        var notificationParams = new RemoveDynamicFileParams
+        {
+            Document = new()
+            {
+                Uri = ProtocolConversions.CreateAbsoluteUri(filePath)
+            }
+        };
 
         Contract.ThrowIfNull(LanguageServerHost.Instance, "We don't have an LSP channel yet to send this request through.");
         var clientLanguageServerManager = LanguageServerHost.Instance.GetRequiredLspService<IClientLanguageServerManager>();
