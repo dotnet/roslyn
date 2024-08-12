@@ -138,13 +138,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(syntax.Type is not ScopedTypeSyntax);
 
-            if (IsAutoProperty)
+            if (hasAutoPropertyGet || hasAutoPropertySet)
             {
                 Binder.CheckFeatureAvailability(
                     syntax,
                     hasGetAccessor && hasSetAccessor ?
                         (hasAutoPropertyGet && hasAutoPropertySet ? MessageID.IDS_FeatureAutoImplementedProperties : MessageID.IDS_FeatureFieldKeyword) :
-                        MessageID.IDS_FeatureReadonlyAutoImplementedProperties,
+                        (hasAutoPropertyGet ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties : MessageID.IDS_FeatureAutoImplementedProperties),
                     diagnostics,
                     location);
             }
