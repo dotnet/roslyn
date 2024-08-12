@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (_container.IsDelegateType() && ContainingAssembly.RuntimeSupportsByRefLikeGenerics)
                 {
                     //return false if the type parameter is used as params array
-                    var visitor = new AllowsRefLikeTypeSymbolVisitVisitor()
+                    var visitor = new AllowsRefLikeTypeSymbolVisitor()
                     {
                         TypeParameter = this.GetPublicSymbol()
                     };

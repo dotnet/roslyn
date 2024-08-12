@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class AllowsRefLikeTypeSymbolVisitVisitor : SymbolVisitor
+    internal sealed class AllowsRefLikeTypeSymbolVisitor : SymbolVisitor
     {
         public bool Result { get; private set; } = true;
 
