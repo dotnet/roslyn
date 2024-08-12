@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -38,6 +39,12 @@ internal class CodeGenerationNamespaceSymbol(string name, IList<INamespaceOrType
 
     IEnumerable<INamespaceOrTypeSymbol> INamespaceSymbol.GetMembers(string name)
         => GetMembers().Where(m => m.Name == name);
+
+    void INamespaceSymbol.GetMembers<TArg>(string name, Action<INamespaceOrTypeSymbol, TArg> callback, TArg argument)
+    {
+        foreach (var member in ((INamespaceSymbol)this).GetMembers(name))
+            callback(member, argument);
+    }
 
     public IEnumerable<INamespaceSymbol> GetNamespaceMembers()
         => GetMembers().OfType<INamespaceSymbol>();

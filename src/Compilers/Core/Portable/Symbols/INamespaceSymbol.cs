@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
@@ -26,6 +27,11 @@ namespace Microsoft.CodeAnalysis
         /// Get all the members of this symbol that have a particular name.
         /// </summary>
         new IEnumerable<INamespaceOrTypeSymbol> GetMembers(string name);
+
+        /// <summary>
+        /// Get all the members of this symbol that have a particular name.
+        /// </summary>
+        void GetMembers<TArg>(string name, Action<INamespaceOrTypeSymbol, TArg> callback, TArg argument);
 
         /// <summary>
         /// Get all the members of this symbol that are namespaces.
