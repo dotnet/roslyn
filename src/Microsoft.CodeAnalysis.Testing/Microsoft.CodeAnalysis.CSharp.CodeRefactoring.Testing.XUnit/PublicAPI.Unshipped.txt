@@ -1,4 +1,0 @@
-Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeRefactoringVerifier
-Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeRefactoringVerifier<TCodeRefactoring>
-Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeRefactoringVerifier<TCodeRefactoring>.CodeRefactoringVerifier() -> void
-static Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeRefactoringVerifier.Create<TCodeRefactoring>() -> Microsoft.CodeAnalysis.CSharp.Testing.XUnit.CodeRefactoringVerifier<TCodeRefactoring>
