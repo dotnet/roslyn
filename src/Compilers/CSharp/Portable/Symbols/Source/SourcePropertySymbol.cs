@@ -40,12 +40,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             GetAccessorDeclarations(
                 syntax,
                 diagnostics,
-                out bool hasAccessorList,
-                out bool accessorsHaveImplementation,
+                out bool isExpressionBodied,
+                out bool hasGetAccessorImplementation,
+                out bool hasSetAccessorImplementation,
                 out bool usesFieldKeyword,
                 out bool isInitOnly,
                 out var getSyntax,
                 out var setSyntax);
+
+            bool accessorsHaveImplementation = hasGetAccessorImplementation || hasSetAccessorImplementation;
 
             var explicitInterfaceSpecifier = GetExplicitInterfaceSpecifier(syntax);
             SyntaxTokenList modifiersTokenList = GetModifierTokensSyntax(syntax);
@@ -60,8 +63,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics,
                 out _);
 
-            bool isAutoProperty = (modifiers & DeclarationModifiers.Partial) == 0 && !accessorsHaveImplementation;
-            bool isExpressionBodied = !hasAccessorList && GetArrowExpression(syntax) != null;
+            bool allowAutoPropertyAccessors = (modifiers & (DeclarationModifiers.Partial | DeclarationModifiers.Abstract | DeclarationModifiers.Extern | DeclarationModifiers.Indexer)) == 0 &&
+                (!containingType.IsInterface || (modifiers & DeclarationModifiers.Static) != 0);
+            bool hasAutoPropertyGet = allowAutoPropertyAccessors && getSyntax != null && !hasGetAccessorImplementation;
+            bool hasAutoPropertySet = allowAutoPropertyAccessors && setSyntax != null && !hasSetAccessorImplementation;
 
             binder = binder.SetOrClearUnsafeRegionIfNecessary(modifiersTokenList);
             TypeSymbol? explicitInterfaceType;
@@ -78,7 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 aliasQualifierOpt,
                 modifiers,
                 hasExplicitAccessMod: hasExplicitAccessMod,
-                isAutoProperty: isAutoProperty,
+                hasAutoPropertyGet: hasAutoPropertyGet,
+                hasAutoPropertySet: hasAutoPropertySet,
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
                 accessorsHaveImplementation: accessorsHaveImplementation,
@@ -98,7 +104,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             string? aliasQualifierOpt,
             DeclarationModifiers modifiers,
             bool hasExplicitAccessMod,
-            bool isAutoProperty,
+            bool hasAutoPropertyGet,
+            bool hasAutoPropertySet,
             bool isExpressionBodied,
             bool isInitOnly,
             bool accessorsHaveImplementation,
@@ -109,15 +116,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             : base(
                 containingType,
                 syntax,
-                hasGetAccessor,
-                hasSetAccessor,
+                hasGetAccessor: hasGetAccessor,
+                hasSetAccessor: hasSetAccessor,
                 isExplicitInterfaceImplementation,
                 explicitInterfaceType,
                 aliasQualifierOpt,
                 modifiers,
                 hasInitializer: HasInitializer(syntax),
                 hasExplicitAccessMod: hasExplicitAccessMod,
-                isAutoProperty: isAutoProperty,
+                hasAutoPropertyGet: hasAutoPropertyGet,
+                hasAutoPropertySet: hasAutoPropertySet,
                 isExpressionBodied: isExpressionBodied,
                 isInitOnly: isInitOnly,
                 accessorsHaveImplementation: accessorsHaveImplementation,
@@ -130,11 +138,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(syntax.Type is not ScopedTypeSyntax);
 
-            if (IsAutoProperty)
+            if (hasAutoPropertyGet || hasAutoPropertySet)
             {
                 Binder.CheckFeatureAvailability(
                     syntax,
-                    (hasGetAccessor && !hasSetAccessor) ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties : MessageID.IDS_FeatureAutoImplementedProperties,
+                    hasGetAccessor && hasSetAccessor ?
+                        (hasAutoPropertyGet && hasAutoPropertySet ? MessageID.IDS_FeatureAutoImplementedProperties : MessageID.IDS_FeatureFieldKeyword) :
+                        (hasAutoPropertyGet ? MessageID.IDS_FeatureReadonlyAutoImplementedProperties : MessageID.IDS_FeatureAutoImplementedProperties),
                     diagnostics,
                     location);
             }
@@ -202,23 +212,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static void GetAccessorDeclarations(
             CSharpSyntaxNode syntaxNode,
             BindingDiagnosticBag diagnostics,
-            out bool hasAccessorList,
-            out bool accessorsHaveImplementation,
+            out bool isExpressionBodied,
+            out bool hasGetAccessorImplementation,
+            out bool hasSetAccessorImplementation,
             out bool usesFieldKeyword,
             out bool isInitOnly,
-            out CSharpSyntaxNode? getSyntax,
-            out CSharpSyntaxNode? setSyntax)
+            out AccessorDeclarationSyntax? getSyntax,
+            out AccessorDeclarationSyntax? setSyntax)
         {
             var syntax = (BasePropertyDeclarationSyntax)syntaxNode;
-            hasAccessorList = syntax.AccessorList != null;
+            isExpressionBodied = syntax.AccessorList is null;
             getSyntax = null;
             setSyntax = null;
             isInitOnly = false;
 
-            if (hasAccessorList)
+            if (!isExpressionBodied)
             {
                 usesFieldKeyword = false;
-                accessorsHaveImplementation = false;
+                hasGetAccessorImplementation = false;
+                hasSetAccessorImplementation = false;
                 foreach (var accessor in syntax.AccessorList!.Accessors)
                 {
                     switch (accessor.Kind())
@@ -227,6 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (getSyntax == null)
                             {
                                 getSyntax = accessor;
+                                hasGetAccessorImplementation = hasImplementation(accessor);
                             }
                             else
                             {
@@ -238,6 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (setSyntax == null)
                             {
                                 setSyntax = accessor;
+                                hasSetAccessorImplementation = hasImplementation(accessor);
                                 if (accessor.Keyword.IsKind(SyntaxKind.InitKeyword))
                                 {
                                     isInitOnly = true;
@@ -260,21 +274,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             throw ExceptionUtilities.UnexpectedValue(accessor.Kind());
                     }
 
-                    var body = (SyntaxNode?)accessor.Body ?? accessor.ExpressionBody;
-                    if (body != null)
-                    {
-                        accessorsHaveImplementation = true;
-                    }
-
                     usesFieldKeyword = usesFieldKeyword || containsFieldKeyword(accessor);
                 }
             }
             else
             {
                 var body = GetArrowExpression(syntax);
-                accessorsHaveImplementation = body is object;
+                hasGetAccessorImplementation = body is object;
+                hasSetAccessorImplementation = false;
                 usesFieldKeyword = body is { } && containsFieldKeyword(body);
-                Debug.Assert(accessorsHaveImplementation); // it's not clear how this even parsed as a property if it has no accessor list and no arrow expression.
+                Debug.Assert(hasGetAccessorImplementation); // it's not clear how this even parsed as a property if it has no accessor list and no arrow expression.
+            }
+
+            static bool hasImplementation(AccessorDeclarationSyntax accessor)
+            {
+                var body = (SyntaxNode?)accessor.Body ?? accessor.ExpressionBody;
+                return body != null;
             }
 
             static bool containsFieldKeyword(SyntaxNode syntax)

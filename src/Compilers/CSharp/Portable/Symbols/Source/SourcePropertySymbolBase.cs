@@ -29,11 +29,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private enum Flags : byte
         {
             IsExpressionBodied = 1 << 0,
-            IsAutoProperty = 1 << 1,
-            IsExplicitInterfaceImplementation = 1 << 2,
-            HasInitializer = 1 << 3,
-            AccessorsHaveImplementation = 1 << 4,
-            HasExplicitAccessModifier = 1 << 5,
+            HasAutoPropertyGet = 1 << 1,
+            HasAutoPropertySet = 1 << 2,
+            UsesFieldKeyword = 1 << 3,
+            IsExplicitInterfaceImplementation = 1 << 4,
+            HasInitializer = 1 << 5,
+            AccessorsHaveImplementation = 1 << 6,
+            HasExplicitAccessModifier = 1 << 7,
         }
 
         // TODO (tomat): consider splitting into multiple subclasses/rare data.
@@ -80,7 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DeclarationModifiers modifiers,
             bool hasInitializer,
             bool hasExplicitAccessMod,
-            bool isAutoProperty,
+            bool hasAutoPropertyGet,
+            bool hasAutoPropertySet,
             bool isExpressionBodied,
             bool isInitOnly,
             bool accessorsHaveImplementation,
@@ -91,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location location,
             BindingDiagnosticBag diagnostics)
         {
-            Debug.Assert(!isExpressionBodied || !isAutoProperty);
+            Debug.Assert(!isExpressionBodied || !(hasAutoPropertyGet || hasAutoPropertySet));
             Debug.Assert(!isExpressionBodied || !hasInitializer);
             Debug.Assert(!isExpressionBodied || accessorsHaveImplementation);
             Debug.Assert((modifiers & DeclarationModifiers.Required) == 0 || this is SourcePropertySymbol);
@@ -112,17 +115,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _lazyExplicitInterfaceImplementations = ImmutableArray<PropertySymbol>.Empty;
             }
 
-            bool isIndexer = IsIndexer;
-            isAutoProperty = isAutoProperty && !(containingType.IsInterface && !IsStatic) && !IsAbstract && !IsExtern && !isIndexer;
-
             if (hasExplicitAccessMod)
             {
                 _propertyFlags |= Flags.HasExplicitAccessModifier;
             }
 
-            if (isAutoProperty)
+            if (hasAutoPropertyGet)
             {
-                _propertyFlags |= Flags.IsAutoProperty;
+                _propertyFlags |= Flags.HasAutoPropertyGet;
+            }
+
+            if (hasAutoPropertySet)
+            {
+                _propertyFlags |= Flags.HasAutoPropertySet;
+            }
+
+            if (usesFieldKeyword)
+            {
+                _propertyFlags |= Flags.UsesFieldKeyword;
             }
 
             if (hasInitializer)
@@ -140,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _propertyFlags |= Flags.AccessorsHaveImplementation;
             }
 
-            if (isIndexer)
+            if (IsIndexer)
             {
                 if (indexerNameAttributeLists.Count == 0 || isExplicitInterfaceImplementation)
                 {
@@ -158,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _name = _lazySourceName = memberName;
             }
 
-            if (usesFieldKeyword || (isAutoProperty && hasGetAccessor) || hasInitializer)
+            if (usesFieldKeyword || hasAutoPropertyGet || hasAutoPropertySet || hasInitializer)
             {
                 Debug.Assert(!IsIndexer);
                 string fieldName = GeneratedNames.MakeBackingFieldName(_name);
@@ -175,12 +185,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (hasGetAccessor)
             {
-                _getMethod = CreateGetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics);
+                _getMethod = CreateGetAccessorSymbol(hasAutoPropertyGet, diagnostics);
             }
 
             if (hasSetAccessor)
             {
-                _setMethod = CreateSetAccessorSymbol(isAutoPropertyAccessor: isAutoProperty, diagnostics);
+                _setMethod = CreateSetAccessorSymbol(hasAutoPropertySet, diagnostics);
             }
         }
 
@@ -640,14 +650,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool IsAutoPropertyWithGetAccessor
-            => IsAutoProperty && _getMethod is object;
+        internal bool IsAutoPropertyOrUsesFieldKeyword
+            => IsAutoProperty || UsesFieldKeyword;
+
+        protected bool UsesFieldKeyword
+            => (_propertyFlags & Flags.UsesFieldKeyword) != 0;
 
         protected bool HasExplicitAccessModifier
             => (_propertyFlags & Flags.HasExplicitAccessModifier) != 0;
 
-        protected bool IsAutoProperty
-            => (_propertyFlags & Flags.IsAutoProperty) != 0;
+        internal bool IsAutoProperty
+            => (_propertyFlags & (Flags.HasAutoPropertyGet | Flags.HasAutoPropertySet)) != 0;
 
         protected bool AccessorsHaveImplementation
             => (_propertyFlags & Flags.AccessorsHaveImplementation) != 0;
@@ -702,10 +715,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_RefReturningPropertiesCannotBeRequired, Location);
             }
 
-            if (IsAutoPropertyWithGetAccessor)
+            if (IsAutoProperty)
             {
-                Debug.Assert(GetMethod is object);
-
                 if (!IsStatic && SetMethod is { IsInitOnly: false })
                 {
                     if (ContainingType.IsReadOnly)
@@ -1084,7 +1095,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-            => IsAutoPropertyWithGetAccessor
+            => IsAutoPropertyOrUsesFieldKeyword
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
 
@@ -1649,7 +1660,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeLocation, type);
             }
-            else if (this.IsAutoPropertyWithGetAccessor && type.IsRefLikeOrAllowsRefLikeType() && (this.IsStatic || !this.ContainingType.IsRefLikeType))
+            else if (this.IsAutoPropertyOrUsesFieldKeyword && type.IsRefLikeOrAllowsRefLikeType() && (this.IsStatic || !this.ContainingType.IsRefLikeType))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
             }

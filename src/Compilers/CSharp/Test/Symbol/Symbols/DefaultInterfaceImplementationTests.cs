@@ -3245,14 +3245,17 @@ public interface I1
                                                      targetFramework: TargetFramework.Net60);
                 Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation1.VerifyEmitDiagnostics(
-                    // (4,13): error CS1014: A get, set or init accessor expected
-                    //     int P1 {add; remove;} = 0;
+                    // (4,28): error CS1014: A get or set accessor expected
+                    //     static virtual int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_GetOrSetExpected, "add").WithLocation(4, 28),
-                    // (4,18): error CS1014: A get, set or init accessor expected
-                    //     int P1 {add; remove;} = 0;
+                    // (4,33): error CS1014: A get or set accessor expected
+                    //     static virtual int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 33),
-                    // (4,9): error CS0548: 'I1.P1': property or indexer must have at least one accessor
-                    //     int P1 {add; remove;} = 0;
+                    // (4,24): error CS8050: Only auto-implemented properties can have initializers.
+                    //     static virtual int P1 {add; remove;} = 0;
+                    Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(4, 24),
+                    // (4,24): error CS0548: 'I1.P1': property or indexer must have at least one accessor
+                    //     static virtual int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P1").WithArguments("I1.P1").WithLocation(4, 24)
                     );
 
@@ -3343,7 +3346,7 @@ public interface I1
 
         [Theory]
         [CombinatorialData]
-        public void PropertyImplementation_109(bool isStatic)
+        public void PropertyImplementation_109(bool isStatic, bool useCSharp13)
         {
             string declModifiers = isStatic ? "static virtual " : "";
 
@@ -3366,17 +3369,32 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
+            // PROTOTYPE: Confirm that we now allow one accessor to have an implementation.
             // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
             // we don't want to allow only one accessor to have an implementation.
-            compilation1.VerifyDiagnostics(
-                // (11,9): error CS0501: 'I1.P1.set' must declare a body because it is not marked abstract, extern, or partial
-                //         set;
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P1.set").WithLocation(11, 9)
-                );
+            if (isStatic && useCSharp13)
+            {
+                compilation1.VerifyDiagnostics(
+                    // (4,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static virtual int P1 
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 24));
+            }
+            else if (isStatic)
+            {
+                compilation1.VerifyDiagnostics();
+            }
+            else
+            {
+                compilation1.VerifyDiagnostics(
+                    // (11,9): error CS0501: 'I1.P1.set' must declare a body because it is not marked abstract, extern, or partial
+                    //         set;
+                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P1.set").WithLocation(11, 9)
+                    );
+            }
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
             var getP1 = p1.GetMethod;
@@ -3403,7 +3421,7 @@ class Test1 : I1
 
         [Theory]
         [CombinatorialData]
-        public void PropertyImplementation_110(bool isStatic)
+        public void PropertyImplementation_110(bool isStatic, bool useCSharp13)
         {
             string declModifiers = isStatic ? "static virtual " : "";
 
@@ -3422,17 +3440,32 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
+            // PROTOTYPE: Confirm that we now allow one accessor to have an implementation.
             // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
             // we don't want to allow only one accessor to have an implementation.
-            compilation1.VerifyDiagnostics(
-                // (6,9): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
-                //         get;
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P1.get").WithLocation(6, 9)
-                );
+            if (isStatic && useCSharp13)
+            {
+                compilation1.VerifyDiagnostics(
+                    // (4,24): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static virtual int P1 
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 24));
+            }
+            else if (isStatic)
+            {
+                compilation1.VerifyDiagnostics();
+            }
+            else
+            {
+                compilation1.VerifyDiagnostics(
+                    // (6,9): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
+                    //         get;
+                    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P1.get").WithLocation(6, 9)
+                    );
+            }
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
             var getP1 = p1.GetMethod;
@@ -67575,6 +67608,9 @@ interface IC
                 // (9,30): error CS8147: Properties which return by reference cannot have set accessors
                 //     static ref int PB { get; set;}
                 Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(9, 30),
+                // (14,20): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref int PC { set;}
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PC").WithLocation(14, 20),
                 // (14,20): error CS8146: Properties which return by reference must have a get accessor
                 //     static ref int PC { set;}
                 Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PC").WithLocation(14, 20)
