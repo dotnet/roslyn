@@ -32,6 +32,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     [CompilerTrait(CompilerFeature.LocalFunctions)]
     public class LocalFunctionTests : LocalFunctionsTestBase
     {
+        [Fact]
+        public void TestAdHocDelegateWithParams_NotAllowRefLikeTest()
+        {
+            var code = """
+            var counter = Counter;
+            counter.Invoke();
+
+            void Counter(params int[] arr)
+            {
+            }
+            """;
+            var comp = CreateCompilation(code);
+            comp.VerifyDiagnostics();
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var decl = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
+            var declType = decl.Declaration.Type;
+            var typeSymbol = (INamedTypeSymbol)model.GetTypeInfo(declType).Type!;
+
+            Assert.True(typeSymbol.TypeKind == TypeKind.Delegate);
+            Assert.True(typeSymbol.TypeParameters.Length == 1);
+            Assert.True(!typeSymbol.TypeParameters[0].AllowsRefLikeType);
+            Assert.True(typeSymbol.GetMember("Invoke").GetParameters()[0].Type is IArrayTypeSymbol arr && arr.ElementType == typeSymbol.TypeParameters[0]);
+        }
+
         [Fact, WorkItem(29656, "https://github.com/dotnet/roslyn/issues/29656")]
         public void RefReturningAsyncLocalFunction()
         {
