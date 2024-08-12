@@ -50,7 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var decl = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
             var declType = decl.Declaration.Type;
-            var typeSymbol = (INamedTypeSymbol)model.GetTypeInfo(declType).Type!;
+            var namedTypeSymbol = (INamedTypeSymbol)model.GetTypeInfo(declType).Type!;
+            var delegateSymbol = namedTypeSymbol.GetSymbol<AnonymousDelegatePublicSymbol>();
+            var typeSymbol = delegateSymbol.MapToImplementationSymbol();
 
             Assert.True(typeSymbol.TypeKind == TypeKind.Delegate);
             Assert.True(typeSymbol.TypeParameters.Length == 1);
