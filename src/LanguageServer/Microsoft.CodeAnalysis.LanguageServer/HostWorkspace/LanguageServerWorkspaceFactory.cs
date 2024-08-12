@@ -56,7 +56,7 @@ internal sealed class LanguageServerWorkspaceFactory
     public async Task InitializeSolutionLevelAnalyzersAsync(ImmutableArray<string> analyzerPaths)
     {
         var references = new List<AnalyzerFileReference>();
-        var analyzerLoader = Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>().GetLoader(shadowCopy: true);
+        var analyzerLoader = Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>().GetLoader();
 
         foreach (var analyzerPath in analyzerPaths)
         {

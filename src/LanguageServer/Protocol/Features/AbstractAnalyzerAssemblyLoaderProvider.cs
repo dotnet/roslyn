@@ -16,20 +16,18 @@ namespace Microsoft.CodeAnalysis.Host;
 /// </summary>
 internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemblyLoaderProvider
 {
-    private readonly DefaultAnalyzerAssemblyLoader _loader;
     private readonly Lazy<IAnalyzerAssemblyLoader> _shadowCopyLoader;
 
     public AbstractAnalyzerAssemblyLoaderProvider([ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
     {
         var resolvers = externalResolvers.ToImmutableArray();
-        _loader = new(resolvers);
 
         // We use a lazy here in case creating the loader requires MEF imports in the derived constructor.
         _shadowCopyLoader = new Lazy<IAnalyzerAssemblyLoader>(() => CreateShadowCopyLoader(resolvers));
     }
 
-    public IAnalyzerAssemblyLoader GetLoader(bool shadowCopy)
-        => shadowCopy ? _shadowCopyLoader.Value : _loader;
+    public IAnalyzerAssemblyLoader GetLoader()
+        => _shadowCopyLoader.Value;
 
     protected virtual IAnalyzerAssemblyLoader CreateShadowCopyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
     {

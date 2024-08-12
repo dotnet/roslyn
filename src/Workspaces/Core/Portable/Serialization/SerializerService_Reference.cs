@@ -69,7 +69,6 @@ internal partial class SerializerService
             {
                 case AnalyzerFileReference file:
                     writer.WriteString(file.FullPath);
-                    writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
                     break;
 
                 case AnalyzerImageReference analyzerImageReference:
@@ -124,7 +123,6 @@ internal partial class SerializerService
             case AnalyzerFileReference file:
                 writer.WriteString(nameof(AnalyzerFileReference));
                 writer.WriteString(file.FullPath);
-                writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
                 break;
 
             case AnalyzerImageReference analyzerImageReference:
@@ -147,8 +145,7 @@ internal partial class SerializerService
         {
             case nameof(AnalyzerFileReference):
                 var fullPath = reader.ReadRequiredString();
-                var shadowCopy = reader.ReadBoolean();
-                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(shadowCopy));
+                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader());
 
             case nameof(AnalyzerImageReference):
                 var guid = reader.ReadGuid();

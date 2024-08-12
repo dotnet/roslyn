@@ -161,10 +161,9 @@ internal sealed partial class ProjectSystemProject
         _displayName = displayName;
 
         var provider = _projectSystemProjectFactory.Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-        // Shadow copy analyzer files coming from packages to avoid locking the files in NuGet cache.
         // NOTE: The provider will always return the same singleton analyzer loader instance, which is important to
         // ensure that shadow copied analyzer dependencies are correctly loaded.
-        _analyzerAssemblyLoader = provider.GetLoader(shadowCopy: true);
+        _analyzerAssemblyLoader = provider.GetLoader();
 
         _sourceFiles = new BatchingDocumentCollection(
             this,
