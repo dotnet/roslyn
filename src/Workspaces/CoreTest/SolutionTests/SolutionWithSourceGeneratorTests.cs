@@ -895,12 +895,33 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         var analyzerReference2 = new TestGeneratorReference(
             new SingleFileTestGenerator("// Hello, World 2"));
 
-        var project1 = AddEmptyProject(workspace.CurrentSolution).AddAnalyzerReference(analyzerReference1);
+        var project0 = AddEmptyProject(workspace.CurrentSolution);
+        var checksum0 = await project0.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
+
+        var project1 = project0.AddAnalyzerReference(analyzerReference1);
         var checksum1 = await project1.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
 
-        var project2 = project1.RemoveAnalyzerReference(analyzerReference1).AddAnalyzerReference(analyzerReference2);
+        Assert.NotEqual(project0, project1);
+        Assert.NotEqual(checksum0, checksum1);
+
+        var project2 = project1.RemoveAnalyzerReference(analyzerReference1);
         var checksum2 = await project2.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
 
+        Assert.NotEqual(project0, project2);
+        Assert.NotEqual(project1, project2);
+
+        // Should still have the same checksum that we started with, even though we have different project instances.
+        Assert.Equal(checksum0, checksum2);
         Assert.NotEqual(checksum1, checksum2);
+
+        var project3 = project2.AddAnalyzerReference(analyzerReference2);
+        var checksum3 = await project3.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
+
+        Assert.NotEqual(project0, project3);
+        Assert.NotEqual(project1, project3);
+        Assert.NotEqual(project2, project3);
+        Assert.NotEqual(checksum0, checksum3);
+        Assert.NotEqual(checksum1, checksum3);
+        Assert.NotEqual(checksum2, checksum3);
     }
 }
