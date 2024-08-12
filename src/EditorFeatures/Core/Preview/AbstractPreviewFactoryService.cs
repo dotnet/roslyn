@@ -658,7 +658,7 @@ internal abstract class AbstractPreviewFactoryService<TDifferenceViewer>(
         // absolute file path.  Ensure the new path preserves the same extension as before as that extension is used by
         // LSP to determine the language of the document.
         _textDocumentFactoryService.CreateTextDocument(
-            buffer, Path.GetTempFileName() + Path.GetExtension(document.FilePath));
+            buffer, Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString(), document.Name));
 
         return buffer;
     }
