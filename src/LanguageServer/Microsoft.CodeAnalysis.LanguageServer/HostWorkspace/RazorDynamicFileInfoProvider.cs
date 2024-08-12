@@ -21,22 +21,22 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 
     private class ProvideDynamicFileParams
     {
-        [JsonPropertyName("document")]
-        public required TextDocumentIdentifier Document { get; set; }
+        [JsonPropertyName("razorDocument")]
+        public required TextDocumentIdentifier RazorDocument { get; set; }
     }
 
     private class ProvideDynamicFileResponse
     {
-        [JsonPropertyName("document")]
-        public required TextDocumentIdentifier Document { get; set; }
+        [JsonPropertyName("csharpDocument")]
+        public required TextDocumentIdentifier CSharpDocument { get; set; }
     }
 
     private const string RemoveRazorDynamicFileInfoMethodName = "razor/removeDynamicFileInfo";
 
     private class RemoveDynamicFileParams
     {
-        [JsonPropertyName("document")]
-        public required TextDocumentIdentifier Document { get; set; }
+        [JsonPropertyName("csharpDocument")]
+        public required TextDocumentIdentifier CSharpDocument { get; set; }
     }
 
 #pragma warning disable CS0067 // We won't fire the Updated event -- we expect Razor to send us textual changes via didChange instead
@@ -58,7 +58,7 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
 
         var requestParams = new ProvideDynamicFileParams
         {
-            Document = new()
+            RazorDocument = new()
             {
                 Uri = ProtocolConversions.CreateAbsoluteUri(filePath)
             }
@@ -71,7 +71,7 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
             ProvideRazorDynamicFileInfoMethodName, requestParams, cancellationToken);
 
         // Since we only sent one file over, we should get either zero or one URI back
-        var responseUri = response.Document?.Uri;
+        var responseUri = response.CSharpDocument?.Uri;
 
         if (responseUri == null)
         {
@@ -88,7 +88,7 @@ internal class RazorDynamicFileInfoProvider : IDynamicFileInfoProvider
     {
         var notificationParams = new RemoveDynamicFileParams
         {
-            Document = new()
+            CSharpDocument = new()
             {
                 Uri = ProtocolConversions.CreateAbsoluteUri(filePath)
             }
