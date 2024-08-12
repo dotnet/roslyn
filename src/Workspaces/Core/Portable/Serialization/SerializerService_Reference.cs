@@ -126,6 +126,26 @@ internal partial class SerializerService
                 writer.WriteString(nameof(AnalyzerFileReference));
                 writer.WriteString(file.FullPath);
                 writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
+
+                // Note: it is intentional that we are not writing the MVID of the analyzer file reference over (even
+                // though we mixed it into the checksum).  We don't actually need the data on the other side as it will
+                // be read out from the file itself.  So the flow is as follows when an analyzer-file-reference changes:
+                //
+                // 1. Change to file happens on disk and is detected by the host, which will reload the reference within it.
+                // 2. When producing the checksum for the project, this analyzer file reference will not be found in the
+                //    ChecksumCache, causing it to be recomputed (in `Checksum CreateChecksum(AnalyzerReference
+                //    reference, CancellationToken cancellationToken)`.
+                // 3. The checksum will be computed based on the file path and the MVID of the file.
+                // 4. This will now cause a diff between the host and OOP.
+                // 5. When OOP syncs with the host, it will create a fresh AnalyzerFileReference pointing to the right
+                //    path, and specifying it wants to use the shadow copy loader.  The workspace snapshot will be
+                //    updated to use this new reference.  Note: this is guaranteed, as `SolutionCompilationState
+                //    WithProjectAnalyzerReferences(...)` uses reference-equality to determine if the analyzer is
+                //    different, always picking up the new instances.
+                // 6. When we actually need to load analyzers/generators in OOP it will then defer to the
+                //    ShadowCopyAnalyzerAssemblyLoader.  This loader will *itself* then use the MVID of the file
+                //    reference at the requested path to shadow copy to a new location specific to that mvid, ensuring
+                //    that its data can be cleanly loaded in isolation from any prior version.
                 break;
 
             case AnalyzerImageReference analyzerImageReference:
