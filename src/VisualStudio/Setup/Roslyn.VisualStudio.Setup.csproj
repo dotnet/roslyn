@@ -192,12 +192,6 @@
       <PkgDefEntry>BindingRedirect</PkgDefEntry>
       <NgenPriority>1</NgenPriority>
     </ProjectReference>
-    <ProjectReference Include="..\CodeLens\Microsoft.VisualStudio.LanguageServices.CodeLens.csproj">
-      <Name>CodeAnalysisCodeLensVisualStudio</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>
-      <ForceIncludeInVSIX>true</ForceIncludeInVSIX>
-      <PkgDefEntry>BindingRedirect</PkgDefEntry>
-    </ProjectReference>
     <ProjectReference Include="..\Core\Impl\Microsoft.VisualStudio.LanguageServices.Implementation.csproj">
       <Name>ServicesVisualStudioImpl</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup;SatelliteDllsProjectOutputGroup</IncludeOutputGroupsInVSIX>

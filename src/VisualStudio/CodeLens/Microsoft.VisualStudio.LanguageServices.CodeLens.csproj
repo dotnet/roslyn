@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.VisualStudio.LanguageServices.CodeLens</RootNamespace>
-    <TargetFrameworks>netstandard2.0;$(NetVS)</TargetFrameworks>
+    <TargetFramework>$(NetVS)</TargetFramework>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <IsSymbolPublishingPackage>true</IsSymbolPublishingPackage>
   </PropertyGroup>
@@ -23,7 +23,6 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="DynamicProxyGenAssembly2" Key="$(MoqPublicKey)" />
   </ItemGroup>
 </Project>
