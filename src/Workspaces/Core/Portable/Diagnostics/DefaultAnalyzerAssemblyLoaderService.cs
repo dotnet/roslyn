@@ -34,7 +34,7 @@ internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory(
             Path.Combine(Path.GetTempPath(), "CodeAnalysis", "WorkspacesAnalyzerShadowCopies", workspaceKind),
             externalResolvers: externalResolvers);
 
-        public IAnalyzerAssemblyLoader GetLoader()
+        public IAnalyzerAssemblyLoader GetShadowCopyLoader()
             => _shadowCopyLoader;
     }
 }

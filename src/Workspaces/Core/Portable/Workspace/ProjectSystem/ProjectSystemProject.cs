@@ -161,9 +161,9 @@ internal sealed partial class ProjectSystemProject
         _displayName = displayName;
 
         var provider = _projectSystemProjectFactory.Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-        // NOTE: The provider will always return the same singleton analyzer loader instance, which is important to
-        // ensure that shadow copied analyzer dependencies are correctly loaded.
-        _analyzerAssemblyLoader = provider.GetLoader();
+        // NOTE: The provider will always return the same singleton, shadow copying, analyzer loader instance, which is
+        // important to ensure that analyzer dependencies are correctly loaded.
+        _analyzerAssemblyLoader = provider.GetShadowCopyLoader();
 
         _sourceFiles = new BatchingDocumentCollection(
             this,

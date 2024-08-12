@@ -28,7 +28,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
         Public Sub GetReferenceCalledMultipleTimes()
             Using workspace = New TestWorkspace(composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim provider = workspace.Services.GetRequiredService(Of IAnalyzerAssemblyLoaderProvider)
-                Dim service = provider.GetLoader()
+                Dim service = provider.GetShadowCopyLoader()
                 Using tempRoot = New TempRoot(), analyzer = New ProjectAnalyzerReference(tempRoot.CreateFile().Path, service, HostDiagnosticUpdateSource.Instance, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
                     Dim reference1 = analyzer.GetReference()
                     Dim reference2 = analyzer.GetReference()
