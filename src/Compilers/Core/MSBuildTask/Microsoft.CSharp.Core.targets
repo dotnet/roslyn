@@ -68,7 +68,7 @@
   <Target Name="MetalamaTargetFrameworkNotSupportedWarning" BeforeTargets="CoreCompile" Condition="'$(MetalamaTargetFrameworkNotSupported)' != ''">
     <Warning
       Code="LAMA0622"
-      Text="The target framework $(TargetFramework) is not supported and C# language version was likely downgraded. Consider changing the &lt;TargetFramework&gt; property of your project file to a lower version." />
+      Text="Target framework $(TargetFramework) is not supported by this version of Metalama. The C# language version was likely downgraded, which can cause confusing errors. Consider changing the &lt;TargetFramework&gt; property of your project file to a lower version." />
   </Target>
 
   <!-- </Metalama> -->
