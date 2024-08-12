@@ -54,9 +54,6 @@ internal partial class SerializerService
         throw ExceptionUtilities.UnexpectedValue(reference.GetType());
     }
 
-    private static bool IsAnalyzerReferenceWithShadowCopyLoader(AnalyzerFileReference reference)
-        => reference.AssemblyLoader is ShadowCopyAnalyzerAssemblyLoader;
-
     public static Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -69,7 +66,6 @@ internal partial class SerializerService
             {
                 case AnalyzerFileReference file:
                     writer.WriteString(file.FullPath);
-                    writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
                     writer.WriteGuid(TryGetAnalyzerFileReferenceMvid(file));
                     break;
 
@@ -125,7 +121,6 @@ internal partial class SerializerService
             case AnalyzerFileReference file:
                 writer.WriteString(nameof(AnalyzerFileReference));
                 writer.WriteString(file.FullPath);
-                writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
 
                 // Note: it is intentional that we are not writing the MVID of the analyzer file reference over (even
                 // though we mixed it into the checksum).  We don't actually need the data on the other side as it will
@@ -167,8 +162,7 @@ internal partial class SerializerService
         {
             case nameof(AnalyzerFileReference):
                 var fullPath = reader.ReadRequiredString();
-                var shadowCopy = reader.ReadBoolean();
-                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetLoader(shadowCopy));
+                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetShadowCopyLoader());
 
             case nameof(AnalyzerImageReference):
                 var guid = reader.ReadGuid();

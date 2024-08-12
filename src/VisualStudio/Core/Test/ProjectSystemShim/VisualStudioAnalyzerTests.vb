@@ -21,14 +21,14 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <UseExportProvider>
     <Trait(Traits.Feature, Traits.Features.Diagnostics)>
-    Public Class VisualStudioAnalyzerTests
+    Public NotInheritable Class VisualStudioAnalyzerTests
         Private Shared ReadOnly s_compositionWithMockDiagnosticUpdateSourceRegistrationService As TestComposition = EditorTestCompositions.EditorFeatures
 
         <WpfFact>
         Public Sub GetReferenceCalledMultipleTimes()
             Using workspace = New TestWorkspace(composition:=s_compositionWithMockDiagnosticUpdateSourceRegistrationService)
                 Dim provider = workspace.Services.GetRequiredService(Of IAnalyzerAssemblyLoaderProvider)
-                Dim service = provider.GetLoader(shadowCopy:=True)
+                Dim service = provider.GetShadowCopyLoader()
                 Using tempRoot = New TempRoot(), analyzer = New ProjectAnalyzerReference(tempRoot.CreateFile().Path, service, HostDiagnosticUpdateSource.Instance, ProjectId.CreateNewId(), LanguageNames.VisualBasic)
                     Dim reference1 = analyzer.GetReference()
                     Dim reference2 = analyzer.GetReference()
