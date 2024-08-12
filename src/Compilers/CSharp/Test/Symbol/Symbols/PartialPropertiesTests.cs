@@ -5002,7 +5002,7 @@ public partial class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74679")]
-        public void WRN_SequentialOnPartialClass_NotReportedForPartialProperty()
+        public void WRN_SequentialOnPartialClass_NotReportedForPartialProperty_01()
         {
             var source = """
                 partial struct S
@@ -5015,6 +5015,31 @@ public partial class C
                     public S() => i = 42;
                     private readonly int i;
                     partial int I => i;
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74679")]
+        public void WRN_SequentialOnPartialClass_NotReportedForPartialProperty_02()
+        {
+            var source = """
+                partial struct S
+                {
+                    partial int I { get; }
+                }
+
+                partial struct S
+                {
+                    partial int I => i;
+                }
+
+                partial struct S
+                {
+                    public S() => i = 42;
+                    private readonly int i;
                 }
                 """;
 
