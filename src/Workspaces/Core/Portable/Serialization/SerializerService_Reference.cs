@@ -70,6 +70,7 @@ internal partial class SerializerService
                 case AnalyzerFileReference file:
                     writer.WriteString(file.FullPath);
                     writer.WriteBoolean(IsAnalyzerReferenceWithShadowCopyLoader(file));
+                    writer.WriteGuid(TryGetAnalyzerFileReferenceMvid(file));
                     break;
 
                 case AnalyzerImageReference analyzerImageReference:
@@ -142,8 +143,7 @@ internal partial class SerializerService
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        var type = reader.ReadString();
-        switch (type)
+        switch (reader.ReadString())
         {
             case nameof(AnalyzerFileReference):
                 var fullPath = reader.ReadRequiredString();
@@ -154,9 +154,10 @@ internal partial class SerializerService
                 var guid = reader.ReadGuid();
                 Contract.ThrowIfFalse(TryGetAnalyzerImageReferenceFromGuid(guid, out var analyzerImageReference));
                 return analyzerImageReference;
-        }
 
-        throw ExceptionUtilities.UnexpectedValue(type);
+            case var type:
+                throw ExceptionUtilities.UnexpectedValue(type);
+        }
     }
 
     protected static void WritePortableExecutableReferenceHeaderTo(
@@ -504,10 +505,23 @@ internal partial class SerializerService
         }
         catch
         {
-            // we have a reference but the file the reference is pointing to
-            // might not actually exist on disk.
-            // in that case, rather than crashing, we will handle it gracefully.
+            // We have a reference but the file the reference is pointing to might not actually exist on disk. In that
+            // case, rather than crashing, we will handle it gracefully.
             return null;
+        }
+    }
+
+    private static Guid TryGetAnalyzerFileReferenceMvid(AnalyzerFileReference file)
+    {
+        try
+        {
+            return AssemblyUtilities.ReadMvid(file.FullPath);
+        }
+        catch
+        {
+            // We have a reference but the file the reference is pointing to might not actually exist on disk. In that
+            // case, rather than crashing, we will handle it gracefully.
+            return Guid.Empty;
         }
     }
 
