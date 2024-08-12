@@ -67,9 +67,7 @@ stages:
         arguments: -DropNamePrefix 'Products' -VstsDropUrlsJson '$(Pipeline.Workspace)\VisualStudioBuildUnderTest\BuildArtifacts\VstsDropUrls.json' -OutVariableName 'VisualStudio.BuildUnderTest.ProductsDropName'
     deployAndRunTestsStepList:
     - checkout: RoslynMirror
-    - checkout: RoslynMirror
-      displayName: "Checkout Experiment Test Assets"
-      path: RoslynTestAssets
+    - powershell: cp -Path $(Pipeline.Workspace) -Destination RoslynTestAssets -Recurse
     - powershell: |
         $(Pipeline.Workspace)\RoslynTestAssets\Restore.cmd
       displayName: "Restore TestAssets"
