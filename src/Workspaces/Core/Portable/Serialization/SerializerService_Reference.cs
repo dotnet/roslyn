@@ -54,9 +54,6 @@ internal partial class SerializerService
         throw ExceptionUtilities.UnexpectedValue(reference.GetType());
     }
 
-    private static bool IsAnalyzerReferenceWithShadowCopyLoader(AnalyzerFileReference reference)
-        => reference.AssemblyLoader is ShadowCopyAnalyzerAssemblyLoader;
-
     public static Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
