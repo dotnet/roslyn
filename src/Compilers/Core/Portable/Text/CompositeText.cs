@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.Text
                 _compositeText = compositeText;
                 _segmentLineNumbers = new int[compositeText.Segments.Length];
 
-                var accumulatedLineCount = 0
+                var accumulatedLineCount = 0;
                 for (int i = 0; i < compositeText.Segments.Length; i++)
                 {
                     _segmentLineNumbers[i] = accumulatedLineCount;

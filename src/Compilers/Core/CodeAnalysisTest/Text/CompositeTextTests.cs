@@ -25,7 +25,7 @@ public sealed class CompositeTextTests
     [InlineData(["ab\r\ncd\r\nef\r\n"])]
     [InlineData(["ab\r\r\ncd\r\r\nef"])]
     [InlineData(["ab\n\n\rcd\n\n\ref"])]
-    public void CompositeTextIndexOfEqualSourceTextIndexOf(string contents)
+    public void CompositeTextLinesEqualSourceTextLinesPermutations(string contents)
     {
         // Please try to limit the inputs to this method to around 12 chars or less, as much longer than that
         // will blow up the number of potential permutations.
