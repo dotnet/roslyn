@@ -118,12 +118,14 @@ namespace Microsoft.CodeAnalysis.Text
 
                 if (_subText.UnderlyingSpan.Length > 0)
                 {
-                    if (startLine.End == _subText.UnderlyingSpan.Start - 1 && startLine.EndIncludingLineBreak == _subText.UnderlyingSpan.Start + 1)
+                    if (_subText.UnderlyingSpan.Start == startLine.End + 1 &&
+                        _subText.UnderlyingSpan.Start == startLine.EndIncludingLineBreak - 1)
                     {
                         _startsWithinSplitCRLF = true;
                     }
 
-                    if (endLine.End == _subText.UnderlyingSpan.End - 1 && endLine.EndIncludingLineBreak == _subText.UnderlyingSpan.End + 1)
+                    if (_subText.UnderlyingSpan.End == endLine.End + 1 &&
+                        _subText.UnderlyingSpan.End == endLine.EndIncludingLineBreak - 1)
                     {
                         _endsWithinSplitCRLF = true;
 

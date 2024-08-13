@@ -429,9 +429,9 @@ namespace Microsoft.CodeAnalysis.Text
                 _compositeText.GetIndexAndOffset(position, out var segmentIndex, out var segmentOffset);
 
                 var segment = _compositeText.Segments[segmentIndex];
-                var lineIndexWithinSegment = segment.Lines.IndexOf(segmentOffset);
+                var lineNumberWithinSegment = segment.Lines.IndexOf(segmentOffset);
 
-                return _segmentLineNumbers[segmentIndex] + lineIndexWithinSegment;
+                return _segmentLineNumbers[segmentIndex] + lineNumberWithinSegment;
             }
 
             public override TextLine this[int lineNumber]
@@ -465,6 +465,7 @@ namespace Microsoft.CodeAnalysis.Text
                 int idx = _segmentLineNumbers.BinarySearch(lineNumber);
                 var binarySearchSegmentIndex = idx >= 0 ? idx : (~idx - 1);
 
+                // Walk backwards starting at binarySearchSegmentIndex to find the earliest segment index that intersects this line number
                 for (firstSegmentIndex = binarySearchSegmentIndex; firstSegmentIndex > 0; firstSegmentIndex--)
                 {
                     if (_segmentLineNumbers[firstSegmentIndex] != lineNumber)
@@ -477,7 +478,7 @@ namespace Microsoft.CodeAnalysis.Text
                     // 1) it ends in \n or
                     // 2) if ends in \r and the current segment doesn't start with \n
                     var previousSegment = _compositeText.Segments[firstSegmentIndex - 1];
-                    var previousSegmentLastChar = previousSegment.Length > 0 ? previousSegment[previousSegment.Length - 1] : '\0';
+                    var previousSegmentLastChar = previousSegment.Length > 0 ? previousSegment[^1] : '\0';
                     if (previousSegmentLastChar == '\n')
                     {
                         break;
