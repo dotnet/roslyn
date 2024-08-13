@@ -47,8 +47,8 @@ internal sealed partial class ProjectSystemProjectFactory
         ImmutableDictionary<ProjectId, ProjectReferenceInformation> ProjectReferenceInfos,
         ImmutableArray<PortableExecutableReference> RemovedMetadataReferences,
         ImmutableArray<PortableExecutableReference> AddedMetadataReferences,
-        ImmutableArray<AnalyzerReference> RemovedAnalyzerReferences,
-        ImmutableArray<AnalyzerReference> AddedAnalyzerReferences)
+        ImmutableArray<AnalyzerFileReference> RemovedAnalyzerReferences,
+        ImmutableArray<AnalyzerFileReference> AddedAnalyzerReferences)
     {
         public static ProjectUpdateState Empty = new(
             ImmutableDictionary<string, ImmutableArray<ProjectId>>.Empty.WithComparers(StringComparer.OrdinalIgnoreCase),
@@ -114,10 +114,10 @@ internal sealed partial class ProjectSystemProjectFactory
         public ProjectUpdateState WithIncrementalMetadataReferenceAdded(PortableExecutableReference reference)
             => this with { AddedMetadataReferences = AddedMetadataReferences.Add(reference) };
 
-        public ProjectUpdateState WithIncrementalAnalyzerReferenceRemoved(AnalyzerReference reference)
+        public ProjectUpdateState WithIncrementalAnalyzerReferenceRemoved(AnalyzerFileReference reference)
             => this with { RemovedAnalyzerReferences = RemovedAnalyzerReferences.Add(reference) };
 
-        public ProjectUpdateState WithIncrementalAnalyzerReferenceAdded(AnalyzerReference reference)
+        public ProjectUpdateState WithIncrementalAnalyzerReferenceAdded(AnalyzerFileReference reference)
             => this with { AddedAnalyzerReferences = AddedAnalyzerReferences.Add(reference) };
 
         /// <summary>

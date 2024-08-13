@@ -428,6 +428,7 @@ internal sealed partial class ProjectSystemProject
                                 [documentId]);
                         }
                     }
+
                     return projectUpdateState;
                 }, onAfterUpdateAlways: null).ConfigureAwait(false);
 

@@ -170,7 +170,7 @@ internal sealed class FileWatchedReferenceFactory<TReference>
 
 internal static class FileWatchedReferenceFactory
 {
-    public static FileWatchedReferenceFactory<AnalyzerReference> CreateAnalyzerReferenceFactory(IFileChangeWatcher fileChangeWatcher)
+    public static FileWatchedReferenceFactory<AnalyzerFileReference> CreateAnalyzerReferenceFactory(IFileChangeWatcher fileChangeWatcher)
         => new(fileChangeWatcher, static () => []);
 
     public static FileWatchedReferenceFactory<PortableExecutableReference> CreateMetadataReferenceFactory(IFileChangeWatcher fileChangeWatcher)
