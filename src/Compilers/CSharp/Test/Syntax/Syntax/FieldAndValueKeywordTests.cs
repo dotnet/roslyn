@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Field_01(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class D4 : A { object this[int i] { set { {{identifier}} = 0; } } }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (!escapeIdentifier && languageVersion > LanguageVersion.CSharp12)
+            if (!escapeIdentifier && languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
                     // (4,28): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Event_01(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 #pragma warning disable 649
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ExplicitImplementation_01(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (!escapeIdentifier && languageVersion > LanguageVersion.CSharp12)
+            if (!escapeIdentifier && languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
                     // (10,25): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ExplicitImplementation_02(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ExplicitImplementation_04(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_IdentifierNameSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 8981
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_GenericNameSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 8981
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_Invocation(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion > LanguageVersion.CSharp12)
+            if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
                     // (6,33): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
@@ -262,7 +262,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_Index(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion > LanguageVersion.CSharp12)
+            if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
                     // (5,29): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_TupleElementSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 219
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_FromClauseSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 using System.Linq;
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion > LanguageVersion.CSharp12)
+            if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
                     // (4,59): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_LetClauseSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 using System.Linq;
@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion > LanguageVersion.CSharp12)
+            if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
                     // (4,69): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_JoinClauseSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 using System.Linq;
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion > LanguageVersion.CSharp12)
+            if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
                     // (4,85): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_JoinIntoClauseSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 using System.Linq;
@@ -399,7 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion > LanguageVersion.CSharp12)
+            if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
                     // (4,101): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_QueryContinuationSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 using System.Linq;
@@ -426,7 +426,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion > LanguageVersion.CSharp12)
+            if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
                     // (4,75): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
@@ -442,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_LocalFunctionStatementSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 8321
@@ -459,7 +459,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_VariableDeclaratorSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 219
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_SingleVariableDesignationSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 class C
@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_LabeledStatementSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 164
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_ForEachStatementSyntax_01(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 class C
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_ForEachStatementSyntax_02(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 class C
@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_CatchDeclarationSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 168
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_TypeParameterSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 8321, 8981
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_ParameterSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 8321
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion > LanguageVersion.CSharp12)
+            if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
                     // (4,50): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_AttributeTargetSpecifierSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 #pragma warning disable 657
@@ -635,7 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Deconstruction(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 168 // variable is declared but never used
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion > LanguageVersion.CSharp12)
+            if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
                     // (10,20): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Lambda_01(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion > LanguageVersion.CSharp12)
+            if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
                     // (11,23): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void LocalFunction_01(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649, 8321
@@ -734,7 +734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (languageVersion > LanguageVersion.CSharp12)
+            if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
                     // (9,28): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
@@ -888,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Attribute_01(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
             string source = $$"""
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (!escapeIdentifier && languageVersion > LanguageVersion.CSharp12)
+            if (!escapeIdentifier && languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
                     // (12,19): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
@@ -940,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Attribute_LocalFunction(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
             string source = $$"""
@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 comp.VerifyEmitDiagnostics();
             }
-            else if (languageVersion > LanguageVersion.CSharp12)
+            else if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
                     // (13,23): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.

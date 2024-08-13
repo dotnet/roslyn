@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static bool IsParsedAsToken(LanguageVersion languageVersion, bool escapeIdentifier)
         {
-            return !escapeIdentifier && languageVersion > LanguageVersion.CSharp12;
+            return !escapeIdentifier && languageVersion > LanguageVersion.CSharp13;
         }
 
         private void IdentifierNameOrFieldExpression(LanguageVersion languageVersion, bool escapeIdentifier)
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Property_Initializer(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             UsingTree($$"""
                 class C
@@ -111,9 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Property_ExpressionBody(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
-            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12;
+            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp13;
             UsingTree($$"""
                 class C
                 {
@@ -153,9 +153,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void PropertyGet_ExpressionBody(
-           [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+           [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
-            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12;
+            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp13;
             UsingTree($$"""
                 class C
                 {
@@ -204,9 +204,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void PropertyGet_BlockBody(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
-            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12;
+            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp13;
             UsingTree($$"""
                 class C
                 {
@@ -260,10 +260,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void PropertySet_BlockBody(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useInit)
         {
-            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12;
+            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp13;
             UsingTree($$"""
                 class C
                 {
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Indexer_ExpressionBody(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             UsingTree($$"""
                 class C
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IndexerGet_ExpressionBody(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             UsingTree($$"""
                 class C
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IndexerGet_BlockBody(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
         {
             UsingTree($$"""
                 class C
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IndexerSet_BlockBody(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useInit)
         {
             UsingTree($$"""
@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void EventAccessor(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useRemove)
         {
             UsingTree($$"""
@@ -664,10 +664,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ExplicitImplementation_PropertySet_BlockBody(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useInit)
         {
-            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp12;
+            bool expectedParsedAsToken = languageVersion > LanguageVersion.CSharp13;
             UsingTree($$"""
                 class C
                 {
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ExplicitImplementation_IndexerSet_BlockBody(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool useInit)
         {
             UsingTree($$"""
@@ -841,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Invocation(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             UsingTree($$"""
@@ -891,7 +891,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ElementAccess(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             UsingTree($$"""
@@ -948,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void PreIncrement(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             UsingTree($$"""
@@ -994,7 +994,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void PostIncrement(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             UsingTree($$"""
@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void PointerIndirection(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             UsingTree($$"""
@@ -1086,7 +1086,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void PointerMemberAccess(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             UsingTree($$"""
@@ -1136,7 +1136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ConditionalAccess(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             UsingTree($$"""
@@ -1190,7 +1190,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NullableSuppression(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             UsingTree($$"""
@@ -1236,7 +1236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Arguments(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = GetFieldIdentifier(escapeIdentifier);
@@ -1305,7 +1305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void QualifiedName_01(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = GetFieldIdentifier(escapeIdentifier);
@@ -1356,7 +1356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void QualifiedName_02(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = GetFieldIdentifier(escapeIdentifier);
@@ -1410,7 +1410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void AliasQualifiedName(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = GetFieldIdentifier(escapeIdentifier);
@@ -1472,7 +1472,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NameOf(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             UsingTree($$"""
@@ -1550,7 +1550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Lvalue(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             UsingTree($$"""
@@ -1613,7 +1613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NewTypeName(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = GetFieldIdentifier(escapeIdentifier);
@@ -1689,7 +1689,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void LambdaBody(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = GetFieldIdentifier(escapeIdentifier);
@@ -1740,7 +1740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void LocalFunctionBody(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = GetFieldIdentifier(escapeIdentifier);
@@ -1830,7 +1830,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void CatchDeclaration(
-            [CombinatorialValues(LanguageVersion.CSharp12, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = GetFieldIdentifier(escapeIdentifier);
