@@ -4,8 +4,12 @@
 
 #nullable disable
 
+using System.Linq;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -1065,17 +1069,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(sourceA);
             var refA = comp.EmitToImageReference();
 
-            string sourceB = """
-                class DerivedA : Base
+            string sourceB1 = """
+                class Derived : Base
                 {
-                    string P => field;
-                }
-                class DerivedB : Base
-                {
-                    string P => @field;
+                    string P => field; // synthesized backing field
                 }
                 """;
-            comp = CreateCompilation(sourceB, references: [refA], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp = CreateCompilation(sourceB1, references: [refA], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
@@ -1086,6 +1086,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 comp.VerifyEmitDiagnostics();
+            }
+            verify(comp, synthesizeField: languageVersion > LanguageVersion.CSharp13);
+
+            string sourceB2 = """
+                class Derived : Base
+                {
+                    string P => @field; // Base.field
+                }
+                """;
+            comp = CreateCompilation(sourceB2, references: [refA], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+            verify(comp, synthesizeField: false);
+
+            string sourceB3 = """
+                class Derived : Base
+                {
+                    string P => this.field; // Base.field
+                }
+                """;
+            comp = CreateCompilation(sourceB3, references: [refA], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+            verify(comp, synthesizeField: false);
+
+            string sourceB4 = """
+                class Derived : Base
+                {
+                    string P => base.field; // Base.field
+                }
+                """;
+            comp = CreateCompilation(sourceB4, references: [refA], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+            verify(comp, synthesizeField: false);
+
+            string sourceB5 = """
+                class Derived : Base
+                {
+                #pragma warning disable 9258 // 'field' is a contextual keyword
+                    string P => field; // synthesized backing field
+                }
+                """;
+            comp = CreateCompilation(sourceB5, references: [refA], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            comp.VerifyEmitDiagnostics();
+            verify(comp, synthesizeField: languageVersion > LanguageVersion.CSharp13);
+
+            static void verify(CSharpCompilation comp, bool synthesizeField)
+            {
+                var syntaxTree = comp.SyntaxTrees[0];
+                var model = comp.GetSemanticModel(syntaxTree);
+                var expr = syntaxTree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+
+                var symbolInfo = model.GetSymbolInfo(expr);
+                string expectedSymbol = synthesizeField ? "System.String Derived.<P>k__BackingField" : "System.String Base.field";
+                Assert.Equal(expectedSymbol, symbolInfo.Symbol.ToTestDisplayString());
+
+                var actualFields = comp.GetMember<NamedTypeSymbol>("Derived").GetMembers().Where(m => m.Kind == SymbolKind.Field).ToTestDisplayStrings();
+                string[] expectedFields = synthesizeField ? ["System.String Derived.<P>k__BackingField"] : [];
+                AssertEx.Equal(expectedFields, actualFields);
             }
         }
     }
