@@ -2927,6 +2927,11 @@
         <target state="new">'{0}' binds to the synthesized backing field for the property in language version {1}. Use '@{0}' to bind to the existing symbol instead.</target>
         <note />
       </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous_Title">
+        <source>'field' binds to the synthesized backing field for the property. Use '@field' to bind to the existing symbol instead.</source>
+        <target state="new">'field' binds to the synthesized backing field for the property. Use '@field' to bind to the existing symbol instead.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
         <source>Inline array conversion operator will not be used for conversion from expression of the declaring type.</source>
         <target state="translated">인라인 배열 변환 연산자는 선언 형식의 식에서 변환하는 데 사용되지 않습니다.</target>

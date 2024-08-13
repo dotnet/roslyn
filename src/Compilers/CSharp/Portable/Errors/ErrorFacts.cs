@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
                 case ErrorCode.WRN_PartialPropertySignatureDifference:
-
+                case ErrorCode.WRN_FieldIsAmbiguous:
                     return 1;
                 default:
                     return 0;

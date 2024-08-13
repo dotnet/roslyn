@@ -6871,6 +6871,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_FieldIsAmbiguous" xml:space="preserve">
     <value>'{0}' binds to the synthesized backing field for the property in language version {1}. Use '@{0}' to bind to the existing symbol instead.</value>
   </data>
+  <data name="WRN_FieldIsAmbiguous_Title" xml:space="preserve">
+    <value>'field' binds to the synthesized backing field for the property. Use '@field' to bind to the existing symbol instead.</value>
+  </data>
   <data name="INF_IdentifierConflictWithContextualKeyword_Title" xml:space="preserve">
     <value>Identifier is a contextual keyword, with a specific meaning, in a later language version.</value>
   </data>
