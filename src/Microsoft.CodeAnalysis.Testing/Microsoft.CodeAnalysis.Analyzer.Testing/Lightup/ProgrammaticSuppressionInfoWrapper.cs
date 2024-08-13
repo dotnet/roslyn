@@ -12,13 +12,13 @@ namespace Microsoft.CodeAnalysis.Testing.Lightup
     {
         internal const string WrappedTypeName = "Microsoft.CodeAnalysis.Diagnostics.ProgrammaticSuppressionInfo";
         internal static readonly Type? WrappedType = typeof(Diagnostic).GetTypeInfo().Assembly.GetType(WrappedTypeName);
-        private static readonly Func<object, ImmutableHashSet<(string id, LocalizableString justification)>> s_suppressions;
+        private static readonly Func<object, object> s_suppressions;
 
         private readonly object _instance;
 
         static ProgrammaticSuppressionInfoWrapper()
         {
-            s_suppressions = LightupHelpers.CreatePropertyAccessor<object, ImmutableHashSet<(string id, LocalizableString justification)>>(WrappedType, nameof(Suppressions), ImmutableHashSet<(string id, LocalizableString justification)>.Empty);
+            s_suppressions = LightupHelpers.CreatePropertyAccessor<object, object>(WrappedType, nameof(Suppressions), ImmutableHashSet<(string id, LocalizableString justification)>.Empty);
         }
 
         private ProgrammaticSuppressionInfoWrapper(object instance)
@@ -26,7 +26,20 @@ namespace Microsoft.CodeAnalysis.Testing.Lightup
             _instance = instance;
         }
 
-        public ImmutableHashSet<(string id, LocalizableString justification)> Suppressions => s_suppressions(_instance);
+        public ImmutableHashSet<(string id, LocalizableString justification)> Suppressions
+        {
+            get
+            {
+                var suppressions = s_suppressions(_instance);
+                if (suppressions is ImmutableHashSet<(string id, LocalizableString justification)> set)
+                {
+                    return set;
+                }
+
+                // https://github.com/dotnet/roslyn-sdk/issues/1175
+                throw new NotImplementedException("The test framework does not yet support suppressions format from Roslyn 4.10+");
+            }
+        }
 
         public static ProgrammaticSuppressionInfoWrapper FromInstance(object instance)
         {
