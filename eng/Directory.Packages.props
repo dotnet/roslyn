@@ -121,7 +121,7 @@
     <!--
       VS Debugger
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.11.0-beta.24274.2" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.12.0-beta.24403.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="17.8.1072001-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="17.8.1072001-preview" />
 
@@ -228,11 +228,14 @@
     <PackageVersion Include="System.Threading.Channels" Version="7.0.0" />
 
     <!--
-      System.Net.Http and System.Private.Uri are used to eliminate our reference to old packages with vulnerability.
-      They are introduced by other component. Tracked issues:https://github.com/xunit/xunit/issues/2778 and https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1886496
+      Packages that are pinned to avoid component governance alerts.
+      Tracked issues:
+        https://github.com/xunit/xunit/issues/2778 
+        https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1886496
     -->
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
+    <PackageVersion Include="Microsoft.IO.Redist" Version="6.0.1" />
 
     <PackageVersion Include="SQLitePCLRaw.core" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="$(SqliteVersion)" />

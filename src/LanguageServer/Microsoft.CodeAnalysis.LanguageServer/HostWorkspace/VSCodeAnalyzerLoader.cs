@@ -13,21 +13,16 @@ using Microsoft.Extensions.Logging;
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
 [ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider), [WorkspaceKind.Host]), Shared]
-internal class VSCodeAnalyzerLoaderProvider : AbstractAnalyzerAssemblyLoaderProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSCodeAnalyzerLoaderProvider(
+    ExtensionAssemblyManager extensionAssemblyManager,
+    ILoggerFactory loggerFactory,
+    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
+    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers.ToImmutableArray())
 {
-    private readonly ExtensionAssemblyManager _extensionAssemblyManager;
-    private readonly ILoggerFactory _loggerFactory;
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VSCodeAnalyzerLoaderProvider(
-        ExtensionAssemblyManager extensionAssemblyManager,
-        ILoggerFactory loggerFactory,
-        [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers) : base(externalResolvers)
-    {
-        _extensionAssemblyManager = extensionAssemblyManager;
-        _loggerFactory = loggerFactory;
-    }
+    private readonly ExtensionAssemblyManager _extensionAssemblyManager = extensionAssemblyManager;
+    private readonly ILoggerFactory _loggerFactory = loggerFactory;
 
     protected override IAnalyzerAssemblyLoader CreateShadowCopyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
     {

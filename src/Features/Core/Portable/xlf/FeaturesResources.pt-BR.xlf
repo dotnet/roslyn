@@ -2920,6 +2920,11 @@ As declarações de lookbehind positivas de largura zero normalmente são usadas
         <target state="translated">Atualizar o tamanho de um {0} requer a reinicialização do aplicativo.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Updating_the_type_of_0_around_an_active_statement_requires_restarting_the_application">
+        <source>Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</source>
+        <target state="new">Updating the type of {0} (from '{1}' to '{2}') around an active statement requires restarting the application.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Updating_the_type_of_0_requires_restarting_the_application">
         <source>Updating the type of {0} requires restarting the application.</source>
         <target state="translated">Atualizar o tipo de {0} requer a reinicialização do aplicativo.</target>

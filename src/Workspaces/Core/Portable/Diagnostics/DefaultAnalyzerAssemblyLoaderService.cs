@@ -14,15 +14,15 @@ namespace Microsoft.CodeAnalysis.Host;
 [ExportWorkspaceServiceFactory(typeof(IAnalyzerAssemblyLoaderProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory([ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers) : IWorkspaceServiceFactory
+internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory(
+    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers) : IWorkspaceServiceFactory
 {
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         => new DefaultAnalyzerAssemblyLoaderProvider(workspaceServices.Workspace.Kind ?? "default", [.. externalResolvers]);
 
-    private sealed class DefaultAnalyzerAssemblyLoaderProvider(string workspaceKind, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers) : IAnalyzerAssemblyLoaderProvider
+    private sealed class DefaultAnalyzerAssemblyLoaderProvider(string workspaceKind, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+        : IAnalyzerAssemblyLoaderProvider
     {
-        private readonly DefaultAnalyzerAssemblyLoader _loader = new(externalResolvers);
-
         /// <summary>
         /// We include the <see cref="WorkspaceKind"/> of the workspace in the path we produce.  That way we don't
         /// collide in the common case of a normal host workspace and OOP workspace running together.  This avoids an
@@ -34,7 +34,7 @@ internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory([ImportMany] I
             Path.Combine(Path.GetTempPath(), "CodeAnalysis", "WorkspacesAnalyzerShadowCopies", workspaceKind),
             externalResolvers: externalResolvers);
 
-        public IAnalyzerAssemblyLoader GetLoader(bool shadowCopy)
-            => shadowCopy ? _shadowCopyLoader : _loader;
+        public IAnalyzerAssemblyLoader GetShadowCopyLoader()
+            => _shadowCopyLoader;
     }
 }

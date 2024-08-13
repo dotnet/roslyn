@@ -118,9 +118,6 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         GenerationDateTime = generationDateTime;
     }
 
-    protected override TextDocumentState UpdateAttributes(DocumentInfo.DocumentAttributes newAttributes)
-        => throw ExceptionUtilities.Unreachable();
-
     private static Checksum ComputeContentHash(SourceText text)
         => Checksum.From(text.GetContentHash());
 
@@ -129,6 +126,12 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
 
     public SourceGeneratedDocumentContentIdentity GetContentIdentity()
         => new(this.GetOriginalSourceTextContentHash(), this.SourceText.Encoding?.WebName, this.SourceText.ChecksumAlgorithm);
+
+    protected override TextDocumentState UpdateAttributes(DocumentInfo.DocumentAttributes newAttributes)
+        => throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
+
+    protected override TextDocumentState UpdateDocumentServiceProvider(IDocumentServiceProvider? newProvider)
+        => throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
 
     protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
         => throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);

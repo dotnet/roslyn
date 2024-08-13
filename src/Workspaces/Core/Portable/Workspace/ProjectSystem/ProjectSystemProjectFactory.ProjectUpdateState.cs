@@ -34,17 +34,17 @@ internal sealed partial class ProjectSystemProjectFactory
     /// <param name="ProjectReferenceInfos">
     /// Global state containing output paths and converted project reference information for each project.
     /// </param>
-    /// <param name="RemovedReferences">
+    /// <param name="RemovedMetadataReferences">
     /// Incremental state containing references removed in the current update.
     /// </param>
-    /// <param name="AddedReferences">
+    /// <param name="AddedMetadataReferences">
     /// Incremental state containing references added in the current update.
     /// </param>
     public sealed record class ProjectUpdateState(
         ImmutableDictionary<string, ImmutableArray<ProjectId>> ProjectsByOutputPath,
         ImmutableDictionary<ProjectId, ProjectReferenceInformation> ProjectReferenceInfos,
-        ImmutableArray<PortableExecutableReference> RemovedReferences,
-        ImmutableArray<PortableExecutableReference> AddedReferences)
+        ImmutableArray<PortableExecutableReference> RemovedMetadataReferences,
+        ImmutableArray<PortableExecutableReference> AddedMetadataReferences)
     {
         public static ProjectUpdateState Empty = new(
             ImmutableDictionary<string, ImmutableArray<ProjectId>>.Empty.WithComparers(StringComparer.OrdinalIgnoreCase),
@@ -104,19 +104,19 @@ internal sealed partial class ProjectSystemProjectFactory
             }
         }
 
-        public ProjectUpdateState WithIncrementalReferenceRemoved(PortableExecutableReference reference)
+        public ProjectUpdateState WithIncrementalMetadataReferenceRemoved(PortableExecutableReference reference)
         {
             return this with
             {
-                RemovedReferences = RemovedReferences.Add(reference)
+                RemovedMetadataReferences = RemovedMetadataReferences.Add(reference)
             };
         }
 
-        public ProjectUpdateState WithIncrementalReferenceAdded(PortableExecutableReference reference)
+        public ProjectUpdateState WithIncrementalMetadataReferenceAdded(PortableExecutableReference reference)
         {
             return this with
             {
-                AddedReferences = AddedReferences.Add(reference)
+                AddedMetadataReferences = AddedMetadataReferences.Add(reference)
             };
         }
 
@@ -127,8 +127,8 @@ internal sealed partial class ProjectSystemProjectFactory
         {
             return this with
             {
-                RemovedReferences = [],
-                AddedReferences = []
+                RemovedMetadataReferences = [],
+                AddedMetadataReferences = []
             };
         }
     }
