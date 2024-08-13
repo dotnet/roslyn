@@ -5,6 +5,7 @@
 #nullable disable
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -1047,6 +1048,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (3,16): warning CS0649: Field 'C.field' is never assigned to, and will always have its default value 0
                     //     static int field;
                     Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "0").WithLocation(3, 16));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void BaseClassMember(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            string sourceA = """
+                public class Base
+                {
+                    protected string field;
+                }
+                """;
+            var comp = CreateCompilation(sourceA);
+            var refA = comp.EmitToImageReference();
+
+            string sourceB = """
+                class DerivedA : Base
+                {
+                    string P => field;
+                }
+                class DerivedB : Base
+                {
+                    string P => @field;
+                }
+                """;
+            comp = CreateCompilation(sourceB, references: [refA], parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,17): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    //     string P => field;
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(3, 17));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
             }
         }
     }
