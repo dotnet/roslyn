@@ -385,36 +385,41 @@ namespace Microsoft.CodeAnalysis.Text
         private sealed class CompositeLineInfo : TextLineCollection
         {
             private readonly CompositeText _compositeText;
-            private readonly int[] _segmentLineIndexes;
+
+            // The starting line number for the correspondingly indexed SourceTexts in _compositeText.Segments
+            private readonly int[] _segmentLineNumbers;
+
+            // The total number of lines in our _compositeText
             private readonly int _lineCount;
 
             public CompositeLineInfo(CompositeText compositeText)
             {
                 _compositeText = compositeText;
-                _segmentLineIndexes = new int[compositeText.Segments.Length];
+                _segmentLineNumbers = new int[compositeText.Segments.Length];
 
+                var accumulatedLineCount = 0
                 for (int i = 0; i < compositeText.Segments.Length; i++)
                 {
-                    _segmentLineIndexes[i] = _lineCount;
+                    _segmentLineNumbers[i] = accumulatedLineCount;
 
                     var segment = compositeText.Segments[i];
-                    _lineCount += (segment.Lines.Count - 1);
+                    accumulatedLineCount += (segment.Lines.Count - 1);
 
                     // If "\r\n" is split amongst adjacent segments, reduce the line count by one as both segments
                     // would count their corresponding CR or LF as a newline.
                     if (segment.Length > 0 &&
-                        segment[segment.Length - 1] == '\r' &&
+                        segment[^1] == '\r' &&
                         i < compositeText.Segments.Length - 1)
                     {
                         var nextSegment = compositeText.Segments[i + 1];
                         if (nextSegment.Length > 0 && nextSegment[0] == '\n')
                         {
-                            _lineCount -= 1;
+                            accumulatedLineCount -= 1;
                         }
                     }
                 }
 
-                _lineCount += 1;
+                _lineCount = accumulatedLineCount + 1;
             }
 
             public override int Count => _lineCount;
@@ -426,17 +431,17 @@ namespace Microsoft.CodeAnalysis.Text
                 var segment = _compositeText.Segments[segmentIndex];
                 var lineIndexWithinSegment = segment.Lines.IndexOf(segmentOffset);
 
-                return _segmentLineIndexes[segmentIndex] + lineIndexWithinSegment;
+                return _segmentLineNumbers[segmentIndex] + lineIndexWithinSegment;
             }
 
             public override TextLine this[int lineNumber]
             {
                 get
                 {
-                    // Determine the indexes for segments that contribute to our view of this line's contents
+                    // Determine the indices for segments that contribute to our view of this line's contents
                     GetSegmentIndexRangeContainingLine(lineNumber, out var firstSegmentIndex, out var lastSegmentIndex);
 
-                    var firstSegmentFirstLineNumber = _segmentLineIndexes[firstSegmentIndex];
+                    var firstSegmentFirstLineNumber = _segmentLineNumbers[firstSegmentIndex];
                     var firstSegment = _compositeText.Segments[firstSegmentIndex];
                     var firstSegmentOffset = _compositeText._segmentOffsets[firstSegmentIndex];
                     var firstSegmentTextLine = firstSegment.Lines[lineNumber - firstSegmentFirstLineNumber];
@@ -457,12 +462,12 @@ namespace Microsoft.CodeAnalysis.Text
 
             private void GetSegmentIndexRangeContainingLine(int lineNumber, out int firstSegmentIndex, out int lastSegmentIndex)
             {
-                int idx = _segmentLineIndexes.BinarySearch(lineNumber);
+                int idx = _segmentLineNumbers.BinarySearch(lineNumber);
                 var binarySearchSegmentIndex = idx >= 0 ? idx : (~idx - 1);
 
                 for (firstSegmentIndex = binarySearchSegmentIndex; firstSegmentIndex > 0; firstSegmentIndex--)
                 {
-                    if (_segmentLineIndexes[firstSegmentIndex] != lineNumber)
+                    if (_segmentLineNumbers[firstSegmentIndex] != lineNumber)
                     {
                         // This segment doesn't start at the requested line, no need to continue to earlier segments.
                         break;
@@ -487,11 +492,11 @@ namespace Microsoft.CodeAnalysis.Text
                     }
                 }
 
-                // Determining the lastSegment is a simple walk as the _segmentLineIndexes was populated
+                // Determining the lastSegment is a simple walk as the _segmentLineNumbers was populated
                 // accounting for split "\r\n".
                 for (lastSegmentIndex = binarySearchSegmentIndex; lastSegmentIndex < _compositeText.Segments.Length - 1; lastSegmentIndex++)
                 {
-                    if (_segmentLineIndexes[lastSegmentIndex + 1] != lineNumber)
+                    if (_segmentLineNumbers[lastSegmentIndex + 1] != lineNumber)
                     {
                         break;
                     }
