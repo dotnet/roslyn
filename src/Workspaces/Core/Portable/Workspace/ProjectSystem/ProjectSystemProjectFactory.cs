@@ -83,8 +83,8 @@ internal sealed partial class ProjectSystemProjectFactory
         FileWatchedPortableExecutableReferenceFactory = new FileWatchedPortableExecutableReferenceFactory(fileChangeWatcher);
         FileWatchedPortableExecutableReferenceFactory.ReferenceChanged += this.StartRefreshingMetadataReferencesForFile;
 
-        FileWatchedProjectAnalyzerReferenceFactory = new FileWatchedProjectAnalyzerReferenceFactory(fileChangeWatcher);
-        FileWatchedProjectAnalyzerReferenceFactory.ReferenceChanged += this.StartRefreshingProjectAnalyzerReferenceForFile;
+        FileWatchedAnalyzerReferenceFactory = new FileWatchedAnalyzerReferenceFactory(fileChangeWatcher);
+        FileWatchedAnalyzerReferenceFactory.ReferenceChanged += this.StartRefreshingAnalyzerReferenceForFile;
 
         _onDocumentsAddedMaybeAsync = onDocumentsAddedMaybeAsync;
         _onProjectRemoved = onProjectRemoved;
@@ -416,11 +416,11 @@ internal sealed partial class ProjectSystemProjectFactory
 
         // Remove file watchers for any references we're no longer watching.
         foreach (var reference in projectUpdateState.RemovedAnalyzerReferences)
-            FileWatchedProjectAnalyzerReferenceFactory.StopWatchingReference(reference);
+            FileWatchedAnalyzerReferenceFactory.StopWatchingReference(reference);
 
         // Add file watchers for any references we are now watching.
         foreach (var reference in projectUpdateState.AddedAnalyzerReferences)
-            FileWatchedProjectAnalyzerReferenceFactory.StartWatchingReference(reference, reference.FullPath!);
+            FileWatchedAnalyzerReferenceFactory.StartWatchingReference(reference, reference.FullPath!);
 
         // Clear the state from the this update in preparation for the next.
         projectUpdateState = projectUpdateState.ClearIncrementalState();
@@ -846,9 +846,9 @@ internal sealed partial class ProjectSystemProjectFactory
         }
     }
 
-    private void StartRefreshingProjectAnalyzerReferenceForFile(object? sender, string fullFilePath)
+    private void StartRefreshingAnalyzerReferenceForFile(object? sender, string fullFilePath)
     {
-        using var asyncToken = WorkspaceListener.BeginAsyncOperation(nameof(StartRefreshingProjectAnalyzerReferenceForFile));
+        using var asyncToken = WorkspaceListener.BeginAsyncOperation(nameof(StartRefreshingAnalyzerReferenceForFile));
 
         var task = StartRefreshingProjectAnalyzerReferenceForFileAsync(sender, fullFilePath);
         task.CompletesAsyncOperation(asyncToken);
