@@ -90,7 +90,7 @@ internal sealed partial class ProjectSystemProjectFactory
     }
 
     public FileTextLoader CreateFileTextLoader(string fullPath)
-        => new WorkspaceFileTextLoader(this.Workspace.Services.SolutionServices, fullPath, defaultEncoding: null);
+        => new WorkspaceFileTextLoader(this.SolutionServices, fullPath, defaultEncoding: null);
 
     public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, ProjectSystemProjectCreationInfo creationInfo, ProjectSystemHostInfo hostInfo)
     {
