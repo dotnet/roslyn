@@ -802,25 +802,40 @@ internal sealed partial class ProjectSystemProjectFactory
     }
 
     private void StartRefreshingMetadataReferencesForFile(object? sender, string fullFilePath)
-    {
-        StartRefreshingReferencesForFile(
+        => StartRefreshingReferencesForFile(
             fullFilePath,
             static project => project.MetadataReferences.OfType<PortableExecutableReference>(),
             static reference => reference.FilePath!,
-            static (reference, @this) => CreateMetadataReference_NoLock(reference.FilePath!, reference.Properties, @this.SolutionServices),
+            static (@this, reference) => CreateMetadataReference_NoLock(reference.FilePath!, reference.Properties, @this.SolutionServices),
             static (projectUpdateState, oldReference, newReference) => projectUpdateState
                 .WithIncrementalMetadataReferenceRemoved(oldReference)
                 .WithIncrementalMetadataReferenceAdded(newReference),
             static (solution, projectId, oldReference, newReference) => solution
                 .RemoveMetadataReference(projectId, oldReference)
                 .AddMetadataReference(projectId, newReference));
-    }
 
+    private void StartRefreshingAnalyzerReferenceForFile(object? sender, string fullFilePath)
+        => StartRefreshingReferencesForFile(
+            fullFilePath,
+            static project => project.AnalyzerReferences.OfType<AnalyzerFileReference>(),
+            static reference => reference.FullPath,
+            static (@this, reference) => new AnalyzerFileReference(reference.FullPath, @this.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>().GetShadowCopyLoader()),
+            static (projectUpdateState, oldReference, newReference) => projectUpdateState
+                .WithIncrementalAnalyzerReferenceRemoved(oldReference)
+                .WithIncrementalAnalyzerReferenceAdded(newReference),
+            static (solution, projectId, oldReference, newReference) => solution
+                .RemoveAnalyzerReference(projectId, oldReference)
+                .AddAnalyzerReference(projectId, newReference));
+
+    /// <summary>
+    /// Core helper that handles refreshing the references we have for a particular <see
+    /// cref="PortableExecutableReference"/> or <see cref="AnalyzerFileReference"/>.
+    /// </summary>
     private void StartRefreshingReferencesForFile<TReference>(
         string fullFilePath,
         Func<Project, IEnumerable<TReference>> getReferences,
         Func<TReference, string> getFilePath,
-        Func<TReference, ProjectSystemProjectFactory, TReference> createNewReference,
+        Func<ProjectSystemProjectFactory, TReference, TReference> createNewReference,
         Func<ProjectUpdateState, TReference, TReference, ProjectUpdateState> updateState,
         Func<Solution, ProjectId, TReference, TReference, Solution> updateSolution)
         where TReference : class
@@ -836,7 +851,7 @@ internal sealed partial class ProjectSystemProjectFactory
         {
             await ApplyBatchChangeToWorkspaceAsync((solutionChanges, projectUpdateState) =>
             {
-                // Access the current update state under the workspace sync.
+                // Access the current update state under the workspace lock.
                 foreach (var project in Workspace.CurrentSolution.Projects)
                 {
                     // Loop to find each reference with the given path. It's possible that there might be multiple
@@ -848,59 +863,11 @@ internal sealed partial class ProjectSystemProjectFactory
                     {
                         if (getFilePath(reference) == fullFilePath)
                         {
-                            var newReference = createNewReference(reference, this);
+                            var newReference = createNewReference(this, reference);
 
                             projectUpdateState = updateState(projectUpdateState, reference, newReference);
 
-                            solutionChanges.UpdateSolutionForProjectAction(
-                                project.Id, updateSolution(solutionChanges.Solution, project.Id, reference, newReference));
-                        }
-                    }
-                }
-
-                return projectUpdateState;
-            }, onAfterUpdateAlways: null).ConfigureAwait(false);
-        }
-    }
-
-    private void StartRefreshingAnalyzerReferenceForFile(object? sender, string fullFilePath)
-    {
-        var asyncToken = WorkspaceListener.BeginAsyncOperation(nameof(StartRefreshingAnalyzerReferenceForFile));
-
-        var task = StartRefreshingProjectAnalyzerReferenceForFileAsync(sender, fullFilePath);
-        task.CompletesAsyncOperation(asyncToken);
-
-        return;
-
-        async Task StartRefreshingProjectAnalyzerReferenceForFileAsync(object? sender, string fullFilePath)
-        {
-            await ApplyBatchChangeToWorkspaceAsync((solutionChanges, projectUpdateState) =>
-            {
-                var loaderProvider = this.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-                var assemblyLoader = loaderProvider.GetShadowCopyLoader();
-
-                // Access the current update state under the workspace sync.
-                foreach (var project in Workspace.CurrentSolution.Projects)
-                {
-                    // Loop to find each reference with the given path. It's possible that there might be multiple
-                    // references of the same path; the project system could concievably add the same reference multiple
-                    // times but with different aliases. It's also possible we might not find the path at all: when we
-                    // receive the file changed event, we aren't checking if the file is still in the workspace at that
-                    // time; it's possible it might have already been removed.
-                    foreach (var analyzerReference in project.AnalyzerReferences.OfType<AnalyzerFileReference>())
-                    {
-                        if (analyzerReference.FullPath == fullFilePath)
-                        {
-                            projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferenceRemoved(analyzerReference);
-
-                            var newAnalyzerReference = new AnalyzerFileReference(fullFilePath, assemblyLoader);
-
-                            projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferenceAdded(analyzerReference);
-
-                            var newSolution = solutionChanges.Solution
-                                .RemoveAnalyzerReference(project.Id, analyzerReference)
-                                .AddAnalyzerReference(project.Id, newAnalyzerReference);
-
+                            var newSolution = updateSolution(solutionChanges.Solution, project.Id, reference, newReference);
                             solutionChanges.UpdateSolutionForProjectAction(project.Id, newSolution);
                         }
                     }
