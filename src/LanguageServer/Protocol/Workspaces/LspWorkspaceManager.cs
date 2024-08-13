@@ -76,10 +76,19 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
         {
             if (obj.IsAbsoluteUri)
             {
-                return obj.AbsoluteUri.GetHashCode();
+                // Since the Uri type does not consider an encoded Uri equal to an unencoded Uri, we need to handle this ourselves.
+                // The AbsoluteUri property is always encoded, so we can use this to compare the URIs (see Equals above).
+                //
+                // However, depending on the kind of URI, case sensitivity in AbsoluteUri should be ignored.
+                // Uri.GetHashCode normally handles this internally, but the parameters it uses to determine which comparison to use are not exposed.
+                //
+                // Instead, we will always create the hash code ignoring case, and will rely on the Equals implementation
+                // to handle collisions (between two Uris with different casing).  This should be very rare in practice.
+                return StringComparer.OrdinalIgnoreCase.GetHashCode(obj.AbsoluteUri);
             }
             else
             {
+                obj.GetComponents(UriComponents.AbsoluteUri, UriFormat.UriEscaped);
                 return obj.GetHashCode();
             }
         }
