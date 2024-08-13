@@ -424,7 +424,6 @@ internal sealed partial class ProjectSystemProjectFactory
         // Clear the state from the this update in preparation for the next.
         projectUpdateState = projectUpdateState.ClearIncrementalState();
         _projectUpdateState = projectUpdateState;
-        return;
     }
 
     internal void RemoveSolution_NoLock()

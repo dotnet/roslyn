@@ -602,8 +602,9 @@ internal sealed partial class ProjectSystemProject
                     else
                     {
                         // TODO: find a cleaner way to fetch this
-                        var metadataReference = _projectSystemProjectFactory.Workspace.CurrentSolution.GetRequiredProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
-                                                                                .Single(m => m.FilePath == path && m.Properties == properties);
+                        var metadataReference = _projectSystemProjectFactory.Workspace.CurrentSolution.GetRequiredProject(Id).MetadataReferences
+                            .Cast<PortableExecutableReference>()
+                            .Single(m => m.FilePath == path && m.Properties == properties);
 
                         projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(metadataReference);
 
@@ -1159,8 +1160,9 @@ internal sealed partial class ProjectSystemProject
                     else
                     {
                         // TODO: find a cleaner way to fetch this
-                        var metadataReference = w.CurrentSolution.GetRequiredProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
-                                                                                        .Single(m => m.FilePath == fullPath && m.Properties == properties);
+                        var metadataReference = w.CurrentSolution.GetRequiredProject(Id).MetadataReferences
+                            .Cast<PortableExecutableReference>()
+                            .Single(m => m.FilePath == fullPath && m.Properties == properties);
                         projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(metadataReference);
                         w.OnMetadataReferenceRemoved(Id, metadataReference);
                     }
