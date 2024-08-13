@@ -46,6 +46,11 @@ internal sealed class FileWatchedPortableExecutableReferenceFactory
     /// </summary>
     private readonly Dictionary<string, CancellationTokenSource> _metadataReferenceRefreshCancellationTokenSources = [];
 
+    /// <summary>
+    /// Notification when a reference changes on disk.  The string value is the full file path of the changed reference.
+    /// </summary>
+    public event EventHandler<string>? ReferenceChanged;
+
     public FileWatchedPortableExecutableReferenceFactory(
         IFileChangeWatcher fileChangeWatcher)
     {
@@ -93,8 +98,6 @@ internal sealed class FileWatchedPortableExecutableReferenceFactory
             return fileReferenceChangeContext;
         });
     }
-
-    public event EventHandler<string>? ReferenceChanged;
 
     /// <summary>
     /// Starts watching a particular PortableExecutableReference for changes to the file.
