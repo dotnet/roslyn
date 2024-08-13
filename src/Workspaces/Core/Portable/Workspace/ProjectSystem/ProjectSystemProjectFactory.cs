@@ -839,6 +839,7 @@ internal sealed partial class ProjectSystemProjectFactory
                     }
                 }
             }
+
             return projectUpdateState;
         }, onAfterUpdateAlways: null).ConfigureAwait(false);
     }
