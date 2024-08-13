@@ -832,49 +832,44 @@ abcd
 abcd");
             verifier.VerifyIL("C.Main", @"
 {
-  // Code size       84 (0x54)
-      .maxstack  4
-      .locals init (System.ReadOnlySpan<char> V_0, //span
-                    string V_1,
-                    System.ReadOnlySpan<char> V_2,
-                    int V_3,
-                    System.ReadOnlySpan<char>& V_4)
-      IL_0000:  ldstr      ""abcd""
-      IL_0005:  dup
-      IL_0006:  stloc.1
-      IL_0007:  ldloc.1
-      IL_0008:  ldc.i4.0
-      IL_0009:  ldloc.1
-      IL_000a:  callvirt   ""int string.Length.get""
-      IL_000f:  callvirt   ""string string.Substring(int, int)""
-      IL_0014:  call       ""void System.Console.WriteLine(string)""
-      IL_0019:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)""
-      IL_001e:  stloc.0
-      IL_001f:  ldloca.s   V_0
-      IL_0021:  stloc.s    V_4
-      IL_0023:  ldloc.s    V_4
-      IL_0025:  ldc.i4.0
-      IL_0026:  ldloc.s    V_4
-      IL_0028:  call       ""int System.ReadOnlySpan<char>.Length.get""
-      IL_002d:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)""
-      IL_0032:  stloc.2
-      IL_0033:  ldc.i4.0
-      IL_0034:  stloc.3
-      IL_0035:  br.s       IL_0049
-      IL_0037:  ldloca.s   V_2
-      IL_0039:  ldloc.3
-      IL_003a:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
-      IL_003f:  ldind.u2
-      IL_0040:  call       ""void System.Console.Write(char)""
-      IL_0045:  ldloc.3
-      IL_0046:  ldc.i4.1
-      IL_0047:  add
-      IL_0048:  stloc.3
-      IL_0049:  ldloc.3
-      IL_004a:  ldloca.s   V_2
-      IL_004c:  call       ""int System.ReadOnlySpan<char>.Length.get""
-      IL_0051:  blt.s      IL_0037
-      IL_0053:  ret
+  // Code size       73 (0x49)
+  .maxstack  3
+  .locals init (System.ReadOnlySpan<char> V_0, //span
+                System.ReadOnlySpan<char> V_1,
+                int V_2,
+                System.ReadOnlySpan<char>& V_3)
+  IL_0000:  ldstr      ""abcd""
+  IL_0005:  dup
+  IL_0006:  ldc.i4.0
+  IL_0007:  callvirt   ""string string.Substring(int)""
+  IL_000c:  call       ""void System.Console.WriteLine(string)""
+  IL_0011:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)""
+  IL_0016:  stloc.0
+  IL_0017:  ldloca.s   V_0
+  IL_0019:  stloc.3
+  IL_001a:  ldloc.3
+  IL_001b:  ldc.i4.0
+  IL_001c:  ldloc.3
+  IL_001d:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0022:  call       ""System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)""
+  IL_0027:  stloc.1
+  IL_0028:  ldc.i4.0
+  IL_0029:  stloc.2
+  IL_002a:  br.s       IL_003e
+  IL_002c:  ldloca.s   V_1
+  IL_002e:  ldloc.2
+  IL_002f:  call       ""ref readonly char System.ReadOnlySpan<char>.this[int].get""
+  IL_0034:  ldind.u2
+  IL_0035:  call       ""void System.Console.Write(char)""
+  IL_003a:  ldloc.2
+  IL_003b:  ldc.i4.1
+  IL_003c:  add
+  IL_003d:  stloc.2
+  IL_003e:  ldloc.2
+  IL_003f:  ldloca.s   V_1
+  IL_0041:  call       ""int System.ReadOnlySpan<char>.Length.get""
+  IL_0046:  blt.s      IL_002c
+  IL_0048:  ret
 }");
 
             var (model, elementAccesses) = GetModelAndAccesses(comp);
@@ -4236,25 +4231,42 @@ class S
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net70);
             comp.VerifyDiagnostics();
         }
-        [ConditionalFact(typeof(CoreClrOnly))]
+
+        [Fact]
         public void SingleOverloadReadOnlySpan()
         {
+
             string source = """
                 using System;
                 
                 ReadOnlySpan<char> s = "0123";
                 Console.Write(s[1..].ToString());
                 """;
-            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Net70, expectedOutput: "123");
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("<top-level-statements-entry-point>", """
+            var comp = ExecutionConditionUtil.IsCoreClr ?
+                CreateCompilation(source, targetFramework: TargetFramework.Net70)
+                : CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray, TestSources.Span, TestSources.MemoryExtensions, TestSources.ITuple },
+                                                   TestOptions.UnsafeReleaseExe);
+            var verify = CompileAndVerify(comp, expectedOutput: "123", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped);
+            verify.VerifyDiagnostics();
+            verify.VerifyIL("<top-level-statements-entry-point>", """
             {
               // Code size       39 (0x27)
               .maxstack  2
               .locals init (System.ReadOnlySpan<char> V_0, //s
                             System.ReadOnlySpan<char> V_1)
               IL_0000:  ldstr      "0123"
-              IL_0005:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+
+            """
+              + (ExecutionConditionUtil.IsCoreClr
+                  ? """
+                    IL_0005:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
+
+                  """
+                  : """
+                    IL_0005:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)"
+
+                  """)
+              + """
               IL_000a:  stloc.0
               IL_000b:  ldloca.s   V_0
               IL_000d:  ldc.i4.1
@@ -4269,40 +4281,44 @@ class S
             """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SingleOverloadSpan()
         {
+
             string source = """
                 using System;
                 
-                Console.Write("0123".ToCharArray().AsSpan()[1..].ToString());
+                Console.Write(Util.SecondToLast("0123".ToCharArray()).ToString());
+
+                static class Util
+                {
+                    public static Span<char> SecondToLast(Span<char> s) => s[1..];
+                }
                 """;
-            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Net70, expectedOutput: "123");
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("<top-level-statements-entry-point>", """
+            var comp = ExecutionConditionUtil.IsCoreClr
+                ? CreateCompilation(source, targetFramework: TargetFramework.Net70)
+                : CreateCompilationWithIndexAndRange(
+                new[] { source, TestSources.GetSubArray, TestSources.Span, TestSources.MemoryExtensions },
+                TestOptions.UnsafeReleaseExe);
+
+            // If Verification.Skipped is not passed, the IL Verify will fail with:
+            //     System.Exception : IL Verify failed unexpectedly:
+            //     [SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x8 }
+            var verify = CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Skipped);
+            verify.VerifyDiagnostics();
+            verify.VerifyIL("Util.SecondToLast", """
             {
-              // Code size       44 (0x2c)
+              // Code size        9 (0x9)
               .maxstack  2
-              .locals init (System.ReadOnlySpan<char> V_0, //s
-              )
-              IL_0000:  ldstr      "0123"
-              IL_0005:  call       "char[] string.ToCharArray()"
-              IL_000a:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-              IL_000f:  stloc.0    V_0
-              IL_0010:  ldloca.s 0
-              IL_0012:  ldc.i4.1
-              IL_0013:  call       "System.Span<char> System.Span<char>.Slice(int)"
-              IL_0018:  stloc.0
-              IL_0019:  ldloca.s   V_0
-              IL_001b:  constrained. "System.Span<char>"
-              IL_0021:  callvirt   "string object.ToString()"
-              IL_0026:  call       "void System.Console.Write(string)"
-              IL_002b:  ret
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  ldc.i4.1
+              IL_0003:  call       "System.Span<char> System.Span<char>.Slice(int)"
+              IL_0008:  ret
             }
             """);
         }
 
-        [ConditionalFact(typeof(CoreClrOnly))]
+        [Fact]
         public void SingleOverloadString()
         {
             string source = """
@@ -4310,7 +4326,7 @@ class S
                 
                 Console.Write("0123"[1..]);
                 """;
-            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Net70, expectedOutput: "123");
+            var comp = CompileAndVerifyWithIndexAndRange(source, expectedOutput: "123");
             comp.VerifyDiagnostics();
             comp.VerifyIL("<top-level-statements-entry-point>", """
             {

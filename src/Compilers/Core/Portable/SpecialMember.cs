@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis
         System_String__Chars,
         System_String__Format,
         System_String__Format_IFormatProvider,
-        System_String__Substring,
+        System_String__SubstringIntInt,
+        System_String__SubstringInt,
 
         System_String__op_Implicit_ToReadOnlySpanOfChar,
 
@@ -193,8 +194,6 @@ namespace Microsoft.CodeAnalysis
         System_Array__SetValue,
 
         System_Type__GetTypeFromHandle,
-
-        System_String__SubstringInt,
 
         Count
     }

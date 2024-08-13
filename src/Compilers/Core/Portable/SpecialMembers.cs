@@ -197,13 +197,21 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
 
-                // System_String__Substring
+                // System_String__SubstringIntInt
                 (byte)MemberFlags.Method,                                                                                   // Flags
                 (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
                 0,                                                                                                          // Arity
                     2,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
+
+                // System_String__SubstringInt
+                (byte)MemberFlags.Method,                                                                                   // Flags
+                (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                 // System_String__op_Implicit_ToReadOnlySpanOfChar
@@ -1313,14 +1321,6 @@ namespace Microsoft.CodeAnalysis
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)InternalSpecialType.System_Type, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_RuntimeTypeHandle,
-
-                // System_String__SubstringInt
-                (byte)MemberFlags.Method,                                                                                   // Flags
-                (byte)SpecialType.System_String,                                                                            // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String, // Return Type
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
             };
 
             string[] allNames = new string[(int)SpecialMember.Count]
@@ -1343,7 +1343,8 @@ namespace Microsoft.CodeAnalysis
                 "get_Chars",                                // System_String__Chars
                 "Format",                                   // System_String__Format
                 "Format",                                   // System_String__Format_IFormatProvider
-                "Substring",                                // System_String__Substring
+                "Substring",                                // System_String__SubstringIntInt
+                "Substring",                                // System_String__SubstringInt
                 "op_Implicit",                              // System_String__op_Implicit_ToReadOnlySpanOfChar
                 "IsNaN",                                    // System_Double__IsNaN
                 "IsNaN",                                    // System_Single__IsNaN
@@ -1482,7 +1483,6 @@ namespace Microsoft.CodeAnalysis
                 "Empty",                                    // System_Array__Empty
                 "SetValue",                                 // System_Array__SetValue
                 "GetTypeFromHandle",                        // System_Type__GetTypeFromHandle
-                "Substring",                                // System_String__SubstringInt
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);

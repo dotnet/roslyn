@@ -85,6 +85,18 @@ namespace System
         public static implicit operator ReadOnlySpan<T>(Span<T> span) => new ReadOnlySpan<T>(span.arr);
 
         public Span<T> Slice(int offset, int length) => new Span<T>(this.arr, offset, length);
+
+        public Span<T> Slice(int offset) => Slice(offset, Length - offset);
+
+        public override string ToString()
+        {
+            if (typeof(T) == typeof(char))
+            {
+                return new string((char[])(object)this.arr);
+            }
+
+            return ""System.Span<"" + typeof(T).Name + "">["" + Length + ""]"";
+        }
     }
 
     public readonly ref struct ReadOnlySpan<T>
@@ -162,6 +174,18 @@ namespace System
         public static implicit operator ReadOnlySpan<T>(string stringValue) => string.IsNullOrEmpty(stringValue) ? default : new ReadOnlySpan<T>((T[])(object)stringValue.ToCharArray());
 
         public ReadOnlySpan<T> Slice(int offset, int length) => new ReadOnlySpan<T>(this.arr, offset, length);
+
+        public ReadOnlySpan<T> Slice(int offset) => Slice(offset, Length - offset);
+
+        public override string ToString()
+        {
+            if (typeof(T) == typeof(char))
+            {
+                return new string((char[])(object)this.arr);
+            }
+
+            return ""System.ReadOnlySpan<"" + typeof(T).Name + "">["" + Length + ""]"";
+        }
     }
 
     public readonly ref struct SpanLike<T>
@@ -523,6 +547,8 @@ namespace System
         }
 
         public static ReadOnlySpan<char> AsSpan(this string text) => string.IsNullOrEmpty(text) ? default : new ReadOnlySpan<char>(text.ToCharArray());
+
+        public static Span<T> AsSpan<T>(this T[] array) => array is null ? default : new Span<T>(array);
     }
 }";
     }
