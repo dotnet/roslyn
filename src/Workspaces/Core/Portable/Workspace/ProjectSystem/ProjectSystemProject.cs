@@ -607,10 +607,11 @@ internal sealed partial class ProjectSystemProject
                     else
                     {
                         // TODO: find a cleaner way to fetch this
-                        var metadataReference = _projectSystemProjectFactory.Workspace.CurrentSolution.GetRequiredProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
-                                                                                .Single(m => m.FilePath == path && m.Properties == properties);
+                        var metadataReference = _projectSystemProjectFactory.Workspace.CurrentSolution.GetRequiredProject(Id).MetadataReferences
+                            .Cast<PortableExecutableReference>()
+                            .Single(m => m.FilePath == path && m.Properties == properties);
 
-                        projectUpdateState = projectUpdateState.WithIncrementalReferenceRemoved(metadataReference);
+                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(metadataReference);
 
                         solutionChanges.UpdateSolutionForProjectAction(
                             Id,
@@ -634,15 +635,16 @@ internal sealed partial class ProjectSystemProject
                         }
                         else
                         {
-                            var metadataReference = CreateReference_NoLock(path, properties, _projectSystemProjectFactory.SolutionServices);
-                            projectUpdateState = projectUpdateState.WithIncrementalReferenceAdded(metadataReference);
+                            var metadataReference = CreateMetadataReference_NoLock(path, properties, _projectSystemProjectFactory.SolutionServices);
+                            projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceAdded(metadataReference);
                         }
                     }
 
                     solutionChanges.UpdateSolutionForProjectAction(
                         Id,
-                        solutionChanges.Solution.AddProjectReferences(Id, projectReferencesCreated)
-                                                .AddMetadataReferences(Id, projectUpdateState.AddedReferences));
+                        solutionChanges.Solution
+                            .AddProjectReferences(Id, projectReferencesCreated)
+                            .AddMetadataReferences(Id, projectUpdateState.AddedMetadataReferences));
                 }
 
                 // Project reference adding...
@@ -1118,8 +1120,8 @@ internal sealed partial class ProjectSystemProject
                     }
                     else
                     {
-                        var metadataReference = CreateReference_NoLock(fullPath, properties, _projectSystemProjectFactory.SolutionServices);
-                        projectUpdateState = projectUpdateState.WithIncrementalReferenceAdded(metadataReference);
+                        var metadataReference = CreateMetadataReference_NoLock(fullPath, properties, _projectSystemProjectFactory.SolutionServices);
+                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceAdded(metadataReference);
                         w.OnMetadataReferenceAdded(Id, metadataReference);
                     }
 
@@ -1193,9 +1195,10 @@ internal sealed partial class ProjectSystemProject
                     else
                     {
                         // TODO: find a cleaner way to fetch this
-                        var metadataReference = w.CurrentSolution.GetRequiredProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
-                                                                                        .Single(m => m.FilePath == fullPath && m.Properties == properties);
-                        projectUpdateState = projectUpdateState.WithIncrementalReferenceRemoved(metadataReference);
+                        var metadataReference = w.CurrentSolution.GetRequiredProject(Id).MetadataReferences
+                            .Cast<PortableExecutableReference>()
+                            .Single(m => m.FilePath == fullPath && m.Properties == properties);
+                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(metadataReference);
                         w.OnMetadataReferenceRemoved(Id, metadataReference);
                     }
 
