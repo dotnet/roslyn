@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Delegates to the SubText's UnderlyingText to determine line information.
         /// </summary>
-        internal sealed class SubTextLineInfo : TextLineCollection
+        private sealed class SubTextLineInfo : TextLineCollection
         {
             private readonly SubText _subText;
             private readonly int _startLineNumber;

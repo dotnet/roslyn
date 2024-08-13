@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// <summary>
         /// Delegates to SourceTexts within the CompositeText to determine line information.
         /// </summary>
-        internal sealed class CompositeLineInfo : TextLineCollection
+        private sealed class CompositeLineInfo : TextLineCollection
         {
             private readonly CompositeText _compositeText;
             private readonly int[] _segmentLineIndexes;

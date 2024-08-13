@@ -18,45 +18,32 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
     public class CompositeTextTests
     {
         [Theory]
-        [InlineData(["a", "b"])]
-        [InlineData(["a", "b", "c", "d", "e", "f"])]
-        [InlineData(["aa", "bb", "cc", "dd", "ee", "ff"])]
-        [InlineData(["a\r\n", "b"])]
-        [InlineData(["a", "\r\nb"])]
-        [InlineData(["\r\na\r\n", "\r\nb\r\n"])]
-        [InlineData(["\r\n\r\na", "b", "c", "d\r\n\r\n"])]
-        [InlineData(["a\r", "\nb"])]
-        [InlineData(["a\r", "\nb\r", "\nc"])]
-        [InlineData(["a\n", "\nb\n", "\nc"])]
-        [InlineData(["a\r", "\rb\r", "\rc"])]
-        public void CompositeTextLinesEqualSourceTextLines(params string[] sourceTextsContents)
+        [InlineData("abcdefghijkl")]
+        [InlineData(["\r\r\r\r\r\r\r\r\r\r\r\r"])]
+        [InlineData(["\n\n\n\n\n\n\n\n\n\n\n\n"])]
+        [InlineData(["\r\n\r\n\r\n\r\n\r\n\r\n"])]
+        [InlineData(["\n\r\n\r\n\r\n\r\n\r\n\r"])]
+        [InlineData(["a\r\nb\r\nc\r\nd\r\n"])]
+        [InlineData(["\ra\n\rb\n\rc\n\rd\n"])]
+        [InlineData(["\na\r\nb\r\nc\r\nd\r"])]
+        [InlineData(["ab\r\ncd\r\nef\r\n"])]
+        [InlineData(["ab\r\r\ncd\r\r\nef"])]
+        [InlineData(["ab\n\n\rcd\n\n\ref"])]
+        public void CompositeTextIndexOfEqualSourceTextIndexOf(string contents)
         {
-            var (sourceText, compositeText) = CreateSourceAndCompositeTexts(sourceTextsContents);
-            var sourceLinesText = GetLinesTexts(sourceText.Lines);
-            var compositeLinesText = GetLinesTexts(compositeText.Lines);
-
-            Assert.True(sourceLinesText.SequenceEqual(compositeLinesText));
-        }
-
-        [Theory]
-        [InlineData(["a", "b"])]
-        [InlineData(["a", "b", "c", "d", "e", "f"])]
-        [InlineData(["aa", "bb", "cc", "dd", "ee", "ff"])]
-        [InlineData(["a\r\n", "b"])]
-        [InlineData(["a", "\r\nb"])]
-        [InlineData(["\r\na\r\n", "\r\nb\r\n"])]
-        [InlineData(["\r\n\r\na", "b", "c", "d\r\n\r\n"])]
-        [InlineData(["a\r", "\nb"])]
-        [InlineData(["a\r", "\nb\r", "\nc"])]
-        [InlineData(["a\n", "\nb\n", "\nc"])]
-        [InlineData(["a\r", "\rb\r", "\rc"])]
-        public void CompositeTextIndexOfEqualSourceTextIndexOf(params string[] sourceTextsContents)
-        {
-            var (sourceText, compositeText) = CreateSourceAndCompositeTexts(sourceTextsContents);
-
-            for (var i = 0; i < sourceText.Length; i++)
+            // Please try to limit the inputs to this method to around 12 chars or less, as much longer than that
+            // will blow up the number of potential permutations.
+            foreach (var (sourceText, compositeText) in CreateSourceAndCompositeTexts(contents))
             {
-                Assert.Equal(sourceText.Lines.IndexOf(i), compositeText.Lines.IndexOf(i));
+                var sourceLinesText = GetLinesTexts(sourceText.Lines);
+                var compositeLinesText = GetLinesTexts(compositeText.Lines);
+
+                Assert.True(sourceLinesText.SequenceEqual(compositeLinesText));
+
+                for (var i = 0; i < sourceText.Length; i++)
+                {
+                    Assert.Equal(sourceText.Lines.IndexOf(i), compositeText.Lines.IndexOf(i));
+                }
             }
         }
 
@@ -65,15 +52,42 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             return textLines.Select(l => l.Text!.ToString(l.SpanIncludingLineBreak));
         }
 
-        private (SourceText, CompositeText) CreateSourceAndCompositeTexts(string[] contents)
+        // Returns all possible permutations of contents into SourceText arrays of length between minSourceTextCount and maxSourceTextCount
+        private IEnumerable<(SourceText, CompositeText)> CreateSourceAndCompositeTexts(string contents, int minSourceTextCount = 2, int maxSourceTextCount = 4)
         {
-            var texts = ArrayBuilder<SourceText>.GetInstance();
-            texts.AddRange(contents.Select(static s => SourceText.From(s)));
+            var sourceText = SourceText.From(contents);
 
-            var sourceText = SourceText.From(String.Join(string.Empty, contents));
-            var compositeText = (CompositeText)CompositeText.ToSourceText(texts, sourceText, adjustSegments: false);
+            for (var sourceTextCount = minSourceTextCount; sourceTextCount <= Math.Min(maxSourceTextCount, contents.Length); sourceTextCount++)
+            {
+                foreach (var sourceTexts in CreateSourceTextPermutations(contents, sourceTextCount))
+                {
+                    var sourceTextsBuilder = ArrayBuilder<SourceText>.GetInstance();
+                    sourceTextsBuilder.AddRange(sourceTexts);
 
-            return (sourceText, compositeText);
+                    var compositeText = (CompositeText)CompositeText.ToSourceText(sourceTextsBuilder, sourceText, adjustSegments: false);
+                    yield return (sourceText, compositeText);
+                }
+            }
+        }
+
+        private static IEnumerable<SourceText[]> CreateSourceTextPermutations(string contents, int requestedSourceTextCount)
+        {
+            if (requestedSourceTextCount == 1)
+            {
+                yield return [SourceText.From(contents)];
+            }
+            else
+            {
+                var maximalSourceTextLength = (contents.Length - requestedSourceTextCount) + 1;
+                for (int i = 1; i <= maximalSourceTextLength; i++)
+                {
+                    var sourceText = SourceText.From(contents[..i]);
+                    foreach (var otherSourceTexts in CreateSourceTextPermutations(contents.Substring(i), requestedSourceTextCount - 1))
+                    {
+                        yield return [sourceText, .. otherSourceTexts];
+                    }
+                }
+            }
         }
     }
 }
