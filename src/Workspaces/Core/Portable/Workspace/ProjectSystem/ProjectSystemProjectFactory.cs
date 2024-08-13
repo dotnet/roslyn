@@ -42,7 +42,7 @@ internal sealed partial class ProjectSystemProjectFactory
     public SolutionServices SolutionServices { get; }
 
     public FileWatchedPortableExecutableReferenceFactory FileWatchedPortableExecutableReferenceFactory { get; }
-    public FileWatchedProjectAnalyzerReferenceFactory FileWatchedProjectAnalyzerReferenceFactory { get; }
+    public FileWatchedAnalyzerReferenceFactory FileWatchedAnalyzerReferenceFactory { get; }
 
     private readonly Func<bool, ImmutableArray<string>, Task> _onDocumentsAddedMaybeAsync;
     private readonly Action<Project> _onProjectRemoved;

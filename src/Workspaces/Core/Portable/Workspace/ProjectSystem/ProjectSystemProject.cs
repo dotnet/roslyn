@@ -1118,8 +1118,8 @@ internal sealed partial class ProjectSystemProject
                     }
                     else
                     {
-                        var metadataReference = CreateReference_NoLock(fullPath, properties, _projectSystemProjectFactory.SolutionServices);
-                        projectUpdateState = projectUpdateState.WithIncrementalReferenceAdded(metadataReference);
+                        var metadataReference = CreateMetadataReference_NoLock(fullPath, properties, _projectSystemProjectFactory.SolutionServices);
+                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceAdded(metadataReference);
                         w.OnMetadataReferenceAdded(Id, metadataReference);
                     }
 
@@ -1195,7 +1195,7 @@ internal sealed partial class ProjectSystemProject
                         // TODO: find a cleaner way to fetch this
                         var metadataReference = w.CurrentSolution.GetRequiredProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
                                                                                         .Single(m => m.FilePath == fullPath && m.Properties == properties);
-                        projectUpdateState = projectUpdateState.WithIncrementalReferenceRemoved(metadataReference);
+                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(metadataReference);
                         w.OnMetadataReferenceRemoved(Id, metadataReference);
                     }
 
