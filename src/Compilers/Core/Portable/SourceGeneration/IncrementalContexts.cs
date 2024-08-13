@@ -72,6 +72,10 @@ namespace Microsoft.CodeAnalysis
 
         public void RegisterPostInitializationOutput(Action<IncrementalGeneratorPostInitializationContext> callback) => _outputNodes.Add(new PostInitOutputNode(callback.WrapUserAction(CatchAnalyzerExceptions)));
 
+        public void RegisterHostOutput<TSource>(IncrementalValueProvider<TSource> source, Action<HostOutputProductionContext, TSource> action) => source.Node.RegisterOutput(new HostOutputNode<TSource>(source.Node, action.WrapUserAction(CatchAnalyzerExceptions)));
+
+        public void RegisterHostOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<HostOutputProductionContext, TSource> action) => source.Node.RegisterOutput(new HostOutputNode<TSource>(source.Node, action.WrapUserAction(CatchAnalyzerExceptions)));
+
         private void RegisterOutput(IIncrementalGeneratorOutputNode outputNode)
         {
             if (!_outputNodes.Contains(outputNode))
@@ -198,6 +202,39 @@ namespace Microsoft.CodeAnalysis
         public CancellationToken CancellationToken { get; }
     }
 
+    /// <summary>
+    /// Context passed to an incremental generator when it has registered an output via <see cref="IncrementalGeneratorInitializationContext.RegisterHostOutput{TSource}(IncrementalValuesProvider{TSource}, Action{HostOutputProductionContext, TSource})"/>
+    /// </summary>
+    public readonly struct HostOutputProductionContext
+    {
+        internal readonly ArrayBuilder<(string, object)> Outputs;
+
+        internal HostOutputProductionContext(ArrayBuilder<(string, object)> outputs, CancellationToken cancellationToken)
+        {
+            Outputs = outputs;
+            CancellationToken = cancellationToken;
+        }
+
+        /// <summary>
+        /// Adds a host specific output
+        /// </summary>
+        /// <param name="name">The name of the output to be added.</param>
+        /// <param name="value">The output to be added.</param>
+        /// <remarks>
+        /// A host output has no defined use. It does not contribute to the final compilation in any way. Any outputs registered 
+        /// here are made available via the <see cref="GeneratorRunResult.HostOutputs"/> collection, and it is up the host to
+        /// decide how to use them. A host may also disable these outputs altogether if they are not needed. The generator driver
+        /// otherwise makes no guarantees about how the outputs are used, other than that they will be present if the host has
+        /// requested they be produced.
+        /// </remarks>
+        public void AddOutput(string name, object value) => Outputs.Add((name, value));
+
+        /// <summary>
+        /// A <see cref="System.Threading.CancellationToken"/> that can be checked to see if producing the output should be cancelled.
+        /// </summary>
+        public CancellationToken CancellationToken { get; }
+    }
+
     // https://github.com/dotnet/roslyn/issues/53608 right now we only support generating source + diagnostics, but actively want to support generation of other things
     internal readonly struct IncrementalExecutionContext
     {
@@ -209,18 +246,18 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly GeneratorRunStateTable.Builder GeneratorRunStateBuilder;
 
-        internal readonly ArrayBuilder<(string Key, string Value)> HostOutputBuilder;
+        internal readonly ArrayBuilder<(string Key, object Value)> HostOutputBuilder;
 
         public IncrementalExecutionContext(DriverStateTable.Builder? tableBuilder, GeneratorRunStateTable.Builder generatorRunStateBuilder, AdditionalSourcesCollection sources)
         {
             TableBuilder = tableBuilder;
             GeneratorRunStateBuilder = generatorRunStateBuilder;
             Sources = sources;
-            HostOutputBuilder = ArrayBuilder<(string, string)>.GetInstance();
+            HostOutputBuilder = ArrayBuilder<(string, object)>.GetInstance();
             Diagnostics = DiagnosticBag.GetInstance();
         }
 
-        internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics, GeneratorRunStateTable executedSteps, ImmutableArray<(string Key, string Value)> hostOutputs) ToImmutableAndFree()
+        internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics, GeneratorRunStateTable executedSteps, ImmutableArray<(string Key, object Value)> hostOutputs) ToImmutableAndFree()
                 => (Sources.ToImmutableAndFree(), Diagnostics.ToReadOnlyAndFree(), GeneratorRunStateBuilder.ToImmutableAndFree(), HostOutputBuilder.ToImmutableAndFree());
 
         internal void Free()

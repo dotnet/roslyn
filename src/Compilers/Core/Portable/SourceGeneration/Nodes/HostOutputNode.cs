@@ -10,23 +10,23 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using TOutput = System.Collections.Immutable.ImmutableArray<(string, string)>;
+using TOutput = System.Collections.Immutable.ImmutableArray<(string, object)>;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler
+namespace Microsoft.CodeAnalysis
 {
     internal sealed class HostOutputNode<TInput> : IIncrementalGeneratorOutputNode, IIncrementalGeneratorNode<TOutput>
     {
         private readonly IIncrementalGeneratorNode<TInput> _source;
 
-        private readonly Action<HostProductionContext, TInput, CancellationToken> _action;
+        private readonly Action<HostOutputProductionContext, TInput, CancellationToken> _action;
 
-        public HostOutputNode(IIncrementalGeneratorNode<TInput> source, Action<HostProductionContext, TInput, CancellationToken> action)
+        public HostOutputNode(IIncrementalGeneratorNode<TInput> source, Action<HostOutputProductionContext, TInput, CancellationToken> action)
         {
             _source = source;
             _action = action;
         }
 
-        public IncrementalGeneratorOutputKind Kind => GeneratorDriver.HostKind;
+        public IncrementalGeneratorOutputKind Kind => IncrementalGeneratorOutputKind.Host;
 
         public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput>? previousTable, CancellationToken cancellationToken)
         {
@@ -51,8 +51,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler
                 }
                 else if (entry.State != EntryState.Cached || !nodeTable.TryUseCachedEntries(TimeSpan.Zero, inputs))
                 {
-                    ArrayBuilder<(string, string)> output = ArrayBuilder<(string, string)>.GetInstance();
-                    HostProductionContext context = new HostProductionContext(output);
+                    ArrayBuilder<(string, object)> output = ArrayBuilder<(string, object)>.GetInstance();
+                    HostOutputProductionContext context = new HostOutputProductionContext(output, cancellationToken);
                     var stopwatch = SharedStopwatch.StartNew();
                     _action(context, entry.Item, cancellationToken);
                     nodeTable.AddEntry(output.ToImmutableAndFree(), EntryState.Added, stopwatch.Elapsed, inputs, EntryState.Added);
