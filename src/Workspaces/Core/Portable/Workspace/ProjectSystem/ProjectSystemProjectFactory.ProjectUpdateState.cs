@@ -10,26 +10,27 @@ namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 internal sealed partial class ProjectSystemProjectFactory
 {
     /// <summary>
-    /// Immutable data type that holds the current state of the project system factory as well as
-    /// storing any incremental state changes in the current workspace update.
+    /// Immutable data type that holds the current state of the project system factory as well as storing any
+    /// incremental state changes in the current workspace update.
     /// 
-    /// This state is updated by various project system update operations under the <see cref="_gate"/>.
-    /// Importantly, this immutable type allows us to discard updates to the state that fail to apply
-    /// due to interceding workspace operations.
+    /// This state is updated by various project system update operations under the <see cref="_gate"/>. Importantly,
+    /// this immutable type allows us to discard updates to the state that fail to apply due to interceding workspace
+    /// operations.
     /// 
     /// There are two kinds of state that this type holds that need to support discarding:
-    ///   1.  Global state for the <see cref="ProjectSystemProjectFactory"/> (various maps of project information).
-    ///       This state must be saved between different changes.
-    ///   2.  Incremental state for the current change being processed.  This state has information that is
-    ///       cannot be resilient to being applied multiple times during the workspace update, so is saved
-    ///       to be applied only once the workspace update is successful.
-    ///
+    /// <list type="number">
+    /// <item>Global state for the <see cref="ProjectSystemProjectFactory"/> (various maps of project information). This
+    /// state must be saved between different changes.</item>
+    /// <item>Incremental state for the current change being processed.  This state has information that is cannot be
+    /// resilient to being applied multiple times during the workspace update, so is saved to be applied only once the
+    /// workspace update is successful.</item>
+    /// </list>
     /// </summary>
     /// <param name="ProjectsByOutputPath">
-    /// Global state representing a multimap from an output path to the project outputting to it. Ideally, this shouldn't ever
-    /// actually be a true multimap, since we shouldn't have two projects outputting to the same path, but
-    /// any bug by a project adding the wrong output path means we could end up with some duplication.
-    /// In that case, we'll temporarily have two until (hopefully) somebody removes it.
+    /// Global state representing a multimap from an output path to the project outputting to it. Ideally, this
+    /// shouldn't ever actually be a true multimap, since we shouldn't have two projects outputting to the same path,
+    /// but any bug by a project adding the wrong output path means we could end up with some duplication. In that case,
+    /// we'll temporarily have two until (hopefully) somebody removes it.
     /// </param>
     /// <param name="ProjectReferenceInfos">
     /// Global state containing output paths and converted project reference information for each project.
