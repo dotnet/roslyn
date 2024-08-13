@@ -368,7 +368,7 @@
             {
                 case ErrorCode.INF_UnableToLoadSomeTypesInAnalyzer:
                 case ErrorCode.INF_TooManyBoundLambdas:
-                case ErrorCode.INF_IdentifierConflictWithContextualKeyword:
+                case ErrorCode.WRN_FieldIsAmbiguous:
                     return true;
                 default:
                     return false;

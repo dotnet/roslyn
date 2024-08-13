@@ -2632,11 +2632,6 @@
         <target state="translated">指针</target>
         <note />
       </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
-        <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
-        <target state="new">'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
         <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
         <target state="new">Identifier is a contextual keyword, with a specific meaning, in a later language version.</target>
@@ -2925,6 +2920,11 @@
       <trans-unit id="WRN_EscapeVariable_Title">
         <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
         <target state="translated">在此上下文中使用变量可能会在变量声明范围以外公开所引用的变量</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous">
+        <source>'{0}' binds to the synthesized backing field for the property in language version {1}. Use '@{0}' to bind to the existing symbol instead.</source>
+        <target state="new">'{0}' binds to the synthesized backing field for the property in language version {1}. Use '@{0}' to bind to the existing symbol instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">

@@ -2336,7 +2336,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_PartialPropertySignatureDifference = 9256,
         ERR_PartialPropertyRequiredDifference = 9257,
 
-        INF_IdentifierConflictWithContextualKeyword = 9258,
+        WRN_FieldIsAmbiguous = 9258,
 
         ERR_InlineArrayAttributeOnRecord = 9259,
         ERR_FeatureNotAvailableInVersion13 = 9260,

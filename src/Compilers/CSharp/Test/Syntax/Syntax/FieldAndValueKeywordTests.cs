@@ -33,25 +33,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 class D4 : A { object this[int i] { set { {{identifier}} = 0; } } }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (escapeIdentifier)
+            if (!escapeIdentifier && languageVersion > LanguageVersion.CSharp12)
             {
-                comp.VerifyEmitDiagnostics();
+                comp.VerifyEmitDiagnostics(
+                    // (4,28): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    // class C1 : A { object P => field; }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(4, 28),
+                    // (5,34): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    // class C2 : A { object P { get => field; } }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(5, 34),
+                    // (6,40): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    // class C3 : A { object P { get { return field; } } }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(6, 40),
+                    // (7,33): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    // class C4 : A { object P { set { field = 0; } } }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(7, 33));
             }
             else
             {
-                comp.VerifyEmitDiagnostics(
-                    // (4,28): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    // class C1 : A { object P => field; }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 28),
-                    // (5,34): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    // class C2 : A { object P { get => field; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(5, 34),
-                    // (6,40): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    // class C3 : A { object P { get { return field; } } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(6, 40),
-                    // (7,33): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    // class C4 : A { object P { set { field = 0; } } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(7, 33));
+                comp.VerifyEmitDiagnostics();
             }
         }
 
@@ -125,19 +125,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            if (escapeIdentifier)
+            if (!escapeIdentifier && languageVersion > LanguageVersion.CSharp12)
             {
-                comp.VerifyEmitDiagnostics();
+                comp.VerifyEmitDiagnostics(
+                    // (10,25): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    //     object I.P { get => field; set { _ = field; } }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(10, 25),
+                    // (10,42): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    //     object I.P { get => field; set { _ = field; } }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(10, 42));
             }
             else
             {
-                comp.VerifyEmitDiagnostics(
-                    // (10,25): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //     object I.P { get => field; set { _ = field; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(10, 25),
-                    // (10,42): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //     object I.P { get => field; set { _ = field; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(10, 42));
+                comp.VerifyEmitDiagnostics();
             }
         }
 
@@ -246,10 +246,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (6,33): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     Func<object> P1 { get { _ = field(); return null; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(6, 33));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (6,33): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    //     Func<object> P1 { get { _ = field(); return null; } }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(6, 33));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
@@ -267,10 +274,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (5,29): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object[] P1 { get { _ = field[0]; return null; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(5, 29));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,29): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    //     object[] P1 { get { _ = field[0]; return null; } }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(5, 29));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
@@ -304,10 +318,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (4,59): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { get { _ = from field in new int[0] select field; return null; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 59));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,59): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    //     object P1 { get { _ = from field in new int[0] select field; return null; } }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(4, 59));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
@@ -324,10 +345,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (4,69): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { get { _ = from i in new int[0] let field = i select field; return null; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 69));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,69): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    //     object P1 { get { _ = from i in new int[0] let field = i select field; return null; } }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(4, 69));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
@@ -344,10 +372,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (4,85): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { get { _ = from x in new int[0] join field in new int[0] on x equals field select x; return null; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 85));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,85): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    //     object P1 { get { _ = from x in new int[0] join field in new int[0] on x equals field select x; return null; } }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(4, 85));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
@@ -364,10 +399,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (4,101): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { get { _ = from x in new int[0] join y in new int[0] on x equals y into field select field; return null; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 101));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,101): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    //     object P1 { get { _ = from x in new int[0] join y in new int[0] on x equals y into field select field; return null; } }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(4, 101));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
@@ -384,10 +426,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (4,75): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { get { _ = from x in new int[0] select x into field select field; return null; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 75));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,75): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    //     object P1 { get { _ = from x in new int[0] select x into field select field; return null; } }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(4, 75));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
@@ -545,10 +594,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (4,50): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P1 { get { object F1(object field) => field; return null; } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 50));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (4,50): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    //     object P1 { get { object F1(object field) => field; return null; } }
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(4, 50));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
@@ -598,13 +654,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (10,20): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
-                //             object @value;
-                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(10, 20),
-                // (11,14): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //             (field, @value) = new C();
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(11, 14));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (10,20): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //             object @value;
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(10, 20),
+                    // (11,14): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    //             (field, @value) = new C();
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(11, 14));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (10,20): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //             object @value;
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(10, 20));
+            }
         }
 
         [Theory]
@@ -632,10 +698,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (11,23): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //             f = () => field;
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(11, 23));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (11,23): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    //             f = () => field;
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(11, 23));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Theory]
@@ -661,10 +734,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
-            comp.VerifyEmitDiagnostics(
-                // (9,28): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //             object F1() => field;
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(9, 28));
+            if (languageVersion > LanguageVersion.CSharp12)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (9,28): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    //             object F1() => field;
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(9, 28));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
         }
 
         [Fact]
@@ -838,15 +918,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (!escapeIdentifier && languageVersion > LanguageVersion.CSharp12)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (12,19): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    // (12,19): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
                     //         [A(nameof(field))] get { return null; }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(12, 19),
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(12, 19),
                     // (12,19): error CS8081: Expression does not have a name.
                     //         [A(nameof(field))] get { return null; }
                     Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(12, 19),
-                    // (13,19): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    // (13,19): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
                     //         [A(nameof(field))] set { }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 19),
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(13, 19),
                     // (13,19): error CS8081: Expression does not have a name.
                     //         [A(nameof(field))] set { }
                     Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(13, 19));
@@ -890,19 +970,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else if (languageVersion > LanguageVersion.CSharp12)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (13,23): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
+                    // (13,23): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
                     //             [A(nameof(field))] void F1(int field) { }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 23),
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(13, 23),
                     // (13,23): error CS8081: Expression does not have a name.
                     //             [A(nameof(field))] void F1(int field) { }
                     Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(13, 23));
             }
             else
             {
-                comp.VerifyEmitDiagnostics(
-                    // (13,23): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //             [A(nameof(field))] void F1(int field) { }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(13, 23));
+                comp.VerifyEmitDiagnostics();
             }
         }
 
@@ -917,9 +994,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,24): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P => nameof(field);
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 24),
                 // (3,24): error CS8081: Expression does not have a name.
                 //     object P => nameof(field);
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(3, 24));
@@ -936,12 +1010,44 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,33): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P { set { _ = nameof(field); } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 33),
                 // (3,33): error CS8081: Expression does not have a name.
                 //     object P { set { _ = nameof(field); } }
                 Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(3, 33));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void NameOf_03(
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+        {
+            string source = """
+                class C
+                {
+                    static int field;
+                    object P => nameof(field);
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            if (languageVersion > LanguageVersion.CSharp13)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,16): warning CS0169: The field 'C.field' is never used
+                    //     static int field;
+                    Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C.field").WithLocation(3, 16),
+                    // (4,24): info CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    //     object P => nameof(field);
+                    Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(4, 24),
+                    // (4,24): error CS8081: Expression does not have a name.
+                    //     object P => nameof(field);
+                    Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(4, 24));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,16): warning CS0649: Field 'C.field' is never assigned to, and will always have its default value 0
+                    //     static int field;
+                    Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "0").WithLocation(3, 16));
+            }
         }
     }
 }

@@ -2632,11 +2632,6 @@
         <target state="translated">Zeiger</target>
         <note />
       </trans-unit>
-      <trans-unit id="INF_IdentifierConflictWithContextualKeyword">
-        <source>'{0}' is a contextual keyword in property accessors starting in language version {1}. Use '@{0}' instead.</source>
-        <target state="translated">"{0}" ist ein kontextbezogenes Schlüsselwort in Eigenschaftenaccessoren ab Sprachversion {1}. Verwenden Sie stattdessen "@{0}".</target>
-        <note />
-      </trans-unit>
       <trans-unit id="INF_IdentifierConflictWithContextualKeyword_Title">
         <source>Identifier is a contextual keyword, with a specific meaning, in a later language version.</source>
         <target state="translated">Der Bezeichner ist ein kontextbezogenes Schlüsselwort mit einer bestimmten Bedeutung in einer späteren Sprachversion.</target>
@@ -2925,6 +2920,11 @@
       <trans-unit id="WRN_EscapeVariable_Title">
         <source>Use of variable in this context may expose referenced variables outside of their declaration scope</source>
         <target state="translated">Die Verwendung der Variablen in diesem Kontext kann dazu führen, dass referenzierte Variablen außerhalb ihres Deklarationsbereichs verfügbar gemacht werden.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_FieldIsAmbiguous">
+        <source>'{0}' binds to the synthesized backing field for the property in language version {1}. Use '@{0}' to bind to the existing symbol instead.</source>
+        <target state="new">'{0}' binds to the synthesized backing field for the property in language version {1}. Use '@{0}' to bind to the existing symbol instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">
