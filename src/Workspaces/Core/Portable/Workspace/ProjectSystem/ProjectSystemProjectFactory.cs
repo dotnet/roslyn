@@ -42,8 +42,8 @@ internal sealed partial class ProjectSystemProjectFactory
     public IFileChangeWatcher FileChangeWatcher { get; }
     public SolutionServices SolutionServices => this.Workspace.Services.SolutionServices;
 
-    public FileWatchedPortableExecutableReferenceFactory FileWatchedPortableExecutableReferenceFactory { get; }
-    public FileWatchedAnalyzerReferenceFactory FileWatchedAnalyzerReferenceFactory { get; }
+    public FileWatchedReferenceFactory<PortableExecutableReference> FileWatchedPortableExecutableReferenceFactory { get; }
+    public FileWatchedReferenceFactory<AnalyzerReference> FileWatchedAnalyzerReferenceFactory { get; }
 
     private readonly Func<bool, ImmutableArray<string>, Task> _onDocumentsAddedMaybeAsync;
     private readonly Action<Project> _onProjectRemoved;
@@ -82,10 +82,10 @@ internal sealed partial class ProjectSystemProjectFactory
 
         WorkspaceListener = this.SolutionServices.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
 
-        FileWatchedPortableExecutableReferenceFactory = new FileWatchedPortableExecutableReferenceFactory(fileChangeWatcher);
+        FileWatchedPortableExecutableReferenceFactory = FileWatchedReferenceFactory.CreateMetadataReferenceFactory(fileChangeWatcher);
         FileWatchedPortableExecutableReferenceFactory.ReferenceChanged += this.StartRefreshingMetadataReferencesForFile;
 
-        FileWatchedAnalyzerReferenceFactory = new FileWatchedAnalyzerReferenceFactory(fileChangeWatcher);
+        FileWatchedAnalyzerReferenceFactory = FileWatchedReferenceFactory.CreateAnalyzerReferenceFactory(fileChangeWatcher);
         FileWatchedAnalyzerReferenceFactory.ReferenceChanged += this.StartRefreshingAnalyzerReferenceForFile;
     }
 
