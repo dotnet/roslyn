@@ -28,6 +28,9 @@ parameters:
   - name: prNumber
     type: string
     default: ''
+  - name: link
+    type: string
+    default: ''
 
 variables:
 - name: XUNIT_LOGS
@@ -39,19 +42,20 @@ variables:
 
 stages:
 - ${{ if ne(parameters.prNumber, '') }}:
-  - stage: GitHubComment
+  - stage: GitHubCommentFirst
     jobs:
-      - job: GitHubCommentJob
+      - job: GitHubCommentFirstJob
         steps:
           - task: GitHubComment@0
             inputs:
               gitHubConnection: 'dotnet-comment-bot-service-connection'
               repositoryName: '$(Build.Repository.Name)'
               id: ${{ parameters.prNumber }}
-              comment: 'Started DartLab pipeline'
+              comment: 'Started DartLab pipeline run: $(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)'
 
 - template: \stages\visual-studio\agent.yml@DartLabTemplates
   parameters:
+    name: RunDartlabPipelineStage
     displayName: VS Integration
     testLabPoolName: VS-Platform
     visualStudioBootstrapperURI: https://vsdrop.corp.microsoft.com/file/v1/$(VisualStudio.BuildUnderTest.ProductsDropName);bootstrappers/Enterprise/vs_enterprise.exe
@@ -90,3 +94,24 @@ stages:
         oop64bit: $(_oop64bit)
         lspEditor: false
         skipCheckout: true
+
+- ${{ if ne(parameters.prNumber, '') }}:
+  - stage: GitHubCommentCompleted
+    dependsOn: RunDartlabPipelineStage
+    jobs:
+      - job: GitHubCommentCompletedJob
+        steps:
+          - task: GitHubComment@0
+            condition: succeeded('RunDartlabPipelineStage')
+            inputs:
+              gitHubConnection: 'dotnet-comment-bot-service-connection'
+              repositoryName: '$(Build.Repository.Name)'
+              id: ${{ parameters.prNumber }}
+              comment: 'Dartlab pipeline run completed successfully: $(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)'
+          - task: GitHubComment@0
+            condition: not(succeeded('RunDartlabPipelineStage'))
+            inputs:
+              gitHubConnection: 'dotnet-comment-bot-service-connection'
+              repositoryName: '$(Build.Repository.Name)'
+              id: ${{ parameters.prNumber }}
+              comment: 'Dartlab pipeline run did not complete successfully: $(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)'
