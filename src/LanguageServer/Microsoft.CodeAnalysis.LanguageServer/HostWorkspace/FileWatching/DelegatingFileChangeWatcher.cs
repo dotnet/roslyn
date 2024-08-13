@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace.FileWatching;
 
@@ -50,8 +51,6 @@ internal sealed class DelegatingFileChangeWatcher : IFileChangeWatcher
         }
     }
 
-    public IFileChangeContext CreateContext(params WatchedDirectory[] watchedDirectories)
-    {
-        return _underlyingFileWatcher.Value.CreateContext(watchedDirectories);
-    }
+    public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
+        => _underlyingFileWatcher.Value.CreateContext(watchedDirectories);
 }

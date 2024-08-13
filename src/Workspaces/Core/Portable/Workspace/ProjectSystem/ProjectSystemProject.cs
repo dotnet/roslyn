@@ -204,18 +204,14 @@ internal sealed partial class ProjectSystemProject
         _documentFileChangeContext = _projectSystemProjectFactory.FileChangeWatcher.CreateContext(watchedDirectories);
         _documentFileChangeContext.FileChanged += DocumentFileChangeContext_FileChanged;
 
-        static WatchedDirectory[] GetWatchedDirectories(string? language, string? filePath)
+        static ImmutableArray<WatchedDirectory> GetWatchedDirectories(string? language, string? filePath)
         {
             if (filePath is null)
-            {
                 return [];
-            }
 
             var rootPath = Path.GetDirectoryName(filePath);
             if (rootPath is null)
-            {
                 return [];
-            }
 
             return language switch
             {
