@@ -323,22 +323,20 @@ public class FirstClassSpanTests : CSharpTestBase
             using System;
             using System.Collections.Generic;
 
-            class C
-            {
-                void M(int[] a)
-                {
-                    foreach (var x in a.R()) { }
-                }
-            }
+            int[] a = new int[0];
+            {{type}}<int> s = default;
+            a.R();
+            s.R();
 
             static class E
             {
-                public static void R<T>(this {{type}}<T> s) => throw null;
-                public static IEnumerable<T> R<T>(this IEnumerable<T> e) => throw null;
-                public static IEnumerable<T> R<T>(this T[] a) => throw null;
+                public static void R<T>(this {{type}}<T> s) => Console.Write(1);
+                public static IEnumerable<T> R<T>(this IEnumerable<T> e) { Console.Write(2); return e; }
+                public static IEnumerable<T> R<T>(this T[] a) { Console.Write(3); return a; }
             }
             """;
-        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion)).VerifyDiagnostics();
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "31").VerifyDiagnostics();
     }
 
     [Fact]
@@ -368,6 +366,64 @@ public class FirstClassSpanTests : CSharpTestBase
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void BreakingChange_TypeInference_SpanVsIEnumerable_02_Workaround_AsEnumerable(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Linq;
+
+            string[] s = new[] { "a" };
+            object[] o = s;
+
+            C.R(o.AsEnumerable());
+
+            static class C
+            {
+                public static void R<T>(IEnumerable<T> e) => Console.Write(1);
+                public static void R<T>(Span<T> s) => Console.Write(2);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void BreakingChange_TypeInference_SpanVsIEnumerable_02_Workaround_OverloadResolutionPriority()
+    {
+        var source = """
+            using System;
+            using System.Collections.Generic;
+            using System.Runtime.CompilerServices;
+
+            string[] s = new[] { "a" };
+            object[] o = s;
+
+            C.R(o);
+
+            static class C
+            {
+                public static void R<T>(IEnumerable<T> e) => Console.Write(1);
+                public static void R<T>(Span<T> s) => Console.Write(2);
+                [OverloadResolutionPriority(1)]
+                public static void R<T>(ReadOnlySpan<T> s) => Console.Write(3);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions([source, OverloadResolutionPriorityAttributeDefinition],
+            parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: "1").VerifyDiagnostics();
+
+        var expectedOutput = "3";
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions([source, OverloadResolutionPriorityAttributeDefinition],
+            parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions([source, OverloadResolutionPriorityAttributeDefinition]);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
     }
 
@@ -459,6 +515,119 @@ public class FirstClassSpanTests : CSharpTestBase
 
         comp = CreateCompilationWithSpanAndMemoryExtensions(source);
         CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void BreakingChange_Conversion_SpanVsArray()
+    {
+        var source = """
+            using System;
+
+            var x = new long[] { 1 };
+
+            C.M([2], x);
+
+            static class C
+            {
+                public static void M<T>(T[] a, T[] b) => Console.Write("1 " + typeof(T).Name);
+                public static void M<T>(ReadOnlySpan<T> a, Span<T> b) => Console.Write("2 " + typeof(T).Name);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: "1 Int64").VerifyDiagnostics();
+
+        var expectedDiagnostics = new[]
+        {
+            // (5,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<T>(T[], T[])' and 'C.M<T>(ReadOnlySpan<T>, Span<T>)'
+            // C.M([2], x);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<T>(T[], T[])", "C.M<T>(System.ReadOnlySpan<T>, System.Span<T>)").WithLocation(5, 3)
+        };
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
+    }
+
+    [Theory, MemberData(nameof(LangVersions))]
+    public void BreakingChange_Conversion_SpanVsArray_Workaround_AsSpan(LanguageVersion langVersion)
+    {
+        var source = """
+            using System;
+
+            var x = new long[] { 1 };
+
+            C.M([2], x.AsSpan());
+
+            static class C
+            {
+                public static void M<T>(T[] a, T[] b) => Console.Write("1 " + typeof(T).Name);
+                public static void M<T>(ReadOnlySpan<T> a, Span<T> b) => Console.Write("2 " + typeof(T).Name);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular.WithLanguageVersion(langVersion));
+        CompileAndVerify(comp, expectedOutput: "2 Int64").VerifyDiagnostics();
+    }
+
+    [Fact]
+    public void BreakingChange_Conversion_SpanVsArray_Workaround_OverloadResolutionPriority()
+    {
+        var source = """
+            using System;
+            using System.Runtime.CompilerServices;
+
+            var x = new long[] { 1 };
+
+            C.M([2], x);
+
+            static class C
+            {
+                public static void M<T>(T[] a, T[] b) => Console.Write("1 " + typeof(T).Name);
+                [OverloadResolutionPriority(1)]
+                public static void M<T>(ReadOnlySpan<T> a, Span<T> b) => Console.Write("2 " + typeof(T).Name);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions([source, OverloadResolutionPriorityAttributeDefinition],
+            parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: "1 Int64").VerifyDiagnostics();
+
+        var expectedOutput = "2 Int64";
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions([source, OverloadResolutionPriorityAttributeDefinition],
+            parseOptions: TestOptions.RegularNext);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+        comp = CreateCompilationWithSpanAndMemoryExtensions([source, OverloadResolutionPriorityAttributeDefinition]);
+        CompileAndVerify(comp, expectedOutput: expectedOutput).VerifyDiagnostics();
+    }
+
+    [ConditionalFact(typeof(CoreClrOnly))]
+    public void BreakingChange_Conversion_ArrayVsArraySegment()
+    {
+        var source = """
+            using System;
+
+            var x = new int[] { 1, 2 };
+            var s = new ArraySegment<int>(x, 1, 1);
+
+            C.M(x, s);
+
+            static class C
+            {
+                public static void M<T>(T a, T b) => Console.Write("1 " + typeof(T));
+                public static void M<T>(Span<T> a, Span<T> b) => Console.Write("2 " + typeof(T).Name);
+            }
+            """;
+        var comp = CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.Regular13);
+        CompileAndVerify(comp, expectedOutput: "1 System.ArraySegment`1[System.Int32]").VerifyDiagnostics();
+
+        var expectedDiagnostics = new[]
+        {
+            // (6,3): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<T>(T, T)' and 'C.M<T>(Span<T>, Span<T>)'
+            // C.M(x, s);
+            Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<T>(T, T)", "C.M<T>(System.Span<T>, System.Span<T>)").WithLocation(6, 3)
+        };
+
+        CreateCompilationWithSpanAndMemoryExtensions(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(expectedDiagnostics);
+        CreateCompilationWithSpanAndMemoryExtensions(source).VerifyDiagnostics(expectedDiagnostics);
     }
 
     [Theory, CombinatorialData]
