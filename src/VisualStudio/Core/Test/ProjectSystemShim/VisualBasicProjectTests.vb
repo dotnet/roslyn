@@ -11,7 +11,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     <[UseExportProvider]>
     <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>
     Public Class VisualBasicProjectTests
-        <WpfFact()>
+        <WpfFact>
         Public Sub RenameProjectUpdatesWorkspace()
             Using environment = New TestEnvironment()
                 Dim project = CreateVisualBasicProject(environment, "Test")
@@ -27,7 +27,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
             End Using
         End Sub
 
-        <WpfFact()>
+        <WpfFact>
         Public Sub DisconnectingAProjectDoesNotLeak()
             Using environment = New TestEnvironment()
                 Dim project = ObjectReference.CreateFromFactory(Function() CreateVisualBasicProject(environment, "Test"))

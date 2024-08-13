@@ -87,7 +87,7 @@ internal sealed class FileWatchedPortableExecutableReferenceFactory
                 referenceDirectories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages"));
             }
 
-            var directoriesToWatch = referenceDirectories.Select(static d => new WatchedDirectory(d, ".dll")).ToArray();
+            var directoriesToWatch = referenceDirectories.SelectAsArray(static d => new WatchedDirectory(d, ".dll"));
             var fileReferenceChangeContext = fileChangeWatcher.CreateContext(directoriesToWatch);
             fileReferenceChangeContext.FileChanged += FileReferenceChangeContext_FileChanged;
             return fileReferenceChangeContext;
