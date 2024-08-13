@@ -803,44 +803,48 @@ internal sealed partial class ProjectSystemProjectFactory
         return reference;
     }
 
-#pragma warning disable VSTHRD100 // Avoid async void methods
-    private async void StartRefreshingMetadataReferencesForFile(object? sender, string fullFilePath)
-#pragma warning restore VSTHRD100 // Avoid async void methods
+    private void StartRefreshingMetadataReferencesForFile(object? sender, string fullFilePath)
     {
-        using var asyncToken = WorkspaceListener.BeginAsyncOperation(nameof(StartRefreshingMetadataReferencesForFile));
+        var asyncToken = WorkspaceListener.BeginAsyncOperation(nameof(StartRefreshingMetadataReferencesForFile));
+        var task = StartRefreshingMetadataReferencesForFileAsync(sender, fullFilePath);
+        task.CompletesAsyncOperation(asyncToken);
+        return;
 
-        await ApplyBatchChangeToWorkspaceAsync((solutionChanges, projectUpdateState) =>
+        async Task StartRefreshingMetadataReferencesForFileAsync(object? sender, string fullFilePath)
         {
-            // Access the current update state under the workspace sync.
-            foreach (var project in Workspace.CurrentSolution.Projects)
+            await ApplyBatchChangeToWorkspaceAsync((solutionChanges, projectUpdateState) =>
             {
-                // Loop to find each reference with the given path. It's possible that there might be multiple references of the same path;
-                // the project system could concievably add the same reference multiple times but with different aliases. It's also possible
-                // we might not find the path at all: when we receive the file changed event, we aren't checking if the file is still
-                // in the workspace at that time; it's possible it might have already been removed.
-                foreach (var portableExecutableReference in project.MetadataReferences.OfType<PortableExecutableReference>())
+                // Access the current update state under the workspace sync.
+                foreach (var project in Workspace.CurrentSolution.Projects)
                 {
-                    if (portableExecutableReference.FilePath == fullFilePath)
+                    // Loop to find each reference with the given path. It's possible that there might be multiple references of the same path;
+                    // the project system could concievably add the same reference multiple times but with different aliases. It's also possible
+                    // we might not find the path at all: when we receive the file changed event, we aren't checking if the file is still
+                    // in the workspace at that time; it's possible it might have already been removed.
+                    foreach (var portableExecutableReference in project.MetadataReferences.OfType<PortableExecutableReference>())
                     {
-                        projectUpdateState = projectUpdateState.WithIncrementalReferenceRemoved(portableExecutableReference);
+                        if (portableExecutableReference.FilePath == fullFilePath)
+                        {
+                            projectUpdateState = projectUpdateState.WithIncrementalReferenceRemoved(portableExecutableReference);
 
-                        var newPortableExecutableReference =
-                            CreateReference_NoLock(
+                            var newPortableExecutableReference = CreateReference_NoLock(
                                 portableExecutableReference.FilePath,
                                 portableExecutableReference.Properties,
                                 SolutionServices);
 
-                        projectUpdateState = projectUpdateState.WithIncrementalReferenceAdded(newPortableExecutableReference);
+                            projectUpdateState = projectUpdateState.WithIncrementalReferenceAdded(newPortableExecutableReference);
 
-                        var newSolution = solutionChanges.Solution.RemoveMetadataReference(project.Id, portableExecutableReference)
-                                                                    .AddMetadataReference(project.Id, newPortableExecutableReference);
+                            var newSolution = solutionChanges.Solution
+                                .RemoveMetadataReference(project.Id, portableExecutableReference)
+                                .AddMetadataReference(project.Id, newPortableExecutableReference);
 
-                        solutionChanges.UpdateSolutionForProjectAction(project.Id, newSolution);
+                            solutionChanges.UpdateSolutionForProjectAction(project.Id, newSolution);
+                        }
                     }
                 }
-            }
-            return projectUpdateState;
-        }, onAfterUpdateAlways: null).ConfigureAwait(false);
+                return projectUpdateState;
+            }, onAfterUpdateAlways: null).ConfigureAwait(false);
+        }
     }
 
     internal Task RaiseOnDocumentsAddedMaybeAsync(bool useAsync, ImmutableArray<string> filePaths)
