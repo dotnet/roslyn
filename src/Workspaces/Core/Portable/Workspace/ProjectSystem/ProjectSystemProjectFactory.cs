@@ -526,9 +526,11 @@ internal sealed partial class ProjectSystemProjectFactory
     }
 
     /// <summary>
-    /// Attempts to convert all metadata references to <paramref name="outputPath"/> to a project reference to <paramref name="projectIdToReference"/>.
+    /// Attempts to convert all metadata references to <paramref name="outputPath"/> to a project reference to <paramref
+    /// name="projectIdToReference"/>.
     /// </summary>
-    /// <param name="projectIdToReference">The <see cref="ProjectId"/> of the project that could be referenced in place of the output path.</param>
+    /// <param name="projectIdToReference">The <see cref="ProjectId"/> of the project that could be referenced in place
+    /// of the output path.</param>
     /// <param name="outputPath">The output path to replace.</param>
     [PerformanceSensitive("https://github.com/dotnet/roslyn/issues/31306",
         Constraint = "Avoid calling " + nameof(CodeAnalysis.Solution.GetProject) + " to avoid realizing all projects.")]
@@ -542,9 +544,10 @@ internal sealed partial class ProjectSystemProjectFactory
         {
             if (CanConvertMetadataReferenceToProjectReference(solutionChanges.Solution, projectIdToRetarget, referencedProjectId: projectIdToReference))
             {
-                // PERF: call GetProjectState instead of GetProject, otherwise creating a new project might force all
-                // Project instances to get created.
-                foreach (PortableExecutableReference reference in solutionChanges.Solution.GetProjectState(projectIdToRetarget)!.MetadataReferences)
+                // PERF: call GetRequiredProjectState instead of GetRequiredProject, otherwise creating a new project
+                // might force all Project instances to get created.
+                var projectState = solutionChanges.Solution.GetRequiredProjectState(projectIdToRetarget);
+                foreach (var reference in projectState.MetadataReferences.OfType<PortableExecutableReference>())
                 {
                     if (string.Equals(reference.FilePath, outputPath, StringComparison.OrdinalIgnoreCase))
                     {
@@ -560,8 +563,8 @@ internal sealed partial class ProjectSystemProjectFactory
                         projectUpdateState = projectUpdateState.WithProjectReferenceInfo(projectIdToRetarget,
                             projectInfo.WithConvertedProjectReference(reference.FilePath!, projectReference));
 
-                        // We have converted one, but you could have more than one reference with different aliases
-                        // that we need to convert, so we'll keep going
+                        // We have converted one, but you could have more than one reference with different aliases that
+                        // we need to convert, so we'll keep going
                     }
                 }
             }
