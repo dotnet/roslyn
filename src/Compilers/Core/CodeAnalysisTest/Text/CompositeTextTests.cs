@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
 
         private IEnumerable<string> GetLinesTexts(TextLineCollection textLines)
         {
-            return textLines.Select(l => l.Text.ToString(l.SpanIncludingLineBreak));
+            return textLines.Select(l => l.Text!.ToString(l.SpanIncludingLineBreak));
         }
 
         private (SourceText, CompositeText) CreateSourceAndCompositeTexts(string[] contents)
