@@ -159,7 +159,7 @@ internal sealed partial class ProjectSystemProject
         Language = language;
         _displayName = displayName;
 
-        var provider = _projectSystemProjectFactory.Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+        var provider = _projectSystemProjectFactory.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
         // NOTE: The provider will always return the same singleton, shadow copying, analyzer loader instance, which is
         // important to ensure that analyzer dependencies are correctly loaded.
         _analyzerAssemblyLoader = provider.GetShadowCopyLoader();
@@ -258,11 +258,11 @@ internal sealed partial class ProjectSystemProject
 
             if (logThrowAwayTelemetry)
             {
-                var telemetryService = _projectSystemProjectFactory.Workspace.Services.GetService<IWorkspaceTelemetryService>();
+                var telemetryService = _projectSystemProjectFactory.SolutionServices.GetService<IWorkspaceTelemetryService>();
 
                 if (telemetryService?.HasActiveSession == true)
                 {
-                    var workspaceStatusService = _projectSystemProjectFactory.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+                    var workspaceStatusService = _projectSystemProjectFactory.SolutionServices.GetRequiredService<IWorkspaceStatusService>();
 
                     // We only log telemetry during solution open
 

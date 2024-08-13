@@ -8,6 +8,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectSystem;
@@ -39,7 +40,7 @@ internal sealed partial class ProjectSystemProjectFactory
     public Workspace Workspace { get; }
     public IAsynchronousOperationListener WorkspaceListener { get; }
     public IFileChangeWatcher FileChangeWatcher { get; }
-    public SolutionServices SolutionServices { get; }
+    public SolutionServices SolutionServices => this.Workspace.Services.SolutionServices;
 
     public FileWatchedPortableExecutableReferenceFactory FileWatchedPortableExecutableReferenceFactory { get; }
     public FileWatchedAnalyzerReferenceFactory FileWatchedAnalyzerReferenceFactory { get; }
@@ -74,20 +75,18 @@ internal sealed partial class ProjectSystemProjectFactory
     public ProjectSystemProjectFactory(Workspace workspace, IFileChangeWatcher fileChangeWatcher, Func<bool, ImmutableArray<string>, Task> onDocumentsAddedMaybeAsync, Action<Project> onProjectRemoved)
     {
         Workspace = workspace;
-        WorkspaceListener = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
-
-        SolutionServices = workspace.Services.SolutionServices;
-
         FileChangeWatcher = fileChangeWatcher;
+
+        _onDocumentsAddedMaybeAsync = onDocumentsAddedMaybeAsync;
+        _onProjectRemoved = onProjectRemoved;
+
+        WorkspaceListener = this.SolutionServices.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
 
         FileWatchedPortableExecutableReferenceFactory = new FileWatchedPortableExecutableReferenceFactory(fileChangeWatcher);
         FileWatchedPortableExecutableReferenceFactory.ReferenceChanged += this.StartRefreshingMetadataReferencesForFile;
 
         FileWatchedAnalyzerReferenceFactory = new FileWatchedAnalyzerReferenceFactory(fileChangeWatcher);
         FileWatchedAnalyzerReferenceFactory.ReferenceChanged += this.StartRefreshingAnalyzerReferenceForFile;
-
-        _onDocumentsAddedMaybeAsync = onDocumentsAddedMaybeAsync;
-        _onProjectRemoved = onProjectRemoved;
     }
 
     public FileTextLoader CreateFileTextLoader(string fullPath)
@@ -859,6 +858,9 @@ internal sealed partial class ProjectSystemProjectFactory
         {
             await ApplyBatchChangeToWorkspaceAsync((solutionChanges, projectUpdateState) =>
             {
+                var loaderProvider = this.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+                var assemblyLoader = loaderProvider.GetShadowCopyLoader();
+
                 // Access the current update state under the workspace sync.
                 foreach (var project in Workspace.CurrentSolution.Projects)
                 {
@@ -872,10 +874,7 @@ internal sealed partial class ProjectSystemProjectFactory
                         {
                             projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferenceRemoved(analyzerReference);
 
-                            var newAnalyzerReference = CreateReference_NoLock(
-                                portableExecutableReference.FilePath,
-                                portableExecutableReference.Properties,
-                                SolutionServices);
+                            var newAnalyzerReference = new AnalyzerFileReference(fullFilePath, assemblyLoader);
 
                             projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferenceAdded(analyzerReference);
 
