@@ -400,37 +400,17 @@ internal sealed partial class ProjectSystemProjectFactory
     {
         Contract.ThrowIfFalse(_gate.CurrentCount == 0);
 
-        UpdateReferenceFileWatchers(projectUpdateState.RemovedReferences, projectUpdateState.AddedReferences);
+        // Now that we've removed the references from the sln, we can stop watching them.
+        foreach (var reference in projectUpdateState.RemovedMetadataReferences)
+            FileWatchedReferenceFactory.StopWatchingReference(reference);
+
+        // Now that we've added the references to the sln, we can start watching them.
+        foreach (var reference in projectUpdateState.AddedMetadataReferences)
+            FileWatchedReferenceFactory.StartWatchingReference(reference, reference.FilePath!);
 
         // Clear the state from the this update in preparation for the next.
         projectUpdateState = projectUpdateState.ClearIncrementalState();
         _projectUpdateState = projectUpdateState;
-        return;
-
-        void UpdateReferenceFileWatchers(
-            ImmutableArray<PortableExecutableReference> removedReferences,
-            ImmutableArray<PortableExecutableReference> addedReferences)
-        {
-            // Remove file watchers for any references we're no longer watching.
-            if (removedReferences.Count() > 0)
-            {
-                // Now that we've removed the references from the sln, we can stop watching them.
-                foreach (var reference in removedReferences)
-                {
-                    FileWatchedReferenceFactory.StopWatchingReference(reference);
-                }
-            }
-
-            // Add file watchers for any references we are now watching.
-            if (addedReferences.Count() > 0)
-            {
-                // Now that we've added the references to the sln, we can start watching them.
-                foreach (var reference in addedReferences)
-                {
-                    FileWatchedReferenceFactory.StartWatchingReference(reference, reference.FilePath!);
-                }
-            }
-        }
     }
 
     internal void RemoveSolution_NoLock()
@@ -548,7 +528,7 @@ internal sealed partial class ProjectSystemProjectFactory
                 {
                     if (string.Equals(reference.FilePath, outputPath, StringComparison.OrdinalIgnoreCase))
                     {
-                        projectUpdateState = projectUpdateState.WithIncrementalReferenceRemoved(reference);
+                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(reference);
 
                         var projectReference = new ProjectReference(projectIdToReference, reference.Properties.Aliases, reference.Properties.EmbedInteropTypes);
                         var newSolution = solutionChanges.Solution.RemoveMetadataReference(projectIdToRetarget, reference)
@@ -640,14 +620,13 @@ internal sealed partial class ProjectSystemProjectFactory
                 if (string.Equals(convertedReference.path, outputPath, StringComparison.OrdinalIgnoreCase) &&
                     convertedReference.ProjectReference.ProjectId == projectId)
                 {
-                    var metadataReference =
-                        CreateReference_NoLock(
-                            convertedReference.path,
-                            new MetadataReferenceProperties(
-                                aliases: convertedReference.ProjectReference.Aliases,
-                                embedInteropTypes: convertedReference.ProjectReference.EmbedInteropTypes),
-                            solutionServices);
-                    projectUpdateState = projectUpdateState.WithIncrementalReferenceAdded(metadataReference);
+                    var metadataReference = CreateMetadataReference_NoLock(
+                        convertedReference.path,
+                        new MetadataReferenceProperties(
+                            aliases: convertedReference.ProjectReference.Aliases,
+                            embedInteropTypes: convertedReference.ProjectReference.EmbedInteropTypes),
+                        solutionServices);
+                    projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceAdded(metadataReference);
 
                     var newSolution = solutionChanges.Solution.RemoveProjectReference(projectIdToRetarget, convertedReference.ProjectReference)
                                                               .AddMetadataReference(projectIdToRetarget, metadataReference);
@@ -797,7 +776,7 @@ internal sealed partial class ProjectSystemProjectFactory
     /// Gets or creates a PortableExecutableReference instance for the given file path and properties.
     /// Calls to this are expected to be serialized by the caller.
     /// </summary>
-    public static PortableExecutableReference CreateReference_NoLock(string fullFilePath, MetadataReferenceProperties properties, SolutionServices solutionServices)
+    public static PortableExecutableReference CreateMetadataReference_NoLock(string fullFilePath, MetadataReferenceProperties properties, SolutionServices solutionServices)
     {
         var reference = solutionServices.GetRequiredService<IMetadataService>().GetReference(fullFilePath, properties);
         return reference;
@@ -822,15 +801,14 @@ internal sealed partial class ProjectSystemProjectFactory
                 {
                     if (portableExecutableReference.FilePath == fullFilePath)
                     {
-                        projectUpdateState = projectUpdateState.WithIncrementalReferenceRemoved(portableExecutableReference);
+                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(portableExecutableReference);
 
-                        var newPortableExecutableReference =
-                            CreateReference_NoLock(
-                                portableExecutableReference.FilePath,
-                                portableExecutableReference.Properties,
-                                SolutionServices);
+                        var newPortableExecutableReference = CreateMetadataReference_NoLock(
+                            portableExecutableReference.FilePath,
+                            portableExecutableReference.Properties,
+                            SolutionServices);
 
-                        projectUpdateState = projectUpdateState.WithIncrementalReferenceAdded(newPortableExecutableReference);
+                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceAdded(newPortableExecutableReference);
 
                         var newSolution = solutionChanges.Solution.RemoveMetadataReference(project.Id, portableExecutableReference)
                                                                     .AddMetadataReference(project.Id, newPortableExecutableReference);
@@ -839,6 +817,7 @@ internal sealed partial class ProjectSystemProjectFactory
                     }
                 }
             }
+
             return projectUpdateState;
         }, onAfterUpdateAlways: null).ConfigureAwait(false);
     }
