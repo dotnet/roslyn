@@ -61,7 +61,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         var tempDirectory = tempRoot.CreateDirectory();
 
         // Try creating a context and ensure we created the registration
-        var context = lspFileChangeWatcher.CreateContext(new ProjectSystem.WatchedDirectory(tempDirectory.Path, extensionFilter: null));
+        var context = lspFileChangeWatcher.CreateContext([new ProjectSystem.WatchedDirectory(tempDirectory.Path, extensionFilter: null)]);
         await WaitForFileWatcherAsync(testLspServer);
 
         var watcher = GetSingleFileWatcher(dynamicCapabilitiesRpcTarget);
