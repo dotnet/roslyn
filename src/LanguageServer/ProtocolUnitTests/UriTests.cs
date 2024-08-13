@@ -210,7 +210,7 @@ public class UriTests : AbstractLanguageServerProtocolTests
         Assert.Same(originalText, encodedText);
     }
 
-    [Theory, CombinatorialData]
+    [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2208409")]
     public async Task TestFindsExistingDocumentWhenUriHasDifferentCasingForCaseInsensitiveUriAsync(bool mutatingLspWorkspace)
     {
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });
@@ -258,7 +258,7 @@ public class UriTests : AbstractLanguageServerProtocolTests
         Assert.Same(originalText, lowerCaseText);
     }
 
-    [Theory, CombinatorialData]
+    [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/2208409")]
     public async Task TestUsesDifferentDocumentForDifferentCaseWithNonUncUriAsync(bool mutatingLspWorkspace)
     {
         await using var testLspServer = await CreateTestLspServerAsync(string.Empty, mutatingLspWorkspace, new InitializationOptions { ServerKind = WellKnownLspServerKinds.CSharpVisualBasicLspServer });

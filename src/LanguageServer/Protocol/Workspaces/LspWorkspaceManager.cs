@@ -84,11 +84,11 @@ internal sealed class LspWorkspaceManager : IDocumentChangeTracker, ILspService
                 //
                 // Instead, we will always create the hash code ignoring case, and will rely on the Equals implementation
                 // to handle collisions (between two Uris with different casing).  This should be very rare in practice.
+                // Collisions can happen for non UNC URIs (e.g. `git:/blah` vs `git:/Blah`).
                 return StringComparer.OrdinalIgnoreCase.GetHashCode(obj.AbsoluteUri);
             }
             else
             {
-                obj.GetComponents(UriComponents.AbsoluteUri, UriFormat.UriEscaped);
                 return obj.GetHashCode();
             }
         }
