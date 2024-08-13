@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -801,14 +803,36 @@ internal sealed partial class ProjectSystemProjectFactory
 
     private void StartRefreshingMetadataReferencesForFile(object? sender, string fullFilePath)
     {
-        var asyncToken = WorkspaceListener.BeginAsyncOperation(nameof(StartRefreshingMetadataReferencesForFile));
+        StartRefreshingReferencesForFile(
+            fullFilePath,
+            static project => project.MetadataReferences.OfType<PortableExecutableReference>(),
+            static reference => reference.FilePath!,
+            static (reference, @this) => CreateMetadataReference_NoLock(reference.FilePath!, reference.Properties, @this.SolutionServices),
+            static (projectUpdateState, oldReference, newReference) => projectUpdateState
+                .WithIncrementalMetadataReferenceRemoved(oldReference)
+                .WithIncrementalMetadataReferenceAdded(newReference),
+            static (solution, projectId, oldReference, newReference) => solution
+                .RemoveMetadataReference(projectId, oldReference)
+                .AddMetadataReference(projectId, newReference));
+    }
 
-        var task = StartRefreshingMetadataReferencesForFileAsync(sender, fullFilePath);
+    private void StartRefreshingReferencesForFile<TReference>(
+        string fullFilePath,
+        Func<Project, IEnumerable<TReference>> getReferences,
+        Func<TReference, string> getFilePath,
+        Func<TReference, ProjectSystemProjectFactory, TReference> createNewReference,
+        Func<ProjectUpdateState, TReference, TReference, ProjectUpdateState> updateState,
+        Func<Solution, ProjectId, TReference, TReference, Solution> updateSolution)
+        where TReference : class
+    {
+        var asyncToken = WorkspaceListener.BeginAsyncOperation(nameof(StartRefreshingReferencesForFile));
+
+        var task = StartRefreshingReferencesForFileAsync();
         task.CompletesAsyncOperation(asyncToken);
 
         return;
 
-        async Task StartRefreshingMetadataReferencesForFileAsync(object? sender, string fullFilePath)
+        async Task StartRefreshingReferencesForFileAsync()
         {
             await ApplyBatchChangeToWorkspaceAsync((solutionChanges, projectUpdateState) =>
             {
@@ -820,24 +844,16 @@ internal sealed partial class ProjectSystemProjectFactory
                     // times but with different aliases. It's also possible we might not find the path at all: when we
                     // receive the file changed event, we aren't checking if the file is still in the workspace at that
                     // time; it's possible it might have already been removed.
-                    foreach (var portableExecutableReference in project.MetadataReferences.OfType<PortableExecutableReference>())
+                    foreach (var reference in getReferences(project))
                     {
-                        if (portableExecutableReference.FilePath == fullFilePath)
+                        if (getFilePath(reference) == fullFilePath)
                         {
-                            projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(portableExecutableReference);
+                            var newReference = createNewReference(reference, this);
 
-                            var newPortableExecutableReference = CreateMetadataReference_NoLock(
-                                portableExecutableReference.FilePath,
-                                portableExecutableReference.Properties,
-                                SolutionServices);
+                            projectUpdateState = updateState(projectUpdateState, reference, newReference);
 
-                            projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceAdded(newPortableExecutableReference);
-
-                            var newSolution = solutionChanges.Solution
-                                .RemoveMetadataReference(project.Id, portableExecutableReference)
-                                .AddMetadataReference(project.Id, newPortableExecutableReference);
-
-                            solutionChanges.UpdateSolutionForProjectAction(project.Id, newSolution);
+                            solutionChanges.UpdateSolutionForProjectAction(
+                                project.Id, updateSolution(solutionChanges.Solution, project.Id, reference, newReference));
                         }
                     }
                 }
