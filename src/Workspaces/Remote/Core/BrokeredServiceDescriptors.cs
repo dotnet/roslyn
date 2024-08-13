@@ -127,9 +127,4 @@ internal static class BrokeredServiceDescriptors
             : new ServiceJsonRpcDescriptor(moniker, Formatters.MessagePack, MessageDelimiters.BigEndianInt32LengthHeader);
         return descriptor.WithExceptionStrategy(ExceptionProcessing.ISerializable);
     }
-
-    private static ServiceJsonRpcDescriptor CreateDescriptorWithProtocolVersion(ServiceMoniker moniker, int protocolVersion)
-        => new ServiceJsonRpcDescriptor(moniker, clientInterface: null, Formatters.MessagePack, MessageDelimiters.BigEndianInt32LengthHeader, new MultiplexingStream.Options { ProtocolMajorVersion = protocolVersion })
-           .WithExceptionStrategy(ExceptionProcessing.ISerializable);
-
 }
