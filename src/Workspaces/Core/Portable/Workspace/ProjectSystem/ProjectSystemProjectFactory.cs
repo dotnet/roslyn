@@ -39,7 +39,7 @@ internal sealed partial class ProjectSystemProjectFactory
     public Workspace Workspace { get; }
     public IAsynchronousOperationListener WorkspaceListener { get; }
     public IFileChangeWatcher FileChangeWatcher { get; }
-    public FileWatchedPortableExecutableReferenceFactory FileWatchedReferenceFactory { get; }
+    public FileWatchedPortableExecutableReferenceFactory FileWatchedPortableExecutableReferenceFactory { get; }
     public SolutionServices SolutionServices { get; }
 
     private readonly Func<bool, ImmutableArray<string>, Task> _onDocumentsAddedMaybeAsync;
@@ -77,8 +77,9 @@ internal sealed partial class ProjectSystemProjectFactory
         SolutionServices = workspace.Services.SolutionServices;
 
         FileChangeWatcher = fileChangeWatcher;
-        FileWatchedReferenceFactory = new FileWatchedPortableExecutableReferenceFactory(fileChangeWatcher);
-        FileWatchedReferenceFactory.ReferenceChanged += this.StartRefreshingMetadataReferencesForFile;
+
+        FileWatchedPortableExecutableReferenceFactory = new FileWatchedPortableExecutableReferenceFactory(fileChangeWatcher);
+        FileWatchedPortableExecutableReferenceFactory.ReferenceChanged += this.StartRefreshingMetadataReferencesForFile;
 
         _onDocumentsAddedMaybeAsync = onDocumentsAddedMaybeAsync;
         _onProjectRemoved = onProjectRemoved;
@@ -417,7 +418,7 @@ internal sealed partial class ProjectSystemProjectFactory
                 // Now that we've removed the references from the sln, we can stop watching them.
                 foreach (var reference in removedReferences)
                 {
-                    FileWatchedReferenceFactory.StopWatchingReference(reference);
+                    FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference);
                 }
             }
 
@@ -427,7 +428,7 @@ internal sealed partial class ProjectSystemProjectFactory
                 // Now that we've added the references to the sln, we can start watching them.
                 foreach (var reference in addedReferences)
                 {
-                    FileWatchedReferenceFactory.StartWatchingReference(reference, reference.FilePath!);
+                    FileWatchedPortableExecutableReferenceFactory.StartWatchingReference(reference, reference.FilePath!);
                 }
             }
         }

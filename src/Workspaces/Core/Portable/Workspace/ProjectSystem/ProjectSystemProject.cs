@@ -1364,16 +1364,12 @@ internal sealed partial class ProjectSystemProject
 
         Contract.ThrowIfNull(remainingMetadataReferences);
 
-        foreach (PortableExecutableReference reference in remainingMetadataReferences)
-        {
-            _projectSystemProjectFactory.FileWatchedReferenceFactory.StopWatchingReference(reference);
-        }
+        foreach (var reference in remainingMetadataReferences.OfType<PortableExecutableReference>())
+            _projectSystemProjectFactory.FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference);
 
         // Dispose of any analyzers that might still be around to remove their load diagnostics
         foreach (var visualStudioAnalyzer in _analyzerPathsToAnalyzers.Values.Concat(_analyzersRemovedInBatch))
-        {
             visualStudioAnalyzer.Dispose();
-        }
     }
 
     public void ReorderSourceFiles(ImmutableArray<string> filePaths)
