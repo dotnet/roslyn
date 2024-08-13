@@ -42,10 +42,11 @@ internal sealed partial class ProjectSystemProjectFactory
     public Workspace Workspace { get; }
     public IAsynchronousOperationListener WorkspaceListener { get; }
     public IFileChangeWatcher FileChangeWatcher { get; }
-    public SolutionServices SolutionServices => this.Workspace.Services.SolutionServices;
 
     public FileWatchedReferenceFactory<PortableExecutableReference> FileWatchedPortableExecutableReferenceFactory { get; }
     public FileWatchedReferenceFactory<AnalyzerFileReference> FileWatchedAnalyzerReferenceFactory { get; }
+
+    public SolutionServices SolutionServices => this.Workspace.Services.SolutionServices;
 
     private readonly Func<bool, ImmutableArray<string>, Task> _onDocumentsAddedMaybeAsync;
     private readonly Action<Project> _onProjectRemoved;
