@@ -136,11 +136,11 @@ namespace Microsoft.CodeAnalysis.Text
                 }
             }
 
-            public override TextLine this[int index]
+            public override TextLine this[int lineNumber]
             {
                 get
                 {
-                    if (_endsWithinSplitCRLF && index == _lineCount - 1)
+                    if (_endsWithinSplitCRLF && lineNumber == _lineCount - 1)
                     {
                         // Special case splitting the CRLF at the end as the UnderlyingText doesn't view the position
                         // after between the \r and \n as on a new line whereas this subtext doesn't contain the \n
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Text
                         return TextLine.FromSpanUnsafe(_subText, new TextSpan(_subText.UnderlyingSpan.End, 0));
                     }
 
-                    var underlyingTextLine = _subText.UnderlyingText.Lines[index + _startLineNumber];
+                    var underlyingTextLine = _subText.UnderlyingText.Lines[lineNumber + _startLineNumber];
 
                     var startInUnderlyingText = Math.Max(underlyingTextLine.Start, _subText.UnderlyingSpan.Start);
                     var endInUnderlyingText = Math.Min(underlyingTextLine.EndIncludingLineBreak, _subText.UnderlyingSpan.End);
