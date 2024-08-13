@@ -84,7 +84,7 @@ internal sealed class FileChangeWatcher : IFileChangeWatcher
     }
 
     public IFileChangeContext CreateContext(ImmutableArray<WatchedDirectory> watchedDirectories)
-        => new Context(this, watchedDirectories.ToImmutableArray());
+        => new Context(this, watchedDirectories);
 
     /// <summary>
     /// Represents an operation to subscribe or unsubscribe from <see cref="IVsAsyncFileChangeEx2"/> events. The
