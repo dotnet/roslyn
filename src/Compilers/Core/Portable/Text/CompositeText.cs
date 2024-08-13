@@ -44,6 +44,11 @@ namespace Microsoft.CodeAnalysis.Text
             }
         }
 
+        protected override TextLineCollection GetLinesCore()
+        {
+            return new CompositeLineInfo(this);
+        }
+
         public override Encoding? Encoding
         {
             get { return _encoding; }
@@ -371,6 +376,126 @@ namespace Microsoft.CodeAnalysis.Text
 
                 segments.Clear();
                 segments.Add(writer.ToSourceText());
+            }
+        }
+
+        /// <summary>
+        /// Delegates to SourceTexts within the CompositeText to determine line information.
+        /// </summary>
+        internal sealed class CompositeLineInfo : TextLineCollection
+        {
+            private readonly CompositeText _compositeText;
+            private readonly int[] _segmentLineIndexes;
+            private readonly int _lineCount;
+
+            public CompositeLineInfo(CompositeText compositeText)
+            {
+                _compositeText = compositeText;
+                _segmentLineIndexes = new int[compositeText.Segments.Length];
+
+                for (int i = 0; i < compositeText.Segments.Length; i++)
+                {
+                    _segmentLineIndexes[i] = _lineCount;
+
+                    var segment = compositeText.Segments[i];
+                    _lineCount += (segment.Lines.Count - 1);
+
+                    // If "\r\n" is split amongst adjacent segments, reduce the line count by one as both segments
+                    // would count their corresponding CR or LF as a newline.
+                    if (segment.Length > 0 &&
+                        segment[segment.Length - 1] == '\r' &&
+                        i < compositeText.Segments.Length - 1)
+                    {
+                        var nextSegment = compositeText.Segments[i + 1];
+                        if (nextSegment.Length > 0 && nextSegment[0] == '\n')
+                        {
+                            _lineCount -= 1;
+                        }
+                    }
+                }
+
+                _lineCount += 1;
+            }
+
+            public override int Count => _lineCount;
+
+            public override int IndexOf(int position)
+            {
+                _compositeText.GetIndexAndOffset(position, out var segmentIndex, out var segmentOffset);
+
+                var segment = _compositeText.Segments[segmentIndex];
+                var lineIndexWithinSegment = segment.Lines.IndexOf(segmentOffset);
+
+                return _segmentLineIndexes[segmentIndex] + lineIndexWithinSegment;
+            }
+
+            public override TextLine this[int lineNumber]
+            {
+                get
+                {
+                    // Determine the indexes for segments that contribute to our view of this line's contents
+                    GetSegmentIndexRangeContainingLine(lineNumber, out var firstSegmentIndex, out var lastSegmentIndex);
+
+                    var firstSegmentFirstLineNumber = _segmentLineIndexes[firstSegmentIndex];
+                    var firstSegment = _compositeText.Segments[firstSegmentIndex];
+                    var firstSegmentOffset = _compositeText._segmentOffsets[firstSegmentIndex];
+                    var firstSegmentTextLine = firstSegment.Lines[lineNumber - firstSegmentFirstLineNumber];
+
+                    var lineLength = firstSegmentTextLine.SpanIncludingLineBreak.Length;
+
+                    // walk forward through remaining segments contributing to this line, and add their
+                    // view of this line.
+                    for (var nextSegmentIndex = firstSegmentIndex + 1; nextSegmentIndex <= lastSegmentIndex; nextSegmentIndex++)
+                    {
+                        var nextSegment = _compositeText.Segments[nextSegmentIndex];
+                        lineLength += nextSegment.Lines[0].SpanIncludingLineBreak.Length;
+                    }
+
+                    return TextLine.FromSpanUnsafe(_compositeText, new TextSpan(firstSegmentOffset + firstSegmentTextLine.Start, lineLength));
+                }
+            }
+
+            private void GetSegmentIndexRangeContainingLine(int lineNumber, out int firstSegmentIndex, out int lastSegmentIndex)
+            {
+                int idx = _segmentLineIndexes.BinarySearch(lineNumber);
+                var binarySearchSegmentIndex = idx >= 0 ? idx : (~idx - 1);
+
+                for (firstSegmentIndex = binarySearchSegmentIndex; firstSegmentIndex > 0; firstSegmentIndex--)
+                {
+                    if (_segmentLineIndexes[firstSegmentIndex] != lineNumber)
+                    {
+                        // This segment doesn't start at the requested line, no need to continue to earlier segments.
+                        break;
+                    }
+
+                    // No need to continue to the previous segment if either:
+                    // 1) it ends in \n or
+                    // 2) if ends in \r and the current segment doesn't start with \n
+                    var previousSegment = _compositeText.Segments[firstSegmentIndex - 1];
+                    var previousSegmentLastChar = previousSegment.Length > 0 ? previousSegment[previousSegment.Length - 1] : '\0';
+                    if (previousSegmentLastChar == '\n')
+                    {
+                        break;
+                    }
+                    else if (previousSegmentLastChar == '\r')
+                    {
+                        var currentSegment = _compositeText.Segments[firstSegmentIndex];
+                        if (currentSegment.Length == 0 || currentSegment[0] != '\n')
+                        {
+                            break;
+                        }
+                    }
+                }
+
+                // Determining the lastSegment is a simple walk as the _segmentLineIndexes was populated
+                // accounting for split "\r\n".
+                for (lastSegmentIndex = binarySearchSegmentIndex; lastSegmentIndex < _compositeText.Segments.Length - 1; lastSegmentIndex++)
+                {
+                    if (_segmentLineIndexes[lastSegmentIndex + 1] != lineNumber)
+                    {
+                        break;
+                    }
+                }
             }
         }
     }
