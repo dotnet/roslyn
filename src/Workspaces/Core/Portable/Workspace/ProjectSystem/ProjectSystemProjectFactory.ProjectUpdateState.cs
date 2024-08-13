@@ -42,6 +42,12 @@ internal sealed partial class ProjectSystemProjectFactory
     /// <param name="AddedMetadataReferences">
     /// Incremental state containing metadata references added in the current update.
     /// </param>
+    /// <param name="RemovedAnalyzerReferences">
+    /// Incremental state containing analyzer references removed in the current update.
+    /// </param>
+    /// <param name="AddedAnalyzerReferences">
+    /// Incremental state containing analyzer references added in the current update.
+    /// </param>
     public sealed record class ProjectUpdateState(
         ImmutableDictionary<string, ImmutableArray<ProjectId>> ProjectsByOutputPath,
         ImmutableDictionary<ProjectId, ProjectReferenceInformation> ProjectReferenceInfos,
