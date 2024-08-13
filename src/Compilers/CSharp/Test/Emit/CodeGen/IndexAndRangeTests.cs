@@ -4248,9 +4248,7 @@ class S
                     public static ReadOnlySpan<char> SecondToLast(ReadOnlySpan<char> s) => s[1..];
                 }
                 """;
-            var comp = ExecutionConditionUtil.IsCoreClr ?
-                CreateCompilation(source, targetFramework: TargetFramework.Net70)
-                : CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray, TestSources.Span, TestSources.MemoryExtensions, TestSources.ITuple },
+            var comp = CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray, TestSources.Span, TestSources.MemoryExtensions, TestSources.ITuple },
                                                    TestOptions.UnsafeReleaseExe);
             if (isMissing)
                 comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__Slice_Int);
@@ -4306,9 +4304,7 @@ class S
                     public static Span<char> SecondToLast(Span<char> s) => s[1..];
                 }
                 """;
-            var comp = ExecutionConditionUtil.IsCoreClr
-                ? CreateCompilation(source, targetFramework: TargetFramework.Net70)
-                : CreateCompilationWithIndexAndRange(
+            var comp = CreateCompilationWithIndexAndRange(
                 new[] { source, TestSources.GetSubArray, TestSources.Span, TestSources.MemoryExtensions },
                 TestOptions.UnsafeReleaseExe);
             if (isMissing)
