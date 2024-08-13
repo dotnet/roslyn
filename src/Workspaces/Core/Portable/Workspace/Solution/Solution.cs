@@ -1083,7 +1083,7 @@ public partial class Solution
             filePath: filePath);
     }
 
-    private ProjectState GetRequiredProjectState(ProjectId projectId)
+    internal ProjectState GetRequiredProjectState(ProjectId projectId)
         => this.SolutionState.GetProjectState(projectId) ?? throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, projectId));
 
     /// <summary>
