@@ -178,11 +178,12 @@ internal static class FileWatchedReferenceFactory
         {
             using var _ = PooledHashSet<string>.GetInstance(out var referenceDirectories);
 
-            // On each platform, there is a place that reference assemblies for the framework are installed. These are rarely going to be changed
-            // but are the most common places that we're going to create file watches. Rather than either creating a huge number of file watchers
-            // for every single file, or eventually realizing we should just watch these directories, we just create the single directory watchers now.
-            // We'll collect this from two places: constructing it from known environment variables, and also for the defaults where those environment
-            // variables would usually point, as a fallback.
+            // On each platform, there is a place that reference assemblies for the framework are installed. These are
+            // rarely going to be changed but are the most common places that we're going to create file watches. Rather
+            // than either creating a huge number of file watchers for every single file, or eventually realizing we
+            // should just watch these directories, we just create the single directory watchers now. We'll collect this
+            // from two places: constructing it from known environment variables, and also for the defaults where those
+            // environment variables would usually point, as a fallback.
 
             if (Environment.GetEnvironmentVariable("DOTNET_ROOT") is string dotnetRoot && !string.IsNullOrEmpty(dotnetRoot))
             {
@@ -204,9 +205,9 @@ internal static class FileWatchedReferenceFactory
                 referenceDirectories.Add("/usr/local/share/dotnet/packs");
             }
 
-            // Also watch the NuGet restore path; we don't do this (yet) on Windows due to potential concerns about whether
-            // this creates additional overhead responding to changes during a restore.
-            // TODO: remove this condition
+            // Also watch the NuGet restore path; we don't do this (yet) on Windows due to potential concerns about
+            // whether this creates additional overhead responding to changes during a restore. TODO: remove this
+            // condition
             if (!PlatformInformation.IsWindows)
             {
                 referenceDirectories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages"));
