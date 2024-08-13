@@ -829,7 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <remarks>
         /// Span conversion is available since C# 13 as part of the "first-class Span types" feature.
         /// </remarks>
-        internal bool IsSpan // PROTOTYPE: Make part of public API
+        public bool IsSpan
         {
             get
             {
