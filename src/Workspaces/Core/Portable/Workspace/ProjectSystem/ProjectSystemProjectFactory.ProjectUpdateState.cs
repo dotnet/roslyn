@@ -109,34 +109,28 @@ internal sealed partial class ProjectSystemProjectFactory
         }
 
         public ProjectUpdateState WithIncrementalMetadataReferenceRemoved(PortableExecutableReference reference)
-        {
-            return this with
-            {
-                RemovedMetadataReferences = RemovedMetadataReferences.Add(reference)
-            };
-        }
+            => this with { RemovedMetadataReferences = RemovedMetadataReferences.Add(reference) };
 
         public ProjectUpdateState WithIncrementalMetadataReferenceAdded(PortableExecutableReference reference)
-        {
-            return this with
-            {
-                AddedMetadataReferences = AddedMetadataReferences.Add(reference)
-            };
-        }
+            => this with { AddedMetadataReferences = AddedMetadataReferences.Add(reference) };
+
+        public ProjectUpdateState WithIncrementalAnalyzerReferenceRemoved(AnalyzerReference reference)
+            => this with { RemovedAnalyzerReferences = RemovedAnalyzerReferences.Add(reference) };
+
+        public ProjectUpdateState WithIncrementalAnalyzerReferenceAdded(AnalyzerReference reference)
+            => this with { AddedAnalyzerReferences = AddedAnalyzerReferences.Add(reference) };
 
         /// <summary>
         /// Returns a new instance with any incremental state that should not be saved between updates cleared.
         /// </summary>
         public ProjectUpdateState ClearIncrementalState()
-        {
-            return this with
+            => this with
             {
                 RemovedMetadataReferences = [],
                 AddedMetadataReferences = [],
                 RemovedAnalyzerReferences = [],
                 AddedAnalyzerReferences = [],
             };
-        }
     }
 
     public record struct ProjectReferenceInformation(ImmutableArray<string> OutputPaths, ImmutableArray<(string path, ProjectReference ProjectReference)> ConvertedProjectReferences)

@@ -636,13 +636,12 @@ internal sealed partial class ProjectSystemProjectFactory
                 if (string.Equals(convertedReference.path, outputPath, StringComparison.OrdinalIgnoreCase) &&
                     convertedReference.ProjectReference.ProjectId == projectId)
                 {
-                    var metadataReference =
-                        CreateReference_NoLock(
-                            convertedReference.path,
-                            new MetadataReferenceProperties(
-                                aliases: convertedReference.ProjectReference.Aliases,
-                                embedInteropTypes: convertedReference.ProjectReference.EmbedInteropTypes),
-                            solutionServices);
+                    var metadataReference = CreateMetadataReference_NoLock(
+                        convertedReference.path,
+                        new MetadataReferenceProperties(
+                            aliases: convertedReference.ProjectReference.Aliases,
+                            embedInteropTypes: convertedReference.ProjectReference.EmbedInteropTypes),
+                        solutionServices);
                     projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceAdded(metadataReference);
 
                     var newSolution = solutionChanges.Solution.RemoveProjectReference(projectIdToRetarget, convertedReference.ProjectReference)
@@ -793,10 +792,10 @@ internal sealed partial class ProjectSystemProjectFactory
     /// Gets or creates a PortableExecutableReference instance for the given file path and properties.
     /// Calls to this are expected to be serialized by the caller.
     /// </summary>
-    public static PortableExecutableReference CreateReference_NoLock(string fullFilePath, MetadataReferenceProperties properties, SolutionServices solutionServices)
+    public static PortableExecutableReference CreateMetadataReference_NoLock(
+        string fullFilePath, MetadataReferenceProperties properties, SolutionServices solutionServices)
     {
-        var reference = solutionServices.GetRequiredService<IMetadataService>().GetReference(fullFilePath, properties);
-        return reference;
+        return solutionServices.GetRequiredService<IMetadataService>().GetReference(fullFilePath, properties);
     }
 
     private void StartRefreshingMetadataReferencesForFile(object? sender, string fullFilePath)
@@ -825,7 +824,7 @@ internal sealed partial class ProjectSystemProjectFactory
                         {
                             projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(portableExecutableReference);
 
-                            var newPortableExecutableReference = CreateReference_NoLock(
+                            var newPortableExecutableReference = CreateMetadataReference_NoLock(
                                 portableExecutableReference.FilePath,
                                 portableExecutableReference.Properties,
                                 SolutionServices);
@@ -868,20 +867,20 @@ internal sealed partial class ProjectSystemProjectFactory
                     // in the workspace at that time; it's possible it might have already been removed.
                     foreach (var analyzerReference in project.AnalyzerReferences)
                     {
-                        if (analyzerReference.FilePath == fullFilePath)
+                        if (analyzerReference.FullPath == fullFilePath)
                         {
-                            projectUpdateState = projectUpdateState.WithIncrementalReferenceRemoved(portableExecutableReference);
+                            projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferenceRemoved(analyzerReference);
 
-                            var newPortableExecutableReference = CreateReference_NoLock(
+                            var newAnalyzerReference = CreateReference_NoLock(
                                 portableExecutableReference.FilePath,
                                 portableExecutableReference.Properties,
                                 SolutionServices);
 
-                            projectUpdateState = projectUpdateState.WithIncrementalReferenceAdded(newPortableExecutableReference);
+                            projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferenceAdded(analyzerReference);
 
                             var newSolution = solutionChanges.Solution
-                                .RemoveMetadataReference(project.Id, portableExecutableReference)
-                                .AddMetadataReference(project.Id, newPortableExecutableReference);
+                                .RemoveAnalyzerReference(project.Id, analyzerReference)
+                                .AddAnalyzerReference(project.Id, newAnalyzerReference);
 
                             solutionChanges.UpdateSolutionForProjectAction(project.Id, newSolution);
                         }

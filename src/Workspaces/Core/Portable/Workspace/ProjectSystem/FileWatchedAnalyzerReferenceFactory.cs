@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
 namespace Microsoft.CodeAnalysis.ProjectSystem;
 
-internal sealed class FileWatchedProjectAnalyzerReferenceFactory(IFileChangeWatcher fileChangeWatcher)
-    : AbstractFileWatchedReferenceFactory<ProjectAnalyzerReference>(fileChangeWatcher)
+internal sealed class FileWatchedAnalyzerReferenceFactory(IFileChangeWatcher fileChangeWatcher)
+    : AbstractFileWatchedReferenceFactory<AnalyzerReference>(fileChangeWatcher)
 {
 }
