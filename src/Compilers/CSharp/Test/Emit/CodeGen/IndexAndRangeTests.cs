@@ -4232,57 +4232,68 @@ class S
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
-        public void SingleOverloadReadOnlySpan()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void SingleOverloadReadOnlySpan(bool isMissing)
         {
 
             string source = """
                 using System;
                 
-                ReadOnlySpan<char> s = "0123";
-                Console.Write(s[1..].ToString());
+                Console.Write(Util.SecondToLast("0123").ToString());
+
+                static class Util
+                {
+                    public static ReadOnlySpan<char> SecondToLast(ReadOnlySpan<char> s) => s[1..];
+                }
                 """;
             var comp = ExecutionConditionUtil.IsCoreClr ?
                 CreateCompilation(source, targetFramework: TargetFramework.Net70)
                 : CreateCompilationWithIndexAndRange(new[] { source, TestSources.GetSubArray, TestSources.Span, TestSources.MemoryExtensions, TestSources.ITuple },
                                                    TestOptions.UnsafeReleaseExe);
-            var verify = CompileAndVerify(comp, expectedOutput: "123", verify: ExecutionConditionUtil.IsCoreClr ? Verification.Passes : Verification.Skipped);
+            if (isMissing)
+                comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__Slice_Int);
+            // If Verification.Skipped is not passed, the IL Verify will fail with:
+            //     System.Exception : IL Verify failed unexpectedly:
+            //     [SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x8 }
+            var verify = CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Skipped);
             verify.VerifyDiagnostics();
-            verify.VerifyIL("<top-level-statements-entry-point>", """
+            verify.VerifyIL("Util.SecondToLast",
+                isMissing
+                ? """
             {
-              // Code size       39 (0x27)
-              .maxstack  2
-              .locals init (System.ReadOnlySpan<char> V_0, //s
-                            System.ReadOnlySpan<char> V_1)
-              IL_0000:  ldstr      "0123"
-
+              // Code size       19 (0x13)
+              .maxstack  4
+              .locals init (System.ReadOnlySpan<char>& V_0)
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  stloc.0
+              IL_0003:  ldloc.0
+              IL_0004:  ldc.i4.1
+              IL_0005:  ldloc.0
+              IL_0006:  call       "int System.ReadOnlySpan<char>.Length.get"
+              IL_000b:  ldc.i4.1
+              IL_000c:  sub
+              IL_000d:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int, int)"
+              IL_0012:  ret
+            }
             """
-              + (ExecutionConditionUtil.IsCoreClr
-                  ? """
-                    IL_0005:  call       "System.ReadOnlySpan<char> string.op_Implicit(string)"
-
-                  """
-                  : """
-                    IL_0005:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.op_Implicit(string)"
-
-                  """)
-              + """
-              IL_000a:  stloc.0
-              IL_000b:  ldloca.s   V_0
-              IL_000d:  ldc.i4.1
-              IL_000e:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int)"
-              IL_0013:  stloc.1
-              IL_0014:  ldloca.s   V_1
-              IL_0016:  constrained. "System.ReadOnlySpan<char>"
-              IL_001c:  callvirt   "string object.ToString()"
-              IL_0021:  call       "void System.Console.Write(string)"
-              IL_0026:  ret
+                : """
+            {
+              // Code size        9 (0x9)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  ldc.i4.1
+              IL_0003:  call       "System.ReadOnlySpan<char> System.ReadOnlySpan<char>.Slice(int)"
+              IL_0008:  ret
             }
             """);
         }
 
-        [Fact]
-        public void SingleOverloadSpan()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void SingleOverloadSpan(bool isMissing)
         {
 
             string source = """
@@ -4300,13 +4311,34 @@ class S
                 : CreateCompilationWithIndexAndRange(
                 new[] { source, TestSources.GetSubArray, TestSources.Span, TestSources.MemoryExtensions },
                 TestOptions.UnsafeReleaseExe);
+            if (isMissing)
+                comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int);
 
             // If Verification.Skipped is not passed, the IL Verify will fail with:
             //     System.Exception : IL Verify failed unexpectedly:
             //     [SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x8 }
             var verify = CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Skipped);
             verify.VerifyDiagnostics();
-            verify.VerifyIL("Util.SecondToLast", """
+            verify.VerifyIL("Util.SecondToLast",
+                isMissing
+                ? """
+            {
+              // Code size       19 (0x13)
+              .maxstack  4
+              .locals init (System.Span<char>& V_0)
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  stloc.0
+              IL_0003:  ldloc.0
+              IL_0004:  ldc.i4.1
+              IL_0005:  ldloc.0
+              IL_0006:  call       "int System.Span<char>.Length.get"
+              IL_000b:  ldc.i4.1
+              IL_000c:  sub
+              IL_000d:  call       "System.Span<char> System.Span<char>.Slice(int, int)"
+              IL_0012:  ret
+            }
+            """
+                : """
             {
               // Code size        9 (0x9)
               .maxstack  2
@@ -4318,17 +4350,44 @@ class S
             """);
         }
 
-        [Fact]
-        public void SingleOverloadString()
+        [Theory]
+        [InlineData(false)]
+        [InlineData(true)]
+        public void SingleOverloadString(bool isMissing)
         {
             string source = """
                 using System;
                 
                 Console.Write("0123"[1..]);
                 """;
-            var comp = CompileAndVerifyWithIndexAndRange(source, expectedOutput: "123");
-            comp.VerifyDiagnostics();
-            comp.VerifyIL("<top-level-statements-entry-point>", """
+            var comp = CreateCompilationWithIndexAndRange(
+                new[] { source, TestSources.GetSubArray, },
+                TestOptions.ReleaseExe);
+            if (isMissing)
+                comp.MakeMemberMissing(SpecialMember.System_String__SubstringInt);
+            var verify = CompileAndVerify(comp, expectedOutput: "123");
+            verify.VerifyDiagnostics();
+            verify.VerifyIL("<top-level-statements-entry-point>",
+                isMissing
+                ? """
+            {
+              // Code size       27 (0x1b)
+              .maxstack  4
+              .locals init (string V_0)
+              IL_0000:  ldstr      "0123"
+              IL_0005:  stloc.0
+              IL_0006:  ldloc.0
+              IL_0007:  ldc.i4.1
+              IL_0008:  ldloc.0
+              IL_0009:  callvirt   "int string.Length.get"
+              IL_000e:  ldc.i4.1
+              IL_000f:  sub
+              IL_0010:  callvirt   "string string.Substring(int, int)"
+              IL_0015:  call       "void System.Console.Write(string)"
+              IL_001a:  ret
+            }
+            """
+                : """
             {
               // Code size       17 (0x11)
               .maxstack  2
