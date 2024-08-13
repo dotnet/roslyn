@@ -4,14 +4,18 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 
 // TODO: Remove. This is only needed to support Solution Explorer Analyzer node population. 
 // Analyzers should not be loaded in devenv process (see https://github.com/dotnet/roslyn/issues/43008).
-internal sealed class ProjectAnalyzerReference(string fullPath, IAnalyzerAssemblyLoader loader, IProjectSystemDiagnosticSource projectSystemDiagnosticSource, ProjectId projectId, string language) : IDisposable
+internal sealed class ProjectAnalyzerReference(
+    string fullPath,
+    IAnalyzerAssemblyLoader loader,
+    IProjectSystemDiagnosticSource projectSystemDiagnosticSource,
+    ProjectId projectId,
+    string language) : IDisposable
 {
     // these 2 are mutable states that must be guarded under the _gate.
     private readonly object _gate = new();
