@@ -4465,5 +4465,94 @@ class C { }
             Assert.Same(newParseOptions, result.GeneratedTrees[0].Options);
             Assert.Same(newParseOptions, result.GeneratedTrees[1].Options);
         }
+
+        [Fact]
+        public void GeneratorDriver_Makes_HostOutputs_Available()
+        {
+            var generator = new PipelineCallbackGenerator((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { hostCtx.AddOutput("a", "value"); }); });
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator.AsSourceGenerator()], parseOptions: parseOptions);
+
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+            var (key, value) = Assert.Single(result.HostOutputs);
+            Assert.Equal("a", key);
+            Assert.Equal("value", value);
+        }
+
+        [Fact]
+        public void GeneratorDriver_No_HostOutputs_WhenDisabled()
+        {
+            var generator = new PipelineCallbackGenerator((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { hostCtx.AddOutput("a", "value"); }); });
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator.AsSourceGenerator()], parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions(IncrementalGeneratorOutputKind.Host));
+
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+            Assert.Empty(result.HostOutputs);
+        }
+
+        [Fact]
+        public void GeneratorDriver_Multiple_HostOutputs()
+        {
+            var generator = new PipelineCallbackGenerator((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { hostCtx.AddOutput("a", "value"); hostCtx.AddOutput("b", "value2"); }); });
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator.AsSourceGenerator()], parseOptions: parseOptions);
+
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+
+            Assert.Collection(result.HostOutputs,
+                (e) => { Assert.Equal("a", e.Key); Assert.Equal("value", e.Value); },
+                (e) => { Assert.Equal("b", e.Key); Assert.Equal("value2", e.Value); }
+            );
+        }
+
+        [Fact]
+        public void GeneratorDriver_Multiple_HostOutputs_SameName()
+        {
+            var generator = new PipelineCallbackGenerator((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { hostCtx.AddOutput("a", "value"); hostCtx.AddOutput("a", "value2"); }); });
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator.AsSourceGenerator()], parseOptions: parseOptions);
+
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+
+            Assert.Collection(result.HostOutputs,
+                (e) => { Assert.Equal("a", e.Key); Assert.Equal("value", e.Value); },
+                (e) => { Assert.Equal("a", e.Key); Assert.Equal("value2", e.Value); }
+            );
+        }
+
+        [Fact]
+        public void GeneratorDriver_Makes_HostOutputs_MultipleGenerators()
+        {
+            var generator1 = new PipelineCallbackGenerator((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { hostCtx.AddOutput("gen1", "value1"); }); });
+            var generator2 = new PipelineCallbackGenerator2((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { hostCtx.AddOutput("gen2", "value2"); }); });
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator1.AsSourceGenerator(), generator2.AsSourceGenerator()], parseOptions: parseOptions);
+           
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+
+            Assert.Collection(runResult.Results,
+                (r) => { var result = Assert.Single(r.HostOutputs); Assert.Equal("gen1", result.Key); Assert.Equal("value1", result.Value); },
+                (r) => { var result = Assert.Single(r.HostOutputs); Assert.Equal("gen2", result.Key); Assert.Equal("value2", result.Value); }
+            );
+        }
     }
 }
