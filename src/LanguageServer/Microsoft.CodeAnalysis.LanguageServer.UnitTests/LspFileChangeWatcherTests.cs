@@ -92,7 +92,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         var tempDirectory = tempRoot.CreateDirectory();
 
         // Try creating a single file watch and ensure we created the registration
-        var context = lspFileChangeWatcher.CreateContext();
+        var context = lspFileChangeWatcher.CreateContext([]);
         var watchedFile = context.EnqueueWatchingFile("Z:\\SingleFile.txt");
         await WaitForFileWatcherAsync(testLspServer);
 

@@ -206,15 +206,11 @@ internal sealed partial class ProjectSystemProject
         static ImmutableArray<WatchedDirectory> GetWatchedDirectories(string? language, string? filePath)
         {
             if (filePath is null)
-            {
                 return [];
-            }
 
             var rootPath = Path.GetDirectoryName(filePath);
             if (rootPath is null)
-            {
                 return [];
-            }
 
             return language switch
             {
