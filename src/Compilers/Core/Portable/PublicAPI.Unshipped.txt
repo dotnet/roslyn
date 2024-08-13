@@ -6,6 +6,14 @@ Microsoft.CodeAnalysis.GeneratorFilterContext
 Microsoft.CodeAnalysis.GeneratorFilterContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.GeneratorFilterContext.Generator.get -> Microsoft.CodeAnalysis.ISourceGenerator!
 Microsoft.CodeAnalysis.GeneratorFilterContext.GeneratorFilterContext() -> void
+Microsoft.CodeAnalysis.GeneratorRunResult.HostOutputs.get -> System.Collections.Immutable.ImmutableArray<(string! Key, object! Value)>
+Microsoft.CodeAnalysis.HostOutputProductionContext
+Microsoft.CodeAnalysis.HostOutputProductionContext.AddOutput(string! name, object! value) -> void
+Microsoft.CodeAnalysis.HostOutputProductionContext.CancellationToken.get -> System.Threading.CancellationToken
+Microsoft.CodeAnalysis.HostOutputProductionContext.HostOutputProductionContext() -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterHostOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValueProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.HostOutputProductionContext, TSource>! action) -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorInitializationContext.RegisterHostOutput<TSource>(Microsoft.CodeAnalysis.IncrementalValuesProvider<TSource> source, System.Action<Microsoft.CodeAnalysis.HostOutputProductionContext, TSource>! action) -> void
+Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind.Host = 8 -> Microsoft.CodeAnalysis.IncrementalGeneratorOutputKind
 Microsoft.CodeAnalysis.IPropertySymbol.PartialDefinitionPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.PartialImplementationPart.get -> Microsoft.CodeAnalysis.IPropertySymbol?
 Microsoft.CodeAnalysis.IPropertySymbol.IsPartialDefinition.get -> bool
