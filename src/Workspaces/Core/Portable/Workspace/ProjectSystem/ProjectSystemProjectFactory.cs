@@ -785,8 +785,10 @@ internal sealed partial class ProjectSystemProjectFactory
     private void StartRefreshingMetadataReferencesForFile(object? sender, string fullFilePath)
     {
         var asyncToken = WorkspaceListener.BeginAsyncOperation(nameof(StartRefreshingMetadataReferencesForFile));
+
         var task = StartRefreshingMetadataReferencesForFileAsync(sender, fullFilePath);
         task.CompletesAsyncOperation(asyncToken);
+
         return;
 
         async Task StartRefreshingMetadataReferencesForFileAsync(object? sender, string fullFilePath)
