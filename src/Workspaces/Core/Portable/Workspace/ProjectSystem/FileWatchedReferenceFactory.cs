@@ -176,7 +176,6 @@ internal static class FileWatchedReferenceFactory
     public static FileWatchedReferenceFactory<PortableExecutableReference> CreateMetadataReferenceFactory(IFileChangeWatcher fileChangeWatcher)
         => new(fileChangeWatcher, getAdditionalWatchedDirectories: static () =>
         {
-
             using var _ = PooledHashSet<string>.GetInstance(out var referenceDirectories);
 
             // On each platform, there is a place that reference assemblies for the framework are installed. These are rarely going to be changed
