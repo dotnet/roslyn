@@ -3,6 +3,8 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics;
+using System.Linq;
 using System.Text;
 
 namespace Microsoft.CodeAnalysis.Text
@@ -64,9 +66,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         protected override TextLineCollection GetLinesCore()
-        {
-            return new SubTextLineInfo(this);
-        }
+            => new SubTextLineInfo(this);
 
         public override string ToString(TextSpan span)
         {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Text
         private sealed class SubTextLineInfo : TextLineCollection
         {
             private readonly SubText _subText;
-            private readonly int _startLineNumber;
+            private readonly int _startLineNumberInUnderlyingText;
             private readonly int _lineCount;
             private readonly bool _startsWithinSplitCRLF;
             private readonly bool _endsWithinSplitCRLF;
@@ -110,23 +110,27 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 _subText = subText;
 
-                var startLine = _subText.UnderlyingText.Lines.GetLineFromPosition(_subText.UnderlyingSpan.Start);
-                var endLine = _subText.UnderlyingText.Lines.GetLineFromPosition(_subText.UnderlyingSpan.End);
+                var startLineInUnderlyingText = _subText.UnderlyingText.Lines.GetLineFromPosition(_subText.UnderlyingSpan.Start);
+                var endLineInUnderlyingText = _subText.UnderlyingText.Lines.GetLineFromPosition(_subText.UnderlyingSpan.End);
 
-                _startLineNumber = startLine.LineNumber;
-                _lineCount = (endLine.LineNumber - _startLineNumber) + 1;
+                _startLineNumberInUnderlyingText = startLineInUnderlyingText.LineNumber;
+                _lineCount = (endLineInUnderlyingText.LineNumber - _startLineNumberInUnderlyingText) + 1;
 
                 if (_subText.UnderlyingSpan.Length > 0)
                 {
-                    if (_subText.UnderlyingSpan.Start == startLine.End + 1 &&
-                        _subText.UnderlyingSpan.Start == startLine.EndIncludingLineBreak - 1)
+                    var underlyingSpanStart = _subText.UnderlyingSpan.Start;
+                    if (underlyingSpanStart == startLineInUnderlyingText.End + 1 &&
+                        underlyingSpanStart == startLineInUnderlyingText.EndIncludingLineBreak - 1)
                     {
+                        Debug.Assert(_subText.UnderlyingText[underlyingSpanStart - 1] == '\r' && _subText.UnderlyingText[underlyingSpanStart] == '\n');
                         _startsWithinSplitCRLF = true;
                     }
 
-                    if (_subText.UnderlyingSpan.End == endLine.End + 1 &&
-                        _subText.UnderlyingSpan.End == endLine.EndIncludingLineBreak - 1)
+                    var underlyingSpanEnd = _subText.UnderlyingSpan.End;
+                    if (underlyingSpanEnd == endLineInUnderlyingText.End + 1 &&
+                        underlyingSpanEnd == endLineInUnderlyingText.EndIncludingLineBreak - 1)
                     {
+                        Debug.Assert(_subText.UnderlyingText[underlyingSpanEnd - 1] == '\r' && _subText.UnderlyingText[underlyingSpanEnd] == '\n');
                         _endsWithinSplitCRLF = true;
 
                         // If this subtext ends in the middle of a CR/LF, then this object should view that CR as a separate line
@@ -140,6 +144,11 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 get
                 {
+                    if (lineNumber < 0 || lineNumber >= _lineCount)
+                    {
+                        throw new ArgumentOutOfRangeException(nameof(lineNumber));
+                    }
+
                     if (_endsWithinSplitCRLF && lineNumber == _lineCount - 1)
                     {
                         // Special case splitting the CRLF at the end as the UnderlyingText doesn't view the position
@@ -148,22 +157,52 @@ namespace Microsoft.CodeAnalysis.Text
                         return TextLine.FromSpanUnsafe(_subText, new TextSpan(_subText.UnderlyingSpan.End, 0));
                     }
 
-                    var underlyingTextLine = _subText.UnderlyingText.Lines[lineNumber + _startLineNumber];
+                    var underlyingTextLine = _subText.UnderlyingText.Lines[lineNumber + _startLineNumberInUnderlyingText];
 
+                    // Consider input "a\r\nb" where ST1 contains "\a\r" and ST2 contains "\n\b", and requested lineNumber
+                    // per this table:
+                    // ----------------------------------------------------------------------------------------------------------------
+                    // | SubText | lineNumber | underlyingTextLine | _subText          | underlyingTextLine       | _subText          |
+                    // |         |            |   .Start           |   .UnderlyingSpan |   .EndIncludingLineBreak |   .UnderlyingSpan |
+                    // |         |            |                    |   .Start          |                          |   .End            |
+                    // |---------------------------------------------------------------------------------------------------------------
+                    // |   ST1   |     0      |         0          |         0         |            3             |         2         |
+                    // |   ST2   |     0      |         0          |         2         |            3             |         4         |
+                    // |   ST2   |     1      |         3          |         2         |            4             |         4         |
+                    // ----------------------------------------------------------------------------------------------------------------
                     var startInUnderlyingText = Math.Max(underlyingTextLine.Start, _subText.UnderlyingSpan.Start);
                     var endInUnderlyingText = Math.Min(underlyingTextLine.EndIncludingLineBreak, _subText.UnderlyingSpan.End);
 
                     var startInSubText = startInUnderlyingText - _subText.UnderlyingSpan.Start;
                     var length = endInUnderlyingText - startInUnderlyingText;
 
-                    return TextLine.FromSpanUnsafe(_subText, new TextSpan(startInSubText, length));
+                    var resultLine = TextLine.FromSpanUnsafe(_subText, new TextSpan(startInSubText, length));
+
+#if DEBUG
+                    // Assert resultLine only has line breaks in the appropriate locations
+                    var shouldContainLineBreak = (lineNumber != _lineCount - 1);
+                    var resultContainsLineBreak = resultLine.EndIncludingLineBreak > resultLine.End;
+
+                    Debug.Assert(shouldContainLineBreak == resultContainsLineBreak);
+                    Debug.Assert(resultLine.ToString().All(static c => !TextUtilities.IsAnyLineBreakCharacter(c)));
+#endif
+
+                    return resultLine;
                 }
             }
 
             public override int Count => _lineCount;
 
+            /// <summary>
+            /// Determines the line number of a position in this SubText
+            /// </summary>
             public override int IndexOf(int position)
             {
+                if (position < 0 || position > _subText.UnderlyingSpan.Length)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(position));
+                }
+
                 var underlyingPosition = position + _subText.UnderlyingSpan.Start;
                 var underlyingLineNumber = _subText.UnderlyingText.Lines.IndexOf(underlyingPosition);
 
@@ -173,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Text
                     underlyingLineNumber += 1;
                 }
 
-                return underlyingLineNumber - _startLineNumber;
+                return underlyingLineNumber - _startLineNumberInUnderlyingText;
             }
         }
     }
