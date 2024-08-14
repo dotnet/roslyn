@@ -9,8 +9,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-#pragma warning disable CS0618 // SymbolInformation is obsolete, need to switch to DocumentSymbol/WorkspaceSymbol
-
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 {
     internal interface ILspSymbolInformationCreationService : IWorkspaceService
@@ -30,11 +28,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public SymbolInformation Create(string name, string? containerName, LSP.SymbolKind kind, LSP.Location location, Glyph glyph)
             => new()
+#pragma warning disable CS0618 // SymbolInformation is obsolete, need to switch to DocumentSymbol/WorkspaceSymbol
             {
                 Name = name,
                 ContainerName = containerName,
                 Kind = kind,
                 Location = location,
             };
+#pragma warning restore CS0618
     }
 }

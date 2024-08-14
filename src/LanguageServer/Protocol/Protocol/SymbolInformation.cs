@@ -16,13 +16,20 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#symbolInformation">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    [Obsolete("Use DocumentSymbol or WorkspaceSymbol instead")]
     internal class SymbolInformation : IEquatable<SymbolInformation>
     {
+
+        // Code has to reference SymbolInformation in a SumType even if it's not using the class itself.
+        // This means that if we deprecate the type itself, referencing code would have to suppress
+        // deprecation  warnings even if they are only using non-deprecated types. We work around
+        // by deprecating the members instead of the type itself.
+        const string DeprecationMessage = "The SymbolInformation class is deprecated. Use DocumentSymbol or WorkspaceSymbol instead.";
+
         /// <summary>
         /// Gets or sets the name of this symbol.
         /// </summary>
         [JsonPropertyName("name")]
+        [Obsolete(DeprecationMessage)]
         public string Name
         {
             get;
@@ -33,6 +40,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the <see cref="SymbolKind"/> of this symbol.
         /// </summary>
         [JsonPropertyName("kind")]
+        [Obsolete(DeprecationMessage)]
         public SymbolKind Kind
         {
             get;
@@ -45,6 +53,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <remarks>Since 3.16</remarks>
         [JsonPropertyName("tags")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [Obsolete(DeprecationMessage)]
         public SymbolTag[]? Tags { get; init; }
 
         /// <summary>
@@ -52,7 +61,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [JsonPropertyName("deprecated")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-        [Obsolete("Use Tags instead")]
+        [Obsolete("Use the Tags property instead")]
         public bool Deprecated { get; init; }
 
         /// <summary>
@@ -69,6 +78,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </para>
         /// </summary>
         [JsonPropertyName("location")]
+        [Obsolete(DeprecationMessage)]
         public Location Location
         {
             get;
@@ -85,6 +95,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [JsonPropertyName("containerName")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        [Obsolete(DeprecationMessage)]
         public string? ContainerName
         {
             get;
@@ -100,6 +111,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <inheritdoc/>
         public bool Equals(SymbolInformation? other)
         {
+#pragma warning disable CS0618 // Type or member is obsolete
             return other != null
                 && this.Name == other.Name
                 && this.Kind == other.Kind
@@ -109,10 +121,12 @@ namespace Roslyn.LanguageServer.Protocol
                 && this.Deprecated == other.Deprecated
                 && EqualityComparer<Location>.Default.Equals(this.Location, other.Location)
                 && this.ContainerName == other.ContainerName;
+#pragma warning restore CS0618
         }
 
         /// <inheritdoc/>
         public override int GetHashCode() =>
+#pragma warning disable CS0618 // Type or member is obsolete
 #if NETCOREAPP
             HashCode.Combine(Name, Kind, Hash.CombineValues(Tags), Deprecated, Location, ContainerName);
 #else
@@ -122,5 +136,6 @@ namespace Roslyn.LanguageServer.Protocol
             Hash.Combine(Deprecated,
             Hash.Combine(ContainerName, Location?.GetHashCode() ?? 0)))));
 #endif
+#pragma warning restore CS0618
     }
 }

@@ -25,7 +25,7 @@ internal class NotebookDocumentFilter
     public string? NotebookType { get; init; }
 
     /// <summary>
-    /// A Uri scheme (<see cref="Uri.Scheme"/>) like <c>file</c> or <c>untitled</c>.
+    /// A Uri scheme (<see cref="System.Uri.Scheme"/>) like <c>file</c> or <c>untitled</c>.
     /// </summary>
     [JsonPropertyName("scheme")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

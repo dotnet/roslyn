@@ -27,14 +27,20 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#markedString">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
-    [Obsolete("Use MarkupContent instead")]
     internal class MarkedString
     {
+        // Code has to reference MarkedString in a SumType even if it's not using the class itself.
+        // This means that if we deprecate the type itself, referencing code would have to suppress
+        // deprecation warnings even if they are only using non-deprecated types. We work around
+        // by deprecating the members instead of the type itself.
+        const string DeprecationMessage = "The MarkedString class is deprecated. Use MarkupContent instead.";
+
         /// <summary>
         /// Gets or sets the language of the code stored in <see cref="Value" />.
         /// </summary>
         [JsonPropertyName("language")]
         [JsonRequired]
+        [Obsolete(DeprecationMessage)]
         public string Language
         {
             get;
@@ -46,6 +52,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// </summary>
         [JsonPropertyName("value")]
         [JsonRequired]
+        [Obsolete(DeprecationMessage)]
         public string Value
         {
             get;

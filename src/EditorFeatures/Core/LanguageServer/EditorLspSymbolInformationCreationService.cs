@@ -10,8 +10,6 @@ using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.LanguageServer.Protocol;
 using LSP = Roslyn.LanguageServer.Protocol;
 
-#pragma warning disable CS0618 // SymbolInformation is obsolete, need to switch to DocumentSymbol/WorkspaceSymbol
-
 namespace Microsoft.CodeAnalysis.LanguageServer;
 
 [ExportWorkspaceService(typeof(ILspSymbolInformationCreationService), ServiceLayer.Editor), Shared]
@@ -26,6 +24,7 @@ internal sealed class EditorLspSymbolInformationCreationService : ILspSymbolInfo
     public SymbolInformation Create(string name, string? containerName, LSP.SymbolKind kind, LSP.Location location, Glyph glyph)
     {
         var imageId = glyph.GetImageId();
+#pragma warning disable CS0618 // SymbolInformation is obsolete, need to switch to DocumentSymbol/WorkspaceSymbol
         return new VSSymbolInformation
         {
             Name = name,
@@ -34,5 +33,6 @@ internal sealed class EditorLspSymbolInformationCreationService : ILspSymbolInfo
             Location = location,
             Icon = new VSImageId { Guid = imageId.Guid, Id = imageId.Id },
         };
+#pragma warning restore CS0618
     }
 }
