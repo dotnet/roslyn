@@ -34725,101 +34725,88 @@ partial class Program
             var expectedOutputString = "[1, 2, 3],";
             var verifier = CompileAndVerify(
                 [source, s_collectionExtensions],
-                expectedOutput: targetFramework switch
-                {
-                    TargetFramework.Net80 => IncludeExpectedOutput(expectedOutputString),
-                    TargetFramework.Standard => expectedOutputString,
-                    _ => throw new InvalidOperationException("Update expected output!"),
-                },
+                expectedOutput: targetFramework == TargetFramework.Standard ? expectedOutputString : IncludeExpectedOutput(expectedOutputString),
                 targetFramework: targetFramework,
                 verify: Verification.Skipped);
 
             verifier.VerifyDiagnostics();
 
-            switch (targetFramework)
-            {
-                case TargetFramework.Net80:
-                    verifier.VerifyIL("C.M", """
-                        {
-                          // Code size       89 (0x59)
-                          .maxstack  3
-                          .locals init (int V_0,
-                                        System.Collections.Generic.List<int> V_1,
-                                        System.Span<int> V_2,
-                                        int V_3,
-                                        System.Collections.Generic.IEnumerator<int> V_4,
-                                        int V_5)
-                          IL_0000:  ldarg.0
-                          IL_0001:  dup
-                          IL_0002:  callvirt   "int MyCollection.Count.get"
-                          IL_0007:  stloc.0
-                          IL_0008:  ldloc.0
-                          IL_0009:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
-                          IL_000e:  stloc.1
-                          IL_000f:  ldloc.1
-                          IL_0010:  ldloc.0
-                          IL_0011:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
-                          IL_0016:  ldloc.1
-                          IL_0017:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
-                          IL_001c:  stloc.2
-                          IL_001d:  ldc.i4.0
-                          IL_001e:  stloc.3
-                          IL_001f:  callvirt   "System.Collections.Generic.IEnumerator<int> MyCollection.GetEnumerator()"
-                          IL_0024:  stloc.s    V_4
-                          .try
-                          {
-                            IL_0026:  br.s       IL_0040
-                            IL_0028:  ldloc.s    V_4
-                            IL_002a:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
-                            IL_002f:  stloc.s    V_5
-                            IL_0031:  ldloca.s   V_2
-                            IL_0033:  ldloc.3
-                            IL_0034:  call       "ref int System.Span<int>.this[int].get"
-                            IL_0039:  ldloc.s    V_5
-                            IL_003b:  stind.i4
-                            IL_003c:  ldloc.3
-                            IL_003d:  ldc.i4.1
-                            IL_003e:  add
-                            IL_003f:  stloc.3
-                            IL_0040:  ldloc.s    V_4
-                            IL_0042:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
-                            IL_0047:  brtrue.s   IL_0028
-                            IL_0049:  leave.s    IL_0057
-                          }
-                          finally
-                          {
-                            IL_004b:  ldloc.s    V_4
-                            IL_004d:  brfalse.s  IL_0056
-                            IL_004f:  ldloc.s    V_4
-                            IL_0051:  callvirt   "void System.IDisposable.Dispose()"
-                            IL_0056:  endfinally
-                          }
-                          IL_0057:  ldloc.1
-                          IL_0058:  ret
-                        }
-                        """);
-                    break;
-                case TargetFramework.Standard:
-                    verifier.VerifyIL("C.M", """
-                        {
-                          // Code size       21 (0x15)
-                          .maxstack  3
-                          .locals init (MyCollection V_0)
-                          IL_0000:  ldarg.0
-                          IL_0001:  stloc.0
-                          IL_0002:  ldloc.0
-                          IL_0003:  callvirt   "int MyCollection.Count.get"
-                          IL_0008:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
-                          IL_000d:  dup
-                          IL_000e:  ldloc.0
-                          IL_000f:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
-                          IL_0014:  ret
-                        }
-                        """);
-                    break;
-                default:
-                    throw new InvalidOperationException("Update verified IL!");
-            }
+            var expectedIL = targetFramework == TargetFramework.Standard ? """
+                {
+                  // Code size       21 (0x15)
+                  .maxstack  3
+                  .locals init (MyCollection V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloc.0
+                  IL_0003:  callvirt   "int MyCollection.Count.get"
+                  IL_0008:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                  IL_000d:  dup
+                  IL_000e:  ldloc.0
+                  IL_000f:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0014:  ret
+                }
+                """ : """
+                {
+                  // Code size       89 (0x59)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                System.Collections.Generic.List<int> V_1,
+                                System.Span<int> V_2,
+                                int V_3,
+                                System.Collections.Generic.IEnumerator<int> V_4,
+                                int V_5)
+                  IL_0000:  ldarg.0
+                  IL_0001:  dup
+                  IL_0002:  callvirt   "int MyCollection.Count.get"
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloc.0
+                  IL_0009:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                  IL_000e:  stloc.1
+                  IL_000f:  ldloc.1
+                  IL_0010:  ldloc.0
+                  IL_0011:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
+                  IL_0016:  ldloc.1
+                  IL_0017:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_001c:  stloc.2
+                  IL_001d:  ldc.i4.0
+                  IL_001e:  stloc.3
+                  IL_001f:  callvirt   "System.Collections.Generic.IEnumerator<int> MyCollection.GetEnumerator()"
+                  IL_0024:  stloc.s    V_4
+                  .try
+                  {
+                    IL_0026:  br.s       IL_0040
+                    IL_0028:  ldloc.s    V_4
+                    IL_002a:  callvirt   "int System.Collections.Generic.IEnumerator<int>.Current.get"
+                    IL_002f:  stloc.s    V_5
+                    IL_0031:  ldloca.s   V_2
+                    IL_0033:  ldloc.3
+                    IL_0034:  call       "ref int System.Span<int>.this[int].get"
+                    IL_0039:  ldloc.s    V_5
+                    IL_003b:  stind.i4
+                    IL_003c:  ldloc.3
+                    IL_003d:  ldc.i4.1
+                    IL_003e:  add
+                    IL_003f:  stloc.3
+                    IL_0040:  ldloc.s    V_4
+                    IL_0042:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0047:  brtrue.s   IL_0028
+                    IL_0049:  leave.s    IL_0057
+                  }
+                  finally
+                  {
+                    IL_004b:  ldloc.s    V_4
+                    IL_004d:  brfalse.s  IL_0056
+                    IL_004f:  ldloc.s    V_4
+                    IL_0051:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0056:  endfinally
+                  }
+                  IL_0057:  ldloc.1
+                  IL_0058:  ret
+                }
+                """;
+
+            verifier.VerifyIL("C.M", expectedIL);
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74615")]
@@ -35133,100 +35120,87 @@ partial class Program
             var expectedOutputString = "[1, 2, 3],";
             var verifier = CompileAndVerify(
                 [source, s_collectionExtensions],
-                expectedOutput: targetFramework switch
-                {
-                    TargetFramework.Net80 => IncludeExpectedOutput(expectedOutputString),
-                    TargetFramework.Standard => expectedOutputString,
-                    _ => throw new InvalidOperationException("Update expected output!"),
-                },
+                expectedOutput: targetFramework == TargetFramework.Standard ? expectedOutputString : IncludeExpectedOutput(expectedOutputString),
                 targetFramework: targetFramework,
                 verify: Verification.Skipped);
 
             verifier.VerifyDiagnostics();
 
-            switch (targetFramework)
-            {
-                case TargetFramework.Net80:
-                    verifier.VerifyIL("C.M", """
-                        {
-                          // Code size       91 (0x5b)
-                          .maxstack  3
-                          .locals init (int V_0,
-                                        System.Collections.Generic.List<int> V_1,
-                                        System.Span<int> V_2,
-                                        int V_3,
-                                        MyCollection.Enumerator V_4,
-                                        int V_5)
-                          IL_0000:  ldarg.0
-                          IL_0001:  dup
-                          IL_0002:  callvirt   "int MyCollection.Count.get"
-                          IL_0007:  stloc.0
-                          IL_0008:  ldloc.0
-                          IL_0009:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
-                          IL_000e:  stloc.1
-                          IL_000f:  ldloc.1
-                          IL_0010:  ldloc.0
-                          IL_0011:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
-                          IL_0016:  ldloc.1
-                          IL_0017:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
-                          IL_001c:  stloc.2
-                          IL_001d:  ldc.i4.0
-                          IL_001e:  stloc.3
-                          IL_001f:  callvirt   "MyCollection.Enumerator MyCollection.GetEnumerator()"
-                          IL_0024:  stloc.s    V_4
-                          .try
-                          {
-                            IL_0026:  br.s       IL_0040
-                            IL_0028:  ldloca.s   V_4
-                            IL_002a:  call       "int MyCollection.Enumerator.Current.get"
-                            IL_002f:  stloc.s    V_5
-                            IL_0031:  ldloca.s   V_2
-                            IL_0033:  ldloc.3
-                            IL_0034:  call       "ref int System.Span<int>.this[int].get"
-                            IL_0039:  ldloc.s    V_5
-                            IL_003b:  stind.i4
-                            IL_003c:  ldloc.3
-                            IL_003d:  ldc.i4.1
-                            IL_003e:  add
-                            IL_003f:  stloc.3
-                            IL_0040:  ldloca.s   V_4
-                            IL_0042:  call       "bool MyCollection.Enumerator.MoveNext()"
-                            IL_0047:  brtrue.s   IL_0028
-                            IL_0049:  leave.s    IL_0059
-                          }
-                          finally
-                          {
-                            IL_004b:  ldloca.s   V_4
-                            IL_004d:  constrained. "MyCollection.Enumerator"
-                            IL_0053:  callvirt   "void System.IDisposable.Dispose()"
-                            IL_0058:  endfinally
-                          }
-                          IL_0059:  ldloc.1
-                          IL_005a:  ret
-                        }
-                        """);
-                    break;
-                case TargetFramework.Standard:
-                    verifier.VerifyIL("C.M", """
-                        {
-                          // Code size       21 (0x15)
-                          .maxstack  3
-                          .locals init (MyCollection V_0)
-                          IL_0000:  ldarg.0
-                          IL_0001:  stloc.0
-                          IL_0002:  ldloc.0
-                          IL_0003:  callvirt   "int MyCollection.Count.get"
-                          IL_0008:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
-                          IL_000d:  dup
-                          IL_000e:  ldloc.0
-                          IL_000f:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
-                          IL_0014:  ret
-                        }
-                        """);
-                    break;
-                default:
-                    throw new InvalidOperationException("Update verified IL!");
-            }
+            var expectedIL = targetFramework == TargetFramework.Standard ? """
+                {
+                  // Code size       21 (0x15)
+                  .maxstack  3
+                  .locals init (MyCollection V_0)
+                  IL_0000:  ldarg.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldloc.0
+                  IL_0003:  callvirt   "int MyCollection.Count.get"
+                  IL_0008:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                  IL_000d:  dup
+                  IL_000e:  ldloc.0
+                  IL_000f:  callvirt   "void System.Collections.Generic.List<int>.AddRange(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0014:  ret
+                }
+                """ : """
+                {
+                  // Code size       91 (0x5b)
+                  .maxstack  3
+                  .locals init (int V_0,
+                                System.Collections.Generic.List<int> V_1,
+                                System.Span<int> V_2,
+                                int V_3,
+                                MyCollection.Enumerator V_4,
+                                int V_5)
+                  IL_0000:  ldarg.0
+                  IL_0001:  dup
+                  IL_0002:  callvirt   "int MyCollection.Count.get"
+                  IL_0007:  stloc.0
+                  IL_0008:  ldloc.0
+                  IL_0009:  newobj     "System.Collections.Generic.List<int>..ctor(int)"
+                  IL_000e:  stloc.1
+                  IL_000f:  ldloc.1
+                  IL_0010:  ldloc.0
+                  IL_0011:  call       "void System.Runtime.InteropServices.CollectionsMarshal.SetCount<int>(System.Collections.Generic.List<int>, int)"
+                  IL_0016:  ldloc.1
+                  IL_0017:  call       "System.Span<int> System.Runtime.InteropServices.CollectionsMarshal.AsSpan<int>(System.Collections.Generic.List<int>)"
+                  IL_001c:  stloc.2
+                  IL_001d:  ldc.i4.0
+                  IL_001e:  stloc.3
+                  IL_001f:  callvirt   "MyCollection.Enumerator MyCollection.GetEnumerator()"
+                  IL_0024:  stloc.s    V_4
+                  .try
+                  {
+                    IL_0026:  br.s       IL_0040
+                    IL_0028:  ldloca.s   V_4
+                    IL_002a:  call       "int MyCollection.Enumerator.Current.get"
+                    IL_002f:  stloc.s    V_5
+                    IL_0031:  ldloca.s   V_2
+                    IL_0033:  ldloc.3
+                    IL_0034:  call       "ref int System.Span<int>.this[int].get"
+                    IL_0039:  ldloc.s    V_5
+                    IL_003b:  stind.i4
+                    IL_003c:  ldloc.3
+                    IL_003d:  ldc.i4.1
+                    IL_003e:  add
+                    IL_003f:  stloc.3
+                    IL_0040:  ldloca.s   V_4
+                    IL_0042:  call       "bool MyCollection.Enumerator.MoveNext()"
+                    IL_0047:  brtrue.s   IL_0028
+                    IL_0049:  leave.s    IL_0059
+                  }
+                  finally
+                  {
+                    IL_004b:  ldloca.s   V_4
+                    IL_004d:  constrained. "MyCollection.Enumerator"
+                    IL_0053:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0058:  endfinally
+                  }
+                  IL_0059:  ldloc.1
+                  IL_005a:  ret
+                }
+                """;
+
+            verifier.VerifyIL("C.M", expectedIL);
         }
 
         [Fact]
