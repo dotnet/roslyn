@@ -104,4 +104,9 @@ partial class Methods
     /// </para>
     /// </summary>
     public const string TextDocumentDidCloseName = "textDocument/didClose";
+
+    /// <summary>
+    /// Strongly typed message object for 'textDocument/didSave'.
+    /// </summary>
+    public static readonly LspNotification<DidCloseTextDocumentParams> TextDocumentDidClose = new(TextDocumentDidCloseName);
 }
