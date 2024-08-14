@@ -53,7 +53,7 @@ public partial class ExampleTests
         var server = TestExampleLanguageServer.CreateLanguageServer(logger);
 
         var result = await server.InitializeServerAsync();
-        Assert.True(result.Capabilities.SemanticTokensOptions!.Range!.Value.First);
+        Assert.True(result.Capabilities.SemanticTokensOptions.Value.Unify().Range!.Value.First);
     }
 
     [Fact]

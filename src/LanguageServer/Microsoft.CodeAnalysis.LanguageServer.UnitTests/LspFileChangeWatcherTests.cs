@@ -20,7 +20,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
     {
         Workspace = new WorkspaceClientCapabilities
         {
-            DidChangeWatchedFiles = new DynamicRegistrationSetting { DynamicRegistration = true }
+            DidChangeWatchedFiles = new DidChangeWatchedFilesClientCapabilities { DynamicRegistration = true }
         }
     };
 
@@ -66,8 +66,8 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
 
         var watcher = GetSingleFileWatcher(dynamicCapabilitiesRpcTarget);
 
-        Assert.Equal(tempDirectory.Path, watcher.GlobPattern.BaseUri.LocalPath);
-        Assert.Equal("**/*", watcher.GlobPattern.Pattern);
+        Assert.Equal(tempDirectory.Path, watcher.GlobPattern.Second.BaseUri.First.LocalPath);
+        Assert.Equal("**/*", watcher.GlobPattern.Second.Pattern);
 
         // Get rid of the registration and it should be gone again
         context.Dispose();
@@ -98,8 +98,8 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
 
         var watcher = GetSingleFileWatcher(dynamicCapabilitiesRpcTarget);
 
-        Assert.Equal("Z:\\", watcher.GlobPattern.BaseUri.LocalPath);
-        Assert.Equal("SingleFile.txt", watcher.GlobPattern.Pattern);
+        Assert.Equal("Z:\\", watcher.GlobPattern.Second.BaseUri.First.LocalPath);
+        Assert.Equal("SingleFile.txt", watcher.GlobPattern.Second.Pattern);
 
         // Get rid of the registration and it should be gone again
         watchedFile.Dispose();
@@ -134,7 +134,7 @@ public class LspFileChangeWatcherTests : AbstractLanguageServerHostTests
         }
 
         [JsonRpcMethod("client/unregisterCapability", UseSingleObjectParameterDeserialization = true)]
-        public Task UnregisterCapabilityAsync(UnregistrationParamsWithMisspelling unregistrationParams, CancellationToken _)
+        public Task UnregisterCapabilityAsync(UnregistrationParams unregistrationParams, CancellationToken _)
         {
             foreach (var unregistration in unregistrationParams.Unregistrations)
                 Assert.True(Registrations.TryRemove(unregistration.Id, out var _));

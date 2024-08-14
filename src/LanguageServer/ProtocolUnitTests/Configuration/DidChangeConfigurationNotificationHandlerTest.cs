@@ -40,7 +40,7 @@ public class B { }";
             {
                 Workspace = new WorkspaceClientCapabilities()
                 {
-                    DidChangeConfiguration = new DynamicRegistrationSetting() { DynamicRegistration = true },
+                    DidChangeConfiguration = new DidChangeConfigurationClientCapabilities() { DynamicRegistration = true },
                     Configuration = false
                 }
             };
@@ -69,7 +69,7 @@ public class A { }";
             {
                 Workspace = new WorkspaceClientCapabilities()
                 {
-                    DidChangeConfiguration = new DynamicRegistrationSetting() { DynamicRegistration = true },
+                    DidChangeConfiguration = new DidChangeConfigurationClientCapabilities() { DynamicRegistration = true },
                     Configuration = true
                 }
             };
