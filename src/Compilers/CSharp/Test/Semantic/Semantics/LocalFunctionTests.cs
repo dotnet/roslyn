@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(typeSymbol.TypeKind == TypeKind.Delegate);
             Assert.True(typeSymbol.TypeParameters.Length == 1);
             Assert.True(!typeSymbol.TypeParameters[0].AllowsRefLikeType);
-            Assert.True(typeSymbol.GetMember("Invoke").GetParameters()[0].Type is IArrayTypeSymbol arr && arr.ElementType == typeSymbol.TypeParameters[0]);
+            Assert.True(typeSymbol.GetMember("Invoke").GetParameters()[0].Type is IArrayTypeSymbol arr && SymbolEqualityComparer.Default.Equals(arr.ElementType, typeSymbol.TypeParameters[0]));
         }
 
         [Fact, WorkItem(29656, "https://github.com/dotnet/roslyn/issues/29656")]
