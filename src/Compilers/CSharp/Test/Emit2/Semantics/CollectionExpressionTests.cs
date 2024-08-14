@@ -34665,7 +34665,7 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify([source, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            var verifier = CompileAndVerify([source, s_collectionExtensions], expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("C.M", """
@@ -34720,7 +34720,7 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify([source, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            var verifier = CompileAndVerify([source, s_collectionExtensions], expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("C.M", """
@@ -34824,7 +34824,7 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify([source, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            var verifier = CompileAndVerify([source, s_collectionExtensions], expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("C.M", """
@@ -34906,7 +34906,7 @@ partial class Program
                 }
                 """;
 
-            var comp = CreateCompilation([source, s_collectionExtensionsWithSpan], options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
+            var comp = CreateCompilation([source, s_collectionExtensions], options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
             comp.MakeTypeMissing(SpecialType.System_Collections_Generic_ICollection_T);
 
             var verifier = CompileAndVerify(comp, expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), verify: Verification.Skipped);
@@ -34991,7 +34991,7 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify([source, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            var verifier = CompileAndVerify([source, s_collectionExtensions], expectedOutput: IncludeExpectedOutput("[1, 2, 3, 4, 5, 6],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("C.M", """
@@ -35090,7 +35090,7 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify([source, s_collectionExtensionsWithSpan], expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
+            var verifier = CompileAndVerify([source, s_collectionExtensions], expectedOutput: IncludeExpectedOutput("[1, 2, 3],"), targetFramework: TargetFramework.Net80, verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
 
             verifier.VerifyIL("C.M", """
