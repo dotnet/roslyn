@@ -465,10 +465,17 @@ namespace Microsoft.CodeAnalysis.Testing
                 {
                     var comparer = new FrameworkPrecedenceSorter(DefaultFrameworkNameProvider.Instance, allEquivalent: false);
                     var assembliesByName = resolvedAssemblies.GroupBy(Path.GetFileNameWithoutExtension, StringComparer.OrdinalIgnoreCase);
+
+                    // Keep track of assemblies to remove from resolvedAssemblies. Defer the actual removal to the end
+                    // of this block for ease in future debugging scenarios.
                     var assembliesToRemove = new List<string>();
                     foreach (var assemblyNameGroup in assembliesByName)
                     {
-                        var assembliesByPrecedence = assemblyNameGroup.OrderBy(GetFrameworkNameFromPath, comparer).ThenByDescending(GetFrameworkNameFromPath, new NuGetFrameworkSorter()).ToArray();
+                        var assembliesByPrecedence = assemblyNameGroup
+                            .Select(static name => (name, framework: GetFrameworkNameFromPath(name)))
+                            .OrderBy(static x => x.framework, comparer)
+                            .ThenByDescending(static x => x.framework, new NuGetFrameworkSorter())
+                            .ToArray();
                         for (var i = 1; i < assembliesByPrecedence.Length; i++)
                         {
                             // We want to keep the last reference listed for the most recent supported target framework.
@@ -482,13 +489,13 @@ namespace Microsoft.CodeAnalysis.Testing
                             // In this example, the Microsoft.NETCore.App.Ref package is resolved first, so by taking
                             // the last net6.0 assembly, we ensure the assembly from System.Collections.Immutable 8.0.0
                             // is resolved.
-                            if (Equals(GetFrameworkNameFromPath(assembliesByPrecedence[0]), GetFrameworkNameFromPath(assembliesByPrecedence[i])))
+                            if (Equals(assembliesByPrecedence[0].framework, assembliesByPrecedence[i].framework))
                             {
-                                assembliesToRemove.Add(assembliesByPrecedence[i - 1]);
+                                assembliesToRemove.Add(assembliesByPrecedence[i - 1].name);
                             }
                             else
                             {
-                                assembliesToRemove.Add(assembliesByPrecedence[i]);
+                                assembliesToRemove.Add(assembliesByPrecedence[i].name);
                             }
                         }
 
