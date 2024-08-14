@@ -285,9 +285,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,12): error CS8050: Only auto-implemented properties can have initializers.
-                //     object P { get => field; } = field;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(3, 12),
                 // (3,34): error CS0103: The name 'field' does not exist in the current context
                 //     object P { get => field; } = field;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 34));
@@ -1028,6 +1025,1302 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 B.<Q2>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(2), A(-2),
                 B.<Q5>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
                 B.<Q6>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(6),
+                """));
+        }
+
+        // PROTOTYPE: Confirm we want to allow mixed auto- and explicitly-implemented
+        // accessors when explicitly-implemented accessors do not use 'field'.
+        [Fact]
+        public void Initializer_01()
+        {
+            string source = """
+                using System;
+                class C
+                {
+                    public static int P1 { get; } = 1;
+                    public static int P2 { get => field; } = 2;
+                    public static int P3 { get => field; set; } = 3;
+                    public static int P5 { get => field; set { } } = 5;
+                    public static int P7 { get => 0; set; } = 7;
+                    public static int P9 { get; set; } = 9;
+                    public static int PB { get; set { } } = 11;
+                    public static int PD { set { field = value; } } = 13;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        Console.WriteLine((C.P1, C.P2, C.P3, C.P5, C.P7, C.P9, C.PB));
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "(1, 2, 3, 5, 0, 9, 11)");
+            verifier.VerifyIL("C..cctor", """
+                {
+                  // Code size       52 (0x34)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  stsfld     "int C.<P1>k__BackingField"
+                  IL_0006:  ldc.i4.2
+                  IL_0007:  stsfld     "int C.<P2>k__BackingField"
+                  IL_000c:  ldc.i4.3
+                  IL_000d:  stsfld     "int C.<P3>k__BackingField"
+                  IL_0012:  ldc.i4.5
+                  IL_0013:  stsfld     "int C.<P5>k__BackingField"
+                  IL_0018:  ldc.i4.7
+                  IL_0019:  stsfld     "int C.<P7>k__BackingField"
+                  IL_001e:  ldc.i4.s   9
+                  IL_0020:  stsfld     "int C.<P9>k__BackingField"
+                  IL_0025:  ldc.i4.s   11
+                  IL_0027:  stsfld     "int C.<PB>k__BackingField"
+                  IL_002c:  ldc.i4.s   13
+                  IL_002e:  stsfld     "int C.<PD>k__BackingField"
+                  IL_0033:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Initializer_02()
+        {
+            string source = """
+                using System;
+                class C
+                {
+                    public int P1 { get; } = 1;
+                    public int P2 { get => field; } = 2;
+                    public int P3 { get => field; set; } = 3;
+                    public int P4 { get => field; init; } = 4;
+                    public int P5 { get => field; set { } } = 5;
+                    public int P6 { get => field; init { } } = 6;
+                    public int P7 { get => 0; set; } = 7;
+                    public int P8 { get => 0; init; } = 8;
+                    public int P9 { get; set; } = 9;
+                    public int PA { get; init; } = 10;
+                    public int PB { get; set { } } = 11;
+                    public int PC { get; init { } } = 12;
+                    public int PD { set { field = value; } } = 13;
+                    public int PE { init { field = value; } } = 14;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C();
+                        Console.WriteLine((c.P1, c.P2, c.P3, c.P4, c.P5, c.P6, c.P7, c.P8, c.P9, c.PA, c.PB, c.PC));
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 5, 6, 0, 0, 9, 10, 11, 12)"));
+            verifier.VerifyIL("C..ctor", """
+                {
+                  // Code size      111 (0x6f)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.1
+                  IL_0002:  stfld      "int C.<P1>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldc.i4.2
+                  IL_0009:  stfld      "int C.<P2>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldc.i4.3
+                  IL_0010:  stfld      "int C.<P3>k__BackingField"
+                  IL_0015:  ldarg.0
+                  IL_0016:  ldc.i4.4
+                  IL_0017:  stfld      "int C.<P4>k__BackingField"
+                  IL_001c:  ldarg.0
+                  IL_001d:  ldc.i4.5
+                  IL_001e:  stfld      "int C.<P5>k__BackingField"
+                  IL_0023:  ldarg.0
+                  IL_0024:  ldc.i4.6
+                  IL_0025:  stfld      "int C.<P6>k__BackingField"
+                  IL_002a:  ldarg.0
+                  IL_002b:  ldc.i4.7
+                  IL_002c:  stfld      "int C.<P7>k__BackingField"
+                  IL_0031:  ldarg.0
+                  IL_0032:  ldc.i4.8
+                  IL_0033:  stfld      "int C.<P8>k__BackingField"
+                  IL_0038:  ldarg.0
+                  IL_0039:  ldc.i4.s   9
+                  IL_003b:  stfld      "int C.<P9>k__BackingField"
+                  IL_0040:  ldarg.0
+                  IL_0041:  ldc.i4.s   10
+                  IL_0043:  stfld      "int C.<PA>k__BackingField"
+                  IL_0048:  ldarg.0
+                  IL_0049:  ldc.i4.s   11
+                  IL_004b:  stfld      "int C.<PB>k__BackingField"
+                  IL_0050:  ldarg.0
+                  IL_0051:  ldc.i4.s   12
+                  IL_0053:  stfld      "int C.<PC>k__BackingField"
+                  IL_0058:  ldarg.0
+                  IL_0059:  ldc.i4.s   13
+                  IL_005b:  stfld      "int C.<PD>k__BackingField"
+                  IL_0060:  ldarg.0
+                  IL_0061:  ldc.i4.s   14
+                  IL_0063:  stfld      "int C.<PE>k__BackingField"
+                  IL_0068:  ldarg.0
+                  IL_0069:  call       "object..ctor()"
+                  IL_006e:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Initializer_03()
+        {
+            string source = """
+                class C
+                {
+                    public static int P1 { get => 0; } = 1;
+                    public static int P2 { get => 0; set { } } = 2;
+                    public int P3 { get => 0; } = 3;
+                    public int P4 { get => 0; set { } } = 4;
+                    public int P5 { get => 0; init { } } = 5;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,23): error CS8050: Only auto-implemented properties can have initializers.
+                //     public static int P1 { get => 0; } = 1;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 23),
+                // (4,23): error CS8050: Only auto-implemented properties can have initializers.
+                //     public static int P2 { get => 0; set { } } = 2;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(4, 23),
+                // (5,16): error CS8050: Only auto-implemented properties can have initializers.
+                //     public int P3 { get => 0; } = 3;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(5, 16),
+                // (6,16): error CS8050: Only auto-implemented properties can have initializers.
+                //     public int P4 { get => 0; set { } } = 4;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P4").WithLocation(6, 16),
+                // (7,16): error CS8050: Only auto-implemented properties can have initializers.
+                //     public int P5 { get => 0; init { } } = 5;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P5").WithLocation(7, 16));
+        }
+
+        [Fact]
+        public void ConstructorAssignment_01()
+        {
+            string source = """
+                using System;
+                class C
+                {
+                    public static int P1 { get; }
+                    public static int P2 { get => field; }
+                    public static int P3 { get => field; set; }
+                    public static int P5 { get => field; set { } }
+                    public static int P7 { get => 0; set; }
+                    public static int P9 { get; set; }
+                    public static int PB { get; set { } }
+                    public static int PD { set { field = value; } }
+                    static C()
+                    {
+                        P1 = 1;
+                        P2 = 2;
+                        P3 = 3;
+                        P5 = 5;
+                        P7 = 7;
+                        P9 = 9;
+                        PB = 11;
+                        PD = 13;
+                    }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        Console.WriteLine((C.P1, C.P2, C.P3, C.P5, C.P7, C.P9, C.PB));
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, expectedOutput: "(1, 2, 3, 0, 0, 9, 0)");
+            verifier.VerifyIL("C..cctor", """
+                {
+                  // Code size       52 (0x34)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  stsfld     "int C.<P1>k__BackingField"
+                  IL_0006:  ldc.i4.2
+                  IL_0007:  stsfld     "int C.<P2>k__BackingField"
+                  IL_000c:  ldc.i4.3
+                  IL_000d:  call       "void C.P3.set"
+                  IL_0012:  ldc.i4.5
+                  IL_0013:  call       "void C.P5.set"
+                  IL_0018:  ldc.i4.7
+                  IL_0019:  call       "void C.P7.set"
+                  IL_001e:  ldc.i4.s   9
+                  IL_0020:  call       "void C.P9.set"
+                  IL_0025:  ldc.i4.s   11
+                  IL_0027:  call       "void C.PB.set"
+                  IL_002c:  ldc.i4.s   13
+                  IL_002e:  call       "void C.PD.set"
+                  IL_0033:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ConstructorAssignment_02()
+        {
+            string source = """
+                using System;
+                class C
+                {
+                    public int P1 { get; }
+                    public int P2 { get => field; }
+                    public int P3 { get => field; set; }
+                    public int P4 { get => field; init; }
+                    public int P5 { get => field; set { } }
+                    public int P6 { get => field; init { } }
+                    public int P7 { get => 0; set; }
+                    public int P8 { get => 0; init; }
+                    public int P9 { get; set; }
+                    public int PA { get; init; }
+                    public int PB { get; set { } }
+                    public int PC { get; init { } }
+                    public int PD { set { field = value; } }
+                    public int PE { init { field = value; } }
+                    public C()
+                    {
+                        P1 = 1;
+                        P2 = 2;
+                        P3 = 3;
+                        P4 = 4;
+                        P5 = 5;
+                        P6 = 6;
+                        P7 = 7;
+                        P8 = 8;
+                        P9 = 9;
+                        PA = 10;
+                        PB = 11;
+                        PC = 12;
+                        PD = 13;
+                        PE = 14;
+                    }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C();
+                        Console.WriteLine((c.P1, c.P2, c.P3, c.P4, c.P5, c.P6, c.P7, c.P8, c.P9, c.PA, c.PB, c.PC));
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 0, 0, 0, 0, 9, 10, 0, 0)"));
+            verifier.VerifyIL("C..ctor", """
+                {
+                  // Code size      111 (0x6f)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "object..ctor()"
+                  IL_0006:  ldarg.0
+                  IL_0007:  ldc.i4.1
+                  IL_0008:  stfld      "int C.<P1>k__BackingField"
+                  IL_000d:  ldarg.0
+                  IL_000e:  ldc.i4.2
+                  IL_000f:  stfld      "int C.<P2>k__BackingField"
+                  IL_0014:  ldarg.0
+                  IL_0015:  ldc.i4.3
+                  IL_0016:  call       "void C.P3.set"
+                  IL_001b:  ldarg.0
+                  IL_001c:  ldc.i4.4
+                  IL_001d:  call       "void C.P4.init"
+                  IL_0022:  ldarg.0
+                  IL_0023:  ldc.i4.5
+                  IL_0024:  call       "void C.P5.set"
+                  IL_0029:  ldarg.0
+                  IL_002a:  ldc.i4.6
+                  IL_002b:  call       "void C.P6.init"
+                  IL_0030:  ldarg.0
+                  IL_0031:  ldc.i4.7
+                  IL_0032:  call       "void C.P7.set"
+                  IL_0037:  ldarg.0
+                  IL_0038:  ldc.i4.8
+                  IL_0039:  call       "void C.P8.init"
+                  IL_003e:  ldarg.0
+                  IL_003f:  ldc.i4.s   9
+                  IL_0041:  call       "void C.P9.set"
+                  IL_0046:  ldarg.0
+                  IL_0047:  ldc.i4.s   10
+                  IL_0049:  call       "void C.PA.init"
+                  IL_004e:  ldarg.0
+                  IL_004f:  ldc.i4.s   11
+                  IL_0051:  call       "void C.PB.set"
+                  IL_0056:  ldarg.0
+                  IL_0057:  ldc.i4.s   12
+                  IL_0059:  call       "void C.PC.init"
+                  IL_005e:  ldarg.0
+                  IL_005f:  ldc.i4.s   13
+                  IL_0061:  call       "void C.PD.set"
+                  IL_0066:  ldarg.0
+                  IL_0067:  ldc.i4.s   14
+                  IL_0069:  call       "void C.PE.init"
+                  IL_006e:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void ConstructorAssignment_03()
+        {
+            string source = """
+                using System;
+                class C
+                {
+                    static int P1 => field;
+                    int P2 => field;
+                    static C()
+                    {
+                        P1 = 1;
+                        M(() => { P1 = 2; });
+                    }
+                    C(object o)
+                    {
+                        P2 = 3;
+                        M(() => { P2 = 4; });
+                    }
+                    static void M(Action a)
+                    {
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (9,19): error CS0200: Property or indexer 'C.P1' cannot be assigned to -- it is read only
+                //         M(() => { P1 = 2; });
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P1").WithArguments("C.P1").WithLocation(9, 19),
+                // (14,19): error CS0200: Property or indexer 'C.P2' cannot be assigned to -- it is read only
+                //         M(() => { P2 = 4; });
+                Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "P2").WithArguments("C.P2").WithLocation(14, 19));
+        }
+
+        [Fact]
+        public void ConstructorAssignment_04()
+        {
+            string source = """
+                using System;
+                class A
+                {
+                    public static int P1 { get; private set; }
+                    public static int P3 { get => field; private set; }
+                    public static int P5 { get => field; private set { } }
+                    public static int P7 { get; private set { } }
+                }
+                class B : A
+                {
+                    static B()
+                    {
+                        P1 = 1;
+                        P3 = 3;
+                        P5 = 5;
+                        P7 = 7;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (13,9): error CS0272: The property or indexer 'A.P1' cannot be used in this context because the set accessor is inaccessible
+                //         P1 = 1;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "P1").WithArguments("A.P1").WithLocation(13, 9),
+                // (14,9): error CS0272: The property or indexer 'A.P3' cannot be used in this context because the set accessor is inaccessible
+                //         P3 = 3;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "P3").WithArguments("A.P3").WithLocation(14, 9),
+                // (15,9): error CS0272: The property or indexer 'A.P5' cannot be used in this context because the set accessor is inaccessible
+                //         P5 = 5;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "P5").WithArguments("A.P5").WithLocation(15, 9),
+                // (16,9): error CS0272: The property or indexer 'A.P7' cannot be used in this context because the set accessor is inaccessible
+                //         P7 = 7;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "P7").WithArguments("A.P7").WithLocation(16, 9));
+        }
+
+        [Fact]
+        public void ConstructorAssignment_05()
+        {
+            string source = """
+                using System;
+                class A
+                {
+                    public int P1 { get; private set; }
+                    public int P2 { get; private init; }
+                    public int P3 { get => field; private set; }
+                    public int P4 { get => field; private init; }
+                    public int P5 { get => field; private set { } }
+                    public int P6 { get => field; private init { } }
+                    public int P7 { get; private set { } }
+                    public int P8 { get; private init { } }
+                }
+                class B : A
+                {
+                    public B()
+                    {
+                        P1 = 1;
+                        P2 = 2;
+                        P3 = 3;
+                        P4 = 4;
+                        P5 = 5;
+                        P6 = 6;
+                        P7 = 7;
+                        P8 = 8;
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (17,9): error CS0272: The property or indexer 'A.P1' cannot be used in this context because the set accessor is inaccessible
+                //         P1 = 1;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "P1").WithArguments("A.P1").WithLocation(17, 9),
+                // (18,9): error CS0272: The property or indexer 'A.P2' cannot be used in this context because the set accessor is inaccessible
+                //         P2 = 2;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "P2").WithArguments("A.P2").WithLocation(18, 9),
+                // (19,9): error CS0272: The property or indexer 'A.P3' cannot be used in this context because the set accessor is inaccessible
+                //         P3 = 3;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "P3").WithArguments("A.P3").WithLocation(19, 9),
+                // (20,9): error CS0272: The property or indexer 'A.P4' cannot be used in this context because the set accessor is inaccessible
+                //         P4 = 4;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "P4").WithArguments("A.P4").WithLocation(20, 9),
+                // (21,9): error CS0272: The property or indexer 'A.P5' cannot be used in this context because the set accessor is inaccessible
+                //         P5 = 5;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "P5").WithArguments("A.P5").WithLocation(21, 9),
+                // (22,9): error CS0272: The property or indexer 'A.P6' cannot be used in this context because the set accessor is inaccessible
+                //         P6 = 6;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "P6").WithArguments("A.P6").WithLocation(22, 9),
+                // (23,9): error CS0272: The property or indexer 'A.P7' cannot be used in this context because the set accessor is inaccessible
+                //         P7 = 7;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "P7").WithArguments("A.P7").WithLocation(23, 9),
+                // (24,9): error CS0272: The property or indexer 'A.P8' cannot be used in this context because the set accessor is inaccessible
+                //         P8 = 8;
+                Diagnostic(ErrorCode.ERR_InaccessibleSetter, "P8").WithArguments("A.P8").WithLocation(24, 9));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ReadOnly_01(bool useReadOnlyType, bool useReadOnlyProperty)
+        {
+            static string getReadOnlyModifier(bool useReadOnly) => useReadOnly ? "readonly" : "        ";
+            string typeModifier = getReadOnlyModifier(useReadOnlyType);
+            string propertyModifier = getReadOnlyModifier(useReadOnlyProperty);
+            string source = $$"""
+                {{typeModifier}} struct S
+                {
+                    {{propertyModifier}} object P1 { get; }
+                    {{propertyModifier}} object P2 { get => field; }
+                    {{propertyModifier}} object P3 { get => field; set; }
+                    {{propertyModifier}} object P4 { get => field; init; }
+                    {{propertyModifier}} object P5 { get => field; set { } }
+                    {{propertyModifier}} object P6 { get => field; init { } }
+                    {{propertyModifier}} object P7 { get => null; }
+                    {{propertyModifier}} object P8 { get => null; set; }
+                    {{propertyModifier}} object P9 { get => null; init; }
+                    {{propertyModifier}} object PA { get => null; set { } }
+                    {{propertyModifier}} object PB { get => null; init { } }
+                    {{propertyModifier}} object PC { get => null; set { _ = field; } }
+                    {{propertyModifier}} object PD { get => null; init { _ = field; } }
+                    {{propertyModifier}} object PE { get; set; }
+                    {{propertyModifier}} object PF { get; init; }
+                    {{propertyModifier}} object PG { get; set { } }
+                    {{propertyModifier}} object PH { get; init { } }
+                    {{propertyModifier}} object PI { set { _ = field; } }
+                    {{propertyModifier}} object PJ { init { _ = field; } }
+                    {{propertyModifier}} object PK { get { field = null; return null; } }
+                    {{propertyModifier}} object PL { get; set { field = value; } }
+                    {{propertyModifier}} object PM { get; init { field = value; } }
+                    {{propertyModifier}} object PN { set { field = value; } }
+                    {{propertyModifier}} object PO { init { field = value; } }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            if (useReadOnlyType)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,21): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
+                    //              object P3 { get => field; set; }
+                    Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P3").WithLocation(5, 21),
+                    // (10,21): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
+                    //              object P8 { get => null; set; }
+                    Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P8").WithLocation(10, 21),
+                    // (16,21): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
+                    //              object PE { get; set; }
+                    Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "PE").WithLocation(16, 21),
+                    // (22,32): error CS1604: Cannot assign to 'field' because it is read-only
+                    //              object PK { get { field = null; return null; } }
+                    Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(22, 32),
+                    // (23,37): error CS1604: Cannot assign to 'field' because it is read-only
+                    //              object PL { get; set { field = value; } }
+                    Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(23, 37),
+                    // (25,32): error CS1604: Cannot assign to 'field' because it is read-only
+                    //              object PN { set { field = value; } }
+                    Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(25, 32));
+            }
+            else if (useReadOnlyProperty)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (5,21): error CS8659: Auto-implemented property 'S.P3' cannot be marked 'readonly' because it has a 'set' accessor.
+                    //     readonly object P3 { get => field; set; }
+                    Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P3").WithArguments("S.P3").WithLocation(5, 21),
+                    // (10,21): error CS8659: Auto-implemented property 'S.P8' cannot be marked 'readonly' because it has a 'set' accessor.
+                    //     readonly object P8 { get => null; set; }
+                    Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P8").WithArguments("S.P8").WithLocation(10, 21),
+                    // (16,21): error CS8659: Auto-implemented property 'S.PE' cannot be marked 'readonly' because it has a 'set' accessor.
+                    //     readonly object PE { get; set; }
+                    Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "PE").WithArguments("S.PE").WithLocation(16, 21),
+                    // (22,32): error CS1604: Cannot assign to 'field' because it is read-only
+                    //     readonly object PK { get { field = null; return null; } }
+                    Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(22, 32),
+                    // (23,37): error CS1604: Cannot assign to 'field' because it is read-only
+                    //     readonly object PL { get; set { field = value; } }
+                    Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(23, 37),
+                    // (25,32): error CS1604: Cannot assign to 'field' because it is read-only
+                    //     readonly object PN { set { field = value; } }
+                    Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(25, 32));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ReadOnly_02(bool useReadOnlyType, bool useReadOnlyOnGet)
+        {
+            static string getReadOnlyModifier(bool useReadOnly) => useReadOnly ? "readonly" : "        ";
+            string typeModifier = getReadOnlyModifier(useReadOnlyType);
+            string getModifier = getReadOnlyModifier(useReadOnlyOnGet);
+            string setModifier = getReadOnlyModifier(!useReadOnlyOnGet);
+            string source = $$"""
+                {{typeModifier}} struct S
+                {
+                    object P3 { {{getModifier}} get => field; {{setModifier}} set; }
+                    object P5 { {{getModifier}} get => field; {{setModifier}} set { } }
+                    object P8 { {{getModifier}} get => null; {{setModifier}} set; }
+                    object PA { {{getModifier}} get => null; {{setModifier}} set { } }
+                    object PC { {{getModifier}} get => null; {{setModifier}} set { _ = field; } }
+                    object PE { {{getModifier}} get; {{setModifier}} set; }
+                    object PG { {{getModifier}} get; {{setModifier}} set { } }
+                    object PK { {{getModifier}} get { field = null; return null; } set { } }
+                    object PL { {{getModifier}} get; {{setModifier}} set { field = value; } }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            if (useReadOnlyType)
+            {
+                if (useReadOnlyOnGet)
+                {
+                    comp.VerifyEmitDiagnostics(
+                        // (3,12): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
+                        //     object P3 { readonly get => field;          set; }
+                        Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P3").WithLocation(3, 12),
+                        // (5,12): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
+                        //     object P8 { readonly get => null;          set; }
+                        Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P8").WithLocation(5, 12),
+                        // (8,12): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
+                        //     object PE { readonly get;          set; }
+                        Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "PE").WithLocation(8, 12),
+                        // (10,32): error CS1604: Cannot assign to 'field' because it is read-only
+                        //     object PK { readonly get { field = null; return null; } set { } }
+                        Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(10, 32),
+                        // (11,46): error CS1604: Cannot assign to 'field' because it is read-only
+                        //     object PL { readonly get;          set { field = value; } }
+                        Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(11, 46));
+                }
+                else
+                {
+                    comp.VerifyEmitDiagnostics(
+                        // (3,12): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
+                        //     object P3 {          get => field; readonly set; }
+                        Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P3").WithLocation(3, 12),
+                        // (3,49): error CS8658: Auto-implemented 'set' accessor 'S.P3.set' cannot be marked 'readonly'.
+                        //     object P3 {          get => field; readonly set; }
+                        Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P3.set").WithLocation(3, 49),
+                        // (5,12): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
+                        //     object P8 {          get => null; readonly set; }
+                        Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P8").WithLocation(5, 12),
+                        // (5,48): error CS8658: Auto-implemented 'set' accessor 'S.P8.set' cannot be marked 'readonly'.
+                        //     object P8 {          get => null; readonly set; }
+                        Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P8.set").WithLocation(5, 48),
+                        // (8,12): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
+                        //     object PE {          get; readonly set; }
+                        Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "PE").WithLocation(8, 12),
+                        // (8,40): error CS8658: Auto-implemented 'set' accessor 'S.PE.set' cannot be marked 'readonly'.
+                        //     object PE {          get; readonly set; }
+                        Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.PE.set").WithLocation(8, 40),
+                        // (10,32): error CS1604: Cannot assign to 'field' because it is read-only
+                        //     object PK {          get { field = null; return null; } set { } }
+                        Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(10, 32),
+                        // (11,46): error CS1604: Cannot assign to 'field' because it is read-only
+                        //     object PL {          get; readonly set { field = value; } }
+                        Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(11, 46));
+                }
+            }
+            else
+            {
+                if (useReadOnlyOnGet)
+                {
+                    comp.VerifyEmitDiagnostics(
+                        // (10,32): error CS1604: Cannot assign to 'field' because it is read-only
+                        //     object PK { readonly get { field = null; return null; } set { } }
+                        Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(10, 32));
+                }
+                else
+                {
+                    comp.VerifyEmitDiagnostics(
+                        // (3,49): error CS8658: Auto-implemented 'set' accessor 'S.P3.set' cannot be marked 'readonly'.
+                        //     object P3 {          get => field; readonly set; }
+                        Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P3.set").WithLocation(3, 49),
+                        // (5,48): error CS8658: Auto-implemented 'set' accessor 'S.P8.set' cannot be marked 'readonly'.
+                        //     object P8 {          get => null; readonly set; }
+                        Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P8.set").WithLocation(5, 48),
+                        // (8,40): error CS8658: Auto-implemented 'set' accessor 'S.PE.set' cannot be marked 'readonly'.
+                        //     object PE {          get; readonly set; }
+                        Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.PE.set").WithLocation(8, 40),
+                        // (11,46): error CS1604: Cannot assign to 'field' because it is read-only
+                        //     object PL {          get; readonly set { field = value; } }
+                        Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(11, 46));
+                }
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ReadOnly_03(bool useReadOnlyType, bool useReadOnlyProperty)
+        {
+            static string getReadOnlyModifier(bool useReadOnly) => useReadOnly ? "readonly" : "        ";
+            string typeModifier = getReadOnlyModifier(useReadOnlyType);
+            string propertyModifier = getReadOnlyModifier(useReadOnlyProperty);
+            string source = $$"""
+                {{typeModifier}} struct S
+                {
+                    static {{propertyModifier}} object P1 { get; }
+                    static {{propertyModifier}} object P2 { get => field; }
+                    static {{propertyModifier}} object P3 { get => field; set; }
+                    static {{propertyModifier}} object PE { get; set; }
+                    static {{propertyModifier}} object PG { get; set { } }
+                    static {{propertyModifier}} object PL { get; set { field = value; } }
+                    static {{propertyModifier}} object PN { set { field = value; } }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            if (useReadOnlyProperty)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,28): error CS8657: Static member 'S.P1' cannot be marked 'readonly'.
+                    //     static readonly object P1 { get; }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "P1").WithArguments("S.P1").WithLocation(3, 28),
+                    // (4,28): error CS8657: Static member 'S.P2' cannot be marked 'readonly'.
+                    //     static readonly object P2 { get => field; }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "P2").WithArguments("S.P2").WithLocation(4, 28),
+                    // (5,28): error CS8657: Static member 'S.P3' cannot be marked 'readonly'.
+                    //     static readonly object P3 { get => field; set; }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "P3").WithArguments("S.P3").WithLocation(5, 28),
+                    // (6,28): error CS8657: Static member 'S.PE' cannot be marked 'readonly'.
+                    //     static readonly object PE { get; set; }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "PE").WithArguments("S.PE").WithLocation(6, 28),
+                    // (7,28): error CS8657: Static member 'S.PG' cannot be marked 'readonly'.
+                    //     static readonly object PG { get; set { } }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "PG").WithArguments("S.PG").WithLocation(7, 28),
+                    // (8,28): error CS8657: Static member 'S.PL' cannot be marked 'readonly'.
+                    //     static readonly object PL { get; set { field = value; } }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "PL").WithArguments("S.PL").WithLocation(8, 28),
+                    // (9,28): error CS8657: Static member 'S.PN' cannot be marked 'readonly'.
+                    //     static readonly object PN { set { field = value; } }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "PN").WithArguments("S.PN").WithLocation(9, 28));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ReadOnly_04(bool useReadOnlyType, bool useReadOnlyOnGet)
+        {
+            static string getReadOnlyModifier(bool useReadOnly) => useReadOnly ? "readonly" : "        ";
+            string typeModifier = getReadOnlyModifier(useReadOnlyType);
+            string getModifier = getReadOnlyModifier(useReadOnlyOnGet);
+            string setModifier = getReadOnlyModifier(!useReadOnlyOnGet);
+            string source = $$"""
+                {{typeModifier}} struct S
+                {
+                    static object P3 { {{getModifier}} get => field; {{setModifier}} set; }
+                    static object PE { {{getModifier}} get; {{setModifier}} set; }
+                    static object PL { {{getModifier}} get; {{setModifier}} set { field = value; } }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            if (useReadOnlyOnGet)
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,33): error CS8657: Static member 'S.P3.get' cannot be marked 'readonly'.
+                    //     static object P3 { readonly get => field;          set; }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "get").WithArguments("S.P3.get").WithLocation(3, 33),
+                    // (4,33): error CS8657: Static member 'S.PE.get' cannot be marked 'readonly'.
+                    //     static object PE { readonly get;          set; }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "get").WithArguments("S.PE.get").WithLocation(4, 33),
+                    // (5,33): error CS8657: Static member 'S.PL.get' cannot be marked 'readonly'.
+                    //     static object PL { readonly get;          set { field = value; } }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "get").WithArguments("S.PL.get").WithLocation(5, 33));
+            }
+            else
+            {
+                comp.VerifyEmitDiagnostics(
+                    // (3,56): error CS8657: Static member 'S.P3.set' cannot be marked 'readonly'.
+                    //     static object P3 {          get => field; readonly set; }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "set").WithArguments("S.P3.set").WithLocation(3, 56),
+                    // (4,47): error CS8657: Static member 'S.PE.set' cannot be marked 'readonly'.
+                    //     static object PE {          get; readonly set; }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "set").WithArguments("S.PE.set").WithLocation(4, 47),
+                    // (5,47): error CS8657: Static member 'S.PL.set' cannot be marked 'readonly'.
+                    //     static object PL {          get; readonly set { field = value; } }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "set").WithArguments("S.PL.set").WithLocation(5, 47));
+            }
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RefReturning_01(bool useStruct, bool useRefReadOnly)
+        {
+            string type = useStruct ? "struct" : "class";
+            string refModifier = useRefReadOnly ? "ref readonly" : "ref         ";
+            string source = $$"""
+                {{type}} S
+                {
+                    {{refModifier}} object P1 { get; }
+                    {{refModifier}} object P2 { get => ref field; }
+                    {{refModifier}} object P3 { get => ref field; set; }
+                    {{refModifier}} object P4 { get => ref field; init; }
+                    {{refModifier}} object P5 { get => ref field; set { } }
+                    {{refModifier}} object P6 { get => ref field; init { } }
+                    {{refModifier}} object P7 { get => throw null; }
+                    {{refModifier}} object P8 { get => throw null; set; }
+                    {{refModifier}} object P9 { get => throw null; init; }
+                    {{refModifier}} object PC { get => throw null; set { _ = field; } }
+                    {{refModifier}} object PD { get => throw null; init { _ = field; } }
+                    {{refModifier}} object PE { get; set; }
+                    {{refModifier}} object PF { get; init; }
+                    {{refModifier}} object PG { get; set { } }
+                    {{refModifier}} object PH { get; init { } }
+                    {{refModifier}} object PI { set { _ = field; } }
+                    {{refModifier}} object PJ { init { _ = field; } }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref          object P1 { get; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P1").WithLocation(3, 25),
+                // (4,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref          object P2 { get => ref field; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P2").WithLocation(4, 25),
+                // (5,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref          object P3 { get => ref field; set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P3").WithLocation(5, 25),
+                // (5,48): error CS8147: Properties which return by reference cannot have set accessors
+                //     ref          object P3 { get => ref field; set; }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(5, 48),
+                // (6,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref          object P4 { get => ref field; init; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P4").WithLocation(6, 25),
+                // (6,48): error CS8147: Properties which return by reference cannot have set accessors
+                //     ref          object P4 { get => ref field; init; }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithLocation(6, 48),
+                // (7,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref          object P5 { get => ref field; set { } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P5").WithLocation(7, 25),
+                // (7,48): error CS8147: Properties which return by reference cannot have set accessors
+                //     ref          object P5 { get => ref field; set { } }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(7, 48),
+                // (8,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref          object P6 { get => ref field; init { } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P6").WithLocation(8, 25),
+                // (8,48): error CS8147: Properties which return by reference cannot have set accessors
+                //     ref          object P6 { get => ref field; init { } }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithLocation(8, 48),
+                // (10,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref          object P8 { get => throw null; set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P8").WithLocation(10, 25),
+                // (10,49): error CS8147: Properties which return by reference cannot have set accessors
+                //     ref          object P8 { get => throw null; set; }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(10, 49),
+                // (11,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref          object P9 { get => throw null; init; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P9").WithLocation(11, 25),
+                // (11,49): error CS8147: Properties which return by reference cannot have set accessors
+                //     ref          object P9 { get => throw null; init; }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithLocation(11, 49),
+                // (12,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref          object PC { get => throw null; set { _ = field; } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PC").WithLocation(12, 25),
+                // (12,49): error CS8147: Properties which return by reference cannot have set accessors
+                //     ref          object PC { get => throw null; set { _ = field; } }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(12, 49),
+                // (13,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref          object PD { get => throw null; init { _ = field; } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PD").WithLocation(13, 25),
+                // (13,49): error CS8147: Properties which return by reference cannot have set accessors
+                //     ref          object PD { get => throw null; init { _ = field; } }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithLocation(13, 49),
+                // (14,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref          object PE { get; set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PE").WithLocation(14, 25),
+                // (14,35): error CS8147: Properties which return by reference cannot have set accessors
+                //     ref          object PE { get; set; }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(14, 35),
+                // (15,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref          object PF { get; init; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PF").WithLocation(15, 25),
+                // (15,35): error CS8147: Properties which return by reference cannot have set accessors
+                //     ref          object PF { get; init; }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithLocation(15, 35),
+                // (16,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref          object PG { get; set { } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PG").WithLocation(16, 25),
+                // (16,35): error CS8147: Properties which return by reference cannot have set accessors
+                //     ref          object PG { get; set { } }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(16, 35),
+                // (17,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref          object PH { get; init { } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PH").WithLocation(17, 25),
+                // (17,35): error CS8147: Properties which return by reference cannot have set accessors
+                //     ref          object PH { get; init { } }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "init").WithLocation(17, 35),
+                // (18,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref          object PI { set { _ = field; } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PI").WithLocation(18, 25),
+                // (18,25): error CS8146: Properties which return by reference must have a get accessor
+                //     ref          object PI { set { _ = field; } }
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PI").WithLocation(18, 25),
+                // (19,25): error CS8145: Auto-implemented properties cannot return by reference
+                //     ref          object PJ { init { _ = field; } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PJ").WithLocation(19, 25),
+                // (19,25): error CS8146: Properties which return by reference must have a get accessor
+                //     ref          object PJ { init { _ = field; } }
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PJ").WithLocation(19, 25));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void RefReturning_02(bool useStruct, bool useRefReadOnly)
+        {
+            string type = useStruct ? "struct" : "class";
+            string refModifier = useRefReadOnly ? "ref readonly" : "ref         ";
+            string source = $$"""
+                {{type}} S
+                {
+                    static {{refModifier}} object P1 { get; }
+                    static {{refModifier}} object P2 { get => ref field; }
+                    static {{refModifier}} object P3 { get => ref field; set; }
+                    static {{refModifier}} object P5 { get => ref field; set { } }
+                    static {{refModifier}} object P7 { get => throw null; }
+                    static {{refModifier}} object P8 { get => throw null; set; }
+                    static {{refModifier}} object PC { get => throw null; set { _ = field; } }
+                    static {{refModifier}} object PE { get; set; }
+                    static {{refModifier}} object PG { get; set { } }
+                    static {{refModifier}} object PI { set { _ = field; } }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,32): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref          object P1 { get; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P1").WithLocation(3, 32),
+                // (4,32): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref          object P2 { get => ref field; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P2").WithLocation(4, 32),
+                // (5,32): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref          object P3 { get => ref field; set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P3").WithLocation(5, 32),
+                // (5,55): error CS8147: Properties which return by reference cannot have set accessors
+                //     static ref          object P3 { get => ref field; set; }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(5, 55),
+                // (6,32): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref          object P5 { get => ref field; set { } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P5").WithLocation(6, 32),
+                // (6,55): error CS8147: Properties which return by reference cannot have set accessors
+                //     static ref          object P5 { get => ref field; set { } }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(6, 55),
+                // (8,32): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref          object P8 { get => throw null; set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "P8").WithLocation(8, 32),
+                // (8,56): error CS8147: Properties which return by reference cannot have set accessors
+                //     static ref          object P8 { get => throw null; set; }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(8, 56),
+                // (9,32): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref          object PC { get => throw null; set { _ = field; } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PC").WithLocation(9, 32),
+                // (9,56): error CS8147: Properties which return by reference cannot have set accessors
+                //     static ref          object PC { get => throw null; set { _ = field; } }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(9, 56),
+                // (10,32): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref          object PE { get; set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PE").WithLocation(10, 32),
+                // (10,42): error CS8147: Properties which return by reference cannot have set accessors
+                //     static ref          object PE { get; set; }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(10, 42),
+                // (11,32): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref          object PG { get; set { } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PG").WithLocation(11, 32),
+                // (11,42): error CS8147: Properties which return by reference cannot have set accessors
+                //     static ref          object PG { get; set { } }
+                Diagnostic(ErrorCode.ERR_RefPropertyCannotHaveSetAccessor, "set").WithLocation(11, 42),
+                // (12,32): error CS8145: Auto-implemented properties cannot return by reference
+                //     static ref          object PI { set { _ = field; } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, "PI").WithLocation(12, 32),
+                // (12,32): error CS8146: Properties which return by reference must have a get accessor
+                //     static ref          object PI { set { _ = field; } }
+                Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PI").WithLocation(12, 32));
+        }
+
+        // PROTOTYPE: Confirm that both accessors must be overridden.
+        [Theory]
+        [CombinatorialData]
+        public void Override_VirtualBase_01(bool useInit)
+        {
+            string setter = useInit ? "init" : "set";
+            string sourceA = $$"""
+                class A
+                {
+                    public virtual object P1 { get; {{setter}}; }
+                    public virtual object P2 { get; }
+                    public virtual object P3 { {{setter}}; }
+                }
+                """;
+            string sourceB0 = $$"""
+                class B0 : A
+                {
+                    public override object P1 { get; }
+                    public override object P2 { get; }
+                    public override object P3 { get; }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB0], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,28): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override object P1 { get; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithLocation(3, 28),
+                // (5,28): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override object P3 { get; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P3").WithLocation(5, 28),
+                // (5,32): error CS8051: Auto-implemented properties must have get accessors.
+                //     public virtual object P3 { set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, setter).WithLocation(5, 32),
+                // (5,33): error CS0545: 'B0.P3.get': cannot override because 'A.P3' does not have an overridable get accessor
+                //     public override object P3 { get; }
+                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("B0.P3.get", "A.P3").WithLocation(5, 33));
+
+            string sourceB1 = $$"""
+                class B1 : A
+                {
+                    public override object P1 { get; {{setter}}; }
+                    public override object P2 { get; {{setter}}; }
+                    public override object P3 { get; {{setter}}; }
+                }
+                """;
+            comp = CreateCompilation([sourceA, sourceB1], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (4,38): error CS0546: 'B1.P2.set': cannot override because 'A.P2' does not have an overridable set accessor
+                //     public override object P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, setter).WithArguments($"B1.P2.{setter}", "A.P2").WithLocation(4, 38),
+                // (5,32): error CS8051: Auto-implemented properties must have get accessors.
+                //     public virtual object P3 { set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, setter).WithLocation(5, 32),
+                // (5,33): error CS0545: 'B1.P3.get': cannot override because 'A.P3' does not have an overridable get accessor
+                //     public override object P3 { get; set; }
+                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("B1.P3.get", "A.P3").WithLocation(5, 33));
+
+            string sourceB2 = $$"""
+                class B2 : A
+                {
+                    public override object P1 { get => field; {{setter}} { } }
+                    public override object P2 { get => field; {{setter}} { } }
+                    public override object P3 { get => field; {{setter}} { } }
+                }
+                """;
+            comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (4,47): error CS0546: 'B2.P2.set': cannot override because 'A.P2' does not have an overridable set accessor
+                //     public override object P2 { get => field; set { } }
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, setter).WithArguments($"B2.P2.{setter}", "A.P2").WithLocation(4, 47),
+                // (5,32): error CS8051: Auto-implemented properties must have get accessors.
+                //     public virtual object P3 { set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, setter).WithLocation(5, 32),
+                // (5,33): error CS0545: 'B2.P3.get': cannot override because 'A.P3' does not have an overridable get accessor
+                //     public override object P3 { get => field; set { } }
+                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("B2.P3.get", "A.P3").WithLocation(5, 33));
+
+            string sourceB3 = $$"""
+                class B3 : A
+                {
+                    public override object P1 { get => field; }
+                    public override object P2 { get => field; }
+                    public override object P3 { get => field; }
+                }
+                """;
+            comp = CreateCompilation([sourceA, sourceB3], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,28): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override object P1 { get => field; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithLocation(3, 28),
+                // (5,28): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override object P3 { get => field; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P3").WithLocation(5, 28),
+                // (5,32): error CS8051: Auto-implemented properties must have get accessors.
+                //     public virtual object P3 { set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, setter).WithLocation(5, 32),
+                // (5,33): error CS0545: 'B3.P3.get': cannot override because 'A.P3' does not have an overridable get accessor
+                //     public override object P3 { get => field; }
+                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("B3.P3.get", "A.P3").WithLocation(5, 33));
+
+            string sourceB4 = $$"""
+                class B4 : A
+                {
+                    public override object P1 { {{setter}} { field = value; } }
+                    public override object P2 { {{setter}} { field = value; } }
+                    public override object P3 { {{setter}} { field = value; } }
+                }
+                """;
+            comp = CreateCompilation([sourceA, sourceB4], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,28): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override object P1 { set { field = value; } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithLocation(3, 28),
+                // (4,28): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override object P2 { set { field = value; } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P2").WithLocation(4, 28),
+                // (4,33): error CS0546: 'B4.P2.set': cannot override because 'A.P2' does not have an overridable set accessor
+                //     public override object P2 { set { field = value; } }
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, setter).WithArguments($"B4.P2.{setter}", "A.P2").WithLocation(4, 33),
+                // (5,32): error CS8051: Auto-implemented properties must have get accessors.
+                //     public virtual object P3 { set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, setter).WithLocation(5, 32));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Override_AbstractBase_01(bool useInit)
+        {
+            string setter = useInit ? "init" : "set";
+            string sourceA = $$"""
+                abstract class A
+                {
+                    public abstract object P1 { get; {{setter}}; }
+                    public abstract object P2 { get; }
+                    public abstract object P3 { {{setter}}; }
+                }
+                """;
+            string sourceB0 = $$"""
+                class B0 : A
+                {
+                    public override object P1 { get; }
+                    public override object P2 { get; }
+                    public override object P3 { get; }
+                }
+                """;
+            var comp = CreateCompilation([sourceA, sourceB0], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS0534: 'B0' does not implement inherited abstract member 'A.P3.set'
+                // class B0 : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B0").WithArguments("B0", $"A.P3.{setter}").WithLocation(1, 7),
+                // (1,7): error CS0534: 'B0' does not implement inherited abstract member 'A.P1.set'
+                // class B0 : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B0").WithArguments("B0", $"A.P1.{setter}").WithLocation(1, 7),
+                // (3,28): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override object P1 { get; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithLocation(3, 28),
+                // (5,28): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override object P3 { get; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P3").WithLocation(5, 28),
+                // (5,33): error CS0545: 'B0.P3.get': cannot override because 'A.P3' does not have an overridable get accessor
+                //     public override object P3 { get; }
+                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("B0.P3.get", "A.P3").WithLocation(5, 33));
+
+            string sourceB1 = $$"""
+                class B1 : A
+                {
+                    public override object P1 { get; {{setter}}; }
+                    public override object P2 { get; {{setter}}; }
+                    public override object P3 { get; {{setter}}; }
+                }
+                """;
+            comp = CreateCompilation([sourceA, sourceB1], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (4,38): error CS0546: 'B1.P2.set': cannot override because 'A.P2' does not have an overridable set accessor
+                //     public override object P2 { get; set; }
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, setter).WithArguments($"B1.P2.{setter}", "A.P2").WithLocation(4, 38),
+                // (5,33): error CS0545: 'B1.P3.get': cannot override because 'A.P3' does not have an overridable get accessor
+                //     public override object P3 { get; set; }
+                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("B1.P3.get", "A.P3").WithLocation(5, 33));
+
+            string sourceB2 = $$"""
+                class B2 : A
+                {
+                    public override object P1 { get => field; {{setter}} { } }
+                    public override object P2 { get => field; {{setter}} { } }
+                    public override object P3 { get => field; {{setter}} { } }
+                }
+                """;
+            comp = CreateCompilation([sourceA, sourceB2], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (4,47): error CS0546: 'B2.P2.set': cannot override because 'A.P2' does not have an overridable set accessor
+                //     public override object P2 { get => field; set { } }
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, setter).WithArguments($"B2.P2.{setter}", "A.P2").WithLocation(4, 47),
+                // (5,33): error CS0545: 'B2.P3.get': cannot override because 'A.P3' does not have an overridable get accessor
+                //     public override object P3 { get => field; set { } }
+                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("B2.P3.get", "A.P3").WithLocation(5, 33));
+
+            string sourceB3 = $$"""
+                class B3 : A
+                {
+                    public override object P1 { get => field; }
+                    public override object P2 { get => field; }
+                    public override object P3 { get => field; }
+                }
+                """;
+            comp = CreateCompilation([sourceA, sourceB3], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS0534: 'B3' does not implement inherited abstract member 'A.P3.set'
+                // class B3 : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B3").WithArguments("B3", $"A.P3.{setter}").WithLocation(1, 7),
+                // (1,7): error CS0534: 'B3' does not implement inherited abstract member 'A.P1.set'
+                // class B3 : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B3").WithArguments("B3", $"A.P1.{setter}").WithLocation(1, 7),
+                // (3,28): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override object P1 { get => field; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithLocation(3, 28),
+                // (5,28): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override object P3 { get => field; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P3").WithLocation(5, 28),
+                // (5,33): error CS0545: 'B3.P3.get': cannot override because 'A.P3' does not have an overridable get accessor
+                //     public override object P3 { get => field; }
+                Diagnostic(ErrorCode.ERR_NoGetToOverride, "get").WithArguments("B3.P3.get", "A.P3").WithLocation(5, 33));
+
+            string sourceB4 = $$"""
+                class B4 : A
+                {
+                    public override object P1 { {{setter}} { field = value; } }
+                    public override object P2 { {{setter}} { field = value; } }
+                    public override object P3 { {{setter}} { field = value; } }
+                }
+                """;
+            comp = CreateCompilation([sourceA, sourceB4], targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (1,7): error CS0534: 'B4' does not implement inherited abstract member 'A.P1.get'
+                // class B4 : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B4").WithArguments("B4", "A.P1.get").WithLocation(1, 7),
+                // (1,7): error CS0534: 'B4' does not implement inherited abstract member 'A.P2.get'
+                // class B4 : A
+                Diagnostic(ErrorCode.ERR_UnimplementedAbstractMethod, "B4").WithArguments("B4", "A.P2.get").WithLocation(1, 7),
+                // (3,28): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override object P1 { set { field = value; } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P1").WithLocation(3, 28),
+                // (4,28): error CS8080: Auto-implemented properties must override all accessors of the overridden property.
+                //     public override object P2 { set { field = value; } }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustOverrideSet, "P2").WithLocation(4, 28),
+                // (4,33): error CS0546: 'B4.P2.set': cannot override because 'A.P2' does not have an overridable set accessor
+                //     public override object P2 { set { field = value; } }
+                Diagnostic(ErrorCode.ERR_NoSetToOverride, setter).WithArguments($"B4.P2.{setter}", "A.P2").WithLocation(4, 33));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void New_01(bool useInit)
+        {
+            string setter = useInit ? "init" : "set";
+            string source = $$"""
+                class A
+                {
+                    public virtual object P1 { get; {{setter}}; }
+                    public virtual object P2 { get; }
+                    public virtual object P3 { {{setter}}; }
+                }
+                class B0 : A
+                {
+                    public new object P1 { get; }
+                    public new object P2 { get; }
+                    public new object P3 { get; }
+                }
+                class B1 : A
+                {
+                    public new object P1 { get; {{setter}}; }
+                    public new object P2 { get; {{setter}}; }
+                    public new object P3 { get; {{setter}}; }
+                }
+                class B2 : A
+                {
+                    public new object P1 { get => field; {{setter}} { } }
+                    public new object P2 { get => field; {{setter}} { } }
+                    public new object P3 { get => field; {{setter}} { } }
+                }
+                class B3 : A
+                {
+                    public new object P1 { get => field; }
+                    public new object P2 { get => field; }
+                    public new object P3 { get => field; }
+                }
+                class B4 : A
+                {
+                    public new object P1 { {{setter}} { field = value; } }
+                    public new object P2 { {{setter}} { field = value; } }
+                    public new object P3 { {{setter}} { field = value; } }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (5,32): error CS8051: Auto-implemented properties must have get accessors.
+                //     public virtual object P3 { set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, setter).WithLocation(5, 32));
+        }
+
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        public void CompilerGeneratedAttribute(bool missingType, bool missingConstructor)
+        {
+            string source = """
+                using System;
+                using System.Reflection;
+
+                class C
+                {
+                    public int P1 { get; }
+                    public int P2 { get => field; }
+                    public int P3 { set { field = value; } }
+                    public int P4 { init { field = value; } }
+                }
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        foreach (var field in typeof(C).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
+                            ReportField(field);
+                    }
+
+                    static void ReportField(FieldInfo field)
+                    {
+                        Console.Write("{0}.{1}:", field.DeclaringType.Name, field.Name);
+                        foreach (var obj in field.GetCustomAttributes())
+                            Console.Write(" {0},", obj.ToString());
+                        Console.WriteLine();
+                    }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80, options: TestOptions.ReleaseExe);
+            if (missingType)
+            {
+                comp.MakeTypeMissing(WellKnownType.System_Runtime_CompilerServices_CompilerGeneratedAttribute);
+            }
+            if (missingConstructor)
+            {
+                comp.MakeMemberMissing(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor);
+            }
+            string expectedAttributes = (missingType || missingConstructor) ? "" : " System.Runtime.CompilerServices.CompilerGeneratedAttribute,";
+            CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput($$"""
+                C.<P1>k__BackingField:{{expectedAttributes}}
+                C.<P2>k__BackingField:{{expectedAttributes}}
+                C.<P3>k__BackingField:{{expectedAttributes}}
+                C.<P4>k__BackingField:{{expectedAttributes}}
                 """));
         }
 

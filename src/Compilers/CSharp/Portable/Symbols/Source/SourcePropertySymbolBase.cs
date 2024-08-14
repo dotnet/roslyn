@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, Location);
             }
-            else if (!IsAutoProperty)
+            else if (!HasSynthesizedBackingField)
             {
                 diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, Location);
             }
@@ -650,10 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal bool IsAutoPropertyOrUsesFieldKeyword
-            => IsAutoProperty || UsesFieldKeyword;
-
-        protected bool UsesFieldKeyword
+        private bool UsesFieldKeyword
             => (_propertyFlags & Flags.UsesFieldKeyword) != 0;
 
         protected bool HasExplicitAccessModifier
@@ -665,9 +662,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected bool AccessorsHaveImplementation
             => (_propertyFlags & Flags.AccessorsHaveImplementation) != 0;
 
+        // PROTOTYPE: Should this be IsAutoProperty?
+        internal bool HasSynthesizedBackingField
+            => IsAutoProperty || UsesFieldKeyword;
+
         /// <summary>
-        /// Backing field for automatically implemented property, or
-        /// for a property with an initializer.
+        /// Backing field for an automatically implemented property, or
+        /// a property with an accessor using the 'field' keyword, or
+        /// a property with an initializer.
         /// </summary>
         internal SynthesizedBackingFieldSymbol BackingField { get; }
 
@@ -715,9 +717,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_RefReturningPropertiesCannotBeRequired, Location);
             }
 
-            if (IsAutoProperty)
+            if (HasSynthesizedBackingField)
             {
-                if (!IsStatic && SetMethod is { IsInitOnly: false })
+                if (!IsStatic && ((_propertyFlags & Flags.HasAutoPropertySet) != 0) && SetMethod is { IsInitOnly: false })
                 {
                     if (ContainingType.IsReadOnly)
                     {
@@ -738,10 +740,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, Location);
                 }
 
-                // get-only auto property should not override settable properties
-                if (this.IsOverride && SetMethod is null && !this.IsReadOnly)
+                // Auto property should override both accessors.
+                if (this.IsOverride)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, Location);
+                    var overriddenProperty = (PropertySymbol)this.GetLeastOverriddenMember(this.ContainingType);
+                    if ((overriddenProperty.GetMethod is { } && GetMethod is null) ||
+                        (overriddenProperty.SetMethod is { } && SetMethod is null))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, Location);
+                    }
                 }
             }
 
@@ -1095,7 +1102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-            => IsAutoPropertyOrUsesFieldKeyword
+            => HasSynthesizedBackingField
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
 
@@ -1660,7 +1667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeLocation, type);
             }
-            else if (this.IsAutoPropertyOrUsesFieldKeyword && type.IsRefLikeOrAllowsRefLikeType() && (this.IsStatic || !this.ContainingType.IsRefLikeType))
+            else if (this.HasSynthesizedBackingField && type.IsRefLikeOrAllowsRefLikeType() && (this.IsStatic || !this.ContainingType.IsRefLikeType))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
             }
