@@ -2923,13 +2923,13 @@
         <note />
       </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous">
-        <source>'{0}' binds to the synthesized backing field for the property in language version {1}. Use '@{0}' to bind to the existing symbol instead.</source>
-        <target state="new">'{0}' binds to the synthesized backing field for the property in language version {1}. Use '@{0}' to bind to the existing symbol instead.</target>
+        <source>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.</source>
+        <target state="new">In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_FieldIsAmbiguous_Title">
-        <source>'field' binds to the synthesized backing field for the property. Use '@field' to bind to the existing symbol instead.</source>
-        <target state="new">'field' binds to the synthesized backing field for the property. Use '@field' to bind to the existing symbol instead.</target>
+        <source>The 'field' keyword binds to a synthesized backing field for the property.</source>
+        <target state="new">The 'field' keyword binds to a synthesized backing field for the property.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_InlineArrayConversionOperatorNotUsed">

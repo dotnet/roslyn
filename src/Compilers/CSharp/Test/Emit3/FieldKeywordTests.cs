@@ -927,9 +927,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (9,41): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     object P2 { get { return null; } [A(field)] set { } }
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(9, 41),
-                // (14,20): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                // (14,20): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
                 //     object P3 { [A(field)] get { return null; } set { } }
-                Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(14, 20),
+                Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(14, 20),
                 // (14,20): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     object P3 { [A(field)] get { return null; } set { } }
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(14, 20));

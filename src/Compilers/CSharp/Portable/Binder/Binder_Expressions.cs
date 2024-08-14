@@ -1442,7 +1442,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasOtherFieldSymbolInScope())
             {
-                diagnostics.Add(ErrorCode.WRN_FieldIsAmbiguous, node, node.Token.Text, Compilation.LanguageVersion.ToDisplayString());
+                diagnostics.Add(ErrorCode.WRN_FieldIsAmbiguous, node, Compilation.LanguageVersion.ToDisplayString());
             }
 
             switch (ContainingMember())
