@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(DocumentSymbolsHandler)), Shared]
     [Method(Methods.TextDocumentDocumentSymbolName)]
-    internal sealed class DocumentSymbolsHandler : ILspServiceDocumentRequestHandler<RoslynDocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>>
+    internal sealed class DocumentSymbolsHandler : ILspServiceDocumentRequestHandler<RoslynDocumentSymbolParams, SumType<RoslynDocumentSymbol[], SymbolInformation[]>>
     {
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(RoslynDocumentSymbolParams request) => request.TextDocument;
 
-        public Task<SumType<DocumentSymbol[], SymbolInformation[]>> HandleRequestAsync(RoslynDocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task<SumType<RoslynDocumentSymbol[], SymbolInformation[]>> HandleRequestAsync(RoslynDocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.GetRequiredDocument();
             var clientCapabilities = context.GetRequiredClientCapabilities();
@@ -48,17 +48,17 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             return GetDocumentSymbolsAsync(document, useHierarchicalSymbols, service, cancellationToken);
         }
 
-        internal static async Task<SumType<DocumentSymbol[], SymbolInformation[]>> GetDocumentSymbolsAsync(Document document, bool useHierarchicalSymbols, ILspSymbolInformationCreationService symbolInformationCreationService, CancellationToken cancellationToken)
+        internal static async Task<SumType<RoslynDocumentSymbol[], SymbolInformation[]>> GetDocumentSymbolsAsync(Document document, bool useHierarchicalSymbols, ILspSymbolInformationCreationService symbolInformationCreationService, CancellationToken cancellationToken)
         {
             var navBarService = document.Project.Services.GetRequiredService<INavigationBarItemService>();
             var navBarItems = await navBarService.GetItemsAsync(document, supportsCodeGeneration: false, frozenPartialSemantics: false, cancellationToken).ConfigureAwait(false);
             if (navBarItems.IsEmpty)
-                return Array.Empty<DocumentSymbol>();
+                return Array.Empty<RoslynDocumentSymbol>();
 
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             if (useHierarchicalSymbols)
             {
-                using var _ = ArrayBuilder<DocumentSymbol>.GetInstance(out var symbols);
+                using var _ = ArrayBuilder<RoslynDocumentSymbol>.GetInstance(out var symbols);
                 // only top level ones
                 foreach (var item in navBarItems)
                     symbols.AddIfNotNull(GetDocumentSymbol(item, text, cancellationToken));

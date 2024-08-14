@@ -6,18 +6,29 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Roslyn.LanguageServer.Protocol;
+using Roslyn.Utilities;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Microsoft.CodeAnalysis.ExternalAccess.Razor.Cohost.Handlers;
 
 internal static class DocumentSymbols
 {
-    public static Task<SumType<DocumentSymbol[], SymbolInformation[]>> GetDocumentSymbolsAsync(Document document, bool useHierarchicalSymbols, CancellationToken cancellationToken)
+    public static async Task<SumType<DocumentSymbol[], SymbolInformation[]>> GetDocumentSymbolsAsync(Document document, bool useHierarchicalSymbols, CancellationToken cancellationToken)
     {
         // The symbol information service in Roslyn lives in EditorFeatures and has VS dependencies. for glyph images,
         // so isn't available in OOP. The default implementation is available in OOP, but not in the Roslyn MEF composition,
         // so we have to provide our own.
-        return DocumentSymbolsHandler.GetDocumentSymbolsAsync(document, useHierarchicalSymbols, RazorLspSymbolInformationCreationService.Instance, cancellationToken);
+        var result = await DocumentSymbolsHandler.GetDocumentSymbolsAsync(document, useHierarchicalSymbols, RazorLspSymbolInformationCreationService.Instance, cancellationToken).ConfigureAwait(false);
+
+        // Roslyn returns their RoslynDocumentSymbol type from the above call, which inherits from DocumentSymbol, so it's
+        // fine to use, but we have to pull it out of the SumType to satisfy the compiler.
+        if (result.TryGetFirst(out var documentSymbols))
+        {
+            Contract.ThrowIfNull(documentSymbols);
+            return documentSymbols!;
+        }
+
+        return result.Second;
     }
 
     private sealed class RazorLspSymbolInformationCreationService : ILspSymbolInformationCreationService
