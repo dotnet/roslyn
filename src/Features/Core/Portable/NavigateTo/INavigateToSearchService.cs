@@ -6,6 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
@@ -28,6 +29,8 @@ internal interface INavigateToSearchService : ILanguageService
     /// <paramref name="projects"/> that can be used to prioritize work.  Generates files should not be searched.
     /// Results should be up to date with the actual document contents for the requested project.
     /// </summary>
+    /// <param name="searchGeneratedCode">Whether documents that match <see
+    /// cref="IGeneratedCodeRecognitionService.IsGeneratedCode"/> should be searched.</param> 
     /// <remarks>
     /// All the projects passed are guaranteed to be for the language this <see cref="INavigateToSearchService"/>
     /// belongs to.  Similarly, all the <paramref name="priorityDocuments"/> belong to these projects.
@@ -38,6 +41,7 @@ internal interface INavigateToSearchService : ILanguageService
         ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
+        bool searchGeneratedCode,
         Document? activeDocument,
         Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
         Func<Task> onProjectCompleted,
@@ -71,14 +75,14 @@ internal interface IAdvancedNavigateToSearchService : INavigateToSearchService
         CancellationToken cancellationToken);
 
     /// <summary>
-    /// Searches the generated documents inside <paramref name="projects"/> for symbols that matches <paramref
-    /// name="searchPattern"/>.
+    /// Searches the <see cref="SourceGeneratedDocument"/>s inside <paramref name="projects"/> for symbols that matches
+    /// <paramref name="searchPattern"/>.
     /// </summary>
     /// <remarks>
-    /// All the projects passed are guaranteed to be for the language this <see cref="INavigateToSearchService"/>
-    /// belongs to.
+    /// All the projects passed are guaranteed to be for the language this <see
+    /// cref="INavigateToSearchService"/> belongs to.
     /// </remarks>
-    Task SearchGeneratedDocumentsAsync(
+    Task SearchSourceGeneratedDocumentsAsync(
         Solution solution,
         ImmutableArray<Project> projects,
         string searchPattern,

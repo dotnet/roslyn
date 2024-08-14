@@ -5,7 +5,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Threading;
+using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
@@ -13,19 +15,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols;
 internal sealed partial class TopLevelSyntaxTreeIndex
 {
     private static TopLevelSyntaxTreeIndex CreateIndex(
-        ProjectState project, SyntaxNode root, Checksum checksum, CancellationToken cancellationToken)
+        ProjectState project, SyntaxTree tree, Checksum checksum, CancellationToken cancellationToken)
     {
-        var infoFactory = project.LanguageServices.GetRequiredService<IDeclaredSymbolInfoFactoryService>();
+        var languageServices = project.LanguageServices;
+        var infoFactory = languageServices.GetRequiredService<IDeclaredSymbolInfoFactoryService>();
+        var syntaxFacts = languageServices.GetRequiredService<ISyntaxFactsService>();
 
         using var _1 = ArrayBuilder<DeclaredSymbolInfo>.GetInstance(out var declaredSymbolInfos);
         using var _2 = PooledDictionary<string, ArrayBuilder<int>>.GetInstance(out var extensionMethodInfo);
         try
         {
+            var root = tree.GetRoot(cancellationToken);
+            var isGeneratedCode = tree.IsGeneratedCode(analyzerOptions: null, syntaxFacts, cancellationToken);
+
             infoFactory.AddDeclaredSymbolInfos(
                 project, root, declaredSymbolInfos, extensionMethodInfo, cancellationToken);
 
             return new TopLevelSyntaxTreeIndex(
                 checksum,
+                isGeneratedCode,
                 new DeclarationInfo(declaredSymbolInfos.ToImmutable()),
                 new ExtensionMethodInfo(
                     extensionMethodInfo.ToImmutableDictionary(

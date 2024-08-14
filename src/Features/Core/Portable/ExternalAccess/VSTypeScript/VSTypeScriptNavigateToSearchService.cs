@@ -52,6 +52,7 @@ internal sealed class VSTypeScriptNavigateToSearchService(
         ImmutableArray<Document> priorityDocuments,
         string searchPattern,
         IImmutableSet<string> kinds,
+        bool searchGeneratedCode,
         Document? activeDocument,
         Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
         Func<Task> onProjectCompleted,

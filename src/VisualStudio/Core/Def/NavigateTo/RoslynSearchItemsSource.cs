@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Search.Data;
+using Microsoft.VisualStudio.Search.UI;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
@@ -89,6 +90,14 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 _ => NavigateToSearchScope.Solution,
             };
 
+            var documentSupport = NavigateToDocumentSupport.AllDocuments;
+            if (searchQuery.FiltersStates.TryGetValue(PredefinedUserFilterNames.IncludeExternalItems, out var includeExternalItemsFilterValue) &&
+                bool.TryParse(includeExternalItemsFilterValue, out var includeGeneratedDocumentBool) &&
+                !includeGeneratedDocuments)
+            {
+                documentSupport = NavigateToDocumentSupport.RegularDocuments;
+            }
+
             // Create a nav-to callback that will take results and translate them to aiosp results for the
             // callback passed to us.
 
@@ -101,7 +110,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 kinds,
                 provider._threadingContext.DisposalToken);
 
-            await searcher.SearchAsync(searchScope, cancellationToken).ConfigureAwait(false);
+            await searcher.SearchAsync(searchScope, documentSupport, cancellationToken).ConfigureAwait(false);
         }
     }
 }
