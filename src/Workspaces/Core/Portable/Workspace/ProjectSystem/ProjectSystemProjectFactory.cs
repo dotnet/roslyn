@@ -805,26 +805,26 @@ internal sealed partial class ProjectSystemProjectFactory
     private void StartRefreshingMetadataReferencesForFile(object? sender, string fullFilePath)
         => StartRefreshingReferencesForFile(
             fullFilePath,
-            static project => project.MetadataReferences.OfType<PortableExecutableReference>(),
-            static reference => reference.FilePath!,
-            static (@this, reference) => CreateMetadataReference_NoLock(reference.FilePath!, reference.Properties, @this.SolutionServices),
-            static (projectUpdateState, oldReference, newReference) => projectUpdateState
+            getReferences: static project => project.MetadataReferences.OfType<PortableExecutableReference>(),
+            getFilePath: static reference => reference.FilePath!,
+            createNewReference: static (@this, reference) => CreateMetadataReference_NoLock(reference.FilePath!, reference.Properties, @this.SolutionServices),
+            updateState: static (projectUpdateState, oldReference, newReference) => projectUpdateState
                 .WithIncrementalMetadataReferenceRemoved(oldReference)
                 .WithIncrementalMetadataReferenceAdded(newReference),
-            static (solution, projectId, oldReference, newReference) => solution
+            updateSolution: static (solution, projectId, oldReference, newReference) => solution
                 .RemoveMetadataReference(projectId, oldReference)
                 .AddMetadataReference(projectId, newReference));
 
     private void StartRefreshingAnalyzerReferenceForFile(object? sender, string fullFilePath)
         => StartRefreshingReferencesForFile(
             fullFilePath,
-            static project => project.AnalyzerReferences.OfType<AnalyzerFileReference>(),
-            static reference => reference.FullPath,
-            static (@this, reference) => new AnalyzerFileReference(reference.FullPath, @this.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>().GetShadowCopyLoader()),
-            static (projectUpdateState, oldReference, newReference) => projectUpdateState
+            getReferences: static project => project.AnalyzerReferences.OfType<AnalyzerFileReference>(),
+            getFilePath: static reference => reference.FullPath,
+            createNewReference: static (@this, reference) => new AnalyzerFileReference(reference.FullPath, @this.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>().GetShadowCopyLoader()),
+            updateState: static (projectUpdateState, oldReference, newReference) => projectUpdateState
                 .WithIncrementalAnalyzerReferenceRemoved(oldReference)
                 .WithIncrementalAnalyzerReferenceAdded(newReference),
-            static (solution, projectId, oldReference, newReference) => solution
+            updateSolution: static (solution, projectId, oldReference, newReference) => solution
                 .RemoveAnalyzerReference(projectId, oldReference)
                 .AddAnalyzerReference(projectId, newReference));
 
