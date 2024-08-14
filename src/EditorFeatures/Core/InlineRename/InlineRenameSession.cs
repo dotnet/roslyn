@@ -780,7 +780,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                     _triggerView, TriggerSpan, EditorFeaturesResources.Computing_Rename_information,
                     cancelOnEdit: false, cancelOnFocusLost: false);
 
-                await CommitCoreAsync(context, previewChanges).ConfigureAwait(true);
+                await CommitCoreAsync(context, previewChanges, cancellationToken).ConfigureAwait(true);
             }
             else
             {
@@ -793,7 +793,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 // .ConfigureAwait(true); so we can return to the UI thread to dispose the operation context.  It
                 // has a non-JTF threading dependency on the main thread.  So it can deadlock if you call it on a BG
                 // thread when in a blocking JTF call.
-                await CommitCoreAsync(context, previewChanges).ConfigureAwait(true);
+                await CommitCoreAsync(context, previewChanges, cancellationToken).ConfigureAwait(true);
             }
         }
         catch (OperationCanceledException)
@@ -806,13 +806,14 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         return true;
     }
 
-    private async Task CommitCoreAsync(IUIThreadOperationContext operationContext, bool previewChanges)
+    private async Task CommitCoreAsync(IUIThreadOperationContext operationContext, bool previewChanges, CancellationToken cancellationToken)
     {
-        var cancellationToken = operationContext.UserCancellationToken;
+        using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(operationContext.UserCancellationToken, cancellationToken);
+        var linkedCancellationToken = operationContext.UserCancellationToken;
         var eventName = previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore;
-        using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
+        using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), linkedCancellationToken))
         {
-            var info = await _conflictResolutionTask.JoinAsync(cancellationToken).ConfigureAwait(true);
+            var info = await _conflictResolutionTask.JoinAsync(linkedCancellationToken).ConfigureAwait(true);
             var newSolution = info.NewSolution;
 
             if (previewChanges)
@@ -820,7 +821,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 var previewService = Workspace.Services.GetService<IPreviewDialogService>();
 
                 // The preview service needs to be called from the UI thread, since it's doing COM calls underneath.
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(linkedCancellationToken);
                 newSolution = previewService.PreviewChanges(
                     string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename),
                     "vs.csharp.refactoring.rename",
@@ -844,11 +845,11 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 RenameLogMessage.UserActionOutcome.Committed, previewChanges,
                 async () =>
                 {
-                    var error = await TryApplyRenameAsync(newSolution, cancellationToken).ConfigureAwait(false);
+                    var error = await TryApplyRenameAsync(newSolution, linkedCancellationToken).ConfigureAwait(false);
 
                     if (error is not null)
                     {
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(linkedCancellationToken);
                         var notificationService = Workspace.Services.GetService<INotificationService>();
                         notificationService.SendNotification(
                             error.Value.message, EditorFeaturesResources.Rename_Symbol, error.Value.severity);
