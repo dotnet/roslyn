@@ -34722,7 +34722,18 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify([source, s_collectionExtensions], expectedOutput: "[1, 2, 3],", targetFramework: targetFramework, verify: Verification.Skipped);
+            var expectedOutputString = "[1, 2, 3],";
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                expectedOutput: targetFramework switch
+                {
+                    TargetFramework.Net80 => IncludeExpectedOutput(expectedOutputString),
+                    TargetFramework.Standard => expectedOutputString,
+                    _ => throw new InvalidOperationException("Update expected output!"),
+                },
+                targetFramework: targetFramework,
+                verify: Verification.Skipped);
+
             verifier.VerifyDiagnostics();
 
             switch (targetFramework)
@@ -34806,6 +34817,8 @@ partial class Program
                         }
                         """);
                     break;
+                default:
+                    throw new InvalidOperationException("Update verified IL!");
             }
         }
 
@@ -35117,7 +35130,18 @@ partial class Program
                 }
                 """;
 
-            var verifier = CompileAndVerify([source, s_collectionExtensions], expectedOutput: "[1, 2, 3],", targetFramework: targetFramework, verify: Verification.Skipped);
+            var expectedOutputString = "[1, 2, 3],";
+            var verifier = CompileAndVerify(
+                [source, s_collectionExtensions],
+                expectedOutput: targetFramework switch
+                {
+                    TargetFramework.Net80 => IncludeExpectedOutput(expectedOutputString),
+                    TargetFramework.Standard => expectedOutputString,
+                    _ => throw new InvalidOperationException("Update expected output!"),
+                },
+                targetFramework: targetFramework,
+                verify: Verification.Skipped);
+
             verifier.VerifyDiagnostics();
 
             switch (targetFramework)
@@ -35200,6 +35224,8 @@ partial class Program
                         }
                         """);
                     break;
+                default:
+                    throw new InvalidOperationException("Update verified IL!");
             }
         }
 
