@@ -50,7 +50,8 @@ internal sealed class CSharpUseImplicitObjectCreationCodeFixProvider() : SyntaxE
             .OrderBy(d => d.Location.SourceSpan.End)
             .SelectAsArray(d => (ObjectCreationExpressionSyntax)d.AdditionalLocations[0].FindNode(getInnermostNodeForTie: true, cancellationToken));
 
-        var options = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(cancellationToken).ConfigureAwait(false);
+        var options = (CSharpSimplifierOptions)await document.GetSimplifierOptionsAsync(
+            CSharpSimplification.Instance, cancellationToken).ConfigureAwait(false);
 
         // Bulk apply these, except at the expression level.  One fix at the expression level may prevent another fix
         // from being valid.  For example: `new List<C> { new C() }`.  If we apply the fix to the outer `List<C>`, we
