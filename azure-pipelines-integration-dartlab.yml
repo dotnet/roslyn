@@ -55,7 +55,6 @@ stages:
 
 - template: \stages\visual-studio\agent.yml@DartLabTemplates
   parameters:
-    name: RunDartlabPipelineStage
     displayName: VS Integration
     testLabPoolName: VS-Platform
     visualStudioBootstrapperURI: https://vsdrop.corp.microsoft.com/file/v1/$(VisualStudio.BuildUnderTest.ProductsDropName);bootstrappers/Enterprise/vs_enterprise.exe
@@ -98,19 +97,18 @@ stages:
 - ${{ if ne(parameters.prNumber, '') }}:
   - stage: GitHubCommentCompleted
     condition: always()
-    dependsOn: RunDartlabPipelineStage
     jobs:
       - job: GitHubCommentCompletedJob
         steps:
           - task: GitHubComment@0
-            condition: succeeded('RunDartlabPipelineStage')
+            condition: succeeded()
             inputs:
               gitHubConnection: 'dotnet-comment-bot-service-connection'
               repositoryName: '$(Build.Repository.Name)'
               id: ${{ parameters.prNumber }}
               comment: 'DartLab pipeline [run]($(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)) completed successfully for ${{ parameters.sha }}'
           - task: GitHubComment@0
-            condition: not(succeeded('RunDartlabPipelineStage'))
+            condition: failed()
             inputs:
               gitHubConnection: 'dotnet-comment-bot-service-connection'
               repositoryName: '$(Build.Repository.Name)'
