@@ -1067,8 +1067,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (addRangeMethod is null)
                             return false;
 
-                        var type = rewrittenSpreadOperand.Type!;
-
                         if (spreadElement.EnumeratorInfoOpt is { } enumeratorInfo)
                         {
                             var iCollectionOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T);
@@ -1083,6 +1081,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return false;
                             }
                         }
+
+                        var type = rewrittenSpreadOperand.Type!;
 
                         var useSiteInfo = GetNewCompoundUseSiteInfo();
                         var conversion = _compilation.Conversions.ClassifyConversionFromType(type, addRangeMethod.Parameters[0].Type, isChecked: false, ref useSiteInfo);
