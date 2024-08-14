@@ -727,7 +727,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     {
         if (!forceCommitSynchronously && this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
         {
-            await CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, cancellationToken).ConfigureAwait(false);
+            return await CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, cancellationToken).ConfigureAwait(false);
         }
         else
         {
@@ -747,7 +747,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         // which at least will allow the user to cancel the rename if they want.
         //
         // In the future we should remove this entrypoint and have all callers use CommitAsync instead.
-        return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false, CancellationToken.None));
+        return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, CancellationToken.None));
     }
 
     public Task CommitAsync(bool previewChanges, CancellationToken cancellationToken)
@@ -780,7 +780,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
         try
         {
-            if (canUseBackgroundWorkIndicator && this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
+            if (canUseBackgroundWorkIndicator)
             {
                 // We do not cancel on edit because as part of the rename system we have asynchronous work still
                 // occurring that itself may be asynchronously editing the buffer (for example, updating reference
