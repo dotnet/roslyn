@@ -1039,7 +1039,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (3,16): warning CS0169: The field 'C.field' is never used
                     //     static int field;
                     Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C.field").WithLocation(3, 16),
-                    // (4,24): info CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
+                    // (4,24): warning CS9258: 'field' binds to the synthesized backing field for the property in language version preview. Use '@field' to bind to the existing symbol instead.
                     //     object P => nameof(field);
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("field", "preview").WithLocation(4, 24),
                     // (4,24): error CS8081: Expression does not have a name.
