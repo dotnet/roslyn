@@ -6869,7 +6869,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Compiling requires binding the lambda expression many times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.</value>
   </data>
   <data name="WRN_FieldIsAmbiguous" xml:space="preserve">
-    <value>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.</value>
+    <value>In language version {0}, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.</value>
   </data>
   <data name="WRN_FieldIsAmbiguous_Title" xml:space="preserve">
     <value>The 'field' keyword binds to a synthesized backing field for the property.</value>

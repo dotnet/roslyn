@@ -41,16 +41,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (!escapeIdentifier && languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,28): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (4,28): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     // class C1 : A { object P => field; }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(4, 28),
-                    // (5,34): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (5,34): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     // class C2 : A { object P { get => field; } }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(5, 34),
-                    // (6,40): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (6,40): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     // class C3 : A { object P { get { return field; } } }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(6, 40),
-                    // (7,33): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (7,33): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     // class C4 : A { object P { set { field = 0; } } }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(7, 33));
             }
@@ -133,10 +133,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (!escapeIdentifier && languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (10,25): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (10,25): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object I.P { get => field; set { _ = field; } }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(10, 25),
-                    // (10,42): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (10,42): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object I.P { get => field; set { _ = field; } }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(10, 42));
             }
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (6,33): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (6,33): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     Func<object> P1 { get { _ = field(); return null; } }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(6, 33));
             }
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (5,29): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (5,29): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object[] P1 { get { _ = field[0]; return null; } }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(5, 29));
             }
@@ -326,7 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,59): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (4,59): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object P1 { get { _ = from field in new int[0] select field; return null; } }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(4, 59));
             }
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,69): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (4,69): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object P1 { get { _ = from i in new int[0] let field = i select field; return null; } }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(4, 69));
             }
@@ -380,7 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,85): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (4,85): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object P1 { get { _ = from x in new int[0] join field in new int[0] on x equals field select x; return null; } }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(4, 85));
             }
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,101): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (4,101): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object P1 { get { _ = from x in new int[0] join y in new int[0] on x equals y into field select field; return null; } }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(4, 101));
             }
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,75): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (4,75): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object P1 { get { _ = from x in new int[0] select x into field select field; return null; } }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(4, 75));
             }
@@ -602,7 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (4,50): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (4,50): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object P1 { get { object F1(object field) => field; return null; } }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(4, 50));
             }
@@ -665,7 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (10,20): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                     //             object @value;
                     Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "@value").WithArguments("value").WithLocation(10, 20),
-                    // (11,14): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (11,14): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //             (field, @value) = new C();
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(11, 14));
             }
@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (11,23): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (11,23): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //             f = () => field;
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(11, 23));
             }
@@ -742,7 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (9,28): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (9,28): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //             object F1() => field;
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(9, 28));
             }
@@ -923,13 +923,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (!escapeIdentifier && languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (12,19): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (12,19): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //         [A(nameof(field))] get { return null; }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(12, 19),
                     // (12,19): error CS8081: Expression does not have a name.
                     //         [A(nameof(field))] get { return null; }
                     Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "field").WithLocation(12, 19),
-                    // (13,19): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (13,19): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //         [A(nameof(field))] set { }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(13, 19),
                     // (13,19): error CS8081: Expression does not have a name.
@@ -975,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (13,23): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (13,23): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //             [A(nameof(field))] void F1(int field) { }
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(13, 23),
                     // (13,23): error CS8081: Expression does not have a name.
@@ -1039,7 +1039,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (3,16): warning CS0169: The field 'C.field' is never used
                     //     static int field;
                     Diagnostic(ErrorCode.WRN_UnreferencedField, "field").WithArguments("C.field").WithLocation(3, 16),
-                    // (4,24): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (4,24): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     object P => nameof(field);
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(4, 24),
                     // (4,24): error CS8081: Expression does not have a name.
@@ -1079,7 +1079,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             if (languageVersion > LanguageVersion.CSharp13)
             {
                 comp.VerifyEmitDiagnostics(
-                    // (3,17): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member instead, use 'this.field' or '@field' instead.
+                    // (3,17): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
                     //     string P => field;
                     Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(3, 17));
             }
