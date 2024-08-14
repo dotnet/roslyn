@@ -43,13 +43,13 @@ public sealed class CompositeTextTests
         }
     }
 
-    private IEnumerable<string> GetLinesTexts(TextLineCollection textLines)
+    private static IEnumerable<string> GetLinesTexts(TextLineCollection textLines)
     {
         return textLines.Select(l => l.Text!.ToString(l.SpanIncludingLineBreak));
     }
 
     // Returns all possible permutations of contents into SourceText arrays of length between minSourceTextCount and maxSourceTextCount
-    private IEnumerable<(SourceText, CompositeText)> CreateSourceAndCompositeTexts(string contents, int minSourceTextCount = 2, int maxSourceTextCount = 4)
+    private static IEnumerable<(SourceText, CompositeText)> CreateSourceAndCompositeTexts(string contents, int minSourceTextCount = 2, int maxSourceTextCount = 4)
     {
         var sourceText = SourceText.From(contents);
 

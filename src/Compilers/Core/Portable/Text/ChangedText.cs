@@ -263,9 +263,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         protected override TextLineCollection GetLinesCore()
-        {
-            return _newText.Lines;
-        }
+            => _newText.Lines;
 
         internal static class TestAccessor
         {

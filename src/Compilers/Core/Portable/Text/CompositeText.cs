@@ -6,8 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -45,9 +43,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         protected override TextLineCollection GetLinesCore()
-        {
-            return new CompositeLineInfo(this);
-        }
+            => new CompositeLineInfo(this);
 
         public override Encoding? Encoding
         {
@@ -386,21 +382,25 @@ namespace Microsoft.CodeAnalysis.Text
         {
             private readonly CompositeText _compositeText;
 
-            // The starting line number for the correspondingly indexed SourceTexts in _compositeText.Segments
-            private readonly int[] _segmentLineNumbers;
+            /// <summary>
+            /// The starting line number for the correspondingly indexed SourceTexts in _compositeText.Segments
+            /// </summary>
+            /// <remarks>
+            /// This will be of the same length as _compositeText.Segments
+            /// </remarks>
+            private readonly ImmutableArray<int> _segmentLineNumbers;
 
             // The total number of lines in our _compositeText
             private readonly int _lineCount;
 
             public CompositeLineInfo(CompositeText compositeText)
             {
-                _compositeText = compositeText;
-                _segmentLineNumbers = new int[compositeText.Segments.Length];
-
+                var segmentLineNumbers = ArrayBuilder<int>.GetInstance();
                 var accumulatedLineCount = 0;
+
                 for (int i = 0; i < compositeText.Segments.Length; i++)
                 {
-                    _segmentLineNumbers[i] = accumulatedLineCount;
+                    segmentLineNumbers.Add(accumulatedLineCount);
 
                     var segment = compositeText.Segments[i];
                     accumulatedLineCount += (segment.Lines.Count - 1);
@@ -419,6 +419,8 @@ namespace Microsoft.CodeAnalysis.Text
                     }
                 }
 
+                _compositeText = compositeText;
+                _segmentLineNumbers = segmentLineNumbers.ToImmutableAndFree();
                 _lineCount = accumulatedLineCount + 1;
             }
 
