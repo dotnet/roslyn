@@ -20,8 +20,6 @@ internal class ServerInfo
     [JsonRequired]
     public string Name { get; init; }
 
-
-
     /// <summary>
     /// The server version
     /// </summary>

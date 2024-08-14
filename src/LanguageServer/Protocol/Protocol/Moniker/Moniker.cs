@@ -41,6 +41,6 @@ internal class Moniker
     /// The moniker kind if known.
     /// </summary>
     [JsonPropertyName("kind")]
-    [JsonIgnore(Condition =JsonIgnoreCondition.WhenWritingNull)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public MonikerKind? Kind { get; init; }
 }
