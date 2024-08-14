@@ -723,6 +723,18 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         }
     }
 
+    public async Task<bool> CommitXAsync(bool previewChanges, bool forceCommitSynchronously, CancellationToken cancellationToken)
+    {
+        if (!forceCommitSynchronously && this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
+        {
+            await CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false, cancellationToken));
+        }
+    }
+
     public void Commit(bool previewChanges = false)
         => CommitWorker(previewChanges);
 
