@@ -5261,6 +5261,29 @@ class C
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
+        public void CollectionExpression_NestedNullability_01_RhsTargetTyped()
+        {
+            var source = """
+                #nullable enable
+
+                var b = false;
+                var arr = b ? new[] { "1" } : ["2"];
+                """;
+
+            var comp = CreateCompilation(source);
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var root = tree.GetRoot();
+            var collectionExpr = root.DescendantNodes().OfType<CollectionExpressionSyntax>().Single();
+            var typeInfo = model.GetTypeInfo(collectionExpr);
+            var type = (IArrayTypeSymbol)typeInfo.ConvertedType;
+            Assert.Equal("System.String[]", type.ToTestDisplayString());
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.NullableAnnotation);
+            Assert.Equal(PublicNullableAnnotation.NotAnnotated, type.ElementNullableAnnotation);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71522")]
         public void CollectionExpression_NestedNullability_02()
         {
             var source = """

@@ -4613,11 +4613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var (returnExpr, resultType, _) = returns[i];
                 resultTypes.Add(resultType);
-
-                if (!IsTargetTypedExpression(returnExpr))
-                {
-                    placeholdersBuilder.Add(CreatePlaceholderIfNecessary(returnExpr, resultType));
-                }
+                placeholdersBuilder.Add(CreatePlaceholderIfNecessary(returnExpr, resultType));
             }
 
             var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
