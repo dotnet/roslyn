@@ -25,7 +25,7 @@ using NuGet.Packaging.Signing;
 
 namespace Microsoft.CodeAnalysis.Testing
 {
-    public sealed partial class ReferenceAssemblies
+    public sealed partial class ReferenceAssemblies : IEquatable<ReferenceAssemblies?>
     {
         private const string ReferenceAssembliesPackageVersion = "1.0.2";
 
@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis.Testing
 
         private static ImmutableHashSet<NuGet.Packaging.Core.PackageIdentity> s_emptyPackages
             = ImmutableHashSet.Create<NuGet.Packaging.Core.PackageIdentity>(PackageIdentityComparer.Default);
+
+        private static ImmutableHashSet<ReferenceAssemblies> s_knownAssemblies = ImmutableHashSet<ReferenceAssemblies>.Empty;
 
         private readonly Dictionary<string, ImmutableArray<MetadataReference>> _references
             = new();
@@ -123,14 +125,83 @@ namespace Microsoft.CodeAnalysis.Testing
 
         public string? NuGetConfigFilePath { get; }
 
+        private static ReferenceAssemblies GetOrAddReferenceAssemblies(ReferenceAssemblies value)
+        {
+            if (s_knownAssemblies.TryGetValue(value, out var existingValue))
+            {
+                return existingValue;
+            }
+
+            if (ImmutableInterlocked.Update(
+                ref s_knownAssemblies,
+                static (knownAssemblies, value) => knownAssemblies.Add(value),
+                value))
+            {
+                return value;
+            }
+
+            if (!s_knownAssemblies.TryGetValue(value, out existingValue))
+            {
+                throw new InvalidOperationException();
+            }
+
+            return existingValue;
+        }
+
+        public override int GetHashCode()
+        {
+#if NETCOREAPP
+            var hash = default(HashCode);
+            hash.Add(TargetFramework);
+            hash.Add(AssemblyIdentityComparer);
+            hash.Add(ReferenceAssemblyPackage);
+            hash.Add(ReferenceAssemblyPath);
+            hash.Add(Assemblies, ImmutableArrayEqualityComparer<string>.Instance);
+            hash.Add(FacadeAssemblies, ImmutableArrayEqualityComparer<string>.Instance);
+            hash.Add(LanguageSpecificAssemblies, ImmutableDictionaryWithImmutableArrayValuesEqualityComparer<string, string>.Instance);
+            hash.Add(Packages, ImmutableArrayEqualityComparer<PackageIdentity>.Instance);
+            hash.Add(NuGetConfigFilePath);
+            return hash.ToHashCode();
+#else
+            var hashCode = -450793227;
+            hashCode = (hashCode * -1521134295) + EqualityComparer<string>.Default.GetHashCode(TargetFramework);
+            hashCode = (hashCode * -1521134295) + EqualityComparer<AssemblyIdentityComparer>.Default.GetHashCode(AssemblyIdentityComparer);
+            hashCode = (hashCode * -1521134295) + EqualityComparer<PackageIdentity?>.Default.GetHashCode(ReferenceAssemblyPackage);
+            hashCode = (hashCode * -1521134295) + EqualityComparer<string?>.Default.GetHashCode(ReferenceAssemblyPath);
+            hashCode = (hashCode * -1521134295) + ImmutableArrayEqualityComparer<string>.Instance.GetHashCode(Assemblies);
+            hashCode = (hashCode * -1521134295) + ImmutableArrayEqualityComparer<string>.Instance.GetHashCode(FacadeAssemblies);
+            hashCode = (hashCode * -1521134295) + ImmutableDictionaryWithImmutableArrayValuesEqualityComparer<string, string>.Instance.GetHashCode(LanguageSpecificAssemblies);
+            hashCode = (hashCode * -1521134295) + ImmutableArrayEqualityComparer<PackageIdentity>.Instance.GetHashCode(Packages);
+            hashCode = (hashCode * -1521134295) + EqualityComparer<string?>.Default.GetHashCode(NuGetConfigFilePath);
+            return hashCode;
+#endif
+        }
+
+        public override bool Equals(object? obj)
+            => Equals(obj as ReferenceAssemblies);
+
+        public bool Equals(ReferenceAssemblies? other)
+        {
+            return other is not null
+                && TargetFramework == other.TargetFramework
+                && EqualityComparer<AssemblyIdentityComparer>.Default.Equals(AssemblyIdentityComparer, other.AssemblyIdentityComparer)
+                && EqualityComparer<PackageIdentity?>.Default.Equals(ReferenceAssemblyPackage, other.ReferenceAssemblyPackage)
+                && ReferenceAssemblyPath == other.ReferenceAssemblyPath
+                && ImmutableArrayEqualityComparer<string>.Instance.Equals(Assemblies, other.Assemblies)
+                && ImmutableArrayEqualityComparer<string>.Instance.Equals(FacadeAssemblies, other.FacadeAssemblies)
+                && ImmutableDictionaryWithImmutableArrayValuesEqualityComparer<string, string>.Instance.Equals(LanguageSpecificAssemblies, other.LanguageSpecificAssemblies)
+                && ImmutableArrayEqualityComparer<PackageIdentity>.Instance.Equals(Packages, other.Packages)
+                && NuGetConfigFilePath == other.NuGetConfigFilePath;
+        }
+
         public ReferenceAssemblies WithAssemblyIdentityComparer(AssemblyIdentityComparer assemblyIdentityComparer)
-            => new(TargetFramework, assemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages, NuGetConfigFilePath);
+            => GetOrAddReferenceAssemblies(new(TargetFramework, assemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages, NuGetConfigFilePath));
 
         public ReferenceAssemblies WithAssemblies(ImmutableArray<string> assemblies)
-            => new(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages, NuGetConfigFilePath);
+            => GetOrAddReferenceAssemblies(new(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages, NuGetConfigFilePath));
 
         public ReferenceAssemblies WithFacadeAssemblies(ImmutableArray<string> facadeAssemblies)
-            => new(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, facadeAssemblies, LanguageSpecificAssemblies, Packages, NuGetConfigFilePath);
+            => GetOrAddReferenceAssemblies(new(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, facadeAssemblies, LanguageSpecificAssemblies, Packages, NuGetConfigFilePath));
 
         public ReferenceAssemblies AddAssemblies(ImmutableArray<string> assemblies)
             => WithAssemblies(Assemblies.AddRange(assemblies));
@@ -139,7 +210,7 @@ namespace Microsoft.CodeAnalysis.Testing
             => WithFacadeAssemblies(FacadeAssemblies.AddRange(facadeAssemblies));
 
         public ReferenceAssemblies WithLanguageSpecificAssemblies(ImmutableDictionary<string, ImmutableArray<string>> languageSpecificAssemblies)
-            => new(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, languageSpecificAssemblies, Packages, NuGetConfigFilePath);
+            => GetOrAddReferenceAssemblies(new(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, languageSpecificAssemblies, Packages, NuGetConfigFilePath));
 
         public ReferenceAssemblies WithLanguageSpecificAssemblies(string language, ImmutableArray<string> assemblies)
             => WithLanguageSpecificAssemblies(LanguageSpecificAssemblies.SetItem(language, assemblies));
@@ -155,13 +226,13 @@ namespace Microsoft.CodeAnalysis.Testing
         }
 
         public ReferenceAssemblies WithPackages(ImmutableArray<PackageIdentity> packages)
-            => new(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, packages, NuGetConfigFilePath);
+            => GetOrAddReferenceAssemblies(new(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, packages, NuGetConfigFilePath));
 
         public ReferenceAssemblies AddPackages(ImmutableArray<PackageIdentity> packages)
             => WithPackages(Packages.AddRange(packages));
 
         public ReferenceAssemblies WithNuGetConfigFilePath(string nugetConfigFilePath)
-            => new(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages, nugetConfigFilePath);
+            => GetOrAddReferenceAssemblies(new(TargetFramework, AssemblyIdentityComparer, ReferenceAssemblyPackage, ReferenceAssemblyPath, Assemblies, FacadeAssemblies, LanguageSpecificAssemblies, Packages, nugetConfigFilePath));
 
         public async Task<ImmutableArray<MetadataReference>> ResolveAsync(string? language, CancellationToken cancellationToken)
         {
@@ -1351,6 +1422,141 @@ namespace Microsoft.CodeAnalysis.Testing
             {
                 var framework = NuGetFramework.ParseFolder(targetFramework);
                 return framework.IsPackageBased;
+            }
+        }
+
+        private sealed class ImmutableArrayEqualityComparer<T> : IEqualityComparer<ImmutableArray<T>>
+        {
+            public static readonly ImmutableArrayEqualityComparer<T> Instance = new();
+
+            private ImmutableArrayEqualityComparer()
+            {
+            }
+
+            public bool Equals(ImmutableArray<T> x, ImmutableArray<T> y)
+            {
+                if (x.IsDefault)
+                {
+                    return y.IsDefault;
+                }
+                else if (y.IsDefault)
+                {
+                    return false;
+                }
+
+                if (x.Length != y.Length)
+                {
+                    return false;
+                }
+
+                for (var i = 0; i < x.Length; i++)
+                {
+                    if (!EqualityComparer<T>.Default.Equals(x[i], y[i]))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            public int GetHashCode(ImmutableArray<T> obj)
+            {
+                if (obj.IsDefault)
+                {
+                    return 0;
+                }
+
+#if NETCOREAPP
+                var hash = default(HashCode);
+                foreach (var item in obj)
+                {
+                    hash.Add(item);
+                }
+
+                return hash.ToHashCode();
+#else
+                var hashCode = -450793227;
+                foreach (var item in obj)
+                {
+                    hashCode = (hashCode * -1521134295) + EqualityComparer<T>.Default.GetHashCode(item);
+                }
+
+                return hashCode;
+#endif
+            }
+        }
+
+        private sealed class ImmutableDictionaryWithImmutableArrayValuesEqualityComparer<TKey, TValue> : IEqualityComparer<ImmutableDictionary<TKey, ImmutableArray<TValue>>?>
+        {
+            public static readonly ImmutableDictionaryWithImmutableArrayValuesEqualityComparer<TKey, TValue> Instance = new();
+
+            private ImmutableDictionaryWithImmutableArrayValuesEqualityComparer()
+            {
+            }
+
+            public bool Equals(ImmutableDictionary<TKey, ImmutableArray<TValue>>? x, ImmutableDictionary<TKey, ImmutableArray<TValue>>? y)
+            {
+                if (x is null)
+                {
+                    return y is null;
+                }
+                else if (y is null)
+                {
+                    return false;
+                }
+
+                if (x.Count != y.Count)
+                {
+                    return false;
+                }
+
+                foreach (var (key, valueX) in x)
+                {
+                    // Use a separate lookup in 'y' since ImmutableDictionary<,> can reorder pairs where the key has the
+                    // same hash code.
+                    if (!y.TryGetValue(key, out var valueY))
+                    {
+                        return false;
+                    }
+
+                    if (!ImmutableArrayEqualityComparer<TValue>.Instance.Equals(valueX, valueY))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+
+            public int GetHashCode(ImmutableDictionary<TKey, ImmutableArray<TValue>>? obj)
+            {
+                if (obj is null)
+                {
+                    return 0;
+                }
+
+#if NETCOREAPP
+                var hash = default(HashCode);
+                foreach (var (key, _) in obj)
+                {
+                    // Intentionally ignore values since ImmutableDictionary<,> can reorder pairs where the key has the
+                    // same hash code.
+                    hash.Add(key);
+                }
+
+                return hash.ToHashCode();
+#else
+                var hashCode = -450793227;
+                foreach (var (key, _) in obj)
+                {
+                    // Intentionally ignore values since ImmutableDictionary<,> can reorder pairs where the key has the
+                    // same hash code.
+                    hashCode = (hashCode * -1521134295) + EqualityComparer<TKey>.Default.GetHashCode(key);
+                }
+
+                return hashCode;
+#endif
             }
         }
     }

@@ -144,6 +144,7 @@ Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.Sources.get -> System
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.WithAdditionalDiagnostics(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> additionalDiagnostics) -> Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState
 Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState.WithSources(System.Collections.Immutable.ImmutableArray<(string filename, Microsoft.CodeAnalysis.Text.SourceText content)> sources) -> Microsoft.CodeAnalysis.Testing.Model.EvaluatedProjectState
 Microsoft.CodeAnalysis.Testing.PackageIdentity
+Microsoft.CodeAnalysis.Testing.PackageIdentity.Equals(Microsoft.CodeAnalysis.Testing.PackageIdentity other) -> bool
 Microsoft.CodeAnalysis.Testing.PackageIdentity.Id.get -> string
 Microsoft.CodeAnalysis.Testing.PackageIdentity.PackageIdentity(string id, string version) -> void
 Microsoft.CodeAnalysis.Testing.PackageIdentity.Version.get -> string
@@ -176,6 +177,7 @@ Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.AddLanguageSpecificAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.AddPackages(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Testing.PackageIdentity> packages) -> Microsoft.CodeAnalysis.Testing.ReferenceAssemblies
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Assemblies.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.AssemblyIdentityComparer.get -> Microsoft.CodeAnalysis.AssemblyIdentityComparer
+Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Equals(Microsoft.CodeAnalysis.Testing.ReferenceAssemblies other) -> bool
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.FacadeAssemblies.get -> System.Collections.Immutable.ImmutableArray<string>
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.LanguageSpecificAssemblies.get -> System.Collections.Immutable.ImmutableDictionary<string, System.Collections.Immutable.ImmutableArray<string>>
 Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Net
@@ -246,6 +248,10 @@ abstract Microsoft.CodeAnalysis.Testing.CodeActionTest<TVerifier>.SyntaxKindType
 override Microsoft.CodeAnalysis.Testing.DiagnosticResult.ToString() -> string
 override Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer.Initialize(Microsoft.CodeAnalysis.Diagnostics.AnalysisContext context) -> void
 override Microsoft.CodeAnalysis.Testing.EmptyDiagnosticAnalyzer.SupportedDiagnostics.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DiagnosticDescriptor>
+override Microsoft.CodeAnalysis.Testing.PackageIdentity.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.Testing.PackageIdentity.GetHashCode() -> int
+override Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.Equals(object obj) -> bool
+override Microsoft.CodeAnalysis.Testing.ReferenceAssemblies.GetHashCode() -> int
 static Microsoft.CodeAnalysis.Testing.AnalyzerTest<TVerifier>.Verify.get -> TVerifier
 static Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifier>.Diagnostic() -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
 static Microsoft.CodeAnalysis.Testing.AnalyzerVerifier<TAnalyzer, TTest, TVerifier>.Diagnostic(Microsoft.CodeAnalysis.DiagnosticDescriptor descriptor) -> Microsoft.CodeAnalysis.Testing.DiagnosticResult
