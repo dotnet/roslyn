@@ -112,6 +112,11 @@
         <target state="translated">縮排大小</target>
         <note />
       </trans-unit>
+      <trans-unit id="Inlay_Hints">
+        <source>Inlay Hints</source>
+        <target state="new">Inlay Hints</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Inline_Diagnostics_Error">
         <source>Inline Diagnostics - Error</source>
         <target state="translated">內嵌診斷 - 錯誤</target>
@@ -125,11 +130,6 @@
       <trans-unit id="Inline_Diagnostics_Warning">
         <source>Inline Diagnostics - Warning</source>
         <target state="translated">內嵌診斷 - 警告</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Inline_Hints">
-        <source>Inline Hints</source>
-        <target state="translated">內嵌提示</target>
         <note />
       </trans-unit>
       <trans-unit id="Insert_Final_Newline">
