@@ -51,7 +51,7 @@ stages:
               gitHubConnection: 'dotnet-comment-bot-service-connection'
               repositoryName: '$(Build.Repository.Name)'
               id: ${{ parameters.prNumber }}
-              comment: 'Started DartLab pipeline run for ${{ parameters.sha }}: $(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)'
+              comment: 'Started DartLab pipeline [run]($(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)) for ${{ parameters.sha }}'
 
 - template: \stages\visual-studio\agent.yml@DartLabTemplates
   parameters:
@@ -97,6 +97,7 @@ stages:
 
 - ${{ if ne(parameters.prNumber, '') }}:
   - stage: GitHubCommentCompleted
+    condition: always()
     dependsOn: RunDartlabPipelineStage
     jobs:
       - job: GitHubCommentCompletedJob
@@ -107,11 +108,11 @@ stages:
               gitHubConnection: 'dotnet-comment-bot-service-connection'
               repositoryName: '$(Build.Repository.Name)'
               id: ${{ parameters.prNumber }}
-              comment: 'Dartlab pipeline run completed successfully: $(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)'
+              comment: 'DartLab pipeline [run]($(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)) completed successfully for ${{ parameters.sha }}'
           - task: GitHubComment@0
             condition: not(succeeded('RunDartlabPipelineStage'))
             inputs:
               gitHubConnection: 'dotnet-comment-bot-service-connection'
               repositoryName: '$(Build.Repository.Name)'
               id: ${{ parameters.prNumber }}
-              comment: 'Dartlab pipeline run did not complete successfully: $(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)'
+              comment: 'DartLab pipeline [run]($(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)) did not complete successfully for ${{ parameters.sha }}'
