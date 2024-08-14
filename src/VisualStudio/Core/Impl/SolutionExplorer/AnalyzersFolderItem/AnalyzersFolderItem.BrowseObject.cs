@@ -11,11 +11,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         internal class BrowseObject : LocalizableProperties
         {
-            private readonly AnalyzersFolderItem _analyzersFolderItem;
-
             public BrowseObject(AnalyzersFolderItem analyzersFolderItem)
             {
-                _analyzersFolderItem = analyzersFolderItem;
+                Folder = analyzersFolderItem;
             }
 
             public override string GetClassName()
@@ -25,14 +23,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             public override string GetComponentName()
             {
-                return _analyzersFolderItem.Text;
+                return Folder.Text;
             }
 
             [Browsable(false)]
-            public AnalyzersFolderItem Folder
-            {
-                get { return _analyzersFolderItem; }
-            }
+            public AnalyzersFolderItem Folder { get; }
         }
     }
 }

@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.Interactive
         ICommandHandler<ExecuteInInteractiveCommandArgs>,
         ICommandHandler<CopyToInteractiveCommandArgs>
     {
-        private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly EditorOptionsService _editorOptionsService;
         private readonly IEditorOperationsFactoryService _editorOperationsFactoryService;
 
@@ -32,12 +31,12 @@ namespace Microsoft.CodeAnalysis.Interactive
             EditorOptionsService editorOptionsService,
             IEditorOperationsFactoryService editorOperationsFactoryService)
         {
-            _contentTypeRegistryService = contentTypeRegistryService;
+            ContentTypeRegistryService = contentTypeRegistryService;
             _editorOptionsService = editorOptionsService;
             _editorOperationsFactoryService = editorOperationsFactoryService;
         }
 
-        protected IContentTypeRegistryService ContentTypeRegistryService { get { return _contentTypeRegistryService; } }
+        protected IContentTypeRegistryService ContentTypeRegistryService { get; }
 
         protected abstract IInteractiveWindow OpenInteractiveWindow(bool focus);
 

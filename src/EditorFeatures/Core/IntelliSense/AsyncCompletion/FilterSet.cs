@@ -131,7 +131,7 @@ internal sealed class FilterSet(bool supportExpander)
 
     public (ImmutableArray<CompletionFilter> filters, int data) GetFiltersAndAddToSet(RoslynCompletionItem item)
     {
-        var listBuilder = new ArrayBuilder<CompletionFilter>();
+        using var _ = ArrayBuilder<CompletionFilter>.GetInstance(out var listBuilder);
         var vectorForSingleItem = new BitVector32();
 
         if (item.Flags.IsExpanded())
@@ -150,7 +150,7 @@ internal sealed class FilterSet(bool supportExpander)
             }
         }
 
-        return (listBuilder.ToImmutableAndFree(), vectorForSingleItem.Data);
+        return (listBuilder.ToImmutableAndClear(), vectorForSingleItem.Data);
     }
 
     // test only

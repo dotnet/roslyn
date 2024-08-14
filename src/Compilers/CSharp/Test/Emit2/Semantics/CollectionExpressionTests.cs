@@ -12821,6 +12821,64 @@ namespace System
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72539")]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/74676")]
+        public void SynthesizedCollections_EnsureCompilerGenerated()
+        {
+            string source = """
+                using System;
+                using System.Collections.Generic;
+
+                class Program
+                {
+                    static void Main()
+                    {
+                        IEnumerable<int> x = [1];
+                        IEnumerable<int> y = [2, 3];
+                        IEnumerable<int> z = [.. x];
+
+                        Report(x);
+                        Report(y);
+                        Report(z);
+                    }
+
+                    static void Report<T>(IEnumerable<T> e)
+                    {
+                        var type = e.GetType();
+                        Console.Write("{0}: ", type.Name);
+                        foreach (var a in type.GetCustomAttributes(inherit: false))
+                            Console.Write("{0}, ", a);
+                        Console.WriteLine();
+                    }
+                }
+                """;
+
+            CompileAndVerify(
+                source,
+                symbolValidator: module =>
+                {
+                    var globalNamespace = module.GlobalNamespace;
+                    verifyCompilerGeneratedType(globalNamespace.GetTypeMember("<>z__ReadOnlySingleElementList"));
+                    verifyCompilerGeneratedType(globalNamespace.GetTypeMember("<>z__ReadOnlyArray"));
+                    verifyCompilerGeneratedType(globalNamespace.GetTypeMember("<>z__ReadOnlyList"));
+                },
+                expectedOutput: """
+                    <>z__ReadOnlySingleElementList`1: System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
+                    <>z__ReadOnlyArray`1: System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
+                    <>z__ReadOnlyList`1: System.Runtime.CompilerServices.CompilerGeneratedAttribute, 
+
+                    """);
+
+            static void verifyCompilerGeneratedType(NamedTypeSymbol type)
+            {
+                Assert.Collection(type.GetAttributes(),
+                    a => Assert.Equal("System.Runtime.CompilerServices.CompilerGeneratedAttribute", a.AttributeClass?.ToTestDisplayString()));
+                Assert.DoesNotContain(type.GetMembers(),
+                    m => m.GetAttributes().Any(a => a.AttributeClass?.ToTestDisplayString() == "System.Runtime.CompilerServices.CompilerGeneratedAttribute"));
+            }
+        }
+
+        [Fact]
         public void Nullable_01()
         {
             string source = """

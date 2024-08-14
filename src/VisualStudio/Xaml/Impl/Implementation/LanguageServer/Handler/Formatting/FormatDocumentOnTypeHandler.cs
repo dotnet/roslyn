@@ -33,12 +33,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         public async Task<TextEdit[]> HandleRequestAsync(DocumentOnTypeFormattingParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var edits = new ArrayBuilder<TextEdit>();
             if (string.IsNullOrEmpty(request.Character))
             {
-                return edits.ToArrayAndFree();
+                return [];
             }
 
+            using var _ = ArrayBuilder<TextEdit>.GetInstance(out var edits);
             var document = context.Document;
             var formattingService = document?.Project.Services.GetService<IXamlFormattingService>();
             if (document != null && formattingService != null)
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 }
             }
 
-            return edits.ToArrayAndFree();
+            return edits.ToArray();
         }
     }
 }

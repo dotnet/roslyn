@@ -991,7 +991,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return null;
             }
 
-            var spanMappingService = document.Services.GetService<ISpanMappingService>();
+            var spanMappingService = document.DocumentServiceProvider.GetService<ISpanMappingService>();
             if (spanMappingService == null)
             {
                 return null;
