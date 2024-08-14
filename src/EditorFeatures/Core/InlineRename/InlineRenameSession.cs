@@ -753,7 +753,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     public Task CommitAsync(bool previewChanges, CancellationToken cancellationToken)
        => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, cancellationToken);
 
-    /// <returns><see langword="true"/> if the rename operation was commited, <see
+    /// <returns><see langword="true"/> if the rename operation was committed, <see
     /// langword="false"/> otherwise</returns>
     private async Task<bool> CommitWorkerAsync(bool previewChanges, bool canUseBackgroundWorkIndicator, CancellationToken cancellationToken)
     {

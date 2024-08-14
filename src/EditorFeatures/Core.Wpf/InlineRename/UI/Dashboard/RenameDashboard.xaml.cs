@@ -7,6 +7,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
@@ -331,7 +332,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             try
             {
-                _model.Session.Commit();
+                _ = _model.Session.CommitXAsync(previewChanges: false, forceCommitSynchronously: false, cancellationToken: CancellationToken.None);
                 _textView.VisualElement.Focus();
             }
             catch (NotSupportedException ex)
