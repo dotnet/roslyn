@@ -228,7 +228,7 @@ namespace IdeCoreBenchmarks
             var service = grouping.Key;
             var results = new List<INavigateToSearchResult>();
             await service.SearchProjectsAsync(
-                solution, grouping.ToImmutableArray(), priorityDocuments, "Syntax", service.KindsProvided, activeDocument: null,
+                solution, grouping.ToImmutableArray(), priorityDocuments, "Syntax", service.KindsProvided, searchGeneratedCode: true, activeDocument: null,
                 r =>
                 {
                     lock (results)

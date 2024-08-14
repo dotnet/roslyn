@@ -41,6 +41,7 @@ public sealed class NavigateToSearcherTests
                 It.IsAny<ImmutableArray<Document>>(),
                 pattern,
                 ImmutableHashSet<string>.Empty,
+                It.IsAny<bool>(),
                 It.IsAny<Document?>(),
                 It.IsAny<Func<ImmutableArray<INavigateToSearchResult>, Task>>(),
                 It.IsAny<Func<Task>>(),
@@ -59,7 +60,7 @@ public sealed class NavigateToSearcherTests
                         onResultsFound(results);
                 }).Returns(Task.CompletedTask);
 
-            searchService.Setup(ss => ss.SearchGeneratedDocumentsAsync(
+            searchService.Setup(ss => ss.SearchSourceGeneratedDocumentsAsync(
                 It.IsAny<Solution>(),
                 It.IsAny<ImmutableArray<Project>>(),
                 pattern,
@@ -377,13 +378,13 @@ public sealed class NavigateToSearcherTests
             return Task.CompletedTask;
         }
 
-        public Task SearchGeneratedDocumentsAsync(Solution solution, ImmutableArray<Project> projects, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
+        public Task SearchSourceGeneratedDocumentsAsync(Solution solution, ImmutableArray<Project> projects, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
         {
             OnSearchGeneratedDocumentsAsyncCalled?.Invoke();
             return Task.CompletedTask;
         }
 
-        public Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
+        public Task SearchProjectsAsync(Solution solution, ImmutableArray<Project> projects, ImmutableArray<Document> priorityDocuments, string searchPattern, IImmutableSet<string> kinds, bool searchGeneratedCode, Document? activeDocument, Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound, Func<Task> onProjectCompleted, CancellationToken cancellationToken)
         {
             OnSearchProjectsAsyncCalled?.Invoke();
             return Task.CompletedTask;

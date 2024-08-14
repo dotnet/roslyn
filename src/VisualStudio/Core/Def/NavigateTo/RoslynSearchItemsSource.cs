@@ -93,7 +93,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
             var documentSupport = NavigateToDocumentSupport.AllDocuments;
             if (searchQuery.FiltersStates.TryGetValue(PredefinedUserFilterNames.IncludeExternalItems, out var includeExternalItemsFilterValue) &&
                 bool.TryParse(includeExternalItemsFilterValue, out var includeGeneratedDocumentBool) &&
-                !includeGeneratedDocuments)
+                !includeGeneratedDocumentBool)
             {
                 documentSupport = NavigateToDocumentSupport.RegularDocuments;
             }
