@@ -263,7 +263,7 @@ internal sealed partial class RemoteWorkspace : Workspace
                 assetProvider, newSolutionChecksum, cancellationToken).ConfigureAwait(false);
 
             // Now, bring that solution in line with the snapshot defined by solutionChecksum.
-            var updater = new SolutionCreator(Services.HostServices, assetProvider, solutionToUpdate);
+            var updater = new SolutionCreator(this, assetProvider, solutionToUpdate);
             return await updater.CreateSolutionAsync(newSolutionChecksum, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
