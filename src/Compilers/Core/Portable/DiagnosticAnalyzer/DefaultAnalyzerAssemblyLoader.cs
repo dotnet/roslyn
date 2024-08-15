@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis
 
 #if NETCOREAPP
 
-        internal DefaultAnalyzerAssemblyLoader(System.Runtime.Loader.AssemblyLoadContext? compilerLoadContext = null, AnalyzerLoadOption loadOption = AnalyzerLoadOption.LoadFromDisk, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+        internal DefaultAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext = null, AnalyzerLoadOption loadOption = AnalyzerLoadOption.LoadFromDisk, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
             : base(compilerLoadContext, loadOption, externalResolvers ?? [])
         {
         }
@@ -61,12 +61,11 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="windowsShadowPath">A shadow copy path will be created on Windows and this value 
         /// will be the base directory where shadow copy assemblies are stored. </param>
-        internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(
 #if NET
-            AssemblyLoadContext? loadContext,
+        internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(AssemblyLoadContext? loadContext, string windowsShadowPath, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+#else
+        internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(string windowsShadowPath, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
 #endif
-            string windowsShadowPath,
-            ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
         {
 #if NETCOREAPP
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -83,12 +82,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException("Must be a full path.", nameof(windowsShadowPath));
             }
 
-            return new ShadowCopyAnalyzerAssemblyLoader(
 #if NET
-                loadContext,
+            return new ShadowCopyAnalyzerAssemblyLoader(loadContext, windowsShadowPath, externalResolvers);
+#else
+            return new ShadowCopyAnalyzerAssemblyLoader(windowsShadowPath, externalResolvers);
 #endif
-                windowsShadowPath,
-                externalResolvers);
         }
     }
 }
