@@ -195,14 +195,9 @@ internal partial class RemoteWorkspace
 
         foreach (var analyzerReference in serializedReferences)
         {
-            if (analyzerReference is SerializerService.SerializedAnalyzerReference serializedAnalyzerReference)
-            {
-                builder.Add(new AnalyzerFileReference(serializedAnalyzerReference.FullPath, shadowCopyLoader));
-            }
-            else
-            {
-                builder.Add(analyzerReference);
-            }
+            builder.Add(analyzerReference is SerializerService.SerializedAnalyzerReference serializedAnalyzerReference
+                ? new AnalyzerFileReference(serializedAnalyzerReference.FullPath, shadowCopyLoader)
+                : analyzerReference);
         }
 
         return builder.MoveToImmutable();
