@@ -4216,8 +4216,7 @@ class S
         }
 
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
+        [CombinatorialData]
         public void SingleOverloadReadOnlySpan(bool isMissing)
         {
 
@@ -4272,8 +4271,7 @@ class S
         }
 
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
+        [CombinatorialData]
         public void SingleOverloadSpan(bool isMissing)
         {
 
@@ -4330,8 +4328,7 @@ class S
         }
 
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
+        [CombinatorialData]
         public void SingleOverloadString(bool isMissing)
         {
             string source = """
