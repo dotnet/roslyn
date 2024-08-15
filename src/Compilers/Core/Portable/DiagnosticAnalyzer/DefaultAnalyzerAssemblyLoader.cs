@@ -12,6 +12,10 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
 
+#if NET
+using System.Runtime.Loader;
+#endif
+
 namespace Microsoft.CodeAnalysis
 {
     internal sealed class DefaultAnalyzerAssemblyLoader : AnalyzerAssemblyLoader
@@ -57,12 +61,16 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="windowsShadowPath">A shadow copy path will be created on Windows and this value 
         /// will be the base directory where shadow copy assemblies are stored. </param>
+#if NET
+        internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(AssemblyLoadContext? loadContext, string windowsShadowPath, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+#else
         internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(string windowsShadowPath, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+#endif
         {
 #if NETCOREAPP
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {
-                return new DefaultAnalyzerAssemblyLoader(loadOption: AnalyzerLoadOption.LoadFromStream, externalResolvers: externalResolvers);
+                return new DefaultAnalyzerAssemblyLoader(loadContext, loadOption: AnalyzerLoadOption.LoadFromStream, externalResolvers: externalResolvers);
             }
 #endif
 
@@ -74,7 +82,11 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException("Must be a full path.", nameof(windowsShadowPath));
             }
 
+#if NET
+            return new ShadowCopyAnalyzerAssemblyLoader(loadContext, windowsShadowPath, externalResolvers);
+#else
             return new ShadowCopyAnalyzerAssemblyLoader(windowsShadowPath, externalResolvers);
+#endif
         }
     }
 }

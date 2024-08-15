@@ -9,6 +9,10 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using System.Collections.Immutable;
 using System.Collections.Generic;
 
+#if NET
+using System.Runtime.Loader;
+#endif
+
 namespace Microsoft.CodeAnalysis.Host;
 
 [ExportWorkspaceServiceFactory(typeof(IAnalyzerAssemblyLoaderProvider)), Shared]
@@ -31,18 +35,26 @@ internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory(
         /// correctness.  But it is annoying and does cause noise in our perf test harness.
         /// </summary>
         private readonly IAnalyzerAssemblyLoader _shadowCopyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
-            Path.Combine(Path.GetTempPath(), "CodeAnalysis", "WorkspacesAnalyzerShadowCopies", workspaceKind),
-            externalResolvers: externalResolvers);
+#if NET
+            loadContext: null,
+#endif
+            GetPath(workspaceKind, ""),
+            externalResolvers);
+
+        private static string GetPath(string workspaceKind, string isolatedRoot)
+            => Path.Combine(Path.GetTempPath(), "CodeAnalysis", "WorkspacesAnalyzerShadowCopies", workspaceKind, isolatedRoot);
 
 #if NET
 
-        public IAnalyzerAssemblyLoader GetShadowCopyLoader()
-            => _shadowCopyLoader;
+        public IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext, string isolatedRoot)
+            => loadContext is null && isolatedRoot == ""
+                ? _shadowCopyLoader
+                : DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(loadContext, GetPath(workspaceKind, isolatedRoot));
 
 #else
 
-        public IAnalyzerAssemblyLoader GetShadowCopyLoader(string isolatedRoot = "")
-            => isolatedRoot = "" ? _shadowCopyLoader : CreateLoader(isolatedRoot);
+        public IAnalyzerAssemblyLoader GetShadowCopyLoader()
+            => _shadowCopyLoader;
 
 #endif
     }

@@ -13,6 +13,6 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 #if NET
     IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext = null, string isolatedRoot = "");
 #else
-    IAnalyzerAssemblyLoader GetShadowCopyLoader(string isolatedRoot = "");
+    IAnalyzerAssemblyLoader GetShadowCopyLoader();
 #endif
 }
