@@ -1,4 +1,4 @@
-﻿<Project>
+<Project>
     <ItemGroup>
         <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net20)\build\.NETFramework\v2.0\mscorlib.dll">
           <LogicalName>net20.mscorlib.dll</LogicalName>
@@ -11,10 +11,6 @@
         <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net20)\build\.NETFramework\v2.0\Microsoft.VisualBasic.dll">
           <LogicalName>net20.Microsoft.VisualBasic.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\net20\Microsoft.VisualBasic.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(Pkgjnm2_ReferenceAssemblies_net35)\build\.NETFramework\v3.5\System.Core.dll">
-          <LogicalName>net35.System.Core.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\net35\System.Core.dll</Link>
         </EmbeddedResource>
         <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net40)\build\.NETFramework\v4.0\mscorlib.dll">
           <LogicalName>net40.mscorlib.dll</LogicalName>
