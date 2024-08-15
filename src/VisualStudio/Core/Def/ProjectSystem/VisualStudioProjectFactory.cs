@@ -34,6 +34,7 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
     private readonly VisualStudioWorkspaceImpl _visualStudioWorkspaceImpl;
     private readonly ImmutableArray<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> _dynamicFileInfoProviders;
     private readonly IVisualStudioDiagnosticAnalyzerProviderFactory _vsixAnalyzerProviderFactory;
+    private readonly IInsertedAnalyzerProviderFactory _insertedAnalyzerProviderFactory;
     private readonly IVsService<SVsSolution, IVsSolution2> _solution2;
 
     [ImportingConstructor]
@@ -43,12 +44,14 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
         VisualStudioWorkspaceImpl visualStudioWorkspaceImpl,
         [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> fileInfoProviders,
         IVisualStudioDiagnosticAnalyzerProviderFactory vsixAnalyzerProviderFactory,
+        IInsertedAnalyzerProviderFactory insertedAnalyzerProviderFactory,
         IVsService<SVsSolution, IVsSolution2> solution2)
     {
         _threadingContext = threadingContext;
         _visualStudioWorkspaceImpl = visualStudioWorkspaceImpl;
         _dynamicFileInfoProviders = fileInfoProviders.AsImmutableOrEmpty();
         _vsixAnalyzerProviderFactory = vsixAnalyzerProviderFactory;
+        _insertedAnalyzerProviderFactory = insertedAnalyzerProviderFactory;
         _solution2 = solution2;
     }
 
@@ -76,6 +79,8 @@ internal sealed class VisualStudioProjectFactory : IVsTypeScriptVisualStudioProj
             : null;
 
         var vsixAnalyzerProvider = await _vsixAnalyzerProviderFactory.GetOrCreateProviderAsync(cancellationToken).ConfigureAwait(false);
+
+        _visualStudioWorkspaceImpl.LazyInsertedAnalyzerProvider = await _insertedAnalyzerProviderFactory.GetOrCreateProviderAsync(cancellationToken).ConfigureAwait(false);
 
         // The rest of this method can be ran off the UI thread. We'll only switch though if the UI thread isn't already blocked -- the legacy project
         // system creates project synchronously, and during solution load we've seen traces where the thread pool is sufficiently saturated that this
