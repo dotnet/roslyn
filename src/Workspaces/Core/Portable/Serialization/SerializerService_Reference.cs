@@ -161,8 +161,10 @@ internal partial class SerializerService
         switch (reader.ReadString())
         {
             case nameof(AnalyzerFileReference):
-                return new SerializedAnalyzerReference(
-                    reader.ReadRequiredString());
+                // Don't rehydrate an AnalyzerFileReference.  That will happen in
+                // RemoteWorkspace.CreateAnalyzerReferencesInIsolatedAssemblyLoadContextAsync when it sees the entire
+                // set of assembly references it wants to populate its solution with.
+                return new SerializedAnalyzerReference(reader.ReadRequiredString());
 
             case nameof(AnalyzerImageReference):
                 var guid = reader.ReadGuid();
