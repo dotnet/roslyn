@@ -27,7 +27,7 @@ internal sealed class RemoteAnalyzerAssemblyLoaderService(
     : IAnalyzerAssemblyLoaderProvider
 {
     private static string GetPath(string isolatedRoot)
-        => Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader", isolatedRoot);
+        => Path.Combine(Path.GetTempPath(), "Remote", "AnalyzerAssemblyLoader", isolatedRoot);
 
     private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader = CreateLoader(
 #if NET
