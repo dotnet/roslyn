@@ -955,7 +955,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Attribute_03()
         {
             string source = $$"""
-                #pragma warning disable 9258 // 'field' is a contextual keyword
                 using System;
                 using System.Reflection;
 
@@ -1003,18 +1002,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (18,25): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                // (17,25): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
                 //     public object P4 { [field: A(4)] get; }
-                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(18, 25),
-                // (19,37): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(17, 25),
+                // (18,37): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
                 //     public static object P5 { get; [field: A(5)] set; }
-                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(19, 37),
-                // (23,25): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(18, 37),
+                // (22,25): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
                 //     public object Q4 { [field: A(4)] get => field; }
-                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(23, 25),
-                // (24,54): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(22, 25),
+                // (23,54): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
                 //     public static object Q5 { get { return field; } [field: A(5)] set { } }
-                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(24, 54));
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(23, 54));
 
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("""
                 B.<P1>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(1),
@@ -1036,8 +1035,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RestrictedTypes()
         {
             string source = """
-                #pragma warning disable 9258 // 'field' is a contextual keyword
                 using System;
+
                 class C
                 {
                     static TypedReference P1 { get; }
@@ -1071,10 +1070,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ByRefLikeType_01(string typeKind, bool allow)
         {
             string source = $$"""
-                #pragma warning disable 9258 // 'field' is a contextual keyword
                 ref struct R
                 {
                 }
+
                 {{typeKind}} C
                 {
                     R P1 { get; }
@@ -1084,6 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     R Q3 { set { _ = field; } }
                     public override string ToString() => "C";
                 }
+
                 class Program
                 {
                     static void Main()
@@ -1128,10 +1128,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ByRefLikeType_02(string typeKind)
         {
             string source = $$"""
-                #pragma warning disable 9258 // 'field' is a contextual keyword
                 ref struct R
                 {
                 }
+
                 {{typeKind}} C
                 {
                     static R P1 { get; }
@@ -1164,10 +1164,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ByRefLikeType_03()
         {
             string source = """
-                #pragma warning disable 9258 // 'field' is a contextual keyword
                 ref struct R
                 {
                 }
+
                 interface I
                 {
                     static R P1 { get; }
