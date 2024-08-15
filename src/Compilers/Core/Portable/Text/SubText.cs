@@ -178,14 +178,16 @@ namespace Microsoft.CodeAnalysis.Text
 
                     var resultLine = TextLine.FromSpanUnsafe(_subText, new TextSpan(startInSubText, length));
 
-#if DEBUG
-                    // Assert resultLine only has line breaks in the appropriate locations
                     var shouldContainLineBreak = (lineNumber != _lineCount - 1);
                     var resultContainsLineBreak = resultLine.EndIncludingLineBreak > resultLine.End;
 
-                    Debug.Assert(shouldContainLineBreak == resultContainsLineBreak);
+                    if (shouldContainLineBreak != resultContainsLineBreak)
+                    {
+                        throw new InvalidOperationException();
+                    }
+
+                    // Assert resultLine only has line breaks in the appropriate locations
                     Debug.Assert(resultLine.ToString().All(static c => !TextUtilities.IsAnyLineBreakCharacter(c)));
-#endif
 
                     return resultLine;
                 }

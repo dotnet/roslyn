@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
@@ -404,13 +405,13 @@ namespace Microsoft.CodeAnalysis.Text
 
             public CompositeTextLineInfo(CompositeText compositeText)
             {
-                var segmentLineNumbers = ArrayBuilder<int>.GetInstance();
+                var segmentLineNumbers = new int[compositeText.Segments.Length];
                 var accumulatedLineCount = 0;
 
                 Debug.Assert(compositeText.Segments.Length > 0);
                 for (int i = 0; i < compositeText.Segments.Length; i++)
                 {
-                    segmentLineNumbers.Add(accumulatedLineCount);
+                    segmentLineNumbers[i] = accumulatedLineCount;
 
                     var segment = compositeText.Segments[i];
 
@@ -434,7 +435,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
                 _compositeText = compositeText;
-                _segmentLineNumbers = segmentLineNumbers.ToImmutableAndFree();
+                _segmentLineNumbers = ImmutableCollectionsMarshal.AsImmutableArray(segmentLineNumbers);
 
                 // Add one to the accumulatedLineCount for our stored line count (so that we maintain the 
                 // invariant that a text's line count is one greater than the number of newlines it contains)
@@ -472,6 +473,7 @@ namespace Microsoft.CodeAnalysis.Text
 
                     // Determine the indices for segments that contribute to our view of the requested line's contents
                     GetSegmentIndexRangeContainingLine(lineNumber, out var firstSegmentIndexInclusive, out var lastSegmentIndexInclusive);
+                    Debug.Assert(firstSegmentIndexInclusive <= lastSegmentIndexInclusive);
 
                     var firstSegmentFirstLineNumber = _segmentLineNumbers[firstSegmentIndexInclusive];
                     var firstSegment = _compositeText.Segments[firstSegmentIndexInclusive];
@@ -481,7 +483,7 @@ namespace Microsoft.CodeAnalysis.Text
                     var lineLength = firstSegmentTextLine.SpanIncludingLineBreak.Length;
 
                     // walk forward through segments between firstSegmentIndexInclusive and lastSegmentIndexInclusive, and add their
-                    // view of the length of this line.
+                    // view of the length of this line. This loop handles all segments between firstSegmentIndexInclusive and lastSegmentIndexInclusive.
                     for (var nextSegmentIndex = firstSegmentIndexInclusive + 1; nextSegmentIndex < lastSegmentIndexInclusive; nextSegmentIndex++)
                     {
                         var nextSegment = _compositeText.Segments[nextSegmentIndex];
@@ -515,7 +517,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             private void GetSegmentIndexRangeContainingLine(int lineNumber, out int firstSegmentIndexInclusive, out int lastSegmentIndexInclusive)
             {
-                int idx = _segmentLineNumbers.BinarySearch(lineNumber);
+                var idx = _segmentLineNumbers.BinarySearch(lineNumber);
                 var binarySearchSegmentIndex = idx >= 0 ? idx : (~idx - 1);
 
                 // Walk backwards starting at binarySearchSegmentIndex to find the earliest segment index that intersects this line number
@@ -528,16 +530,17 @@ namespace Microsoft.CodeAnalysis.Text
                     }
 
                     // No need to continue to the previous segment if either:
-                    // 1) it ends in \n or
-                    // 2) if ends in \r and the current segment doesn't start with \n
+                    // 1) it ends in newline character that isn't \r or
+                    // 2) it ends in \r and the current segment doesn't start with \n
                     var previousSegment = _compositeText.Segments[firstSegmentIndexInclusive - 1];
                     var previousSegmentLastChar = previousSegment[^1];
-                    if (previousSegmentLastChar == '\n')
+                    if (TextUtilities.IsAnyLineBreakCharacter(previousSegmentLastChar))
                     {
-                        break;
-                    }
-                    else if (previousSegmentLastChar == '\r')
-                    {
+                        if (previousSegmentLastChar != '\r')
+                        {
+                            break;
+                        }
+
                         var currentSegment = _compositeText.Segments[firstSegmentIndexInclusive];
                         if (currentSegment[0] != '\n')
                         {

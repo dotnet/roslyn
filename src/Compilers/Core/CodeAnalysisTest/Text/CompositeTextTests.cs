@@ -25,6 +25,8 @@ public sealed class CompositeTextTests
     [InlineData(["ab\r\ncd\r\nef\r\n"])]
     [InlineData(["ab\r\r\ncd\r\r\nef"])]
     [InlineData(["ab\n\n\rcd\n\n\ref"])]
+    [InlineData(["ab\u0085cdef\u2028ijkl\u2029op"])]
+    [InlineData(["\u0085\u2028\u2029\u0085\u2028\u2029\u0085\u2028\u2029\u0085\u2028\u2029"])]
     public void CompositeTextLinesEqualSourceTextLinesPermutations(string contents)
     {
         // Please try to limit the inputs to this method to around 12 chars or less, as much longer than that
