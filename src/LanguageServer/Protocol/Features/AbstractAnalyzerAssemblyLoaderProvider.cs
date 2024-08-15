@@ -42,7 +42,7 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
             ? _shadowCopyLoader.Value
             : CreateShadowCopyLoader(loadContext, isolatedRoot);
 
-    protected IAnalyzerAssemblyLoader CreateShadowCopyLoader(AssemblyLoadContext? loadContext, string isolatedRoot)
+    protected virtual IAnalyzerAssemblyLoader CreateShadowCopyLoader(AssemblyLoadContext? loadContext, string isolatedRoot)
         => DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(loadContext, GetPath(isolatedRoot), _externalResolvers);
 
 #else

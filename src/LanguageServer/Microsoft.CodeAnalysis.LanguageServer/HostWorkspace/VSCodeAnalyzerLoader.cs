@@ -5,6 +5,7 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Reflection;
+using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
@@ -24,9 +25,10 @@ internal sealed class VSCodeAnalyzerLoaderProvider(
     private readonly ExtensionAssemblyManager _extensionAssemblyManager = extensionAssemblyManager;
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
 
-    protected override IAnalyzerAssemblyLoader CreateShadowCopyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+    protected override IAnalyzerAssemblyLoader CreateShadowCopyLoader(
+        AssemblyLoadContext? loadContext, string isolatedRoot)
     {
-        var baseLoader = base.CreateShadowCopyLoader(externalResolvers);
+        var baseLoader = base.CreateShadowCopyLoader(loadContext, isolatedRoot);
         return new VSCodeExtensionAssemblyAnalyzerLoader(baseLoader, _extensionAssemblyManager, _loggerFactory.CreateLogger<VSCodeExtensionAssemblyAnalyzerLoader>());
     }
 

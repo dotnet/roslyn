@@ -61,11 +61,12 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="windowsShadowPath">A shadow copy path will be created on Windows and this value 
         /// will be the base directory where shadow copy assemblies are stored. </param>
+        internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(
 #if NET
-        internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(AssemblyLoadContext? loadContext, string windowsShadowPath, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
-#else
-        internal static IAnalyzerAssemblyLoaderInternal CreateNonLockingLoader(string windowsShadowPath, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+            AssemblyLoadContext? loadContext,
 #endif
+            string windowsShadowPath,
+            ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
         {
 #if NETCOREAPP
             if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
