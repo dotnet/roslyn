@@ -15,8 +15,6 @@ using Microsoft.CodeAnalysis.Serialization;
 using System.Threading;
 using Roslyn.Utilities;
 
-
-
 #if NET
 using System.Runtime.Loader;
 #endif
@@ -25,13 +23,53 @@ namespace Microsoft.CodeAnalysis.Remote;
 
 internal partial class RemoteWorkspace
 {
+#if NET
+
     private readonly SemaphoreSlim _isolatedReferenceSetGate = new(initialCount: 1);
     private readonly Dictionary<Checksum, WeakReference<IsolatedAssemblyReferenceSet>> _checksumToReferenceSet = new();
 
     private sealed class IsolatedAssemblyReferenceSet
     {
         public readonly ImmutableArray<AnalyzerReference> AnalyzerReferences;
+        private readonly AssemblyLoadContext _assemblyLoadContext;
+
+        public IsolatedAssemblyReferenceSet(
+            ImmutableArray<AnalyzerReference> serializedReferences,
+            IAnalyzerAssemblyLoaderProvider provider)
+        {
+            // Make a unique ALC for this set of references.
+            var isolatedRoot = Guid.NewGuid().ToString();
+            _assemblyLoadContext = new AssemblyLoadContext(isolatedRoot, isCollectible: true);
+
+            // Now make a loader that will ensure these references are properly isolated.
+            var shadowCopyLoader = provider.GetShadowCopyLoader(_assemblyLoadContext, isolatedRoot);
+
+            var builder = new FixedSizeArrayBuilder<AnalyzerReference>(serializedReferences.Length);
+            foreach (var analyzerReference in serializedReferences)
+            {
+                var underlyingAnalyzerReference = analyzerReference is SerializerService.SerializedAnalyzerReference serializedAnalyzerReference
+                    ? new AnalyzerFileReference(serializedAnalyzerReference.FullPath, shadowCopyLoader)
+                    : analyzerReference;
+
+                // Create a special wrapped analyzer reference here.  It will ensure that any DiagnosticAnalyzers and
+                // ISourceGenerators handed out will keep this IsolatedAssemblyReferenceSet alive.
+                var isolatedReference = new IsolatedAnalyzerFileReference(this, underlyingAnalyzerReference);
+                builder.Add(isolatedReference);
+            }
+
+            this.AnalyzerReferences = builder.MoveToImmutable();
+        }
+
+        /// <summary>
+        /// When the last reference this to this reference set finally goes away, it is safe to unload our ALC.
+        /// </summary>
+        ~IsolatedAssemblyReferenceSet()
+        {
+            _assemblyLoadContext.Unload();
+        }
     }
+
+#endif
 
     private async Task<ImmutableArray<AnalyzerReference>> CreateAnalyzerReferencesInIsolatedAssemblyLoadContextAsync(
         Checksum checksum, ImmutableArray<AnalyzerReference> serializedReferences, CancellationToken cancellationToken)
@@ -48,8 +86,7 @@ internal partial class RemoteWorkspace
                 return isolatedAssemblyReferenceSet.AnalyzerReferences;
             }
 
-            isolatedAssemblyReferenceSet = new IsolatedAssemblyReferenceSet(
-                serializedReferences, provider);
+            isolatedAssemblyReferenceSet = new IsolatedAssemblyReferenceSet(serializedReferences, provider);
 
             if (weakIsolatedReferenceSet is null)
             {

@@ -25,7 +25,7 @@ internal partial class SerializerService
     /// </summary>
     public sealed class SerializedAnalyzerReference(string fullPath) : AnalyzerReference
     {
-        public override string? FullPath { get; } = fullPath;
+        public override string FullPath { get; } = fullPath;
 
         public override object Id
             => throw new InvalidOperationException();

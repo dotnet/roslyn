@@ -373,7 +373,7 @@ internal partial class RemoteWorkspace
                     assetPath: project.Id, newProjectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
                 var isolatedAnalyzerReferences = await this.Workspace.CreateAnalyzerReferencesInIsolatedAssemblyLoadContextAsync(
-                    serializedReferences, cancellationToken).ConfigureAwait(false);
+                    newProjectChecksums.AnalyzerReferences.Checksum, serializedReferences, cancellationToken).ConfigureAwait(false);
                 project = project.WithAnalyzerReferences(isolatedAnalyzerReferences);
             }
 
