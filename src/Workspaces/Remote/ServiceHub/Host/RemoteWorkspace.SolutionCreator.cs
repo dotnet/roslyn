@@ -372,6 +372,12 @@ internal partial class RemoteWorkspace
                 var serializedReferences = await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
                     assetPath: project.Id, newProjectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
+                // Absolutely no AnalyzerFileReferences should have come through here.  We should only have
+                // SerializedAnalyzerReferences, as well as any in-memory references made by tests.
+                Contract.ThrowIfTrue(serializedReferences.Any(r => r is AnalyzerFileReference));
+
+                // Take the new set of references we've gotten and create a dedicated set of AnalyzerReferences with
+                // their own ALC that they can cleanly load (and unload) from.
                 var isolatedAnalyzerReferences = await this.Workspace.CreateAnalyzerReferencesInIsolatedAssemblyLoadContextAsync(
                     newProjectChecksums.AnalyzerReferences.Checksum, serializedReferences, cancellationToken).ConfigureAwait(false);
                 project = project.WithAnalyzerReferences(isolatedAnalyzerReferences);
