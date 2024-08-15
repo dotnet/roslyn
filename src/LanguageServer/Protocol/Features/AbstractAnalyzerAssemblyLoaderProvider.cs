@@ -52,9 +52,15 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
 #if NET
 
     public IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext, string isolatedRoot)
-        => loadContext is null && isolatedRoot == ""
-            ? _shadowCopyLoader.Value
+    {
+        // Realize the default instance.  This also ensures that the cleanup task it kicks off can try to clean up old
+        // isolated-root sub-directories left around from prior sessions.
+        var defaultShadowCopyLoader = _shadowCopyLoader.Value;
+
+        return loadContext is null && isolatedRoot == ""
+            ? defaultShadowCopyLoader
             : CreateShadowCopyLoader(loadContext, isolatedRoot);
+    }
 
 #else
 
