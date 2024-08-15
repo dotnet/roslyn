@@ -42,7 +42,7 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
     protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
         var syntaxContext = context.SyntaxContext;
-        var semanticModel = syntaxContext.SemanticModel;
+        var semanticModel = context.SemanticModel;
         var targetToken = syntaxContext.TargetToken;
 
         var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();

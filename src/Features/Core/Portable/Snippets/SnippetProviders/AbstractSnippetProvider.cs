@@ -50,16 +50,16 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
     /// </summary>
     protected abstract ImmutableArray<SnippetPlaceholder> GetPlaceHolderLocationsList(TSnippetSyntax node, ISyntaxFacts syntaxFacts, CancellationToken cancellationToken);
 
-    public ValueTask<bool> IsValidSnippetLocationAsync(SnippetContext context, CancellationToken cancellationToken)
+    public bool IsValidSnippetLocation(SnippetContext context, CancellationToken cancellationToken)
     {
         var syntaxFacts = context.Document.GetRequiredLanguageService<ISyntaxFactsService>();
         var syntaxTree = context.SyntaxContext.SyntaxTree;
         if (syntaxFacts.IsInNonUserCode(syntaxTree, context.Position, cancellationToken))
         {
-            return ValueTaskFactory.FromResult(false);
+            return false;
         }
 
-        return ValueTaskFactory.FromResult(IsValidSnippetLocationCore(context, cancellationToken));
+        return IsValidSnippetLocationCore(context, cancellationToken);
     }
 
     /// <summary>
