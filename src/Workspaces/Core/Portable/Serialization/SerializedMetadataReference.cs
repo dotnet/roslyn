@@ -17,35 +17,6 @@ using static TemporaryStorageService;
 
 internal partial class SerializerService
 {
-    /// <summary>
-    /// No methods on this serialized type should be called.  It exists as a placeholder to allow the data to be
-    /// transmitted over to the remote site.  On the remote site we will first collect *all* of these serialized
-    /// analyzer references, then create the actual <see cref="AnalyzerFileReference"/>s in their own safe
-    /// AssemblyLoadContext distinct from everything else.
-    /// </summary>
-    public sealed class SerializedAnalyzerReference(string fullPath) : AnalyzerReference
-    {
-        public override string FullPath { get; } = fullPath;
-
-        public override object Id
-            => throw new InvalidOperationException();
-
-        public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
-            => throw new InvalidOperationException();
-
-        public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
-            => throw new InvalidOperationException();
-
-        [Obsolete]
-        public override ImmutableArray<ISourceGenerator> GetGenerators()
-            => throw new InvalidOperationException();
-
-        public override ImmutableArray<ISourceGenerator> GetGenerators(string language)
-            => throw new InvalidOperationException();
-
-        public override ImmutableArray<ISourceGenerator> GetGeneratorsForAllLanguages()
-            => throw new InvalidOperationException();
-    }
 
     [DebuggerDisplay("{" + nameof(Display) + ",nq}")]
     private sealed class SerializedMetadataReference : PortableExecutableReference, ISupportTemporaryStorage
