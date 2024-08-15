@@ -85,10 +85,10 @@ internal sealed partial class ProjectSystemProjectFactory
 
         WorkspaceListener = this.SolutionServices.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
 
-        FileWatchedPortableExecutableReferenceFactory = FileWatchedReferenceFactory.CreateMetadataReferenceFactory(fileChangeWatcher);
+        FileWatchedPortableExecutableReferenceFactory = new(fileChangeWatcher);
         FileWatchedPortableExecutableReferenceFactory.ReferenceChanged += this.StartRefreshingMetadataReferencesForFile;
 
-        FileWatchedAnalyzerReferenceFactory = FileWatchedReferenceFactory.CreateAnalyzerReferenceFactory(fileChangeWatcher);
+        FileWatchedAnalyzerReferenceFactory = new(fileChangeWatcher);
         FileWatchedAnalyzerReferenceFactory.ReferenceChanged += this.StartRefreshingAnalyzerReferenceForFile;
     }
 

@@ -10,7 +10,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -56,14 +55,57 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     /// </summary>
     public event EventHandler<string>? ReferenceChanged;
 
-    public FileWatchedReferenceFactory(IFileChangeWatcher fileChangeWatcher, Func<ImmutableArray<WatchedDirectory>> getAdditionalWatchedDirectories)
+    public FileWatchedReferenceFactory(IFileChangeWatcher fileChangeWatcher)
     {
         _fileReferenceChangeContext = new Lazy<IFileChangeContext>(() =>
         {
-            var fileReferenceChangeContext = fileChangeWatcher.CreateContext(getAdditionalWatchedDirectories());
+            var fileReferenceChangeContext = fileChangeWatcher.CreateContext(GetAdditionalWatchedDirectories());
             fileReferenceChangeContext.FileChanged += FileReferenceChangeContext_FileChanged;
             return fileReferenceChangeContext;
         });
+
+        static ImmutableArray<WatchedDirectory> GetAdditionalWatchedDirectories()
+        {
+
+            using var _ = PooledHashSet<string>.GetInstance(out var referenceDirectories);
+
+            // On each platform, there is a place that reference assemblies for the framework are installed. These are
+            // rarely going to be changed but are the most common places that we're going to create file watches. Rather
+            // than either creating a huge number of file watchers for every single file, or eventually realizing we
+            // should just watch these directories, we just create the single directory watchers now. We'll collect this
+            // from two places: constructing it from known environment variables, and also for the defaults where those
+            // environment variables would usually point, as a fallback.
+
+            if (Environment.GetEnvironmentVariable("DOTNET_ROOT") is string dotnetRoot && !string.IsNullOrEmpty(dotnetRoot))
+            {
+                referenceDirectories.Add(Path.Combine(dotnetRoot, "packs"));
+            }
+
+            if (PlatformInformation.IsWindows)
+            {
+                referenceDirectories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Microsoft", "Framework"));
+                referenceDirectories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "dotnet", "packs"));
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                referenceDirectories.Add("/usr/lib/dotnet/packs");
+                referenceDirectories.Add("/usr/share/dotnet/packs");
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                referenceDirectories.Add("/usr/local/share/dotnet/packs");
+            }
+
+            // Also watch the NuGet restore path; we don't do this (yet) on Windows due to potential concerns about
+            // whether this creates additional overhead responding to changes during a restore. TODO: remove this
+            // condition
+            if (!PlatformInformation.IsWindows)
+            {
+                referenceDirectories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages"));
+            }
+
+            return referenceDirectories.SelectAsArray(static d => new WatchedDirectory(d, ".dll"));
+        }
     }
 
     /// <summary>
@@ -166,53 +208,4 @@ internal sealed class FileWatchedReferenceFactory<TReference>
             }, cancellationTokenSource.Token, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
         }
     }
-}
-
-internal static class FileWatchedReferenceFactory
-{
-    public static FileWatchedReferenceFactory<AnalyzerFileReference> CreateAnalyzerReferenceFactory(IFileChangeWatcher fileChangeWatcher)
-        => new(fileChangeWatcher, static () => []);
-
-    public static FileWatchedReferenceFactory<PortableExecutableReference> CreateMetadataReferenceFactory(IFileChangeWatcher fileChangeWatcher)
-        => new(fileChangeWatcher, getAdditionalWatchedDirectories: static () =>
-        {
-            using var _ = PooledHashSet<string>.GetInstance(out var referenceDirectories);
-
-            // On each platform, there is a place that reference assemblies for the framework are installed. These are
-            // rarely going to be changed but are the most common places that we're going to create file watches. Rather
-            // than either creating a huge number of file watchers for every single file, or eventually realizing we
-            // should just watch these directories, we just create the single directory watchers now. We'll collect this
-            // from two places: constructing it from known environment variables, and also for the defaults where those
-            // environment variables would usually point, as a fallback.
-
-            if (Environment.GetEnvironmentVariable("DOTNET_ROOT") is string dotnetRoot && !string.IsNullOrEmpty(dotnetRoot))
-            {
-                referenceDirectories.Add(Path.Combine(dotnetRoot, "packs"));
-            }
-
-            if (PlatformInformation.IsWindows)
-            {
-                referenceDirectories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), "Reference Assemblies", "Microsoft", "Framework"));
-                referenceDirectories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), "dotnet", "packs"));
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                referenceDirectories.Add("/usr/lib/dotnet/packs");
-                referenceDirectories.Add("/usr/share/dotnet/packs");
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                referenceDirectories.Add("/usr/local/share/dotnet/packs");
-            }
-
-            // Also watch the NuGet restore path; we don't do this (yet) on Windows due to potential concerns about
-            // whether this creates additional overhead responding to changes during a restore. TODO: remove this
-            // condition
-            if (!PlatformInformation.IsWindows)
-            {
-                referenceDirectories.Add(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), ".nuget", "packages"));
-            }
-
-            return referenceDirectories.SelectAsArray(static d => new WatchedDirectory(d, ".dll"));
-        });
 }
