@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -646,6 +647,37 @@ class TestClass {
             {
                 TestCode = testCode,
                 ReferenceAssemblies = ReferenceAssembliesForTargetFramework(targetFramework),
+            }.RunAsync();
+        }
+
+        [Theory]
+        [InlineData("net462")]
+        [InlineData("net47")]
+        [InlineData("net471")]
+        [InlineData("net472")]
+        [InlineData("net48")]
+#if !(NETCOREAPP1_1 || NET46)
+        [InlineData("net6.0")]
+        [InlineData("net7.0")]
+        [InlineData("net8.0")]
+#endif
+        [InlineData("netstandard2.0")]
+        [InlineData("netstandard2.1")]
+        public async Task ResolveSystemCollectionsImmutable8(string targetFramework)
+        {
+            var testCode = @"
+using System.Collections.Frozen;
+
+class TestClass {
+  FrozenSet<int> TestMethod() => throw null;
+}
+";
+
+            await new CSharpTest()
+            {
+                TestCode = testCode,
+                ReferenceAssemblies = ReferenceAssembliesForTargetFramework(targetFramework)
+                    .AddPackages(ImmutableArray.Create(new PackageIdentity("System.Collections.Immutable", "8.0.0"))),
             }.RunAsync();
         }
 
