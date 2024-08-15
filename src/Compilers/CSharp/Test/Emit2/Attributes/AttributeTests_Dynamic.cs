@@ -816,7 +816,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
             string source = @"
 dynamic x = 0;
 ";
-            var comp = CreateCompilationWithMscorlib45(
+            var comp = CreateCompilationWithMscorlib461(
                 source: source,
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
@@ -836,7 +836,7 @@ dynamic x = 0;
 dynamic x = 0;
 ";
 
-            CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (2,1): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // dynamic x = 0;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute"));
@@ -848,7 +848,7 @@ dynamic x = 0;
             var source = GetNoCS1980String(typeName: @"Gen<dynamic>") + @"
 Gen<dynamic> x = null;";
 
-            var comp = CreateCompilationWithMscorlib45(
+            var comp = CreateCompilationWithMscorlib461(
                 source: source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 parseOptions: TestOptions.Script,
@@ -868,7 +868,7 @@ Gen<dynamic> x = null;";
             var source = GetNoCS1980String(typeName: "Gen<dynamic>") + @"
 Gen<dynamic> x = null;";
 
-            var comp = CreateCompilationWithMscorlib45(source: source, parseOptions: TestOptions.Script).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlib461(source: source, parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (21,5): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // Gen<dynamic> x = null;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(21, 5)
@@ -883,7 +883,7 @@ Gen<dynamic> x = null;";
                 + GetNoCS1980String(typeName: @"Gen<dynamic>")
                 + "X x = null;";
 
-            var comp = CreateCompilationWithMscorlib45(
+            var comp = CreateCompilationWithMscorlib461(
                 source: source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 parseOptions: TestOptions.Script,
@@ -905,7 +905,7 @@ Gen<dynamic> x = null;";
                 + GetNoCS1980String(typeName: @"dynamic[]")
                 + "X x = null;";
 
-            var comp = CreateCompilationWithMscorlib45(
+            var comp = CreateCompilationWithMscorlib461(
                 source: source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 parseOptions: TestOptions.Script.WithLanguageVersion(LanguageVersion.Preview),
@@ -927,7 +927,7 @@ Gen<dynamic> x = null;";
                 + GetNoCS1980String(typeName: @"Gen<dynamic>")
                 + "X x = null;";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (20,1): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // X x = null;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(20, 1));
@@ -941,7 +941,7 @@ Gen<dynamic> x = null;";
                 + GetNoCS1980String(typeName: @"dynamic[]")
                 + "X x = null;";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script).VerifyDiagnostics(
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (20,1): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // X x = null;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(20, 1));
@@ -1294,7 +1294,7 @@ class C
         [InlineData(SourceCodeKind.Script)]
         public void TestNoCS1980WhenNotInContextWhichNeedsDynamicAttribute(SourceCodeKind sourceCodeKind)
         {
-            CompileAndVerify(CreateCompilationWithMscorlib45(
+            CompileAndVerify(CreateCompilationWithMscorlib461(
                 source: GetNoCS1980String(typeName: @"Gen<dynamic>"),
                 parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2)));
         }
@@ -1304,7 +1304,7 @@ class C
         [InlineData(SourceCodeKind.Script)]
         public void TestNoCS1980WhenNotInContextWhichNeedsDynamicAttribute_Errors(SourceCodeKind sourceCodeKind)
         {
-            var comp = CreateCompilationWithMscorlib45(
+            var comp = CreateCompilationWithMscorlib461(
                 source: GetNoCS1980String(typeName: @"dynamic"),
                 parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2));
 
@@ -1330,7 +1330,7 @@ class C
                 + "System.Console.WriteLine(typeof(Gen<dynamic>));"
                 + "System.Console.WriteLine(typeof(X));";
 
-            CreateCompilationWithMscorlib45(source: source, parseOptions: TestOptions.Script).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source: source, parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (20,26): error CS1962: The typeof operator cannot be used on the dynamic type
                 // System.Console.WriteLine(typeof(dynamic));System.Console.WriteLine(typeof(Gen<dynamic>));System.Console.WriteLine(typeof(X));
                 Diagnostic(ErrorCode.ERR_BadDynamicTypeof, "typeof(dynamic)").WithLocation(20, 26)
@@ -1346,7 +1346,7 @@ class C
                 "using X = Gen<dynamic>;     // No CS1980"
                 + GetNoCS1980String(typeName: "X");
 
-            CompileAndVerify(CreateCompilationWithMscorlib45(
+            CompileAndVerify(CreateCompilationWithMscorlib461(
                 source: source,
                 parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2)));
         }
@@ -1360,7 +1360,7 @@ class C
                 "using X = dynamic[];     // No CS1980"
                 + GetNoCS1980String(typeName: "X");
 
-            CompileAndVerify(CreateCompilationWithMscorlib45(
+            CompileAndVerify(CreateCompilationWithMscorlib461(
                 source: source,
                 parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Preview)));
         }
@@ -1391,7 +1391,7 @@ public class Gen2<T> : X    // CS1980
   }
 }";
 
-            CreateCompilationWithMscorlib45(source: source, parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source: source, parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.CSharp7_2)).VerifyDiagnostics(
                 // (21,24): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // public class Gen2<T> : X    // CS1980
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(21, 24),

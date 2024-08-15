@@ -1,4 +1,4 @@
-// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -1730,10 +1730,10 @@ public class OverloadResolutionPriorityTests : CSharpTestBase
             c[arg] = 1;
             """;
 
-        CompileAndVerify([executable, source, OverloadResolutionPriorityAttributeDefinition], targetFramework: TargetFramework.Mscorlib45AndCSharp, expectedOutput: "1234").VerifyDiagnostics();
+        CompileAndVerify([executable, source, OverloadResolutionPriorityAttributeDefinition], targetFramework: TargetFramework.Mscorlib461AndCSharp, expectedOutput: "1234").VerifyDiagnostics();
 
-        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition], targetFramework: TargetFramework.Mscorlib45AndCSharp);
-        CompileAndVerify(executable, references: new[] { AsReference(comp, useMetadataReference) }, targetFramework: TargetFramework.Mscorlib45AndCSharp, expectedOutput: "1234").VerifyDiagnostics();
+        var comp = CreateCompilation([source, OverloadResolutionPriorityAttributeDefinition], targetFramework: TargetFramework.Mscorlib461AndCSharp);
+        CompileAndVerify(executable, references: new[] { AsReference(comp, useMetadataReference) }, targetFramework: TargetFramework.Mscorlib461AndCSharp, expectedOutput: "1234").VerifyDiagnostics();
     }
 
     [Fact]

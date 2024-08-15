@@ -109,7 +109,7 @@ class Program {
         Console.WriteLine($""Jenny don\'t change your number { /*trash*/ }."");
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,73): error CS1733: Expected expression
                 //         Console.WriteLine("Jenny don\'t change your number \{ /*trash*/ }.");
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(5, 73)
@@ -128,7 +128,7 @@ class Program {
     }
 }";
             // too many diagnostics perhaps, but it starts the right way.
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,63): error CS1010: Newline in constant
                 //         Console.WriteLine($"Jenny don\'t change your number { ");
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(5, 63),
@@ -158,7 +158,7 @@ class Program {
     }
 }";
             // too many diagnostics perhaps, but it starts the right way.
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,5): error CS1039: Unterminated string literal
                 //     }
                 Diagnostic(ErrorCode.ERR_UnterminatedStringLit, "}").WithLocation(6, 5),
@@ -185,7 +185,7 @@ class Program {
     }
 }";
             // too many diagnostics perhaps, but it starts the right way.
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,60): error CS8076: Missing close delimiter '}' for interpolated expression started with '{'.
                 //         Console.WriteLine($"Jenny don\'t change your number { 8675309 /* ");
                 Diagnostic(ErrorCode.ERR_UnclosedExpressionHole, " {").WithLocation(5, 60),
@@ -358,7 +358,7 @@ class Program
         Console.WriteLine( $""{"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,31): error CS1010: Newline in constant
                 //         Console.WriteLine( $"{" );
                 Diagnostic(ErrorCode.ERR_NewlineInConst, "").WithLocation(6, 31),
@@ -386,7 +386,7 @@ class Program
     {
         var x = $"";";
             // The precise error messages are not important, but this must be an error.
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,19): error CS1039: Unterminated string literal
                 //         var x = $";
                 Diagnostic(ErrorCode.ERR_UnterminatedStringLit, ";").WithLocation(5, 19),
@@ -413,7 +413,7 @@ class Program
         Console.WriteLine( $""{3:}"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,32): error CS8089: Empty format specifier.
                 //         Console.WriteLine( $"{3:}" );
                 Diagnostic(ErrorCode.ERR_EmptyFormatSpecifier, ":").WithLocation(6, 32)
@@ -432,7 +432,7 @@ class Program
         Console.WriteLine( $""{3:{}"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,33): error CS1056: Unerwartetes Zeichen "{".
                 //         Console.WriteLine( $"{3:{}" );
                 Diagnostic(ErrorCode.ERR_UnexpectedCharacter, "{").WithArguments("{").WithLocation(6, 33)
@@ -451,7 +451,7 @@ class Program
         Console.WriteLine( $""{3:d }"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,32): error CS8088: A format specifier may not contain trailing whitespace.
                 //         Console.WriteLine( $"{3:d }" );
                 Diagnostic(ErrorCode.ERR_TrailingWhitespaceInFormatSpecifier, ":d ").WithLocation(6, 32)
@@ -471,7 +471,7 @@ class Program
 }"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
     // (6,33): error CS8088: A format specifier may not contain trailing whitespace.
     //         Console.WriteLine( $@"{3:d
     Diagnostic(ErrorCode.ERR_TrailingWhitespaceInFormatSpecifier, @":d
@@ -491,7 +491,7 @@ class Program
         Console.WriteLine( $""{ }"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,32): error CS1733: Expected expression
                 //         Console.WriteLine( $"{ }" );
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 32)
@@ -510,7 +510,7 @@ class Program
         Console.WriteLine( $@""{ }"" );
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (6,33): error CS1733: Expected expression
                 //         Console.WriteLine( $@"{ }" );
                 Diagnostic(ErrorCode.ERR_ExpressionExpected, "").WithLocation(6, 33)
@@ -607,7 +607,7 @@ class Program
         var s2 = $"" \u007D"";
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,21): error CS8087: A '{' character may only be escaped by doubling '{{' in an interpolated string.
                 //         var s1 = $" \u007B ";
                 Diagnostic(ErrorCode.ERR_EscapedCurly, @"\u007B").WithArguments("{").WithLocation(5, 21),
@@ -645,7 +645,7 @@ class Program
         var t = $""{1,(int)1E10}"";
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,22): error CS0266: Cannot implicitly convert type 'double' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         var s = $"{1,1E10}";
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "1E10").WithArguments("double", "int").WithLocation(5, 22),
@@ -13891,7 +13891,7 @@ public partial struct CustomHandler
 
             var handler = GetInterpolatedStringCustomHandlerType("CustomHandler", "partial struct", useBoolReturns: false, includeOneTimeHelpers: false);
 
-            var comp = CreateCompilation(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, handler, InterpolatedStringHandlerArgumentAttribute, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: "d:1");
             verifier.VerifyDiagnostics();
 
@@ -13936,7 +13936,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: "ctor");
             verifier.VerifyDiagnostics();
 
@@ -13981,7 +13981,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: "ctor");
             verifier.VerifyDiagnostics();
 
@@ -14024,7 +14024,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: "AppendLiteral");
             verifier.VerifyDiagnostics();
 
@@ -14073,7 +14073,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: "AppendFormatted");
             verifier.VerifyDiagnostics();
 
@@ -14129,7 +14129,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 AppendLiteral
 AppendFormatted");
@@ -14225,7 +14225,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 AppendLiteral
 AppendFormatted");
@@ -14324,7 +14324,7 @@ public struct CustomHandler
 }
 ";
 
-            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib45AndCSharp);
+            var comp = CreateCompilation(new[] { code, InterpolatedStringHandlerAttribute }, targetFramework: TargetFramework.Mscorlib461AndCSharp);
             var verifier = CompileAndVerify(comp, expectedOutput: @"
 AppendLiteral
 AppendFormatted");

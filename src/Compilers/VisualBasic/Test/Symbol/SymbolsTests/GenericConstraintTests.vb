@@ -5878,7 +5878,7 @@ End Class]]>
 
             metadataComp.AssertTheseDiagnostics()
 
-            Dim finalComp = CreateCompilationWithMscorlib45(
+            Dim finalComp = CreateCompilationWithMscorlib461(
 <compilation>
     <file name="b.vb"><![CDATA[
 Class D

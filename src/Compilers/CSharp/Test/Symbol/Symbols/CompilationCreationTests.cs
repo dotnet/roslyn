@@ -2699,7 +2699,7 @@ System.Diagnostics.Process.GetCurrentProcess();
 ", options: TestOptions.Script)
             };
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 trees,
                 options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new Resolver(data, core, system)));
 
@@ -2735,7 +2735,7 @@ System.Diagnostics.Process.GetCurrentProcess();
 ", TestOptions.Regular)
                 };
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 trees,
                 options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new Resolver(data, core, system)));
 
@@ -2780,7 +2780,7 @@ System.Diagnostics.Process.GetCurrentProcess();
 #r """ + csInterfaces01 + @"""
 class C : Metadata.ICSPropImpl { }";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { Parse(source, options: TestOptions.Script) },
                 options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(new DummyReferenceResolver(csClasses01)));
 
@@ -2790,7 +2790,7 @@ class C : Metadata.ICSPropImpl { }";
         [Fact]
         public void CompilationWithReferenceDirective_NoResolver()
         {
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 new[] { SyntaxFactory.ParseSyntaxTree(@"#r ""bar""", TestOptions.Script, "a.csx", Encoding.UTF8) },
                 options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(null));
 
@@ -2817,7 +2817,7 @@ class C
 ", TestOptions.Regular)
             };
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 trees,
                 options: TestOptions.ReleaseDll.WithUsings(ImmutableArray.Create("System.Console", "System")));
 
@@ -2839,7 +2839,7 @@ Console.WriteLine(2);
 ", options: TestOptions.Script)
             };
 
-            var compilation = CreateCompilationWithMscorlib45(
+            var compilation = CreateCompilationWithMscorlib461(
                 trees,
                 options: TestOptions.ReleaseDll.WithUsings("System.Console!", "Blah"));
 

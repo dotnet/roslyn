@@ -23948,7 +23948,7 @@ Imports GlobEnumsClass
 Friend MustOverride Function F() As Object
 Friend MustOverride ReadOnly Property P
 ]]>
-            Dim comp = CreateCompilationWithMscorlib45(
+            Dim comp = CreateCompilationWithMscorlib461(
                 {VisualBasicSyntaxTree.ParseText(source.Value, TestOptions.Script)},
                 references:={SystemCoreRef})
             comp.AssertTheseDiagnostics(<expected>

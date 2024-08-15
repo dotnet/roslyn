@@ -68,15 +68,12 @@ namespace Roslyn.Test.Utilities
         Mscorlib40Extended,
         Mscorlib40AndSystemCore,
         Mscorlib40AndVBRuntime,
-        Mscorlib45,
-        Mscorlib45Extended,
-        Mscorlib45AndCSharp,
-        Mscorlib45AndVBRuntime,
         Mscorlib46,
         Mscorlib46Extended,
         Mscorlib461,
         Mscorlib461Extended,
-        DesktopLatestExtended = Mscorlib461Extended,
+        Mscorlib461AndCSharp,
+        Mscorlib461AndVBRuntime,
 
         /// <summary>
         /// Minimal set of required types (<see cref="NetFx.Minimal.mincorlib"/>).
@@ -229,18 +226,6 @@ namespace Roslyn.Test.Utilities
         [
             NetFramework.mscorlib
         ];
-        public static ImmutableArray<MetadataReference> Mscorlib45AndCSharpReferences { get; } =
-        [
-            NetFramework.mscorlib,
-            NetFramework.SystemCore,
-            NetFramework.MicrosoftCSharp
-        ];
-        public static ImmutableArray<MetadataReference> Mscorlib45AndVBRuntimeReferences { get; } =
-        [
-            NetFramework.mscorlib,
-            NetFramework.System,
-            NetFramework.MicrosoftVisualBasic
-        ];
         public static ImmutableArray<MetadataReference> Mscorlib46References { get; } =
         [
             Net461.References.mscorlib
@@ -256,6 +241,18 @@ namespace Roslyn.Test.Utilities
             Net461.References.SystemCore,
             NetFx.ValueTuple.tuplelib,
             Net461.References.SystemRuntime
+        ];
+        public static ImmutableArray<MetadataReference> Mscorlib461AndCSharpReferences { get; } =
+        [
+            Net461.References.mscorlib,
+            Net461.References.SystemCore,
+            Net461.References.MicrosoftCSharp
+        ];
+        public static ImmutableArray<MetadataReference> Mscorlib461AndVBRuntimeReferences { get; } =
+        [
+            Net461.References.mscorlib,
+            Net461.References.System,
+            Net461.References.MicrosoftVisualBasic
         ];
         public static ImmutableArray<MetadataReference> NetStandard20References { get; } =
         [
@@ -306,14 +303,12 @@ namespace Roslyn.Test.Utilities
             TargetFramework.Mscorlib40Extended => Mscorlib40ExtendedReferences,
             TargetFramework.Mscorlib40AndSystemCore => Mscorlib40andSystemCoreReferences,
             TargetFramework.Mscorlib40AndVBRuntime => Mscorlib40andVBRuntimeReferences,
-            TargetFramework.Mscorlib45 => Mscorlib45References,
-            TargetFramework.Mscorlib45Extended => Mscorlib45ExtendedReferences,
-            TargetFramework.Mscorlib45AndCSharp => Mscorlib45AndCSharpReferences,
-            TargetFramework.Mscorlib45AndVBRuntime => Mscorlib45AndVBRuntimeReferences,
             TargetFramework.Mscorlib46 => Mscorlib46References,
             TargetFramework.Mscorlib46Extended => Mscorlib46ExtendedReferences,
             TargetFramework.Mscorlib461 => Mscorlib46References,
             TargetFramework.Mscorlib461Extended => Mscorlib461ExtendedReferences,
+            TargetFramework.Mscorlib461AndCSharp => Mscorlib461AndCSharpReferences,
+            TargetFramework.Mscorlib461AndVBRuntime => Mscorlib461AndVBRuntimeReferences,
             TargetFramework.WinRT => WinRTReferences,
             TargetFramework.StandardAndCSharp => StandardAndCSharpReferences,
             TargetFramework.StandardAndVBRuntime => StandardAndVBRuntimeReferences,

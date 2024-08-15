@@ -5733,7 +5733,7 @@ End Class
             ' Dev10 Runtime Exception:
             ' Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            Dim validator = CompileAndVerifyEx(source, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=Verification.Fails, targetFramework:=TargetFramework.Mscorlib45)
+            Dim validator = CompileAndVerifyEx(source, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=Verification.Fails, targetFramework:=TargetFramework.Mscorlib461)
             validator.EmitAndVerify("Type load failed.")
         End Sub
 

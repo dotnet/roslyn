@@ -513,7 +513,7 @@ public class MyTaskBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CreateCompilationWithMscorlib45(source1).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source1).VerifyDiagnostics(
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h<T>(Func<Task<T>>)' and 'C.h<T>(Func<MyTask<T>>)'
                 //         h(async () => { await (Task)null; return 1; });
                 Diagnostic(ErrorCode.ERR_AmbigCall, "h").WithArguments("C.h<T>(System.Func<System.Threading.Tasks.Task<T>>)", "C.h<T>(System.Func<MyTask<T>>)").WithLocation(9, 9)
@@ -562,7 +562,7 @@ public class YourTaskBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CreateCompilationWithMscorlib45(source2).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source2).VerifyDiagnostics(
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.k<T>(Func<YourTask<T>>)' and 'C.k<T>(Func<MyTask<T>>)'
                 //         k(async () => { await (Task)null; return 1; });
                 Diagnostic(ErrorCode.ERR_AmbigCall, "k").WithArguments("C.k<T>(System.Func<YourTask<T>>)", "C.k<T>(System.Func<MyTask<T>>)").WithLocation(9, 9)
@@ -604,7 +604,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -684,7 +684,7 @@ namespace System.Runtime.CompilerServices
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, assemblyName: "comp");
+            var compilation = CreateCompilationWithMscorlib461(source, assemblyName: "comp");
             compilation.VerifyEmitDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -767,7 +767,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var source =
 @"";
             var reference = CompileIL(ilSource);
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            var compilation = CreateCompilationWithMscorlib461(source, references: new[] { reference });
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -797,7 +797,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics(
                 // (6,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C<MyTask<int>>')
                 //     static C<MyTask<int>>* F0;
@@ -838,7 +838,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var source =
 @"";
             var reference = CompileIL(ilSource);
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            var compilation = CreateCompilationWithMscorlib461(source, references: new[] { reference });
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -871,7 +871,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics();
 
             assert("F0", "delegate*<System.Int32, System.Int32, C<MyTask<System.Int32>>>", "delegate*<System.Int32, System.Int32, C<System.Threading.Tasks.Task<System.Int32>>>");
@@ -925,7 +925,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var source =
 @"";
             var reference = CompileIL(ilSource);
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            var compilation = CreateCompilationWithMscorlib461(source, references: new[] { reference });
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -962,7 +962,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyDiagnostics(
                 // (5,19): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 //     static MyTask<B> F1;
@@ -1016,7 +1016,7 @@ class C<T, U>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -1069,7 +1069,7 @@ class MyTaskMethodBuilder<V>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -7296,7 +7296,7 @@ class TestCase : Test
         Console.WriteLine(xxx); // 3;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -7325,7 +7325,7 @@ class TestCase : Test
         Console.WriteLine(xxx); // 3;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(718294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718294")]
@@ -7362,7 +7362,7 @@ static class Extensions
     {
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(667132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667132")]
@@ -7392,7 +7392,7 @@ static class Program
         Console.WriteLine(g);
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -7718,7 +7718,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source1, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"2
 2
 2
@@ -7751,7 +7751,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source1, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"2
 2
 2
@@ -7779,7 +7779,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source1, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"2
 1");
@@ -8964,7 +8964,7 @@ namespace ClassLibraryOverloadResolution
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(source1);
+            var compilation = CreateCompilationWithMscorlib461(source1);
 
             compilation.VerifyDiagnostics(
     // (34,18): error CS0121: The call is ambiguous between the following methods or properties: 'FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)' and 'Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)'
@@ -9029,7 +9029,7 @@ public static class Class
         System.Console.WriteLine(""RemoveDetail"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput:
 @"RemoveDetail
 RemoveDetail

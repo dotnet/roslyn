@@ -4392,7 +4392,7 @@ public class C<T>
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(3, 22)
                 );
 
-            comp = CreateCompilation(src, targetFramework: TargetFramework.DesktopLatestExtended, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            comp = CreateCompilation(src, targetFramework: TargetFramework.Mscorlib461Extended, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (3,22): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(3, 22)
@@ -4442,7 +4442,7 @@ public class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(5, 26)
                 );
 
-            CreateCompilation(src, targetFramework: TargetFramework.DesktopLatestExtended, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
+            CreateCompilation(src, targetFramework: TargetFramework.Mscorlib461Extended, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
                 // (5,26): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //         where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(5, 26)
@@ -20017,7 +20017,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "Helper.Test").WithArguments("allows ref struct constraint", "13.0").WithLocation(200, 9)
                 );
 
-            CreateCompilation([src1, src2], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilation([src1, src2], targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (100,54): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     public static void Test<T>(T x) where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(100, 54)
@@ -20055,21 +20055,21 @@ class C
             CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
 
-            CreateCompilation([src1, src3], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilation([src1, src3], targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (100,54): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //     public static void Test<T>(T x) where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(100, 54)
                 );
 
-            comp1Ref = CreateCompilation(src1, targetFramework: TargetFramework.DesktopLatestExtended).ToMetadataReference();
+            comp1Ref = CreateCompilation(src1, targetFramework: TargetFramework.Mscorlib461Extended).ToMetadataReference();
 
-            CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (200,9): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //         Helper.Test(new S1());
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "Helper.Test").WithLocation(200, 9)
                 );
 
-            CreateCompilation(src3, references: [comp1Ref], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
+            CreateCompilation(src3, references: [comp1Ref], targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -20274,7 +20274,7 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "S1").WithArguments("allows ref struct constraint", "13.0").WithLocation(200, 16)
                 );
 
-            CreateCompilation([src1, src2], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilation([src1, src2], targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (100,41): error CS9240: Target runtime doesn't support by-ref-like generics.
                 // public class Helper<T> where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(100, 41)
@@ -20312,21 +20312,21 @@ class C
             CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
             CreateCompilation(src3, references: [comp1Ref], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics();
 
-            CreateCompilation([src1, src3], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilation([src1, src3], targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (100,41): error CS9240: Target runtime doesn't support by-ref-like generics.
                 // public class Helper<T> where T : allows ref struct
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "ref struct").WithLocation(100, 41)
                 );
 
-            comp1Ref = CreateCompilation(src1, targetFramework: TargetFramework.DesktopLatestExtended).ToMetadataReference();
+            comp1Ref = CreateCompilation(src1, targetFramework: TargetFramework.Mscorlib461Extended).ToMetadataReference();
 
-            CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CreateCompilation(src2, references: [comp1Ref], targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 // (200,16): error CS9240: Target runtime doesn't support by-ref-like generics.
                 //         Helper<S1>.Test(new S1());
                 Diagnostic(ErrorCode.ERR_RuntimeDoesNotSupportByRefLikeGenerics, "S1").WithLocation(200, 16)
                 );
 
-            CreateCompilation(src3, references: [comp1Ref], targetFramework: TargetFramework.DesktopLatestExtended, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
+            CreateCompilation(src3, references: [comp1Ref], targetFramework: TargetFramework.Mscorlib461Extended, options: TestOptions.ReleaseExe).VerifyEmitDiagnostics();
         }
 
         [Fact]

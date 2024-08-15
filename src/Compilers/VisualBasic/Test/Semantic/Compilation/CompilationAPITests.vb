@@ -44,12 +44,12 @@ Class C
 End Class")
             Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
                 WithGeneralDiagnosticOption(ReportDiagnostic.Suppress)
-            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib461({tree}, options:=options)
             comp.AssertNoDiagnostics()
 
             options = options.WithSyntaxTreeOptionsProvider(
                 New TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Warn)))
-            comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            comp = CreateCompilationWithMscorlib461({tree}, options:=options)
             ' Global options override syntax tree options. This is the opposite of C# behavior
             comp.AssertNoDiagnostics()
         End Sub
@@ -107,12 +107,12 @@ End Class")
 
             Dim options = TestOptions.DebugDll.WithSpecificDiagnosticOptions(
                 CreateImmutableDictionary(("BC42024", ReportDiagnostic.Suppress)))
-            Dim comp = CreateCompilationWithMscorlib45({tree}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib461({tree}, options:=options)
             comp.AssertNoDiagnostics()
 
             options = options.WithSyntaxTreeOptionsProvider(
                 New TestSyntaxTreeOptionsProvider(tree, ("BC42024", ReportDiagnostic.Error)))
-            Dim comp2 = CreateCompilationWithMscorlib45({tree}, options:=options)
+            Dim comp2 = CreateCompilationWithMscorlib461({tree}, options:=options)
             ' Specific diagnostic options should have precedence over tree options
             comp2.AssertNoDiagnostics()
         End Sub
@@ -136,7 +136,7 @@ End Class")
                 New TestSyntaxTreeOptionsProvider(
                     (tree, {("BC42024", ReportDiagnostic.Suppress)}),
                     (newTree, {("BC4024", ReportDiagnostic.Error)})))
-            Dim comp = CreateCompilationWithMscorlib45({tree, newTree}, options:=options)
+            Dim comp = CreateCompilationWithMscorlib461({tree, newTree}, options:=options)
             comp.AssertTheseDiagnostics(
                 <errors>
 BC42024: Unused local variable: 'y'.
@@ -2135,7 +2135,7 @@ End Class
         <Fact()>
         Public Sub GetEntryPoint_Script()
             Dim source = <![CDATA[System.Console.WriteLine(1)]]>
-            Dim compilation = CreateCompilationWithMscorlib45({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib461({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics()
 
             Dim scriptMethod = compilation.GetMember("Script.<Main>")
@@ -2155,7 +2155,7 @@ End Class
         End Sub
     End Class
     ]]>
-            Dim compilation = CreateCompilationWithMscorlib45({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib461({VisualBasicSyntaxTree.ParseText(source.Value, options:=TestOptions.Script)}, options:=TestOptions.ReleaseDll)
             compilation.VerifyDiagnostics(Diagnostic(ERRID.WRN_MainIgnored, "Main").WithArguments("Public Shared Sub Main()").WithLocation(3, 20))
 
             Dim scriptMethod = compilation.GetMember("Script.<Main>")

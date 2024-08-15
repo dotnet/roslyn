@@ -587,7 +587,7 @@ namespace A.B {
             var rd4 = t4.GetRoot().GetDirectives().Cast<ReferenceDirectiveTriviaSyntax>().ToArray();
             Assert.Equal(1, rd4.Length);
 
-            var c = CreateCompilationWithMscorlib45(new[] { t1, t2 }, options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
+            var c = CreateCompilationWithMscorlib461(new[] { t1, t2 }, options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
                 new TestMetadataReferenceResolver(files: new Dictionary<string, PortableExecutableReference>()
                 {
                     { @"a.dll", NetFramework.MicrosoftCSharp },
@@ -1766,7 +1766,7 @@ class A
         public void GetEntryPoint_Script()
         {
             var source = @"System.Console.WriteLine(1);";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics();
 
             var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Main>");
@@ -1787,7 +1787,7 @@ class A
     static void Main() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics(
                 // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
                 //     static void Main() { }
@@ -3385,7 +3385,7 @@ System.Action a = () => { return; };
             script.VerifyDiagnostics();
             Assert.True(script.HasSubmissionResult());
 
-            var compilation = CreateCompilationWithMscorlib45(@"
+            var compilation = CreateCompilationWithMscorlib461(@"
 void M1()
 {
     return;

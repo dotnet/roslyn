@@ -1359,7 +1359,7 @@ public class A
 
             var rd2 = (ReferenceDirectiveTriviaSyntax)t2.GetRoot().GetDirectives().Single();
 
-            var c = CreateCompilationWithMscorlib45(new[] { t1, t2 }, options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
+            var c = CreateCompilationWithMscorlib461(new[] { t1, t2 }, options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
                 new TestMetadataReferenceResolver(
                     pathResolver: new VirtualizedRelativePathResolver(new[]
                     {
@@ -2315,8 +2315,8 @@ public class Source
         {
             // c - b (alias X) 
             //   - a (via #r) -> b
-            var bRef = CreateCompilationWithMscorlib45("public class B { }", assemblyName: "B").EmitToImageReference();
-            var aRef = CreateCompilationWithMscorlib45("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
+            var bRef = CreateCompilationWithMscorlib461("public class B { }", assemblyName: "B").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib461("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
 
             var source = @"
 #r ""a""
@@ -2345,8 +2345,8 @@ new B()
         {
             // c - b (alias X) 
             //   - a (via #r) -> b
-            var bRef = CreateCompilationWithMscorlib45("public class B { }", assemblyName: "B").EmitToImageReference();
-            var aRef = CreateCompilationWithMscorlib45("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
+            var bRef = CreateCompilationWithMscorlib461("public class B { }", assemblyName: "B").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib461("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
 
             var source = @"
 #r ""a""
@@ -2377,8 +2377,8 @@ new B()
             // c - b (alias X) 
             //   - a 
             //   - a (recursive alias Y) -> b
-            var bRef = CreateCompilationWithMscorlib45("public class B { }", assemblyName: "B").EmitToImageReference();
-            var aRef = CreateCompilationWithMscorlib45("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
+            var bRef = CreateCompilationWithMscorlib461("public class B { }", assemblyName: "B").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib461("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
 
             var source = @"
 extern alias X;
@@ -2413,8 +2413,8 @@ public class P
             // c - b (alias X) 
             //   - a (recursive alias Y) -> b
             //   - a 
-            var bRef = CreateCompilationWithMscorlib45("public class B { }", assemblyName: "B").EmitToImageReference();
-            var aRef = CreateCompilationWithMscorlib45("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
+            var bRef = CreateCompilationWithMscorlib461("public class B { }", assemblyName: "B").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib461("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
 
             var source = @"
 extern alias X;
@@ -2449,8 +2449,8 @@ public class P
             // c - b (alias X) 
             //   - a (recursive alias Y) -> b
             //   - a 
-            var bRef = CreateCompilationWithMscorlib45("public class B { }", assemblyName: "B").EmitToImageReference();
-            var aRef = CreateCompilationWithMscorlib45("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
+            var bRef = CreateCompilationWithMscorlib461("public class B { }", assemblyName: "B").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib461("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
 
             var source = @"
 extern alias X;
@@ -2487,9 +2487,9 @@ public class P
             // c - b (alias X) 
             //   - a (recursive alias Y) -> b
             //   - d (recursive alias Z) -> a 
-            var bRef = CreateCompilationWithMscorlib45("public class B { }", assemblyName: "B").EmitToImageReference();
-            var aRef = CreateCompilationWithMscorlib45("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
-            var dRef = CreateCompilationWithMscorlib45("public class D : A { }", new[] { aRef, bRef }, assemblyName: "D").EmitToImageReference();
+            var bRef = CreateCompilationWithMscorlib461("public class B { }", assemblyName: "B").EmitToImageReference();
+            var aRef = CreateCompilationWithMscorlib461("public class A : B { }", new[] { bRef }, assemblyName: "A").EmitToImageReference();
+            var dRef = CreateCompilationWithMscorlib461("public class D : A { }", new[] { aRef, bRef }, assemblyName: "D").EmitToImageReference();
 
             var source = @"
 extern alias X;

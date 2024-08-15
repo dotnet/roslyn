@@ -145,22 +145,22 @@ Friend Module CompilationUtils
         Return CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib40, assemblyName)
     End Function
 
-    Public Function CreateCompilationWithMscorlib45(
+    Public Function CreateCompilationWithMscorlib461(
             source As BasicTestSource,
             Optional references As IEnumerable(Of MetadataReference) = Nothing,
             Optional options As VisualBasicCompilationOptions = Nothing,
             Optional parseOptions As VisualBasicParseOptions = Nothing,
             Optional assemblyName As String = Nothing) As VisualBasicCompilation
-        Return CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib45, assemblyName)
+        Return CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib461, assemblyName)
     End Function
 
-    Public Function CreateCompilationWithMscorlib45AndVBRuntime(
+    Public Function CreateCompilationWithMscorlib461AndVBRuntime(
             source As BasicTestSource,
             Optional references As IEnumerable(Of MetadataReference) = Nothing,
             Optional options As VisualBasicCompilationOptions = Nothing,
             Optional parseOptions As VisualBasicParseOptions = Nothing,
             Optional assemblyName As String = Nothing) As VisualBasicCompilation
-        Return CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib45AndVBRuntime, assemblyName)
+        Return CreateCompilation(source, references, options, parseOptions, TargetFramework.Mscorlib461AndVBRuntime, assemblyName)
     End Function
 
     Public Function CreateCompilationWithWinRt(source As XElement) As VisualBasicCompilation
