@@ -21,7 +21,6 @@ internal class UnchangedDocumentDiagnosticReport
     /// Gets the kind of this report.
     /// </summary>
     [JsonPropertyName("kind")]
-    [JsonRequired]
 #pragma warning disable CA1822 // Mark members as static
     public string Kind => DocumentDiagnosticReportKind.Unchanged;
 #pragma warning restore CA1822 // Mark members as static
