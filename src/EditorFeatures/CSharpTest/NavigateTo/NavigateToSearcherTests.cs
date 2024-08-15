@@ -51,6 +51,7 @@ public sealed class NavigateToSearcherTests
                  ImmutableArray<Document> priorityDocuments,
                  string pattern,
                  IImmutableSet<string> kinds,
+                 bool searchGeneratedCode,
                  Document? activeDocument,
                  Func<ImmutableArray<INavigateToSearchResult>, Task> onResultsFound,
                  Func<Task> onProjectCompleted,
