@@ -83,11 +83,12 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentException("Must be a full path.", nameof(windowsShadowPath));
             }
 
+            return new ShadowCopyAnalyzerAssemblyLoader(
 #if NET
-            return new ShadowCopyAnalyzerAssemblyLoader(loadContext, windowsShadowPath, externalResolvers);
-#else
-            return new ShadowCopyAnalyzerAssemblyLoader(windowsShadowPath, externalResolvers);
+                loadContext,
 #endif
+                windowsShadowPath,
+                externalResolvers);
         }
     }
 }
