@@ -26,34 +26,42 @@ internal sealed class RemoteAnalyzerAssemblyLoaderService(
     [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
     : IAnalyzerAssemblyLoaderProvider
 {
+    private static string GetPath(string isolatedRoot)
+        => Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader", isolatedRoot);
+
+    private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader = CreateLoader(
 #if NET
-    private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader =
-        CreateLoader(loadContext: null, isolatedRoot: "", externalResolvers);
+        loadContext: null,
+#endif
+        isolatedRoot: "",
+        externalResolvers);
 
     private static ShadowCopyAnalyzerAssemblyLoader CreateLoader(
-        AssemblyLoadContext? loadContext, string isolatedRoot, IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
+#if NET
+        AssemblyLoadContext? loadContext,
+#endif
+        string isolatedRoot,
+        IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
     {
-        return new(loadContext, Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader", isolatedRoot), externalResolvers.ToImmutableArray());
+        return new(
+#if NET
+            loadContext,
+#endif
+            GetPath(isolatedRoot),
+            externalResolvers.ToImmutableArray());
     }
+
+#if NET
 
     public IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext, string isolatedRoot)
-    {
-        if (loadContext is null && isolatedRoot is "")
-            return _shadowCopyLoader;
+        => loadContext is null && isolatedRoot is ""
+            ? _shadowCopyLoader
+            : CreateLoader(loadContext, isolatedRoot, externalResolvers);
 
-        return CreateLoader(loadContext, isolatedRoot, externalResolvers);
-    }
 #else
-    private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader =
-        CreateLoader(isolatedRoot: "", externalResolvers);
 
-    private static ShadowCopyAnalyzerAssemblyLoader CreateLoader(
-        string isolatedRoot, IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
-    {
-        return new(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader", isolatedRoot), externalResolvers.ToImmutableArray());
-    }
+    public IAnalyzerAssemblyLoader GetShadowCopyLoader()
+        => _shadowCopyLoader;
 
-    public IAnalyzerAssemblyLoader GetShadowCopyLoader(string isolatedRoot)
-        => isolatedRoot == "" ? _shadowCopyLoader : CreateLoader(isolatedRoot, externalResolvers);
 #endif
 }

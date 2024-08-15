@@ -46,7 +46,11 @@ End Class
         [ConditionalFact(typeof(DesktopOnly))]
         public void CSharpTrivialMetadataCaching()
         {
-            var loader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(Temp.CreateDirectory().Path);
+            var loader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
+#if NET
+                loadContext: null,
+#endif
+                Temp.CreateDirectory().Path);
             var filelist = new List<string>();
 
             // Do the following compilation twice.
@@ -97,7 +101,11 @@ End Class
         [ConditionalFact(typeof(DesktopOnly))]
         public void VisualBasicTrivialMetadataCaching()
         {
-            var loader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(Temp.CreateDirectory().Path);
+            var loader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
+#if NET
+                loadContext: null,
+#endif
+                Temp.CreateDirectory().Path);
             var filelist = new List<string>();
 
             // Do the following compilation twice.

@@ -38,7 +38,7 @@ internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory(
 #if NET
             loadContext: null,
 #endif
-            GetPath(workspaceKind, ""),
+            GetPath(workspaceKind, isolatedRoot: ""),
             externalResolvers);
 
         private static string GetPath(string workspaceKind, string isolatedRoot)

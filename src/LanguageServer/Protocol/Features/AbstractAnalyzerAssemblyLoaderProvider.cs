@@ -35,6 +35,20 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
     private static string GetPath(string isolatedRoot)
         => Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader", isolatedRoot);
 
+    protected virtual IAnalyzerAssemblyLoader CreateShadowCopyLoader(
+#if NET
+        AssemblyLoadContext? loadContext,
+#endif
+        string isolatedRoot)
+    {
+        return DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
+#if NET
+            loadContext,
+#endif
+            GetPath(isolatedRoot),
+            _externalResolvers);
+    }
+
 #if NET
 
     public IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext, string isolatedRoot)
@@ -42,16 +56,10 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
             ? _shadowCopyLoader.Value
             : CreateShadowCopyLoader(loadContext, isolatedRoot);
 
-    protected virtual IAnalyzerAssemblyLoader CreateShadowCopyLoader(AssemblyLoadContext? loadContext, string isolatedRoot)
-        => DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(loadContext, GetPath(isolatedRoot), _externalResolvers);
-
 #else
 
     public IAnalyzerAssemblyLoader GetShadowCopyLoader()
         => _shadowCopyLoader.Value;
-
-    protected IAnalyzerAssemblyLoader CreateShadowCopyLoader(string isolatedRoot)
-        => DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(GetPath(isolatedRoot), _externalResolvers);
 
 #endif
 }
