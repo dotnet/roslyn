@@ -43,9 +43,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (collectionTypeKind)
                 {
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                        if (useListOptimization(_compilation, node, out var listElementType))
+                        if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType))
                         {
-                            return CreateAndPopulateList(node, listElementType, node.Elements.SelectAsArray(static (element, node) => unwrapListElement(node, element), node));
+                            if (useListOptimization(_compilation, node))
+                            {
+                                return CreateAndPopulateList(node, listElementType, node.Elements.SelectAsArray(static (element, node) => unwrapListElement(node, element), node));
+                            }
                         }
                         return VisitCollectionInitializerCollectionExpression(node, node.Type);
                     case CollectionExpressionTypeKind.Array:
@@ -88,12 +91,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If the collection type is List<T> and items are added using the expected List<T>.Add(T) method,
             // then construction can be optimized to use CollectionsMarshal methods.
-            static bool useListOptimization(CSharpCompilation compilation, BoundCollectionExpression node, out TypeWithAnnotations elementType)
+            static bool useListOptimization(CSharpCompilation compilation, BoundCollectionExpression node)
             {
-                if (!ConversionsBase.IsSpanOrListType(compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out elementType))
-                {
-                    return false;
-                }
                 var elements = node.Elements;
                 if (elements.Length == 0)
                 {
