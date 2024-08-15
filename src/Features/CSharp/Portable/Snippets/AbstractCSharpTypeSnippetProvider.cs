@@ -27,7 +27,7 @@ internal abstract class AbstractCSharpTypeSnippetProvider<TTypeDeclarationSyntax
 {
     protected abstract ISet<SyntaxKind> ValidModifiers { get; }
 
-    protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
+    protected override bool IsValidSnippetLocation(SnippetContext context, CancellationToken cancellationToken)
     {
         var syntaxContext = (CSharpSyntaxContext)context.SyntaxContext;
 

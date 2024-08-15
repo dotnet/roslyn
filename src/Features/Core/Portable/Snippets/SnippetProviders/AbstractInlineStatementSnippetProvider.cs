@@ -39,7 +39,7 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
     /// </summary>
     protected bool ConstructedFromInlineExpression { get; private set; }
 
-    protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
+    protected override bool IsValidSnippetLocation(SnippetContext context, CancellationToken cancellationToken)
     {
         var syntaxContext = context.SyntaxContext;
         var semanticModel = syntaxContext.SemanticModel;
@@ -51,7 +51,7 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
             return IsValidAccessingType(type, semanticModel.Compilation);
         }
 
-        return base.IsValidSnippetLocation(in context, cancellationToken);
+        return base.IsValidSnippetLocation(context, cancellationToken);
     }
 
     protected sealed override async Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 internal abstract class AbstractCSharpMainMethodSnippetProvider
     : AbstractMainMethodSnippetProvider<MethodDeclarationSyntax, StatementSyntax, TypeSyntax>
 {
-    protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
+    protected override bool IsValidSnippetLocation(SnippetContext context, CancellationToken cancellationToken)
     {
         var semanticModel = context.SyntaxContext.SemanticModel;
         var syntaxContext = (CSharpSyntaxContext)context.SyntaxContext;

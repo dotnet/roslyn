@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
 internal abstract class AbstractStatementSnippetProvider<TStatementSyntax> : AbstractSingleChangeSnippetProvider<TStatementSyntax>
     where TStatementSyntax : SyntaxNode
 {
-    protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
+    protected override bool IsValidSnippetLocation(SnippetContext context, CancellationToken cancellationToken)
         => context.SyntaxContext.IsStatementContext || context.SyntaxContext.IsGlobalStatementContext;
 }

@@ -21,7 +21,7 @@ internal sealed class CSharpConsoleSnippetProvider() : AbstractConsoleSnippetPro
     ArgumentListSyntax,
     LambdaExpressionSyntax>
 {
-    protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
+    protected override bool IsValidSnippetLocation(SnippetContext context, CancellationToken cancellationToken)
     {
         var syntaxContext = context.SyntaxContext;
 
