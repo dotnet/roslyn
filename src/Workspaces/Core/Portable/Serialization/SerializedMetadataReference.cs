@@ -2,10 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
@@ -15,6 +17,37 @@ using static TemporaryStorageService;
 
 internal partial class SerializerService
 {
+    /// <summary>
+    /// No methods on this serialized type should be called.  It exists as a placeholder to allow the data to be
+    /// transmitted over to the remote site.  On the remote site we will first collect *all* of these serialized
+    /// analyzer references, then create the actual <see cref="AnalyzerFileReference"/>s in their own safe
+    /// AssemblyLoadContext distinct from everything else.
+    /// </summary>
+    public sealed class SerializedAnalyzerReference : AnalyzerReference
+    {
+        public override string? FullPath { get; }
+
+        public SerializedAnalyzerReference(string fullPath, Guid mvid)
+        {
+            this.FullPath = fullPath;
+        }
+
+        public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
+            => throw new InvalidOperationException();
+
+        public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
+            => throw new InvalidOperationException();
+
+        public override ImmutableArray<ISourceGenerator> GetGenerators()
+            => throw new InvalidOperationException();
+
+        public override ImmutableArray<ISourceGenerator> GetGenerators(string language)
+            => throw new InvalidOperationException();
+
+        public override ImmutableArray<ISourceGenerator> GetGeneratorsForAllLanguages()
+            => throw new InvalidOperationException();
+    }
+
     [DebuggerDisplay("{" + nameof(Display) + ",nq}")]
     private sealed class SerializedMetadataReference : PortableExecutableReference, ISupportTemporaryStorage
     {

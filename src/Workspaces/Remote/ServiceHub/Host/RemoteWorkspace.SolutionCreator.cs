@@ -371,8 +371,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 // changed analyzer references
                 if (oldProjectChecksums.AnalyzerReferences.Checksum != newProjectChecksums.AnalyzerReferences.Checksum)
                 {
-                    project = project.WithAnalyzerReferences(await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
-                        assetPath: project.Id, newProjectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
+                    var serializedReferences = await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
+                        assetPath: project.Id, newProjectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+                    project = project.WithAnalyzerReferences(CreateAnalyzerRefefrencesInIsolatedAssemblyLoadContext(serializedReferences));
                 }
 
                 // changed analyzer references
