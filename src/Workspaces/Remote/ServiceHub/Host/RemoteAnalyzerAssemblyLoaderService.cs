@@ -10,6 +10,10 @@ using System.IO;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
+#if NET
+using System.Runtime.Loader;
+#endif
+
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics;
 
 /// <summary>
@@ -22,9 +26,34 @@ internal sealed class RemoteAnalyzerAssemblyLoaderService(
     [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
     : IAnalyzerAssemblyLoaderProvider
 {
+#if NET
     private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader =
-        new(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"), externalResolvers.ToImmutableArray());
+        CreateLoader(loadContext: null, isolatedRoot: "", externalResolvers);
 
-    public IAnalyzerAssemblyLoader GetShadowCopyLoader()
-        => _shadowCopyLoader;
+    private static ShadowCopyAnalyzerAssemblyLoader CreateLoader(
+        AssemblyLoadContext? loadContext, string isolatedRoot, IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
+    {
+        return new(loadContext, Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader", isolatedRoot), externalResolvers.ToImmutableArray());
+    }
+
+    public IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext, string isolatedRoot)
+    {
+        if (loadContext is null && isolatedRoot is "")
+            return _shadowCopyLoader;
+
+        return CreateLoader(loadContext, isolatedRoot, externalResolvers);
+    }
+#else
+    private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader =
+        CreateLoader(isolatedRoot: "", externalResolvers);
+
+    private static ShadowCopyAnalyzerAssemblyLoader CreateLoader(
+        string isolatedRoot, IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
+    {
+        return new(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader", isolatedRoot), externalResolvers.ToImmutableArray());
+    }
+
+    public IAnalyzerAssemblyLoader GetShadowCopyLoader(string isolatedRoot)
+        => isolatedRoot == "" ? _shadowCopyLoader : CreateLoader(isolatedRoot, externalResolvers);
+#endif
 }

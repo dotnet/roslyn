@@ -23,14 +23,12 @@ internal partial class SerializerService
     /// analyzer references, then create the actual <see cref="AnalyzerFileReference"/>s in their own safe
     /// AssemblyLoadContext distinct from everything else.
     /// </summary>
-    public sealed class SerializedAnalyzerReference : AnalyzerReference
+    public sealed class SerializedAnalyzerReference(string fullPath) : AnalyzerReference
     {
-        public override string? FullPath { get; }
+        public override string? FullPath { get; } = fullPath;
 
-        public SerializedAnalyzerReference(string fullPath, Guid mvid)
-        {
-            this.FullPath = fullPath;
-        }
+        public override object Id
+            => throw new InvalidOperationException();
 
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
             => throw new InvalidOperationException();
@@ -38,6 +36,7 @@ internal partial class SerializerService
         public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
             => throw new InvalidOperationException();
 
+        [Obsolete]
         public override ImmutableArray<ISourceGenerator> GetGenerators()
             => throw new InvalidOperationException();
 
