@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Text
             : base(checksumAlgorithm: checksumAlgorithm)
         {
             Debug.Assert(!segments.IsDefaultOrEmpty);
+            Debug.Assert(segments.Length > 0);
 
             _segments = segments;
             _encoding = encoding;
@@ -40,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Text
             for (int i = 0; i < _segmentOffsets.Length; i++)
             {
                 _segmentOffsets[i] = offset;
+                Debug.Assert(_segments[i].Length > 0);
                 offset += _segments[i].Length;
             }
         }
