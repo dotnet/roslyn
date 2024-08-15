@@ -33,7 +33,7 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
     /// Implemented by each SnippetProvider to determine if that particular position is a valid
     /// location for the snippet to be inserted.
     /// </summary>
-    protected abstract bool IsValidSnippetLocation(SnippetContext context, CancellationToken cancellationToken);
+    protected abstract bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken);
 
     /// <summary>
     /// Generates the new snippet's TextChanges that are being inserted into the document.
@@ -59,7 +59,7 @@ internal abstract class AbstractSnippetProvider<TSnippetSyntax> : ISnippetProvid
             return ValueTaskFactory.FromResult(false);
         }
 
-        return ValueTaskFactory.FromResult(IsValidSnippetLocation(context, cancellationToken));
+        return ValueTaskFactory.FromResult(IsValidSnippetLocationCore(context, cancellationToken));
     }
 
     /// <summary>

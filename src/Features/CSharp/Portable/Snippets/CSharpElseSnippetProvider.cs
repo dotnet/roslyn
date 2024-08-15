@@ -24,7 +24,7 @@ internal sealed class CSharpElseSnippetProvider() : AbstractElseSnippetProvider<
 
     public override string Description => FeaturesResources.else_statement;
 
-    protected override bool IsValidSnippetLocation(SnippetContext context, CancellationToken cancellationToken)
+    protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
         var syntaxContext = context.SyntaxContext;
         var token = syntaxContext.TargetToken;
@@ -51,7 +51,7 @@ internal sealed class CSharpElseSnippetProvider() : AbstractElseSnippetProvider<
             }
         }
 
-        return isAfterIfStatement && base.IsValidSnippetLocation(context, cancellationToken);
+        return isAfterIfStatement && base.IsValidSnippetLocationCore(context, cancellationToken);
     }
 
     protected override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)

@@ -30,7 +30,7 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
     protected virtual AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator, CancellationToken cancellationToken)
         => (AccessorDeclarationSyntax)generator.SetAccessorDeclaration();
 
-    protected override bool IsValidSnippetLocation(SnippetContext context, CancellationToken cancellationToken)
+    protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
         return context.SyntaxContext.SyntaxTree.IsMemberDeclarationContext(context.Position, (CSharpSyntaxContext)context.SyntaxContext,
             SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken);

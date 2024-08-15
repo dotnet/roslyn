@@ -34,7 +34,7 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
 
     public override string Description => FeaturesResources.foreach_loop;
 
-    protected override bool IsValidSnippetLocation(SnippetContext context, CancellationToken cancellationToken)
+    protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
         var syntaxContext = context.SyntaxContext;
         var token = syntaxContext.TargetToken;
@@ -48,7 +48,7 @@ internal sealed class CSharpForEachLoopSnippetProvider() : AbstractForEachLoopSn
             return true;
         }
 
-        return base.IsValidSnippetLocation(context, cancellationToken);
+        return base.IsValidSnippetLocationCore(context, cancellationToken);
     }
 
     protected override ForEachStatementSyntax GenerateStatement(SyntaxGenerator generator, SyntaxContext syntaxContext, InlineExpressionInfo? inlineExpressionInfo)
