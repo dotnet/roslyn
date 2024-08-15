@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<string?> argumentNames,
             ImmutableArray<RefKind> refKinds)
         {
-            // If we are calling a method on a NoPIA typeWithElementType, we need to embed all methods/properties
+            // If we are calling a method on a NoPIA type, we need to embed all methods/properties
             // with the matching name of this dynamic invocation.
             EmbedIfNeedTo(loweredReceiver, node.ApplicableIndexers, node.Syntax);
 
@@ -502,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var receiverLocal = F.StoreToTemp(
                         receiver,
                         out var receiverStore,
-                        // Store the receiver as a ref local if it's a value typeWithElementType to ensure side effects are propagated
+                        // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
                         receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
                     locals.Add(receiverLocal.LocalSymbol);
 
@@ -804,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var receiverLocal = F.StoreToTemp(
                     receiver,
                     out var receiverStore,
-                    // Store the receiver as a ref local if it's a value typeWithElementType to ensure side effects are propagated
+                    // Store the receiver as a ref local if it's a value type to ensure side effects are propagated
                     receiver.Type.IsReferenceType ? RefKind.None : RefKind.Ref);
 
                 localsBuilder.Add(receiverLocal.LocalSymbol);
