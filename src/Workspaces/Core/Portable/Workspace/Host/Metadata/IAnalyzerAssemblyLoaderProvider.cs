@@ -22,7 +22,11 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
     /// </summary>
     IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext = null, string isolatedRoot = "");
 #else
-
+    /// <summary>
+    /// In .Net Framework, returns a single shadow copuy loader which will be used to load all <see
+    /// cref="AnalyzerReference"/>s.  On .Net framework there are no assembly load contexts, so no isolation or
+    /// reloading of references is possible.
+    /// </summary>
     IAnalyzerAssemblyLoader GetShadowCopyLoader();
 #endif
 }
