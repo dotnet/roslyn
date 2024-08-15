@@ -1042,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
                 Debug.Assert(twoArgumentOverloadSymbol.Name == oneArgumentOverloadSymbol.Name
-                             && twoArgumentOverloadSymbol.ReturnType.Equals(oneArgumentOverloadSymbol.ReturnType, TypeCompareKind.AllIgnoreOptions));
+                             && twoArgumentOverloadSymbol.ReturnType.Equals(oneArgumentOverloadSymbol.ReturnType, TypeCompareKind.ConsiderEverything));
                 return oneArgumentOverloadSymbol;
 
             }
