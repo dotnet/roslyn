@@ -13,6 +13,9 @@ namespace Roslyn.LanguageServer.Protocol
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#formattingOptions">Language Server Protocol specification</see> for additional information.
     /// </para>
     /// </summary>
+    // NOTE: The FormattingOptionsConverter enables the FormattingOptions.OtherOptions JsonExtensionData to be strongly typed.
+    // The Json* attributes on the members are for reference only - the converter is fully custom and ignores them.
+    [JsonConverter(typeof(FormattingOptionsConverter))]
     internal class FormattingOptions
     {
         /// <summary>
