@@ -1105,7 +1105,7 @@ goto Label;");
         [Fact]
         public void DefineExtensionMethods()
         {
-            var references = new[] { TestMetadata.Net451.SystemCore };
+            var references = new[] { NetFramework.SystemCore };
 
             // No error for extension method defined in interactive session.
             var s0 = CreateSubmission("static void E(this object o) { }", references);

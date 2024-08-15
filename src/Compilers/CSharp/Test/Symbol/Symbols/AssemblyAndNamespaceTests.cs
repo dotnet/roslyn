@@ -370,7 +370,7 @@ namespace Goo<T>
         {
             var source = @"public class C { }";
 
-            var aliasedCorlib = TestMetadata.Net451.mscorlib.WithAliases(ImmutableArray.Create("Goo"));
+            var aliasedCorlib = NetFramework.mscorlib.WithAliases(ImmutableArray.Create("Goo"));
 
             var comp = CreateEmptyCompilation(source, new[] { aliasedCorlib });
 

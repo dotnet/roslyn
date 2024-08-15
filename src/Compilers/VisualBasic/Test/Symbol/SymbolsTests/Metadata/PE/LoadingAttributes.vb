@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -1248,8 +1249,8 @@ End Class]]>
 
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                    {
-                                       ResourcesNet451.SystemCore,
-                                       ResourcesNet451.System,
+                                       Net461.Resources.SystemCore,
+                                       Net461.Resources.System,
                                        ResourcesNet40.mscorlib
                                    })
 
@@ -1259,11 +1260,11 @@ End Class]]>
 
             Dim asmFileAttr = DirectCast(refNS.GetTypeMembers("AssemblyFileVersionAttribute").Single(), NamedTypeSymbol)
             Dim attr1 = assemblies(0).GetAttribute(asmFileAttr)
-            Assert.Equal("4.0.30319.18408", attr1.CommonConstructorArguments(0).Value)
+            Assert.Equal("4.6.1055.0", attr1.CommonConstructorArguments(0).Value)
 
             Dim asmInfoAttr = DirectCast(refNS.GetTypeMembers("AssemblyInformationalVersionAttribute").Single(), NamedTypeSymbol)
             attr1 = assemblies(0).GetAttribute(asmInfoAttr)
-            Assert.Equal("4.0.30319.18408", attr1.CommonConstructorArguments(0).Value)
+            Assert.Equal("4.6.1055.0", attr1.CommonConstructorArguments(0).Value)
         End Sub
 
         <WorkItem(539996, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539996")>
@@ -1272,8 +1273,8 @@ End Class]]>
 
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                    {
-                                       ResourcesNet451.SystemCore,
-                                       ResourcesNet451.System,
+                                       Net461.Resources.SystemCore,
+                                       Net461.Resources.System,
                                        ResourcesNet40.mscorlib
                                    })
 
@@ -1304,9 +1305,9 @@ End Class]]>
 
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 {
-                    ResourcesNet451.System,
+                    Net461.Resources.System,
                     ResourcesNet40.mscorlib,
-                    ResourcesNet451.SystemConfiguration
+                    Net461.Resources.SystemConfiguration
                 })
 
             Dim sysNS = DirectCast(assemblies(0).GlobalNamespace.GetMember("System"), NamespaceSymbol)
@@ -1337,10 +1338,10 @@ End Class]]>
 
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                                  {
-                                     ResourcesNet451.SystemData,
-                                     ResourcesNet451.SystemCore,
-                                     ResourcesNet451.System,
-                                     ResourcesNet451.mscorlib
+                                     Net461.Resources.SystemData,
+                                     Net461.Resources.SystemCore,
+                                     Net461.Resources.System,
+                                     Net461.Resources.mscorlib
                                  })
 
             Dim sysNS = DirectCast(assemblies(0).GlobalNamespace.GetMember("System"), NamespaceSymbol)

@@ -14071,7 +14071,7 @@ Class CI003
 End Class
     </file>
     </compilation>,
-            expectedOutput:="CI003.Count", references:={Net451.SystemCore})
+            expectedOutput:="CI003.Count", references:={NetFramework.SystemCore})
 
             verifier.VerifyDiagnostics()
         End Sub

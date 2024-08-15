@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 using Roslyn.Test.Utilities;
+using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Retargeting
 {
@@ -2637,7 +2639,7 @@ public struct Test
 }
 ";
 
-            var piaCompilation = CreateCompilationWithMscorlib45(pia, options: TestOptions.DebugDll, assemblyName: "Pia");
+            var piaCompilation = CreateEmptyCompilation(pia, references: [Net40.mscorlib], options: TestOptions.DebugDll, assemblyName: "Pia");
 
             string consumer1 = @"
 public class UsePia1
@@ -2661,11 +2663,11 @@ class UsePia2
 
             foreach (MetadataReference piaRef in new[] { piaCompilation.EmitToImageReference(), piaCompilation.ToMetadataReference() })
             {
-                var compilation1 = CreateCompilationWithMscorlib45(consumer1, references: new[] { piaRef.WithEmbedInteropTypes(true) });
+                var compilation1 = CreateEmptyCompilation(consumer1, references: [Net40.mscorlib, piaRef.WithEmbedInteropTypes(true)]);
 
                 foreach (MetadataReference consumer1Ref in new[] { compilation1.EmitToImageReference(), compilation1.ToMetadataReference() })
                 {
-                    var compilation2 = CreateCompilationWithMscorlib46(consumer2, references: new[] { piaRef, consumer1Ref });
+                    var compilation2 = CreateEmptyCompilation(consumer2, references: [Net461.References.mscorlib, piaRef, consumer1Ref]);
 
                     compilation2.VerifyDiagnostics();
 

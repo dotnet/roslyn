@@ -11071,7 +11071,7 @@ class C
 }
 ");
 
-            var compilation0 = CreateEmptyCompilation(new[] { source0.Tree }, new[] { Net451.mscorlib }, options: ComSafeDebugDll);
+            var compilation0 = CreateEmptyCompilation(new[] { source0.Tree }, new[] { NetFramework.mscorlib }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));
@@ -11289,7 +11289,7 @@ class C
 }
 ");
 
-            var compilation0 = CreateEmptyCompilation(new[] { source0.Tree }, new[] { Net451.mscorlib }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            var compilation0 = CreateEmptyCompilation(new[] { source0.Tree }, new[] { NetFramework.mscorlib }, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             Assert.NotNull(compilation0.GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_AsyncStateMachineAttribute__ctor));

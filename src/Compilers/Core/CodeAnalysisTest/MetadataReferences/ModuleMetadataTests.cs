@@ -11,6 +11,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using System.Collections.Generic;
 using System.Reflection.PortableExecutable;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -128,7 +129,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void Disposal()
         {
-            var md = ModuleMetadata.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib);
+            var md = ModuleMetadata.CreateFromImage(Net461.Resources.mscorlib);
             md.Dispose();
             Assert.Throws<ObjectDisposedException>(() => md.Module);
             md.Dispose();
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ImageOwnership()
         {
-            var m = ModuleMetadata.CreateFromImage(TestMetadata.ResourcesNet451.mscorlib);
+            var m = ModuleMetadata.CreateFromImage(Net461.Resources.mscorlib);
             var copy1 = m.Copy();
             var copy2 = copy1.Copy();
 

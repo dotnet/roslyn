@@ -12899,7 +12899,7 @@ namespace TestNamespace
         [Fact]
         public void CS0841ERR_VariableUsedBeforeDeclaration04()
         {
-            var systemRef = Net451.System;
+            var systemRef = NetFramework.System;
             CreateCompilationWithMscorlib40AndSystemCore(
 @"using System.Collections.Generic;
 class Base
@@ -24290,7 +24290,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp }, options: TestOptions.ReleaseDll).VerifyDiagnostics(
     // (9,44): error CS8072: An expression tree lambda may not contain a null propagating operator.
     //         Expression<Func<string>> s = () => x?.ToString();
     Diagnostic(ErrorCode.ERR_NullPropagatingOpInExpressionTree, "x?.ToString()").WithLocation(9, 44),
@@ -24331,7 +24331,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp }).VerifyDiagnostics(
     // (10,87): error CS8073: An expression tree lambda may not contain a dictionary initializer.
     //         Expression<Func<Dictionary<int, int>>> s = () => new Dictionary<int, int> () {[1] = 2};
     Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[1]").WithLocation(10, 87)
@@ -24371,7 +24371,7 @@ namespace ConsoleApplication31
 }
 
 ";
-            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp }).VerifyDiagnostics(
     // (25,72): error CS8075: An expression tree lambda may not contain an extension collection element initializer.
     //         public Expression<Func<Stack<int>>> E = () => new Stack<int> { 42 };
     Diagnostic(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, "42").WithLocation(25, 72)
@@ -24399,7 +24399,7 @@ class C
 }
 
 ";
-            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(text, new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp }).VerifyDiagnostics(
     // (9,53): error CS8073: An expression tree lambda may not contain a dictionary initializer.
     //         Expression<Func<C>> e = () => new C { H = { ["Key"] = "Value" } };
     Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, @"[""Key""]").WithLocation(9, 53)

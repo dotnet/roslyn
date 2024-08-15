@@ -2091,6 +2091,7 @@ public class C : B
             var ref2 = new CSharpCompilationReference(comp2);
 
             var comp3 = CreateCompilationWithMscorlib45(source3, new[] { SystemCoreRef, ref1, ref2 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm3", parseOptions: parseOptions);
+            comp3.MakeMemberMissing(SpecialMember.System_Array__Empty);
             comp3.VerifyDiagnostics();
 
             // Note: calls B.M, not A.M, since asm1 is not accessible.
@@ -2213,6 +2214,7 @@ public class D : C
             var ref3 = new CSharpCompilationReference(comp3);
 
             var comp4 = CreateCompilationWithMscorlib45(source4, new[] { SystemCoreRef, ref1, ref2, ref3 }, options: TestOptions.SigningReleaseDll, assemblyName: "asm4", parseOptions: parseOptions);
+            comp4.MakeMemberMissing(SpecialMember.System_Array__Empty);
             comp4.VerifyDiagnostics();
 
             // Note: calls C.M, not A.M, since asm2 is not accessible (stops search).

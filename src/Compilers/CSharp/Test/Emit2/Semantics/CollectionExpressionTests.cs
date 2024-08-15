@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using ICSharpCode.Decompiler.IL;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -11117,10 +11118,8 @@ static class Program
 
         [CombinatorialData]
         [Theory]
-        public void ArrayEmpty_01([CombinatorialValues(TargetFramework.Mscorlib45Extended, TargetFramework.Net80)] TargetFramework targetFramework)
+        public void ArrayEmpty_01(bool includeEmptyArray)
         {
-            if (!ExecutionConditionUtil.IsCoreClr && targetFramework == TargetFramework.Net80) return;
-
             string source = """
                 using System.Collections.Generic;
                 class Program
@@ -11142,12 +11141,18 @@ static class Program
                     static IReadOnlyList<T> EmptyIReadOnlyList<T>() => [];
                 }
                 """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
+            if (!includeEmptyArray)
+            {
+                comp.MakeMemberMissing(SpecialMember.System_Array__Empty);
+            }
+
             var verifier = CompileAndVerify(
-                new[] { source, s_collectionExtensions },
-                targetFramework: targetFramework,
+                comp,
                 expectedOutput: "[], [], [], [], [], [], ");
 
-            string expectedIL = (targetFramework == TargetFramework.Mscorlib45Extended) ?
+            string expectedIL = !includeEmptyArray ?
                 """
                 {
                   // Code size        7 (0x7)
@@ -11185,10 +11190,8 @@ static class Program
 
         [CombinatorialData]
         [Theory]
-        public void ArrayEmpty_02([CombinatorialValues(TargetFramework.Mscorlib45Extended, TargetFramework.Net80)] TargetFramework targetFramework)
+        public void ArrayEmpty_02(bool includeEmptyArray)
         {
-            if (!ExecutionConditionUtil.IsCoreClr && targetFramework == TargetFramework.Net80) return;
-
             string source = """
                 using System.Collections.Generic;
                 class Program
@@ -11210,12 +11213,16 @@ static class Program
                     static IReadOnlyList<string> EmptyIReadOnlyList() => [];
                 }
                 """;
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
+            if (!includeEmptyArray)
+            {
+                comp.MakeMemberMissing(SpecialMember.System_Array__Empty);
+            }
             var verifier = CompileAndVerify(
-                new[] { source, s_collectionExtensions },
-                targetFramework: targetFramework,
+                comp,
                 expectedOutput: "[], [], [], [], [], [], ");
 
-            string expectedIL = (targetFramework == TargetFramework.Mscorlib45Extended) ?
+            string expectedIL = !includeEmptyArray ?
                 """
                 {
                   // Code size        7 (0x7)

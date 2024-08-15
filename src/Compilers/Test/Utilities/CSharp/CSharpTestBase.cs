@@ -2278,14 +2278,14 @@ namespace System.Diagnostics.CodeAnalysis
         {
             var reference = CreateEmptyCompilation(
                 TestSources.Span,
-                references: new List<MetadataReference>() { Net451.mscorlib, Net451.SystemCore, Net451.MicrosoftCSharp },
+                references: new List<MetadataReference>() { NetFramework.mscorlib, NetFramework.SystemCore, NetFramework.MicrosoftCSharp },
                 options: TestOptions.UnsafeReleaseDll);
 
             reference.VerifyDiagnostics();
 
             var comp = CreateEmptyCompilation(
                 text,
-                references: new List<MetadataReference>() { Net451.mscorlib, Net451.SystemCore, Net451.MicrosoftCSharp, reference.EmitToImageReference() },
+                references: new List<MetadataReference>() { NetFramework.mscorlib, NetFramework.SystemCore, NetFramework.MicrosoftCSharp, reference.EmitToImageReference() },
                 options: options,
                 parseOptions: parseOptions);
 

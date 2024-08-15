@@ -16232,8 +16232,7 @@ class Program
     }
 }
 ";
-            CompileAndVerifyWithMscorlib40(source, references: new[] { SystemRef, SystemCoreRef },
-                expectedOutput: "0");
+            CompileAndVerify(source, targetFramework: TargetFramework.NetFramework, expectedOutput: "0");
         }
 
         [Fact, WorkItem(9703, "https://github.com/dotnet/roslyn/issues/9703")]

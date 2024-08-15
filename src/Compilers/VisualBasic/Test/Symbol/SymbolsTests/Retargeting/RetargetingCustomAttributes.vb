@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 
         Private Shared ReadOnly Property NewMsCorLib As MetadataReference
             Get
-                Return TestMetadata.Net451.mscorlib
+                Return NetFramework.mscorlib
             End Get
         End Property
 

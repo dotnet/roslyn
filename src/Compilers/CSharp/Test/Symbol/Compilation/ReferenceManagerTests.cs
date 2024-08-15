@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -738,8 +739,8 @@ namespace Microsoft.TeamFoundation.WebAccess.Common
     }
 }";
             var tree = Parse(source);
-            var r1 = AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemCore).GetReference(filePath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
-            var r2 = AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemCore).GetReference(filePath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
+            var r1 = AssemblyMetadata.CreateFromImage(Net461.Resources.SystemCore).GetReference(filePath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
+            var r2 = AssemblyMetadata.CreateFromImage(Net461.Resources.SystemCore).GetReference(filePath: @"c:\temp\aa.dll", display: "System.Core.v4_0_30319.dll");
             var r2_SysCore = r2.WithAliases(new[] { "SysCore" });
 
             var compilation = CreateEmptyCompilation(tree, new[] { MscorlibRef, r1, r2_SysCore }, TestOptions.DebugExe, assemblyName: "Test");
@@ -990,7 +991,7 @@ public interface I {}";
         [Fact]
         public void DuplicateAssemblyReferences_EquivalentName()
         {
-            string p1 = Temp.CreateFile().WriteAllBytes(ResourcesNet451.SystemCore).Path;
+            string p1 = Temp.CreateFile().WriteAllBytes(Net461.Resources.SystemCore).Path;
             string p2 = Temp.CreateFile().CopyContentFrom(p1).Path;
 
             var r1 = MetadataReference.CreateFromFile(p1);
@@ -1010,7 +1011,7 @@ public interface I {}";
         [WorkItem(546026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546026"), WorkItem(546169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546169")]
         public void CS1703ERR_DuplicateImport()
         {
-            var p1 = Temp.CreateFile().WriteAllBytes(ResourcesNet451.System).Path;
+            var p1 = Temp.CreateFile().WriteAllBytes(Net461.Resources.System).Path;
             var p2 = Temp.CreateFile().WriteAllBytes(ResourcesNet20.System).Path;
             var text = @"namespace N {}";
 
@@ -1367,14 +1368,14 @@ public class A
                     }),
                     files: new Dictionary<string, PortableExecutableReference>()
                     {
-                        { @"C:\A\lib.dll", Net451.MicrosoftCSharp },
-                        { @"C:\B\lib.dll", Net451.MicrosoftVisualBasic },
+                        { @"C:\A\lib.dll", NetFramework.MicrosoftCSharp },
+                        { @"C:\B\lib.dll", NetFramework.MicrosoftVisualBasic },
                     })));
 
             c.VerifyDiagnostics();
 
-            Assert.Same(Net451.MicrosoftCSharp, c.GetDirectiveReference(rd1));
-            Assert.Same(Net451.MicrosoftVisualBasic, c.GetDirectiveReference(rd2));
+            Assert.Same(NetFramework.MicrosoftCSharp, c.GetDirectiveReference(rd1));
+            Assert.Same(NetFramework.MicrosoftVisualBasic, c.GetDirectiveReference(rd2));
         }
 
         [Fact]
@@ -2208,8 +2209,8 @@ public class Source
             {
                 Net20.mscorlib,
                 Net20.System,
-                Net451.mscorlib,
-                Net451.System,
+                NetFramework.mscorlib,
+                NetFramework.System,
             });
 
             c.VerifyDiagnostics();
@@ -3178,13 +3179,13 @@ public class C : A
             var aRef = CreateEmptyCompilation(@"public interface A { System.Diagnostics.Process PA { get; } }", new[] { Net20.mscorlib, Net20.System },
                 options: options, assemblyName: "A").EmitToImageReference();
 
-            var bRef = CreateEmptyCompilation(@"public interface B { System.Diagnostics.Process PB { get; } }", new[] { MscorlibRef_v4_0_30316_17626, Net451.System },
+            var bRef = CreateEmptyCompilation(@"public interface B { System.Diagnostics.Process PB { get; } }", new[] { MscorlibRef_v4_0_30316_17626, NetFramework.System },
                 options: options, assemblyName: "B").EmitToImageReference();
 
             var resolverC = new TestMissingMetadataReferenceResolver(new Dictionary<string, MetadataReference>
             {
                 { "System, 2.0.0.0", Net20.System },
-                { "System, 4.0.0.0", Net451.System },
+                { "System, 4.0.0.0", NetFramework.System },
             });
 
             var c = CreateSubmissionWithExactReferences("public interface C : A, B { System.Diagnostics.Process PC { get; } }", new[] { MscorlibRef_v4_0_30316_17626, aRef, bRef },
@@ -3194,8 +3195,8 @@ public class C : A
 
             resolverC.VerifyResolutionAttempts(
                 "B -> System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
-                "System.dll (net451) -> System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
-                "System.dll (net451) -> System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
+                "System (net461) -> System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System (net461) -> System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
                 "A -> System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
                 "System.dll (net20) -> System.Configuration, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
                 "System.dll (net20) -> System.Xml, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");

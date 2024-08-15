@@ -3550,8 +3550,7 @@ static class C
 ";
 
             CompileAndVerify(source,
-                targetFramework: TargetFramework.Mscorlib45,
-                references: new[] { Net451.System, Net451.SystemCore, Net451.SystemRuntime, ValueTupleRef },
+                targetFramework: TargetFramework.NetFramework,
                 expectedOutput: @"42 Alice");
         }
 
@@ -3856,7 +3855,7 @@ public static class Extensions
     public static string a(this (int, int) self) { return ""hello""; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { Net451.System, Net451.SystemCore, Net451.SystemRuntime, ValueTupleRef }, parseOptions: TestOptions.Regular7);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.NetFramework, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (8,32): error CS8305: Tuple element name 'a' is inferred. Please use language version 7.1 or greater to access an element by its inferred name.
                 //         System.Console.Write(t.a);

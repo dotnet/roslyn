@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         {
             options = options ?? TestOptions.ReleaseExe;
 
-            IEnumerable<MetadataReference> asyncRefs = new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp };
+            IEnumerable<MetadataReference> asyncRefs = new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp };
             references = (references != null) ? references.Concat(asyncRefs) : asyncRefs;
 
             return CreateCompilationWithMscorlib45(source, options: options, references: references);

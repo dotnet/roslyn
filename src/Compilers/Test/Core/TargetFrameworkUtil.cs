@@ -140,6 +140,7 @@ namespace Roslyn.Test.Utilities
                 Net461.References.mscorlib,
                 Net461.References.System,
                 Net461.References.SystemCore,
+                Net461.References.SystemData,
                 NetFx.ValueTuple.tuplelib,
                 Net461.References.SystemRuntime);
 
@@ -147,7 +148,9 @@ namespace Roslyn.Test.Utilities
         public static PortableExecutableReference System { get; } = Net461.References.System;
         public static PortableExecutableReference SystemRuntime { get; } = Net461.References.SystemRuntime;
         public static PortableExecutableReference SystemCore { get; } = Net461.References.SystemCore;
+        public static PortableExecutableReference SystemData { get; } = Net461.References.SystemData;
         public static PortableExecutableReference SystemThreadingTasks { get; } = Net461.References.SystemThreadingTasks;
+        public static PortableExecutableReference SystemXml { get; } = Net461.References.SystemXml;
         public static PortableExecutableReference MicrosoftCSharp { get; } = Net461.References.MicrosoftCSharp;
         public static PortableExecutableReference MicrosoftVisualBasic { get; } = Net461.References.MicrosoftVisualBasic;
     }
@@ -183,11 +186,11 @@ namespace Roslyn.Test.Utilities
         ];
         public static ImmutableArray<MetadataReference> Mscorlib45ExtendedReferences =>
         [
-            Net451.mscorlib,
-            Net451.System,
-            Net451.SystemCore,
+            NetFramework.mscorlib,
+            NetFramework.System,
+            NetFramework.SystemCore,
             TestBase.ValueTupleRef,
-            Net451.SystemRuntime
+            NetFramework.SystemRuntime
         ];
         public static ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences =>
         [
@@ -224,19 +227,19 @@ namespace Roslyn.Test.Utilities
         ];
         public static ImmutableArray<MetadataReference> Mscorlib45References { get; } =
         [
-            Net451.mscorlib
+            NetFramework.mscorlib
         ];
         public static ImmutableArray<MetadataReference> Mscorlib45AndCSharpReferences { get; } =
         [
-            Net451.mscorlib,
-            Net451.SystemCore,
-            Net451.MicrosoftCSharp
+            NetFramework.mscorlib,
+            NetFramework.SystemCore,
+            NetFramework.MicrosoftCSharp
         ];
         public static ImmutableArray<MetadataReference> Mscorlib45AndVBRuntimeReferences { get; } =
         [
-            Net451.mscorlib,
-            Net451.System,
-            Net451.MicrosoftVisualBasic
+            NetFramework.mscorlib,
+            NetFramework.System,
+            NetFramework.MicrosoftVisualBasic
         ];
         public static ImmutableArray<MetadataReference> Mscorlib46References { get; } =
         [
@@ -266,10 +269,10 @@ namespace Roslyn.Test.Utilities
         ];
         public static ImmutableArray<MetadataReference> DefaultVbReferences { get; } =
         [
-            Net451.mscorlib,
-            Net451.System,
-            Net451.SystemCore,
-            Net451.MicrosoftVisualBasic
+            NetFramework.mscorlib,
+            NetFramework.System,
+            NetFramework.SystemCore,
+            NetFramework.MicrosoftVisualBasic
         ];
 
 #if DEBUG

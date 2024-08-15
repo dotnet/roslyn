@@ -8,6 +8,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports System.Xml.Linq
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
@@ -229,7 +230,7 @@ Friend Module CompilationUtils
 
     Public ReadOnly Net40XmlReferences As MetadataReference() = {Net40.SystemCore, Net40.SystemXml, Net40.SystemXmlLinq}
 
-    Public ReadOnly Net451XmlReferences As MetadataReference() = {Net451.SystemCore, Net451.SystemXml, Net451.SystemXmlLinq}
+    Public ReadOnly Net461XmlReferences As MetadataReference() = {Net461.References.SystemCore, Net461.References.SystemXml, Net461.References.SystemXmlLinq}
 
     ''' <summary>
     ''' 

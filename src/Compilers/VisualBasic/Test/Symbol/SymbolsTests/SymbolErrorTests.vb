@@ -4,6 +4,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Xml.Linq
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -6666,7 +6667,7 @@ BC30639: Properties cannot be declared 'Partial'.
 
         <Fact()>
         Public Sub BC30645ERR_InvalidOptionalParameterUsage1()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilation(
     <compilation name="InvalidOptionalParameterUsage1">
         <file name="a.vb"><![CDATA[
 Module M1
@@ -6676,8 +6677,7 @@ Module M1
     End Function
 End Module
         ]]></file>
-    </compilation>)
-            compilation1 = compilation1.AddReferences(Net451.SystemWebServices)
+    </compilation>, targetFramework:=TargetFramework.NetFramework)
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC30645: Attribute 'WebMethod' cannot be applied to a method with optional parameters.
@@ -6689,7 +6689,7 @@ BC30645: Attribute 'WebMethod' cannot be applied to a method with optional param
 
         <Fact()>
         Public Sub BC30645ERR_InvalidOptionalParameterUsage1a()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+            Dim compilation1 = CompilationUtils.CreateCompilation(
     <compilation name="InvalidOptionalParameterUsage1a">
         <file name="a.vb"><![CDATA[
 Module M1
@@ -6700,8 +6700,7 @@ Module M1
     End Function
 End Module
         ]]></file>
-    </compilation>)
-            compilation1 = compilation1.AddReferences(Net451.SystemWebServices)
+    </compilation>, targetFramework:=TargetFramework.NetFramework)
 
             CompilationUtils.AssertTheseDeclarationDiagnostics(compilation1,
 <errors><![CDATA[
@@ -6714,9 +6713,10 @@ BC30645: Attribute 'WebMethod' cannot be applied to a method with optional param
 ]]></errors>)
         End Sub
 
-        <Fact()>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/74779")>
         Public Sub BC30645ERR_InvalidOptionalParameterUsage1b()
-            Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
+            ' Dim references = {Net461.References.mscorlib, Net461.References.MicrosoftVisualBasic, Net461.References.SystemWebServices, Net461.References.SystemEnterpriseServices
+            Dim compilation1 = CompilationUtils.CreateCompilation(
     <compilation name="InvalidOptionalParameterUsage1b">
         <file name="a.vb"><![CDATA[
 Module M1
@@ -6746,9 +6746,7 @@ Module M1
     End Function
 End Module
         ]]></file>
-    </compilation>)
-            compilation1 = compilation1.AddReferences(Net451.SystemWebServices,
-                                                      Net451.SystemEnterpriseServices)
+    </compilation>, targetFramework:=TargetFramework.NetFramework)
 
             CompilationUtils.AssertTheseDiagnostics(compilation1,
 <errors><![CDATA[
@@ -8423,7 +8421,7 @@ BC30915: 'goo' cannot expose the underlying delegate type 'i1.gooEventHandler' o
         End Class
     ]]></file>
 </compilation>,
-{Net451.mscorlib, C1, C2})
+{NetFramework.mscorlib, C1, C2})
 
             Dim expectedErrors = <errors><![CDATA[
 BC30916: Type 'C1' is not supported because it either directly or indirectly inherits from itself.
@@ -8455,7 +8453,7 @@ BC30916: Type 'I1' is not supported because it either directly or indirectly inh
         End Class
     ]]></file>
 </compilation>,
-{Net451.mscorlib, C1, C2})
+{NetFramework.mscorlib, C1, C2})
 
             Dim expectedErrors = <errors><![CDATA[
 BC30916: Type 'C2' is not supported because it either directly or indirectly inherits from itself.
@@ -8487,7 +8485,7 @@ BC30916: Type 'I1' is not supported because it either directly or indirectly inh
         End Class
     ]]></file>
 </compilation>,
-{Net451.mscorlib, C1, C2})
+{NetFramework.mscorlib, C1, C2})
 
             Dim expectedErrors = <errors><![CDATA[
 BC30916: Type 'C1' is not supported because it either directly or indirectly inherits from itself.

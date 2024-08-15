@@ -1763,7 +1763,7 @@ End Structure
 ]]>)
             compilation1 = CreateEmptyCompilationWithReferences(
                 sources1,
-                references:={Net451.mscorlib, Net451.System, compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={NetFramework.mscorlib, NetFramework.System, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("S.F", <![CDATA[

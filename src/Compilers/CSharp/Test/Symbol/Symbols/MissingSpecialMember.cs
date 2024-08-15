@@ -6,6 +6,7 @@
 
 using System;
 using System.Linq;
+using Basic.Reference.Assemblies;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -547,7 +548,7 @@ namespace System
         [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllSpecialTypeMembers()
         {
-            var comp = CreateEmptyCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
+            var comp = CreateEmptyCompilation("", [Net461.References.mscorlib]);
 
             foreach (SpecialMember special in Enum.GetValues(typeof(SpecialMember)))
             {
@@ -567,8 +568,7 @@ namespace System
                     || special == SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics
                     || special == SpecialMember.System_Runtime_CompilerServices_PreserveBaseOverridesAttribute__ctor
                     || special == SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor
-                    || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference
-                    || special == SpecialMember.System_Array__Empty)
+                    || special == SpecialMember.System_ReadOnlySpan_T__ctor_Reference)
                 {
                     Assert.Null(symbol); // Not available
                 }

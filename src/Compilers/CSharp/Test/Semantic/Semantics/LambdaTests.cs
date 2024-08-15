@@ -368,7 +368,7 @@ public class C
 
             var comp1 = CreateCompilationWithMscorlib40(
                 new[] { Parse(text1) },
-                new[] { TestMetadata.Net451.System });
+                new[] { NetFramework.System });
 
             var text2 = @"
 class Program

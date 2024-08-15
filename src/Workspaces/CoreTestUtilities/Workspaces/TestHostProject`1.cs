@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             this.AdditionalDocuments = additionalDocuments ?? SpecializedCollections.EmptyEnumerable<TDocument>();
             this.AnalyzerConfigDocuments = analyzerConfigDocuments ?? SpecializedCollections.EmptyEnumerable<TDocument>();
             ProjectReferences = projectReferences != null ? projectReferences.Select(p => new ProjectReference(p.Id)) : SpecializedCollections.EmptyEnumerable<ProjectReference>();
-            MetadataReferences = metadataReferences ?? new MetadataReference[] { TestMetadata.Net451.mscorlib };
+            MetadataReferences = metadataReferences ?? new MetadataReference[] { NetFramework.mscorlib };
             _analyzerReferences = analyzerReferences ?? SpecializedCollections.EmptyEnumerable<AnalyzerReference>();
             _assemblyName = assemblyName ?? "TestProject";
             Version = VersionStamp.Create();

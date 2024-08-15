@@ -2460,14 +2460,15 @@ public class Test
 }
                     ");
 
-            var comp45 = CreateCompilationWithMscorlib45(
+            var comp = CreateCompilationWithMscorlib45(
                 new[] { text, ExpressionTestLibrary },
                 new[] { ExpressionAssemblyRef },
                 options: TestOptions.ReleaseExe);
+            comp.MakeMemberMissing(SpecialMember.System_Array__Empty);
 
             // no use Array.Empty here since it is not available
             CompileAndVerify(
-                comp45,
+                comp,
                 expectedOutput: expectedOutput).
                     VerifyIL("Test.Main",
                     @"
