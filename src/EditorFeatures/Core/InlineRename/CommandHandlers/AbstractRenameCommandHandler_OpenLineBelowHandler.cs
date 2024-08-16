@@ -18,7 +18,7 @@ internal abstract partial class AbstractRenameCommandHandler : IChainedCommandHa
     {
         HandlePossibleTypingCommand(args, nextHandler, (activeSession, span) =>
         {
-            _ = activeSession.CommitXAsync(previewChanges: false, forceCommitSynchronously: true, CancellationToken.None);
+            activeSession.Commit();
             nextHandler();
         });
     }

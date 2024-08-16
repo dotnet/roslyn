@@ -16,8 +16,7 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<S
     {
         if (_renameService.ActiveSession != null)
         {
-            // Need to commit the rename session synchronously to make sure save command saves the changes from rename change.
-            _ = _renameService.ActiveSession.CommitXAsync(previewChanges: false, forceCommitSynchronously: true, context.OperationContext.UserCancellationToken);
+            _renameService.ActiveSession.Commit();
             SetFocusToTextView(args.TextView);
         }
 
