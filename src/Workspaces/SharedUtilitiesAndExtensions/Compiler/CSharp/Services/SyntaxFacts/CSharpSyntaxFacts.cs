@@ -896,12 +896,12 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
         }
     }
 
-    public void AddTopLevelAndMethodLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> list)
+    public void AddTopLevelAndMethodLevelMembers(SyntaxNode? root, List<SyntaxNode> list)
     {
         AppendMembers(root, list, topLevel: true, methodLevel: true);
     }
 
-    public void AddMethodLevelMembers(SyntaxNode? root, ArrayBuilder<SyntaxNode> list)
+    public void AddMethodLevelMembers(SyntaxNode? root, List<SyntaxNode> list)
     {
         AppendMembers(root, list, topLevel: false, methodLevel: true);
     }
@@ -909,7 +909,7 @@ internal class CSharpSyntaxFacts : ISyntaxFacts
     public SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration)
         => ((TypeDeclarationSyntax)typeDeclaration).Members;
 
-    private void AppendMembers(SyntaxNode? node, ArrayBuilder<SyntaxNode> list, bool topLevel, bool methodLevel)
+    private void AppendMembers(SyntaxNode? node, List<SyntaxNode> list, bool topLevel, bool methodLevel)
     {
         Debug.Assert(topLevel || methodLevel);
 

@@ -895,11 +895,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return TextSpan.FromBounds(list.First.SpanStart, list.Last.Span.End)
         End Function
 
-        Public Sub AddTopLevelAndMethodLevelMembers(root As SyntaxNode, list As ArrayBuilder(Of SyntaxNode)) Implements ISyntaxFacts.AddTopLevelAndMethodLevelMembers
+        Public Sub AddTopLevelAndMethodLevelMembers(root As SyntaxNode, list As List(Of SyntaxNode)) Implements ISyntaxFacts.AddTopLevelAndMethodLevelMembers
             AppendMembers(root, list, topLevel:=True, methodLevel:=True)
         End Sub
 
-        Public Sub AddMethodLevelMembers(root As SyntaxNode, list As ArrayBuilder(Of SyntaxNode)) Implements ISyntaxFacts.AddMethodLevelMembers
+        Public Sub AddMethodLevelMembers(root As SyntaxNode, list As List(Of SyntaxNode)) Implements ISyntaxFacts.AddMethodLevelMembers
             AppendMembers(root, list, topLevel:=False, methodLevel:=True)
         End Sub
 
@@ -1047,7 +1047,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             End If
         End Sub
 
-        Private Sub AppendMembers(node As SyntaxNode, list As ArrayBuilder(Of SyntaxNode), topLevel As Boolean, methodLevel As Boolean)
+        Private Sub AppendMembers(node As SyntaxNode, list As List(Of SyntaxNode), topLevel As Boolean, methodLevel As Boolean)
             Debug.Assert(topLevel OrElse methodLevel)
 
             For Each member In node.GetMembers()

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -215,7 +216,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return null;
                 }
 
-                using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var members);
+                using var pooledMembers = SharedPools.Default<List<SyntaxNode>>().GetPooledObject();
+                var members = pooledMembers.Object;
 
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
                 syntaxFacts.AddMethodLevelMembers(root, members);

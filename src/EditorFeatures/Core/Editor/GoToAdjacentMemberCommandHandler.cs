@@ -5,12 +5,12 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Commanding;
@@ -103,7 +103,8 @@ internal class GoToAdjacentMemberCommandHandler(IOutliningManagerService outlini
     /// </summary>
     internal static int? GetTargetPosition(ISyntaxFactsService service, SyntaxNode root, int caretPosition, bool next)
     {
-        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var members);
+        using var pooledMembers = SharedPools.Default<List<SyntaxNode>>().GetPooledObject();
+        var members = pooledMembers.Object;
 
         service.AddMethodLevelMembers(root, members);
         if (members.Count == 0)
