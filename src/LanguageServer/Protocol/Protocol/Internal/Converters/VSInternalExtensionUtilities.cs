@@ -5,6 +5,7 @@
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.CodeAnalysis.LanguageServer.Handler;
 
 namespace Roslyn.LanguageServer.Protocol;
 
@@ -49,6 +50,7 @@ internal static class VSInternalExtensionUtilities
         AddOrReplaceConverter<TextDocumentClientCapabilities, VSInternalTextDocumentClientCapabilities>();
         AddOrReplaceConverter<RenameRange, VSInternalRenameRange>();
         AddOrReplaceConverter<RenameParams, VSInternalRenameParams>();
+        AddOrReplaceConverter<DocumentSymbol, RoslynDocumentSymbol>();
 
         void AddOrReplaceConverter<TBase, TExtension>()
             where TExtension : TBase

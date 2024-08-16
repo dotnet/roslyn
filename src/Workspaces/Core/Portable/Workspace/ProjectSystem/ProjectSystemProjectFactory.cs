@@ -39,8 +39,10 @@ internal sealed partial class ProjectSystemProjectFactory
     public Workspace Workspace { get; }
     public IAsynchronousOperationListener WorkspaceListener { get; }
     public IFileChangeWatcher FileChangeWatcher { get; }
+
     public FileWatchedPortableExecutableReferenceFactory FileWatchedReferenceFactory { get; }
-    public SolutionServices SolutionServices { get; }
+
+    public SolutionServices SolutionServices => this.Workspace.Services.SolutionServices;
 
     private readonly Func<bool, ImmutableArray<string>, Task> _onDocumentsAddedMaybeAsync;
     private readonly Action<Project> _onProjectRemoved;
@@ -74,8 +76,6 @@ internal sealed partial class ProjectSystemProjectFactory
         Workspace = workspace;
         WorkspaceListener = workspace.Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
 
-        SolutionServices = workspace.Services.SolutionServices;
-
         FileChangeWatcher = fileChangeWatcher;
         FileWatchedReferenceFactory = new FileWatchedPortableExecutableReferenceFactory(fileChangeWatcher);
         FileWatchedReferenceFactory.ReferenceChanged += this.StartRefreshingMetadataReferencesForFile;
@@ -85,7 +85,7 @@ internal sealed partial class ProjectSystemProjectFactory
     }
 
     public FileTextLoader CreateFileTextLoader(string fullPath)
-        => new WorkspaceFileTextLoader(this.Workspace.Services.SolutionServices, fullPath, defaultEncoding: null);
+        => new WorkspaceFileTextLoader(this.SolutionServices, fullPath, defaultEncoding: null);
 
     public async Task<ProjectSystemProject> CreateAndAddToWorkspaceAsync(string projectSystemName, string language, ProjectSystemProjectCreationInfo creationInfo, ProjectSystemHostInfo hostInfo)
     {

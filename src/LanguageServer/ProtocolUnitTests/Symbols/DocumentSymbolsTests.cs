@@ -48,7 +48,11 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.Symbols
             CreateDocumentSymbol(LSP.SymbolKind.Method, "M", "M()", testLspServer.GetLocations("method").Single(), testLspServer.GetLocations("methodSelection").Single(), expected.First());
 
             var results = await RunGetDocumentSymbolsAsync<LSP.DocumentSymbol[]>(testLspServer);
-            AssertJsonEquals(expected, results);
+            Assert.Equal(expected.Length, results.Length);
+            for (var i = 0; i < results.Length; i++)
+            {
+                AssertDocumentSymbolEquals(expected[i], results[i]);
+            }
         }
 
         [Theory, CombinatorialData]
