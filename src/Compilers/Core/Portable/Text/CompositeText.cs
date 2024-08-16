@@ -187,11 +187,7 @@ namespace Microsoft.CodeAnalysis.Text
                 ReduceSegmentCountIfNecessary(segments);
             }
 
-            // If there are multiple segments, ensure they all have non-zero length. This simplifies the CompositeTextLineInfo logic.
-            if (segments.Count > 1)
-            {
-                segments.RemoveWhere(static (s, _, _) => s.Length == 0, default(VoidResult));
-            }
+            RemoveSplitLineBreaksAndEmptySegments(segments);
 
             if (segments.Count == 0)
             {
@@ -204,6 +200,38 @@ namespace Microsoft.CodeAnalysis.Text
             else
             {
                 return new CompositeText(segments.ToImmutable(), original.Encoding, original.ChecksumAlgorithm);
+            }
+        }
+
+        private static void RemoveSplitLineBreaksAndEmptySegments(ArrayBuilder<SourceText> segments)
+        {
+            if (segments.Count > 1)
+            {
+                // Remove empty segments before checking for split line breaks
+                segments.RemoveWhere(static (s, _, _) => s.Length == 0, default(VoidResult));
+
+                var splitLineBreakFound = false;
+                for (int i = 1; i < segments.Count; i++)
+                {
+                    var prevSegment = segments[i - 1];
+                    var curSegment = segments[i];
+                    if (prevSegment.Length > 0 && prevSegment[^1] == '\r' && curSegment[0] == '\n')
+                    {
+                        splitLineBreakFound = true;
+
+                        segments[i - 1] = prevSegment.GetSubText(new TextSpan(0, prevSegment.Length - 1));
+                        segments.Insert(i, SourceText.From("\r\n"));
+                        segments[i + 1] = curSegment.GetSubText(new TextSpan(1, curSegment.Length - 1));
+                        i++;
+                    }
+                }
+
+                if (splitLineBreakFound)
+                {
+                    // If a split line break was present, ensure there aren't any empty lines again
+                    // due to the sourcetexts created from the GetSubText calls.
+                    segments.RemoveWhere(static (s, _, _) => s.Length == 0, default(VoidResult));
+                }
             }
         }
 
@@ -421,19 +449,10 @@ namespace Microsoft.CodeAnalysis.Text
                     // views it's line count as one greater than the number of line breaks it contains.
                     accumulatedLineCount += (segment.Lines.Count - 1);
 
-                    // If "\r\n" is split amongst adjacent segments, reduce the line count by one as both segments
-                    // would count their corresponding CR or LF as a newline.
                     Debug.Assert(segment.Length > 0);
-                    if (segment[^1] == '\r' &&
-                        i < compositeText.Segments.Length - 1)
-                    {
-                        var nextSegment = compositeText.Segments[i + 1];
-                        Debug.Assert(nextSegment.Length > 0);
-                        if (nextSegment[0] == '\n')
-                        {
-                            accumulatedLineCount -= 1;
-                        }
-                    }
+
+                    // RemoveSplitLineBreaksAndEmptySegments ensured no split line breaks
+                    Debug.Assert(i == compositeText.Segments.Length - 1 || segment[^1] != '\r' || compositeText.Segments[i + 1][0] != '\n');
                 }
 
                 _compositeText = compositeText;
@@ -531,28 +550,15 @@ namespace Microsoft.CodeAnalysis.Text
                         break;
                     }
 
-                    // No need to continue to the previous segment if either:
-                    // 1) it ends in newline character that isn't \r or
-                    // 2) it ends in \r and the current segment doesn't start with \n
+                    // No need to include the previous segment if it ends in a newline character
                     var previousSegment = _compositeText.Segments[firstSegmentIndexInclusive - 1];
                     var previousSegmentLastChar = previousSegment[^1];
                     if (TextUtilities.IsAnyLineBreakCharacter(previousSegmentLastChar))
                     {
-                        if (previousSegmentLastChar != '\r')
-                        {
-                            break;
-                        }
-
-                        var currentSegment = _compositeText.Segments[firstSegmentIndexInclusive];
-                        if (currentSegment[0] != '\n')
-                        {
-                            break;
-                        }
+                        break;
                     }
                 }
 
-                // Determining the lastSegment is a simple walk as the _segmentLineNumbers was populated
-                // accounting for split "\r\n".
                 for (lastSegmentIndexInclusive = binarySearchSegmentIndex; lastSegmentIndexInclusive < _compositeText.Segments.Length - 1; lastSegmentIndexInclusive++)
                 {
                     if (_segmentLineNumbers[lastSegmentIndexInclusive + 1] != lineNumber)
