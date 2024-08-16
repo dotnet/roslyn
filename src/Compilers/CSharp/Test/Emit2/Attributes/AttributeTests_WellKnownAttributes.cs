@@ -9740,6 +9740,8 @@ public class C
                 var param = method.Parameters.Single();
 
                 Assert.True(param.IsParams);
+                Assert.True(param.IsParamsArray);
+                Assert.False(param.IsParamsCollection);
                 Assert.False(param.IsOptional);
                 Assert.False(param.HasExplicitDefaultValue);
             };
@@ -11216,6 +11218,45 @@ public class C
             Assert.False(verifier.HasLocalsInit("C.<get_PropWithAttribute>g__local1|1_0"));
             Assert.True(verifier.HasLocalsInit("C.PropNoAttribute.get"));
             Assert.True(verifier.HasLocalsInit("C.<get_PropNoAttribute>g__local1|3_0"));
+        }
+
+        [Theory]
+        [InlineData("[SkipLocalsInit]", "")]
+        [InlineData("", "[SkipLocalsInit]")]
+        public void SkipLocalsInit_PartialPropertyAccessor_ContainsLocalFunction(string defAttrs, string implAttrs)
+        {
+            // SkipLocalsInit applied to either part affects the property and nested functions
+            var source = $$"""
+using System.Runtime.CompilerServices;
+
+public partial class C
+{
+    {{defAttrs}}
+    partial int PropWithAttribute { get; }
+
+    {{implAttrs}}
+    partial int PropWithAttribute
+    {
+        get
+        {
+            int w = 1;
+            w = w + w + w + w;
+
+            void local1()
+            {
+                int x = 1;
+                x = x + x + x + x;
+            }
+
+            return 0;
+        }
+    }
+}
+""";
+
+            var verifier = CompileAndVerifyWithSkipLocalsInit(source);
+            Assert.False(verifier.HasLocalsInit("C.PropWithAttribute.get"));
+            Assert.False(verifier.HasLocalsInit("C.<get_PropWithAttribute>g__local1|1_0"));
         }
 
         [Fact]

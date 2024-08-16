@@ -3999,4 +3999,105 @@ public partial class UsePrimaryConstructorTests
             ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
         }.RunAsync();
     }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71749")]
+    public async Task TestNotOnSuppressedAssignmentToAnotherField()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+                using System.Collections.Generic;
+                using System.Reflection;
+
+                public class C
+                {
+                    private readonly Type _type;
+                    private readonly Type _comparerType;
+                    private readonly object _defaultObject;
+
+                    public C(Type type)
+                    {
+                        _type = type;
+                        _comparerType = typeof(EqualityComparer<>).MakeGenericType(type);
+                        _defaultObject = _comparerType.GetProperty("Default", BindingFlags.Public | BindingFlags.Static)!.GetValue(null)!;
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/72784")]
+    public async Task TestQualifyNestedEnum()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                public class MyClass
+                {
+                    public [|MyClass|](EnumInClass.MyEnum myEnum = EnumInClass.MyEnum.Default)
+                    {
+                        this.MyEnum = myEnum;
+                    }
+
+                    public EnumInClass.MyEnum MyEnum { get; set; }
+                }
+
+                public class EnumInClass
+                {
+                    public enum MyEnum
+                    {
+                        Default
+                    }
+                }
+                """,
+            FixedCode = """
+                public class MyClass(EnumInClass.MyEnum myEnum = EnumInClass.MyEnum.Default)
+                {
+                    public EnumInClass.MyEnum MyEnum { get; set; } = myEnum;
+                }
+                
+                public class EnumInClass
+                {
+                    public enum MyEnum
+                    {
+                        Default
+                    }
+                }
+                """,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73695")]
+    public async Task TestAttributeOnEmptyConstructor()
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = """
+                using System;
+
+                class C
+                {
+                    [CLSCompliant(true)]
+                    public [|C|]()
+                    {
+                    }
+                }
+                """,
+            FixedCode = """
+                using System;
+
+                [method: CLSCompliant(true)]
+                class C()
+                {
+                }
+                """,
+            CodeActionIndex = 0,
+            LanguageVersion = LanguageVersion.CSharp12,
+        }.RunAsync();
+    }
 }

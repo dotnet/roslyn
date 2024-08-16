@@ -242,7 +242,8 @@ exitWhile:
                     TextWindow.LexemeRelativeStart,
                     i - TextWindow.LexemeRelativeStart,
                     hashCode,
-                    _createQuickTokenFunction);
+                    CreateQuickToken,
+                    this);
                 return token;
             }
             else
@@ -252,15 +253,13 @@ exitWhile:
             }
         }
 
-        private readonly Func<SyntaxToken> _createQuickTokenFunction;
-
-        private SyntaxToken CreateQuickToken()
+        private static SyntaxToken CreateQuickToken(Lexer lexer)
         {
 #if DEBUG
-            var quickWidth = TextWindow.Width;
+            var quickWidth = lexer.TextWindow.Width;
 #endif
-            TextWindow.Reset(TextWindow.LexemeStartPosition);
-            var token = this.LexSyntaxToken();
+            lexer.TextWindow.Reset(lexer.TextWindow.LexemeStartPosition);
+            var token = lexer.LexSyntaxToken();
 #if DEBUG
             Debug.Assert(quickWidth == token.FullWidth);
 #endif

@@ -59,22 +59,22 @@
       </trans-unit>
       <trans-unit id="EncDeletedLambdaInvoked">
         <source>Attempted to invoke a deleted lambda or local function implementation. This can happen when lambda or local function is deleted while the application is running.</source>
-        <target state="new">Attempted to invoke a deleted lambda or local function implementation. This can happen when lambda or local function is deleted while the application is running.</target>
+        <target state="translated">삭제된 람다 또는 로컬 함수 구현을 호출하려고 했습니다. 이 문제는 애플리케이션이 실행되는 동안 람다 또는 로컬 함수가 삭제될 때 발생할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="EncDeletedMethodInvoked">
         <source>Attempted to invoke a deleted method implementation. This can happen when a method is deleted or its name or signature is changed while the application is running.</source>
-        <target state="new">Attempted to invoke a deleted method implementation. This can happen when a method is deleted or its name or signature is changed while the application is running.</target>
+        <target state="translated">삭제된 메서드 구현을 호출하려고 했습니다. 이 문제는 애플리케이션이 실행되는 동안 메서드가 삭제되거나 해당 이름 또는 서명이 변경될 때 발생할 수 있습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="EncLambdaRudeEdit">
         <source>Attempted to invoke lambda or local function with an unsupported change made while the application is running: {0}</source>
-        <target state="new">Attempted to invoke lambda or local function with an unsupported change made while the application is running: {0}</target>
+        <target state="translated">애플리케이션이 실행되는 동안 지원되지 않는 변경 내용이 있는 람다 또는 로컬 함수를 호출하려고 했습니다. {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="EncLambdaRudeEdit_CapturedVariables">
         <source>Attempted to invoke lambda or local function that has an unsupported change to captured variables made while the application is running</source>
-        <target state="new">Attempted to invoke lambda or local function that has an unsupported change to captured variables made while the application is running</target>
+        <target state="translated">애플리케이션이 실행되는 동안 캡처된 변수에 대해 지원되지 않는 변경 내용이 있는 람다 또는 로컬 함수를 호출하려고 했습니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">

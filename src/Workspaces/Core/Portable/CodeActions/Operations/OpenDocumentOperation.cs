@@ -5,23 +5,20 @@
 using System;
 using System.Threading;
 
-namespace Microsoft.CodeAnalysis.CodeActions
+namespace Microsoft.CodeAnalysis.CodeActions;
+
+/// <summary>
+/// A code action operation for requesting a document be opened in the host environment.
+/// </summary>
+public sealed class OpenDocumentOperation(DocumentId documentId, bool activateIfAlreadyOpen = false) : CodeActionOperation
 {
-    /// <summary>
-    /// A code action operation for requesting a document be opened in the host environment.
-    /// </summary>
-    public sealed class OpenDocumentOperation(DocumentId documentId, bool activateIfAlreadyOpen = false) : CodeActionOperation
+    public DocumentId DocumentId { get; } = documentId ?? throw new ArgumentNullException(nameof(documentId));
+
+    public override void Apply(Workspace workspace, CancellationToken cancellationToken)
     {
-        private readonly DocumentId _documentId = documentId ?? throw new ArgumentNullException(nameof(documentId));
-
-        public DocumentId DocumentId => _documentId;
-
-        public override void Apply(Workspace workspace, CancellationToken cancellationToken)
+        if (workspace.CanOpenDocuments)
         {
-            if (workspace.CanOpenDocuments)
-            {
-                workspace.OpenDocument(_documentId, activateIfAlreadyOpen);
-            }
+            workspace.OpenDocument(DocumentId, activateIfAlreadyOpen);
         }
     }
 }

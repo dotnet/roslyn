@@ -1186,6 +1186,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal abstract bool IsNullableAnalysisEnabled();
 
+        /// <summary>
+        /// Gets the resolution priority of this method, 0 if not set.
+        /// </summary>
+        /// <remarks>
+        /// Do not call this method from early attribute binding, cycles will occur.
+        /// </remarks>
+        internal int OverloadResolutionPriority => CanHaveOverloadResolutionPriority ? (TryGetOverloadResolutionPriority() ?? 0) : 0;
+
+        internal abstract int? TryGetOverloadResolutionPriority();
+
+        internal bool CanHaveOverloadResolutionPriority =>
+            MethodKind is MethodKind.Ordinary
+                       or MethodKind.Constructor
+                       or MethodKind.UserDefinedOperator
+                       or MethodKind.ReducedExtension
+            && !IsOverride;
+
         #region IMethodSymbolInternal
 
         bool IMethodSymbolInternal.HasDeclarativeSecurity => HasDeclarativeSecurity;

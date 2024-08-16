@@ -12,6 +12,8 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 {
     internal sealed class DeletedMethodBody(IDeletedMethodDefinition methodDef, ImmutableArray<byte> il) : Cci.IMethodBody
     {
+        private readonly IDeletedMethodDefinition _methodDef = methodDef;
+
         public ImmutableArray<byte> IL { get; } = il;
 
 #nullable disable
@@ -24,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Emit.EditAndContinue
 
         public ImmutableArray<Cci.ILocalDefinition> LocalVariables => ImmutableArray<Cci.ILocalDefinition>.Empty;
 
-        public Cci.IMethodDefinition MethodDefinition => methodDef;
+        public Cci.IMethodDefinition MethodDefinition => _methodDef;
 
         public StateMachineMoveNextBodyDebugInfo MoveNextBodyInfo => null;
 

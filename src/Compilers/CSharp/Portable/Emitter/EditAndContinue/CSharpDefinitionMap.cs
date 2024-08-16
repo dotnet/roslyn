@@ -30,11 +30,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         CSharpSymbolMatcher? previousSourceToCurrentSource,
         EmitBaseline baseline) : DefinitionMap(edits, baseline)
     {
+        private readonly MetadataDecoder _metadataDecoder = metadataDecoder;
         private readonly CSharpSymbolMatcher _sourceToPrevious = previousSourceToCurrentSource ?? sourceToMetadata;
 
-        public override SymbolMatcher SourceToMetadataSymbolMatcher => sourceToMetadata;
+        public override SymbolMatcher SourceToMetadataSymbolMatcher { get; } = sourceToMetadata;
         public override SymbolMatcher SourceToPreviousSymbolMatcher => _sourceToPrevious;
-        public override SymbolMatcher PreviousSourceToMetadataSymbolMatcher => previousSourceToMetadata;
+        public override SymbolMatcher PreviousSourceToMetadataSymbolMatcher { get; } = previousSourceToMetadata;
 
         protected override ISymbolInternal? GetISymbolInternalOrNull(ISymbol symbol)
         {
@@ -121,17 +122,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             Debug.Assert(!handle.IsNil);
 
-            var localInfos = metadataDecoder.GetLocalsOrThrow(handle);
+            var localInfos = _metadataDecoder.GetLocalsOrThrow(handle);
             var result = CreateLocalSlotMap(debugInfo, localInfos);
             Debug.Assert(result.Length == localInfos.Length);
             return result;
         }
 
         protected override ITypeSymbolInternal? TryGetStateMachineType(MethodDefinitionHandle methodHandle)
-            => metadataDecoder.Module.HasStateMachineAttribute(methodHandle, out var typeName) ? metadataDecoder.GetTypeSymbolForSerializedType(typeName) : null;
+            => _metadataDecoder.Module.HasStateMachineAttribute(methodHandle, out var typeName) ? _metadataDecoder.GetTypeSymbolForSerializedType(typeName) : null;
 
         protected override IMethodSymbolInternal GetMethodSymbol(MethodDefinitionHandle methodHandle)
-            => (IMethodSymbolInternal)metadataDecoder.GetSymbolForILToken(methodHandle);
+            => (IMethodSymbolInternal)_metadataDecoder.GetSymbolForILToken(methodHandle);
 
         /// <summary>
         /// Match local declarations to names to generate a map from

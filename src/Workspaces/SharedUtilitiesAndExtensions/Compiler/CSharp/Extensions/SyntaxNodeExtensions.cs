@@ -618,9 +618,9 @@ internal static partial class SyntaxNodeExtensions
                 // add whatever group we've built up to now. And reset the 
                 // next group to empty.
                 result.Add(currentGroup);
-                currentGroup = new List<TSyntaxNode>();
+                currentGroup = [];
 
-                result.Add(new List<TSyntaxNode> { node });
+                result.Add([node]);
             }
             else if (hasLeadingDirective)
             {
@@ -635,9 +635,7 @@ internal static partial class SyntaxNodeExtensions
                 // add whatever group we've built up to now. And reset the 
                 // next group to empty.
                 result.Add(currentGroup);
-                currentGroup = new List<TSyntaxNode>();
-
-                currentGroup.Add(node);
+                currentGroup = [node];
             }
             else
             {
@@ -759,15 +757,29 @@ internal static partial class SyntaxNodeExtensions
             _ => null,
         };
 
-    public static IEnumerable<MemberDeclarationSyntax> GetMembers(this SyntaxNode? node)
-        => node switch
+    public static void ForEachMember<TArg>(this SyntaxNode? node, Action<MemberDeclarationSyntax, TArg> callback, TArg arg)
+    {
+        // Separated out to allow for struct-based enumeration.
+        switch (node)
         {
-            CompilationUnitSyntax compilation => compilation.Members,
-            BaseNamespaceDeclarationSyntax @namespace => @namespace.Members,
-            TypeDeclarationSyntax type => type.Members,
-            EnumDeclarationSyntax @enum => @enum.Members,
-            _ => SpecializedCollections.EmptyEnumerable<MemberDeclarationSyntax>(),
-        };
+            case CompilationUnitSyntax compilation:
+                foreach (var member in compilation.Members)
+                    callback(member, arg);
+                break;
+            case BaseNamespaceDeclarationSyntax @namespace:
+                foreach (var member in @namespace.Members)
+                    callback(member, arg);
+                break;
+            case TypeDeclarationSyntax type:
+                foreach (var member in type.Members)
+                    callback(member, arg);
+                break;
+            case EnumDeclarationSyntax @enum:
+                foreach (var member in @enum.Members)
+                    callback(member, arg);
+                break;
+        }
+    }
 
     public static bool IsInExpressionTree(
         [NotNullWhen(true)] this SyntaxNode? node,

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessarySuppressions;
 internal sealed class RemoveUnnecessaryInlineSuppressionsCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
-        => ImmutableArray.Create(IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId);
+        => [IDEDiagnosticIds.RemoveUnnecessarySuppressionDiagnosticId];
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -44,7 +44,7 @@ internal sealed class RemoveUnnecessaryInlineSuppressionsCodeFixProvider() : Syn
         }
     }
 
-    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         // We need to track unique set of processed nodes when removing the nodes.
         // This is because we generate an unnecessary pragma suppression diagnostic at both the pragma disable and matching pragma restore location

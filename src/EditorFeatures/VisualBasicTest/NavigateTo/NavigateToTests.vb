@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.NavigateTo
 
         Protected Overrides ReadOnly Property Language As String = "vb"
 
-        Protected Overrides Function CreateWorkspace(content As String, composition As TestComposition) As TestWorkspace
-            Return TestWorkspace.CreateVisualBasic(content, composition:=composition)
+        Protected Overrides Function CreateWorkspace(content As String, composition As TestComposition) As EditorTestWorkspace
+            Return EditorTestWorkspace.CreateVisualBasic(content, composition:=composition)
         End Function
 
         <Theory>

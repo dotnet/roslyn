@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal class RenameFlyoutViewModel : INotifyPropertyChanged, IDisposable
     {
-        private readonly InlineRenameSession _session;
         private readonly bool _registerOleComponent;
         private readonly IGlobalOptionService _globalOptionService;
         private OleComponent? _oleComponent;
@@ -47,18 +46,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             Lazy<ISmartRenameSessionFactoryWrapper>? smartRenameSessionFactory)
 #pragma warning restore CS0618 
         {
-            _session = session;
+            Session = session;
             _registerOleComponent = registerOleComponent;
             _globalOptionService = globalOptionService;
-            _session.ReplacementTextChanged += OnReplacementTextChanged;
-            _session.ReplacementsComputed += OnReplacementsComputed;
-            _session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
+            Session.ReplacementTextChanged += OnReplacementTextChanged;
+            Session.ReplacementsComputed += OnReplacementsComputed;
+            Session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             StartingSelection = selectionSpan;
             InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
-            var smartRenameSession = smartRenameSessionFactory?.Value.CreateSmartRenameSession(_session.TriggerSpan);
+            var smartRenameSession = smartRenameSessionFactory?.Value.CreateSmartRenameSession(Session.TriggerSpan);
             if (smartRenameSession is not null)
             {
-                SmartRenameViewModel = new SmartRenameViewModel(threadingContext, listenerProvider, smartRenameSession.Value, this);
+                SmartRenameViewModel = new SmartRenameViewModel(globalOptionService, threadingContext, listenerProvider, smartRenameSession.Value, this);
             }
 
             RegisterOleComponent();
@@ -68,25 +67,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public string IdentifierText
         {
-            get => _session.ReplacementText;
+            get => Session.ReplacementText;
             set
             {
-                if (value != _session.ReplacementText)
+                if (value != Session.ReplacementText)
                 {
-                    _session.ApplyReplacementText(value, propagateEditImmediately: true, updateSelection: false);
+                    Session.ApplyReplacementText(value, propagateEditImmediately: true, updateSelection: false);
                     NotifyPropertyChanged(nameof(IdentifierText));
                 }
             }
         }
 
-        public InlineRenameSession Session => _session;
+        public InlineRenameSession Session { get; }
 
         public ITrackingSpan InitialTrackingSpan { get; }
 
-        public bool AllowFileRename => _session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
-        public bool ShowFileRename => _session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
+        public bool AllowFileRename => Session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
+        public bool ShowFileRename => Session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
 
-        public string FileRenameString => _session.FileRenameInfo switch
+        public string FileRenameString => Session.FileRenameInfo switch
         {
             InlineRenameFileRenameInfo.TypeDoesNotMatchFileName => EditorFeaturesResources.Rename_file_name_doesnt_match,
             InlineRenameFileRenameInfo.TypeWithMultipleLocations => EditorFeaturesResources.Rename_file_partial_type,
@@ -133,51 +132,51 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public bool RenameInCommentsFlag
         {
-            get => _session.Options.RenameInComments;
+            get => Session.Options.RenameInComments;
             set
             {
                 _globalOptionService.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInComments, value);
-                _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameInComments = value });
+                Session.RefreshRenameSessionWithOptionsChanged(Session.Options with { RenameInComments = value });
             }
         }
 
         public bool RenameInStringsFlag
         {
-            get => _session.Options.RenameInStrings;
+            get => Session.Options.RenameInStrings;
             set
             {
                 _globalOptionService.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameInStrings, value);
-                _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameInStrings = value });
+                Session.RefreshRenameSessionWithOptionsChanged(Session.Options with { RenameInStrings = value });
             }
         }
 
         public bool RenameFileFlag
         {
-            get => _session.Options.RenameFile;
+            get => Session.Options.RenameFile;
             set
             {
                 _globalOptionService.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameFile, value);
-                _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameFile = value });
+                Session.RefreshRenameSessionWithOptionsChanged(Session.Options with { RenameFile = value });
             }
         }
 
         public bool PreviewChangesFlag
         {
-            get => _session.PreviewChanges;
+            get => Session.PreviewChanges;
             set
             {
                 _globalOptionService.SetGlobalOption(InlineRenameSessionOptionsStorage.PreviewChanges, value);
-                _session.SetPreviewChanges(value);
+                Session.SetPreviewChanges(value);
             }
         }
 
         public bool RenameOverloadsFlag
         {
-            get => _session.Options.RenameOverloads;
+            get => Session.Options.RenameOverloads;
             set
             {
                 _globalOptionService.SetGlobalOption(InlineRenameSessionOptionsStorage.RenameOverloads, value);
-                _session.RefreshRenameSessionWithOptionsChanged(_session.Options with { RenameOverloads = value });
+                Session.RefreshRenameSessionWithOptionsChanged(Session.Options with { RenameOverloads = value });
             }
         }
 
@@ -202,10 +201,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         }
 
         public bool IsRenameOverloadsEditable
-            => !_session.MustRenameOverloads;
+            => !Session.MustRenameOverloads;
 
         public bool IsRenameOverloadsVisible
-            => _session.HasRenameOverloads;
+            => Session.HasRenameOverloads;
 
         public TextSpan StartingSelection { get; }
 
@@ -217,14 +216,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             SmartRenameViewModel?.Commit(IdentifierText);
-            _session.Commit();
+            Session.Commit();
             return true;
         }
 
         public void Cancel()
         {
             SmartRenameViewModel?.Cancel();
-            _session.Cancel();
+            Session.Cancel();
         }
 
         public void Dispose()
@@ -309,8 +308,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 if (disposing)
                 {
-                    _session.ReplacementTextChanged -= OnReplacementTextChanged;
-                    _session.ReplacementsComputed -= OnReplacementsComputed;
+                    Session.ReplacementTextChanged -= OnReplacementTextChanged;
+                    Session.ReplacementsComputed -= OnReplacementsComputed;
 
                     if (SmartRenameViewModel is not null)
                     {

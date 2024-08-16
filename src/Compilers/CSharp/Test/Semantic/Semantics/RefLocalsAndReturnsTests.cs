@@ -1209,10 +1209,7 @@ class C
         await Task.FromResult(false);
     }
 }");
-            comp.VerifyDiagnostics(
-                // (7,26): error CS8177: Async methods cannot have by-reference locals
-                //         ref readonly int x = ref (new int[1])[0];
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x").WithLocation(7, 26));
+            comp.VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -1229,10 +1226,87 @@ class C
         yield return i;
     }
 }");
-            comp.VerifyDiagnostics(
-                // (7,26): error CS8176: Iterators cannot have by-reference locals
-                //         ref readonly int x = ref (new int[1])[0];
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(7, 26));
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void RefReadonlyInIterator_ForEach()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class C
+                {
+                    int[] arr = new int[2];
+                    IEnumerable<int> M()
+                    {
+                        ref readonly int[] x = ref arr;
+
+                        foreach (var i in x)
+                        {
+                            System.Console.Write(i);
+                            yield return 1;
+                        }
+                
+                        foreach (var j in x)
+                        {
+                            System.Console.Write(j);
+                            yield return 2;
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (7,28): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         ref readonly int[] x = ref arr;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "x").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 28));
+
+            var expectedDiagnostics = new[]
+            {
+                // (15,27): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //         foreach (var j in x)
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "x").WithLocation(15, 27)
+            };
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
+
+            CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefReadonlyInIterator_ForEach_02()
+        {
+            var source = """
+                using System.Collections.Generic;
+
+                foreach (var i in new C().M()) System.Console.Write(i);
+
+                class C
+                {
+                    int[] arr = new[] { 4, 5 };
+                    public IEnumerable<int> M()
+                    {
+                        ref readonly int[] x = ref arr;
+
+                        foreach (var i in x)
+                        {
+                            System.Console.Write(i);
+                            yield return 1;
+                        }
+                    }
+                }
+                """;
+
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (10,28): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         ref readonly int[] x = ref arr;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "x").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 28));
+
+            var expectedOutput = "4151";
+
+            CompileAndVerify(source, parseOptions: TestOptions.Regular13, expectedOutput: expectedOutput).VerifyDiagnostics();
+
+            CompileAndVerify(source, expectedOutput: expectedOutput).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1247,7 +1321,7 @@ class C
         switch (this)
         {
             default:
-                ref readonly int x = ref (new int[1])[0]; // 1
+                ref readonly int x = ref (new int[1])[0];
                 yield return 1;
                 yield return x;
 
@@ -1260,10 +1334,10 @@ class C
         }
     }
 }");
-            comp.VerifyDiagnostics(
-                // (10,34): error CS8176: Iterators cannot have by-reference locals
-                //                 ref readonly int x = ref (new int[1])[0]; // 1
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(10, 34));
+            comp.VerifyEmitDiagnostics(
+                // (12,30): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //                 yield return x;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "x").WithLocation(12, 30));
         }
 
         [Fact]
@@ -1278,22 +1352,19 @@ class C
         switch (this)
         {
             default:
-                ref readonly int x; // 1, 2
+                ref readonly int x; // 1
                 yield return 1;
-                yield return x; // 3
+                yield return x; // 2
                 break;
         }
     }
 }");
             comp.VerifyDiagnostics(
-                // (10,34): error CS8176: Iterators cannot have by-reference locals
-                //                 ref readonly int x; // 1, 2
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(10, 34),
                 // (10,34): error CS8174: A declaration of a by-reference variable must have an initializer
-                //                 ref readonly int x; // 1, 2
+                //                 ref readonly int x; // 1
                 Diagnostic(ErrorCode.ERR_ByReferenceVariableMustBeInitialized, "x").WithLocation(10, 34),
                 // (12,30): error CS0165: Use of unassigned local variable 'x'
-                //                 yield return x; // 3
+                //                 yield return x; // 2
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(12, 30));
         }
 
@@ -1316,9 +1387,9 @@ class C
     }
 }");
             comp.VerifyDiagnostics(
-                // (10,43): error CS8176: Iterators cannot have by-reference locals
+                // (10,49): error CS1510: A ref or out value must be an assignable variable
                 //                 foreach (ref readonly int x in (new int[1]))
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(10, 43));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "new int[1]").WithLocation(10, 49));
         }
 
         [Fact]
@@ -1331,18 +1402,15 @@ class C
     IEnumerable<int> M()
     {
         if (true)
-            ref int x = ref (new int[1])[0]; // 1, 2
+            ref int x = ref (new int[1])[0]; // 1
         
         yield return 1;
     }
 }");
             comp.VerifyDiagnostics(
                 // (8,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                //             ref int x = ref (new int[1])[0]; // 1, 2
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "ref int x = ref (new int[1])[0];").WithLocation(8, 13),
-                // (8,21): error CS8176: Iterators cannot have by-reference locals
-                //             ref int x = ref (new int[1])[0]; // 1, 2
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "x").WithLocation(8, 21));
+                //             ref int x = ref (new int[1])[0]; // 1
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "ref int x = ref (new int[1])[0];").WithLocation(8, 13));
         }
 
         [Fact]
@@ -1355,18 +1423,15 @@ class C
     async Task M()
     {
         if (true)
-            ref int x = ref (new int[1])[0]; // 1, 2
+            ref int x = ref (new int[1])[0]; // 1
         
         await Task.Yield();
     }
 }");
             comp.VerifyDiagnostics(
                 // (8,13): error CS1023: Embedded statement cannot be a declaration or labeled statement
-                //             ref int x = ref (new int[1])[0]; // 1, 2
-                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "ref int x = ref (new int[1])[0];").WithLocation(8, 13),
-                // (8,21): error CS8177: Async methods cannot have by-reference locals
-                //             ref int x = ref (new int[1])[0]; // 1, 2
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "x").WithLocation(8, 21));
+                //             ref int x = ref (new int[1])[0]; // 1
+                Diagnostic(ErrorCode.ERR_BadEmbeddedStmt, "ref int x = ref (new int[1])[0];").WithLocation(8, 13));
         }
 
         [Fact]
@@ -3087,14 +3152,147 @@ class TestClass
         }
     }
 }";
-
-            CreateCompilation(code).VerifyDiagnostics(
-                // (13,21): error CS8176: Iterators cannot have by-reference locals
-                //             ref int z = ref x;
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "z").WithLocation(13, 21),
-                // (8,17): error CS8176: Iterators cannot have by-reference locals
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (8,17): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         ref int y = ref x;
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "y").WithLocation(8, 17));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "y").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 17),
+                // (13,21): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //             ref int z = ref x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "z").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(13, 21));
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
+            CreateCompilation(code).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void RefLocal_Iterator_LocalFunction_01()
+        {
+            var code = """
+                using System;
+                using System.Collections.Generic;
+
+                int x = 5;
+
+                foreach (var z in func())
+                {
+                    Console.Write(z);
+                    x++;
+                }
+
+                IEnumerable<int> func()
+                {
+                    ref int y = ref x;
+                    yield return y;
+                    y = ref x;
+                    yield return y;
+                }
+                """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (14,13): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //     ref int y = ref x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "y").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(14, 13));
+
+            var expectedOutput = "56";
+
+            CompileAndVerify(code, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
+            CompileAndVerify(code, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefLocal_Iterator_LocalFunction_02()
+        {
+            var code = """
+                using System.Collections.Generic;
+
+                int x = 5;
+
+                IEnumerable<int> func()
+                {
+                    ref int y = ref x;
+                    yield return y;
+                    yield return y;
+                }
+
+                func();
+                """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (7,13): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //     ref int y = ref x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "y").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 13));
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,18): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //     yield return y;
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(9, 18)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(code).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefStruct_Iterator_LocalFunction_01()
+        {
+            var code = """
+                using System;
+                using System.Collections.Generic;
+
+                int x = 5;
+
+                foreach (var z in func())
+                {
+                    Console.Write(z);
+                    x++;
+                }
+
+                IEnumerable<int> func()
+                {
+                    Span<int> y = new(ref x);
+                    yield return y[0];
+                    y = new(ref x);
+                    yield return y[0];
+                }
+                """;
+
+            var expectedOutput = ExecutionConditionUtil.IsDesktop ? null : "56";
+
+            CompileAndVerify(code, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net70, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(code, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net70, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(code, expectedOutput: expectedOutput, targetFramework: TargetFramework.Net70, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefStruct_Iterator_LocalFunction_02()
+        {
+            var code = """
+                using System;
+                using System.Collections.Generic;
+
+                int x = 5;
+
+                IEnumerable<int> func()
+                {
+                    Span<int> y = new(ref x);
+                    yield return y[0];
+                    yield return y[0];
+                }
+
+                func();
+                """;
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,18): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //     yield return y[0];
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.Span<int>").WithLocation(10, 18)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
@@ -3115,13 +3313,152 @@ class TestClass
         });
     }
 }";
-            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
-                // (8,17): error CS8177: Async methods cannot have by-reference locals
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (8,17): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         ref int y = ref x;
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "y").WithLocation(8, 17),
-                // (11,21): error CS8177: Async methods cannot have by-reference locals
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "y").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 17),
+                // (11,21): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //             ref int z = ref x;
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "z").WithLocation(11, 21));
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "z").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(11, 21));
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics();
+            CreateCompilation(code).VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void RefLocal_Async_LocalFunction_01()
+        {
+            var code = """
+                using System;
+                using System.Threading.Tasks;
+
+                int x = 5;
+
+                await func();
+
+                async Task func()
+                {
+                    ref int y = ref x;
+                    Console.Write(y);
+                    await Task.Yield();
+                    y = ref x;
+                    Console.Write(y);
+                    await Task.Yield();
+                }
+                """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (10,13): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //     ref int y = ref x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "y").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 13));
+
+            var expectedOutput = "55";
+
+            CompileAndVerify(code, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
+            CompileAndVerify(code, expectedOutput: expectedOutput).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefLocal_Async_LocalFunction_02()
+        {
+            var code = """
+                using System;
+                using System.Threading.Tasks;
+
+                int x = 5;
+
+                async Task func()
+                {
+                    ref int y = ref x;
+                    await Task.Yield();
+                    Console.Write(y);
+                }
+
+                await func();
+                """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (8,13): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //     ref int y = ref x;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "y").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 13));
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,19): error CS9217: A 'ref' local cannot be preserved across 'await' or 'yield' boundary.
+                //     Console.Write(y);
+                Diagnostic(ErrorCode.ERR_RefLocalAcrossAwait, "y").WithLocation(10, 19)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(code).VerifyEmitDiagnostics(expectedDiagnostics);
+        }
+
+        [Fact]
+        public void RefStruct_Async_LocalFunction_01()
+        {
+            var code = """
+                using System;
+                using System.Threading.Tasks;
+                
+                int x = 5;
+                
+                await func();
+                
+                async Task func()
+                {
+                    Span<int> y = new(ref x);
+                    Console.Write(y[0]);
+                    await Task.Yield();
+                    y = new(ref x);
+                    Console.Write(y[0]);
+                    await Task.Yield();
+                }
+                """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (10,5): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //     Span<int> y = new(ref x);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "Span<int>").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 5));
+
+            var expectedOutput = ExecutionConditionUtil.IsDesktop ? null : "55";
+
+            CompileAndVerify(code, expectedOutput: expectedOutput, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net70, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+            CompileAndVerify(code, expectedOutput: expectedOutput, targetFramework: TargetFramework.Net70, verify: Verification.FailsPEVerify).VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void RefStruct_Async_LocalFunction_02()
+        {
+            var code = """
+                using System;
+                using System.Threading.Tasks;
+
+                int x = 5;
+
+                async Task func()
+                {
+                    Span<int> y = new(ref x);
+                    await Task.Yield();
+                    Console.Write(y[0]);
+                }
+
+                await func();
+                """;
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular12, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (8,5): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //     Span<int> y = new(ref x);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "Span<int>").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(8, 5));
+
+            var expectedDiagnostics = new[]
+            {
+                // (10,19): error CS4007: Instance of type 'System.Span<int>' cannot be preserved across 'await' or 'yield' boundary.
+                //     Console.Write(y[0]);
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "y").WithArguments("System.Span<int>").WithLocation(10, 19)
+            };
+
+            CreateCompilation(code, parseOptions: TestOptions.Regular13, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
+            CreateCompilation(code, targetFramework: TargetFramework.Net70).VerifyEmitDiagnostics(expectedDiagnostics);
         }
 
         [Fact, WorkItem(13073, "https://github.com/dotnet/roslyn/issues/13073")]
@@ -3434,13 +3771,38 @@ class Program
 }
 ";
 
-            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (8,17): error CS8177: Async methods cannot have by-reference locals
-                //         ref int i = ref field;
-                Diagnostic(ErrorCode.ERR_BadAsyncLocalType, "i").WithLocation(8, 17),
+            CreateCompilationWithMscorlib46(text).VerifyEmitDiagnostics(
                 // (6,23): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     static async void Goo()
                 Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Goo").WithLocation(6, 23));
+        }
+
+        [Fact]
+        public void RefReturnAcrossAwaitExpression()
+        {
+            var code = """
+                using System.Threading.Tasks;
+
+                class Program
+                {
+                    static int field = 1;
+
+                    static async Task Main()
+                    {
+                        M1(ref GiveMeRef(), await M2());
+                    }
+
+                    static void M1(ref int i, int j) { }
+
+                    static ref int GiveMeRef() => ref field;
+
+                    static Task<int> M2() => Task.FromResult(field++);
+                }
+                """;
+            CreateCompilation(code).VerifyEmitDiagnostics(
+                // (9,16): error CS8178: A reference returned by a call to 'Program.GiveMeRef()' cannot be preserved across 'await' or 'yield' boundary.
+                //         M1(ref GiveMeRef(), await M2());
+                Diagnostic(ErrorCode.ERR_RefReturningCallAndAwait, "GiveMeRef()").WithArguments("Program.GiveMeRef()").WithLocation(9, 16));
         }
 
         [Fact]
@@ -3461,10 +3823,7 @@ class Program
 }
 ";
 
-            CreateCompilationWithMscorlib46(text).VerifyDiagnostics(
-                // (10,17): error CS8931: Iterators cannot have by-reference locals
-                //         ref int i = ref field;
-                Diagnostic(ErrorCode.ERR_BadIteratorLocalType, "i").WithLocation(10, 17));
+            CreateCompilationWithMscorlib46(text).VerifyEmitDiagnostics();
         }
 
         [Fact]
@@ -3982,7 +4341,7 @@ class C
 {
     int field = 0;
 
-    ref int P { get { return ref field; } }
+    ref int P { get { return ref @field; } }
     ref int this[int i] { get { return ref field; } }
     ref int M() { return ref field; }
 

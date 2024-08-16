@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -214,8 +213,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             // so we shouldn't have any information for A, B, or C and have to deal with that.
 
             var solution = CreateSolutionFromReferenceMap("A B C:D D");
-            solution = solution.WithProjectReferences(solution.GetProjectsByName("C").Single().Id,
-                SpecializedCollections.EmptyEnumerable<ProjectReference>());
+            solution = solution.WithProjectReferences(solution.GetProjectsByName("C").Single().Id, []);
 
             VerifyTransitiveReferences(solution, "A", []);
 
@@ -227,7 +225,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var dependencyGraph = solution.GetProjectDependencyGraph();
             var projectAId = solution.GetProjectsByName("A").Single().Id;
             var projectBId = solution.GetProjectsByName("B").Single().Id;
-            dependencyGraph = dependencyGraph.WithAdditionalProjectReferences(projectAId, new[] { new ProjectReference(projectBId) });
+            dependencyGraph = dependencyGraph.WithAdditionalProjectReferences(projectAId, [new ProjectReference(projectBId)]);
 
             VerifyTransitiveReferences(solution, dependencyGraph, project: "A", expectedResults: ["B"]);
         }
@@ -246,7 +244,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var projectBId = ProjectId.CreateNewId("B");
 
             var projectAInfo = ProjectInfo.Create(projectAId, VersionStamp.Create(), "A", "A", LanguageNames.CSharp,
-                                    projectReferences: new[] { new ProjectReference(projectBId) });
+                                    projectReferences: [new ProjectReference(projectBId)]);
 
             solution = solution.AddProject(projectAInfo);
 
@@ -315,7 +313,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyDirectReverseReferences(solution, "B", ["A"]);
 
             solution = solution.WithProjectReferences(solution.GetProjectsByName("A").Single().Id,
-                Enumerable.Empty<ProjectReference>());
+                []);
 
             VerifyDirectReferences(solution, "A", []);
             VerifyDirectReverseReferences(solution, "B", []);
@@ -394,8 +392,7 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             VerifyReverseTransitiveReferences(solution, "C", []);
             VerifyReverseTransitiveReferences(solution, "D", ["C"]);
 
-            solution = solution.WithProjectReferences(solution.GetProjectsByName("C").Single().Id,
-                SpecializedCollections.EmptyEnumerable<ProjectReference>());
+            solution = solution.WithProjectReferences(solution.GetProjectsByName("C").Single().Id, []);
 
             VerifyReverseTransitiveReferences(solution, "B", ["A"]);
         }
@@ -721,14 +718,14 @@ namespace Microsoft.CodeAnalysis.Host.UnitTests
             var referencesByTargetProject = new Dictionary<string, List<ProjectReference>>();
             foreach (var targetProject in projectReferences)
             {
-                var references = referencesByTargetProject.GetOrAdd(targetProject, _ => new List<ProjectReference>());
+                var references = referencesByTargetProject.GetOrAdd(targetProject, _ => []);
                 if (references.Count == 0)
                 {
                     references.Add(new ProjectReference(solution.GetProjectsByName(targetProject).Single().Id));
                 }
                 else
                 {
-                    references.Add(new ProjectReference(solution.GetProjectsByName(targetProject).Single().Id, ImmutableArray.Create($"alias{references.Count}")));
+                    references.Add(new ProjectReference(solution.GetProjectsByName(targetProject).Single().Id, [$"alias{references.Count}"]));
                 }
             }
 

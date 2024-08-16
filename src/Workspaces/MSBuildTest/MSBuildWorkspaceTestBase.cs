@@ -56,56 +56,48 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
         protected async Task<CS.CSharpCompilationOptions> LoadCSharpCompilationOptionsAsync()
         {
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
-            using (var workspace = CreateMSBuildWorkspace())
-            {
-                var sol = await workspace.OpenSolutionAsync(solutionFilePath);
-                var project = sol.Projects.First();
-                return (CS.CSharpCompilationOptions)project.CompilationOptions;
-            }
+            using var workspace = CreateMSBuildWorkspace();
+            var sol = await workspace.OpenSolutionAsync(solutionFilePath);
+            var project = sol.Projects.First();
+            return (CS.CSharpCompilationOptions)project.CompilationOptions;
         }
 
         protected async Task<CS.CSharpParseOptions> LoadCSharpParseOptionsAsync()
         {
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
-            using (var workspace = CreateMSBuildWorkspace())
-            {
-                var sol = await workspace.OpenSolutionAsync(solutionFilePath);
-                var project = sol.Projects.First();
-                return (CS.CSharpParseOptions)project.ParseOptions;
-            }
+            using var workspace = CreateMSBuildWorkspace();
+            var sol = await workspace.OpenSolutionAsync(solutionFilePath);
+            var project = sol.Projects.First();
+            return (CS.CSharpParseOptions)project.ParseOptions;
         }
 
         protected async Task<VB.VisualBasicCompilationOptions> LoadVisualBasicCompilationOptionsAsync()
         {
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
-            using (var workspace = CreateMSBuildWorkspace())
-            {
-                var sol = await workspace.OpenSolutionAsync(solutionFilePath);
-                var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
-                return (VB.VisualBasicCompilationOptions)project.CompilationOptions;
-            }
+            using var workspace = CreateMSBuildWorkspace();
+            var sol = await workspace.OpenSolutionAsync(solutionFilePath);
+            var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
+            return (VB.VisualBasicCompilationOptions)project.CompilationOptions;
         }
 
         protected async Task<VB.VisualBasicParseOptions> LoadVisualBasicParseOptionsAsync()
         {
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
-            using (var workspace = CreateMSBuildWorkspace())
-            {
-                var sol = await workspace.OpenSolutionAsync(solutionFilePath);
-                var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
-                return (VB.VisualBasicParseOptions)project.ParseOptions;
-            }
+            using var workspace = CreateMSBuildWorkspace();
+            var sol = await workspace.OpenSolutionAsync(solutionFilePath);
+            var project = sol.GetProjectsByName("VisualBasicProject").FirstOrDefault();
+            return (VB.VisualBasicParseOptions)project.ParseOptions;
         }
 
         protected static int GetMethodInsertionPoint(VB.Syntax.ClassBlockSyntax classBlock)
         {
             if (classBlock.Implements.Count > 0)
             {
-                return classBlock.Implements[classBlock.Implements.Count - 1].FullSpan.End;
+                return classBlock.Implements[^1].FullSpan.End;
             }
             else if (classBlock.Inherits.Count > 0)
             {
-                return classBlock.Inherits[classBlock.Inherits.Count - 1].FullSpan.End;
+                return classBlock.Inherits[^1].FullSpan.End;
             }
             else
             {
@@ -120,22 +112,20 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 .WithFile(@"CSharpProject\CSharpProject.csproj", Resources.ProjectFiles.CSharp.ForEmittedOutput));
 
             var solutionFilePath = GetSolutionFileName("TestSolution.sln");
-            using (var workspace = CreateMSBuildWorkspace())
+            using var workspace = CreateMSBuildWorkspace();
+            var sol = await workspace.OpenSolutionAsync(solutionFilePath);
+            var p1 = sol.Projects.First(p => p.Language == LanguageNames.CSharp);
+            var p2 = sol.Projects.First(p => p.Language == LanguageNames.VisualBasic);
+
+            Assert.NotNull(p1.OutputFilePath);
+            Assert.Equal("EmittedCSharpProject.dll", Path.GetFileName(p1.OutputFilePath));
+
+            // if the assembly doesn't already exist, emit it now
+            if (!File.Exists(p1.OutputFilePath))
             {
-                var sol = await workspace.OpenSolutionAsync(solutionFilePath);
-                var p1 = sol.Projects.First(p => p.Language == LanguageNames.CSharp);
-                var p2 = sol.Projects.First(p => p.Language == LanguageNames.VisualBasic);
-
-                Assert.NotNull(p1.OutputFilePath);
-                Assert.Equal("EmittedCSharpProject.dll", Path.GetFileName(p1.OutputFilePath));
-
-                // if the assembly doesn't already exist, emit it now
-                if (!File.Exists(p1.OutputFilePath))
-                {
-                    var c1 = await p1.GetCompilationAsync();
-                    var result = c1.Emit(p1.OutputFilePath);
-                    Assert.True(result.Success);
-                }
+                var c1 = await p1.GetCompilationAsync();
+                var result = c1.Emit(p1.OutputFilePath);
+                Assert.True(result.Success);
             }
         }
 
@@ -145,10 +135,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             CreateFiles(files);
             var solutionFileName = files.First(t => t.fileName.EndsWith(".sln", StringComparison.OrdinalIgnoreCase)).fileName;
             solutionFileName = GetSolutionFileName(solutionFileName);
-            using (var workspace = CreateMSBuildWorkspace())
-            {
-                return await workspace.OpenSolutionAsync(solutionFileName);
-            }
+            using var workspace = CreateMSBuildWorkspace();
+            return await workspace.OpenSolutionAsync(solutionFileName);
         }
 
         protected static MSBuildWorkspace CreateMSBuildWorkspace(params (string key, string value)[] additionalProperties)
@@ -159,7 +147,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             bool skipUnrecognizedProjects = false,
             (string key, string value)[] additionalProperties = null)
         {
-            additionalProperties ??= Array.Empty<(string key, string value)>();
+            additionalProperties ??= [];
             var workspace = MSBuildWorkspace.Create(CreateProperties(additionalProperties));
             if (throwOnWorkspaceFailed)
             {

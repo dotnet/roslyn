@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_imports">
         <source>Remove unnecessary imports</source>
-        <target state="new">Remove unnecessary imports</target>
+        <target state="translated">불필요한 가져오기 제거</target>
         <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
@@ -182,11 +182,6 @@
         <target state="translated">Import 지시문</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_imports">
-        <source>Sort imports</source>
-        <target state="translated">import 정렬</target>
-        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
-      </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>
         <target state="translated">NuGet 패키지의 형식에 대한 import 제안(_N)</target>
@@ -275,21 +270,6 @@
       <trans-unit id="Never_add_new_line_on_enter">
         <source>_Never add new line on enter</source>
         <target state="translated">&lt;Enter&gt; 키를 누르면 새 줄 추가 안 함(_N)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_include_snippets">
-        <source>Always include snippets</source>
-        <target state="translated">코드 조각 항상 포함</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
-        <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="translated">식별자 뒤에 ?-Tab을 입력하면 코드 조각 포함</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_include_snippets">
-        <source>Never include snippets</source>
-        <target state="translated">코드 조각 포함 안 함</target>
         <note />
       </trans-unit>
       <trans-unit id="Snippets_behavior">

@@ -4,22 +4,20 @@
 
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
+
+internal interface INewUnitTestingIncrementalAnalyzerImplementation
 {
-    internal interface INewUnitTestingIncrementalAnalyzerImplementation
-    {
-        Task AnalyzeDocumentAsync(
-            Document document,
-            UnitTestingInvocationReasons reasons,
-            CancellationToken cancellationToken);
+    Task AnalyzeDocumentAsync(
+        Document document,
+        UnitTestingInvocationReasons reasons,
+        CancellationToken cancellationToken);
 
-        Task AnalyzeProjectAsync(
-            Project project,
-            UnitTestingInvocationReasons reasons,
-            CancellationToken cancellationToken);
+    Task AnalyzeProjectAsync(
+        Project project,
+        UnitTestingInvocationReasons reasons,
+        CancellationToken cancellationToken);
 
-        void RemoveDocument(DocumentId documentId);
-    }
+    void RemoveDocument(DocumentId documentId);
 }

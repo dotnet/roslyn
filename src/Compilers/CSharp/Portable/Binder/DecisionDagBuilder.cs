@@ -1692,7 +1692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         builder.Append(" BIND[");
                         builder.Append(string.Join("; ", bindings));
-                        builder.Append("]");
+                        builder.Append(']');
                     }
 
                     if (cd.WhenClause is { })

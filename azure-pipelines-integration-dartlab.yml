@@ -27,6 +27,10 @@ resources:
 variables:
 - name: XUNIT_LOGS
   value: $(Build.SourcesDirectory)\artifacts\log\$(_configuration)
+- name: Codeql.Enabled
+  value: false
+- name: Codeql.SkipTaskAutoInjection
+  value: true
 
 stages:
 - template: \stages\visual-studio\agent.yml@DartLabTemplates

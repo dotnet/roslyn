@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -335,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
 
                     case BoundKind.Sequence:
-                        if (refKind != RefKind.None || expression.Type?.IsRefLikeType == true)
+                        if (refKind != RefKind.None || expression.Type?.IsRefLikeOrAllowsRefLikeType() == true)
                         {
                             var sequence = (BoundSequence)expression;
 
@@ -468,6 +467,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown,
                                                call.Method,
                                                ImmutableArray.Create(Spill(builder, call.Arguments[0]), Spill(builder, call.Arguments[1])));
+                        }
+                        else if (call.Method == _F.Compilation.GetSpecialTypeMember(SpecialMember.System_String__op_Implicit_ToReadOnlySpanOfChar))
+                        {
+                            Debug.Assert(call.Arguments.Length == 1);
+                            return call.Update([Spill(builder, call.Arguments[0])]);
+                        }
+
+                        goto default;
+
+                    case BoundKind.ObjectCreationExpression:
+                        var objectCreationExpression = (BoundObjectCreationExpression)expression;
+
+                        if (refKind == RefKind.None &&
+                            objectCreationExpression.InitializerExpressionOpt is null &&
+                            objectCreationExpression.Constructor.OriginalDefinition == _F.Compilation.GetSpecialTypeMember(SpecialMember.System_ReadOnlySpan_T__ctor_Reference))
+                        {
+                            Debug.Assert(objectCreationExpression.Arguments.Length == 1);
+                            var argRefKinds = objectCreationExpression.ArgumentRefKindsOpt;
+                            return objectCreationExpression.Update(objectCreationExpression.Constructor,
+                                                                   [Spill(builder, objectCreationExpression.Arguments[0], argRefKinds.IsDefault ? RefKind.None : argRefKinds[0])],
+                                                                   objectCreationExpression.ArgumentRefKindsOpt,
+                                                                   newInitializerExpression: null);
                         }
 
                         goto default;
@@ -1109,7 +1130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return conditionBuilder.Update(_F.Default(node.Type));
             }
-            else
+            else if (!node.IsRef)
             {
                 var tmp = _F.SynthesizedLocal(node.Type, kind: SynthesizedLocalKind.Spill, syntax: _F.Syntax);
 
@@ -1120,6 +1141,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                         UpdateStatement(alternativeBuilder, _F.Assignment(_F.Local(tmp), alternative))));
 
                 return conditionBuilder.Update(_F.Local(tmp));
+            }
+            else
+            {
+                Debug.Assert(condition.Type.SpecialType == SpecialType.System_Boolean);
+
+                // 1. Capture the boolean value (the condition) in a temp
+                var tmp = _F.SynthesizedLocal(condition.Type, kind: SynthesizedLocalKind.Spill, syntax: _F.Syntax);
+
+                conditionBuilder.AddLocal(tmp);
+                conditionBuilder.AddStatement(_F.Assignment(_F.Local(tmp), condition));
+                condition = _F.Local(tmp);
+
+                // 2. Conditionally execute side-effects from the builders based on the temp 
+                conditionBuilder.AddLocals(consequenceBuilder.GetLocals());
+                conditionBuilder.AddLocals(alternativeBuilder.GetLocals());
+
+                conditionBuilder.AddStatement(
+                    _F.If(condition,
+                        _F.StatementList(consequenceBuilder.GetStatements()),
+                        _F.StatementList(alternativeBuilder.GetStatements())));
+
+                consequenceBuilder.Free();
+                alternativeBuilder.Free();
+
+                // 3. Use updated conditional operator as the result. Note, we are using the captured temp as its condition,
+                // plus rewritten consequence and alternative.
+                return conditionBuilder.Update(node.Update(node.IsRef, condition, consequence, alternative, node.ConstantValueOpt, node.NaturalTypeOpt, node.WasTargetTyped, node.Type));
             }
         }
 
@@ -1243,9 +1291,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (hasValueOpt == null)
                 {
-                    condition = _F.ObjectNotEqual(
-                        _F.Convert(_F.SpecialType(SpecialType.System_Object), receiver),
-                        _F.Null(_F.SpecialType(SpecialType.System_Object)));
+                    condition = _F.IsNotNullReference(receiver);
                 }
                 else
                 {
@@ -1261,18 +1307,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 receiverBuilder.AddLocal(clone);
 
                 //  (object)default(T) != null
-                var isNotClass = _F.ObjectNotEqual(
-                                _F.Convert(_F.SpecialType(SpecialType.System_Object), _F.Default(receiver.Type)),
-                                _F.Null(_F.SpecialType(SpecialType.System_Object)));
+                var isNotClass = _F.IsNotNullReference(_F.Default(receiver.Type));
 
                 // isNotCalss || {clone = receiver; (object)clone != null}
                 condition = _F.LogicalOr(
                                     isNotClass,
                                     _F.MakeSequence(
                                         _F.AssignmentExpression(_F.Local(clone), receiver),
-                                        _F.ObjectNotEqual(
-                                            _F.Convert(_F.SpecialType(SpecialType.System_Object), _F.Local(clone)),
-                                            _F.Null(_F.SpecialType(SpecialType.System_Object))))
+                                        _F.IsNotNullReference(_F.Local(clone)))
                                     );
 
                 receiver = _F.ComplexConditionalReceiver(receiver, _F.Local(clone));

@@ -4,29 +4,28 @@
 
 using System.Collections.Generic;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
-{
-    internal partial class Matcher<T>
-    {
-        private class SequenceMatcher(params Matcher<T>[] matchers) : Matcher<T>
-        {
-            public override bool TryMatch(IList<T> sequence, ref int index)
-            {
-                var currentIndex = index;
-                foreach (var matcher in matchers)
-                {
-                    if (!matcher.TryMatch(sequence, ref currentIndex))
-                    {
-                        return false;
-                    }
-                }
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
-                index = currentIndex;
-                return true;
+internal partial class Matcher<T>
+{
+    private class SequenceMatcher(params Matcher<T>[] matchers) : Matcher<T>
+    {
+        public override bool TryMatch(IList<T> sequence, ref int index)
+        {
+            var currentIndex = index;
+            foreach (var matcher in matchers)
+            {
+                if (!matcher.TryMatch(sequence, ref currentIndex))
+                {
+                    return false;
+                }
             }
 
-            public override string ToString()
-                => string.Format("({0})", string.Join(",", (object[])matchers));
+            index = currentIndex;
+            return true;
         }
+
+        public override string ToString()
+            => string.Format("({0})", string.Join(",", (object[])matchers));
     }
 }

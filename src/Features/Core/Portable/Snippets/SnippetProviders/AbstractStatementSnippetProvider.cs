@@ -3,20 +3,12 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 
-namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders
+namespace Microsoft.CodeAnalysis.Snippets.SnippetProviders;
+
+internal abstract class AbstractStatementSnippetProvider<TStatementSyntax> : AbstractSingleChangeSnippetProvider<TStatementSyntax>
+    where TStatementSyntax : SyntaxNode
 {
-    internal abstract class AbstractStatementSnippetProvider : AbstractSingleChangeSnippetProvider
-    {
-        protected override async Task<bool> IsValidSnippetLocationAsync(Document document, int position, CancellationToken cancellationToken)
-        {
-            var semanticModel = await document.ReuseExistingSpeculativeModelAsync(position, cancellationToken).ConfigureAwait(false);
-
-            var syntaxContext = document.GetRequiredLanguageService<ISyntaxContextService>().CreateContext(document, semanticModel, position, cancellationToken);
-            return syntaxContext.IsStatementContext || syntaxContext.IsGlobalStatementContext;
-        }
-    }
+    protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
+        => context.SyntaxContext.IsStatementContext || context.SyntaxContext.IsGlobalStatementContext;
 }

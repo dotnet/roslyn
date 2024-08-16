@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression;
 internal class UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
-        => ImmutableArray.Create(IDEDiagnosticIds.UseCoalesceExpressionForIfNullCheckDiagnosticId);
+        => [IDEDiagnosticIds.UseCoalesceExpressionForIfNullCheckDiagnosticId];
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -35,7 +35,7 @@ internal class UseCoalesceExpressionForIfNullStatementCheckCodeFixProvider() : S
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var generator = editor.Generator;

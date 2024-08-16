@@ -6,6 +6,7 @@ Imports System.IO
 Imports System.Text.RegularExpressions
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Emit
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Roslyn.Test.Utilities
@@ -9917,8 +9918,11 @@ End Class
             Dim expectedOutput = <![CDATA[System.Int32]]>
 
             Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugExe)
-            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
-            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput,
+                             verify:=Verification.FailsILVerify.WithILVerifyMessage("[MoveNext]: Unrecognized arguments for delegate .ctor. { Offset = 0x86 }"))
+
+            CompileAndVerify(compilation.WithOptions(TestOptions.ReleaseExe), expectedOutput:=expectedOutput,
+                             verify:=Verification.FailsILVerify.WithILVerifyMessage("[MoveNext]: Unrecognized arguments for delegate .ctor. { Offset = 0x75 }"))
         End Sub
 
         <Fact, WorkItem(13734, "https://github.com/dotnet/roslyn/issues/13734")>

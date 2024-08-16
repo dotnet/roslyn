@@ -20,31 +20,30 @@ using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
 
-namespace Microsoft.CodeAnalysis.GoToBase
+namespace Microsoft.CodeAnalysis.GoToBase;
+
+[Export(typeof(VSCommanding.ICommandHandler))]
+[ContentType(ContentTypeNames.RoslynContentType)]
+[Name(PredefinedCommandHandlerNames.GoToBase)]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class GoToBaseCommandHandler(
+    IThreadingContext threadingContext,
+    IStreamingFindUsagesPresenter streamingPresenter,
+    IUIThreadOperationExecutor uiThreadOperationExecutor,
+    IAsynchronousOperationListenerProvider listenerProvider,
+    IGlobalOptionService globalOptions) : AbstractGoToCommandHandler<IGoToBaseService, GoToBaseCommandArgs>(threadingContext,
+           streamingPresenter,
+           uiThreadOperationExecutor,
+           listenerProvider.GetListener(FeatureAttribute.GoToBase),
+           globalOptions)
 {
-    [Export(typeof(VSCommanding.ICommandHandler))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [Name(PredefinedCommandHandlerNames.GoToBase)]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class GoToBaseCommandHandler(
-        IThreadingContext threadingContext,
-        IStreamingFindUsagesPresenter streamingPresenter,
-        IUIThreadOperationExecutor uiThreadOperationExecutor,
-        IAsynchronousOperationListenerProvider listenerProvider,
-        IGlobalOptionService globalOptions) : AbstractGoToCommandHandler<IGoToBaseService, GoToBaseCommandArgs>(threadingContext,
-               streamingPresenter,
-               uiThreadOperationExecutor,
-               listenerProvider.GetListener(FeatureAttribute.GoToBase),
-               globalOptions)
-    {
-        public override string DisplayName => EditorFeaturesResources.Go_To_Base;
+    public override string DisplayName => EditorFeaturesResources.Go_To_Base;
 
-        protected override string ScopeDescription => EditorFeaturesResources.Locating_bases;
-        protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToBase;
+    protected override string ScopeDescription => EditorFeaturesResources.Locating_bases;
+    protected override FunctionId FunctionId => FunctionId.CommandHandler_GoToBase;
 
-        protected override Task FindActionAsync(IFindUsagesContext context, Document document, int caretPosition, CancellationToken cancellationToken)
-            => document.GetRequiredLanguageService<IGoToBaseService>()
-                       .FindBasesAsync(context, document, caretPosition, cancellationToken);
-    }
+    protected override Task FindActionAsync(IFindUsagesContext context, Document document, int caretPosition, CancellationToken cancellationToken)
+        => document.GetRequiredLanguageService<IGoToBaseService>()
+                   .FindBasesAsync(context, document, caretPosition, ClassificationOptionsProvider, cancellationToken);
 }

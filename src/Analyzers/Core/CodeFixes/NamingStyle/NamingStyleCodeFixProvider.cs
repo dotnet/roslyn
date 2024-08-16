@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles;
 internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
-        = ImmutableArray.Create(IDEDiagnosticIds.NamingRuleId);
+        = [IDEDiagnosticIds.NamingRuleId];
 
     public override FixAllProvider? GetFixAllProvider()
     {
@@ -125,7 +125,7 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
         /// it doesn't require this.  As such, we can allow it to run in hosts that only allow document edits. Those
         /// hosts will simply ignore the operations they don't understand.
         /// </summary>
-        public override ImmutableArray<string> Tags => ImmutableArray<string>.Empty;
+        public override ImmutableArray<string> Tags => [];
 
         public FixNameCodeAction(
 #if !CODE_STYLE
@@ -148,10 +148,7 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
         }
 
         protected override async Task<IEnumerable<CodeActionOperation>> ComputePreviewOperationsAsync(CancellationToken cancellationToken)
-        {
-            return SpecializedCollections.SingletonEnumerable(
-                new ApplyChangesOperation(await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false)));
-        }
+            => [new ApplyChangesOperation(await _createChangedSolutionAsync(cancellationToken).ConfigureAwait(false))];
 
         protected override async Task<ImmutableArray<CodeActionOperation>> ComputeOperationsAsync(IProgress<CodeAnalysisProgress> progress, CancellationToken cancellationToken)
         {
@@ -159,7 +156,7 @@ internal sealed class NamingStyleCodeFixProvider() : CodeFixProvider
             var codeAction = new ApplyChangesOperation(newSolution);
 
 #if CODE_STYLE  // https://github.com/dotnet/roslyn/issues/42218 tracks removing this conditional code.
-            return ImmutableArray.Create<CodeActionOperation>(codeAction);
+            return [codeAction];
 #else
 
             using var operations = TemporaryArray<CodeActionOperation>.Empty;

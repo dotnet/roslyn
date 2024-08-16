@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.MakeStructMemberReadOnly;
 internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
-        ImmutableArray.Create(IDEDiagnosticIds.MakeStructMemberReadOnlyDiagnosticId);
+        [IDEDiagnosticIds.MakeStructMemberReadOnlyDiagnosticId];
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -37,7 +37,6 @@ internal sealed class CSharpMakeStructMemberReadOnlyCodeFixProvider() : SyntaxEd
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var generator = editor.Generator;

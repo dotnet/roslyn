@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses;
 internal class AddRequiredParenthesesCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
-        => ImmutableArray.Create(IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId);
+        => [IDEDiagnosticIds.AddRequiredParenthesesDiagnosticId];
 
     protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic, Document document, string? equivalenceKey, CancellationToken cancellationToken)
         => diagnostic.Properties.ContainsKey(AddRequiredParenthesesConstants.IncludeInFixAll) &&
@@ -41,7 +41,7 @@ internal class AddRequiredParenthesesCodeFixProvider() : SyntaxEditorBasedCodeFi
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var generator = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
 

@@ -22,6 +22,16 @@
         <target state="translated">Ajout des accolades nécessaires pour les instructions de contrôle sur une seule ligne</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_0">
+        <source>Apply '{0}'</source>
+        <target state="translated">Appliquer « {0} »</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Apply_Copilot_suggestion">
+        <source>Apply Copilot suggestion</source>
+        <target state="translated">Appliquer une suggestion Copilot</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_blank_line_after_colon_in_constructor_initializer_preferences_experimental">
         <source>Apply blank line after colon in constructor initializer preferences (experimental)</source>
         <target state="translated">Appliquer une ligne vide après le signe deux-points dans les préférences de l’initialiseur de constructeur (expérimental)</target>
@@ -57,6 +67,11 @@
         <target state="translated">Appliquer les préférences de corps d'expression/de bloc</target>
         <note />
       </trans-unit>
+      <trans-unit id="Apply_fix_from">
+        <source>Apply fix from</source>
+        <target state="translated">Appliquer le correctif à partir de</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Apply_inline_out_variable_preferences">
         <source>Apply inline 'out' variables preferences</source>
         <target state="translated">Appliquer les préférences des variables 'out' inline</target>
@@ -80,11 +95,6 @@
       <trans-unit id="Apply_new_preferences">
         <source>Apply new() preferences</source>
         <target state="translated">Appliquer les préférences new()</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Apply_parameter_null_preferences">
-        <source>Apply parameter null preferences</source>
-        <target state="translated">Appliquer les préférences null du paramètre</target>
         <note />
       </trans-unit>
       <trans-unit id="Apply_pattern_matching_preferences">
@@ -129,7 +139,7 @@
       </trans-unit>
       <trans-unit id="Cannot_determine_valid_range_of_statements_to_extract">
         <source>Cannot determine valid range of statements to extract</source>
-        <target state="new">Cannot determine valid range of statements to extract</target>
+        <target state="translated">Impossible de déterminer la plage valide des instructions à extraire</target>
         <note />
       </trans-unit>
       <trans-unit id="Change_to_as_expression">
@@ -159,7 +169,7 @@
       </trans-unit>
       <trans-unit id="Convert_to_regular_constructor">
         <source>Convert to regular constructor</source>
-        <target state="new">Convert to regular constructor</target>
+        <target state="translated">Convertir en constructeur classique</target>
         <note />
       </trans-unit>
       <trans-unit id="Convert_to_regular_string">
@@ -242,6 +252,11 @@
         <target state="translated">Avertissement : L'inlining sur une variable temporaire peut changer la signification du code.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Warning_colon_AI_suggestions_might_be_inaccurate">
+        <source>Warning: AI suggestions might be inaccurate.</source>
+        <target state="translated">Avertissement : il est possible que les suggestions IA soient inexactes.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="asynchronous_foreach_statement">
         <source>asynchronous foreach statement</source>
         <target state="translated">instruction foreach asynchrone</target>
@@ -251,6 +266,11 @@
         <source>asynchronous using declaration</source>
         <target state="translated">déclaration using asynchrone</target>
         <note>{Locked="using"} "using" is a C# keyword and should not be localized.</note>
+      </trans-unit>
+      <trans-unit id="do_while_loop">
+        <source>do-while loop</source>
+        <target state="translated">boucle do-while</target>
+        <note>{Locked="do"}{Locked="while"} "do" and "while" are C# keywords and should not be localized.</note>
       </trans-unit>
       <trans-unit id="extern_alias">
         <source>extern alias</source>
@@ -402,16 +422,6 @@
         <target state="translated">Organiser les instructions Using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Generate_explicit_conversion_operator_in_0">
-        <source>Generate explicit conversion operator in '{0}'</source>
-        <target state="translated">Générer l’opérateur de conversion explicite dans « {0} »</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Generate_implicit_conversion_operator_in_0">
-        <source>Generate implicit conversion operator in '{0}'</source>
-        <target state="translated">Générer l’opérateur de conversion implicite dans « {0} »</target>
-        <note />
-      </trans-unit>
       <trans-unit id="record_">
         <source>record</source>
         <target state="translated">enregistrement</target>
@@ -439,12 +449,12 @@
       </trans-unit>
       <trans-unit id="top_level_code">
         <source>top-level code</source>
-        <target state="translated">code de niveau supérieur</target>
+        <target state="translated">Code de premier niveau</target>
         <note />
       </trans-unit>
       <trans-unit id="top_level_statement">
         <source>top-level statement</source>
-        <target state="translated">instruction de niveau supérieur</target>
+        <target state="translated">Instructions de premier niveau</target>
         <note />
       </trans-unit>
       <trans-unit id="try_block">

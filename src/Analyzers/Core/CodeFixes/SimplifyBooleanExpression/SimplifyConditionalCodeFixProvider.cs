@@ -26,7 +26,7 @@ using static SimplifyBooleanExpressionConstants;
 internal sealed class SimplifyConditionalCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public sealed override ImmutableArray<string> FixableDiagnosticIds { get; } =
-        ImmutableArray.Create(IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId);
+        [IDEDiagnosticIds.SimplifyConditionalExpressionDiagnosticId];
 
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -38,7 +38,6 @@ internal sealed class SimplifyConditionalCodeFixProvider() : SyntaxEditorBasedCo
         Document document,
         ImmutableArray<Diagnostic> diagnostics,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var generator = SyntaxGenerator.GetGenerator(document);

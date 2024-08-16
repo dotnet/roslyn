@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_imports">
         <source>Remove unnecessary imports</source>
-        <target state="new">Remove unnecessary imports</target>
+        <target state="translated">Usuń niepotrzebne importy</target>
         <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
@@ -182,11 +182,6 @@
         <target state="translated">Dyrektywy import</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_imports">
-        <source>Sort imports</source>
-        <target state="translated">Sortuj dyrektywy Import</target>
-        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
-      </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>
         <target state="translated">Sugeruj dyrektywy import dla typów w pakietach _NuGet</target>
@@ -275,21 +270,6 @@
       <trans-unit id="Never_add_new_line_on_enter">
         <source>_Never add new line on enter</source>
         <target state="translated">_Nigdy nie dodawaj nowego wiersza po naciśnięciu klawisza Enter</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_include_snippets">
-        <source>Always include snippets</source>
-        <target state="translated">Zawsze dołączaj fragmenty kodu</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
-        <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="translated">Dołącz fragmenty kodu po wpisaniu znaku ? po identyfikatorze i naciśnięciu klawisza Tab</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_include_snippets">
-        <source>Never include snippets</source>
-        <target state="translated">Nigdy nie dołączaj fragmentów kodu</target>
         <note />
       </trans-unit>
       <trans-unit id="Snippets_behavior">

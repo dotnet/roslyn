@@ -129,12 +129,6 @@
   <data name="Executing_selection_in_Interactive_Window" xml:space="preserve">
     <value>Executing selection in Interactive Window.</value>
   </data>
-  <data name="Print_a_list_of_referenced_assemblies" xml:space="preserve">
-    <value>Print a list of referenced assemblies.</value>
-  </data>
-  <data name="The_references_command_is_not_supported_in_this_Interactive_Window_implementation" xml:space="preserve">
-    <value>The references command is not supported in this Interactive Window implementation.</value>
-  </data>
   <data name="Reset_the_execution_environment_to_the_initial_state_and_keep_history_with_the_option_to_switch_the_runtime_of_the_host_process" xml:space="preserve">
     <value>Reset the execution environment to the initial state and keep history, with the option to switch the runtime of the host process.</value>
   </data>
@@ -156,13 +150,16 @@
   <data name="Enter_to_rename_shift_enter_to_preview" xml:space="preserve">
     <value>Enter to rename, Shift+Enter to preview</value>
   </data>
-  <data name="Generating_suggestions" xml:space="preserve">
-    <value>Generating suggestions...</value>
-  </data>
   <data name="Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion" xml:space="preserve">
     <value>Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</value>
   </data>
   <data name="Get_AI_suggestions" xml:space="preserve">
     <value>Get AI-powered rename suggestions (Ctrl+Space)</value>
+  </data>
+  <data name="Toggle_AI_suggestions" xml:space="preserve">
+    <value>Toggle rename suggestions (Ctrl+Space)</value>
+  </data>
+  <data name="Generating_suggestions" xml:space="preserve">
+    <value>Generating suggestions...</value>
   </data>
 </root>

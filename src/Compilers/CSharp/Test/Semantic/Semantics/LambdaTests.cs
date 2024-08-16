@@ -3809,9 +3809,21 @@ class BAttribute : Attribute
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (6,2): error CS0181: Attribute constructor parameter 'a' has type 'Action', which is not a valid attribute parameter type
+                // (6,11): error CS1003: Syntax error, ',' expected
                 // [A([B] () => { })]
-                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "A").WithArguments("a", "System.Action").WithLocation(6, 2));
+                Diagnostic(ErrorCode.ERR_SyntaxError, "=>").WithArguments(",").WithLocation(6, 11),
+                // (6,16): error CS1026: ) expected
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "}").WithLocation(6, 16),
+                // (6,16): error CS1003: Syntax error, ']' expected
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_SyntaxError, "}").WithArguments("]").WithLocation(6, 16),
+                // (6,16): error CS1022: Type or namespace definition, or end-of-file expected
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(6, 16),
+                // (6,17): error CS1022: Type or namespace definition, or end-of-file expected
+                // [A([B] () => { })]
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(6, 17));
         }
 
         [Fact]
@@ -4730,7 +4742,7 @@ class Program
 class C
 {
     object? field;
-    string Prop => field switch
+    string Prop => @field switch
     {
         string?[] a => ""a""
     };
@@ -4740,9 +4752,9 @@ class C
                 // (4,13): warning CS0649: Field 'C.field' is never assigned to, and will always have its default value null
                 //     object? field;
                 Diagnostic(ErrorCode.WRN_UnassignedInternalField, "field").WithArguments("C.field", "null").WithLocation(4, 13),
-                // (5,26): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
-                //     string Prop => field switch
-                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(5, 26));
+                // (5,27): warning CS8509: The switch expression does not handle all possible values of its input type (it is not exhaustive). For example, the pattern '_' is not covered.
+                //     string Prop => @field switch
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithArguments("_").WithLocation(5, 27));
         }
 
         [Fact, WorkItem(52827, "https://github.com/dotnet/roslyn/issues/52827")]
@@ -5981,15 +5993,15 @@ class Program
 }";
             var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview);
             comp.VerifyDiagnostics(
-                // (10,39): error CS4012: Parameters or locals of type 'TypedReference' cannot be declared in async methods or async lambda expressions.
+                // (10,39): error CS4012: Parameters of type 'TypedReference' cannot be declared in async methods or async lambda expressions.
                 //         D1 d1 = async (TypedReference r) => { await Task.Yield(); };
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "r").WithArguments("System.TypedReference").WithLocation(10, 39),
-                // (11,46): error CS4012: Parameters or locals of type 'RuntimeArgumentHandle' cannot be declared in async methods or async lambda expressions.
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "r").WithArguments("System.TypedReference").WithLocation(10, 39),
+                // (11,46): error CS4012: Parameters of type 'RuntimeArgumentHandle' cannot be declared in async methods or async lambda expressions.
                 //         D2 d2 = async (RuntimeArgumentHandle h) => { await Task.Yield(); };
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "h").WithArguments("System.RuntimeArgumentHandle").WithLocation(11, 46),
-                // (12,36): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or async lambda expressions.
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "h").WithArguments("System.RuntimeArgumentHandle").WithLocation(11, 46),
+                // (12,36): error CS4012: Parameters of type 'ArgIterator' cannot be declared in async methods or async lambda expressions.
                 //         D3 d3 = async (ArgIterator i) => { await Task.Yield(); };
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "i").WithArguments("System.ArgIterator").WithLocation(12, 36));
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefParameter, "i").WithArguments("System.ArgIterator").WithLocation(12, 36));
         }
 
         [Fact]
@@ -7332,7 +7344,7 @@ class Program
 class C
 {
     object field;
-    public object Field => field;
+    public object Field => @field;
 
     public C(object f) { field = f; }
 
@@ -7361,7 +7373,7 @@ class Program
 class C
 {
     object field;
-    public object Field => field;
+    public object Field => @field;
 
     public C(object f) { field = f; }
 
@@ -8293,7 +8305,7 @@ class Program
                 var lam = (params int[] xs = null) => xs.Length;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,12): error CS1751: Cannot specify a default value for a parameter array
+                // (1,12): error CS1751: Cannot specify a default value for a parameter collection
                 // var lam = (params int[] xs = null) => xs.Length;
                 Diagnostic(ErrorCode.ERR_DefaultValueForParamsParameter, "params").WithLocation(1, 12));
         }
@@ -8305,9 +8317,9 @@ class Program
                 var lam = ([System.ParamArray] int[] xs) => xs.Length;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,13): error CS0674: Do not use 'System.ParamArrayAttribute'. Use the 'params' keyword instead.
+                // (1,13): error CS0674: Do not use 'System.ParamArrayAttribute'/'System.Runtime.CompilerServices.ParamCollectionAttribute'. Use the 'params' keyword instead.
                 // var lam = ([System.ParamArray] int[] xs) => xs.Length;
-                Diagnostic(ErrorCode.ERR_ExplicitParamArray, "System.ParamArray").WithLocation(1, 13));
+                Diagnostic(ErrorCode.ERR_ExplicitParamArrayOrCollection, "System.ParamArray").WithLocation(1, 13));
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/66060")]
@@ -8353,13 +8365,21 @@ class Program
             Assert.Equal(3, lambdas.Length);
             // lam1
             Assert.True(((SourceParameterSymbol)lambdas[0].Parameters.Single()).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters.Single()).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters.Single()).IsParamsCollection);
             // lam2
             Assert.False(((SourceParameterSymbol)lambdas[1].Parameters.Single()).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters.Single()).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters.Single()).IsParamsCollection);
             // lam3
             Assert.Equal(2, lambdas[2].ParameterCount);
             Assert.Equal(2, lambdas[2].Parameters.Length);
             Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[0]).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[0]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[0]).IsParamsCollection);
             Assert.True(((SourceParameterSymbol)lambdas[2].Parameters[1]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[2].Parameters[1]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[2].Parameters[1]).IsParamsCollection);
         }
 
         [Fact]
@@ -8380,14 +8400,26 @@ class Program
             Assert.Equal(3, lambdas[0].ParameterCount);
             Assert.Equal(3, lambdas[0].Parameters.Length);
             Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[0]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[0]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[0]).IsParamsCollection);
             Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[1]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[0].Parameters[1]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[1]).IsParamsCollection);
             Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[2]).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[2]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[0].Parameters[2]).IsParamsCollection);
             // lam2
             Assert.Equal(3, lambdas[1].ParameterCount);
             Assert.Equal(3, lambdas[1].Parameters.Length);
             Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[0]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[0]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[0]).IsParamsCollection);
             Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[1]).IsParams);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[1]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[1]).IsParamsCollection);
             Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[2]).IsParams);
+            Assert.True(((SourceParameterSymbol)lambdas[1].Parameters[2]).IsParamsArray);
+            Assert.False(((SourceParameterSymbol)lambdas[1].Parameters[2]).IsParamsCollection);
         }
 
         [Fact]
@@ -8410,12 +8442,20 @@ class Program
                 {
                     var lam1 = (NamedTypeSymbol)module.GlobalNamespace.GetMember("<>f__AnonymousDelegate0");
                     Assert.True(lam1.DelegateParameters().Single().IsParams);
+                    Assert.True(lam1.DelegateParameters().Single().IsParamsArray);
+                    Assert.False(lam1.DelegateParameters().Single().IsParamsCollection);
+                    AssertEx.Equal("TResult <>f__AnonymousDelegate0<T1, TResult>.Invoke(params T1[] arg)", lam1.DelegateInvokeMethod.ToTestDisplayString());
 
                     var lam3 = (NamedTypeSymbol)module.GlobalNamespace.GetMember("<>f__AnonymousDelegate1");
                     var lam3Parameters = lam3.DelegateParameters();
                     Assert.Equal(2, lam3Parameters.Length);
                     Assert.False(lam3Parameters[0].IsParams);
+                    Assert.False(lam3Parameters[0].IsParamsArray);
+                    Assert.False(lam3Parameters[0].IsParamsCollection);
                     Assert.True(lam3Parameters[1].IsParams);
+                    Assert.True(lam3Parameters[1].IsParamsArray);
+                    Assert.False(lam3Parameters[1].IsParamsCollection);
+                    AssertEx.Equal("TResult <>f__AnonymousDelegate1<T1, T2, TResult>.Invoke(T1 arg1, params T2[] arg2)", lam3.DelegateInvokeMethod.ToTestDisplayString());
                 });
         }
 
@@ -8450,9 +8490,10 @@ class Program
                 var lam = (params int x) => x;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,12): error CS0225: The params parameter must be a single dimensional array
+                // (1,12): error CS0225: The params parameter must have a valid collection type
                 // var lam = (params int x) => x;
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(1, 12)
+                );
         }
 
         [Fact]
@@ -8462,9 +8503,10 @@ class Program
                 var lam = (params int[,] xs) => xs.Length;
                 """;
             CreateCompilation(source).VerifyDiagnostics(
-                // (1,12): error CS0225: The params parameter must be a single dimensional array
+                // (1,12): error CS0225: The params parameter must have a valid collection type
                 // var lam = (params int[,] xs) => xs.Length;
-                Diagnostic(ErrorCode.ERR_ParamsMustBeArray, "params").WithLocation(1, 12));
+                Diagnostic(ErrorCode.ERR_ParamsMustBeCollection, "params").WithLocation(1, 12)
+                );
         }
 
         [Fact]

@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.ReassignedVariable;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReassignedVariable;
 [UseExportProvider]
 public abstract class AbstractReassignedVariableTests
 {
-    protected abstract TestWorkspace CreateWorkspace(string markup);
+    protected abstract EditorTestWorkspace CreateWorkspace(string markup);
 
     protected async Task TestAsync(string markup)
     {

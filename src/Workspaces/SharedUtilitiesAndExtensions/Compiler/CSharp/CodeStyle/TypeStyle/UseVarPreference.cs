@@ -4,14 +4,13 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
+namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle;
+
+[Flags]
+internal enum UseVarPreference
 {
-    [Flags]
-    internal enum UseVarPreference
-    {
-        None = 0,
-        ForBuiltInTypes = 1 << 0,
-        WhenTypeIsApparent = 1 << 1,
-        Elsewhere = 1 << 2,
-    }
+    None = 0,
+    ForBuiltInTypes = 1 << 0,
+    WhenTypeIsApparent = 1 << 1,
+    Elsewhere = 1 << 2,
 }

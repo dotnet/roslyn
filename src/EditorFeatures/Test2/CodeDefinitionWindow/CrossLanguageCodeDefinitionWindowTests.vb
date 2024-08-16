@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
         <Fact>
         Public Async Function DocumentWithNoSemanticModel() As Task
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Project Language="NoCompilation">
                         <Document>
@@ -108,10 +108,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
                 Dim definitionContextTracker = workspace.ExportProvider.GetExportedValue(Of DefinitionContextTracker)
                 Dim locations = Await definitionContextTracker.GetContextFromPointAsync(
-                    workspace,
-                    document,
-                    hostDocument.CursorPosition.Value,
-                    CancellationToken.None)
+                    document, hostDocument.CursorPosition.Value, CancellationToken.None)
 
                 Dim expectedLocation = New CodeDefinitionWindowLocation(
                     "DisplayText",
@@ -124,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 
         <Fact>
         Public Async Function VisualBasicReferencingCSharp() As Task
-            Using workspace = TestWorkspace.Create(
+            Using workspace = EditorTestWorkspace.Create(
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <ProjectReference>ReferencedProject</ProjectReference>

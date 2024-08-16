@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -14,6 +15,9 @@ namespace Microsoft.CodeAnalysis
     internal readonly struct GeneratorState
     {
 
+        /// <summary>
+        /// A generator state that has been initialized but produced no results
+        /// </summary>
         public static readonly GeneratorState Empty = new GeneratorState(ImmutableArray<GeneratedSyntaxTree>.Empty,
                                                                          ImmutableArray<SyntaxInputNode>.Empty,
                                                                          ImmutableArray<IIncrementalGeneratorOutputNode>.Empty,
@@ -121,5 +125,7 @@ namespace Microsoft.CodeAnalysis
         internal ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> OutputSteps { get; }
 
         internal ImmutableArray<(string Key, string Value)> HostOutputs { get; }
+
+        internal bool RequiresPostInitReparse(ParseOptions parseOptions) => PostInitTrees.Any(static (t, parseOptions) => t.Tree.Options != parseOptions, parseOptions);
     }
 }

@@ -167,6 +167,8 @@ Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper.Razor
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPinnedSolutionInfoWrapper.RazorPinnedSolutionInfoWrapper(Microsoft.CodeAnalysis.Checksum underlyingObject) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeFixProviderNames
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorPredefinedCodeRefactoringProviderNames
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorProjectExtensions
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorProjectExtensions.GetSourceGeneratorRunResultAsync(this Microsoft.CodeAnalysis.Project! project, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.GeneratorDriverRunResult?
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteCallbackWrapper<T>
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteCallbackWrapper<T>.InvokeAsync(System.Func<T!, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask>! invocation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorRemoteCallbackWrapper<T>.InvokeAsync<TResult>(System.Func<T!, System.Threading.CancellationToken, System.Threading.Tasks.ValueTask<TResult>>! invocation, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.ValueTask<TResult>
@@ -218,7 +220,7 @@ Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSpanMappingServiceWrapper
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorSpanMappingServiceWrapper.RazorSpanMappingServiceWrapper(Microsoft.CodeAnalysis.ExternalAccess.Razor.IRazorSpanMappingService! razorSpanMappingService) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestAnalyzerLoader
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestAnalyzerLoader.InitializeDiagnosticsServices(Microsoft.CodeAnalysis.Workspace! workspace) -> void
-Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestAnalyzerLoader.RazorTestAnalyzerLoader(Microsoft.CodeAnalysis.Diagnostics.IDiagnosticAnalyzerService! analyzerService, Microsoft.CodeAnalysis.Diagnostics.IDiagnosticService! diagnosticService, Microsoft.CodeAnalysis.Options.IGlobalOptionService! globalOptionService) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestAnalyzerLoader.RazorTestAnalyzerLoader(Microsoft.CodeAnalysis.Diagnostics.IDiagnosticAnalyzerService! analyzerService, Microsoft.CodeAnalysis.Diagnostics.IDiagnosticService! diagnosticService) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestWorkspaceRegistrationService
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestWorkspaceRegistrationService.RazorTestWorkspaceRegistrationService() -> void
 Microsoft.CodeAnalysis.ExternalAccess.Razor.RazorTestWorkspaceRegistrationService.Register(Microsoft.CodeAnalysis.Workspace! workspace) -> void

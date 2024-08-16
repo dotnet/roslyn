@@ -2,8 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.IO;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics
 {
@@ -16,14 +16,21 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics
     {
         private readonly string _baseDirectory;
 
-        public RemoteAnalyzerAssemblyLoader(string baseDirectory)
+        public RemoteAnalyzerAssemblyLoader(string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+            : base(externalResolvers ?? [])
         {
             _baseDirectory = baseDirectory;
         }
 
-        protected override string PreparePathToLoad(string fullPath, ImmutableHashSet<string> cultureNames)
+        protected override string PreparePathToLoad(string fullPath)
         {
             var fixedPath = Path.GetFullPath(Path.Combine(_baseDirectory, Path.GetFileName(fullPath)));
+            return File.Exists(fixedPath) ? fixedPath : fullPath;
+        }
+
+        protected override string PrepareSatelliteAssemblyToLoad(string fullPath, string cultureName)
+        {
+            var fixedPath = Path.GetFullPath(Path.Combine(_baseDirectory, cultureName, Path.GetFileName(fullPath)));
             return File.Exists(fixedPath) ? fixedPath : fullPath;
         }
     }

@@ -982,9 +982,14 @@ namespace Microsoft.CodeAnalysis
             return IsNoPiaLocalType(typeDef, out attributeInfo);
         }
 
-        internal bool HasParamsAttribute(EntityHandle token)
+        internal bool HasParamArrayAttribute(EntityHandle token)
         {
             return FindTargetAttribute(token, AttributeDescription.ParamArrayAttribute).HasValue;
+        }
+
+        internal bool HasParamCollectionAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.ParamCollectionAttribute).HasValue;
         }
 
         internal bool HasIsReadOnlyAttribute(EntityHandle token)
@@ -3222,6 +3227,20 @@ namespace Microsoft.CodeAnalysis
             }
 
             return TryExtractByteArrayValueFromAttribute(info.Handle, out nullableTransforms);
+        }
+
+        internal bool TryGetOverloadResolutionPriorityValue(EntityHandle token, out int decodedPriority)
+        {
+            AttributeInfo info = FindTargetAttribute(token, AttributeDescription.OverloadResolutionPriorityAttribute);
+            Debug.Assert(!info.HasValue || info.SignatureIndex == 0);
+
+            if (!info.HasValue)
+            {
+                decodedPriority = 0;
+                return false;
+            }
+
+            return TryExtractValueFromAttribute(info.Handle, out decodedPriority, s_attributeIntValueExtractor);
         }
 
         #endregion

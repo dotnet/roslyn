@@ -8,7 +8,6 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -82,9 +81,10 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         isUnnecessary: true);
 
     protected AbstractUseCollectionInitializerDiagnosticAnalyzer()
-        : base(ImmutableDictionary<DiagnosticDescriptor, IOption2>.Empty
-                .Add(s_descriptor, CodeStyleOptions2.PreferCollectionInitializer)
-                .Add(s_unnecessaryCodeDescriptor, CodeStyleOptions2.PreferCollectionInitializer))
+        : base(
+            [
+                (s_descriptor, CodeStyleOptions2.PreferCollectionInitializer)
+            ])
     {
     }
 
@@ -93,7 +93,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     protected abstract bool AreCollectionInitializersSupported(Compilation compilation);
     protected abstract bool AreCollectionExpressionsSupported(Compilation compilation);
     protected abstract bool CanUseCollectionExpression(
-        SemanticModel semanticModel, TObjectCreationExpressionSyntax objectCreationExpression, INamedTypeSymbol? expressionType, bool allowInterfaceConversion, CancellationToken cancellationToken, out bool changesSemantics);
+        SemanticModel semanticModel, TObjectCreationExpressionSyntax objectCreationExpression, INamedTypeSymbol? expressionType, bool allowSemanticsChange, CancellationToken cancellationToken, out bool changesSemantics);
 
     protected abstract TAnalyzer GetAnalyzer();
 
@@ -146,7 +146,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         if (!preferInitializerOption.Value
             && preferExpressionOption.Value == Shared.CodeStyle.CollectionExpressionPreference.Never
             && !ShouldSkipAnalysis(context.FilterTree, context.Options, context.Compilation.Options,
-                    ImmutableArray.Create(preferInitializerOption.Notification, preferExpressionOption.Notification),
+                    [preferInitializerOption.Notification, preferExpressionOption.Notification],
                     context.CancellationToken))
         {
             return;
@@ -181,7 +181,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
 
         var nodes = containingStatement is null
             ? ImmutableArray<SyntaxNode>.Empty
-            : ImmutableArray.Create<SyntaxNode>(containingStatement);
+            : [containingStatement];
         nodes = nodes.AddRange(matches.Select(static m => m.Statement));
         if (syntaxFacts.ContainsInterleavedDirective(nodes, cancellationToken))
             return;
@@ -197,6 +197,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
             s_descriptor,
             objectCreationExpression.GetFirstToken().GetLocation(),
             notification,
+            context.Options,
             additionalLocations: locations,
             properties));
 
@@ -237,8 +238,8 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
                 return null;
 
             // Check if it would actually be legal to use a collection expression here though.
-            var allowInterfaceConversion = preferExpressionOption.Value == CollectionExpressionPreference.WhenTypesLooselyMatch;
-            if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, allowInterfaceConversion, cancellationToken, out var changesSemantics))
+            var allowSemanticsChange = preferExpressionOption.Value == CollectionExpressionPreference.WhenTypesLooselyMatch;
+            if (!CanUseCollectionExpression(semanticModel, objectCreationExpression, expressionType, allowSemanticsChange, cancellationToken, out var changesSemantics))
                 return null;
 
             return (matches, shouldUseCollectionExpression: true, changesSemantics);
@@ -266,6 +267,7 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
                 s_unnecessaryCodeDescriptor,
                 additionalUnnecessaryLocations[0],
                 NotificationOption2.ForSeverity(s_unnecessaryCodeDescriptor.DefaultSeverity),
+                context.Options,
                 additionalLocations: locations,
                 additionalUnnecessaryLocations: additionalUnnecessaryLocations,
                 properties));

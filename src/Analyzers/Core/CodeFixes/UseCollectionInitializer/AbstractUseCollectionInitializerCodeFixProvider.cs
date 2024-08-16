@@ -49,17 +49,16 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
         TAnalyzer>, new()
 {
     public sealed override ImmutableArray<string> FixableDiagnosticIds
-        => ImmutableArray.Create(IDEDiagnosticIds.UseCollectionInitializerDiagnosticId);
+        => [IDEDiagnosticIds.UseCollectionInitializerDiagnosticId];
 
     protected abstract TAnalyzer GetAnalyzer();
 
     protected abstract Task<(SyntaxNode oldNode, SyntaxNode newNode)> GetReplacementNodesAsync(
-        Document document, CodeActionOptionsProvider fallbackOptions, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, ImmutableArray<Match<TStatementSyntax>> matches, CancellationToken cancellationToken);
+        Document document, TObjectCreationExpressionSyntax objectCreation, bool useCollectionExpression, ImmutableArray<Match<TStatementSyntax>> matches, CancellationToken cancellationToken);
 
     protected sealed override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         TObjectCreationExpressionSyntax objectCreation,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
@@ -83,7 +82,7 @@ internal abstract class AbstractUseCollectionInitializerCodeFixProvider<
             return;
 
         var (oldNode, newNode) = await GetReplacementNodesAsync(
-            document, fallbackOptions, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
+            document, objectCreation, useCollectionExpression, matches, cancellationToken).ConfigureAwait(false);
 
         editor.ReplaceNode(oldNode, newNode);
         foreach (var match in matches)

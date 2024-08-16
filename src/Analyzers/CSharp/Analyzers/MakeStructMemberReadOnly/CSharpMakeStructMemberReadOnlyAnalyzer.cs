@@ -162,6 +162,7 @@ internal sealed class CSharpMakeStructMemberReadOnlyDiagnosticAnalyzer()
                 Descriptor,
                 location,
                 notificationOption,
+                context.Options,
                 additionalLocations: ImmutableArray.Create(additionalLocation),
                 properties: null);
         }

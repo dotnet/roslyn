@@ -32,14 +32,12 @@ namespace Microsoft.CodeAnalysis
         void AddAliases(GreenNode node, ArrayBuilder<(string aliasName, string symbolName)> aliases, bool global);
         void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);
 
-        bool ContainsAttributeList(SyntaxNode root);
         bool ContainsGlobalAliases(SyntaxNode root);
     }
 
     internal abstract class AbstractSyntaxHelper : ISyntaxHelper
     {
         public abstract bool IsCaseSensitive { get; }
-        protected abstract int AttributeListKind { get; }
 
         public abstract bool IsValidIdentifier(string name);
 
@@ -60,18 +58,5 @@ namespace Microsoft.CodeAnalysis
         public abstract void AddAliases(CompilationOptions options, ArrayBuilder<(string aliasName, string symbolName)> aliases);
 
         public abstract bool ContainsGlobalAliases(SyntaxNode root);
-
-        public bool ContainsAttributeList(SyntaxNode root)
-        {
-            var attributeListKind = this.AttributeListKind;
-
-            foreach (var node in root.Green.EnumerateNodes())
-            {
-                if (node.RawKind == attributeListKind)
-                    return true;
-            }
-
-            return false;
-        }
     }
 }

@@ -201,6 +201,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return System.AttributeTargets.Delegate;
         }
 
+        internal sealed override int? TryGetOverloadResolutionPriority()
+        {
+            return null;
+        }
+
         private sealed class Constructor : SourceDelegateMethodSymbol
         {
             internal Constructor(
@@ -317,6 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 ParameterHelpers.EnsureRefKindAttributesExist(compilation, Parameters, diagnostics, modifyCompilation: true);
+                ParameterHelpers.EnsureParamCollectionAttributeExistsAndModifyCompilation(compilation, Parameters, diagnostics);
 
                 if (compilation.ShouldEmitNativeIntegerAttributes(ReturnType))
                 {

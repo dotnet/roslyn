@@ -44,7 +44,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_imports">
         <source>Remove unnecessary imports</source>
-        <target state="new">Remove unnecessary imports</target>
+        <target state="translated">Supprimer les importations inutiles</target>
         <note />
       </trans-unit>
       <trans-unit id="Replace_Return_with_Yield">

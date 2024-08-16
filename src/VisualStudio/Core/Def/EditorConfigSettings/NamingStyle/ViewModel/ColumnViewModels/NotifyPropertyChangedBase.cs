@@ -4,13 +4,12 @@
 
 using System.ComponentModel;
 
-namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel
-{
-    internal abstract class NotifyPropertyChangedBase : INotifyPropertyChanged
-    {
-        public event PropertyChangedEventHandler? PropertyChanged;
+namespace Microsoft.VisualStudio.LanguageServices.EditorConfigSettings.NamingStyle.ViewModel;
 
-        protected void OnPropertyChanged(PropertyChangedEventArgs args)
-            => PropertyChanged?.Invoke(this, args);
-    }
+internal abstract class NotifyPropertyChangedBase : INotifyPropertyChanged
+{
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    protected void OnPropertyChanged(PropertyChangedEventArgs args)
+        => PropertyChanged?.Invoke(this, args);
 }

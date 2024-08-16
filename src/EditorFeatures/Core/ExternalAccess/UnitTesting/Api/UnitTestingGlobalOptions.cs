@@ -5,19 +5,15 @@
 using System;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Remote;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
+
+[Export(typeof(UnitTestingGlobalOptions)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class UnitTestingGlobalOptions()
 {
-    [Export(typeof(UnitTestingGlobalOptions)), Shared]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class UnitTestingGlobalOptions(IGlobalOptionService globalOptions)
-    {
-        private readonly IGlobalOptionService _globalOptions = globalOptions;
-
-        public bool IsServiceHubProcessCoreClr
-            => _globalOptions.GetOption(RemoteHostOptionsStorage.OOPCoreClr);
-    }
+#pragma warning disable CA1822 // Mark members as static
+    public bool IsServiceHubProcessCoreClr => true;
+#pragma warning restore CA1822 // Mark members as static
 }

@@ -323,9 +323,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 Dim descriptor = WellKnownMembers.GetDescriptor(member)
-                Dim type = If(descriptor.DeclaringTypeId <= SpecialType.Count,
-                              GetSpecialType(CType(descriptor.DeclaringTypeId, SpecialType)),
-                              GetWellKnownType(CType(descriptor.DeclaringTypeId, WellKnownType)))
+                Dim type = If(descriptor.IsSpecialTypeMember,
+                              GetSpecialType(descriptor.DeclaringSpecialType),
+                              GetWellKnownType(descriptor.DeclaringWellKnownType))
 
                 Dim result As Symbol = Nothing
 
@@ -675,7 +675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Protected Overrides Function MatchTypeToTypeId(type As TypeSymbol, typeId As Integer) As Boolean
-                Return type.SpecialType = typeId
+                Return CInt(type.ExtendedSpecialType) = typeId
             End Function
         End Class
 

@@ -7,9 +7,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SpellCheck;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SpellCheck;
 
 public abstract class AbstractSpellCheckSpanTests
 {
-    protected abstract TestWorkspace CreateWorkspace(string content);
+    protected abstract EditorTestWorkspace CreateWorkspace(string content);
 
     protected async Task TestAsync(string content)
     {

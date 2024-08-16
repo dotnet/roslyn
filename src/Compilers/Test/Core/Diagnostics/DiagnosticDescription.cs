@@ -6,17 +6,18 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.CSharp;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities
 {
@@ -382,12 +383,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             sb.Append("Diagnostic(");
             if (_errorCodeType == typeof(string))
             {
-                sb.Append("\"").Append(_code).Append("\"");
+                sb.Append('"').Append(_code).Append('"');
             }
             else
             {
                 sb.Append(_errorCodeType.Name);
-                sb.Append(".");
+                sb.Append('.');
                 sb.Append(Enum.GetName(_errorCodeType, _code));
             }
 
@@ -412,7 +413,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sb.Append(", isSuppressed: true");
             }
 
-            sb.Append(")");
+            sb.Append(')');
 
             if (_arguments != null)
             {
@@ -426,7 +427,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         sb.Append(", ");
                     }
                 }
-                sb.Append(")");
+                sb.Append(')');
             }
 
             if (_startPosition != null)
@@ -435,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 sb.Append(_startPosition.Value.Line + 1);
                 sb.Append(", ");
                 sb.Append(_startPosition.Value.Character + 1);
-                sb.Append(")");
+                sb.Append(')');
             }
 
             if (_isWarningAsError)
@@ -518,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             for (i = 0; e.MoveNext(); i++)
             {
                 Diagnostic d = e.Current;
-                string message = d.ToString();
+                string message = d.ToString(CultureInfo.InvariantCulture);
                 if (Regex.Match(message, @"{\d+}").Success)
                 {
                     Assert.True(false, "Diagnostic messages should never contain unsubstituted placeholders.\n    " + message);
@@ -533,7 +534,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 {
                     Indent(assertText, indentDepth);
                     assertText.Append("// ");
-                    assertText.AppendLine(d.ToString());
+                    assertText.AppendLine(message);
                     var l = d.Location;
                     if (l.IsInSource)
                     {

@@ -6,41 +6,40 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Editor;
+
+internal sealed class NavigationBarProjectItem(
+    string text,
+    Glyph glyph,
+    Workspace workspace,
+    DocumentId documentId,
+    string language) : NavigationBarItem(textVersion: null, text, glyph,
+               spans: ImmutableArray<TextSpan>.Empty,
+               childItems: ImmutableArray<NavigationBarItem>.Empty,
+               indent: 0, bolded: false, grayed: false), IEquatable<NavigationBarProjectItem>
 {
-    internal sealed class NavigationBarProjectItem(
-        string text,
-        Glyph glyph,
-        Workspace workspace,
-        DocumentId documentId,
-        string language) : NavigationBarItem(textVersion: null, text, glyph,
-                   spans: ImmutableArray<TextSpan>.Empty,
-                   childItems: ImmutableArray<NavigationBarItem>.Empty,
-                   indent: 0, bolded: false, grayed: false), IEquatable<NavigationBarProjectItem>
+    public Workspace Workspace { get; } = workspace;
+    public DocumentId DocumentId { get; } = documentId;
+    public string Language { get; } = language;
+
+    internal void SwitchToContext()
     {
-        public Workspace Workspace { get; } = workspace;
-        public DocumentId DocumentId { get; } = documentId;
-        public string Language { get; } = language;
-
-        internal void SwitchToContext()
+        if (this.Workspace.CanChangeActiveContextDocument)
         {
-            if (this.Workspace.CanChangeActiveContextDocument)
-            {
-                // TODO: Can we pass something better?
-                this.Workspace.SetDocumentContext(DocumentId);
-            }
+            // TODO: Can we pass something better?
+            this.Workspace.SetDocumentContext(DocumentId);
         }
-
-        public override bool Equals(object? obj)
-            => Equals(obj as NavigationBarProjectItem);
-
-        public bool Equals(NavigationBarProjectItem? item)
-            => base.Equals(item) &&
-               Workspace == item.Workspace &&
-               DocumentId == item.DocumentId &&
-               Language == item.Language;
-
-        public override int GetHashCode()
-            => throw new NotImplementedException();
     }
+
+    public override bool Equals(object? obj)
+        => Equals(obj as NavigationBarProjectItem);
+
+    public bool Equals(NavigationBarProjectItem? item)
+        => base.Equals(item) &&
+           Workspace == item.Workspace &&
+           DocumentId == item.DocumentId &&
+           Language == item.Language;
+
+    public override int GetHashCode()
+        => throw new NotImplementedException();
 }

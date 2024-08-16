@@ -38,6 +38,7 @@
   <ValueType Name="InterpolatedStringHandlerData"/>
   <ValueType Name="WellKnownMember"/>
   <ValueType Name="CollectionExpressionTypeKind"/>
+  <ValueType Name="AccessorKind" />
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
 
@@ -661,6 +662,15 @@
   </Node>
 
   <!--
+    Represents an array access that comes from the RHS of an unused ref (non-readonly) assignment.
+    Needed so we can emit with correct side effects (runtime element type check).
+  -->
+  <Node Name="BoundRefArrayAccess" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
+    <Field Name="ArrayAccess" Type="BoundArrayAccess" Null="disallow"/>
+  </Node>
+
+  <!--
   Represents an operation that is special in both IL and Expression trees -
   getting length of a one-dimensional 0-based array (vector)
   
@@ -706,9 +716,15 @@
 
   <!-- Instrumentation info attached to BoundBlock -->
   <Node Name="BoundBlockInstrumentation" Base="BoundNode">
-    <Field Name="Local" Type="LocalSymbol" Null="disallow"/>
-    <Field Name="Prologue" Type="BoundStatement" Null="disallow"/>
-    <Field Name="Epilogue" Type="BoundStatement" Null="disallow"/>
+    <!-- Local variables with scope that cover the entire block including the instrumentation prologue and epilogue. -->
+    <Field Name="Locals" Type="OneOrMany&lt;LocalSymbol&gt;" Null="disallow"/>
+    <!-- Optional prologue emitted in front of any instructions of the block, so that it always executes. -->
+    <Field Name="Prologue" Type="BoundStatement?" Null="allow"/>
+    <!--
+      If specified, a try-finally block is emitted around the instrumented block. The epilogue is emitted to the finally clause,
+      so that it always executes when the execution leaves the instrumented block.
+     -->
+    <Field Name="Epilogue" Type="BoundStatement?" Null="allow"/>
   </Node>
   
   <!-- Represents the raw metadata RowId value for a method definition.
@@ -756,6 +772,17 @@
   <Node Name="BoundInstrumentationPayloadRoot" Base="BoundExpression">
     <Field Name="AnalysisKind" Type="int"/>
     <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
+  <!-- Call to PrivateImplementationDetails.ModuleCancellationToken.ThrowIfCancellationRequested().
+       PrivateImplementationDetails.ModuleCancellationToken has no language-level symbol. -->
+  <Node Name="BoundThrowIfModuleCancellationRequested" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
+  <!-- Returns the value of PrivateImplementationDetails.ModuleCancellationToken. It has no language-level symbol. -->
+  <Node Name="ModuleCancellationTokenExpression" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
   </Node>
 
@@ -1900,6 +1927,9 @@
     <Field Name="CollectionBuilderInvocationPlaceholder" Type="BoundValuePlaceholder?" SkipInVisitor="true" Null="allow"/>
     <!-- Conversion from collection builder method invocation to collection type. -->
     <Field Name="CollectionBuilderInvocationConversion" Type="BoundExpression?" SkipInVisitor="true" Null="allow"/>
+    <!-- Indicates whether the collection expression was successfully target-typed (it is inside a conversion) -->
+    <Field Name="WasTargetTyped" Type="bool" />
+    <Field Name="UnconvertedCollectionExpression" Type="BoundUnconvertedCollectionExpression" Null="disallow" SkipInVisitor="true"/>
   </Node>
 
   <Node Name="BoundCollectionExpressionSpreadExpressionPlaceholder" Base="BoundValuePlaceholderBase"/>
@@ -2000,6 +2030,7 @@
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="DefaultArguments" Type="BitVector" />
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+    <Field Name="AccessorKind" Type="AccessorKind" />
 
     <!-- Used by IOperation to reconstruct the receiver for this expression. -->
     <Field Name="ReceiverType" Type="TypeSymbol" Null="disallow"/>
@@ -2188,6 +2219,7 @@
     <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string?&gt;" Null="allow"/>
     <Field Name="ArgumentRefKindsOpt" Type="ImmutableArray&lt;RefKind&gt;" Null="allow"/>
     <Field Name="Expanded" Type="bool"/>
+    <Field Name="AccessorKind" Type="AccessorKind" />
     <Field Name="ArgsToParamsOpt" Type="ImmutableArray&lt;int&gt;" Null="allow"/>
     <Field Name="DefaultArguments" Type="BitVector" />
     <!--The set of indexer symbols from which this call's indexer was chosen.

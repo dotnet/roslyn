@@ -30,7 +30,7 @@
       "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/artifacts/bin/RunTests/Debug/net7.0/RunTests.dll",
-      "args": ["--tfm", "net7.0", "--sequential", "--html"],
+      "args": ["--runtime", "both", "--artifactspath", "${workspaceFolder}/artifacts/testPayload/artifacts"],
       "cwd": "${workspaceFolder}/artifacts/bin/RunTests",
       "stopAtEntry": false,
       "console": "internalConsole"
@@ -47,6 +47,18 @@
         "--destination", "${workspaceFolder}/artifacts/testPayload"
       ],
       "cwd": "${workspaceFolder}/artifacts/bin/PrepareTests",
+      "stopAtEntry": false,
+      "console": "internalConsole"
+    },
+    {
+      "name": "Launch Replay.dll",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "build current project",
+      // If you have changed target frameworks, make sure to update the program path.
+      "program": "${workspaceFolder}/artifacts/bin/Replay/Debug/net8.0/Replay.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/artifacts/bin/Replay",
       "stopAtEntry": false,
       "console": "internalConsole"
     },

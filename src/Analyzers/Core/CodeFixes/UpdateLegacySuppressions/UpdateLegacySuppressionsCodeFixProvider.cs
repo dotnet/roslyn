@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.UpdateLegacySuppressions;
 internal sealed class UpdateLegacySuppressionsCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds
-        => ImmutableArray.Create(IDEDiagnosticIds.LegacyFormatSuppressMessageAttributeDiagnosticId);
+        => [IDEDiagnosticIds.LegacyFormatSuppressMessageAttributeDiagnosticId];
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -38,7 +38,7 @@ internal sealed class UpdateLegacySuppressionsCodeFixProvider() : SyntaxEditorBa
         }
     }
 
-    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
         {

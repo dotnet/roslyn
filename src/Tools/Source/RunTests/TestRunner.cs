@@ -193,6 +193,7 @@ namespace RunTests
                 // We could relax this and allow for example Linux clients to kick off Windows jobs, but we'd have to
                 // figure out solutions for issues such as creating file paths in the correct format for the target machine.
                 var isUnix = !RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+                var isMac = RuntimeInformation.IsOSPlatform(OSPlatform.OSX);
 
                 var setEnvironmentVariable = isUnix ? "export" : "set";
 
@@ -202,14 +203,39 @@ namespace RunTests
                 command.AppendLine(isUnix ? $"ls -l" : $"dir");
                 command.AppendLine("dotnet --info");
 
-                var knownEnvironmentVariables = new[] { "ROSLYN_TEST_IOPERATION", "ROSLYN_TEST_USEDASSEMBLIES" };
+                string[] knownEnvironmentVariables =
+                [
+                    "ROSLYN_TEST_IOPERATION",
+                    "ROSLYN_TEST_USEDASSEMBLIES"
+                ];
+
                 foreach (var knownEnvironmentVariable in knownEnvironmentVariables)
                 {
-                    if (string.Equals(Environment.GetEnvironmentVariable(knownEnvironmentVariable), "true", StringComparison.OrdinalIgnoreCase))
+                    if (Environment.GetEnvironmentVariable(knownEnvironmentVariable) is string { Length: > 0 } value)
                     {
-                        command.AppendLine($"{setEnvironmentVariable} {knownEnvironmentVariable}=true");
+                        command.AppendLine($"{setEnvironmentVariable} {knownEnvironmentVariable}=\"{value}\"");
                     }
                 }
+
+                // OSX produces extremely large dump files that commonly exceed the limits of Helix 
+                // uploads. These settings limit the dump file size + produce a .json detailing crash 
+                // reasons that work better with Helix size limitations.
+                if (isMac)
+                {
+                    command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgEnableMiniDump=1");
+                    command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgMiniDumpType=1");
+                    command.AppendLine($"{setEnvironmentVariable} DOTNET_EnableCrashReport=1");
+                }
+
+                // Set the dump folder so that dotnet writes all dump files to this location automatically. 
+                // This saves the need to scan for all the different types of dump files later and copy
+                // them around.
+                var helixDumpFolder = isUnix
+                    ? @"$HELIX_DUMP_FOLDER/crash.%d.%e.dmp"
+                    : @"%HELIX_DUMP_FOLDER%\crash.%d.%e.dmp";
+                command.AppendLine($"{setEnvironmentVariable} DOTNET_DbgMiniDumpName=\"{helixDumpFolder}\"");
+
+                command.AppendLine(isUnix ? "env | sort" : "set");
 
                 // Create a payload directory that contains all the assemblies in the work item in separate folders.
                 var payloadDirectory = Path.Combine(msbuildTestPayloadRoot, "artifacts", "bin");
@@ -244,6 +270,8 @@ namespace RunTests
                 }
                 else
                 {
+                    command.AppendLine(@"powershell -NoProfile -Command { Set-MpPreference -DisableRealtimeMonitoring $true }");
+                    command.AppendLine(@"powershell -NoProfile -Command { Set-MpPreference -ExclusionPath (Resolve-Path 'artifacts') }");
                     // Windows cmd doesn't have an easy way to set the output of a command to a variable.
                     // So send the output of the command to a file, then set the variable based on the file.
                     command.AppendLine("where /r %DOTNET_ROOT% vstest.console.dll > temp.txt");
@@ -259,6 +287,9 @@ namespace RunTests
                 // return value of the main command is captured; a Helix Job is considered to fail if the main command returns a
                 // non-zero error code, and we don't want the cleanup steps to interefere with that. PostCommands exist
                 // precisely to address this problem.
+                //
+                // This is still necessary even with us setting  DOTNET_DbgMiniDumpName because the system can create 
+                // non .NET Core dump files that aren't controlled by that value.
                 var postCommands = new StringBuilder();
 
                 if (isUnix)

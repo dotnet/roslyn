@@ -18,9 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
         Inherits AbstractVisualBasicCodeActionTest
 
         Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf _
-            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
             .AddParts(
-                GetType(MockDiagnosticUpdateSourceRegistrationService),
                 GetType(MockPreviewPaneService))
 
         Private Const s_addedDocumentName As String = "AddedDocument"
@@ -34,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
             Return s_composition
         End Function
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace, parameters As TestParameters) As CodeRefactoringProvider
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As EditorTestWorkspace, parameters As TestParameters) As CodeRefactoringProvider
             Return New MyCodeRefactoringProvider()
         End Function
 
@@ -84,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings
 
         Private Async Function GetMainDocumentAndPreviewsAsync(
                 parameters As TestParameters,
-                workspace As TestWorkspace) As Task(Of (document As Document, previews As SolutionPreviewResult))
+                workspace As EditorTestWorkspace) As Task(Of (document As Document, previews As SolutionPreviewResult))
             Dim document = GetDocument(workspace)
             Dim provider = CreateCodeRefactoringProvider(workspace, parameters)
             Dim span = document.GetSyntaxRootAsync().Result.Span

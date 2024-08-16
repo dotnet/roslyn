@@ -27,12 +27,11 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId)
 {
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseCollectionExpressionForStackAllocDiagnosticId];
 
     protected sealed override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         ExpressionSyntax stackAllocExpression,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
@@ -48,7 +47,6 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
 
         var collectionExpression = await CSharpCollectionExpressionRewriter.CreateCollectionExpressionAsync(
             document,
-            fallbackOptions,
             stackAllocExpression,
             matches,
             static e => e switch
@@ -78,13 +76,13 @@ internal partial class CSharpUseCollectionExpressionForStackAllocCodeFixProvider
                 // if we have `stackalloc[] { ... }` we have no subsequent matches to add to the collection. All values come
                 // from within the initializer.
                 ImplicitStackAllocArrayCreationExpressionSyntax
-                    => ImmutableArray<CollectionExpressionMatch<StatementSyntax>>.Empty,
+                    => [],
 
                 // we have `stackalloc T[...] ...;` defer to analyzer to find the items that follow that may need to
                 // be added to the collection expression.
                 StackAllocArrayCreationExpressionSyntax arrayCreation
                     => CSharpUseCollectionExpressionForStackAllocDiagnosticAnalyzer.TryGetMatches(
-                        semanticModel, arrayCreation, expressionType, allowInterfaceConversion: true, cancellationToken),
+                        semanticModel, arrayCreation, expressionType, allowSemanticsChange: true, cancellationToken),
 
                 // We validated this is unreachable in the caller.
                 _ => throw ExceptionUtilities.Unreachable(),

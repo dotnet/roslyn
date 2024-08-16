@@ -64,7 +64,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_imports">
         <source>Remove unnecessary imports</source>
-        <target state="new">Remove unnecessary imports</target>
+        <target state="translated">移除不必要的 Import</target>
         <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
       </trans-unit>
       <trans-unit id="Show_hints_for_New_expressions">
@@ -182,11 +182,6 @@
         <target state="translated">Import 指示詞</target>
         <note />
       </trans-unit>
-      <trans-unit id="Sort_imports">
-        <source>Sort imports</source>
-        <target state="translated">排序 Import</target>
-        <note>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</note>
-      </trans-unit>
       <trans-unit id="Suggest_imports_for_types_in_NuGet_packages">
         <source>Suggest imports for types in _NuGet packages</source>
         <target state="translated">為 NuGet 套件中的類型建議 Import(_N)</target>
@@ -275,21 +270,6 @@
       <trans-unit id="Never_add_new_line_on_enter">
         <source>_Never add new line on enter</source>
         <target state="translated">永不在按下 Enter 鍵時加入新行(_N)</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Always_include_snippets">
-        <source>Always include snippets</source>
-        <target state="translated">一律包含程式碼片段</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Include_snippets_when_Tab_is_typed_after_an_identifier">
-        <source>Include snippets when ?-Tab is typed after an identifier</source>
-        <target state="translated">在識別碼後輸入 ?-Tab 時包含程式碼片段</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Never_include_snippets">
-        <source>Never include snippets</source>
-        <target state="translated">一律不包含程式碼片段</target>
         <note />
       </trans-unit>
       <trans-unit id="Snippets_behavior">

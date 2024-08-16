@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     // the outgoing string.
                     if (finalDefineConstants.Length > 0)
                     {
-                        finalDefineConstants.Append(";");
+                        finalDefineConstants.Append(';');
                     }
 
                     finalDefineConstants.Append(singleIdentifier);

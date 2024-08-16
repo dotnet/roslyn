@@ -5,15 +5,14 @@
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace Microsoft.CodeAnalysis.LanguageService
+namespace Microsoft.CodeAnalysis.LanguageService;
+
+internal static class IFileBannerFactsExtensions
 {
-    internal static class IFileBannerFactsExtensions
+    public static ImmutableArray<SyntaxTrivia> GetTriviaAfterLeadingBlankLines(
+        this IFileBannerFacts bannerService, SyntaxNode node)
     {
-        public static ImmutableArray<SyntaxTrivia> GetTriviaAfterLeadingBlankLines(
-            this IFileBannerFacts bannerService, SyntaxNode node)
-        {
-            var leadingBlankLines = bannerService.GetLeadingBlankLines(node);
-            return node.GetLeadingTrivia().Skip(leadingBlankLines.Length).ToImmutableArray();
-        }
+        var leadingBlankLines = bannerService.GetLeadingBlankLines(node);
+        return node.GetLeadingTrivia().Skip(leadingBlankLines.Length).ToImmutableArray();
     }
 }

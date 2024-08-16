@@ -15,18 +15,20 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification;
 
-[ExportLanguageService(typeof(ISyntaxClassificationService), LanguageNames.CSharp), Shared]
+[ExportLanguageService(typeof(ISyntaxClassificationService), LanguageNames.CSharp), Export, Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class CSharpSyntaxClassificationService() : AbstractSyntaxClassificationService
 {
-    private static readonly ImmutableArray<ISyntaxClassifier> s_defaultSyntaxClassifiers = ImmutableArray.Create<ISyntaxClassifier>(
+    private static readonly ImmutableArray<ISyntaxClassifier> s_defaultSyntaxClassifiers =
+    [
         new NameSyntaxClassifier(),
         new OperatorOverloadSyntaxClassifier(),
         new SyntaxTokenClassifier(),
         new UsingDirectiveSyntaxClassifier(),
         new DiscardSyntaxClassifier(),
-        new FunctionPointerUnmanagedCallingConventionClassifier());
+        new FunctionPointerUnmanagedCallingConventionClassifier(),
+    ];
 
     public override ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
         => s_defaultSyntaxClassifiers;

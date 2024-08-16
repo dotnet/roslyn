@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeSyntax?.Location ?? this.GetFirstLocation(), type);
             }
-            else if (type.IsRefLikeType && (this.IsStatic || !containingType.IsRefLikeType))
+            else if (type.IsRefLikeOrAllowsRefLikeType() && (this.IsStatic || !containingType.IsRefLikeType))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeSyntax?.Location ?? this.GetFirstLocation(), type);
             }
@@ -266,8 +266,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
+#nullable enable
+        internal sealed override void ForceComplete(SourceLocation? locationOpt, Predicate<Symbol>? filter, CancellationToken cancellationToken)
         {
+            if (filter?.Invoke(this) == false)
+            {
+                return;
+            }
+
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -302,6 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 state.SpinWaitComplete(incompletePart, cancellationToken);
             }
         }
+#nullable disable
 
         internal override NamedTypeSymbol FixedImplementationType(PEModuleBuilder emitModule)
         {
@@ -401,17 +408,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return (BaseFieldDeclarationSyntax)declarator.Parent.Parent;
         }
 
-        protected override SyntaxList<AttributeListSyntax> AttributeDeclarationSyntaxList
+        protected override OneOrMany<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            get
+            if (this.containingType.AnyMemberHasAttributes)
             {
-                if (this.containingType.AnyMemberHasAttributes)
-                {
-                    return GetFieldDeclaration(this.SyntaxNode).AttributeLists;
-                }
-
-                return default(SyntaxList<AttributeListSyntax>);
+                return OneOrMany.Create(GetFieldDeclaration(this.SyntaxNode).AttributeLists);
             }
+
+            return OneOrMany<SyntaxList<AttributeListSyntax>>.Empty;
         }
 
         public sealed override RefKind RefKind => GetTypeAndRefKind(ConsList<FieldSymbol>.Empty).RefKind;
@@ -493,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (!containingType.IsRefLikeType)
                             diagnostics.Add(ErrorCode.ERR_RefFieldInNonRefStruct, ErrorLocation);
 
-                        if (type.Type?.IsRefLikeType == true)
+                        if (type.Type.IsRefLikeOrAllowsRefLikeType())
                             diagnostics.Add(ErrorCode.ERR_RefFieldCannotReferToRefStruct, typeSyntax.SkipScoped(out _).Location);
                     }
                 }

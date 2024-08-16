@@ -5,27 +5,26 @@
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
+namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
+
+internal abstract partial class AbstractRenameCommandHandler :
+    ICommandHandler<MoveSelectedLinesUpCommandArgs>, ICommandHandler<MoveSelectedLinesDownCommandArgs>
 {
-    internal abstract partial class AbstractRenameCommandHandler :
-        ICommandHandler<MoveSelectedLinesUpCommandArgs>, ICommandHandler<MoveSelectedLinesDownCommandArgs>
+    public CommandState GetCommandState(MoveSelectedLinesUpCommandArgs args)
+        => CommandState.Unspecified;
+
+    public bool ExecuteCommand(MoveSelectedLinesUpCommandArgs args, CommandExecutionContext context)
     {
-        public CommandState GetCommandState(MoveSelectedLinesUpCommandArgs args)
-            => CommandState.Unspecified;
+        CommitIfActive(args);
+        return false;
+    }
 
-        public bool ExecuteCommand(MoveSelectedLinesUpCommandArgs args, CommandExecutionContext context)
-        {
-            CommitIfActive(args);
-            return false;
-        }
+    public CommandState GetCommandState(MoveSelectedLinesDownCommandArgs args)
+        => CommandState.Unspecified;
 
-        public CommandState GetCommandState(MoveSelectedLinesDownCommandArgs args)
-            => CommandState.Unspecified;
-
-        public bool ExecuteCommand(MoveSelectedLinesDownCommandArgs args, CommandExecutionContext context)
-        {
-            CommitIfActive(args);
-            return false;
-        }
+    public bool ExecuteCommand(MoveSelectedLinesDownCommandArgs args, CommandExecutionContext context)
+    {
+        CommitIfActive(args);
+        return false;
     }
 }

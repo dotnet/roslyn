@@ -1,0 +1,68 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Library</OutputType>
+    <TargetFramework>$(NetRoslyn)</TargetFramework>
+
+    <_BuildTaskTfm Condition="'$(MSBuildRuntimeType)' != 'Core'">net472</_BuildTaskTfm>
+    <_BuildTaskTfm Condition="'$(MSBuildRuntimeType)' == 'Core'">$(NetRoslyn)</_BuildTaskTfm>
+    <_BuildTaskAssemblyFile>$(ArtifactsBinDir)SemanticSearch.BuildTask\$(Configuration)\$(_BuildTaskTfm)\SemanticSearch.BuildTask.dll</_BuildTaskAssemblyFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\BuildTask\SemanticSearch.BuildTask.csproj"
+                      ReferenceOutputAssembly="false"
+                      SkipGetTargetFrameworkProperties="true"
+                      SetTargetFramework="TargetFramework=$(_BuildTaskTfm)" />
+    
+    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
+    <ProjectReference Include="..\..\..\Compilers\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)ApiSet\*.txt" IsApiSet="true" />
+  </ItemGroup>
+
+  <!--
+    Using `TaskHostFactory` ensures that the task assembly will not be locked
+    at the end of the build. If it's omitted, that can cause build failures
+    in subsequent builds because the task assembly can't be written by the
+    next build.
+  -->
+  <UsingTask TaskName="Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask" AssemblyFile="$(_BuildTaskAssemblyFile)" TaskFactory="TaskHostFactory" />
+
+  <Target Name="_CalculateFilteredReferenceAssembliesInputsAndOutputs" DependsOnTargets="ResolveAssemblyReferences">
+    <PropertyGroup>
+      <_OutputDir>$(IntermediateOutputPath)GeneratedRefAssemblies\</_OutputDir>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <_InputReference Include="@(ReferencePath)" 
+                       Condition="'%(ReferencePath.FrameworkReferenceName)' == 'Microsoft.NETCore.App' or 
+                                  '%(ReferencePath.FileName)' == 'System.Collections.Immutable' or
+                                  '%(ReferencePath.FileName)' == 'Microsoft.CodeAnalysis' or
+                                  '%(ReferencePath.FileName)' == 'Microsoft.CodeAnalysis.CSharp'" />
+
+      <ApiSet Include="@(None)" Condition="'%(None.IsApiSet)' == 'true'" />
+      
+      <_InputFile Include="@(ApiSet)" />
+      <_InputFile Include="@(_InputReference)" />
+
+      <_OutputFile Include="@(ApiSet->'$(_OutputDir)%(FileName).dll')" />
+    </ItemGroup>
+  </Target>
+  
+  <Target Name="GenerateFilteredReferenceAssemblies" Condition="Exists('$(_BuildTaskAssemblyFile)')" BeforeTargets="CoreCompile" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Inputs="@(_InputFile)" Outputs="@(_OutputFile)">
+
+    <MakeDir Directories="$(_OutputDir)" />
+    <Microsoft.CodeAnalysis.Tools.GenerateFilteredReferenceAssembliesTask References="@(_InputReference)" ApiSets="@(ApiSet)" OutputDir="$(_OutputDir)" />
+
+    <ItemGroup>
+      <FileWrites Include="@(_OutputFile)" />
+    </ItemGroup>
+  </Target>
+
+  <!-- Used from Setup and test projects to fetch the list of generated ref assemblies -->
+  <Target Name="PublishedProjectOutputGroup" DependsOnTargets="_CalculateFilteredReferenceAssembliesInputsAndOutputs" Returns="@(_OutputFile)"  />
+
+  <!-- Generates ref assemblies -->
+  <Target Name="PublishVsixItems" DependsOnTargets="PublishedProjectOutputGroup;GenerateFilteredReferenceAssemblies" Returns="@(_OutputFile)" />
+</Project>

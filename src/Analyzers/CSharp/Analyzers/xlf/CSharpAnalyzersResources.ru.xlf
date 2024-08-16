@@ -12,6 +12,11 @@
         <target state="translated">Добавить фигурные скобки в оператор "{0}".</target>
         <note />
       </trans-unit>
+      <trans-unit id="Anonymous_function_can_be_made_static">
+        <source>Anonymous function can be made static</source>
+        <target state="translated">Анонимную функцию можно сделать статической</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_arrow_expression_clause_token">
         <source>Blank line not allowed after arrow expression clause token</source>
         <target state="translated">Пустая строка недопустима после маркера предложения выражения со стрелкой</target>
@@ -90,6 +95,11 @@
       <trans-unit id="Lambda_expression_can_be_removed">
         <source>Lambda expression can be removed</source>
         <target state="translated">Лямбда-выражение можно удалить</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_anonymous_function_static">
+        <source>Make anonymous function static</source>
+        <target state="translated">Сделать анонимную функцию статической</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_member_readonly">
@@ -172,11 +182,6 @@
         <target state="translated">Удалите избыточную директиву, допускающую значение NULL</target>
         <note />
       </trans-unit>
-      <trans-unit id="Remove_suppression_operators">
-        <source>Remove suppression operators</source>
-        <target state="translated">Удалить операторы подавления</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_unnecessary_lambda_expression">
         <source>Remove unnecessary lambda expression</source>
         <target state="translated">Удалить ненужное лямбда-выражение</target>
@@ -231,6 +236,11 @@
         <source>Unreachable code detected</source>
         <target state="translated">Обнаружен недостижимый код</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Use_System_Threading_Lock">
+        <source>Use 'System.Threading.Lock'</source>
+        <target state="new">Use 'System.Threading.Lock'</target>
+        <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>
@@ -457,8 +467,8 @@
         <target state="translated">выражение new можно упростить</target>
         <note />
       </trans-unit>
-      <trans-unit id="typeof_can_be_converted_ to_nameof">
-        <source>'typeof' can be converted  to 'nameof'</source>
+      <trans-unit id="typeof_can_be_converted_to_nameof">
+        <source>'typeof' can be converted to 'nameof'</source>
         <target state="translated">"typeof" можно преобразовать в "nameof".</target>
         <note />
       </trans-unit>

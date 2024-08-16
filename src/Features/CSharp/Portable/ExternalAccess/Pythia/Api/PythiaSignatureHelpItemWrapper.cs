@@ -6,21 +6,20 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.SignatureHelp;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.Pythia.Api;
+
+internal readonly struct PythiaSignatureHelpItemWrapper(SignatureHelpItem underlyingObject)
 {
-    internal readonly struct PythiaSignatureHelpItemWrapper(SignatureHelpItem underlyingObject)
-    {
-        internal readonly SignatureHelpItem UnderlyingObject = underlyingObject;
+    internal readonly SignatureHelpItem UnderlyingObject = underlyingObject;
 
-        public static SymbolDisplayPart CreateTextDisplayPart(string text)
-            => new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, text);
+    public static SymbolDisplayPart CreateTextDisplayPart(string text)
+        => new SymbolDisplayPart(SymbolDisplayPartKind.Text, null, text);
 
-        public static PythiaSignatureHelpItemWrapper CreateFromMethodGroupMethod(
-            Document document,
-            IMethodSymbol method,
-            int position,
-            SemanticModel semanticModel,
-            IList<SymbolDisplayPart> descriptionParts)
-        => new PythiaSignatureHelpItemWrapper(AbstractOrdinaryMethodSignatureHelpProvider.ConvertMethodGroupMethod(document, method, position, semanticModel, descriptionParts));
-    }
+    public static PythiaSignatureHelpItemWrapper CreateFromMethodGroupMethod(
+        Document document,
+        IMethodSymbol method,
+        int position,
+        SemanticModel semanticModel,
+        IList<SymbolDisplayPart> descriptionParts)
+    => new PythiaSignatureHelpItemWrapper(AbstractOrdinaryMethodSignatureHelpProvider.ConvertMethodGroupMethod(document, method, position, semanticModel, descriptionParts));
 }

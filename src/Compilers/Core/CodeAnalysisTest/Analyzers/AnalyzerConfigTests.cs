@@ -64,30 +64,30 @@ my_prop = my_val
         {
             var config = ParseConfigFile(@"is_global = true
 
-[c:/\{f\*i\?le1\}.cs]
+[C:/\{f\*i\?le1\}.cs]
 build_metadata.Compile.ToRetrieve = abc123
 
-[c:/f\,ile\#2.cs]
+[C:/f\,ile\#2.cs]
 build_metadata.Compile.ToRetrieve = def456
 
-[c:/f\;i\!le\[3\].cs]
+[C:/f\;i\!le\[3\].cs]
 build_metadata.Compile.ToRetrieve = ghi789
 ");
 
             var namedSections = config.NamedSections;
-            Assert.Equal("c:/\\{f\\*i\\?le1\\}.cs", namedSections[0].Name);
+            Assert.Equal("C:/\\{f\\*i\\?le1\\}.cs", namedSections[0].Name);
             AssertEx.Equal(
                 new[] { KeyValuePair.Create("build_metadata.compile.toretrieve", "abc123") },
                 namedSections[0].Properties
             );
 
-            Assert.Equal("c:/f\\,ile\\#2.cs", namedSections[1].Name);
+            Assert.Equal("C:/f\\,ile\\#2.cs", namedSections[1].Name);
             AssertEx.Equal(
                 new[] { KeyValuePair.Create("build_metadata.compile.toretrieve", "def456") },
                 namedSections[1].Properties
             );
 
-            Assert.Equal("c:/f\\;i\\!le\\[3\\].cs", namedSections[2].Name);
+            Assert.Equal("C:/f\\;i\\!le\\[3\\].cs", namedSections[2].Name);
             AssertEx.Equal(
                 new[] { KeyValuePair.Create("build_metadata.compile.toretrieve", "ghi789") },
                 namedSections[2].Properties
@@ -114,6 +114,40 @@ build_metadata.Compile.ToRetrieve = def456
 
             sectionOptions = set.GetOptionsForSourcePath("/home/foo/src/Pages/#foo/HomePage.cs");
             Assert.Equal("def456", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
+        }
+
+        [ConditionalFact(typeof(WindowsOnly))]
+        public void CanGetSectionsWithDifferentDriveCasing()
+        {
+            var config = Parse(@"is_global = true
+build_metadata.compile.toretrieve = global
+
+[c:/goo/file.cs]
+build_metadata.compile.toretrieve = abc123
+
+[C:/goo/other.cs]
+build_metadata.compile.toretrieve = def456
+", pathToFile: @"C:/.editorconfig");
+
+            var set = AnalyzerConfigSet.Create(ImmutableArray.Create(config));
+
+            var sectionOptions = set.GetOptionsForSourcePath(@"c:\goo\file.cs");
+            Assert.Equal("abc123", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
+
+            sectionOptions = set.GetOptionsForSourcePath(@"C:\goo\file.cs");
+            Assert.Equal("abc123", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
+
+            sectionOptions = set.GetOptionsForSourcePath(@"C:\goo\other.cs");
+            Assert.Equal("def456", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
+
+            sectionOptions = set.GetOptionsForSourcePath(@"c:\goo\other.cs");
+            Assert.Equal("def456", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
+
+            sectionOptions = set.GetOptionsForSourcePath(@"c:\global.cs");
+            Assert.Equal("global", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
+
+            sectionOptions = set.GetOptionsForSourcePath(@"C:\global.cs");
+            Assert.Equal("global", sectionOptions.AnalyzerOptions["build_metadata.compile.toretrieve"]);
         }
 
         [ConditionalFact(typeof(WindowsOnly))]
@@ -936,6 +970,33 @@ dotnet_diagnostic.cs000.severity = error", "/.editorconfig"));
             }, options.Select(o => o.TreeOptions).ToArray());
         }
 
+        [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/72657")]
+        [InlineData("/", "/")]
+        [InlineData("/a/b/c/", "/a/b/c/")]
+        [InlineData("/a/b//c/", "/a/b/c/")]
+        [InlineData("/a/b/c/", "/a/b//c/")]
+        [InlineData("/a/b//c/", "/a/b//c/")]
+        [InlineData("/a/b/c//", "/a/b/c/")]
+        [InlineData("/a/b/c/", "/a/b/c//")]
+        [InlineData("/a/b/c//", "/a/b/c//")]
+        [InlineData("/a/b//c/", "/a/b///c/")]
+        public void EditorConfigToDiagnostics_DoubleSlash(string prefixEditorConfig, string prefixSource)
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse("""
+                [*.cs]
+                dotnet_diagnostic.cs000.severity = none
+                """,
+                prefixEditorConfig + ".editorconfig"));
+
+            var options = GetAnalyzerConfigOptions([prefixSource + "test.cs"], configs);
+            configs.Free();
+
+            Assert.Equal([
+                CreateImmutableDictionary(("cs000", ReportDiagnostic.Suppress))
+            ], options.Select(o => o.TreeOptions).ToArray());
+        }
+
         [Theory]
         [InlineData("default")]
         [InlineData("none")]
@@ -1160,6 +1221,28 @@ dotnet_diagnostic.cs001.severity = error", "/subdir/.editorconfig"));
                 CreateImmutableDictionary(
                     ("cs000", ReportDiagnostic.Warn),
                     ("cs001", ReportDiagnostic.Info))
+            }, options.Select(o => o.TreeOptions).ToArray());
+        }
+
+        [Fact]
+        public void FolderNamePrefixOfFileName()
+        {
+            var configs = ArrayBuilder<AnalyzerConfig>.GetInstance();
+            configs.Add(Parse(@"
+[*.cs]
+dotnet_diagnostic.cs000.severity = suggestion", "/root/.editorconfig"));
+            configs.Add(Parse(@"
+root=true", "/root/test/.editorconfig"));
+
+            var options = GetAnalyzerConfigOptions(
+                new[] { "/root/testing.cs" },
+                configs);
+            configs.Free();
+
+            Assert.Equal(new[]
+            {
+                CreateImmutableDictionary(
+                    ("cs000", ReportDiagnostic.Info)),
             }, options.Select(o => o.TreeOptions).ToArray());
         }
 
@@ -2257,7 +2340,7 @@ option2 = config3
         [InlineData(@"\", false)] //invalid: editorconfig sees a single escape character
         [InlineData(@"\\", false)] //invalid: editorconfig sees an escaped, literal backslash
         [InlineData(@"/\{\}\,\[\]\*", true)]
-        [InlineData(@"c:\my\file.cs", false)] // invalid: editorconfig sees a single file called 'c:(\m)y(\f)ile.cs' (i.e. \m and \f are escape chars)
+        [InlineData(@"C:\my\file.cs", false)] // invalid: editorconfig sees a single file called 'c:(\m)y(\f)ile.cs' (i.e. \m and \f are escape chars)
         [InlineData(@"\my\file.cs", false)] // invalid: editorconfig sees a single file called '(\m)y(\f)ile.cs' 
         [InlineData(@"\\my\\file.cs", false)] // invalid: editorconfig sees a single file called '\my\file.cs' with literal backslashes
         [InlineData(@"\\\\my\\file.cs", false)] // invalid: editorconfig sees a single file called '\\my\file.cs' not a UNC path
@@ -2292,20 +2375,20 @@ is_global = true
         }
 
         [Theory]
-        [InlineData("c:/myfile.cs", true, false)]
+        [InlineData("C:/myfile.cs", true, false)]
         [InlineData("cd:/myfile.cs", false, false)] // windows only allows a single character as a drive specifier
         [InlineData(@"\c\:\/myfile.cs", true, false)] // allow escaped characters
         [InlineData("/myfile.cs", true, true)] //absolute, with a relative drive root
         [InlineData("c:myfile.cs", false, false)] //relative, wit2h an absolute drive root
-        [InlineData(@"c:\myfile.cs", false, false)] //not a valid editorconfig path
+        [InlineData(@"C:\myfile.cs", false, false)] //not a valid editorconfig path
         [InlineData("//?/C:/Test/Foo.txt", false, false)] // ? is a special char in editorconfig
         [InlineData(@"//\?/C:/Test/Foo.txt", true, true)]
         [InlineData(@"\\?\C:\Test\Foo.txt", false, false)]
-        [InlineData(@"c:", false, false)]
-        [InlineData(@"c\", false, false)]
+        [InlineData(@"C:", false, false)]
+        [InlineData(@"C\", false, false)]
         [InlineData(@"\c\:", false, false)]
-        [InlineData("c:/", true, false)]
-        [InlineData("c:/*.cs", false, false)]
+        [InlineData("C:/", true, false)]
+        [InlineData("C:/*.cs", false, false)]
         public void GlobalConfigIssuesWarningWithInvalidSectionNames_PlatformSpecific(string sectionName, bool isValidWindows, bool isValidOther)
             => GlobalConfigIssuesWarningWithInvalidSectionNames(sectionName, ExecutionConditionUtil.IsWindows ? isValidWindows : isValidOther);
 

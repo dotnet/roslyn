@@ -44,8 +44,8 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
-        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
-        if (AnalyzeInvocation(semanticModel, invocationExpression, expressionType, allowInterfaceConversion, cancellationToken) is not { } analysisResult)
+        var allowSemanticsChange = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
+        if (AnalyzeInvocation(semanticModel, invocationExpression, expressionType, allowSemanticsChange, cancellationToken) is not { } analysisResult)
             return;
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
@@ -54,6 +54,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             Descriptor,
             analysisResult.DiagnosticLocation,
             option.Notification,
+            context.Options,
             additionalLocations: locations,
             properties: properties));
 
@@ -70,6 +71,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
                 UnnecessaryCodeDescriptor,
                 additionalUnnecessaryLocations[0],
                 NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+                context.Options,
                 additionalLocations: locations,
                 additionalUnnecessaryLocations: additionalUnnecessaryLocations,
                 properties: properties));
@@ -87,6 +89,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
                     UnnecessaryCodeDescriptor,
                     additionalUnnecessaryLocations[0],
                     NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+                    context.Options,
                     additionalLocations: locations,
                     additionalUnnecessaryLocations: additionalUnnecessaryLocations,
                     properties: properties));
@@ -98,7 +101,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
         SemanticModel semanticModel,
         InvocationExpressionSyntax invocationExpression,
         INamedTypeSymbol? expressionType,
-        bool allowInterfaceConversion,
+        bool allowSemanticsChange,
         CancellationToken cancellationToken)
     {
         // Looking for `XXX.CreateBuilder(...)`
@@ -193,7 +196,7 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
 
             // Make sure we can actually use a collection expression in place of the created collection.
             if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                    semanticModel, creationExpression, expressionType, isSingletonInstance: false, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
+                    semanticModel, creationExpression, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
             {
                 return null;
             }

@@ -4,6 +4,7 @@
 
 #nullable disable
 
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1153,7 +1154,7 @@ class C3
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (17,16): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (17,16): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //         using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(17, 16)
                 );
@@ -1235,7 +1236,7 @@ class C3
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (15,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (15,15): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //        using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(15, 15)
                 );
@@ -1265,7 +1266,7 @@ class C3
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (15,15): error CS1674: 'S1': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (15,15): error CS1674: 'S1': type used in a using statement must implement 'System.IDisposable'.
                 //        using (S1 s = new S1())
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "S1 s = new S1()").WithArguments("S1").WithLocation(15, 15)
                 );
@@ -1426,10 +1427,10 @@ class Gen<T> where T : new()
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (13,16): error CS1674: 'T': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (13,16): error CS1674: 'T': type used in a using statement must implement 'System.IDisposable'.
                 //         using (val)
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "val").WithArguments("T"),
-                // (24,16): error CS1674: 'T': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (24,16): error CS1674: 'T': type used in a using statement must implement 'System.IDisposable'.
                 //         using (T disp = new T()) // Invalid
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "T disp = new T()").WithArguments("T"));
         }
@@ -1484,7 +1485,7 @@ class Program
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,16): error CS1674: 'Program.MyManagedClass': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (7,16): error CS1674: 'Program.MyManagedClass': type used in a using statement must implement 'System.IDisposable'.
                 //         using (res) // Invalid
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass").WithLocation(7, 16)
                 );
@@ -1511,7 +1512,7 @@ class Program
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (7,16): error CS1674: 'Program.MyManagedClass': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (7,16): error CS1674: 'Program.MyManagedClass': type used in a using statement must implement 'System.IDisposable'.
                 //         using (res) // Invalid
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "res").WithArguments("Program.MyManagedClass").WithLocation(7, 16)
                 );
@@ -2730,13 +2731,13 @@ class Program
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-                // (6,16): error CS1674: 'lambda expression': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (6,16): error CS1674: 'lambda expression': type used in a using statement must implement 'System.IDisposable'.
                 //         using (x => x)     // err
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "x => x").WithArguments("lambda expression"),
-                // (9,16): error CS1674: 'lambda expression': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (9,16): error CS1674: 'lambda expression': type used in a using statement must implement 'System.IDisposable'.
                 //         using (() => { })     // err
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "() => { }").WithArguments("lambda expression"),
-                // (12,16): error CS1674: 'lambda expression': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (12,16): error CS1674: 'lambda expression': type used in a using statement must implement 'System.IDisposable'.
                 //         using ((int @int) => { return @int; })     // err
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "(int @int) => { return @int; }").WithArguments("lambda expression"));
         }
@@ -2770,19 +2771,19 @@ class Program
 }
 ";
             CreateCompilation(source).VerifyDiagnostics(
-    // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+    // (6,16): error CS1674: '<empty anonymous type>': type used in a using statement must implement 'System.IDisposable'.
     //         using (var a = new { })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var a = new { }").WithArguments("<empty anonymous type>"),
-    // (9,16): error CS1674: '<anonymous type: int p1>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+    // (9,16): error CS1674: '<anonymous type: int p1>': type used in a using statement must implement 'System.IDisposable'.
     //         using (var b = new { p1 = 10 })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var b = new { p1 = 10 }").WithArguments("<anonymous type: int p1>"),
-    // (12,16): error CS1674: '<anonymous type: double p1, char p2>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+    // (12,16): error CS1674: '<anonymous type: double p1, char p2>': type used in a using statement must implement 'System.IDisposable'.
     //         using (var c = new { p1 = 10.0, p2 = 'a' })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var c = new { p1 = 10.0, p2 = 'a' }").WithArguments("<anonymous type: double p1, char p2>"),
-    // (15,16): error CS1674: '<empty anonymous type>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+    // (15,16): error CS1674: '<empty anonymous type>': type used in a using statement must implement 'System.IDisposable'.
     //         using (new { })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, "new { }").WithArguments("<empty anonymous type>"),
-    // (19,16): error CS1674: '<anonymous type: string f1, char f2>': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+    // (19,16): error CS1674: '<anonymous type: string f1, char f2>': type used in a using statement must implement 'System.IDisposable'.
     //         using (new { f1 = "12345", f2 = 'S' })
     Diagnostic(ErrorCode.ERR_NoConvToIDisp, @"new { f1 = ""12345"", f2 = 'S' }").WithArguments("<anonymous type: string f1, char f2>")
     );
@@ -3094,6 +3095,182 @@ struct A : System.IDisposable
 }";
 
             CompileAndVerify(source, expectedOutput: "0");
+        }
+
+        [Theory, CombinatorialData]
+        public void OptionalParameter([CombinatorialValues("ref", "in", "ref readonly", "")] string modifier)
+        {
+            var source = $$"""
+                using System;
+                using (var s = new S())
+                {
+                    Console.Write("1");
+                }
+                ref struct S
+                {
+                    public void Dispose({{modifier}} int x = 2) => Console.Write(x);
+                }
+                """;
+            if (modifier == "ref")
+            {
+                CreateCompilation(source).VerifyDiagnostics(
+                    // (2,8): error CS1674: 'S': type used in a using statement must implement 'System.IDisposable'.
+                    // using (var s = new S())
+                    Diagnostic(ErrorCode.ERR_NoConvToIDisp, "var s = new S()").WithArguments("S").WithLocation(2, 8),
+                    // (8,25): error CS1741: A ref or out parameter cannot have a default value
+                    //     public void Dispose(ref int x = 2) => Console.Write(x);
+                    Diagnostic(ErrorCode.ERR_RefOutDefaultValue, "ref").WithLocation(8, 25));
+            }
+            else
+            {
+                var verifier = CompileAndVerify(source, expectedOutput: "12");
+                if (modifier == "ref readonly")
+                {
+                    verifier.VerifyDiagnostics(
+                        // (8,46): warning CS9200: A default value is specified for 'ref readonly' parameter 'x', but 'ref readonly' should be used only for references. Consider declaring the parameter as 'in'.
+                        //     public void Dispose(ref readonly int x = 2) => Console.Write(x);
+                        Diagnostic(ErrorCode.WRN_RefReadonlyParameterDefaultValue, "2").WithArguments("x").WithLocation(8, 46));
+                }
+                else
+                {
+                    verifier.VerifyDiagnostics();
+                }
+            }
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_01(
+            [CombinatorialValues("readonly", "")] string vReadonly)
+        {
+            var source = $$"""
+                using System;
+
+                V v = default;
+
+                using (var d = new R(ref v))
+                {
+                    d.V.F++;
+                }
+
+                Console.Write(v.F);
+
+                ref struct R(ref V v)
+                {
+                    public {{vReadonly}} ref V V = ref v;
+                    public void Dispose() { }
+                }
+
+                struct V
+                {
+                    public int F;
+                }
+                """;
+            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "1").VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_02(
+            [CombinatorialValues("readonly", "")] string vReadonly)
+        {
+            var source = $$"""
+                using System;
+
+                V v = default;
+
+                using (var d = new R(ref v))
+                {
+                    d.V.F += 2;
+                }
+
+                Console.Write(v.F);
+
+                ref struct R(ref V v)
+                {
+                    public {{vReadonly}} ref V V = ref v;
+                    public void Dispose() { }
+                }
+
+                struct V
+                {
+                    public int F;
+                }
+                """;
+            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "2").VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_03(
+            [CombinatorialValues("readonly", "")] string vReadonly)
+        {
+            var source = $$"""
+                using System;
+
+                V v = default;
+
+                using (var d = new R(ref v))
+                {
+                    d.V.S.Inc();
+                }
+
+                Console.Write(v.S.F);
+
+                ref struct R(ref V v)
+                {
+                    public {{vReadonly}} ref V V = ref v;
+                    public void Dispose() { }
+                }
+                                
+                struct V
+                {
+                    public S S;
+                }
+
+                struct S
+                {
+                    public int F;
+                    public void Inc() => F++;
+                }
+                """;
+            CompileAndVerify(source, targetFramework: TargetFramework.Net70,
+                verify: Verification.FailsPEVerify,
+                expectedOutput: ExecutionConditionUtil.IsDesktop ? null : "1").VerifyDiagnostics();
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/73741")]
+        public void MutatingThroughRefFields_04(
+            [CombinatorialValues("readonly", "")] string vReadonly)
+        {
+            var source = $$"""
+                using System;
+
+                V v = default;
+
+                using (var d = new R(ref v))
+                {
+                    d.V.F++;
+                }
+
+                Console.Write(v.F);
+
+                ref struct R(ref V v)
+                {
+                    public {{vReadonly}} ref readonly V V = ref v;
+                    public void Dispose() { }
+                }
+
+                struct V
+                {
+                    public int F;
+                }
+                """;
+            CreateCompilation(source, targetFramework: TargetFramework.Net70).VerifyDiagnostics(
+                // (7,5): error CS8332: Cannot assign to a member of field 'V' or use it as the right hand side of a ref assignment because it is a readonly variable
+                //     d.V.F++;
+                Diagnostic(ErrorCode.ERR_AssignReadonlyNotField2, "d.V.F").WithArguments("field", "V").WithLocation(7, 5));
         }
     }
 }

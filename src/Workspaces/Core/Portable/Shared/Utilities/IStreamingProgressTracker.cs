@@ -5,11 +5,10 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Shared.Utilities
+namespace Microsoft.CodeAnalysis.Shared.Utilities;
+
+internal interface IStreamingProgressTracker
 {
-    internal interface IStreamingProgressTracker
-    {
-        ValueTask AddItemsAsync(int count, CancellationToken cancellationToken);
-        ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken);
-    }
+    ValueTask AddItemsAsync(int count, CancellationToken cancellationToken);
+    ValueTask ItemsCompletedAsync(int count, CancellationToken cancellationToken);
 }

@@ -49,7 +49,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
 
         // Stack alloc can never be wrapped in an interface, so don't even try.
         if (!UseCollectionExpressionHelpers.CanReplaceWithCollectionExpression(
-                semanticModel, expression, expressionType, isSingletonInstance: false, allowInterfaceConversion: false, skipVerificationForReplacedNode: true, cancellationToken, out _))
+                semanticModel, expression, expressionType, isSingletonInstance: false, allowSemanticsChange: false, skipVerificationForReplacedNode: true, cancellationToken, out _))
         {
             return;
         }
@@ -59,6 +59,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
             Descriptor,
             expression.GetFirstToken().GetLocation(),
             option.Notification,
+            context.Options,
             additionalLocations: locations,
             properties: null));
 
@@ -71,6 +72,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
             NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+            context.Options,
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }
@@ -87,8 +89,8 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         if (option.Value is CollectionExpressionPreference.Never || ShouldSkipAnalysis(context, option.Notification))
             return;
 
-        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
-        var matches = TryGetMatches(semanticModel, expression, expressionType, allowInterfaceConversion, cancellationToken);
+        var allowSemanticsChange = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
+        var matches = TryGetMatches(semanticModel, expression, expressionType, allowSemanticsChange, cancellationToken);
         if (matches.IsDefault)
             return;
 
@@ -97,6 +99,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
             Descriptor,
             expression.GetFirstToken().GetLocation(),
             option.Notification,
+            context.Options,
             additionalLocations: locations,
             properties: null));
 
@@ -109,6 +112,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
             UnnecessaryCodeDescriptor,
             additionalUnnecessaryLocations[0],
             NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+            context.Options,
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations));
     }
@@ -117,7 +121,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
         SemanticModel semanticModel,
         StackAllocArrayCreationExpressionSyntax expression,
         INamedTypeSymbol? expressionType,
-        bool allowInterfaceConversion,
+        bool allowSemanticsChange,
         CancellationToken cancellationToken)
     {
         return UseCollectionExpressionHelpers.TryGetMatches(
@@ -125,7 +129,7 @@ internal sealed partial class CSharpUseCollectionExpressionForStackAllocDiagnost
             expression,
             expressionType,
             isSingletonInstance: false,
-            allowInterfaceConversion,
+            allowSemanticsChange,
             static e => e.Type,
             static e => e.Initializer,
             cancellationToken,

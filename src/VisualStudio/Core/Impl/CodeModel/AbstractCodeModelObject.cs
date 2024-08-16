@@ -14,7 +14,6 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
@@ -25,7 +24,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     public abstract partial class AbstractCodeModelObject : ApartmentSensitiveComObject
     {
         private CodeModelState _state;
-        private bool _zombied;
 
         internal AbstractCodeModelObject(CodeModelState state)
         {
@@ -34,10 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _state = state;
         }
 
-        protected bool IsZombied
-        {
-            get { return _zombied; }
-        }
+        protected bool IsZombied { get; private set; }
 
         internal CodeModelState State
         {
@@ -81,7 +76,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         internal virtual void Shutdown()
         {
             _state = null;
-            _zombied = true;
+            IsZombied = true;
         }
 
         public DTE DTE

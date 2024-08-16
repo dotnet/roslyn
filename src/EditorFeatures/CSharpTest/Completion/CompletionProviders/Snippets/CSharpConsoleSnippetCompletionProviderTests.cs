@@ -2,496 +2,583 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CSharp.Completion.CompletionProviders.Snippets;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets;
+
+[Trait(Traits.Feature, Traits.Features.Completion)]
+public class CSharpConsoleSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
 {
-    [Trait(Traits.Feature, Traits.Features.Completion)]
-    public class CSharpConsoleSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
+    protected override string ItemToCommit => "cw";
+
+    [WpfFact]
+    public async Task InsertConsoleSnippetInMethodTest()
     {
-        protected override string ItemToCommit => "cw";
-
-        [WpfFact]
-        public async Task InsertConsoleSnippetInMethodTest()
-        {
-            var markupBeforeCommit =
-                """
-                class Program
+        var markupBeforeCommit =
+            """
+            class Program
+            {
+                public void Method()
                 {
-                    public void Method()
-                    {
-                        Wr$$
-                    }
+                    Wr$$
                 }
-                """;
+            }
+            """;
 
-            var expectedCodeAfterCommit =
-                """
-                using System;
+        var expectedCodeAfterCommit =
+            """
+            using System;
 
-                class Program
-                {
-                    public void Method()
-                    {
-                        Console.WriteLine($$);
-                    }
-                }
-                """;
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
-
-        [WpfFact]
-        public async Task InsertAsyncConsoleSnippetTest()
-        {
-            var markupBeforeCommit =
-                """
-                class Program
-                {
-                    public async Task MethodAsync()
-                    {
-                        Wr$$
-                    }
-                }
-                """;
-
-            var expectedCodeAfterCommit =
-                """
-                using System;
-
-                class Program
-                {
-                    public async Task MethodAsync()
-                    {
-                        await Console.Out.WriteLineAsync($$);
-                    }
-                }
-                """;
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
-
-        [WpfFact]
-        public async Task InsertConsoleSnippetGlobalTest()
-        {
-            var markupBeforeCommit =
-                """
-                $$
-                class Program
-                {
-                    public async Task MethodAsync()
-                    {
-                    }
-                }
-                """;
-
-            var expectedCodeAfterCommit =
-                """
-                using System;
-
-                Console.WriteLine($$);
-                class Program
-                {
-                    public async Task MethodAsync()
-                    {
-                    }
-                }
-                """;
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
-
-        [WpfFact]
-        public async Task NoConsoleSnippetInBlockNamespaceTest()
-        {
-            var markupBeforeCommit =
-                """
-                namespace Namespace
-                {
-                    $$
-                    class Program
-                    {
-                        public async Task MethodAsync()
-                        {
-                        }
-                    }
-                }
-                """;
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
-
-        [WpfFact]
-        public async Task NoConsoleSnippetInFileScopedNamespaceTest()
-        {
-            var markupBeforeCommit =
-                """
-                namespace Namespace;
-                $$
-                class Program
-                {
-                    public async Task MethodAsync()
-                    {
-                    }
-                }
-                """;
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
-
-        [WpfFact]
-        public async Task InsertConsoleSnippetInConstructorTest()
-        {
-            var markupBeforeCommit =
-                """
-                class Program
-                {
-                    public Program()
-                    {
-                        var x = 5;
-                        $$
-                    }
-                }
-                """;
-
-            var expectedCodeAfterCommit =
-                """
-                using System;
-
-                class Program
-                {
-                    public Program()
-                    {
-                        var x = 5;
-                        Console.WriteLine($$);
-                    }
-                }
-                """;
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
-
-        [WpfFact]
-        public async Task InsertConsoleSnippetInLocalFunctionTest()
-        {
-            var markupBeforeCommit =
-                """
-                class Program
-                {
-                    public void Method()
-                    {
-                        var x = 5;
-                        void LocalMethod()
-                        {
-                            $$
-                        }
-                    }
-                }
-                """;
-
-            var expectedCodeAfterCommit =
-                """
-                using System;
-
-                class Program
-                {
-                    public void Method()
-                    {
-                        var x = 5;
-                        void LocalMethod()
-                        {
-                            Console.WriteLine($$);
-                        }
-                    }
-                }
-                """;
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
-
-        [WpfFact]
-        public async Task InsertConsoleSnippetInAnonymousFunctionTest()
-        {
-            var markupBeforeCommit =
-                """
-                public delegate void Print(int value);
-
-                static void Main(string[] args)
-                {
-                    Print print = delegate(int val) {
-                        $$
-                    };
-
-                }
-                """;
-
-            var expectedCodeAfterCommit =
-                """
-                using System;
-
-                public delegate void Print(int value);
-
-                static void Main(string[] args)
-                {
-                    Print print = delegate(int val) {
-                        Console.WriteLine($$);
-                    };
-
-                }
-                """;
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
-
-        [WpfFact]
-        public async Task InsertConsoleSnippetInParenthesizedLambdaExpressionTest()
-        {
-            var markupBeforeCommit =
-                """
-                Func<int, int, bool> testForEquality = (x, y) =>
-                {
-                    $$
-                    return x == y;
-                };
-                """;
-
-            var expectedCodeAfterCommit =
-                """
-                using System;
-
-                Func<int, int, bool> testForEquality = (x, y) =>
+            class Program
+            {
+                public void Method()
                 {
                     Console.WriteLine($$);
-                    return x == y;
-                };
-                """;
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+                }
+            }
+            """;
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-        [WpfFact]
-        public async Task NoConsoleSnippetInSwitchExpression()
-        {
-            var markupBeforeCommit =
-                """
+    [WpfFact]
+    public async Task InsertNormalConsoleSnippetInAsyncContextTest()
+    {
+        var markupBeforeCommit =
+            """
+            class Program
+            {
+                public async Task MethodAsync()
+                {
+                    Wr$$
+                }
+            }
+            """;
+
+        var expectedCodeAfterCommit =
+            """
+            using System;
+
+            class Program
+            {
+                public async Task MethodAsync()
+                {
+                    Console.WriteLine($$);
+                }
+            }
+            """;
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
+
+    [WpfFact]
+    public async Task InsertConsoleSnippetGlobalTest()
+    {
+        var markupBeforeCommit =
+            """
+            $$
+            class Program
+            {
+                public async Task MethodAsync()
+                {
+                }
+            }
+            """;
+
+        var expectedCodeAfterCommit =
+            """
+            using System;
+
+            Console.WriteLine($$);
+            class Program
+            {
+                public async Task MethodAsync()
+                {
+                }
+            }
+            """;
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
+
+    [WpfFact]
+    public async Task NoConsoleSnippetInBlockNamespaceTest()
+    {
+        var markupBeforeCommit =
+            """
+            namespace Namespace
+            {
+                $$
                 class Program
                 {
-                    public void Method()
-                    {
-                       var operation = 2;  
-
-                        var result = operation switch  
-                        {
-                            $$
-                            1 => "Case 1",  
-                            2 => "Case 2",  
-                            3 => "Case 3",  
-                            4 => "Case 4",  
-                        };
-                    }
-                }
-                """;
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
-
-        [WpfFact]
-        public async Task NoConsoleSnippetInSingleLambdaExpression()
-        {
-            var markupBeforeCommit =
-                """
-                class Program
-                {
-                    public void Method()
-                    {
-                       Func<int, int> f = x => $$;
-                    }
-                }
-                """;
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
-
-        [WpfFact]
-        public async Task NoConsoleSnippetInStringTest()
-        {
-            var markupBeforeCommit =
-                """
-                class Program
-                {
-                    public void Method()
-                    {
-                        var str = "$$";
-                    }
-                }
-                """;
-
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
-
-        [WpfFact]
-        public async Task NoConsoleSnippetInObjectInitializerTest()
-        {
-            var markupBeforeCommit =
-                """
-                class Program
-                {
-                    public void Method()
-                    {
-                        var str = new Test($$);
-                    }
-                }
-
-                class Test
-                {
-                    private string val;
-
-                    public Test(string val)
-                    {
-                        this.val = val;
-                    }
-                }
-                """;
-
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
-
-        [WpfFact]
-        public async Task NoConsoleSnippetInParameterListTest()
-        {
-            var markupBeforeCommit =
-                """
-                class Program
-                {
-                    public void Method(int x, $$)
+                    public async Task MethodAsync()
                     {
                     }
                 }
-                """;
+            }
+            """;
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
-
-        [WpfFact]
-        public async Task NoConsoleSnippetInRecordDeclarationTest()
-        {
-            var markupBeforeCommit =
-                """
-                public record Person
+    [WpfFact]
+    public async Task NoConsoleSnippetInFileScopedNamespaceTest()
+    {
+        var markupBeforeCommit =
+            """
+            namespace Namespace;
+            $$
+            class Program
+            {
+                public async Task MethodAsync()
                 {
+                }
+            }
+            """;
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
+
+    [WpfFact]
+    public async Task InsertConsoleSnippetInConstructorTest()
+    {
+        var markupBeforeCommit =
+            """
+            class Program
+            {
+                public Program()
+                {
+                    var x = 5;
                     $$
-                    public string FirstName { get; init; } = default!;
-                    public string LastName { get; init; } = default!;
-                };
-                """;
-
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
-
-        [WpfFact]
-        public async Task NoConsoleSnippetInVariableDeclarationTest()
-        {
-            var markupBeforeCommit =
-                """
-                class Program
-                {
-                    public void Method()
-                    {
-                        var x = $$
-                    }
                 }
-                """;
+            }
+            """;
 
-            await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
-        }
+        var expectedCodeAfterCommit =
+            """
+            using System;
 
-        [WpfFact]
-        public async Task InsertConsoleSnippetWithInvocationBeforeAndAfterCursorTest()
-        {
-            var markupBeforeCommit =
-                """
-                class Program
+            class Program
+            {
+                public Program()
                 {
-                    public void Method()
-                    {
-                        Wr$$Blah
-                    }
+                    var x = 5;
+                    Console.WriteLine($$);
                 }
-                """;
+            }
+            """;
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
 
-            var expectedCodeAfterCommit =
-                """
-                using System;
-
-                class Program
+    [WpfFact]
+    public async Task InsertConsoleSnippetInLocalFunctionTest()
+    {
+        var markupBeforeCommit =
+            """
+            class Program
+            {
+                public void Method()
                 {
-                    public void Method()
-                    {
-                        Console.WriteLine($$);
-                    }
-                }
-                """;
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
-
-        [WpfFact]
-        public async Task InsertConsoleSnippetWithInvocationUnderscoreBeforeAndAfterCursorTest()
-        {
-            var markupBeforeCommit =
-                """
-                class Program
-                {
-                    public void Method()
-                    {
-                        _Wr$$Blah_
-                    }
-                }
-                """;
-
-            var expectedCodeAfterCommit =
-                """
-                using System;
-
-                class Program
-                {
-                    public void Method()
-                    {
-                        Console.WriteLine($$);
-                    }
-                }
-                """;
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
-
-        /// <summary>
-        /// We want to fix this case and insert the fully qualified namespace
-        /// in a future fix.
-        /// </summary>
-        [WpfFact]
-        public async Task InsertConsoleSnippetWithPropertyNamedConsoleTest()
-        {
-            var markupBeforeCommit =
-                """
-                class Program
-                {
-                    public int Console { get; set; }
-
-                    public void Method()
+                    var x = 5;
+                    void LocalMethod()
                     {
                         $$
                     }
                 }
-                """;
+            }
+            """;
 
-            var expectedCodeAfterCommit =
-                """
-                using System;
+        var expectedCodeAfterCommit =
+            """
+            using System;
 
-                class Program
+            class Program
+            {
+                public void Method()
                 {
-                    public int Console { get; set; }
-
-                    public void Method()
+                    var x = 5;
+                    void LocalMethod()
                     {
                         Console.WriteLine($$);
                     }
                 }
-                """;
-            await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
-        }
+            }
+            """;
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
+
+    [WpfFact]
+    public async Task InsertConsoleSnippetInAnonymousFunctionTest()
+    {
+        var markupBeforeCommit =
+            """
+            public delegate void Print(int value);
+
+            static void Main(string[] args)
+            {
+                Print print = delegate(int val) {
+                    $$
+                };
+
+            }
+            """;
+
+        var expectedCodeAfterCommit =
+            """
+            using System;
+
+            public delegate void Print(int value);
+
+            static void Main(string[] args)
+            {
+                Print print = delegate(int val) {
+                    Console.WriteLine($$);
+                };
+
+            }
+            """;
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
+
+    [WpfFact]
+    public async Task InsertConsoleSnippetInParenthesizedLambdaExpressionTest()
+    {
+        var markupBeforeCommit =
+            """
+            Func<int, int, bool> testForEquality = (x, y) =>
+            {
+                $$
+                return x == y;
+            };
+            """;
+
+        var expectedCodeAfterCommit =
+            """
+            using System;
+
+            Func<int, int, bool> testForEquality = (x, y) =>
+            {
+                Console.WriteLine($$);
+                return x == y;
+            };
+            """;
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
+
+    [WpfFact]
+    public async Task NoConsoleSnippetInSwitchExpression()
+    {
+        var markupBeforeCommit =
+            """
+            class Program
+            {
+                public void Method()
+                {
+                   var operation = 2;  
+
+                    var result = operation switch  
+                    {
+                        $$
+                        1 => "Case 1",  
+                        2 => "Case 2",  
+                        3 => "Case 3",  
+                        4 => "Case 4",  
+                    };
+                }
+            }
+            """;
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
+
+    [WpfFact]
+    public async Task NoConsoleSnippetInSingleLambdaExpression()
+    {
+        var markupBeforeCommit =
+            """
+            class Program
+            {
+                public void Method()
+                {
+                   Func<int, int> f = x => $$;
+                }
+            }
+            """;
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
+
+    [WpfFact]
+    public async Task NoConsoleSnippetInStringTest()
+    {
+        var markupBeforeCommit =
+            """
+            class Program
+            {
+                public void Method()
+                {
+                    var str = "$$";
+                }
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
+
+    [WpfFact]
+    public async Task NoConsoleSnippetInObjectInitializerTest()
+    {
+        var markupBeforeCommit =
+            """
+            class Program
+            {
+                public void Method()
+                {
+                    var str = new Test($$);
+                }
+            }
+
+            class Test
+            {
+                private string val;
+
+                public Test(string val)
+                {
+                    this.val = val;
+                }
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
+
+    [WpfFact]
+    public async Task NoConsoleSnippetInParameterListTest()
+    {
+        var markupBeforeCommit =
+            """
+            class Program
+            {
+                public void Method(int x, $$)
+                {
+                }
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
+
+    [WpfFact]
+    public async Task NoConsoleSnippetInRecordDeclarationTest()
+    {
+        var markupBeforeCommit =
+            """
+            public record Person
+            {
+                $$
+                public string FirstName { get; init; } = default!;
+                public string LastName { get; init; } = default!;
+            };
+            """;
+
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
+
+    [WpfFact]
+    public async Task NoConsoleSnippetInVariableDeclarationTest()
+    {
+        var markupBeforeCommit =
+            """
+            class Program
+            {
+                public void Method()
+                {
+                    var x = $$
+                }
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
+
+    [WpfFact]
+    public async Task InsertConsoleSnippetWithInvocationBeforeAndAfterCursorTest()
+    {
+        var markupBeforeCommit =
+            """
+            class Program
+            {
+                public void Method()
+                {
+                    Wr$$Blah
+                }
+            }
+            """;
+
+        var expectedCodeAfterCommit =
+            """
+            using System;
+
+            class Program
+            {
+                public void Method()
+                {
+                    Console.WriteLine($$);
+                }
+            }
+            """;
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
+
+    [WpfFact]
+    public async Task InsertConsoleSnippetWithInvocationUnderscoreBeforeAndAfterCursorTest()
+    {
+        var markupBeforeCommit =
+            """
+            class Program
+            {
+                public void Method()
+                {
+                    _Wr$$Blah_
+                }
+            }
+            """;
+
+        var expectedCodeAfterCommit =
+            """
+            using System;
+
+            class Program
+            {
+                public void Method()
+                {
+                    Console.WriteLine($$);
+                }
+            }
+            """;
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
+
+    /// <summary>
+    /// We want to fix this case and insert the fully qualified namespace
+    /// in a future fix.
+    /// </summary>
+    [WpfFact]
+    public async Task InsertConsoleSnippetWithPropertyNamedConsoleTest()
+    {
+        var markupBeforeCommit =
+            """
+            class Program
+            {
+                public int Console { get; set; }
+
+                public void Method()
+                {
+                    $$
+                }
+            }
+            """;
+
+        var expectedCodeAfterCommit =
+            """
+            using System;
+
+            class Program
+            {
+                public int Console { get; set; }
+
+                public void Method()
+                {
+                    Console.WriteLine($$);
+                }
+            }
+            """;
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/72266")]
+    public async Task InsertConsoleSnippetInVoidReturningLambdaTest1()
+    {
+        var markupBeforeCommit = """
+            using System;
+
+            M(() => $$);
+
+            void M(Action a)
+            {
+            }
+            """;
+
+        var expectedCodeAfterCommit = """
+            using System;
+
+            M(() => Console.WriteLine($$));
+
+            void M(Action a)
+            {
+            }
+            """;
+
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/72266")]
+    public async Task InsertConsoleSnippetInVoidReturningLambdaTest2()
+    {
+        var markupBeforeCommit = """
+            using System;
+
+            Action action = () => $$
+            """;
+
+        var expectedCodeAfterCommit = """
+            using System;
+            
+            Action action = () => Console.WriteLine($$)
+            """;
+
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/72266")]
+    public async Task InsertConsoleSnippetInVoidReturningLambdaTest_TypeInference()
+    {
+        var markupBeforeCommit = """
+            using System;
+
+            var action = () => $$
+            """;
+
+        var expectedCodeAfterCommit = """
+            using System;
+            
+            var action = () => Console.WriteLine($$)
+            """;
+
+        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/72266")]
+    public async Task NoConsoleSnippetInNonVoidReturningLambdaTest1()
+    {
+        var markupBeforeCommit = """
+            using System;
+            
+            M(() => $$);
+            
+            void M(Func<int> f)
+            {
+            }
+            """;
+
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+    }
+
+    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/72266")]
+    public async Task NoConsoleSnippetInNonVoidReturningLambdaTest2()
+    {
+        var markupBeforeCommit = """
+            using System;
+            
+            Func<int> f = () => $$
+            """;
+
+        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
     }
 }

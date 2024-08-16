@@ -43,19 +43,6 @@ namespace Roslyn.Test.Utilities
             public static PortableExecutableReference System { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet20.System).GetReference(display: "System.dll (net20)", filePath: "System.dll");
             public static PortableExecutableReference MicrosoftVisualBasic { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet20.MicrosoftVisualBasic).GetReference(display: "Microsoft.VisualBasic.dll (net20)", filePath: "Microsoft.VisualBasic.dll");
         }
-        public static class ResourcesNet35
-        {
-            private static byte[] _SystemCore;
-            public static byte[] SystemCore => ResourceLoader.GetOrCreateResource(ref _SystemCore, "net35.System.Core.dll");
-            public static ReferenceInfo[] All => new[]
-            {
-                new ReferenceInfo("System.Core.dll", SystemCore),
-            };
-        }
-        public static class Net35
-        {
-            public static PortableExecutableReference SystemCore { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet35.SystemCore).GetReference(display: "System.Core.dll (net35)", filePath: "System.Core.dll");
-        }
         public static class ResourcesNet40
         {
             private static byte[] _mscorlib;

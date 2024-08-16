@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -209,8 +210,11 @@ public class Test
             var compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.Regular);
             compilation.VerifyEmitDiagnostics();
 
-            compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.RegularWithLegacyStrongName);
-            compilation.VerifyEmitDiagnostics();
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                compilation = CreateCompilation(code, options: options, parseOptions: TestOptions.RegularWithLegacyStrongName);
+                compilation.VerifyEmitDiagnostics();
+            }
         }
 
         [ConditionalFact(typeof(WindowsOnly), Reason = ConditionalSkipReason.TestHasWindowsPaths)]

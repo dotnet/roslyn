@@ -49,19 +49,19 @@ public partial class UseCollectionExpressionForBuilderTests
         }
         """;
 
-    public static readonly IEnumerable<object[]> FailureCreationPatterns = new[]
-    {
-        new[] {"var builder = ImmutableArray.CreateBuilder<int>();" },
-        new[] {"var builder = ArrayBuilder<int>.GetInstance();" },
-        new[] {"using var _ = ArrayBuilder<int>.GetInstance(out var builder);" },
-    };
+    public static readonly IEnumerable<object[]> FailureCreationPatterns =
+    [
+        ["var builder = ImmutableArray.CreateBuilder<int>();"],
+        ["var builder = ArrayBuilder<int>.GetInstance();"],
+        ["using var _ = ArrayBuilder<int>.GetInstance(out var builder);"],
+    ];
 
-    public static readonly IEnumerable<object[]> SuccessCreationPatterns = new[]
-    {
-        new[] {"[|var builder = ImmutableArray.[|CreateBuilder|]<int>();|]" },
-        new[] {"[|var builder = ArrayBuilder<int>.[|GetInstance|]();|]" },
-        new[] {"[|using var _ = ArrayBuilder<int>.[|GetInstance|](out var builder);|]" },
-    };
+    public static readonly IEnumerable<object[]> SuccessCreationPatterns =
+    [
+        ["[|var builder = ImmutableArray.[|CreateBuilder|]<int>();|]"],
+        ["[|var builder = ArrayBuilder<int>.[|GetInstance|]();|]"],
+        ["[|using var _ = ArrayBuilder<int>.[|GetInstance|](out var builder);|]"],
+    ];
 
     [Theory, MemberData(nameof(FailureCreationPatterns))]
     public async Task TestNotInCSharp11(string pattern)
@@ -989,6 +989,45 @@ public partial class UseCollectionExpressionForBuilderTests
                         Goo(builder.ToImmutable());
                     }
 
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            LanguageVersion = LanguageVersion.CSharp12,
+            ReferenceAssemblies = ReferenceAssemblies.Net.Net80,
+        }.RunAsync();
+    }
+
+    [Theory, MemberData(nameof(SuccessCreationPatterns))]
+    [WorkItem("https://github.com/dotnet/roslyn/issues/71607")]
+    public async Task TestAddRange5(string pattern)
+    {
+        await new VerifyCS.Test
+        {
+            TestCode = $$"""
+                using System.Collections.Immutable;
+                
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        {{pattern}}
+                        [|builder.{|CS0121:AddRange|}(|][1, 2, 3]);
+                        Goo(builder.ToImmutable());
+                    }
+
+                    void Goo(ImmutableArray<int> values) { }
+                }
+                """ + s_arrayBuilderApi,
+            FixedCode = """
+                using System.Collections.Immutable;
+
+                class C
+                {
+                    void M(int[] x)
+                    {
+                        Goo([1, 2, 3]);
+                    }
+                
                     void Goo(ImmutableArray<int> values) { }
                 }
                 """ + s_arrayBuilderApi,

@@ -17,16 +17,6 @@
         <target state="translated">Préférences de mise en retrait</target>
         <note />
       </trans-unit>
-      <trans-unit id="Node_does_not_descend_from_root">
-        <source>Node does not descend from root.</source>
-        <target state="translated">Le nœud ne provient pas de la racine.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Node_not_in_parent_s_child_list">
-        <source>Node not in parent's child list</source>
-        <target state="translated">Le nœud ne figure pas dans la liste des enfants du parent</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Remove_and_Sort_Usings">
         <source>R&amp;emove and Sort Usings</source>
         <target state="translated">Supprim&amp;er et trier les instructions using</target>
@@ -40,16 +30,6 @@
       <trans-unit id="Space_preferences">
         <source>Space preferences</source>
         <target state="translated">Préférences d'espace</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Trivia_is_not_associated_with_token">
-        <source>Trivia is not associated with token</source>
-        <target state="translated">Trivia non associé au jeton</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Cannot_retrieve_the_Span_of_a_null_syntax_reference">
-        <source>Cannot retrieve the Span of a null syntax reference.</source>
-        <target state="translated">Impossible de récupérer l'étendue d'une référence de syntaxe null.</target>
         <note />
       </trans-unit>
       <trans-unit id="Only_attributes_constructor_initializers_expressions_or_statements_can_be_made_explicit">

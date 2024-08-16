@@ -616,12 +616,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (node.Instrumentation != null)
             {
-                DeclareLocal(node.Instrumentation.Local, stack: 0);
+                foreach (var local in node.Instrumentation.Locals)
+                    DeclareLocal(local, stack: 0);
             }
 
             // normally we would not allow stack locals
             // when evaluation stack is not empty.
-            DeclareLocals(node.Locals, 0);
+            DeclareLocals(node.Locals, stack: 0);
 
             return base.VisitBlock(node);
         }
@@ -2185,6 +2186,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (isLast)
             {
+                if (node.IsRef &&
+                    !node.WasCompilerGenerated &&
+                    left.LocalSymbol.RefKind == RefKind.Ref &&
+                    right is BoundArrayAccess arrayAccess &&
+                    // Value types do not need runtime element type checks.
+                    !arrayAccess.Type.IsValueType)
+                {
+                    return new BoundRefArrayAccess(arrayAccess.Syntax, arrayAccess);
+                }
+
                 // assigned local is not used later => just emit the Right
                 return right;
             }

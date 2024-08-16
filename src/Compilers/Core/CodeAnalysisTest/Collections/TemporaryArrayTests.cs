@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Shared.Collections;
@@ -205,6 +206,69 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
                 Assert.Equal(array[i], initialItems - 1 - i);
         }
 
+        [Fact]
+        public void TestSort()
+        {
+            // Create arrays with different lengths, making sure to exceed the number of inline elements to test all code paths.
+            for (int i = 0; i <= TemporaryArray<int>.TestAccessor.InlineCapacity + 1; i++)
+            {
+                foreach (var permutation in permute(Enumerable.Range(0, i).ToArray()))
+                {
+                    assertSort(permutation);
+                }
+            }
+
+            static void assertSort(ImmutableArray<int> inputArray)
+            {
+                var sortedArray = inputArray.Sort();
+                Assert.Equal(inputArray.Length, sortedArray.Length);
+                using var array = TemporaryArray<int>.Empty;
+                foreach (var num in inputArray)
+                    array.Add(num);
+
+                Assert.Equal(array.Count, sortedArray.Length);
+                array.Sort((x, y) => x.CompareTo(y));
+                Assert.Equal(array.Count, sortedArray.Length);
+                for (int i = 0; i < array.Count; i++)
+                {
+                    Assert.Equal(array[i], sortedArray[i]);
+                }
+            }
+
+            // Almost copy from ServiceHubServicesTests
+            static List<ImmutableArray<T>> permute<T>(T[] values)
+            {
+                var result = new List<ImmutableArray<T>>();
+                if (values.Length == 0)
+                {
+                    result.Add(ImmutableArray<T>.Empty);
+                    return result;
+                }
+
+                doPermute(0, values.Length - 1);
+                return result;
+
+                void doPermute(int start, int end)
+                {
+                    if (start == end)
+                    {
+                        // We have one of our possible n! solutions,
+                        // add it to the list.
+                        result.Add(values.ToImmutableArray());
+                    }
+                    else
+                    {
+                        for (var i = start; i <= end; i++)
+                        {
+                            (values[start], values[i]) = (values[i], values[start]);
+                            doPermute(start + 1, end);
+                            (values[start], values[i]) = (values[i], values[start]);
+                        }
+                    }
+                }
+            }
+        }
+
         [Theory, CombinatorialData]
         public void TestRemoveLast([CombinatorialRange(0, 6)] int initialItems)
         {
@@ -237,6 +301,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
             Assert.False(array.Contains(-1));
             Assert.False(array.Contains(initialItems));
+        }
+
+        [Fact]
+        public void TestSingleOrDefault()
+        {
+            using var array = TemporaryArray<int>.Empty;
+            array.Add(1);
+            array.Add(2);
+            array.Add(3);
+
+            Assert.Equal(3, array.SingleOrDefault(p => p > 2));
+            Assert.Equal(3, array.SingleOrDefault((p, arg) => p > arg, arg: 2));
+
+            Assert.Equal(0, array.SingleOrDefault(p => p > 5));
+            Assert.Equal(0, array.SingleOrDefault((p, arg) => p > arg, arg: 5));
+
+            Assert.Throws<InvalidOperationException>(() => array.SingleOrDefault(p => p > 1));
+            Assert.Throws<InvalidOperationException>(() => array.SingleOrDefault((p, arg) => p > arg, arg: 1));
         }
     }
 }

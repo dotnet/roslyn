@@ -17,198 +17,197 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation
+namespace Microsoft.VisualStudio.LanguageServices.Implementation;
+
+using Workspace = Microsoft.CodeAnalysis.Workspace;
+
+[Export(typeof(IRefactorNotifyService))]
+internal sealed class VsRefactorNotifyService : IRefactorNotifyService
 {
-    using Workspace = Microsoft.CodeAnalysis.Workspace;
+    private readonly IThreadingContext _threadingContext;
 
-    [Export(typeof(IRefactorNotifyService))]
-    internal sealed class VsRefactorNotifyService : IRefactorNotifyService
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public VsRefactorNotifyService(IThreadingContext threadingContext)
     {
-        private readonly IThreadingContext _threadingContext;
+        _threadingContext = threadingContext;
+    }
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public VsRefactorNotifyService(IThreadingContext threadingContext)
+    public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+        if (TryGetRenameAPIRequiredArguments(workspace, changedDocumentIDs, symbol, out var hierarchyToItemIDsMap, out var rqnames))
         {
-            _threadingContext = threadingContext;
-        }
-
-        public bool TryOnBeforeGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
-        {
-            _threadingContext.ThrowIfNotOnUIThread();
-            if (TryGetRenameAPIRequiredArguments(workspace, changedDocumentIDs, symbol, out var hierarchyToItemIDsMap, out var rqnames))
+            foreach (var hierarchy in hierarchyToItemIDsMap.Keys)
             {
-                foreach (var hierarchy in hierarchyToItemIDsMap.Keys)
+                var itemIDs = hierarchyToItemIDsMap[hierarchy];
+
+                if (hierarchy is IVsHierarchyRefactorNotify refactorNotify)
                 {
-                    var itemIDs = hierarchyToItemIDsMap[hierarchy];
+                    var hresult = refactorNotify.OnBeforeGlobalSymbolRenamed(
+                        (uint)itemIDs.Count,
+                        [.. itemIDs],
+                        (uint)rqnames.Length,
+                        rqnames,
+                        newName,
+                        promptContinueOnFail: 1);
 
-                    if (hierarchy is IVsHierarchyRefactorNotify refactorNotify)
+                    if (hresult < 0)
                     {
-                        var hresult = refactorNotify.OnBeforeGlobalSymbolRenamed(
-                            (uint)itemIDs.Count,
-                            itemIDs.ToArray(),
-                            (uint)rqnames.Length,
-                            rqnames,
-                            newName,
-                            promptContinueOnFail: 1);
-
-                        if (hresult < 0)
+                        if (throwOnFailure)
                         {
-                            if (throwOnFailure)
-                            {
-                                Marshal.ThrowExceptionForHR(hresult);
-                            }
-                            else
-                            {
-                                return false;
-                            }
+                            Marshal.ThrowExceptionForHR(hresult);
+                        }
+                        else
+                        {
+                            return false;
                         }
                     }
                 }
             }
-
-            return true;
         }
 
-        public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
+        return true;
+    }
+
+    public bool TryOnAfterGlobalSymbolRenamed(Workspace workspace, IEnumerable<DocumentId> changedDocumentIDs, ISymbol symbol, string newName, bool throwOnFailure)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+        if (TryGetRenameAPIRequiredArguments(workspace, changedDocumentIDs, symbol, out var hierarchyToItemIDsMap, out var rqnames))
         {
-            _threadingContext.ThrowIfNotOnUIThread();
-            if (TryGetRenameAPIRequiredArguments(workspace, changedDocumentIDs, symbol, out var hierarchyToItemIDsMap, out var rqnames))
+            foreach (var hierarchy in hierarchyToItemIDsMap.Keys)
             {
-                foreach (var hierarchy in hierarchyToItemIDsMap.Keys)
+                var itemIDs = hierarchyToItemIDsMap[hierarchy];
+
+                if (hierarchy is IVsHierarchyRefactorNotify refactorNotify)
                 {
-                    var itemIDs = hierarchyToItemIDsMap[hierarchy];
+                    var hresult = refactorNotify.OnGlobalSymbolRenamed(
+                        (uint)itemIDs.Count,
+                        [.. itemIDs],
+                        (uint)rqnames.Length,
+                        rqnames,
+                        newName);
 
-                    if (hierarchy is IVsHierarchyRefactorNotify refactorNotify)
+                    if (hresult < 0)
                     {
-                        var hresult = refactorNotify.OnGlobalSymbolRenamed(
-                            (uint)itemIDs.Count,
-                            itemIDs.ToArray(),
-                            (uint)rqnames.Length,
-                            rqnames,
-                            newName);
-
-                        if (hresult < 0)
+                        if (throwOnFailure)
                         {
-                            if (throwOnFailure)
-                            {
-                                Marshal.ThrowExceptionForHR(hresult);
-                            }
-                            else
-                            {
-                                return false;
-                            }
+                            Marshal.ThrowExceptionForHR(hresult);
+                        }
+                        else
+                        {
+                            return false;
                         }
                     }
                 }
             }
-
-            return true;
         }
 
-        private bool TryGetRenameAPIRequiredArguments(
-            Workspace workspace,
-            IEnumerable<DocumentId> changedDocumentIDs,
-            ISymbol symbol,
-            out Dictionary<IVsHierarchy, List<uint>> hierarchyToItemIDsMap,
-            out string[] rqnames)
+        return true;
+    }
+
+    private bool TryGetRenameAPIRequiredArguments(
+        Workspace workspace,
+        IEnumerable<DocumentId> changedDocumentIDs,
+        ISymbol symbol,
+        out Dictionary<IVsHierarchy, List<uint>> hierarchyToItemIDsMap,
+        out string[] rqnames)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+
+        rqnames = null;
+        if (!TryGetItemIDsAndRQName(workspace, changedDocumentIDs, symbol, out hierarchyToItemIDsMap, out var rqname))
         {
-            _threadingContext.ThrowIfNotOnUIThread();
-
-            rqnames = null;
-            if (!TryGetItemIDsAndRQName(workspace, changedDocumentIDs, symbol, out hierarchyToItemIDsMap, out var rqname))
-            {
-                return false;
-            }
-
-            rqnames = [rqname];
-            return true;
+            return false;
         }
 
-        private bool TryGetItemIDsAndRQName(
-            Workspace workspace,
-            IEnumerable<DocumentId> changedDocumentIDs,
-            ISymbol symbol,
-            out Dictionary<IVsHierarchy, List<uint>> hierarchyToItemIDsMap,
-            out string rqname)
+        rqnames = [rqname];
+        return true;
+    }
+
+    private bool TryGetItemIDsAndRQName(
+        Workspace workspace,
+        IEnumerable<DocumentId> changedDocumentIDs,
+        ISymbol symbol,
+        out Dictionary<IVsHierarchy, List<uint>> hierarchyToItemIDsMap,
+        out string rqname)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
+
+        hierarchyToItemIDsMap = null;
+        rqname = null;
+
+        if (!changedDocumentIDs.Any())
         {
-            _threadingContext.ThrowIfNotOnUIThread();
-
-            hierarchyToItemIDsMap = null;
-            rqname = null;
-
-            if (!changedDocumentIDs.Any())
-            {
-                return false;
-            }
-
-            if (workspace is not VisualStudioWorkspace visualStudioWorkspace)
-            {
-                return false;
-            }
-
-            if (!TryGetRenamingRQNameForSymbol(symbol, out rqname))
-            {
-                return false;
-            }
-
-            hierarchyToItemIDsMap = GetHierarchiesAndItemIDsFromDocumentIDs(visualStudioWorkspace, changedDocumentIDs);
-            return true;
+            return false;
         }
 
-        private static bool TryGetRenamingRQNameForSymbol(ISymbol symbol, out string rqname)
+        if (workspace is not VisualStudioWorkspace visualStudioWorkspace)
         {
-            if (symbol.Kind == SymbolKind.Method)
-            {
-                var methodSymbol = symbol as IMethodSymbol;
-
-                if (methodSymbol.MethodKind is MethodKind.Constructor or
-                    MethodKind.Destructor)
-                {
-                    symbol = symbol.ContainingType;
-                }
-            }
-
-            rqname = LanguageServices.RQName.From(symbol);
-            return rqname != null;
+            return false;
         }
 
-        private Dictionary<IVsHierarchy, List<uint>> GetHierarchiesAndItemIDsFromDocumentIDs(VisualStudioWorkspace visualStudioWorkspace, IEnumerable<DocumentId> changedDocumentIDs)
+        if (!TryGetRenamingRQNameForSymbol(symbol, out rqname))
         {
-            _threadingContext.ThrowIfNotOnUIThread();
+            return false;
+        }
 
-            var hierarchyToItemIDsMap = new Dictionary<IVsHierarchy, List<uint>>();
+        hierarchyToItemIDsMap = GetHierarchiesAndItemIDsFromDocumentIDs(visualStudioWorkspace, changedDocumentIDs);
+        return true;
+    }
 
-            foreach (var documentId in changedDocumentIDs)
+    private static bool TryGetRenamingRQNameForSymbol(ISymbol symbol, out string rqname)
+    {
+        if (symbol.Kind == SymbolKind.Method)
+        {
+            var methodSymbol = symbol as IMethodSymbol;
+
+            if (methodSymbol.MethodKind is MethodKind.Constructor or
+                MethodKind.Destructor)
             {
-                var hierarchy = visualStudioWorkspace.GetHierarchy(documentId.ProjectId);
+                symbol = symbol.ContainingType;
+            }
+        }
 
-                if (hierarchy == null)
-                {
-                    continue;
-                }
+        rqname = LanguageServices.RQName.From(symbol);
+        return rqname != null;
+    }
 
-                var document = visualStudioWorkspace.CurrentSolution.GetDocument(documentId);
-                var itemID = hierarchy.TryGetItemId(document.FilePath);
+    private Dictionary<IVsHierarchy, List<uint>> GetHierarchiesAndItemIDsFromDocumentIDs(VisualStudioWorkspace visualStudioWorkspace, IEnumerable<DocumentId> changedDocumentIDs)
+    {
+        _threadingContext.ThrowIfNotOnUIThread();
 
-                if (itemID == VSConstants.VSITEMID_NIL)
-                {
-                    continue;
-                }
+        var hierarchyToItemIDsMap = new Dictionary<IVsHierarchy, List<uint>>();
 
-                if (!hierarchyToItemIDsMap.TryGetValue(hierarchy, out var itemIDsForCurrentHierarchy))
-                {
-                    itemIDsForCurrentHierarchy = new List<uint>();
-                    hierarchyToItemIDsMap.Add(hierarchy, itemIDsForCurrentHierarchy);
-                }
+        foreach (var documentId in changedDocumentIDs)
+        {
+            var hierarchy = visualStudioWorkspace.GetHierarchy(documentId.ProjectId);
 
-                if (!itemIDsForCurrentHierarchy.Contains(itemID))
-                {
-                    itemIDsForCurrentHierarchy.Add(itemID);
-                }
+            if (hierarchy == null)
+            {
+                continue;
             }
 
-            return hierarchyToItemIDsMap;
+            var document = visualStudioWorkspace.CurrentSolution.GetDocument(documentId);
+            var itemID = hierarchy.TryGetItemId(document.FilePath);
+
+            if (itemID == VSConstants.VSITEMID_NIL)
+            {
+                continue;
+            }
+
+            if (!hierarchyToItemIDsMap.TryGetValue(hierarchy, out var itemIDsForCurrentHierarchy))
+            {
+                itemIDsForCurrentHierarchy = [];
+                hierarchyToItemIDsMap.Add(hierarchy, itemIDsForCurrentHierarchy);
+            }
+
+            if (!itemIDsForCurrentHierarchy.Contains(itemID))
+            {
+                itemIDsForCurrentHierarchy.Add(itemID);
+            }
         }
+
+        return hierarchyToItemIDsMap;
     }
 }

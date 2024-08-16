@@ -11,29 +11,29 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody;
+
+[Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
+public class UseExpressionBodyFixAllTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    [Trait(Traits.Feature, Traits.Features.CodeActionsUseExpressionBody)]
-    public class UseExpressionBodyFixAllTests : AbstractCSharpCodeActionTest
-    {
-        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new UseExpressionBodyCodeRefactoringProvider();
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
+        => new UseExpressionBodyCodeRefactoringProvider();
 
-        private OptionsCollection UseBlockBody
-            => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
+    private OptionsCollection UseBlockBody
+        => this.Option(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement);
 
-        private OptionsCollection UseBlockBodyForMethodsAndAccessorsAndProperties
-            => new OptionsCollection(GetLanguage())
-            {
-                { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-                { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-                { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
-            };
-
-        [Fact]
-        public async Task FixAllInDocument()
+    private OptionsCollection UseBlockBodyForMethodsAndAccessorsAndProperties
+        => new OptionsCollection(GetLanguage())
         {
-            await TestInRegularAndScript1Async(
+            { CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            { CSharpCodeStyleOptions.PreferExpressionBodiedAccessors, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+            { CSharpCodeStyleOptions.PreferExpressionBodiedProperties, CSharpCodeStyleOptions.NeverWithSilentEnforcement },
+        };
+
+    [Fact]
+    public async Task FixAllInDocument()
+    {
+        await TestInRegularAndScript1Async(
 @"class C
 {
     void M1()
@@ -52,12 +52,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.UseExpressionBody
 
     void M2() => Bar();
 }", parameters: new TestParameters(options: UseBlockBody));
-        }
+    }
 
-        [Fact]
-        public async Task FixAllInProject()
-        {
-            await TestInRegularAndScript1Async(
+    [Fact]
+    public async Task FixAllInProject()
+    {
+        await TestInRegularAndScript1Async(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -127,12 +127,12 @@ class C3
         </Document>
     </Project>
 </Workspace>", parameters: new TestParameters(options: UseBlockBody));
-        }
+    }
 
-        [Fact]
-        public async Task FixAllInSolution()
-        {
-            await TestInRegularAndScript1Async(
+    [Fact]
+    public async Task FixAllInSolution()
+    {
+        await TestInRegularAndScript1Async(
 @"
 <Workspace>
     <Project Language=""C#"" AssemblyName=""Assembly1"" CommonReferences=""true"">
@@ -199,12 +199,12 @@ class C3
         </Document>
     </Project>
 </Workspace>", parameters: new TestParameters(options: UseBlockBody));
-        }
+    }
 
-        [Fact]
-        public async Task FixAllInContainingMember()
-        {
-            await TestInRegularAndScript1Async(
+    [Fact]
+    public async Task FixAllInContainingMember()
+    {
+        await TestInRegularAndScript1Async(
 @"class C
 {
     void M1()
@@ -242,12 +242,12 @@ class C2
         Bar();
     }
 }", parameters: new TestParameters(options: UseBlockBody));
-        }
+    }
 
-        [Fact]
-        public async Task FixAllInContainingType()
-        {
-            await TestInRegularAndScript1Async(
+    [Fact]
+    public async Task FixAllInContainingType()
+    {
+        await TestInRegularAndScript1Async(
 @"class C
 {
     void M1()
@@ -282,16 +282,15 @@ class C2
         Bar();
     }
 }", parameters: new TestParameters(options: UseBlockBody));
-        }
+    }
 
-        [Theory]
-        [CombinatorialData]
-        public async Task FixAllDoesNotFixDifferentSymbolKinds(bool forMethods)
-        {
-            var fixAllAnnotationForMethods = forMethods ? "{|FixAllInDocument:|}" : string.Empty;
-            var fixAllAnnotationForProperties = forMethods ? string.Empty : "{|FixAllInDocument:|}";
+    [Theory, CombinatorialData]
+    public async Task FixAllDoesNotFixDifferentSymbolKinds(bool forMethods)
+    {
+        var fixAllAnnotationForMethods = forMethods ? "{|FixAllInDocument:|}" : string.Empty;
+        var fixAllAnnotationForProperties = forMethods ? string.Empty : "{|FixAllInDocument:|}";
 
-            var source = @$"class C
+        var source = @$"class C
 {{
     void M1()
     {{
@@ -319,7 +318,7 @@ class C2
         }}
     }}
 }}";
-            var fixedCodeForMethods = @"class C
+        var fixedCodeForMethods = @"class C
 {
     void M1() => Bar();
 
@@ -341,7 +340,7 @@ class C2
         }
     }
 }";
-            var fixedCodeForProperties = @"class C
+        var fixedCodeForProperties = @"class C
 {
     void M1()
     {
@@ -357,10 +356,9 @@ class C2
 
     int P2 => 0;
 }";
-            var fixedCode = forMethods ? fixedCodeForMethods : fixedCodeForProperties;
+        var fixedCode = forMethods ? fixedCodeForMethods : fixedCodeForProperties;
 
-            await TestInRegularAndScript1Async(source, fixedCode,
-                parameters: new TestParameters(options: UseBlockBodyForMethodsAndAccessorsAndProperties));
-        }
+        await TestInRegularAndScript1Async(source, fixedCode,
+            parameters: new TestParameters(options: UseBlockBodyForMethodsAndAccessorsAndProperties));
     }
 }

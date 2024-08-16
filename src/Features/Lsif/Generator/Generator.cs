@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 DocumentSymbolProvider,
                 FoldingRangeProvider,
                 DiagnosticProvider,
-                new SemanticTokensCapabilities(SemanticTokensSchema.LegacyTokensSchemaForLSIF.AllTokenTypes, new[] { SemanticTokenModifiers.Static }));
+                new SemanticTokensCapabilities(SemanticTokensSchema.LegacyTokensSchemaForLSIF.AllTokenTypes, [SemanticTokenModifiers.Static, SemanticTokenModifiers.Deprecated]));
             generator._lsifJsonWriter.Write(capabilitiesVertex);
             return generator;
         }
@@ -130,7 +130,10 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 }
             };
 
-            var documents = (await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken)).ToList();
+            var documents = new List<Document>();
+            await foreach (var document in project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken))
+                documents.Add(document);
+
             var tasks = new List<Task>();
             foreach (var document in documents)
             {
@@ -166,10 +169,11 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 {
                     if (tasks[i].IsFaulted)
                     {
+                        var documentExceptionMessage = $"Exception while processing {documents[i].FilePath}";
                         var exception = tasks[i].Exception!.InnerExceptions.Single();
-                        exceptions.Add(exception);
+                        exceptions.Add(new Exception(documentExceptionMessage, exception));
 
-                        _logger.LogError(exception, $"Exception while processing {documents[i].FilePath}");
+                        _logger.LogError(exception, documentExceptionMessage);
                     }
                 }
 
@@ -418,7 +422,7 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
                 return null;
 
             // Find the syntax node that declared the symbol in the tree we're processing
-            var syntaxReference = declaredSymbol.DeclaringSyntaxReferences.FirstOrDefault(static (r, syntaxTree) => r.SyntaxTree == syntaxTree, arg: syntaxTree);
+            var syntaxReference = declaredSymbol.DeclaringSyntaxReferences.FirstOrDefault(static (r, arg) => r.SyntaxTree == arg.syntaxTree && r.Span.Contains(arg.SpanStart), arg: (syntaxTree, syntaxToken.SpanStart));
             var syntaxNode = syntaxReference?.GetSyntax(cancellationToken);
 
             if (syntaxNode is null)
@@ -481,9 +485,9 @@ namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator
             // include syntax tokens in the generated data.
             var data = await SemanticTokensHelpers.ComputeSemanticTokensDataAsync(
                 // Just get the pure-lsp semantic tokens here.
-                new VSInternalClientCapabilities { SupportsVisualStudioExtensions = true },
                 document,
-                ranges: null,
+                spans: [],
+                supportsVisualStudioExtensions: true,
                 options: Classification.ClassificationOptions.Default,
                 cancellationToken: CancellationToken.None);
 

@@ -4,87 +4,92 @@
     <body>
       <trans-unit id="Failed_to_load_solution_filter_0">
         <source>Failed to load solution filter: '{0}'</source>
-        <target state="new">Failed to load solution filter: '{0}'</target>
+        <target state="translated">Не удалось загрузить фильтр решений: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_project_reference_without_a_matching_metadata_reference_0">
         <source>Found project reference without a matching metadata reference: {0}</source>
-        <target state="new">Found project reference without a matching metadata reference: {0}</target>
+        <target state="translated">Обнаружена ссылка на проект без соответствующей ссылки на метаданные: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_0_specified_1">
         <source>Invalid {0} specified: {1}</source>
-        <target state="new">Invalid {0} specified: {1}</target>
+        <target state="translated">Указан недопустимый элемент {0}: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0">
         <source>Msbuild failed when processing the file '{0}'</source>
-        <target state="new">Msbuild failed when processing the file '{0}'</target>
+        <target state="translated">Сбой Msbuild при обработке файла "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
         <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="new">Msbuild failed when processing the file '{0}' with message: {1}</target>
+        <target state="translated">Сбой Msbuild при обработке файла "{0}" с сообщением: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Path_for_additional_document_0_was_null">
         <source>Path for additional document '{0}' was null}</source>
-        <target state="new">Path for additional document '{0}' was null}</target>
+        <target state="translated">Путь к дополнительному документу "{0}" имел значение NULL}</target>
         <note />
       </trans-unit>
       <trans-unit id="Path_for_document_0_was_null">
         <source>Path for document '{0}' was null</source>
-        <target state="new">Path for document '{0}' was null</target>
+        <target state="translated">Путь для документа "{0}" имел значение NULL</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_already_added">
         <source>Project already added.</source>
-        <target state="new">Project already added.</target>
+        <target state="translated">Проект уже добавлен.</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_project_with_the_same_file_path_and_output_path_as_another_project_0">
         <source>Found project with the same file path and output path as another project: {0}</source>
-        <target state="new">Found project with the same file path and output path as another project: {0}</target>
+        <target state="translated">Найден проект, путь к файлу и выходной путь которого совпадают с путями другого проекта: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Duplicate_project_discovered_and_skipped_0">
         <source>Duplicate project discovered and skipped: {0}</source>
-        <target state="new">Duplicate project discovered and skipped: {0}</target>
+        <target state="translated">Обнаружен и пропущен повторяющийся проект: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_does_not_have_a_path">
         <source>Project does not have a path.</source>
-        <target state="new">Project does not have a path.</target>
+        <target state="translated">У проекта нет пути.</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_path_for_0_was_null">
         <source>Project path for '{0}' was null</source>
-        <target state="new">Project path for '{0}' was null</target>
+        <target state="translated">Путь проекта для "{0}" имел значение NULL</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_build_host_could_not_be_found_at_0">
+        <source>The build host could not be found at '{0}'</source>
+        <target state="translated">Не удалось найти хост сборки в "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_add_metadata_reference_0">
         <source>Unable to add metadata reference '{0}'</source>
-        <target state="new">Unable to add metadata reference '{0}'</target>
+        <target state="translated">Не удается добавить ссылку на метаданные "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_find_0">
         <source>Unable to find '{0}'</source>
-        <target state="new">Unable to find '{0}'</target>
+        <target state="translated">Невозможно найти "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_find_a_0_for_1">
         <source>Unable to find a '{0}' for '{1}'</source>
-        <target state="new">Unable to find a '{0}' for '{1}'</target>
+        <target state="translated">Не удается найти "{0}" для "{1}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_remove_metadata_reference_0">
         <source>Unable to remove metadata reference '{0}'</source>
-        <target state="new">Unable to remove metadata reference '{0}'</target>
+        <target state="translated">Не удается удалить ссылку на метаданные "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved_metadata_reference_removed_from_project_0">
         <source>Unresolved metadata reference removed from project: {0}</source>
-        <target state="new">Unresolved metadata reference removed from project: {0}</target>
+        <target state="translated">Неразрешенная ссылка на метаданные удалена из проекта: {0}</target>
         <note />
       </trans-unit>
     </body>

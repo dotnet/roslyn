@@ -8,11 +8,10 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Diagnostics
+namespace Microsoft.CodeAnalysis.Diagnostics;
+
+internal class DiagnosticProviderMetadata(IDictionary<string, object> data) : ILanguageMetadata
 {
-    internal class DiagnosticProviderMetadata(IDictionary<string, object> data) : ILanguageMetadata
-    {
-        public string Name { get; } = (string)data.GetValueOrDefault("Name");
-        public string Language { get; } = (string)data.GetValueOrDefault("Language");
-    }
+    public string Name { get; } = (string)data.GetValueOrDefault("Name");
+    public string Language { get; } = (string)data.GetValueOrDefault("Language");
 }

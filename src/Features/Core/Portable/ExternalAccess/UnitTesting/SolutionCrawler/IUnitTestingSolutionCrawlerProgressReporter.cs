@@ -4,44 +4,43 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
+
+/// <summary>
+/// Provide a way to see whether solution crawler is started or not
+/// </summary>
+internal interface IUnitTestingSolutionCrawlerProgressReporter
 {
     /// <summary>
-    /// Provide a way to see whether solution crawler is started or not
+    /// Return true if solution crawler is in progress.
     /// </summary>
-    internal interface IUnitTestingSolutionCrawlerProgressReporter
-    {
-        /// <summary>
-        /// Return true if solution crawler is in progress.
-        /// </summary>
-        bool InProgress { get; }
+    bool InProgress { get; }
 
-        /// <summary>
-        /// Raised when solution crawler progress changed
-        /// 
-        /// Notifications for this event are serialized to preserve order. 
-        /// However, individual event notifications may occur on any thread.
-        /// </summary>
-        event EventHandler<UnitTestingProgressData> ProgressChanged;
-    }
+    /// <summary>
+    /// Raised when solution crawler progress changed
+    /// 
+    /// Notifications for this event are serialized to preserve order. 
+    /// However, individual event notifications may occur on any thread.
+    /// </summary>
+    event EventHandler<UnitTestingProgressData> ProgressChanged;
+}
 
-    internal readonly struct UnitTestingProgressData(UnitTestingProgressStatus type, int? pendingItemCount)
-    {
-        public UnitTestingProgressStatus Status { get; } = type;
+internal readonly struct UnitTestingProgressData(UnitTestingProgressStatus type, int? pendingItemCount)
+{
+    public UnitTestingProgressStatus Status { get; } = type;
 
-        /// <summary>
-        /// number of pending work item in the queue. 
-        /// null means N/A for the associated <see cref="Status"/>
-        /// </summary>
-        public int? PendingItemCount { get; } = pendingItemCount;
-    }
+    /// <summary>
+    /// number of pending work item in the queue. 
+    /// null means N/A for the associated <see cref="Status"/>
+    /// </summary>
+    public int? PendingItemCount { get; } = pendingItemCount;
+}
 
-    internal enum UnitTestingProgressStatus
-    {
-        Started,
-        Paused,
-        PendingItemCountUpdated,
-        Evaluating,
-        Stopped
-    }
+internal enum UnitTestingProgressStatus
+{
+    Started,
+    Paused,
+    PendingItemCountUpdated,
+    Evaluating,
+    Stopped
 }

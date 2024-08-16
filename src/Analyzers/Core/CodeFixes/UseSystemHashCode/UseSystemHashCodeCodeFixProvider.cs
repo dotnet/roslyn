@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.UseSystemHashCode;
 internal class UseSystemHashCodeCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; }
-        = ImmutableArray.Create(IDEDiagnosticIds.UseSystemHashCode);
+        = [IDEDiagnosticIds.UseSystemHashCode];
 
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
@@ -34,7 +34,7 @@ internal class UseSystemHashCodeCodeFixProvider() : SyntaxEditorBasedCodeFixProv
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var generator = SyntaxGenerator.GetGenerator(document);
         var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();

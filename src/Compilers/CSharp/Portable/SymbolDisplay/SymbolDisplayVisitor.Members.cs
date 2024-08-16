@@ -821,15 +821,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (Format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeModifiers))
                 {
-                    if (symbol.ScopedKind == ScopedKind.ScopedValue && symbol.RefKind == RefKind.None)
-                    {
-                        AddKeyword(SyntaxKind.ScopedKeyword);
-                        AddSpace();
-                    }
-
                     if (symbol.IsParams)
                     {
                         AddKeyword(SyntaxKind.ParamsKeyword);
+                        AddSpace();
+                    }
+
+                    if (symbol.ScopedKind == ScopedKind.ScopedValue &&
+                        symbol.RefKind == RefKind.None &&
+                        !(symbol.IsParams && symbol.Type is { IsRefLikeType: true } or ITypeParameterSymbol { AllowsRefLikeType: true }))
+                    {
+                        AddKeyword(SyntaxKind.ScopedKeyword);
                         AddSpace();
                     }
                 }

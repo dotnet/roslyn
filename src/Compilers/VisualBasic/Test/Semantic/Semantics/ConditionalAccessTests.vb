@@ -3997,7 +3997,6 @@ BC41999: Implicit conversion from 'I1' to 'C1' in copying the value of 'ByRef' p
         ~
 ]]></expected>)
 
-            ' ILVerify: Unexpected type on the stack. { Offset = 39, Found = readonly address of '[...]S1', Expected = address of '[...]S1' }
             Dim verifier = CompileAndVerify(compilation, expectedOutput:=
             <![CDATA[
  ---------
@@ -4060,7 +4059,7 @@ C1
 Ext4
 C1
 ---------
-]]>, verify:=Verification.FailsILVerify)
+]]>)
         End Sub
 
         <Fact()>

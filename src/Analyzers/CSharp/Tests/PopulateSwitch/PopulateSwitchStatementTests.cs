@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.PopulateSwi
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsPopulateSwitch)]
 public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
-    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest(logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
     internal override (DiagnosticAnalyzer, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (new CSharpPopulateSwitchStatementDiagnosticAnalyzer(), new CSharpPopulateSwitchStatementCodeFixProvider());
@@ -1633,6 +1633,338 @@ public partial class PopulateSwitchStatementTests(ITestOutputHelper logger)
                             default:
                                 break;
                         }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73245")]
+    public async Task NotAllMembersExist_NotDefault_OrPattern()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
+            {
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz,
+                    FizzBuzzFizz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            case MyEnum.Fizz or MyEnum.Buzz or MyEnum.FizzBuzz:
+                                break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
+            {
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz,
+                    FizzBuzzFizz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            case MyEnum.Fizz or MyEnum.Buzz or MyEnum.FizzBuzz:
+                                break;
+                            case MyEnum.FizzBuzzFizz:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            """, index: 2);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/73245")]
+    public async Task NotAllMembersExist_WithDefault_OrPattern()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            namespace ConsoleApplication1
+            {
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        [||]switch (e)
+                        {
+                            case MyEnum.Fizz or MyEnum.Buzz:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            """,
+            """
+            namespace ConsoleApplication1
+            {
+                enum MyEnum
+                {
+                    Fizz,
+                    Buzz,
+                    FizzBuzz
+                }
+
+                class MyClass
+                {
+                    void Method()
+                    {
+                        var e = MyEnum.Fizz;
+                        switch (e)
+                        {
+                            case MyEnum.Fizz or MyEnum.Buzz:
+                                break;
+                            case MyEnum.FizzBuzz:
+                                break;
+                            default:
+                                break;
+                        }
+                    }
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    [InlineData("int")]
+    [InlineData("int i")]
+    public async Task NullableValueTypeWithNullAndUnderlyingValueCases1(string underlyingTypePattern)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                void M(int? x)
+                {
+                    [||]switch (x)
+                    {
+                        case null:
+                            break;
+                        case {{underlyingTypePattern}}:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    [InlineData("int")]
+    [InlineData("int i")]
+    public async Task NullableValueTypeWithNullAndUnderlyingValueCases2(string underlyingTypePattern)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                int M(int? x)
+                {
+                    [||]switch (x)
+                    {
+                        case {{underlyingTypePattern}}:
+                            break;
+                        case null:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    [InlineData("int")]
+    [InlineData("int i")]
+    public async Task NullableValueTypeWithNullAndUnderlyingValueCases3(string underlyingTypePattern)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                void M(int? x)
+                {
+                    [||]switch (x)
+                    {
+                        case null:
+                            break;
+                        case 0:
+                            break;
+                        case {{underlyingTypePattern}}:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    public async Task NullableValueTypeWithNullAndUnderlyingValueCases4()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                int M(int? x)
+                {
+                    [||]switch (x)
+                    {
+                        case null:
+                        case int:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    public async Task NullableValueTypeWithNullAndUnderlyingValueCases5()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                int M(int? x)
+                {
+                    [||]switch (x)
+                    {
+                        case int:
+                        case null:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    [InlineData("string")]
+    [InlineData("string s")]
+    public async Task NullableReferenceTypeWithNullAndUnderlyingValueCases1(string underlyingTypePattern)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                void M(string? x)
+                {
+                    [||]switch (x)
+                    {
+                        case null:
+                            break;
+                        case {{underlyingTypePattern}}:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    [InlineData("string")]
+    [InlineData("string s")]
+    public async Task NullableReferenceTypeWithNullAndUnderlyingValueCases2(string underlyingTypePattern)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                int M(string? x)
+                {
+                    [||]switch (x)
+                    {
+                        case {{underlyingTypePattern}}:
+                            break;
+                        case null:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    [InlineData("string")]
+    [InlineData("string s")]
+    public async Task NullableReferenceTypeWithNullAndUnderlyingValueCases3(string underlyingTypePattern)
+    {
+        await TestMissingInRegularAndScriptAsync($$"""
+            class C
+            {
+                void M(string? x)
+                {
+                    [||]switch (x)
+                    {
+                        case null:
+                            break;
+                        case "":
+                            break;
+                        case {{underlyingTypePattern}}:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    public async Task NullableReferenceTypeWithNullAndUnderlyingValueCases4()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                int M(string? x)
+                {
+                    [||]switch (x)
+                    {
+                        case null:
+                        case string:
+                            break;
+                    }
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/50983")]
+    public async Task NullableReferenceTypeWithNullAndUnderlyingValueCases5()
+    {
+        await TestMissingInRegularAndScriptAsync("""
+            class C
+            {
+                int M(string? x)
+                {
+                    [||]switch (x)
+                    {
+                        case string:
+                        case null:
+                            break;
                     }
                 }
             }

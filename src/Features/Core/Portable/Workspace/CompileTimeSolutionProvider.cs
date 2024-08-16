@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// </summary>
     internal sealed class CompileTimeSolutionProvider : ICompileTimeSolutionProvider
     {
-        [ExportWorkspaceServiceFactory(typeof(ICompileTimeSolutionProvider), WorkspaceKind.Host), Shared]
+        [ExportWorkspaceServiceFactory(typeof(ICompileTimeSolutionProvider), [WorkspaceKind.Host]), Shared]
         private sealed class Factory : IWorkspaceServiceFactory
         {
             [ImportingConstructor]
@@ -42,10 +41,12 @@ namespace Microsoft.CodeAnalysis.Host
 
         private const string RazorEncConfigFileName = "RazorSourceGenerator.razorencconfig";
         private const string RazorSourceGeneratorTypeName = "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator";
-        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames = ImmutableArray.Create(
+        private static readonly ImmutableArray<string> s_razorSourceGeneratorAssemblyNames =
+        [
             "Microsoft.NET.Sdk.Razor.SourceGenerators",
             "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators",
-            "Microsoft.CodeAnalysis.Razor.Compiler");
+            "Microsoft.CodeAnalysis.Razor.Compiler",
+        ];
         private static readonly ImmutableArray<string> s_razorSourceGeneratorFileNamePrefixes = s_razorSourceGeneratorAssemblyNames
             .SelectAsArray(static assemblyName => Path.Combine(assemblyName, RazorSourceGeneratorTypeName));
 
@@ -55,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Host
         /// Cached compile-time solution corresponding to an existing design-time solution.
         /// </summary>
 #if NETCOREAPP
-        private readonly ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSolution = new();
+        private readonly ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSolution = [];
 #else
         private ConditionalWeakTable<Solution, Solution> _designTimeToCompileTimeSolution = new();
 #endif
@@ -216,76 +217,5 @@ namespace Microsoft.CodeAnalysis.Host
 
         private static string GetRelativeDocumentPath(string projectDirectory, string designTimeDocumentFilePath)
             => PathUtilities.GetRelativePath(projectDirectory, designTimeDocumentFilePath)[..^".g.cs".Length];
-
-        private static bool HasMatchingFilePath(string designTimeDocumentFilePath, string designTimeProjectDirectory, string compileTimeFilePath)
-        {
-            var relativeDocumentPath = GetRelativeDocumentPath(designTimeProjectDirectory, designTimeDocumentFilePath);
-
-            var compileTimeFileName = PathUtilities.GetFileName(compileTimeFilePath, includeExtension: false);
-
-            if (compileTimeFileName.EndsWith(".g", StringComparison.Ordinal))
-                compileTimeFileName = compileTimeFileName[..^".g".Length];
-
-            return compileTimeFileName == GetIdentifierFromPath(relativeDocumentPath);
-        }
-
-        internal static async Task<ImmutableArray<DocumentId>> GetDesignTimeDocumentsAsync(
-            Solution compileTimeSolution,
-            ImmutableArray<DocumentId> compileTimeDocumentIds,
-            Solution designTimeSolution,
-            CancellationToken cancellationToken,
-            string? generatedDocumentPathPrefix = null)
-        {
-            using var _1 = ArrayBuilder<DocumentId>.GetInstance(out var result);
-            using var _2 = PooledDictionary<ProjectId, ArrayBuilder<string>>.GetInstance(out var compileTimeFilePathsByProject);
-
-            foreach (var compileTimeDocumentId in compileTimeDocumentIds)
-            {
-                if (designTimeSolution.ContainsDocument(compileTimeDocumentId))
-                {
-                    result.Add(compileTimeDocumentId);
-                }
-                else
-                {
-                    var compileTimeDocument = await compileTimeSolution.GetTextDocumentAsync(compileTimeDocumentId, cancellationToken).ConfigureAwait(false);
-                    var filePath = compileTimeDocument?.State.FilePath;
-                    if (filePath != null && (generatedDocumentPathPrefix != null
-                        ? filePath.StartsWith(generatedDocumentPathPrefix)
-                        : s_razorSourceGeneratorFileNamePrefixes.Any(static (prefix, filePath) => filePath.StartsWith(prefix), filePath)))
-                    {
-                        compileTimeFilePathsByProject.MultiAdd(compileTimeDocumentId.ProjectId, filePath);
-                    }
-                }
-            }
-
-            if (result.Count == compileTimeDocumentIds.Length)
-            {
-                Debug.Assert(compileTimeFilePathsByProject.Count == 0);
-                return compileTimeDocumentIds;
-            }
-
-            foreach (var (projectId, compileTimeFilePaths) in compileTimeFilePathsByProject)
-            {
-                var designTimeProjectState = designTimeSolution.GetProjectState(projectId);
-                if (designTimeProjectState == null)
-                {
-                    continue;
-                }
-
-                var designTimeProjectDirectory = PathUtilities.GetDirectoryName(designTimeProjectState.FilePath)!;
-
-                foreach (var (_, designTimeDocumentState) in designTimeProjectState.DocumentStates.States)
-                {
-                    if (IsRazorDesignTimeDocument(designTimeDocumentState) &&
-                        compileTimeFilePaths.Any(compileTimeFilePath => HasMatchingFilePath(designTimeDocumentState.FilePath!, designTimeProjectDirectory, compileTimeFilePath)))
-                    {
-                        result.Add(designTimeDocumentState.Id);
-                    }
-                }
-            }
-
-            compileTimeFilePathsByProject.FreeValues();
-            return result.ToImmutable();
-        }
     }
 }

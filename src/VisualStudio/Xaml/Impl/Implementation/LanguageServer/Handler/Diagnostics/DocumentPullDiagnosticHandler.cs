@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Xaml;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CommonLanguageServerProtocol.Framework;
@@ -40,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.Implementation.LanguageSe
             // Note: context.Document may be null in the case where the client is asking about a document that we have
             // since removed from the workspace.  In this case, we don't really have anything to process.
             // GetPreviousResults will be used to properly realize this and notify the client that the doc is gone.
-            return context.Document == null ? ImmutableArray<Document>.Empty : ImmutableArray.Create(context.Document);
+            return context.Document == null ? ImmutableArray<Document>.Empty : [context.Document];
         }
 
         protected override VSInternalDiagnosticParams[]? GetPreviousResults(VSInternalDocumentDiagnosticsParams diagnosticsParams)

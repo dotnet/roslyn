@@ -5,23 +5,21 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Xunit.Abstractions;
-using Xunit.Sdk;
 using Microsoft.CodeAnalysis.VisualBasic;
-using Microsoft.CodeAnalysis.VisualBasic.Syntax;
+
 #if NETCOREAPP
 using Roslyn.Test.Utilities.CoreClr;
 using System.Runtime.Loader;
@@ -56,7 +54,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     ///
     /// Limitation 1: .NET Framework probing path.
     ///
-    /// The .NET Framework assembly loader will only call AppDomain.AssemblyResolve when it cannot satifisfy a load
+    /// The .NET Framework assembly loader will only call AppDomain.AssemblyResolve when it cannot satisfy a load
     /// request. One of the places the assembly loader will always consider when looking for dependencies of A.dll
     /// is the directory that A.dll was loading from (it's added to the probing path). That means if B.dll is in the
     /// same directory then the runtime will silently load it without a way for us to intervene.
@@ -97,17 +95,19 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
 #if NETCOREAPP
 
-        private void Run(AnalyzerTestKind kind, Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction, [CallerMemberName] string? memberName = null) =>
+        private void Run(AnalyzerTestKind kind, Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction, IAnalyzerAssemblyResolver[]? externalResolvers = null, [CallerMemberName] string? memberName = null) =>
             Run(
                 kind,
                 static (_, _) => { },
                 testAction,
+                externalResolvers,
                 memberName);
 
         private void Run(
             AnalyzerTestKind kind,
             Action<AssemblyLoadContext, AssemblyLoadTestFixture> prepLoadContextAction,
             Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction,
+            IAnalyzerAssemblyResolver[]? externalResolvers = null,
             [CallerMemberName] string? memberName = null)
         {
             var alc = new AssemblyLoadContext($"Test {memberName}", isCollectible: true);
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 prepLoadContextAction(alc, TestFixture);
                 var util = new InvokeUtil();
-                util.Exec(TestOutputHelper, alc, TestFixture, kind, testAction.Method.DeclaringType!.FullName!, testAction.Method.Name);
+                util.Exec(TestOutputHelper, alc, TestFixture, kind, testAction.Method.DeclaringType!.FullName!, testAction.Method.Name, externalResolvers ?? []);
             }
             finally
             {
@@ -128,6 +128,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private void Run(
             AnalyzerTestKind kind,
             Action<AnalyzerAssemblyLoader, AssemblyLoadTestFixture> testAction,
+            IAnalyzerAssemblyResolver[]? externalResolvers = null,
             [CallerMemberName] string? memberName = null)
         {
             AppDomain? appDomain = null;
@@ -137,7 +138,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var testOutputHelper = new AppDomainTestOutputHelper(TestOutputHelper);
                 var type = typeof(InvokeUtil);
                 var util = (InvokeUtil)appDomain.CreateInstanceAndUnwrap(type.Assembly.FullName, type.FullName);
-                util.Exec(testOutputHelper, TestFixture, kind, testAction.Method.DeclaringType.FullName, testAction.Method.Name);
+                util.Exec(testOutputHelper, TestFixture, kind, testAction.Method.DeclaringType.FullName, testAction.Method.Name, externalResolvers ?? []);
             }
             finally
             {
@@ -367,11 +368,32 @@ Delta: Gamma: Beta: Test B
 
                 if (path.EndsWith(".resources.dll", StringComparison.Ordinal))
                 {
-                    return loader.GetRealSatelliteLoadPath(path) ?? "";
+                    return getRealSatelliteLoadPath(path) ?? "";
                 }
                 return loader.GetRealAnalyzerLoadPath(path ?? "");
             }
 
+            // When PreparePathToLoad is overridden this returns the most recent
+            // real path for the given analyzer satellite assembly path
+            string? getRealSatelliteLoadPath(string originalSatelliteFullPath)
+            {
+                // This is a satellite assembly, need to find the mapped path of the real assembly, then 
+                // adjust that mapped path for the suffix of the satellite assembly
+                //
+                // Example of dll and it's corresponding satellite assembly
+                //
+                //  c:\some\path\en-GB\util.resources.dll
+                //  c:\some\path\util.dll
+                var assemblyFileName = Path.ChangeExtension(Path.GetFileNameWithoutExtension(originalSatelliteFullPath), ".dll");
+
+                var assemblyDir = Path.GetDirectoryName(originalSatelliteFullPath)!;
+                var cultureInfo = CultureInfo.GetCultureInfo(Path.GetFileName(assemblyDir));
+                assemblyDir = Path.GetDirectoryName(assemblyDir)!;
+
+                // Real assembly is located in the directory above this one
+                var assemblyPath = Path.Combine(assemblyDir, assemblyFileName);
+                return loader.GetRealSatelliteLoadPath(assemblyPath, cultureInfo);
+            }
         }
 
         private static void VerifyAssemblies(AnalyzerAssemblyLoader loader, IEnumerable<Assembly> assemblies, int? copyCount, params string[] assemblyPaths)
@@ -500,6 +522,7 @@ Delta: Gamma: Beta: Test B
             });
         }
 
+#if NET472
         /// <summary>
         /// Verify that MS.CA.EA.RazorCompiler will be loaded from the compiler directory not the 
         /// analyzer directory.
@@ -570,6 +593,8 @@ Delta: Gamma: Beta: Test B
                     deltaFile);
             });
         }
+
+#endif
 
         /// <summary>
         /// Similar to <see cref="AssemblyLoading_DependencyInDifferentDirectory"/> except want to validate
@@ -1418,8 +1443,31 @@ Delta.2: Test D2
                 // dlls don't apply for this count.
                 VerifyDependencyAssemblies(loader, copyCount: 1, analyzerPath, analyzerResourcesPath);
             });
-
         }
+
+        [Theory]
+        [CombinatorialData]
+        public void AssemblyLoading_ResourcesInParent(AnalyzerTestKind kind)
+        {
+            Run(kind, static (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                using var temp = new TempRoot();
+                var tempDir = temp.CreateDirectory();
+                var analyzerPath = tempDir.CreateFile("AnalyzerWithLoc.dll").CopyContentFrom(testFixture.AnalyzerWithLoc).Path;
+                var analyzerResourcesPath = tempDir.CreateDirectory("es").CreateFile("AnalyzerWithLoc.resources.dll").CopyContentFrom(testFixture.AnalyzerWithLocResourceEnGB).Path;
+                loader.AddDependencyLocation(analyzerPath);
+                var assembly = loader.LoadFromPath(analyzerPath);
+                var methodInfo = assembly
+                    .GetType("AnalyzerWithLoc.Util")!
+                    .GetMethod("Exec", BindingFlags.Static | BindingFlags.Public)!;
+                methodInfo.Invoke(null, ["es-ES"]);
+
+                // The copy count is 1 here as only one real assembly was copied, the resource 
+                // dlls don't apply for this count.
+                VerifyDependencyAssemblies(loader, copyCount: 1, analyzerPath, analyzerResourcesPath);
+            });
+        }
+
 #if NETCOREAPP
 
         [Theory]
@@ -1450,5 +1498,115 @@ Delta.2: Test D2
                 });
         }
 #endif
+
+        [Theory]
+        [CombinatorialData]
+        public void ExternalResolver_CanIntercept_ReturningNull(AnalyzerTestKind kind)
+        {
+            var resolver = new TestAnalyzerAssemblyResolver(n => null);
+            Run(kind, (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                loader.AddDependencyLocation(testFixture.Delta1);
+                Assembly delta = loader.LoadFromPath(testFixture.Delta1);
+                Assert.NotNull(delta);
+                VerifyDependencyAssemblies(loader, testFixture.Delta1);
+
+            }, externalResolvers: [resolver]);
+            Assert.Collection(resolver.CalledFor, (a => Assert.Equal("Delta", a.Name)));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ExternalResolver_CanIntercept_ReturningAssembly(AnalyzerTestKind kind)
+        {
+            var resolver = new TestAnalyzerAssemblyResolver(n => GetType().Assembly);
+            Run(kind, (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                // net core assembly loader checks that the resolved assembly name is the same as the requested one
+                // so we use the assembly the tests are contained in as its already be loaded
+                var thisAssembly = typeof(AnalyzerAssemblyLoaderTests).Assembly;
+                loader.AddDependencyLocation(thisAssembly.Location);
+                Assembly loaded = loader.LoadFromPath(thisAssembly.Location);
+                Assert.Equal(thisAssembly, loaded);
+
+            }, externalResolvers: [resolver]);
+            Assert.Collection(resolver.CalledFor, (a => Assert.Equal(GetType().Assembly.GetName().Name, a.Name)));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ExternalResolver_CanIntercept_ReturningAssembly_Or_Null(AnalyzerTestKind kind)
+        {
+            var thisAssemblyName = GetType().Assembly.GetName();
+            var resolver = new TestAnalyzerAssemblyResolver(n => n == thisAssemblyName ? GetType().Assembly : null);
+            Run(kind, (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                var thisAssembly = typeof(AnalyzerAssemblyLoaderTests).Assembly;
+
+                loader.AddDependencyLocation(testFixture.Alpha);
+                Assembly alpha = loader.LoadFromPath(testFixture.Alpha);
+                Assert.NotNull(alpha);
+
+                loader.AddDependencyLocation(thisAssembly.Location);
+                Assembly loaded = loader.LoadFromPath(thisAssembly.Location);
+                Assert.Equal(thisAssembly, loaded);
+
+                loader.AddDependencyLocation(testFixture.Delta1);
+                Assembly delta = loader.LoadFromPath(testFixture.Delta1);
+                Assert.NotNull(delta);
+
+            }, externalResolvers: [resolver]);
+            Assert.Collection(resolver.CalledFor, (a => Assert.Equal("Alpha", a.Name)), a => Assert.Equal(thisAssemblyName.Name, a.Name), a => Assert.Equal("Delta", a.Name));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ExternalResolver_MultipleResolvers_CanIntercept_ReturningNull(AnalyzerTestKind kind)
+        {
+            var resolver1 = new TestAnalyzerAssemblyResolver(n => null);
+            var resolver2 = new TestAnalyzerAssemblyResolver(n => null);
+            Run(kind, (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                loader.AddDependencyLocation(testFixture.Delta1);
+                Assembly delta = loader.LoadFromPath(testFixture.Delta1);
+                Assert.NotNull(delta);
+                VerifyDependencyAssemblies(loader, testFixture.Delta1);
+
+            }, externalResolvers: [resolver1, resolver2]);
+            Assert.Collection(resolver1.CalledFor, (a => Assert.Equal("Delta", a.Name)));
+            Assert.Collection(resolver2.CalledFor, (a => Assert.Equal("Delta", a.Name)));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void ExternalResolver_MultipleResolvers_ResolutionStops_AfterFirstResolve(AnalyzerTestKind kind)
+        {
+            var resolver1 = new TestAnalyzerAssemblyResolver(n => GetType().Assembly);
+            var resolver2 = new TestAnalyzerAssemblyResolver(n => null);
+            Run(kind, (AnalyzerAssemblyLoader loader, AssemblyLoadTestFixture testFixture) =>
+            {
+                var thisAssembly = typeof(AnalyzerAssemblyLoaderTests).Assembly;
+                loader.AddDependencyLocation(thisAssembly.Location);
+                Assembly loaded = loader.LoadFromPath(thisAssembly.Location);
+                Assert.Equal(thisAssembly, loaded);
+
+            }, externalResolvers: [resolver1, resolver2]);
+            Assert.Collection(resolver1.CalledFor, (a => Assert.Equal(GetType().Assembly.GetName().Name, a.Name)));
+            Assert.Empty(resolver2.CalledFor);
+        }
+
+        [Serializable]
+        private class TestAnalyzerAssemblyResolver(Func<AssemblyName, Assembly?> func) : MarshalByRefObject, IAnalyzerAssemblyResolver
+        {
+            private readonly Func<AssemblyName, Assembly?> _func = func;
+
+            public List<AssemblyName> CalledFor { get; } = [];
+
+            public Assembly? ResolveAssembly(AssemblyName assemblyName)
+            {
+                CalledFor.Add(assemblyName);
+                return _func(assemblyName);
+            }
+        }
     }
 }

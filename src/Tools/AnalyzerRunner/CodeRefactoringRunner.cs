@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
 using static AnalyzerRunner.Program;
@@ -246,7 +245,7 @@ namespace AnalyzerRunner
                 Languages = languages switch
                 {
                     IEnumerable<string> values => values,
-                    string value => new[] { value },
+                    string value => [value],
                     _ => Array.Empty<string>(),
                 };
             }

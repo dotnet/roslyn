@@ -297,6 +297,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return _store.GetOrDefault(nameof(Prefer32Bit), false); }
         }
 
+        public string? ProjectName
+        {
+            set { _store[nameof(ProjectName)] = value; }
+            get { return (string?)_store[nameof(ProjectName)]; }
+        }
+
         public bool ProvideCommandLineArgs
         {
             set { _store[nameof(ProvideCommandLineArgs)] = value; }
@@ -375,6 +381,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             set { _store[nameof(SubsystemVersion)] = value; }
             get { return (string?)_store[nameof(SubsystemVersion)]; }
+        }
+
+        public string? TargetFramework
+        {
+            set { _store[nameof(TargetFramework)] = value; }
+            get { return (string?)_store[nameof(TargetFramework)]; }
         }
 
         public string? TargetType
@@ -505,11 +517,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             try
             {
-                var requestId = Guid.NewGuid();
+                var requestId = getRequestId();
                 logger.Log($"Compilation request {requestId}, PathToTool={pathToTool}");
 
-                string workingDirectory = CurrentDirectoryToUse();
-                string? tempDirectory = BuildServerConnection.GetTempPath(workingDirectory);
+                string? tempDirectory = Path.GetTempPath();
 
                 if (!UseSharedCompilation ||
                     !IsManagedTool ||
@@ -537,7 +548,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     requestId,
                     Language,
                     GenerateCommandLineArgsList(responseFileCommands),
-                    workingDirectory: workingDirectory,
+                    workingDirectory: CurrentDirectoryToUse(),
                     tempDirectory: tempDirectory,
                     keepAlive: null,
                     libDirectory: LibDirectoryToUse());
@@ -574,6 +585,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             }
 
             return ExitCode;
+
+            // Construct the friendly name for the compilation. This does not need to be unique. Instead
+            // it's used by developers to understand what compilation is running on the server.
+            string getRequestId()
+            {
+                if (!string.IsNullOrEmpty(ProjectName))
+                {
+                    return string.IsNullOrEmpty(TargetFramework)
+                        ? ProjectName
+                        : $"{ProjectName} ({TargetFramework})";
+                }
+
+                return $"Unnamed compilation {Guid.NewGuid()}";
+            }
         }
 
         /// <summary>
@@ -638,7 +663,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// Handle a response from the server, reporting messages and returning
         /// the appropriate exit code.
         /// </summary>
-        private int HandleResponse(Guid requestId, BuildResponse? response, string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
+        private int HandleResponse(string requestId, BuildResponse? response, string pathToTool, string responseFileCommands, string commandLineCommands, ICompilerServerLogger logger)
         {
 #if BOOTSTRAP
             if (!ValidateBootstrapResponse(response))
@@ -727,7 +752,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                     Log.LogError($"Critical error {responseType} when building");
                     return false;
                 case BuildResponse.ResponseType.Rejected:
-                    Log.LogError($"Compiler request rejected");
+                    Log.LogError($"Compiler request rejected: {((RejectedBuildResponse)response!).Reason}");
                     return false;
                 case BuildResponse.ResponseType.CannotConnect:
                     if (Interlocked.Increment(ref s_connectFailedCount) > maxCannotConnectCount)
@@ -766,7 +791,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         /// These are intended to be processed by automation in the binlog hence do not change the structure of
         /// the messages here.
         /// </summary>
-        private void LogCompilationMessage(ICompilerServerLogger logger, Guid requestId, CompilationKind kind, string diagnostic)
+        private void LogCompilationMessage(ICompilerServerLogger logger, string requestId, CompilationKind kind, string diagnostic)
         {
             var category = kind switch
             {

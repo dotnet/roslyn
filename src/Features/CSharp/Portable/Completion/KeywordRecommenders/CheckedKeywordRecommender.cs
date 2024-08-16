@@ -8,60 +8,59 @@ using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
+namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders;
+
+internal class CheckedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
 {
-    internal class CheckedKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
+    public CheckedKeywordRecommender()
+        : base(SyntaxKind.CheckedKeyword)
     {
-        public CheckedKeywordRecommender()
-            : base(SyntaxKind.CheckedKeyword)
+    }
+
+    protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+    {
+        if (context.IsStatementContext ||
+            context.IsGlobalStatementContext ||
+            context.IsNonAttributeExpressionContext)
         {
+            return true;
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
+        var targetToken = context.TargetToken;
+
+        if (targetToken.Kind() == SyntaxKind.OperatorKeyword)
         {
-            if (context.IsStatementContext ||
-                context.IsGlobalStatementContext ||
-                context.IsNonAttributeExpressionContext)
+            var previousPossiblySkippedToken = targetToken.GetPreviousToken(includeSkipped: true);
+
+            if (previousPossiblySkippedToken.IsLastTokenOfNode<TypeSyntax>())
             {
                 return true;
             }
 
-            var targetToken = context.TargetToken;
+            SyntaxToken previousToken;
 
-            if (targetToken.Kind() == SyntaxKind.OperatorKeyword)
+            if (previousPossiblySkippedToken.IsLastTokenOfNode<ExplicitInterfaceSpecifierSyntax>())
             {
-                var previousPossiblySkippedToken = targetToken.GetPreviousToken(includeSkipped: true);
+                var firstSpecifierToken = previousPossiblySkippedToken.GetRequiredAncestor<ExplicitInterfaceSpecifierSyntax>().GetFirstToken(includeSkipped: true);
 
-                if (previousPossiblySkippedToken.IsLastTokenOfNode<TypeSyntax>())
+                if (firstSpecifierToken.GetPreviousToken(includeSkipped: true).IsLastTokenOfNode<TypeSyntax>())
                 {
                     return true;
                 }
 
-                SyntaxToken previousToken;
-
-                if (previousPossiblySkippedToken.IsLastTokenOfNode<ExplicitInterfaceSpecifierSyntax>())
-                {
-                    var firstSpecifierToken = previousPossiblySkippedToken.GetRequiredAncestor<ExplicitInterfaceSpecifierSyntax>().GetFirstToken(includeSkipped: true);
-
-                    if (firstSpecifierToken.GetPreviousToken(includeSkipped: true).IsLastTokenOfNode<TypeSyntax>())
-                    {
-                        return true;
-                    }
-
-                    previousToken = firstSpecifierToken.GetPreviousToken(includeSkipped: false);
-                }
-                else
-                {
-                    previousToken = targetToken.GetPreviousToken(includeSkipped: false);
-                }
-
-                if (previousToken.Kind() == SyntaxKind.ExplicitKeyword)
-                {
-                    return true;
-                }
+                previousToken = firstSpecifierToken.GetPreviousToken(includeSkipped: false);
+            }
+            else
+            {
+                previousToken = targetToken.GetPreviousToken(includeSkipped: false);
             }
 
-            return false;
+            if (previousToken.Kind() == SyntaxKind.ExplicitKeyword)
+            {
+                return true;
+            }
         }
+
+        return false;
     }
 }

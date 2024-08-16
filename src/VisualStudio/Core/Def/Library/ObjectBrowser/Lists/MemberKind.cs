@@ -2,17 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
+
+internal enum MemberKind
 {
-    internal enum MemberKind
-    {
-        None,
-        Field,
-        Constant,
-        Method,
-        Property,
-        Event,
-        EnumMember,
-        Operator
-    }
+    None,
+    Field,
+    Constant,
+    Method,
+    Property,
+    Event,
+    EnumMember,
+    Operator
 }

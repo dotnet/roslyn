@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // Note, this test may pass even if GetValueAsync posted a task to the threadpool, since the 
             // current thread may context switch out and allow the threadpool to complete the task before
             // we check the state.  However, a failure here definitely indicates a bug in AsyncLazy.
-            var lazy = AsyncLazy.Create(c => Task.FromResult(5));
+            var lazy = AsyncLazy.Create(static c => Task.FromResult(5));
             var t = lazy.GetValueAsync(CancellationToken.None);
             Assert.Equal(TaskStatus.RanToCompletion, t.Status);
             Assert.Equal(5, t.Result);
@@ -40,26 +40,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var requestCancellationTokenSource = new CancellationTokenSource();
 
             // First, create an async lazy that will only ever do synchronous computations.
-            var lazy = new AsyncLazy<int>(
-                asynchronousComputeFunction: c => { throw new Exception("We should not get an asynchronous computation."); },
-                synchronousComputeFunction: c =>
+            var lazy = AsyncLazy.Create(
+                asynchronousComputeFunction: static (arg, c) => { throw new Exception("We should not get an asynchronous computation."); },
+                synchronousComputeFunction: static (arg, c) =>
                 {
                     // Notify that the synchronous computation started
-                    synchronousComputationStartedEvent.Set();
+                    arg.synchronousComputationStartedEvent.Set();
 
                     // And now wait when we should finish
-                    synchronousComputationShouldCompleteEvent.WaitOne();
+                    arg.synchronousComputationShouldCompleteEvent.WaitOne();
 
                     c.ThrowIfCancellationRequested();
 
-                    if (expectedTaskStatus == TaskStatus.Faulted)
+                    if (arg.expectedTaskStatus == TaskStatus.Faulted)
                     {
                         // We want to see what happens if this underlying task faults, so let's fault!
                         throw new Exception("Task blew up!");
                     }
 
                     return 42;
-                });
+                },
+                arg: (synchronousComputationStartedEvent, synchronousComputationShouldCompleteEvent, expectedTaskStatus));
 
             // Second, start a synchronous request. While we are in the GetValue, we will record which thread is being occupied by the request
             Thread? synchronousRequestThread = null;
@@ -144,11 +145,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var computeFunctionRunning = new ManualResetEvent(initialState: false);
 
             AsyncLazy<object> lazy;
-            Func<CancellationToken, object>? synchronousComputation = null;
+            Func<ManualResetEvent?, CancellationToken, object>? synchronousComputation = null;
 
             if (includeSynchronousComputation)
             {
-                synchronousComputation = c =>
+                synchronousComputation = (arg, c) =>
                 {
                     computeFunctionRunning.Set();
                     while (true)
@@ -158,14 +159,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 };
             }
 
-            lazy = new AsyncLazy<object>(c =>
-            {
-                computeFunctionRunning.Set();
-                while (true)
+            lazy = AsyncLazy.Create(
+                static (computeFunctionRunning, c) =>
                 {
-                    c.ThrowIfCancellationRequested();
-                }
-            }, synchronousComputeFunction: synchronousComputation);
+                    computeFunctionRunning.Set();
+                    while (true)
+                    {
+                        c.ThrowIfCancellationRequested();
+                    }
+                },
+                synchronousComputeFunction: synchronousComputation!,
+                arg: computeFunctionRunning);
 
             var cancellationTokenSource = new CancellationTokenSource();
 
@@ -192,14 +196,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var cancellationTokenSource = new CancellationTokenSource();
 
-            var lazy = AsyncLazy.Create(c => Task.Run((Func<object>)(() =>
+            var lazy = AsyncLazy.Create(static (cancellationTokenSource, c) => Task.Run((Func<object>)(() =>
             {
                 cancellationTokenSource.Cancel();
                 while (true)
                 {
                     c.ThrowIfCancellationRequested();
                 }
-            }), c));
+            }), c), arg: cancellationTokenSource);
 
             var task = lazy.GetValueAsync(cancellationTokenSource.Token);
 
@@ -216,8 +220,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         private static void CancellationDuringInlinedComputationFromGetValueOrGetValueAsyncStillCachesResult(bool includeSynchronousComputation)
         {
             var computations = 0;
@@ -237,9 +240,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 return createdObject;
             };
 
-            var lazy = new AsyncLazy<object>(
-                c => Task.FromResult(synchronousComputation(c)),
-                includeSynchronousComputation ? synchronousComputation : null);
+            var lazy = AsyncLazy.Create(
+                static (synchronousComputation, c) => Task.FromResult(synchronousComputation(c)),
+                includeSynchronousComputation ? static (synchronousComputation, c) => synchronousComputation(c) : null!,
+                arg: synchronousComputation);
 
             var thrownException = Assert.Throws<OperationCanceledException>(() =>
             {
@@ -259,7 +263,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void SynchronousRequestShouldCacheValueWithAsynchronousComputeFunction()
         {
-            var lazy = new AsyncLazy<object>(c => Task.FromResult(new object()));
+            var lazy = AsyncLazy.Create(static c => Task.FromResult(new object()));
 
             var firstRequestResult = lazy.GetValue(CancellationToken.None);
             var secondRequestResult = lazy.GetValue(CancellationToken.None);
@@ -267,8 +271,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Same(secondRequestResult, firstRequestResult);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task AwaitingProducesCorrectException(bool producerAsync, bool consumerAsync)
         {
             var exception = new ArgumentException();
@@ -285,8 +288,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 };
 
             var lazy = producerAsync
-                ? new AsyncLazy<object>(asynchronousComputeFunction)
-                : new AsyncLazy<object>(asynchronousComputeFunction, synchronousComputeFunction);
+                ? AsyncLazy.Create(asynchronousComputeFunction)
+                : AsyncLazy.Create(asynchronousComputeFunction, synchronousComputeFunction);
 
             var actual = consumerAsync
                 ? await Assert.ThrowsAsync<ArgumentException>(async () => await lazy.GetValueAsync(CancellationToken.None))
@@ -307,19 +310,20 @@ namespace Microsoft.CodeAnalysis.UnitTests
             // We don't want the async path to run sooner than we expect, so we'll set it once ready
             Func<CancellationToken, Task<string>>? asynchronousComputation = null;
 
-            var lazy = new AsyncLazy<string>(
-                asynchronousComputeFunction: ct =>
+            var lazy = AsyncLazy.Create(
+                asynchronousComputeFunction: static (arg, ct) =>
                 {
-                    AssertEx.NotNull(asynchronousComputation, $"The asynchronous computation was not expected to be running.");
-                    return asynchronousComputation(ct);
+                    AssertEx.NotNull(arg.asynchronousComputation, $"The asynchronous computation was not expected to be running.");
+                    return arg.asynchronousComputation(ct);
                 },
-                synchronousComputeFunction: _ =>
+                synchronousComputeFunction: static (arg, ct) =>
                 {
                     // Let the test know we've started, and we'll continue once asked
-                    synchronousComputationStartedEvent.Set();
-                    synchronousComputationShouldCompleteEvent.WaitOne();
+                    arg.synchronousComputationStartedEvent.Set();
+                    arg.synchronousComputationShouldCompleteEvent.WaitOne();
                     return "Returned from synchronous computation: " + Guid.NewGuid();
-                });
+                },
+                arg: (asynchronousComputation, synchronousComputationStartedEvent, synchronousComputationShouldCompleteEvent));
 
             // Step 1: start the synchronous operation and wait for it to be running
             var synchronousRequest = Task.Run(() => lazy.GetValue(CancellationToken.None));
@@ -364,28 +368,29 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var asynchronousRequestCancellationToken = new CancellationTokenSource();
 
-            var lazy = new AsyncLazy<string>(
-                asynchronousComputeFunction: ct =>
+            var lazy = AsyncLazy.Create(
+                asynchronousComputeFunction: static (arg, ct) =>
                 {
-                    asynchronousRequestCancellationToken.Cancel();
+                    arg.asynchronousRequestCancellationToken.Cancel();
 
                     // Now wait until the cancellation is sent to this underlying computation
                     while (!ct.IsCancellationRequested)
                         Thread.Yield();
 
                     // Now we're ready to complete, so this is when we want to pause
-                    asynchronousComputationReadyToComplete.Set();
-                    asynchronousComputationShouldCompleteEvent.WaitOne();
+                    arg.asynchronousComputationReadyToComplete.Set();
+                    arg.asynchronousComputationShouldCompleteEvent.WaitOne();
 
                     return Task.FromResult("Returned from asynchronous computation: " + Guid.NewGuid());
                 },
-                synchronousComputeFunction: _ =>
+                synchronousComputeFunction: static (arg, _) =>
                 {
                     // Let the test know we've started, and we'll continue once asked
-                    synchronousComputationStartedEvent.Set();
-                    synchronousComputationShouldCompleteEvent.WaitOne();
+                    arg.synchronousComputationStartedEvent.Set();
+                    arg.synchronousComputationShouldCompleteEvent.WaitOne();
                     return "Returned from synchronous computation: " + Guid.NewGuid();
-                });
+                },
+                arg: (asynchronousRequestCancellationToken, asynchronousComputationReadyToComplete, asynchronousComputationShouldCompleteEvent, synchronousComputationStartedEvent, synchronousComputationShouldCompleteEvent));
 
             // Steps 1 and 2: start asynchronous computation and wait until it's running; this will cancel itself once it's started
             var asynchronousRequest = Task.Run(() => lazy.GetValueAsync(asynchronousRequestCancellationToken.Token));

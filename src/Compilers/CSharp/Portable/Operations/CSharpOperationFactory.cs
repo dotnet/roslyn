@@ -304,8 +304,6 @@ namespace Microsoft.CodeAnalysis.Operations
                 case BoundKind.StackAllocArrayCreation:
                 case BoundKind.TypeExpression:
                 case BoundKind.TypeOrValueExpression:
-                case BoundKind.UnconvertedCollectionExpression:
-
                     ConstantValue? constantValue = (boundNode as BoundExpression)?.ConstantValueOpt;
                     bool isImplicit = boundNode.WasCompilerGenerated;
 
@@ -883,7 +881,9 @@ namespace Microsoft.CodeAnalysis.Operations
                     {
                         // In nested member initializers, the property is not actually set. Instead, it is retrieved for a series of Add method calls or nested property setter calls,
                         // so we need to use the getter for this property
-                        MethodSymbol? accessor = isObjectOrCollectionInitializer ? property.GetOwnOrInheritedGetMethod() : property.GetOwnOrInheritedSetMethod();
+                        MethodSymbol? accessor = isObjectOrCollectionInitializer || property.RefKind != RefKind.None
+                            ? property.GetOwnOrInheritedGetMethod()
+                            : property.GetOwnOrInheritedSetMethod();
                         if (accessor == null || boundObjectInitializerMember.ResultKind == LookupResultKind.OverloadResolutionFailure || accessor.OriginalDefinition is ErrorMethodSymbol)
                         {
                             var children = CreateFromArray<BoundNode, IOperation>(((IBoundInvalidNode)boundObjectInitializerMember).InvalidNodeChildren);
@@ -1226,7 +1226,7 @@ namespace Microsoft.CodeAnalysis.Operations
             ITypeSymbol? collectionType = expr.GetPublicTypeSymbol();
             bool isImplicit = expr.WasCompilerGenerated;
             IMethodSymbol? constructMethod = getConstructMethod((CSharpCompilation)_semanticModel.Compilation, expr).GetPublicSymbol();
-            ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray(e => CreateBoundCollectionExpressionElement(e));
+            ImmutableArray<IOperation> elements = expr.Elements.SelectAsArray((element, expr) => CreateBoundCollectionExpressionElement(expr, element), expr);
             return new CollectionExpressionOperation(
                 constructMethod,
                 elements,
@@ -1246,7 +1246,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     case CollectionExpressionTypeKind.Span:
                         return null;
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
-                    case CollectionExpressionTypeKind.ImplementsIEnumerableT:
                         return (expr.CollectionCreation as BoundObjectCreationExpression)?.Constructor;
                     case CollectionExpressionTypeKind.CollectionBuilder:
                         return expr.CollectionBuilderMethod;
@@ -1256,17 +1255,18 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
-        private IOperation CreateBoundCollectionExpressionElement(BoundNode element)
+        private IOperation CreateBoundCollectionExpressionElement(BoundCollectionExpression expr, BoundNode element)
         {
             return element is BoundCollectionExpressionSpreadElement spreadElement ?
-                CreateBoundCollectionExpressionSpreadElement(spreadElement) :
-                Create(Binder.GetUnderlyingCollectionExpressionElement((BoundExpression)element));
+                CreateBoundCollectionExpressionSpreadElement(expr, spreadElement) :
+                Create(Binder.GetUnderlyingCollectionExpressionElement(expr, (BoundExpression)element, throwOnErrors: false));
         }
 
-        private ISpreadOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpressionSpreadElement element)
+        private ISpreadOperation CreateBoundCollectionExpressionSpreadElement(BoundCollectionExpression expr, BoundCollectionExpressionSpreadElement element)
         {
-            var iteratorBody = ((BoundExpressionStatement?)element.IteratorBody)?.Expression;
-            var iteratorItem = iteratorBody is null ? null : Binder.GetUnderlyingCollectionExpressionElement(iteratorBody);
+            var iteratorItem = element.IteratorBody is { } iteratorBody ?
+                Binder.GetUnderlyingCollectionExpressionElement(expr, ((BoundExpressionStatement)iteratorBody).Expression, throwOnErrors: false) :
+                null;
             var collection = Create(element.Expression);
             SyntaxNode syntax = element.Syntax;
             bool isImplicit = element.WasCompilerGenerated;
@@ -1879,9 +1879,10 @@ namespace Microsoft.CodeAnalysis.Operations
                                                     needsDispose: enumeratorInfoOpt.NeedsDisposal,
                                                     knownToImplementIDisposable: enumeratorInfoOpt.NeedsDisposal ?
                                                                                      compilation.Conversions.
-                                                                                         ClassifyImplicitConversionFromType(enumeratorInfoOpt.GetEnumeratorInfo.Method.ReturnType,
+                                                                                         HasImplicitConversionToOrImplementsVarianceCompatibleInterface(enumeratorInfoOpt.GetEnumeratorInfo.Method.ReturnType,
                                                                                                                             iDisposable,
-                                                                                                                            ref discardedUseSiteInfo).IsImplicit :
+                                                                                                                            ref discardedUseSiteInfo,
+                                                                                                                            needSupportForRefStructInterfaces: out _) :
                                                                                      false,
                                                     enumeratorInfoOpt.PatternDisposeInfo?.Method.GetPublicSymbol(),
                                                     BoundNode.GetConversion(enumeratorInfoOpt.CurrentConversion, enumeratorInfoOpt.CurrentPlaceholder),
@@ -2882,8 +2883,6 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 return ImmutableArray<IArgumentOperation>.Empty;
             }
-
-            Debug.Assert(!patternDisposeInfo.Expanded || patternDisposeInfo.Method.GetParameters().Last().OriginalDefinition.Type.IsSZArray());
 
             var args = DeriveArguments(
                             patternDisposeInfo.Method,

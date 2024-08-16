@@ -21,6 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static UseCollectionExpressionHelpers;
+using static SyntaxFactory;
 using FluentState = UpdateExpressionState<ExpressionSyntax, StatementSyntax>;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -37,11 +38,12 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     /// etc.  Note: this will just be done for a syntactic check of the method being called.  Additional checks will
     /// ensure that we are preserving semantics.
     /// </summary>
-    private static readonly ImmutableArray<string> s_suffixes = ImmutableArray.Create(
+    private static readonly ImmutableArray<string> s_suffixes =
+    [
         nameof(Array),
         nameof(Span<int>),
         nameof(ReadOnlySpan<int>),
-        nameof(List<int>),
+        nameof(System.Collections.Generic.List<int>),
         nameof(HashSet<int>),
         nameof(LinkedList<int>),
         nameof(Queue<int>),
@@ -57,16 +59,19 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         nameof(ImmutableQueue<int>),
         nameof(ImmutableSortedSet<int>),
         nameof(ImmutableStack<int>),
-        nameof(System.Collections.Immutable));
+        nameof(System.Collections.Immutable),
+    ];
 
     /// <summary>
     /// Set of type-names that are blocked from moving over to collection expressions because the semantics of them are
     /// known to be specialized, and thus could change semantics in undesirable ways if the compiler emitted its own
     /// code as an replacement.
     /// </summary>
-    private static readonly ImmutableHashSet<string?> s_bannedTypes = ImmutableHashSet.Create<string?>(
+    private static readonly ImmutableHashSet<string?> s_bannedTypes = [
         nameof(ParallelEnumerable),
-        nameof(ParallelQuery));
+        nameof(ParallelQuery),
+        // Special internal runtime interface that is optimized for fast path conversions of collections.
+        "IIListProvider"];
 
     protected override void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType)
         => context.RegisterSyntaxNodeAction(context => AnalyzeMemberAccess(context, expressionType), SyntaxKind.SimpleMemberAccessExpression);
@@ -97,8 +102,8 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         }
 
         var sourceText = semanticModel.SyntaxTree.GetText(cancellationToken);
-        var allowInterfaceConversion = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
-        var analysisResult = AnalyzeInvocation(sourceText, state, invocation, expressionType, allowInterfaceConversion, addMatches: true, cancellationToken);
+        var allowSemanticsChange = option.Value is CollectionExpressionPreference.WhenTypesLooselyMatch;
+        var analysisResult = AnalyzeInvocation(sourceText, state, invocation, expressionType, allowSemanticsChange, addMatches: true, cancellationToken);
         if (analysisResult is null)
             return;
 
@@ -106,6 +111,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             Descriptor,
             memberAccess.Name.Identifier.GetLocation(),
             option.Notification,
+            context.Options,
             additionalLocations: ImmutableArray.Create(invocation.GetLocation()),
             properties: analysisResult.Value.ChangesSemantics ? ChangesSemantics : null));
 
@@ -121,7 +127,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
         FluentState state,
         InvocationExpressionSyntax invocation,
         INamedTypeSymbol? expressionType,
-        bool allowInterfaceConversion,
+        bool allowSemanticsChange,
         bool addMatches,
         CancellationToken cancellationToken)
     {
@@ -132,7 +138,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             return null;
 
         if (!CanReplaceWithCollectionExpression(
-                state.SemanticModel, invocation, expressionType, isSingletonInstance: false, allowInterfaceConversion, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
+                state.SemanticModel, invocation, expressionType, isSingletonInstance: false, allowSemanticsChange, skipVerificationForReplacedNode: true, cancellationToken, out var changesSemantics))
         {
             return null;
         }
@@ -173,10 +179,9 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
 
         var copiedData = false;
 
-        while (stack.Count > 0)
+        while (stack.TryPop(out var current))
         {
             cancellationToken.ThrowIfCancellationRequested();
-            var current = stack.Pop();
 
             // Methods of the form Add(...)/AddRange(...) or `ToXXX()` count as something to continue recursing down the
             // left hand side of the expression.  In the inner expressions we can have things like `.Concat/.Append`
@@ -243,11 +248,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 if (!IsListLike(current))
                     return false;
 
-                if (matchesInReverse != null)
-                {
-                    AddArgumentsInReverse(matchesInReverse, GetArguments(currentInvocationExpression, unwrapArgument), useSpread: false);
-                }
-
+                AddArgumentsInReverse(matchesInReverse, GetArguments(currentInvocationExpression, unwrapArgument), useSpread: false);
                 return true;
             }
 
@@ -292,7 +293,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             {
                 // Remove any whitespace around the `.`, making the singly-wrapped fluent expression into a single line.
                 matchesInReverse.Add(new CollectionExpressionMatch<ArgumentSyntax>(
-                    SyntaxFactory.Argument(innerInvocation.WithExpression(
+                    Argument(innerInvocation.WithExpression(
                         memberAccess.Update(
                             memberAccess.Expression.WithoutTrailingTrivia(),
                             memberAccess.OperatorToken.WithoutTrivia(),
@@ -301,7 +302,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
                 return;
             }
 
-            matchesInReverse.Add(new CollectionExpressionMatch<ArgumentSyntax>(SyntaxFactory.Argument(expression), UseSpread: true));
+            matchesInReverse.Add(new CollectionExpressionMatch<ArgumentSyntax>(Argument(expression), UseSpread: true));
         }
 
         // We only want to offer this feature when the original collection was list-like (as opposed to being something
@@ -363,11 +364,14 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
     }
 
     private static void AddArgumentsInReverse(
-        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>> matchesInReverse,
+        ArrayBuilder<CollectionExpressionMatch<ArgumentSyntax>>? matchesInReverse,
         SeparatedSyntaxList<ArgumentSyntax> arguments,
         bool useSpread)
     {
         Contract.ThrowIfTrue(useSpread && arguments.Count != 1);
+
+        if (matchesInReverse is null)
+            return;
 
         for (var i = arguments.Count - 1; i >= 0; i--)
             matchesInReverse.Add(new(arguments[i], useSpread));
@@ -416,8 +420,7 @@ internal sealed partial class CSharpUseCollectionExpressionForFluentDiagnosticAn
             // Check for Add/AddRange/Concat
             if (state.TryAnalyzeInvocationForCollectionExpression(invocation, allowLinq, cancellationToken, out _, out var useSpread))
             {
-                if (matchesInReverse != null)
-                    AddArgumentsInReverse(matchesInReverse, invocation.ArgumentList.Arguments, useSpread);
+                AddArgumentsInReverse(matchesInReverse, invocation.ArgumentList.Arguments, useSpread);
 
                 isAdditionMatch = true;
                 return true;

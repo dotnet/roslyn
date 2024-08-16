@@ -11,11 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Build
+namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal class ProjectBuildManager
     {
@@ -138,7 +137,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             {
                 var projectCollection = new MSB.Evaluation.ProjectCollection(
                     AllGlobalProperties,
-                    _msbuildLogger != null ? ImmutableArray.Create(_msbuildLogger) : ImmutableArray<MSB.Framework.ILogger>.Empty,
+                    _msbuildLogger != null ? [_msbuildLogger] : ImmutableArray<MSB.Framework.ILogger>.Empty,
                     MSB.Evaluation.ToolsetDefinitionLocations.Default);
                 try
                 {
@@ -185,7 +184,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             // We do not need to include the _batchBuildLogger in the ProjectCollection - it just collects the
             // DiagnosticLog from the build steps, but evaluation already separately reports the DiagnosticLog.
             var loggers = _msbuildLogger is not null
-                ? ImmutableArray.Create(_msbuildLogger)
+                ? [_msbuildLogger]
                 : ImmutableArray<MSB.Framework.ILogger>.Empty;
 
             _batchBuildProjectCollection = new MSB.Evaluation.ProjectCollection(allProperties, loggers, MSB.Evaluation.ToolsetDefinitionLocations.Default);
@@ -226,20 +225,21 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         {
             Debug.Assert(BatchBuildStarted);
 
-            var targets = new[] { TargetNames.Compile, TargetNames.CoreCompile };
+            var requiredTargets = new[] { TargetNames.Compile, TargetNames.CoreCompile };
+            var optionalTargets = new[] { TargetNames.DesignTimeMarkupCompilation };
 
-            return BuildProjectAsync(project, targets, log, cancellationToken);
+            return BuildProjectAsync(project, requiredTargets, optionalTargets, log, cancellationToken);
         }
 
         private async Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
-            MSB.Evaluation.Project project, string[] targets, DiagnosticLog log, CancellationToken cancellationToken)
+            MSB.Evaluation.Project project, string[] requiredTargets, string[] optionalTargets, DiagnosticLog log, CancellationToken cancellationToken)
         {
             // create a project instance to be executed by build engine.
             // The executed project will hold the final model of the project after execution via msbuild.
             var projectInstance = project.CreateProjectInstance();
 
             // Verify targets
-            foreach (var target in targets)
+            foreach (var target in requiredTargets)
             {
                 if (!projectInstance.Targets.ContainsKey(target))
                 {
@@ -248,9 +248,18 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 }
             }
 
+            var targets = new List<string>(requiredTargets);
+            foreach (var target in optionalTargets)
+            {
+                if (projectInstance.Targets.ContainsKey(target))
+                {
+                    targets.Add(target);
+                }
+            }
+
             _batchBuildLogger?.SetProjectAndLog(projectInstance.FullPath, log);
 
-            var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, targets);
+            var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, [.. targets]);
 
             var result = await BuildAsync(buildRequestData, cancellationToken).ConfigureAwait(false);
 

@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
@@ -19,12 +19,21 @@ namespace Microsoft.CodeAnalysis.Serialization;
 /// </summary>
 internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) : IReadOnlyCollection<Checksum>
 {
+    /// <summary>
+    /// Aggregate checksum produced from all the constituent checksums in <see cref="Children"/>.
+    /// </summary>
     public Checksum Checksum { get; } = Checksum.Create(children);
 
     public int Count => children.Length;
     public Checksum this[int index] => children[index];
     public ImmutableArray<Checksum> Children => children;
 
+    /// <summary>
+    /// Enumerates the child checksums (found in <see cref="Children"/>) that make up this collection.   This is
+    /// equivalent to directly enumerating the <see cref="Children"/> property.  Importantly, <see cref="Checksum"/> is
+    /// not part of this enumeration.  <see cref="Checksum"/> is the checksum <em>produced</em> by all those child
+    /// checksums.
+    /// </summary>
     public ImmutableArray<Checksum>.Enumerator GetEnumerator()
         => children.GetEnumerator();
 
@@ -44,20 +53,22 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
     }
 
     [PerformanceSensitive("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1333566", AllowGenericEnumeration = false)]
-    internal static async Task FindAsync<TState>(
+    internal static async Task FindAsync<TState, TArg>(
+        AssetPath assetPath,
         TextDocumentStates<TState> documentStates,
-        DocumentId? hintDocument,
         HashSet<Checksum> searchingChecksumsLeft,
-        Dictionary<Checksum, object> result,
+        Action<Checksum, object, TArg> onAssetFound,
+        TArg arg,
         CancellationToken cancellationToken) where TState : TextDocumentState
     {
+        var hintDocument = assetPath.DocumentId;
         if (hintDocument != null)
         {
             var state = documentStates.GetState(hintDocument);
             if (state != null)
             {
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
-                await stateChecksums.FindAsync(state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(assetPath, state, searchingChecksumsLeft, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
             }
         }
         else
@@ -70,16 +81,17 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
 
                 Contract.ThrowIfFalse(state.TryGetStateChecksums(out var stateChecksums));
 
-                await stateChecksums.FindAsync(state, searchingChecksumsLeft, result, cancellationToken).ConfigureAwait(false);
+                await stateChecksums.FindAsync(assetPath, state, searchingChecksumsLeft, onAssetFound, arg, cancellationToken).ConfigureAwait(false);
             }
         }
     }
 
-    internal static void Find<T>(
+    internal static void Find<T, TArg>(
         IReadOnlyList<T> values,
         ChecksumCollection checksums,
         HashSet<Checksum> searchingChecksumsLeft,
-        Dictionary<Checksum, object> result,
+        Action<Checksum, object, TArg> onAssetFound,
+        TArg arg,
         CancellationToken cancellationToken) where T : class
     {
         Contract.ThrowIfFalse(values.Count == checksums.Children.Length);
@@ -92,24 +104,13 @@ internal readonly struct ChecksumCollection(ImmutableArray<Checksum> children) :
 
             var checksum = checksums.Children[i];
             if (searchingChecksumsLeft.Remove(checksum))
-                result[checksum] = values[i];
+                onAssetFound(checksum, values[i], arg);
         }
     }
 
     public void WriteTo(ObjectWriter writer)
-    {
-        writer.WriteInt32(this.Count);
-        foreach (var obj in this.Children)
-            obj.WriteTo(writer);
-    }
+        => writer.WriteArray(this.Children, static (w, c) => c.WriteTo(w));
 
     public static ChecksumCollection ReadFrom(ObjectReader reader)
-    {
-        var count = reader.ReadInt32();
-        using var _ = ArrayBuilder<Checksum>.GetInstance(count, out var result);
-        for (var i = 0; i < count; i++)
-            result.Add(Checksum.ReadFrom(reader));
-
-        return new(result.ToImmutableAndClear());
-    }
+        => new(reader.ReadArray(Checksum.ReadFrom));
 }

@@ -915,7 +915,7 @@ $$
             End Using
         End Function
 
-        <WpfTheory, CombinatorialData>
+        <WpfTheory(Skip:="https://github.com/dotnet/roslyn/issues/71851"), CombinatorialData>
         Public Async Function TestDeletingWholeWordResetCompletionToTheDefaultItem(showCompletionInArgumentLists As Boolean) As Task
             Using state = TestStateFactory.CreateCSharpTestState(
                               <Document>
@@ -4069,6 +4069,7 @@ class C
                 state.SendBackspace()
                 state.SendBackspace()
                 state.SendBackspace()
+                Await state.AssertCompletionSession()
                 state.SendEscape()
                 state.Workspace.SetDocumentContext(linkDocument.Id)
                 state.SendTypeChars("Thing1")
@@ -4080,6 +4081,7 @@ class C
                 state.SendBackspace()
                 state.SendBackspace()
                 state.SendBackspace()
+                Await state.AssertCompletionSession()
                 state.SendTypeChars("M")
                 Await state.AssertSelectedCompletionItem("M")
                 Assert.False(state.GetSelectedItem().Tags.Contains(WellKnownTags.Warning))
@@ -5182,8 +5184,6 @@ class C
 
                 state.Workspace.GlobalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
-                state.SendTypeChars("Sys")
-
                 Dim task1 As Task = Nothing
                 Dim task2 As Task = Nothing
 
@@ -5214,6 +5214,8 @@ class C
                     End Sub
 
                 AddHandler provider.ProviderCalled, providerCalledHandler
+
+                state.SendTypeChars("Sys")
 
                 ' SendCommitUniqueCompletionListItem is a asynchronous operation.
                 ' It guarantees that ProviderCalled will be triggered and after that the completion will deadlock waiting for a task to be resolved.
@@ -5259,7 +5261,6 @@ class C
                 Dim globalOptions = state.Workspace.GetService(Of IGlobalOptionService)
                 globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, LanguageNames.CSharp, False)
 
-                state.SendTypeChars("Sys")
                 Dim task1 As Task = Nothing
                 Dim task2 As Task = Nothing
 
@@ -5289,6 +5290,8 @@ class C
                     End Sub
 
                 AddHandler provider.ProviderCalled, providerCalledHandler
+
+                state.SendTypeChars("Sys")
 
                 ' SendCommitUniqueCompletionListItem is an asynchronous operation.
                 ' It guarantees that ProviderCalled will be triggered and after that the completion will deadlock waiting for a task to be resolved.
@@ -7976,8 +7979,7 @@ namespace NS
             End Using
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/67081")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/67081")>
         <InlineData("System", True)>
         <InlineData("System.Collections", True)>
         <InlineData("SystemNamespace", False)>
@@ -11609,7 +11611,7 @@ public class Class1
                 </Project>
             </Workspace>
 
-            Using workspace = TestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures)
+            Using workspace = EditorTestWorkspace.Create(workspaceDefinition, composition:=EditorTestCompositions.EditorFeatures)
                 Dim cursorDocument = workspace.Documents.First(Function(d As TestHostDocument)
                                                                    Return d.CursorPosition.HasValue
                                                                End Function)
@@ -12576,6 +12578,46 @@ namespace N
                 Await state.AssertCompletionSession()
                 Await state.AssertCompletionItemsContain("B2", displayTextSuffix:="")
                 Await state.AssertCompletionItemsDoNotContainAny("B1")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/issues/72392")>
+        Public Async Function AliasToDynamicType(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+using System = dynamic;
+$$
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("System", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/74484")>
+        Public Async Function ReferenceToMethodThatFollow(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                class C
+                {
+                    void M()
+                    {
+                        if (true)
+                        {
+                            this.Sw$$
+
+                    private void SwitchColor() { }
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("SwitchColor", displayTextSuffix:="")
             End Using
         End Function
     End Class

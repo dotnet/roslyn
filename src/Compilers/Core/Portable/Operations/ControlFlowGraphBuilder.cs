@@ -3946,7 +3946,8 @@ oneMoreTime:
             return FinishVisitingStatement(operation);
         }
 
-        private void HandleUsingOperationParts(IOperation resources, IOperation body, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous)
+        private void HandleUsingOperationParts(IOperation resources, IOperation body, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, ImmutableArray<ILocalSymbol> locals, bool isAsynchronous,
+            Func<IOperation, IOperation>? visitResource = null)
         {
             var usingRegion = new RegionBuilder(ControlFlowRegionKind.LocalLifetime, locals: locals);
             EnterRegion(usingRegion);
@@ -3957,6 +3958,8 @@ oneMoreTime:
 
             if (resources is IVariableDeclarationGroupOperation declarationGroup)
             {
+                Debug.Assert(visitResource is null);
+
                 var resourceQueue = ArrayBuilder<(IVariableDeclarationOperation, IVariableDeclaratorOperation)>.GetInstance(declarationGroup.Declarations.Length);
 
                 foreach (IVariableDeclarationOperation declaration in declarationGroup.Declarations)
@@ -3977,7 +3980,7 @@ oneMoreTime:
                 Debug.Assert(resources.Kind != OperationKind.VariableDeclarator);
 
                 EvalStackFrame frame = PushStackFrame();
-                IOperation resource = VisitRequired(resources);
+                IOperation resource = visitResource != null ? visitResource(resources) : VisitRequired(resources);
 
                 if (shouldConvertToIDisposableBeforeTry(resource))
                 {
@@ -4103,6 +4106,7 @@ oneMoreTime:
         private void AddDisposingFinally(IOperation resource, bool requiresRuntimeConversion, ITypeSymbol iDisposable, IMethodSymbol? disposeMethod, ImmutableArray<IArgumentOperation> disposeArguments, bool isAsynchronous)
         {
             Debug.Assert(CurrentRegionRequired.Kind == ControlFlowRegionKind.TryAndFinally);
+            Debug.Assert(resource.Type is not null);
 
             var endOfFinally = new BasicBlockBuilder(BasicBlockKind.Block);
             endOfFinally.FallThrough.Kind = ControlFlowBranchSemantics.StructuredExceptionHandling;
@@ -4118,6 +4122,7 @@ oneMoreTime:
                 int captureId = GetNextCaptureId(finallyRegion);
                 AddStatement(new FlowCaptureOperation(captureId, resource.Syntax, resource));
                 resource = GetCaptureReference(captureId, resource);
+                Debug.Assert(resource.Type is not null);
             }
 
             if (requiresRuntimeConversion || !isNotNullableValueType(resource.Type))
@@ -4129,7 +4134,14 @@ oneMoreTime:
 
             if (!iDisposable.Equals(resource.Type) && disposeMethod is null)
             {
-                resource = ConvertToIDisposable(resource, iDisposable);
+                if (resource.Type.IsReferenceType)
+                {
+                    resource = ConvertToIDisposable(resource, iDisposable);
+                }
+                else if (ITypeSymbolHelpers.IsNullableType(resource.Type))
+                {
+                    resource = CallNullableMember(resource, SpecialMember.System_Nullable_T_GetValueOrDefault);
+                }
             }
 
             EvalStackFrame disposeFrame = PushStackFrame();
@@ -4147,7 +4159,8 @@ oneMoreTime:
 
             IOperation? tryDispose(IOperation value)
             {
-                Debug.Assert((disposeMethod is object && !disposeArguments.IsDefault) || (value.Type!.Equals(iDisposable) && disposeArguments.IsDefaultOrEmpty));
+                Debug.Assert((disposeMethod is object && !disposeArguments.IsDefault) ||
+                             ((value.Type!.Equals(iDisposable) || (!value.Type.IsReferenceType && !ITypeSymbolHelpers.IsNullableType(value.Type))) && disposeArguments.IsDefaultOrEmpty));
 
                 var method = disposeMethod ?? (isAsynchronous
                     ? (IMethodSymbol?)_compilation.CommonGetWellKnownTypeMember(WellKnownMember.System_IAsyncDisposable__DisposeAsync)?.GetISymbol()
@@ -4167,7 +4180,7 @@ oneMoreTime:
                         args = ImmutableArray<IArgumentOperation>.Empty;
                     }
 
-                    var invocation = new InvocationOperation(method, constrainedToType: null, value, isVirtual: disposeMethod?.IsVirtual ?? true,
+                    var invocation = new InvocationOperation(method, constrainedToType: null, value, isVirtual: disposeMethod is (null or { IsVirtual: true } or { IsAbstract: true }),
                                                              args, semanticModel: null, value.Syntax,
                                                              method.ReturnType, isImplicit: true);
 
@@ -4199,6 +4212,57 @@ oneMoreTime:
         public override IOperation? VisitLock(ILockOperation operation, int? captureIdForResult)
         {
             StartVisitingStatement(operation);
+
+            // `lock (l) { }` on value of type `System.Threading.Lock` is lowered to `using (l.EnterScope()) { }`.
+            if (operation.LockedValue.Type?.IsWellKnownTypeLock() == true)
+            {
+                if (operation.LockedValue.Type.TryFindLockTypeInfo() is { } lockTypeInfo)
+                {
+                    HandleUsingOperationParts(
+                        resources: operation.LockedValue,
+                        body: operation.Body,
+                        disposeMethod: lockTypeInfo.ScopeDisposeMethod,
+                        disposeArguments: ImmutableArray<IArgumentOperation>.Empty,
+                        locals: ImmutableArray<ILocalSymbol>.Empty,
+                        isAsynchronous: false,
+                        visitResource: (resource) =>
+                        {
+                            var lockObject = VisitRequired(resource);
+
+                            return new InvocationOperation(
+                                targetMethod: lockTypeInfo.EnterScopeMethod,
+                                constrainedToType: null,
+                                instance: lockObject,
+                                isVirtual: lockTypeInfo.EnterScopeMethod.IsVirtual ||
+                                    lockTypeInfo.EnterScopeMethod.IsAbstract ||
+                                    lockTypeInfo.EnterScopeMethod.IsOverride,
+                                arguments: ImmutableArray<IArgumentOperation>.Empty,
+                                semanticModel: null,
+                                syntax: lockObject.Syntax,
+                                type: lockTypeInfo.EnterScopeMethod.ReturnType,
+                                isImplicit: true);
+                        });
+
+                    return FinishVisitingStatement(operation);
+                }
+                else
+                {
+                    IOperation? underlying = Visit(operation.LockedValue);
+
+                    if (underlying is not null)
+                    {
+                        AddStatement(new ExpressionStatementOperation(
+                            MakeInvalidOperation(type: null, underlying),
+                            semanticModel: null,
+                            operation.Syntax,
+                            IsImplicit(operation)));
+                    }
+
+                    VisitStatement(operation.Body);
+
+                    return FinishVisitingStatement(operation);
+                }
+            }
 
             ITypeSymbol objectType = _compilation.GetSpecialType(SpecialType.System_Object);
 

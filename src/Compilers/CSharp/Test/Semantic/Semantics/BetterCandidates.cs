@@ -860,10 +860,8 @@ namespace System.Runtime.CompilerServices
                 //         M(new Z().Q);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(D1)", "Program.M(D2)").WithLocation(5, 9)
                 );
-            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                );
-            // ILVerify: Unrecognized arguments for delegate .ctor.
-            CompileAndVerify(compilation, verify: Verification.FailsILVerify, expectedOutput: "2");
+            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: "2");
         }
 
         // Test suggested by @VSadov
@@ -916,9 +914,9 @@ public ref struct A {}
 public class C { public static implicit operator C(A a) => null; }
 ";
             CreateCompilationWithoutBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
-                // (5,9): error CS0306: The type 'A' may not be used as a type argument
+                // (5,9): error CS9244: The type 'A' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Program.M<T>(T, int)'
                 //         M(new A(), 0);
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("A").WithLocation(5, 9)
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M").WithArguments("Program.M<T>(T, int)", "T", "A").WithLocation(5, 9)
                 );
             var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 );

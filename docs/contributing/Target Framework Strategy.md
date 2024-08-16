@@ -1,17 +1,41 @@
-Target Framework Strategy
-===
+# Target Framework Strategy
 
-# Layers
+## Layers
+
 The roslyn repository produces components for a number of different products that push varying ship and TFM constraints on us. A summary of some of our dependencies are : 
 
 - Build Tools: requires us to ship compilers on `net472`
-- .NET SDK: requires us to ship compilers on current servicing target framework (presently `net6.0`)
-- Source build: requires us to ship `$(NetCurrent)` and `$(NetPrevious)` in workspaces and below (presently `net8.0` and `net7.0` respectively)
-- Visual Studio: requires us to ship `net472` for base IDE components and `net6.0` for private runtime components.
+- .NET SDK: requires us to ship compilers on current servicing target framework (presently `net8.0`)
+- Source build: requires us to ship `$(NetCurrent)` and `$(NetPrevious)` in workspaces and below (presently `net9.0` and `net8.0` respectively)
+- Visual Studio: requires us to ship `net472` for base IDE components and `$(NetVisualStudio)` (presently `net8.0`) for private runtime components.
+- Visual Studio Code: expects us to ship against the same runtime as DevKit (presently `net7.0`) to avoid two runtime downloads.
+- MSBuildWorkspace: requires to ship a process that must be usable on the lowest supported SDK (presently `net6.0`)
 
 It is not reasonable for us to take the union of all TFM and multi-target every single project to them. That would add several hundred compilations to any build operation which would in turn negatively impact our developer throughput. Instead we attempt to use the TFM where needed. That keeps our builds smaller but increases complexity a bit as we end up shipping a mix of TFM for binaries across our layers.
 
-# Require consistent API across Target Frameworks
+## Picking the right TargetFramework
+
+Projects in our repository should include the following values in `<TargetFramework(s)>` based on the rules below:
+
+1. `$(NetRoslynSourceBuild)`: code that needs to be part of source build. This property will change based on whether the code is building in a source build context or official builds. 
+  a. In official builds this will include the TFMs for `$(NetVSShared)`
+  b. In source builds this will include `$(NetRoslyn)`
+2. `$(NetVS)`: code that needs to execute on the private runtime of Visual Studio.
+3. `$(NetVSCode)`: code that needs to execute in DevKit host
+4. `$(NetVSShared)`: code that needs to execute in both Visual Studio and VS Code but does not need to be source built.
+5. `$(NetRoslyn)`: code that needs to execute on .NET but does not have any specific product deployment requirements. For example utilities that are used by our infra, compiler unit tests, etc ... This property also controls which of the frameworks the compiler builds against are shipped in the toolset packages. This value will potentially change in source builds.
+6. `$(NetRoslynAll)`: code, generally test utilities, that need to build for all .NET runtimes that we support.
+7. `$(NetRoslynBuildHostNetCoreVersion)`: the target used for the .NET Core BuildHost process used by MSBuildWorkspace.
+8. `$(NetRoslynNext)`: code that needs to run on the next .NET Core version. This is used during the transition to a new .NET Core version where we need to move forward but don't want to hard code a .NET Core TFM into the build files.
+
+This properties `$(NetCurrent)`, `$(NetPrevious)` and `$(NetMinimum)` are not used in our project files because they change in ways that make it hard for us to maintain corect product deployments. Our product ships on VS and VS Code which are not captured by arcade `$(Net...)` macros. Further as the arcade properties change it's very easy for us to end up with duplicate entries in a `<TargetFarmeworks>` setting. Instead our repo uses the above values and when inside source build or VMR our properties are initialized with arcade properties.
+
+**DO NOT** hard code .NET Core TFMs in project files. Instead use the properties above as that lets us centrally manage them and structure the properties to avoid duplication. It is fine to hard code other TFMs like `netstandard2.0` or `net472` as those are not expected to change.
+
+**DO NOT** use `$(NetCurrent)` or `$(NetPrevious)` in project files. These should only be used inside of `TargetFrameworks.props` to initialize the above values in certain configurations.
+
+## Require consistent API across Target Frameworks
+
 It is important that our shipping APIs maintain consistent API surface area across target frameworks. That is true whether the API is `public` or `internal`.
 
 The reason for `public` is standard design pattern. The reason for `internal` is a combination of the following problems:
@@ -35,7 +59,8 @@ This problem primarily comes from our use of polyfill APIs. To avoid this we emp
 
 This comes up in two forms:
 
-## Pattern for types 
+### Pattern for types
+
 When creating a polyfill for a type use the `#if !NET...` to declare the type and in the `#else` use a `TypeForwardedTo` for the actual type.
 
 Example: 
@@ -63,7 +88,8 @@ namespace System.Runtime.CompilerServices
 #endif
 ```
 
-## Pattern for extension methods
+### Pattern for extension methods
+
 When creating a polyfill for an extension use the `#if NET...` to declare the extension method and the `#else` to declare the same method without `this`. That will put a method with the expected signature in the binary but avoids it appearing as an extension method within that target framework.
 
 ```csharp
@@ -74,6 +100,13 @@ When creating a polyfill for an extension use the `#if NET...` to declare the ex
 #endif
 ```
 
+## Transitioning to new .NET SDK
 
+As the .NET team approaches releasing a new .NET SDK the Roslyn team will begin using preview versions of that SDK in our build. This will often lead to test failures in our CI system due to underlying behavior changes in the runtime. These failures will often not show up when running in Visual Studio due to the way the runtime for the test runner is chosen.
 
+To ensure we have a simple developer environment such project should be moved to to the `$(NetRoslynNext)` target framework. That ensures the new runtime is loaded when running tests locally.
+
+When the .NET SDK RTMs and Roslyn adopts it all occurrences of `$(NetRoslynNext)` will be moved to simply `$(NetRoslyn)`.
+
+**DO NOT** include both `$(NetRoslyn)` and `$(NetRoslynNext)` in the same project unless there is a very specific reason that both tests are adding value. The most common case is that the runtime has changed behavior and we simply need to update our baselines to match it. Adding extra TFMs for this just increases test time for very little gain.
 

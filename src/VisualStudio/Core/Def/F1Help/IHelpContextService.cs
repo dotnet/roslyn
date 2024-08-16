@@ -8,15 +8,14 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.F1Help
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.F1Help;
+
+internal interface IHelpContextService : ILanguageService
 {
-    internal interface IHelpContextService : ILanguageService
-    {
-        string Language { get; }
-        string Product { get; }
+    string Language { get; }
+    string Product { get; }
 
-        Task<string> GetHelpTermAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
+    Task<string> GetHelpTermAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
-        string FormatSymbol(ISymbol symbol);
-    }
+    string FormatSymbol(ISymbol symbol);
 }

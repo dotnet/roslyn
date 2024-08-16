@@ -5,22 +5,21 @@
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace Microsoft.CodeAnalysis.Telemetry
+namespace Microsoft.CodeAnalysis.Telemetry;
+
+[InterpolatedStringHandler]
+internal readonly struct TelemetryLoggingInterpolatedStringHandler
 {
-    [InterpolatedStringHandler]
-    internal readonly struct TelemetryLoggingInterpolatedStringHandler
+    private readonly StringBuilder _stringBuilder;
+
+    public TelemetryLoggingInterpolatedStringHandler(int literalLength, int _)
     {
-        private readonly StringBuilder _stringBuilder;
-
-        public TelemetryLoggingInterpolatedStringHandler(int literalLength, int _)
-        {
-            _stringBuilder = new StringBuilder(capacity: literalLength);
-        }
-
-        public void AppendLiteral(string value) => _stringBuilder.Append(value);
-
-        public void AppendFormatted<T>(T value) => _stringBuilder.Append(value?.ToString());
-
-        public string GetFormattedText() => _stringBuilder.ToString();
+        _stringBuilder = new StringBuilder(capacity: literalLength);
     }
+
+    public void AppendLiteral(string value) => _stringBuilder.Append(value);
+
+    public void AppendFormatted<T>(T value) => _stringBuilder.Append(value?.ToString());
+
+    public string GetFormattedText() => _stringBuilder.ToString();
 }

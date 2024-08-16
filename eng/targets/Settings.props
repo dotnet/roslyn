@@ -10,6 +10,12 @@
 
     <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
 
+    <!-- Workaround for old Microsoft.VisualStudio.Progression.* packages -->
+    <NoWarn>$(NoWarn);VSIXCompatibility1001</NoWarn>
+
+    <!-- TODO: https://github.com/dotnet/roslyn/issues/71667 -->
+    <NoWarn>$(NoWarn);NU1507</NoWarn>
+
     <CommonExtensionInstallationRoot>CommonExtensions</CommonExtensionInstallationRoot>
     <LanguageServicesExtensionInstallationFolder>Microsoft\VBCSharp\LanguageServices</LanguageServicesExtensionInstallationFolder>
 
@@ -51,54 +57,21 @@
     <PublishWindowsPdb>false</PublishWindowsPdb>
     <EnforceExtendedAnalyzerRules>false</EnforceExtendedAnalyzerRules>
     <EnforceExtendedAnalyzerRules Condition="'$(IsAnalyzer)' == 'true'">true</EnforceExtendedAnalyzerRules>
+
+    <!-- TODO --> 
+    <_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
+
+    <!--
+      Needed to avoid error NU1010: The PackageReference items Microsoft.Net.Compilers.Toolset.Framework do not have corresponding PackageVersion.
+      Related to https://github.com/dotnet/sdk/issues/41791.
+    -->
+    <BuildWithNetFrameworkHostedCompiler>false</BuildWithNetFrameworkHostedCompiler>
+
+    <!-- https://github.com/dotnet/msbuild/issues/10306 -->
+    <CoreCompileDependsOn>$(CoreCompileDependsOn);ResolveKeySource</CoreCompileDependsOn> 
   </PropertyGroup>
 
-  <!-- 
-    There are effectively three modes that are needed for our source build TFMs and this is where
-    we calculate them
-  -->
-  <Choose>
-    <!-- 
-      1. CI source build leg: this needs to build the current and previous source build TFM. Both are 
-         necessary as the output of this leg is used in other CI source build legs. Those could be 
-         targeting NetCurrent or NetPrevious hence we must produce both. 
-
-        However the toolset package we produce must target NetPrevious. This package gets used as the 
-        bootstrap toolset in other repos doing (1). Those can be using a NetPrevious runtime hence 
-        the toolset must support that.
-    -->
-    <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' != 'Product'">
-      <PropertyGroup>
-        <SourceBuildToolsetTargetFramework>$(NetPrevious)</SourceBuildToolsetTargetFramework>
-        <SourceBuildToolsetTargetFrameworks>$(SourceBuildToolsetTargetFramework)</SourceBuildToolsetTargetFrameworks>
-        <SourceBuildTargetFrameworks>$(NetCurrent);$(NetPrevious)</SourceBuildTargetFrameworks>
-      </PropertyGroup>
-    </When>
-
-    <!--
-      2. Source build the product: this is the all up build of the product which needs only NetCurrent
-    -->
-    <When Condition="'$(DotNetBuildFromSource)' == 'true' AND '$(DotNetBuildFromSourceFlavor)' == 'Product'">
-      <PropertyGroup>
-        <SourceBuildToolsetTargetFramework>$(NetCurrent)</SourceBuildToolsetTargetFramework>
-        <SourceBuildToolsetTargetFrameworks>$(SourceBuildToolsetTargetFramework)</SourceBuildToolsetTargetFrameworks>
-        <SourceBuildTargetFrameworks>$(NetCurrent)</SourceBuildTargetFrameworks>
-      </PropertyGroup>
-    </When>
-
-    <!--
-      3. Everything else including normal CI, developer machines and official builds. This brings in enough
-         TFM that source build will go smoothly but doesn't bring in all source build TFMs to avoid adding
-         too many extra compiles to our builds
-    -->
-    <Otherwise>
-      <PropertyGroup>
-        <SourceBuildToolsetTargetFramework>net6.0</SourceBuildToolsetTargetFramework>
-        <SourceBuildToolsetTargetFrameworks>$(SourceBuildToolsetTargetFramework);net7.0</SourceBuildToolsetTargetFrameworks>
-        <SourceBuildTargetFrameworks>$(SourceBuildToolsetTargetFrameworks)</SourceBuildTargetFrameworks>
-      </PropertyGroup>
-    </Otherwise>
-  </Choose>
+  <Import Project="$(MSBuildThisFileDirectory)TargetFrameworks.props" />
 
   <!--
     Disable Source Link and Xliff in WPF temp projects to avoid generating non-deterministic file names to obj dir.
@@ -124,7 +97,7 @@
       These may be overridden by projects that need to be skipped.
     -->
     <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Mono'">net46;net472</TestTargetFrameworks>
-    <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">net6.0;net7.0</TestTargetFrameworks>
+    <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">$(NetRoslyn)</TestTargetFrameworks>
 
     <XUnitDesktopSettingsFile>$(MSBuildThisFileDirectory)..\config\xunit.runner.json</XUnitDesktopSettingsFile>
     <XUnitCoreSettingsFile>$(MSBuildThisFileDirectory)..\config\xunit.runner.json</XUnitCoreSettingsFile>
@@ -188,10 +161,10 @@
     Analyzers
   -->
   <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
-    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" Version="$(MicrosoftCodeAnalysisNetAnalyzersVersion)" PrivateAssets="all" />
-    <PackageReference Include="Roslyn.Diagnostics.Analyzers" Version="$(RoslynDiagnosticsAnalyzersVersion)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" Version="$(MicrosoftVisualStudioThreadingAnalyzersVersion)" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" Version="$(MicrosoftCodeAnalysisPerformanceSensitiveAnalyzersVersion)" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.NetAnalyzers" PrivateAssets="all" />
+    <PackageReference Include="Roslyn.Diagnostics.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.VisualStudio.Threading.Analyzers" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.PerformanceSensitiveAnalyzers" PrivateAssets="all" />
   </ItemGroup>
 
   <!-- Disable SDK supplied netanalyzers as we reference them from nugets instead -->
@@ -203,7 +176,7 @@
      Code indexing targets to help generating LSIF from indexing builds.
   -->
   <ItemGroup Condition="'$(DotNetBuildFromSource)' != 'true'">
-    <PackageReference Include="RichCodeNav.EnvVarDump" Version="$(RichCodeNavEnvVarDumpVersion)" PrivateAssets="all" />
+    <PackageReference Include="RichCodeNav.EnvVarDump" PrivateAssets="all" />
   </ItemGroup>
 
   <!--
@@ -218,13 +191,13 @@
   <Choose>
     <When Condition="'$(Language)' == 'VB'">
       <ItemGroup Condition="'$(RoslynCheckCodeStyle)' == 'true'">
-        <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" Version="$(MicrosoftCodeAnalysisVisualBasicCodeStyleVersion)" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.VisualBasic.CodeStyle" PrivateAssets="all" />
       </ItemGroup>
     </When>
 
     <When Condition="'$(Language)' == 'C#'">
       <ItemGroup Condition="'$(RoslynCheckCodeStyle)' == 'true'">
-        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" Version="$(MicrosoftCodeAnalysisCSharpCodeStyleVersion)" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp.CodeStyle" PrivateAssets="all" />
       </ItemGroup>
     </When>
   </Choose>

@@ -4,87 +4,92 @@
     <body>
       <trans-unit id="Failed_to_load_solution_filter_0">
         <source>Failed to load solution filter: '{0}'</source>
-        <target state="new">Failed to load solution filter: '{0}'</target>
+        <target state="translated">Fehler beim Laden des Projektmappenfilters: "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_project_reference_without_a_matching_metadata_reference_0">
         <source>Found project reference without a matching metadata reference: {0}</source>
-        <target state="new">Found project reference without a matching metadata reference: {0}</target>
+        <target state="translated">Projektverweis ohne passenden Metadatenverweis gefunden: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_0_specified_1">
         <source>Invalid {0} specified: {1}</source>
-        <target state="new">Invalid {0} specified: {1}</target>
+        <target state="translated">{0} wurde ungültig angegeben: {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0">
         <source>Msbuild failed when processing the file '{0}'</source>
-        <target state="new">Msbuild failed when processing the file '{0}'</target>
+        <target state="translated">MSBuild-Fehler beim Verarbeiten der Datei "{0}"</target>
         <note />
       </trans-unit>
       <trans-unit id="Msbuild_failed_when_processing_the_file_0_with_message_1">
         <source>Msbuild failed when processing the file '{0}' with message: {1}</source>
-        <target state="new">Msbuild failed when processing the file '{0}' with message: {1}</target>
+        <target state="translated">MSBuild-Fehler beim Verarbeiten der Datei "{0}" mit der Meldung: {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Path_for_additional_document_0_was_null">
         <source>Path for additional document '{0}' was null}</source>
-        <target state="new">Path for additional document '{0}' was null}</target>
+        <target state="translated">Der Pfad für das Zusatzdokument '{0}' war nicht vorhanden}.</target>
         <note />
       </trans-unit>
       <trans-unit id="Path_for_document_0_was_null">
         <source>Path for document '{0}' was null</source>
-        <target state="new">Path for document '{0}' was null</target>
+        <target state="translated">Der Pfad für das Dokument "{0}" war NULL</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_already_added">
         <source>Project already added.</source>
-        <target state="new">Project already added.</target>
+        <target state="translated">Projekt bereits hinzugefügt.</target>
         <note />
       </trans-unit>
       <trans-unit id="Found_project_with_the_same_file_path_and_output_path_as_another_project_0">
         <source>Found project with the same file path and output path as another project: {0}</source>
-        <target state="new">Found project with the same file path and output path as another project: {0}</target>
+        <target state="translated">Projekt mit demselben Datei- und Ausgabepfad wie ein anderes Projekt gefunden: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Duplicate_project_discovered_and_skipped_0">
         <source>Duplicate project discovered and skipped: {0}</source>
-        <target state="new">Duplicate project discovered and skipped: {0}</target>
+        <target state="translated">Doppeltes Projekt ermittelt und übersprungen: {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_does_not_have_a_path">
         <source>Project does not have a path.</source>
-        <target state="new">Project does not have a path.</target>
+        <target state="translated">Das Projekt hat keinen Pfad.</target>
         <note />
       </trans-unit>
       <trans-unit id="Project_path_for_0_was_null">
         <source>Project path for '{0}' was null</source>
-        <target state="new">Project path for '{0}' was null</target>
+        <target state="translated">Der Projektpfad für "{0}" war NULL</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="The_build_host_could_not_be_found_at_0">
+        <source>The build host could not be found at '{0}'</source>
+        <target state="translated">Der Buildhost wurde unter „{0}“ nicht gefunden.</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_add_metadata_reference_0">
         <source>Unable to add metadata reference '{0}'</source>
-        <target state="new">Unable to add metadata reference '{0}'</target>
+        <target state="translated">Der Metadaten-Verweis "{0}" wurde nicht hinzugefügt</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_find_0">
         <source>Unable to find '{0}'</source>
-        <target state="new">Unable to find '{0}'</target>
+        <target state="translated">"{0}" nicht gefunden</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_find_a_0_for_1">
         <source>Unable to find a '{0}' for '{1}'</source>
-        <target state="new">Unable to find a '{0}' for '{1}'</target>
+        <target state="translated">"{0}" für "{1}" wurde nicht gefunden</target>
         <note />
       </trans-unit>
       <trans-unit id="Unable_to_remove_metadata_reference_0">
         <source>Unable to remove metadata reference '{0}'</source>
-        <target state="new">Unable to remove metadata reference '{0}'</target>
+        <target state="translated">Der Metadaten-Verweis "{0}" wurde nicht entfernt</target>
         <note />
       </trans-unit>
       <trans-unit id="Unresolved_metadata_reference_removed_from_project_0">
         <source>Unresolved metadata reference removed from project: {0}</source>
-        <target state="new">Unresolved metadata reference removed from project: {0}</target>
+        <target state="translated">Nicht aufgelöster Metadatenverweis aus Projekt entfernt: {0}.</target>
         <note />
       </trans-unit>
     </body>

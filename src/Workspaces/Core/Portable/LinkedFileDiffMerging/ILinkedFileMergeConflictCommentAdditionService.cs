@@ -4,9 +4,8 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis
+namespace Microsoft.CodeAnalysis;
+
+internal interface ILinkedFileMergeConflictCommentAdditionService : ILanguageService, IMergeConflictHandler
 {
-    internal interface ILinkedFileMergeConflictCommentAdditionService : ILanguageService, IMergeConflictHandler
-    {
-    }
 }

@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             internal MissingTokenWithTrivia(SyntaxKind kind, GreenNode leading, GreenNode trailing)
                 : base(kind, leading, trailing)
             {
-                this.flags &= ~NodeFlags.IsNotMissing;
+                ClearFlags(NodeFlags.IsNotMissing);
             }
 
             internal MissingTokenWithTrivia(SyntaxKind kind, GreenNode leading, GreenNode trailing, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
                 : base(kind, leading, trailing, diagnostics, annotations)
             {
-                this.flags &= ~NodeFlags.IsNotMissing;
+                ClearFlags(NodeFlags.IsNotMissing);
             }
 
             public override string Text

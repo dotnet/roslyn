@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 Func<CompilationOptions, CompilationOptions, bool>? canApplyCompilationOptions = null)
                 : base(Host.Mef.MefHostServices.DefaultHost, workspaceKind: nameof(CustomizedCanApplyWorkspace))
             {
-                _allowedKinds = allowedKinds.ToImmutableArray();
+                _allowedKinds = [.. allowedKinds];
                 _canApplyParseOptions = canApplyParseOptions;
                 _canApplyCompilationOptions = canApplyCompilationOptions;
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.True(workspace.TryApplyChanges(
                 project.WithParseOptions(
-                    project.ParseOptions!.WithFeatures(new[] { KeyValuePairUtil.Create("Feature", "") })).Solution));
+                    project.ParseOptions!.WithFeatures([KeyValuePairUtil.Create("Feature", "")])).Solution));
         }
 
         [Fact]
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             Assert.True(
                 workspace.TryApplyChanges(
-                    project.WithParseOptions(project.ParseOptions!.WithFeatures(new[] { KeyValuePairUtil.Create("Feature", "ExpectedValue") })).Solution));
+                    project.WithParseOptions(project.ParseOptions!.WithFeatures([KeyValuePairUtil.Create("Feature", "ExpectedValue")])).Solution));
         }
 
         [Fact]
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var exception = Assert.Throws<NotSupportedException>(
                 () => workspace.TryApplyChanges(
-                    project.WithParseOptions(project.ParseOptions!.WithFeatures(new[] { KeyValuePairUtil.Create("Feature", "WrongThing") })).Solution));
+                    project.WithParseOptions(project.ParseOptions!.WithFeatures([KeyValuePairUtil.Create("Feature", "WrongThing")])).Solution));
 
             Assert.Equal(WorkspacesResources.Changing_parse_options_is_not_supported, exception.Message);
         }

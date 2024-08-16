@@ -153,7 +153,7 @@ namespace Roslyn.Utilities
                 any = true;
             }
 
-            result.Append("]");
+            result.Append(']');
             return result.ToString();
         }
     }

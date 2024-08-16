@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.Text
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
     Partial Friend Class TriviaDataFactory
-        Private Class FormattedComplexTrivia
+        Private NotInheritable Class FormattedComplexTrivia
             Inherits TriviaDataWithList
 
             Private ReadOnly _formatter As VisualBasicTriviaFormatter
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
                            spaces As Integer,
                            originalString As String,
                            cancellationToken As CancellationToken)
-                MyBase.New(context.Options, LanguageNames.VisualBasic)
+                MyBase.New(context.Options.LineFormatting)
 
                 Contract.ThrowIfNull(context)
                 Contract.ThrowIfNull(formattingRules)

@@ -9,16 +9,12 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.MSBuild.Build;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild
 {
-    internal abstract class ProjectFile
+    internal abstract class ProjectFile : IProjectFile
     {
         private readonly ProjectFileLoader _loader;
         private readonly MSB.Evaluation.Project? _loadedProject;
@@ -39,10 +35,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             Log = log;
         }
 
-        public ImmutableArray<DiagnosticLogItem> GetDiagnosticLogItems() => Log.ToImmutableArray();
+        public ImmutableArray<DiagnosticLogItem> GetDiagnosticLogItems() => [.. Log];
 
-        protected abstract SourceCodeKind GetSourceCodeKind(string documentFileName);
-        public abstract string GetDocumentExtension(SourceCodeKind kind);
         protected abstract IEnumerable<MSB.Framework.ITaskItem> GetCompilerCommandLineArgs(MSB.Execution.ProjectInstance executedProject);
         protected abstract ImmutableArray<string> ReadCommandLineArgs(MSB.Execution.ProjectInstance project);
 
@@ -55,7 +49,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         {
             if (_loadedProject is null)
             {
-                return ImmutableArray.Create(ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath));
+                return [ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath)];
             }
 
             var targetFrameworkValue = _loadedProject.GetPropertyValue(PropertyNames.TargetFramework);
@@ -68,11 +62,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 // each value, and build the project.
 
                 var targetFrameworks = targetFrameworksValue.Split(';');
-                var results = ImmutableArray.CreateBuilder<ProjectFileInfo>(targetFrameworks.Length);
 
                 if (!_loadedProject.GlobalProperties.TryGetValue(PropertyNames.TargetFramework, out var initialGlobalTargetFrameworkValue))
                     initialGlobalTargetFrameworkValue = null;
 
+                var results = new FixedSizeArrayBuilder<ProjectFileInfo>(targetFrameworks.Length);
                 foreach (var targetFramework in targetFrameworks)
                 {
                     _loadedProject.SetGlobalProperty(PropertyNames.TargetFramework, targetFramework);
@@ -94,13 +88,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 _loadedProject.ReevaluateIfNecessary();
 
-                return results.ToImmutable();
+                return results.MoveToImmutable();
             }
             else
             {
                 var projectFileInfo = await BuildProjectFileInfoAsync(cancellationToken).ConfigureAwait(false);
                 projectFileInfo ??= ProjectFileInfo.CreateEmpty(Language, _loadedProject?.FullPath);
-                return ImmutableArray.Create(projectFileInfo);
+                return [projectFileInfo];
             }
         }
 
@@ -114,11 +108,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var project = await _buildManager.BuildProjectAsync(_loadedProject, Log, cancellationToken).ConfigureAwait(false);
 
             return project != null
-                ? CreateProjectFileInfo(project, _loadedProject)
+                ? CreateProjectFileInfo(project)
                 : ProjectFileInfo.CreateEmpty(Language, _loadedProject.FullPath);
         }
 
-        private ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project, MSB.Evaluation.Project loadedProject)
+        private ProjectFileInfo CreateProjectFileInfo(MSB.Execution.ProjectInstance project)
         {
             var commandLineArgs = GetCommandLineArgs(project);
 
@@ -157,6 +151,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var targetFrameworkIdentifier = project.ReadPropertyString(PropertyNames.TargetFrameworkIdentifier);
 
+            var targetFrameworkVersion = project.ReadPropertyString(PropertyNames.TargetFrameworkVersion);
+
             var docs = project.GetDocuments()
                 .Where(IsNotTemporaryGeneratedFile)
                 .Select(MakeDocumentFileInfo)
@@ -174,7 +170,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             var projectCapabilities = project.GetItems(ItemNames.ProjectCapability).SelectAsArray(item => item.ToString());
             var contentFileInfo = GetContentFiles(project);
-            var isSdkStyle = IsSdkStyleProject(loadedProject);
 
             return ProjectFileInfo.Create(
                 Language,
@@ -185,6 +180,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 defaultNamespace,
                 targetFramework,
                 targetFrameworkIdentifier,
+                targetFrameworkVersion,
                 projectAssetsFilePath,
                 commandLineArgs,
                 docs,
@@ -193,8 +189,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 project.GetProjectReferences().ToImmutableArray(),
                 packageReferences,
                 projectCapabilities,
-                contentFileInfo,
-                isSdkStyle);
+                contentFileInfo);
         }
 
         private static ImmutableArray<string> GetContentFiles(MSB.Execution.ProjectInstance project)
@@ -203,18 +198,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 .GetItems(ItemNames.Content)
                 .SelectAsArray(item => item.GetMetadataValue(MetadataNames.FullPath));
             return contentFiles;
-        }
-
-        private static bool IsSdkStyleProject(MSB.Evaluation.Project loadedProject)
-        {
-            // To see if a project is an SDK style project we check for either of two things
-            //   1.  If it has a TargetFramework / TargetFrameworks property.  This isn't fully complete
-            //       as this property could come from a different props file
-            //   2.  If it imports an SDK.  This can be defined multiple ways in the project file, but
-            //       we can look at the resolved imports after evaluation to see if any are SDK based.
-            var hasTargetFrameworkProperty = loadedProject.Properties.Any(property => property.Name is "TargetFramework" or "TargetFrameworks");
-            var importsSdk = loadedProject.Imports.Any(import => import.SdkResult != null);
-            return hasTargetFrameworkProperty || importsSdk;
         }
 
         private ImmutableArray<string> GetCommandLineArgs(MSB.Execution.ProjectInstance project)
@@ -244,10 +227,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var logicalPath = GetDocumentLogicalPath(documentItem, _projectDirectory);
             var isLinked = IsDocumentLinked(documentItem);
             var isGenerated = IsDocumentGenerated(documentItem);
-            var sourceCodeKind = GetSourceCodeKind(filePath);
 
             var folders = GetRelativeFolders(documentItem);
-            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, sourceCodeKind, folders);
+            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, folders);
         }
 
         private DocumentFileInfo MakeNonSourceFileDocumentFileInfo(MSB.Framework.ITaskItem documentItem)
@@ -258,7 +240,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var isGenerated = IsDocumentGenerated(documentItem);
 
             var folders = GetRelativeFolders(documentItem);
-            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, SourceCodeKind.Regular, folders);
+            return new DocumentFileInfo(filePath, logicalPath, isLinked, isGenerated, folders);
         }
 
         private ImmutableArray<string> GetRelativeFolders(MSB.Framework.ITaskItem documentItem)
@@ -266,13 +248,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
             var linkPath = documentItem.GetMetadata(MetadataNames.Link);
             if (!RoslynString.IsNullOrEmpty(linkPath))
             {
-                return PathUtilities.GetDirectoryName(linkPath).Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
+                return [.. PathUtilities.GetDirectoryName(linkPath).Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar)];
             }
             else
             {
                 var filePath = documentItem.ItemSpec;
                 var relativePath = PathUtilities.GetDirectoryName(PathUtilities.GetRelativePath(_projectDirectory, filePath));
-                var folders = relativePath == null ? ImmutableArray<string>.Empty : relativePath.Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
+                var folders = relativePath == null ? [] : relativePath.Split(PathUtilities.DirectorySeparatorChar, PathUtilities.AltDirectorySeparatorChar).ToImmutableArray();
                 return folders;
             }
         }
@@ -396,7 +378,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
-        public void AddMetadataReference(string metadataReferenceIdentity, MetadataReferenceProperties properties, string? hintPath)
+        public void AddMetadataReference(string metadataReferenceIdentity, ImmutableArray<string> aliases, string? hintPath)
         {
             if (_loadedProject is null)
             {
@@ -404,8 +386,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
 
             var metadata = new Dictionary<string, string>();
-            if (!properties.Aliases.IsEmpty)
-                metadata.Add(MetadataNames.Aliases, string.Join(",", properties.Aliases));
+            if (!aliases.IsEmpty)
+                metadata.Add(MetadataNames.Aliases, string.Join(",", aliases));
 
             if (hintPath is not null)
                 metadata.Add(MetadataNames.HintPath, hintPath);

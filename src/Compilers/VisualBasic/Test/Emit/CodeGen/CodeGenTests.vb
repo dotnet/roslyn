@@ -130,7 +130,6 @@ End Class
 
         <Fact()>
         Public Sub Bug776642a_ref()
-            ' ILVerify: Unexpected type on the stack. { Offset = 30, Found = readonly address of '[...]OuterStruct', Expected = address of '[...]OuterStruct' }
             CompileAndVerify(
 <compilation>
     <file name="a.vb">
@@ -165,7 +164,7 @@ Structure OuterStruct
     Public z As DoubleAndStruct
 End Structure
     </file>
-</compilation>, verify:=Verification.FailsILVerify).
+</compilation>).
             VerifyIL("Program.M",
             <![CDATA[
 {

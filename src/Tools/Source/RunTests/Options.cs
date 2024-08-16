@@ -22,6 +22,13 @@ namespace RunTests
         Failed,
     }
 
+    internal enum TestRuntime
+    {
+        Both,
+        Core,
+        Framework
+    }
+
     internal class Options
     {
         /// <summary>
@@ -44,7 +51,7 @@ namespace RunTests
         /// <summary>
         /// The set of target frameworks that should be probed for test assemblies.
         /// </summary>
-        public List<string> TargetFrameworks { get; set; } = new List<string>();
+        public TestRuntime TestRuntime { get; set; } = TestRuntime.Both;
 
         public List<string> IncludeFilter { get; set; } = new List<string>();
 
@@ -134,9 +141,9 @@ namespace RunTests
         internal static Options? Parse(string[] args)
         {
             string? dotnetFilePath = null;
-            var architecture = "x64";
+            var architecture = Microsoft.CodeAnalysis.Test.Utilities.IlasmUtilities.Architecture;
             var includeHtml = false;
-            var targetFrameworks = new List<string>();
+            var testRuntime = TestRuntime.Both;
             var configuration = "Debug";
             var includeFilter = new List<string>();
             var excludeFilter = new List<string>();
@@ -161,7 +168,7 @@ namespace RunTests
             {
                 { "dotnet=", "Path to dotnet", (string s) => dotnetFilePath = s },
                 { "configuration=", "Configuration to test: Debug or Release", (string s) => configuration = s },
-                { "tfm=", "Target framework to test", (string s) => targetFrameworks.Add(s) },
+                { "runtime=", "The runtime to test: both, core or framework", (TestRuntime t) => testRuntime = t},
                 { "include=", "Expression for including unit test dlls: default *.UnitTests.dll", (string s) => includeFilter.Add(s) },
                 { "exclude=", "Expression for excluding unit test dlls: default is empty", (string s) => excludeFilter.Add(s) },
                 { "arch=", "Architecture to test on: x86, x64 or arm64", (string s) => architecture = s },
@@ -202,11 +209,6 @@ namespace RunTests
                 includeFilter.Add(".*UnitTests.*");
             }
 
-            if (targetFrameworks.Count == 0)
-            {
-                targetFrameworks.Add("net472");
-            }
-
             artifactsPath ??= TryGetArtifactsPath();
             if (artifactsPath is null || !Directory.Exists(artifactsPath))
             {
@@ -240,7 +242,7 @@ namespace RunTests
                 logFilesDirectory: logFileDirectory,
                 architecture: architecture)
             {
-                TargetFrameworks = targetFrameworks,
+                TestRuntime = testRuntime,
                 IncludeFilter = includeFilter,
                 ExcludeFilter = excludeFilter,
                 Display = display,

@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CheckedOverflow = 220,
         ERR_ConstOutOfRangeChecked = 221,
         ERR_BadVarargs = 224,
-        ERR_ParamsMustBeArray = 225,
+        ERR_ParamsMustBeCollection = 225,
         ERR_IllegalArglist = 226,
         ERR_IllegalUnsafe = 227,
         //ERR_NoAccessibleMember = 228,
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FieldCantHaveVoidType = 670,
         WRN_NonObsoleteOverridingObsolete = 672,
         ERR_SystemVoid = 673,
-        ERR_ExplicitParamArray = 674,
+        ERR_ExplicitParamArrayOrCollection = 674,
         WRN_BitwiseOrSignExtend = 675,
         ERR_VolatileStruct = 677,
         ERR_VolatileAndReadonly = 678,
@@ -529,20 +529,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidAnonymousTypeMemberDeclarator = 746,
         ERR_InvalidInitializerElementInitializer = 747,
         ERR_InconsistentLambdaParameterUsage = 748,
-        ERR_PartialMethodInvalidModifier = 750,
-        ERR_PartialMethodOnlyInPartialClass = 751,
+        ERR_PartialMemberCannotBeAbstract = 750,
+        ERR_PartialMemberOnlyInPartialClass = 751,
         // ERR_PartialMethodCannotHaveOutParameters = 752, Removed as part of 'extended partial methods' feature
         // ERR_PartialMethodOnlyMethods = 753, Removed as it is subsumed by ERR_PartialMisplaced
-        ERR_PartialMethodNotExplicit = 754,
+        ERR_PartialMemberNotExplicit = 754,
         ERR_PartialMethodExtensionDifference = 755,
         ERR_PartialMethodOnlyOneLatent = 756,
         ERR_PartialMethodOnlyOneActual = 757,
-        ERR_PartialMethodParamsDifference = 758,
+        ERR_PartialMemberParamsDifference = 758,
         ERR_PartialMethodMustHaveLatent = 759,
         ERR_PartialMethodInconsistentConstraints = 761,
         ERR_PartialMethodToDelegate = 762,
-        ERR_PartialMethodStaticDifference = 763,
-        ERR_PartialMethodUnsafeDifference = 764,
+        ERR_PartialMemberStaticDifference = 763,
+        ERR_PartialMemberUnsafeDifference = 764,
         ERR_PartialMethodInExpressionTree = 765,
         // ERR_PartialMethodMustReturnVoid = 766, Removed as part of 'extended partial methods' feature
         ERR_ExplicitImplCollisionOnRefOut = 767,
@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadYieldInTryOfCatch = 1626,
         ERR_EmptyYield = 1627,
         ERR_AnonDelegateCantUse = 1628,
-        ERR_IllegalInnerUnsafe = 1629,
+        // ERR_IllegalInnerUnsafe = 1629,
         //ERR_BadWatsonMode = 1630,
         ERR_BadYieldInCatch = 1631,
         ERR_BadDelegateLeave = 1632,
@@ -1111,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_NonTaskMainCantBeAsync = 4009,
         ERR_CantConvAsyncAnonFuncReturns = 4010,
         ERR_BadAwaiterPattern = 4011,
-        ERR_BadSpecialByRefLocal = 4012,
+        ERR_BadSpecialByRefParameter = 4012,
         ERR_SpecialByRefInLambda = 4013,
         WRN_UnobservedAwaitableExpression = 4014,
         ERR_SynchronizedAsyncMethod = 4015,
@@ -1392,7 +1392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantChangeTupleNamesOnOverride = 8139,
         ERR_DuplicateInterfaceWithTupleNamesInBaseList = 8140,
         ERR_ImplBadTupleNames = 8141,
-        ERR_PartialMethodInconsistentTupleNames = 8142,
+        ERR_PartialMemberInconsistentTupleNames = 8142,
         ERR_ExpressionTreeContainsTupleLiteral = 8143,
         ERR_ExpressionTreeContainsTupleConversion = 8144,
         #endregion tuple diagnostics introduced in C# 7
@@ -1429,8 +1429,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefAssignmentMustHaveIdentityConversion = 8173,
         ERR_ByReferenceVariableMustBeInitialized = 8174,
         ERR_AnonDelegateCantUseLocal = 8175,
-        ERR_BadIteratorLocalType = 8176,
-        ERR_BadAsyncLocalType = 8177,
+        // ERR_BadIteratorLocalType = 8176,
+        // ERR_BadAsyncLocalType = 8177,
         ERR_RefReturningCallAndAwait = 8178,
         #endregion diagnostics for ref locals and ref returns introduced in C# 7
 
@@ -1528,7 +1528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FieldsInRoStruct = 8340,
         ERR_AutoPropsInRoStruct = 8341,
         ERR_FieldlikeEventsInRoStruct = 8342,
-        ERR_RefStructInterfaceImpl = 8343,
+        // ERR_RefStructInterfaceImpl = 8343,
         ERR_BadSpecialByRefIterator = 8344,
         ERR_FieldAutoPropCantBeByRefLike = 8345,
         ERR_StackAllocConversionNotPossible = 8346,
@@ -1709,7 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidPropertyReadOnlyMods = 8660,
         ERR_DuplicatePropertyReadOnlyMods = 8661,
         ERR_FieldLikeEventCantBeReadOnly = 8662,
-        ERR_PartialMethodReadOnlyDifference = 8663,
+        ERR_PartialMemberReadOnlyDifference = 8663,
         ERR_ReadOnlyModMissingAccessor = 8664,
         ERR_OverrideRefConstraintNotSatisfied = 8665,
         ERR_OverrideValConstraintNotSatisfied = 8666,
@@ -1809,8 +1809,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PartialMethodWithNonVoidReturnMustHaveAccessMods = 8796,
         ERR_PartialMethodWithOutParamMustHaveAccessMods = 8797,
         ERR_PartialMethodWithExtendedModMustHaveAccessMods = 8798,
-        ERR_PartialMethodAccessibilityDifference = 8799,
-        ERR_PartialMethodExtendedModDifference = 8800,
+        ERR_PartialMemberAccessibilityDifference = 8799,
+        ERR_PartialMemberExtendedModDifference = 8800,
 
         ERR_SimpleProgramLocalIsReferencedOutsideOfTopLevelStatement = 8801,
         ERR_SimpleProgramMultipleUnitsWithTopLevelStatements = 8802,
@@ -1832,7 +1832,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_ModuleInitializerMethodAndContainingTypesMustNotBeGeneric = 8816,
 
         ERR_PartialMethodReturnTypeDifference = 8817,
-        ERR_PartialMethodRefReturnDifference = 8818,
+        ERR_PartialMemberRefReturnDifference = 8818,
         WRN_NullabilityMismatchInReturnTypeOnPartial = 8819,
 
         ERR_StaticAnonymousFunctionCannotCaptureVariable = 8820,
@@ -2161,7 +2161,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnscopedRefAttributeUnsupportedMemberTarget = 9101,
         ERR_UnscopedRefAttributeInterfaceImplementation = 9102,
         ERR_UnrecognizedRefSafetyRulesAttributeVersion = 9103,
-        ERR_BadSpecialByRefUsing = 9104,
+        // ERR_BadSpecialByRefUsing = 9104,
 
         ERR_InvalidPrimaryConstructorParameterReference = 9105,
         ERR_AmbiguousPrimaryConstructorParameterAsColorColorReceiver = 9106,
@@ -2202,7 +2202,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InterceptorLineOutOfRange = 9142,
         ERR_InterceptorCharacterOutOfRange = 9143,
         ERR_InterceptorSignatureMismatch = 9144,
-        ERR_InterceptorPathNotInCompilationWithUnmappedCandidate = 9145,
+        // ERR_InterceptorPathNotInCompilationWithUnmappedCandidate = 9145,
         ERR_InterceptorMethodMustBeOrdinary = 9146,
         ERR_InterceptorMustReferToStartOfTokenPosition = 9147,
         ERR_InterceptorMustHaveMatchingThisParameter = 9148,
@@ -2281,10 +2281,74 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_InvalidExperimentalDiagID = 9211,
         ERR_SpreadMissingMember = 9212,
+        ERR_CollectionExpressionTargetNoElementType = 9213,
+        ERR_CollectionExpressionMissingConstructor = 9214,
+        ERR_CollectionExpressionMissingAdd = 9215,
+
+        WRN_ConvertingLock = 9216,
+        ERR_RefLocalAcrossAwait = 9217,
+
+        ERR_DynamicDispatchToParamsCollection = 9218,
+        // available 9219,
+        // available 9220,
+        // available 9221,
+        // available 9222,
+        ERR_ParamsCollectionInfiniteChainOfConstructorCalls = 9223,
+        ERR_ParamsMemberCannotBeLessVisibleThanDeclaringMember = 9224,
+        ERR_ParamsCollectionConstructorDoesntInitializeRequiredMember = 9225,
+        ERR_ParamsCollectionExpressionTree = 9226,
+        ERR_ParamsCollectionExtensionAddMethod = 9227,
+        ERR_ParamsCollectionMissingConstructor = 9228,
+
+        ERR_NoModifiersOnUsing = 9229,
+        ERR_CannotDynamicInvokeOnExpression = 9230,
+
+        ERR_InterceptsLocationDataInvalidFormat = 9231,
+        ERR_InterceptsLocationUnsupportedVersion = 9232,
+        ERR_InterceptsLocationDuplicateFile = 9233,
+        ERR_InterceptsLocationFileNotFound = 9234,
+        ERR_InterceptsLocationDataInvalidPosition = 9235,
+        INF_TooManyBoundLambdas = 9236,
 
         #endregion
 
+        // available 9237
+        ERR_BadYieldInUnsafe = 9238,
+        ERR_AddressOfInIterator = 9239,
+
+        ERR_RuntimeDoesNotSupportByRefLikeGenerics = 9240,
+        ERR_RefStructConstraintAlreadySpecified = 9241,
+        ERR_AllowsClauseMustBeLast = 9242,
+        ERR_ClassIsCombinedWithRefStruct = 9243,
+        ERR_NotRefStructConstraintNotSatisfied = 9244,
+        ERR_RefStructDoesNotSupportDefaultInterfaceImplementationForMember = 9245,
+        ERR_BadNonVirtualInterfaceMemberAccessOnAllowsRefLike = 9246,
+        ERR_BadAllowByRefLikeEnumerator = 9247,
+
+        ERR_PartialPropertyMissingImplementation = 9248,
+        ERR_PartialPropertyMissingDefinition = 9249,
+        ERR_PartialPropertyDuplicateDefinition = 9250,
+        ERR_PartialPropertyDuplicateImplementation = 9251,
+        ERR_PartialPropertyMissingAccessor = 9252,
+        ERR_PartialPropertyUnexpectedAccessor = 9253,
+        ERR_PartialPropertyInitMismatch = 9254,
+        ERR_PartialPropertyTypeDifference = 9255,
+        WRN_PartialPropertySignatureDifference = 9256,
+        ERR_PartialPropertyRequiredDifference = 9257,
+
+        INF_IdentifierConflictWithContextualKeyword = 9258,
+
+        ERR_InlineArrayAttributeOnRecord = 9259,
+        ERR_FeatureNotAvailableInVersion13 = 9260,
+
+        ERR_CannotApplyOverloadResolutionPriorityToOverride = 9261,
+        ERR_CannotApplyOverloadResolutionPriorityToMember = 9262,
+
+        // Note: you will need to do the following after adding errors:
+        //  1) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
+
         // Note: you will need to do the following after adding warnings:
         //  1) Re-generate compiler code (eng\generate-compiler-code.cmd).
+        //  2) Update ErrorFacts.IsBuildOnlyDiagnostic (src/Compilers/CSharp/Portable/Errors/ErrorFacts.cs)
     }
 }

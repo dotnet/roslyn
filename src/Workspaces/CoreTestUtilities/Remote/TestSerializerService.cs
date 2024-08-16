@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -19,8 +20,13 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
+#pragma warning disable CA1416 // Validate platform compatibility
+
 namespace Microsoft.CodeAnalysis.UnitTests.Remote
 {
+#if NETCOREAPP
+    [SupportedOSPlatform("windows")]
+#endif
     internal sealed class TestSerializerService : SerializerService
     {
         private static readonly ImmutableDictionary<MetadataReference, string> s_wellKnownReferenceNames = ImmutableDictionary.Create<MetadataReference, string>(ReferenceEqualityComparer.Instance)
@@ -41,7 +47,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
         }
 
-        public override void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, SolutionReplicationContext context, CancellationToken cancellationToken)
+        public override void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             var wellKnownReferenceName = s_wellKnownReferenceNames.GetValueOrDefault(reference, null);
             if (wellKnownReferenceName is not null)
@@ -52,7 +58,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             else
             {
                 writer.WriteBoolean(false);
-                base.WriteMetadataReferenceTo(reference, writer, context, cancellationToken);
+                base.WriteMetadataReferenceTo(reference, writer, cancellationToken);
             }
         }
 
@@ -122,7 +128,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
                 {
                     lock (_gate)
                     {
-                        _sharedTestGeneratorReferences ??= new ConcurrentDictionary<Guid, TestGeneratorReference>();
+                        _sharedTestGeneratorReferences ??= [];
 
                         return _sharedTestGeneratorReferences;
                     }

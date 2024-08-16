@@ -14,7 +14,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -99,9 +98,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _requestedProjectOptions = requestedProjectOptions;
                 _discoveredProjectOptions = discoveredProjectOptions;
                 _preferMetadataForReferencesOfDiscoveredProjects = preferMetadataForReferencesOfDiscoveredProjects;
-                _projectIdToFileInfoMap = new Dictionary<ProjectId, ProjectFileInfo>();
+                _projectIdToFileInfoMap = [];
                 _pathToDiscoveredProjectInfosMap = new Dictionary<string, ImmutableArray<ProjectInfo>>(PathUtilities.Comparer);
-                _projectIdToProjectReferencesMap = new Dictionary<ProjectId, List<ProjectReference>>();
+                _projectIdToProjectReferencesMap = [];
             }
 
             private async Task<TResult> DoOperationAndReportProgressAsync<TResult>(ProjectLoadOperation operation, string? projectPath, string? targetFramework, Func<Task<TResult>> doFunc)
@@ -166,17 +165,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     }
                 }
 
-                return results.ToImmutable();
+                return results.ToImmutableAndClear();
             }
 
             private async Task<ImmutableArray<ProjectFileInfo>> LoadProjectFileInfosAsync(string projectPath, DiagnosticReportingOptions reportingOptions, CancellationToken cancellationToken)
             {
                 if (!_projectFileExtensionRegistry.TryGetLanguageNameFromProjectPath(projectPath, reportingOptions.OnLoaderFailure, out var languageName))
                 {
-                    return ImmutableArray<ProjectFileInfo>.Empty; // Failure should already be reported.
+                    return []; // Failure should already be reported.
                 }
 
-                var (buildHost, buildHostPreferredKind) = await _buildHostProcessManager.GetBuildHostAsync(projectPath, cancellationToken).ConfigureAwait(false);
+                var preferredBuildHostKind = BuildHostProcessManager.GetKindForProject(projectPath);
+                var (buildHost, actualBuildHostKind) = await _buildHostProcessManager.GetBuildHostWithFallbackAsync(preferredBuildHostKind, projectPath, cancellationToken).ConfigureAwait(false);
                 var projectFile = await DoOperationAndReportProgressAsync(
                     ProjectLoadOperation.Evaluate,
                     projectPath,
@@ -186,12 +186,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 // If there were any failures during load, we won't be able to build the project. So, bail early with an empty project.
                 var diagnosticItems = await projectFile.GetDiagnosticLogItemsAsync(cancellationToken).ConfigureAwait(false);
-                if (diagnosticItems.Any(d => d.Kind == WorkspaceDiagnosticKind.Failure))
+                if (diagnosticItems.Any(d => d.Kind == DiagnosticLogItemKind.Error))
                 {
                     _diagnosticReporter.Report(diagnosticItems);
 
-                    return ImmutableArray.Create(
-                        ProjectFileInfo.CreateEmpty(languageName, projectPath));
+                    return [ProjectFileInfo.CreateEmpty(languageName, projectPath)];
                 }
 
                 var projectFileInfos = await DoOperationAndReportProgressAsync(
@@ -303,7 +302,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                                 name: projectName,
                                 assemblyName: assemblyName,
                                 language: language,
-                                compilationOutputFilePaths: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath),
+                                compilationOutputInfo: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath),
                                 checksumAlgorithm: SourceHashAlgorithms.Default,
                                 filePath: projectPath),
                             compilationOptions: compilationOptions,
@@ -349,10 +348,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     var metadataService = GetWorkspaceService<IMetadataService>();
                     var compilationOptions = commandLineArgs.CompilationOptions
                         .WithXmlReferenceResolver(new XmlFileResolver(projectDirectory))
-                        .WithSourceReferenceResolver(new SourceFileResolver(ImmutableArray<string>.Empty, projectDirectory))
+                        .WithSourceReferenceResolver(new SourceFileResolver([], projectDirectory))
                         // TODO: https://github.com/dotnet/roslyn/issues/4967
-                        .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver(ImmutableArray<string>.Empty, projectDirectory)))
-                        .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths))
+                        .WithMetadataReferenceResolver(new WorkspaceMetadataFileReferenceResolver(metadataService, new RelativePathResolver([], projectDirectory)))
+                        .WithStrongNameProvider(new DesktopStrongNameProvider(commandLineArgs.KeyFileSearchPaths, Path.GetTempPath()))
                         .WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default);
 
                     var documents = CreateDocumentInfos(projectFileInfo.Documents, projectId, commandLineArgs.Encoding);
@@ -371,7 +370,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                             projectName,
                             assemblyName,
                             language,
-                            compilationOutputFilePaths: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath),
+                            compilationOutputInfo: new CompilationOutputInfo(projectFileInfo.IntermediateOutputFilePath),
                             checksumAlgorithm: commandLineArgs.ChecksumAlgorithm,
                             filePath: projectPath,
                             outputFilePath: projectFileInfo.OutputFilePath,
@@ -435,7 +434,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             private ImmutableArray<DocumentInfo> CreateDocumentInfos(IReadOnlyList<DocumentFileInfo> documentFileInfos, ProjectId projectId, Encoding? encoding)
             {
-                var results = ImmutableArray.CreateBuilder<DocumentInfo>();
+                var results = new FixedSizeArrayBuilder<DocumentInfo>(documentFileInfos.Count);
 
                 foreach (var info in documentFileInfos)
                 {
@@ -445,7 +444,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         DocumentId.CreateNewId(projectId, debugName: info.FilePath),
                         name,
                         folders,
-                        info.SourceCodeKind,
+                        SourceCodeKind.Regular,
                         new WorkspaceFileTextLoader(_solutionServices, info.FilePath, encoding),
                         info.FilePath,
                         info.IsGenerated);
@@ -453,7 +452,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     results.Add(documentInfo);
                 }
 
-                return results.ToImmutable();
+                return results.MoveToImmutable();
             }
 
             private static readonly char[] s_directorySplitChars = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
@@ -465,14 +464,14 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     folders = pathNames.Length > 1
                         ? pathNames.Take(pathNames.Length - 1).ToImmutableArray()
-                        : ImmutableArray<string>.Empty;
+                        : [];
 
                     name = pathNames[^1];
                 }
                 else
                 {
                     name = logicalPath;
-                    folders = ImmutableArray<string>.Empty;
+                    folders = [];
                 }
             }
 

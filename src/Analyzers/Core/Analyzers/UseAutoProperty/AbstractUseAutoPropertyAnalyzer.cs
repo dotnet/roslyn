@@ -37,9 +37,9 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
     /// ConcurrentStack as that's the only concurrent collection that supports 'Clear' in netstandard2.
     /// </summary>
     private static readonly ObjectPool<ConcurrentStack<AnalysisResult>> s_analysisResultPool = new(() => new());
-    private static readonly ObjectPool<ConcurrentSet<IFieldSymbol>> s_fieldSetPool = new(() => new());
-    private static readonly ObjectPool<ConcurrentSet<SyntaxNode>> s_nodeSetPool = new(() => new());
-    private static readonly ObjectPool<ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>>> s_fieldWriteLocationPool = new(() => new());
+    private static readonly ObjectPool<ConcurrentSet<IFieldSymbol>> s_fieldSetPool = new(() => []);
+    private static readonly ObjectPool<ConcurrentSet<SyntaxNode>> s_nodeSetPool = new(() => []);
+    private static readonly ObjectPool<ConcurrentDictionary<IFieldSymbol, ConcurrentSet<SyntaxNode>>> s_fieldWriteLocationPool = new(() => []);
 
     private static readonly Func<IFieldSymbol, ConcurrentSet<SyntaxNode>> s_createFieldWriteNodeSet = _ => s_nodeSetPool.Allocate();
 
@@ -134,6 +134,11 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             bool ShouldAnalyze(SymbolStartAnalysisContext context, INamedTypeSymbol namedType)
             {
                 if (namedType.TypeKind is not TypeKind.Class and not TypeKind.Struct and not TypeKind.Module)
+                    return false;
+
+                // Serializable types can depend on fields (and their order).  Don't report these
+                // properties in that case.
+                if (namedType.IsSerializable)
                     return false;
 
                 // Don't bother running on this type unless at least one of its parts has the 'prefer auto props' option
@@ -234,11 +239,6 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             return;
 
         if (!CanExplicitInterfaceImplementationsBeFixed() && property.ExplicitInterfaceImplementations.Length != 0)
-            return;
-
-        // Serializable types can depend on fields (and their order).  Don't report these
-        // properties in that case.
-        if (containingType.IsSerializable)
             return;
 
         var preferAutoProps = context.GetAnalyzerOptions().PreferAutoProperties;
@@ -402,6 +402,7 @@ internal abstract class AbstractUseAutoPropertyAnalyzer<
             Descriptor,
             fieldNode.GetLocation(),
             result.Notification,
+            context.Options,
             additionalLocations: additionalLocations,
             properties: null);
 

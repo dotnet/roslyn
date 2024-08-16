@@ -4,45 +4,44 @@
 
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.VisualStudio.LanguageServices.ExternalAccess.VSTypeScript.Api;
+
+internal sealed partial class VSTypeScriptVisualStudioProjectWrapper
 {
-    internal sealed partial class VSTypeScriptVisualStudioProjectWrapper
+    private sealed class LspContainedDocumentServiceProvider : IDocumentServiceProvider, IDocumentOperationService
     {
-        private sealed class LspContainedDocumentServiceProvider : IDocumentServiceProvider, IDocumentOperationService
+        private readonly VirtualDocumentPropertiesService _documentPropertiesService;
+
+        private LspContainedDocumentServiceProvider()
         {
-            private readonly VirtualDocumentPropertiesService _documentPropertiesService;
+            _documentPropertiesService = VirtualDocumentPropertiesService.Instance;
+        }
 
-            private LspContainedDocumentServiceProvider()
+        public static LspContainedDocumentServiceProvider Instance = new LspContainedDocumentServiceProvider();
+
+        bool IDocumentOperationService.CanApplyChange => true;
+
+        bool IDocumentOperationService.SupportDiagnostics => true;
+
+        TService? IDocumentServiceProvider.GetService<TService>() where TService : class
+        {
+            if (typeof(TService) == typeof(DocumentPropertiesService))
             {
-                _documentPropertiesService = VirtualDocumentPropertiesService.Instance;
+                return (TService)(object)_documentPropertiesService;
             }
 
-            public static LspContainedDocumentServiceProvider Instance = new LspContainedDocumentServiceProvider();
+            return this as TService;
+        }
 
-            bool IDocumentOperationService.CanApplyChange => true;
+        private sealed class VirtualDocumentPropertiesService : DocumentPropertiesService
+        {
+            private const string _lspClientName = "TypeScript";
 
-            bool IDocumentOperationService.SupportDiagnostics => true;
+            private VirtualDocumentPropertiesService() { }
 
-            TService? IDocumentServiceProvider.GetService<TService>() where TService : class
-            {
-                if (typeof(TService) == typeof(DocumentPropertiesService))
-                {
-                    return (TService)(object)_documentPropertiesService;
-                }
+            public static VirtualDocumentPropertiesService Instance = new VirtualDocumentPropertiesService();
 
-                return this as TService;
-            }
-
-            private sealed class VirtualDocumentPropertiesService : DocumentPropertiesService
-            {
-                private const string _lspClientName = "TypeScript";
-
-                private VirtualDocumentPropertiesService() { }
-
-                public static VirtualDocumentPropertiesService Instance = new VirtualDocumentPropertiesService();
-
-                public override string? DiagnosticsLspClientName => _lspClientName;
-            }
+            public override string? DiagnosticsLspClientName => _lspClientName;
         }
     }
 }

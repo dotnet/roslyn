@@ -13,156 +13,156 @@ using VerifyCS = Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.CSharpCodeF
     Microsoft.CodeAnalysis.CSharp.Analyzers.MatchFolderAndNamespace.CSharpMatchFolderAndNamespaceDiagnosticAnalyzer,
     Microsoft.CodeAnalysis.CSharp.CodeFixes.MatchFolderAndNamespace.CSharpChangeNamespaceToMatchFolderCodeFixProvider>;
 
-namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MatchFolderAndNamespace
+namespace Microsoft.CodeAnalysis.CSharp.Analyzers.UnitTests.MatchFolderAndNamespace;
+
+public class CSharpMatchFolderAndNamespaceTests
 {
-    public class CSharpMatchFolderAndNamespaceTests
-    {
-        private static readonly string Directory = "/0/";
+    private static readonly string Directory = "/0/";
 
-        // DefaultNamespace gets exposed as RootNamespace in the build properties
-        private const string DefaultNamespace = "Test.Root.Namespace";
+    // DefaultNamespace gets exposed as RootNamespace in the build properties
+    private const string DefaultNamespace = "Test.Root.Namespace";
 
-        private static readonly string EditorConfig = @$"
+    private static readonly string EditorConfig = @$"
 is_global=true
 build_property.ProjectDir = {Directory}
 build_property.RootNamespace = {DefaultNamespace}
 ";
 
-        private static string CreateFolderPath(params string[] folders)
-            => Path.Combine(Directory, Path.Combine(folders));
+    private static string CreateFolderPath(params string[] folders)
+        => Path.Combine(Directory, Path.Combine(folders));
 
-        private static Task RunTestAsync(string fileName, string fileContents, string? directory = null, string? editorConfig = null, string? fixedCode = null, string? defaultNamespace = null)
+    private static Task RunTestAsync(string fileName, string fileContents, string? directory = null, string? editorConfig = null, string? fixedCode = null, string? defaultNamespace = null)
+    {
+        var filePath = Path.Combine(directory ?? Directory, fileName);
+        fixedCode ??= fileContents;
+
+        return RunTestAsync(
+            new[] { (filePath, fileContents) },
+            new[] { (filePath, fixedCode) },
+            editorConfig,
+            defaultNamespace);
+    }
+
+    private static Task RunTestAsync(IEnumerable<(string, string)> originalSources, IEnumerable<(string, string)>? fixedSources = null, string? editorconfig = null, string? defaultNamespace = null)
+    {
+        // When a namespace isn't provided we will fallback on our default
+        defaultNamespace ??= DefaultNamespace;
+
+        var testState = new VerifyCS.Test
         {
-            var filePath = Path.Combine(directory ?? Directory, fileName);
-            fixedCode ??= fileContents;
+            EditorConfig = editorconfig ?? EditorConfig,
+            CodeFixTestBehaviors = CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck,
+            LanguageVersion = LanguageVersion.CSharp10,
+        };
 
-            return RunTestAsync(
-                new[] { (filePath, fileContents) },
-                new[] { (filePath, fixedCode) },
-                editorConfig,
-                defaultNamespace);
-        }
+        foreach (var (fileName, content) in originalSources)
+            testState.TestState.Sources.Add((fileName, content));
 
-        private static Task RunTestAsync(IEnumerable<(string, string)> originalSources, IEnumerable<(string, string)>? fixedSources = null, string? editorconfig = null, string? defaultNamespace = null)
+        fixedSources ??= [];
+        foreach (var (fileName, content) in fixedSources)
+            testState.FixedState.Sources.Add((fileName, content));
+
+        // If empty string was provided as the namespace, then we will not set a default
+        if (defaultNamespace.Length > 0)
         {
-            // When a namespace isn't provided we will fallback on our default
-            defaultNamespace ??= DefaultNamespace;
-
-            var testState = new VerifyCS.Test
+            testState.SolutionTransforms.Add((solution, projectId) =>
             {
-                EditorConfig = editorconfig ?? EditorConfig,
-                CodeFixTestBehaviors = CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck,
-                LanguageVersion = LanguageVersion.CSharp10,
-            };
+                var project = solution.GetRequiredProject(projectId);
+                return project.WithDefaultNamespace(defaultNamespace).Solution;
+            });
+        }
 
-            foreach (var (fileName, content) in originalSources)
-                testState.TestState.Sources.Add((fileName, content));
+        return testState.RunAsync();
+    }
 
-            fixedSources ??= Array.Empty<(string, string)>();
-            foreach (var (fileName, content) in fixedSources)
-                testState.FixedState.Sources.Add((fileName, content));
-
-            // If empty string was provided as the namespace, then we will not set a default
-            if (defaultNamespace.Length > 0)
+    [Fact]
+    public Task InvalidFolderName1_NoDiagnostic()
+    {
+        // No change namespace action because the folder name is not valid identifier
+        var folder = CreateFolderPath(["3B", "C"]);
+        var code =
+            """
+            namespace A.B
             {
-                testState.SolutionTransforms.Add((solution, projectId) =>
-                {
-                    var project = solution.GetRequiredProject(projectId);
-                    return project.WithDefaultNamespace(defaultNamespace).Solution;
-                });
-            }
-
-            return testState.RunAsync();
-        }
-
-        [Fact]
-        public Task InvalidFolderName1_NoDiagnostic()
-        {
-            // No change namespace action because the folder name is not valid identifier
-            var folder = CreateFolderPath(["3B", "C"]);
-            var code =
-                """
-                namespace A.B
-                {
-                    class Class1
-                    {
-                    }
-                }
-                """;
-
-            return RunTestAsync(
-                "File1.cs",
-                code,
-                directory: folder);
-        }
-
-        [Fact]
-        public Task InvalidFolderName1_NoDiagnostic_FileScopedNamespace()
-        {
-            // No change namespace action because the folder name is not valid identifier
-            var folder = CreateFolderPath(["3B", "C"]);
-            var code =
-                """
-                namespace A.B;
-
                 class Class1
                 {
                 }
-                """;
+            }
+            """;
 
-            return RunTestAsync(
-                "File1.cs",
-                code,
-                directory: folder);
-        }
+        return RunTestAsync(
+            "File1.cs",
+            code,
+            directory: folder);
+    }
 
-        [Fact]
-        public Task InvalidFolderName2_NoDiagnostic()
-        {
-            // No change namespace action because the folder name is not valid identifier
-            var folder = CreateFolderPath(["B.3C", "D"]);
-            var code =
-                """
-                namespace A.B
+    [Fact]
+    public Task InvalidFolderName1_NoDiagnostic_FileScopedNamespace()
+    {
+        // No change namespace action because the folder name is not valid identifier
+        var folder = CreateFolderPath(["3B", "C"]);
+        var code =
+            """
+            namespace A.B;
+
+            class Class1
+            {
+            }
+            """;
+
+        return RunTestAsync(
+            "File1.cs",
+            code,
+            directory: folder);
+    }
+
+    [Fact]
+    public Task InvalidFolderName2_NoDiagnostic()
+    {
+        // No change namespace action because the folder name is not valid identifier
+        var folder = CreateFolderPath(["B.3C", "D"]);
+        var code =
+            """
+            namespace A.B
+            {
+                class Class1
                 {
-                    class Class1
-                    {
-                    }
                 }
-                """;
+            }
+            """;
 
-            return RunTestAsync(
-                "File1.cs",
-                code,
-                directory: folder);
-        }
+        return RunTestAsync(
+            "File1.cs",
+            code,
+            directory: folder);
+    }
 
-        [Fact]
-        public Task InvalidFolderName3_NoDiagnostic()
-        {
-            // No change namespace action because the folder name is not valid identifier
-            var folder = CreateFolderPath([".folder", "..subfolder", "name"]);
-            var code =
-                """
-                namespace A.B
+    [Fact]
+    public Task InvalidFolderName3_NoDiagnostic()
+    {
+        // No change namespace action because the folder name is not valid identifier
+        var folder = CreateFolderPath([".folder", "..subfolder", "name"]);
+        var code =
+            """
+            namespace A.B
+            {
+                class Class1
                 {
-                    class Class1
-                    {
-                    }
                 }
-                """;
+            }
+            """;
 
-            return RunTestAsync(
-                "File1.cs",
-                code,
-                directory: folder);
-        }
+        return RunTestAsync(
+            "File1.cs",
+            code,
+            directory: folder);
+    }
 
-        [Fact]
-        public Task CaseInsensitiveMatch_NoDiagnostic()
-        {
-            var folder = CreateFolderPath(["A", "B"]);
-            var code =
+    [Fact]
+    public Task CaseInsensitiveMatch_NoDiagnostic()
+    {
+        var folder = CreateFolderPath(["A", "B"]);
+        var code =
 @$"
 namespace {DefaultNamespace}.a.b
 {{
@@ -171,167 +171,167 @@ namespace {DefaultNamespace}.a.b
     }}
 }}";
 
-            return RunTestAsync(
-                "File1.cs",
-                code,
-                directory: folder);
-        }
+        return RunTestAsync(
+            "File1.cs",
+            code,
+            directory: folder);
+    }
 
-        [Fact]
-        public async Task CodeStyleOptionIsFalse()
-        {
-            var folder = CreateFolderPath("B", "C");
-            var code =
-                """
-                namespace A.B
+    [Fact]
+    public async Task CodeStyleOptionIsFalse()
+    {
+        var folder = CreateFolderPath("B", "C");
+        var code =
+            """
+            namespace A.B
+            {
+                class Class1
                 {
-                    class Class1
-                    {
-                    }
                 }
-                """;
+            }
+            """;
 
-            await RunTestAsync(
-                fileName: "Class1.cs",
-                fileContents: code,
-                directory: folder,
-                editorConfig: EditorConfig + """
-                dotnet_style_namespace_match_folder = false
-                """
+        await RunTestAsync(
+            fileName: "Class1.cs",
+            fileContents: code,
+            directory: folder,
+            editorConfig: EditorConfig + """
+            dotnet_style_namespace_match_folder = false
+            """
 );
-        }
+    }
 
-        [Fact]
-        public async Task SingleDocumentNoReference()
-        {
-            var folder = CreateFolderPath("B", "C");
-            var code =
-                """
-                namespace [|A.B|]
+    [Fact]
+    public async Task SingleDocumentNoReference()
+    {
+        var folder = CreateFolderPath("B", "C");
+        var code =
+            """
+            namespace [|A.B|]
+            {
+                class Class1
                 {
-                    class Class1
-                    {
-                    }
                 }
-                """;
+            }
+            """;
 
-            var fixedCode =
+        var fixedCode =
 @$"namespace {DefaultNamespace}.B.C
 {{
     class Class1
     {{
     }}
 }}";
-            await RunTestAsync(
-                fileName: "Class1.cs",
-                fileContents: code,
-                directory: folder,
-                fixedCode: fixedCode);
-        }
+        await RunTestAsync(
+            fileName: "Class1.cs",
+            fileContents: code,
+            directory: folder,
+            fixedCode: fixedCode);
+    }
 
-        [Fact]
-        public async Task SingleDocumentNoReference_FileScopedNamespace()
-        {
-            var folder = CreateFolderPath("B", "C");
-            var code =
-                """
-                namespace [|A.B|];
+    [Fact]
+    public async Task SingleDocumentNoReference_FileScopedNamespace()
+    {
+        var folder = CreateFolderPath("B", "C");
+        var code =
+            """
+            namespace [|A.B|];
 
-                class Class1
-                {
-                }
-                """;
+            class Class1
+            {
+            }
+            """;
 
-            var fixedCode =
+        var fixedCode =
 @$"namespace {DefaultNamespace}.B.C;
 
 class Class1
 {{
 }}";
-            await RunTestAsync(
-                fileName: "Class1.cs",
-                fileContents: code,
-                directory: folder,
-                fixedCode: fixedCode);
-        }
+        await RunTestAsync(
+            fileName: "Class1.cs",
+            fileContents: code,
+            directory: folder,
+            fixedCode: fixedCode);
+    }
 
-        [Fact]
-        public async Task SingleDocumentNoReference_NoDefaultNamespace()
-        {
-            var editorConfig = @$"
+    [Fact]
+    public async Task SingleDocumentNoReference_NoDefaultNamespace()
+    {
+        var editorConfig = @$"
 is_global=true
 build_property.ProjectDir = {Directory}
 ";
 
-            var folder = CreateFolderPath("B", "C");
-            var code =
-                """
-                namespace [|A.B|]
+        var folder = CreateFolderPath("B", "C");
+        var code =
+            """
+            namespace [|A.B|]
+            {
+                class Class1
                 {
-                    class Class1
-                    {
-                    }
                 }
-                """;
+            }
+            """;
 
-            var fixedCode =
+        var fixedCode =
 @$"namespace B.C
 {{
     class Class1
     {{
     }}
 }}";
-            await RunTestAsync(
-                fileName: "Class1.cs",
-                fileContents: code,
-                directory: folder,
-                fixedCode: fixedCode,
-                editorConfig: editorConfig,
-                // passing empty string means that a default namespace isn't set on the test Project
-                defaultNamespace: string.Empty);
-        }
+        await RunTestAsync(
+            fileName: "Class1.cs",
+            fileContents: code,
+            directory: folder,
+            fixedCode: fixedCode,
+            editorConfig: editorConfig,
+            // passing empty string means that a default namespace isn't set on the test Project
+            defaultNamespace: string.Empty);
+    }
 
-        [Fact]
-        public async Task SingleDocumentNoReference_NoDefaultNamespace_FileScopedNamespace()
-        {
-            var editorConfig = @$"
+    [Fact]
+    public async Task SingleDocumentNoReference_NoDefaultNamespace_FileScopedNamespace()
+    {
+        var editorConfig = @$"
 is_global=true
 build_property.ProjectDir = {Directory}
 ";
 
-            var folder = CreateFolderPath("B", "C");
-            var code =
-                """
-                namespace [|A.B|];
+        var folder = CreateFolderPath("B", "C");
+        var code =
+            """
+            namespace [|A.B|];
 
-                class Class1
-                {
-                }
-                """;
+            class Class1
+            {
+            }
+            """;
 
-            var fixedCode =
-                """
-                namespace B.C;
+        var fixedCode =
+            """
+            namespace B.C;
 
-                class Class1
-                {
-                }
-                """;
-            await RunTestAsync(
-                fileName: "Class1.cs",
-                fileContents: code,
-                directory: folder,
-                fixedCode: fixedCode,
-                editorConfig: editorConfig,
-                // passing empty string means that a default namespace isn't set on the test Project
-                defaultNamespace: string.Empty);
-        }
+            class Class1
+            {
+            }
+            """;
+        await RunTestAsync(
+            fileName: "Class1.cs",
+            fileContents: code,
+            directory: folder,
+            fixedCode: fixedCode,
+            editorConfig: editorConfig,
+            // passing empty string means that a default namespace isn't set on the test Project
+            defaultNamespace: string.Empty);
+    }
 
-        [Fact]
-        public async Task NamespaceWithSpaces_NoDiagnostic()
-        {
-            var folder = CreateFolderPath("A", "B");
-            var code =
+    [Fact]
+    public async Task NamespaceWithSpaces_NoDiagnostic()
+    {
+        var folder = CreateFolderPath("A", "B");
+        var code =
 @$"namespace {DefaultNamespace}.A    .     B
 {{
     class Class1
@@ -339,89 +339,89 @@ build_property.ProjectDir = {Directory}
     }}
 }}";
 
-            await RunTestAsync(
-                fileName: "Class1.cs",
-                fileContents: code,
-                directory: folder);
-        }
+        await RunTestAsync(
+            fileName: "Class1.cs",
+            fileContents: code,
+            directory: folder);
+    }
 
-        [Fact]
-        public async Task NestedNamespaces_NoDiagnostic()
-        {
-            // The code fix doesn't currently support nested namespaces for sync, so
-            // diagnostic does not report.
+    [Fact]
+    public async Task NestedNamespaces_NoDiagnostic()
+    {
+        // The code fix doesn't currently support nested namespaces for sync, so
+        // diagnostic does not report.
 
-            var folder = CreateFolderPath("B", "C");
-            var code =
-                """
-                namespace A.B
-                {
-                    namespace C.D
-                    {
-                        class CDClass
-                        {
-                        }
-                    }
-
-                    class ABClass
-                    {
-                    }
-                }
-                """;
-
-            await RunTestAsync(
-                fileName: "Class1.cs",
-                fileContents: code,
-                directory: folder);
-        }
-
-        [Fact]
-        public async Task PartialTypeWithMultipleDeclarations_NoDiagnostic()
-        {
-            // The code fix doesn't currently support nested namespaces for sync, so
-            // diagnostic does not report.
-
-            var folder = CreateFolderPath("B", "C");
-            var code1 =
-                """
-                namespace A.B
-                {
-                    partial class ABClass
-                    {
-                        void M1() {}
-                    }
-                }
-                """;
-
-            var code2 =
-                """
-                namespace A.B
-                {
-                    partial class ABClass
-                    {
-                        void M2() {}
-                    }
-                }
-                """;
-
-            var sources = new[]
+        var folder = CreateFolderPath("B", "C");
+        var code =
+            """
+            namespace A.B
             {
-                (Path.Combine(folder, "ABClass1.cs"), code1),
-                (Path.Combine(folder, "ABClass2.cs"), code2),
-            };
+                namespace C.D
+                {
+                    class CDClass
+                    {
+                    }
+                }
 
-            await RunTestAsync(sources);
-        }
+                class ABClass
+                {
+                }
+            }
+            """;
 
-        [Fact]
-        public async Task FileNotInProjectFolder_NoDiagnostic()
+        await RunTestAsync(
+            fileName: "Class1.cs",
+            fileContents: code,
+            directory: folder);
+    }
+
+    [Fact]
+    public async Task PartialTypeWithMultipleDeclarations_NoDiagnostic()
+    {
+        // The code fix doesn't currently support nested namespaces for sync, so
+        // diagnostic does not report.
+
+        var folder = CreateFolderPath("B", "C");
+        var code1 =
+            """
+            namespace A.B
+            {
+                partial class ABClass
+                {
+                    void M1() {}
+                }
+            }
+            """;
+
+        var code2 =
+            """
+            namespace A.B
+            {
+                partial class ABClass
+                {
+                    void M2() {}
+                }
+            }
+            """;
+
+        var sources = new[]
         {
-            // Default directory is Test\Directory for the project,
-            // putting the file outside the directory should have no
-            // diagnostic shown.
+            (Path.Combine(folder, "ABClass1.cs"), code1),
+            (Path.Combine(folder, "ABClass2.cs"), code2),
+        };
 
-            var folder = Path.Combine("B", "C");
-            var code =
+        await RunTestAsync(sources);
+    }
+
+    [Fact]
+    public async Task FileNotInProjectFolder_NoDiagnostic()
+    {
+        // Default directory is Test\Directory for the project,
+        // putting the file outside the directory should have no
+        // diagnostic shown.
+
+        var folder = Path.Combine("B", "C");
+        var code =
 $@"namespace A.B
 {{
     class ABClass
@@ -429,19 +429,19 @@ $@"namespace A.B
     }}
 }}";
 
-            await RunTestAsync(
-                fileName: "Class1.cs",
-                fileContents: code,
-                directory: folder);
-        }
+        await RunTestAsync(
+            fileName: "Class1.cs",
+            fileContents: code,
+            directory: folder);
+    }
 
-        [Fact]
-        public async Task SingleDocumentLocalReference()
-        {
-            var @namespace = "Bar.Baz";
+    [Fact]
+    public async Task SingleDocumentLocalReference()
+    {
+        var @namespace = "Bar.Baz";
 
-            var folder = CreateFolderPath("A", "B", "C");
-            var code =
+        var folder = CreateFolderPath("A", "B", "C");
+        var code =
 $@"
 namespace [|{@namespace}|]
 {{
@@ -460,7 +460,7 @@ namespace [|{@namespace}|]
     }}
 }}";
 
-            var expected =
+        var expected =
 @$"namespace {DefaultNamespace}.A.B.C
 {{
     delegate void D1();
@@ -478,20 +478,20 @@ namespace [|{@namespace}|]
     }}
 }}";
 
-            await RunTestAsync(
-                "Class1.cs",
-                code,
-                folder,
-                fixedCode: expected);
-        }
+        await RunTestAsync(
+            "Class1.cs",
+            code,
+            folder,
+            fixedCode: expected);
+    }
 
-        [Fact]
-        public async Task ChangeUsingsInMultipleContainers()
-        {
-            var declaredNamespace = "Bar.Baz";
+    [Fact]
+    public async Task ChangeUsingsInMultipleContainers()
+    {
+        var declaredNamespace = "Bar.Baz";
 
-            var folder = CreateFolderPath("A", "B", "C");
-            var code1 =
+        var folder = CreateFolderPath("A", "B", "C");
+        var code1 =
 $@"namespace [|{declaredNamespace}|]
 {{
     class Class1
@@ -499,7 +499,7 @@ $@"namespace [|{declaredNamespace}|]
     }}
 }}";
 
-            var code2 =
+        var code2 =
 $@"namespace NS1
 {{
     using {declaredNamespace};
@@ -520,7 +520,7 @@ $@"namespace NS1
     }}
 }}";
 
-            var fixed1 =
+        var fixed1 =
 @$"namespace {DefaultNamespace}.A.B.C
 {{
     class Class1
@@ -528,7 +528,7 @@ $@"namespace NS1
     }}
 }}";
 
-            var fixed2 =
+        var fixed2 =
 @$"namespace NS1
 {{
     using {DefaultNamespace}.A.B.C;
@@ -547,69 +547,69 @@ $@"namespace NS1
     }}
 }}";
 
-            var originalSources = new[]
-            {
-                (Path.Combine(folder, "Class1.cs"), code1),
-                ("Class2.cs", code2)
-            };
-
-            var fixedSources = new[]
-            {
-                (Path.Combine(folder, "Class1.cs"), fixed1),
-                ("Class2.cs", fixed2)
-            };
-
-            await RunTestAsync(originalSources, fixedSources);
-        }
-
-        [Fact]
-        public async Task DocumentAtRoot_NoDiagnostic()
+        var originalSources = new[]
         {
-            var folder = CreateFolderPath();
+            (Path.Combine(folder, "Class1.cs"), code1),
+            ("Class2.cs", code2)
+        };
 
-            var code = $@"
+        var fixedSources = new[]
+        {
+            (Path.Combine(folder, "Class1.cs"), fixed1),
+            ("Class2.cs", fixed2)
+        };
+
+        await RunTestAsync(originalSources, fixedSources);
+    }
+
+    [Fact]
+    public async Task DocumentAtRoot_NoDiagnostic()
+    {
+        var folder = CreateFolderPath();
+
+        var code = $@"
 namespace {DefaultNamespace}
 {{
     class C {{ }}
 }}";
 
-            await RunTestAsync(
-                "File1.cs",
-                code,
-                folder);
-        }
+        await RunTestAsync(
+            "File1.cs",
+            code,
+            folder);
+    }
 
-        [Fact]
-        public async Task DocumentAtRoot_ChangeNamespace()
-        {
-            var folder = CreateFolderPath();
+    [Fact]
+    public async Task DocumentAtRoot_ChangeNamespace()
+    {
+        var folder = CreateFolderPath();
 
-            var code =
+        var code =
 $@"namespace [|{DefaultNamespace}.Test|]
 {{
     class C {{ }}
 }}";
 
-            var fixedCode =
+        var fixedCode =
 $@"namespace {DefaultNamespace}
 {{
     class C {{ }}
 }}";
 
-            await RunTestAsync(
-                "File1.cs",
-                code,
-                folder,
-                fixedCode: fixedCode);
-        }
+        await RunTestAsync(
+            "File1.cs",
+            code,
+            folder,
+            fixedCode: fixedCode);
+    }
 
-        [Fact]
-        public async Task ChangeNamespace_WithAliasReferencesInOtherDocument()
-        {
-            var declaredNamespace = $"Bar.Baz";
+    [Fact]
+    public async Task ChangeNamespace_WithAliasReferencesInOtherDocument()
+    {
+        var declaredNamespace = $"Bar.Baz";
 
-            var folder = CreateFolderPath("A", "B", "C");
-            var code1 =
+        var folder = CreateFolderPath("A", "B", "C");
+        var code1 =
 $@"namespace [|{declaredNamespace}|]
 {{
     class Class1
@@ -617,7 +617,7 @@ $@"namespace [|{declaredNamespace}|]
     }}
 }}";
 
-            var code2 = $@"
+        var code2 = $@"
 using System;
 using {declaredNamespace};
 using Class1Alias = {declaredNamespace}.Class1;
@@ -630,7 +630,7 @@ namespace Foo
     }}
 }}";
 
-            var fixed1 =
+        var fixed1 =
 @$"namespace {DefaultNamespace}.A.B.C
 {{
     class Class1
@@ -638,7 +638,7 @@ namespace Foo
     }}
 }}";
 
-            var fixed2 =
+        var fixed2 =
 @$"
 using System;
 using Class1Alias = {DefaultNamespace}.A.B.C.Class1;
@@ -651,36 +651,36 @@ namespace Foo
     }}
 }}";
 
-            var originalSources = new[]
-            {
-                (Path.Combine(folder, "Class1.cs"), code1),
-                ("Class2.cs", code2)
-            };
-
-            var fixedSources = new[]
-            {
-                (Path.Combine(folder, "Class1.cs"), fixed1),
-                ("Class2.cs", fixed2)
-            };
-
-            await RunTestAsync(originalSources, fixedSources);
-        }
-
-        [Fact]
-        public async Task FixAll()
+        var originalSources = new[]
         {
-            var declaredNamespace = "Bar.Baz";
+            (Path.Combine(folder, "Class1.cs"), code1),
+            ("Class2.cs", code2)
+        };
 
-            var folder1 = CreateFolderPath("A", "B", "C");
-            var fixedNamespace1 = $"{DefaultNamespace}.A.B.C";
+        var fixedSources = new[]
+        {
+            (Path.Combine(folder, "Class1.cs"), fixed1),
+            ("Class2.cs", fixed2)
+        };
 
-            var folder2 = CreateFolderPath("Second", "Folder", "Path");
-            var fixedNamespace2 = $"{DefaultNamespace}.Second.Folder.Path";
+        await RunTestAsync(originalSources, fixedSources);
+    }
 
-            var folder3 = CreateFolderPath("Third", "Folder", "Path");
-            var fixedNamespace3 = $"{DefaultNamespace}.Third.Folder.Path";
+    [Fact]
+    public async Task FixAll()
+    {
+        var declaredNamespace = "Bar.Baz";
 
-            var code1 =
+        var folder1 = CreateFolderPath("A", "B", "C");
+        var fixedNamespace1 = $"{DefaultNamespace}.A.B.C";
+
+        var folder2 = CreateFolderPath("Second", "Folder", "Path");
+        var fixedNamespace2 = $"{DefaultNamespace}.Second.Folder.Path";
+
+        var folder3 = CreateFolderPath("Third", "Folder", "Path");
+        var fixedNamespace3 = $"{DefaultNamespace}.Third.Folder.Path";
+
+        var code1 =
 $@"namespace [|{declaredNamespace}|]
 {{
     class Class1
@@ -690,7 +690,7 @@ $@"namespace [|{declaredNamespace}|]
     }}
 }}";
 
-            var fixed1 =
+        var fixed1 =
 $@"using {fixedNamespace2};
 using {fixedNamespace3};
 
@@ -703,7 +703,7 @@ namespace {fixedNamespace1}
     }}
 }}";
 
-            var code2 =
+        var code2 =
 $@"namespace [|{declaredNamespace}|]
 {{
     class Class2
@@ -713,7 +713,7 @@ $@"namespace [|{declaredNamespace}|]
     }}
 }}";
 
-            var fixed2 =
+        var fixed2 =
 $@"using {fixedNamespace1};
 using {fixedNamespace3};
 
@@ -726,7 +726,7 @@ namespace {fixedNamespace2}
     }}
 }}";
 
-            var code3 =
+        var code3 =
 $@"namespace [|{declaredNamespace}|]
 {{
     class Class3
@@ -736,7 +736,7 @@ $@"namespace [|{declaredNamespace}|]
     }}
 }}";
 
-            var fixed3 =
+        var fixed3 =
 $@"using {fixedNamespace1};
 using {fixedNamespace2};
 
@@ -749,38 +749,38 @@ namespace {fixedNamespace3}
     }}
 }}";
 
-            var sources = new[]
-            {
-                (Path.Combine(folder1, "Class1.cs"), code1),
-                (Path.Combine(folder2, "Class2.cs"), code2),
-                (Path.Combine(folder3, "Class3.cs"), code3),
-            };
-
-            var fixedSources = new[]
-            {
-                (Path.Combine(folder1, "Class1.cs"), fixed1),
-                (Path.Combine(folder2, "Class2.cs"), fixed2),
-                (Path.Combine(folder3, "Class3.cs"), fixed3),
-            };
-
-            await RunTestAsync(sources, fixedSources);
-        }
-
-        [Fact]
-        public async Task FixAll_MultipleProjects()
+        var sources = new[]
         {
-            var declaredNamespace = "Bar.Baz";
+            (Path.Combine(folder1, "Class1.cs"), code1),
+            (Path.Combine(folder2, "Class2.cs"), code2),
+            (Path.Combine(folder3, "Class3.cs"), code3),
+        };
 
-            var folder1 = CreateFolderPath("A", "B", "C");
-            var fixedNamespace1 = $"{DefaultNamespace}.A.B.C";
+        var fixedSources = new[]
+        {
+            (Path.Combine(folder1, "Class1.cs"), fixed1),
+            (Path.Combine(folder2, "Class2.cs"), fixed2),
+            (Path.Combine(folder3, "Class3.cs"), fixed3),
+        };
 
-            var folder2 = CreateFolderPath("Second", "Folder", "Path");
-            var fixedNamespace2 = $"{DefaultNamespace}.Second.Folder.Path";
+        await RunTestAsync(sources, fixedSources);
+    }
 
-            var folder3 = CreateFolderPath("Third", "Folder", "Path");
-            var fixedNamespace3 = $"{DefaultNamespace}.Third.Folder.Path";
+    [Fact]
+    public async Task FixAll_MultipleProjects()
+    {
+        var declaredNamespace = "Bar.Baz";
 
-            var code1 =
+        var folder1 = CreateFolderPath("A", "B", "C");
+        var fixedNamespace1 = $"{DefaultNamespace}.A.B.C";
+
+        var folder2 = CreateFolderPath("Second", "Folder", "Path");
+        var fixedNamespace2 = $"{DefaultNamespace}.Second.Folder.Path";
+
+        var folder3 = CreateFolderPath("Third", "Folder", "Path");
+        var fixedNamespace3 = $"{DefaultNamespace}.Third.Folder.Path";
+
+        var code1 =
 $@"namespace [|{declaredNamespace}|]
 {{
     public class Class1
@@ -790,7 +790,7 @@ $@"namespace [|{declaredNamespace}|]
     }}
 }}";
 
-            var fixed1 =
+        var fixed1 =
 $@"using {fixedNamespace2};
 using {fixedNamespace3};
 
@@ -803,7 +803,7 @@ namespace {fixedNamespace1}
     }}
 }}";
 
-            var code2 =
+        var code2 =
 $@"namespace [|{declaredNamespace}|]
 {{
     class Class2
@@ -813,7 +813,7 @@ $@"namespace [|{declaredNamespace}|]
     }}
 }}";
 
-            var fixed2 =
+        var fixed2 =
 $@"using {fixedNamespace1};
 using {fixedNamespace3};
 
@@ -826,7 +826,7 @@ namespace {fixedNamespace2}
     }}
 }}";
 
-            var code3 =
+        var code3 =
 $@"namespace [|{declaredNamespace}|]
 {{
     class Class3
@@ -836,7 +836,7 @@ $@"namespace [|{declaredNamespace}|]
     }}
 }}";
 
-            var fixed3 =
+        var fixed3 =
 $@"using {fixedNamespace1};
 using {fixedNamespace2};
 
@@ -849,15 +849,15 @@ namespace {fixedNamespace3}
     }}
 }}";
 
-            var project2Directory = "/Project2/";
-            var project2folder = Path.Combine(project2Directory, "A", "B", "C");
-            var project2EditorConfig = @$"
+        var project2Directory = "/Project2/";
+        var project2folder = Path.Combine(project2Directory, "A", "B", "C");
+        var project2EditorConfig = @$"
 is_global=true
 build_property.ProjectDir = {project2Directory}
 build_property.RootNamespace = {DefaultNamespace}
 ";
 
-            var project2Source =
+        var project2Source =
 @$"using {declaredNamespace};
 
 namespace [|Project2.Test|]
@@ -868,7 +868,7 @@ namespace [|Project2.Test|]
     }}
 }}";
 
-            var project2FixedSource =
+        var project2FixedSource =
 $@"namespace {fixedNamespace1}
 {{
     class P
@@ -877,85 +877,85 @@ $@"namespace {fixedNamespace1}
     }}
 }}";
 
-            var testState = new VerifyCS.Test
+        var testState = new VerifyCS.Test
+        {
+            EditorConfig = EditorConfig,
+            CodeFixTestBehaviors = CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInProjectCheck,
+            LanguageVersion = LanguageVersion.CSharp10,
+            TestState =
             {
-                EditorConfig = EditorConfig,
-                CodeFixTestBehaviors = CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInDocumentCheck | CodeAnalysis.Testing.CodeFixTestBehaviors.SkipFixAllInProjectCheck,
-                LanguageVersion = LanguageVersion.CSharp10,
-                TestState =
+                Sources =
                 {
-                    Sources =
+                    (Path.Combine(folder1, "Class1.cs"), code1),
+                    (Path.Combine(folder2, "Class2.cs"), code2),
+                    (Path.Combine(folder3, "Class3.cs"), code3),
+                },
+                AdditionalProjects =
+                {
+                    ["Project2"] =
                     {
-                        (Path.Combine(folder1, "Class1.cs"), code1),
-                        (Path.Combine(folder2, "Class2.cs"), code2),
-                        (Path.Combine(folder3, "Class3.cs"), code3),
-                    },
-                    AdditionalProjects =
-                    {
-                        ["Project2"] =
-                        {
-                            AdditionalProjectReferences = { "TestProject" },
-                            Sources = { (Path.Combine(project2folder, "P.cs"), project2Source) },
-                            AnalyzerConfigFiles = { (Path.Combine(project2Directory, ".editorconfig"), project2EditorConfig) },
-                        },
+                        AdditionalProjectReferences = { "TestProject" },
+                        Sources = { (Path.Combine(project2folder, "P.cs"), project2Source) },
+                        AnalyzerConfigFiles = { (Path.Combine(project2Directory, ".editorconfig"), project2EditorConfig) },
                     },
                 },
-                FixedState =
+            },
+            FixedState =
+            {
+                Sources =
                 {
-                    Sources =
+                    (Path.Combine(folder1, "Class1.cs"), fixed1),
+                    (Path.Combine(folder2, "Class2.cs"), fixed2),
+                    (Path.Combine(folder3, "Class3.cs"), fixed3),
+                },
+                AdditionalProjects =
+                {
+                    ["Project2"] =
                     {
-                        (Path.Combine(folder1, "Class1.cs"), fixed1),
-                        (Path.Combine(folder2, "Class2.cs"), fixed2),
-                        (Path.Combine(folder3, "Class3.cs"), fixed3),
-                    },
-                    AdditionalProjects =
-                    {
-                        ["Project2"] =
-                        {
-                            AdditionalProjectReferences = { "TestProject" },
-                            Sources = { (Path.Combine(project2folder, "P.cs"), project2FixedSource) },
-                            AnalyzerConfigFiles = { (Path.Combine(project2Directory, ".editorconfig"), project2EditorConfig) },
-                        }
+                        AdditionalProjectReferences = { "TestProject" },
+                        Sources = { (Path.Combine(project2folder, "P.cs"), project2FixedSource) },
+                        AnalyzerConfigFiles = { (Path.Combine(project2Directory, ".editorconfig"), project2EditorConfig) },
                     }
                 }
-            };
+            }
+        };
 
-            testState.SolutionTransforms.Add((solution, projectId) =>
-            {
-                foreach (var id in solution.ProjectIds)
-                {
-                    var project = solution.GetRequiredProject(id);
-                    solution = project.WithDefaultNamespace(DefaultNamespace).Solution;
-                }
-                return solution;
-            });
-
-            await testState.RunAsync();
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58372")]
-        public async Task InvalidProjectName_ChangeNamespace()
+        testState.SolutionTransforms.Add((solution, projectId) =>
         {
-            var defaultNamespace = "Invalid-Namespace";
-            var editorConfig = @$"
+            foreach (var id in solution.ProjectIds)
+            {
+                var project = solution.GetRequiredProject(id);
+                solution = project.WithDefaultNamespace(DefaultNamespace).Solution;
+            }
+            return solution;
+        });
+
+        await testState.RunAsync();
+    }
+
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/58372")]
+    public async Task InvalidProjectName_ChangeNamespace()
+    {
+        var defaultNamespace = "Invalid-Namespace";
+        var editorConfig = @$"
 is_global=true
 build_property.ProjectDir = {Directory}
 build_property.RootNamespace = {defaultNamespace}
 ";
 
-            var folder = CreateFolderPath(["B", "C"]);
-            var code =
-                """
-                namespace [|A.B|]
+        var folder = CreateFolderPath(["B", "C"]);
+        var code =
+            """
+            namespace [|A.B|]
+            {
+                class Class1
                 {
-                    class Class1
-                    {
-                    }
                 }
-                """;
+            }
+            """;
 
-            // The project name is invalid so the default namespace is not prepended
-            var fixedCode =
+        // The project name is invalid so the default namespace is not prepended
+        var fixedCode =
 @$"namespace B.C
 {{
     class Class1
@@ -963,64 +963,63 @@ build_property.RootNamespace = {defaultNamespace}
     }}
 }}";
 
-            await RunTestAsync(
-                "Class1.cs",
-                fileContents: code,
-                fixedCode: fixedCode,
-                directory: folder,
-                editorConfig: editorConfig,
-                defaultNamespace: defaultNamespace);
-        }
+        await RunTestAsync(
+            "Class1.cs",
+            fileContents: code,
+            fixedCode: fixedCode,
+            directory: folder,
+            editorConfig: editorConfig,
+            defaultNamespace: defaultNamespace);
+    }
 
-        [Fact]
-        public async Task InvalidProjectName_DocumentAtRoot_ChangeNamespace()
-        {
-            var defaultNamespace = "Invalid-Namespace";
-            var editorConfig = @$"
+    [Fact]
+    public async Task InvalidProjectName_DocumentAtRoot_ChangeNamespace()
+    {
+        var defaultNamespace = "Invalid-Namespace";
+        var editorConfig = @$"
 is_global=true
 build_property.ProjectDir = {Directory}
 build_property.RootNamespace = {defaultNamespace}
 ";
 
-            var folder = CreateFolderPath();
+        var folder = CreateFolderPath();
 
-            var code =
+        var code =
 $@"namespace Test.Code
 {{
     class C {{ }}
 }}";
 
-            await RunTestAsync(
-                "Class1.cs",
-                fileContents: code,
-                directory: folder,
-                editorConfig: editorConfig,
-                defaultNamespace: defaultNamespace);
-        }
+        await RunTestAsync(
+            "Class1.cs",
+            fileContents: code,
+            directory: folder,
+            editorConfig: editorConfig,
+            defaultNamespace: defaultNamespace);
+    }
 
-        [Fact]
-        public async Task InvalidRootNamespace_DocumentAtRoot_ChangeNamespace()
-        {
-            var editorConfig = @$"
+    [Fact]
+    public async Task InvalidRootNamespace_DocumentAtRoot_ChangeNamespace()
+    {
+        var editorConfig = @$"
 is_global=true
 build_property.ProjectDir = {Directory}
 build_property.RootNamespace = Test.Code # not an editorconfig comment even though it looks like one
 ";
 
-            var folder = CreateFolderPath();
+        var folder = CreateFolderPath();
 
-            var code =
+        var code =
 $@"namespace Test.Code
 {{
     class C {{ }}
 }}";
 
-            await RunTestAsync(
-                "Class1.cs",
-                fileContents: code,
-                directory: folder,
-                editorConfig: editorConfig,
-                defaultNamespace: "Invalid-Namespace");
-        }
+        await RunTestAsync(
+            "Class1.cs",
+            fileContents: code,
+            directory: folder,
+            editorConfig: editorConfig,
+            defaultNamespace: "Invalid-Namespace");
     }
 }

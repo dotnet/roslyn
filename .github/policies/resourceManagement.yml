@@ -1,0 +1,277 @@
+id: 
+name: GitOps.PullRequestIssueManagement
+description: GitOps.PullRequestIssueManagement primitive
+owner: 
+resource: repository
+disabled: false
+where: 
+configuration:
+  resourceManagementConfiguration:
+    scheduledSearches:
+
+    - description: Close "Need More Info" Issues
+      frequencies:
+      - hourly:
+          hour: 3
+      filters:
+      - isOpen
+      - isIssue
+      - hasLabel:
+          label: Need More Info
+      - noActivitySince:
+          days: 10
+      actions:
+      - closeIssue
+      - addReply:
+          reply: "Closing this issue as we've seen no reply to the request for more information. If you are able to get the requested information, please add it to the issue and we will retriage it. "
+
+    eventResponderTasks:
+
+    - description: Auto-approve auto-merge PRs
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Pull_Request
+      - isPullRequest
+      - labelAdded:
+          label: auto-merge
+      - or:
+        - activitySenderHasPermission:
+            permission: Admin
+        - isActivitySender:
+            user: dotnet-bot
+            issueAuthor: False
+      then:
+      - approvePullRequest:
+          comment: Auto-approval
+
+    - description: Auto-approve maestro PRs
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Pull_Request
+      - isPullRequest
+      - isActivitySender:
+          user: dotnet-maestro[bot]
+          issueAuthor: False
+      - isAction:
+          action: Opened
+      - not:
+          bodyContains:
+            pattern: Updates sdk.version
+            isRegex: False
+      then:
+      - approvePullRequest:
+          comment: Auto-approve
+
+    - description: Milestone tracking
+      triggerOnOwnActions: true
+      if:
+      - payloadType: Pull_Request
+      - isPullRequest
+      - or:
+        - targetsBranch:
+            branch: main
+        - targetsBranch:
+            branch: main-vs-deps
+      - and:
+        - isAction:
+            action: Closed
+        - isMerged
+      then:
+      - addMilestone:
+          milestone: Next
+
+    - description: Auto-approve OneLoc PRs
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Pull_Request
+      - isPullRequest
+      - isActivitySender:
+          user: dotnet-bot
+          issueAuthor: False
+      - titleContains:
+          pattern: Localized file check-in
+          isRegex: False
+      - isAction:
+          action: Opened
+      then:
+      - addLabel:
+          label: auto-merge
+
+    - description: Remove "Need More Info" on comment
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Issue_Comment
+      - isIssue
+      - isOpen
+      - hasLabel:
+          label: Need More Info
+      then:
+      - addLabel:
+          label: untriaged
+      - removeLabel:
+          label: Need More Info
+
+    - description: Label Community Pull Requests
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Pull_Request
+      - isPullRequest
+      - isAction:
+          action: Opened
+      - and:
+        - not:
+            activitySenderHasPermission:
+              permission: Admin
+        - not:
+            activitySenderHasPermission:
+              permission: Write
+        - not:
+            isActivitySender:
+              user: github-actions[bot]
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: dotnet-maestro[bot]
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: dotnet-maestro-bot[bot]
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: dotnet-maestro-bot
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: dotnet-maestro
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: github-actions
+              issueAuthor: False
+      then:
+      - addLabel:
+          label: Community
+
+    - description: Adds "VSCode" tag on PRs which may affect C# extension.
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Pull_Request
+      - isPullRequest
+      - filesMatchPattern:
+          pattern: 'src/(Analyzers|CodeStyle|Features|LanguageServer|Workspaces)/.*\.(cs|vb)$'
+          matchAny: true
+      - and:
+        - not:
+            isActivitySender:
+              user: dotnet-bot
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: github-actions
+              issueAuthor: False
+      - or:
+        - isAction:
+            action: Opened
+        - isAction:
+            action: Synchronize
+      - and:
+        - not:
+            hasLabel:
+              label: VSCode
+      then:
+      - addLabel:
+          label: VSCode
+
+    - description: Add "Needs UX Triage" on PRs
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Pull_Request
+      - isPullRequest
+      - filesMatchPattern:
+          pattern: '.*\.[xX][aA][mM][lL]$'
+          matchAny: true
+      - and:
+        - not:
+            hasLabel:
+              label: UX Review Requested
+        - not:
+            hasLabel:
+              label: UX Review Complete
+        - not:
+            hasLabel:
+              label: UX Review Not Required
+        - not:
+            hasLabel:
+              label: Needs UX Triage
+      - or:
+        - isAction:
+            action: Opened
+        - isAction:
+            action: Synchronize
+        - and:
+          - isAction:
+              action: Closed
+          - isMerged
+      - and:
+        - not:
+            isActivitySender:
+              user: dotnet-bot
+              issueAuthor: False
+        - not:
+            isActivitySender:
+              user: dotnet-maestro[bot]
+              issueAuthor: False
+      - not:
+          titleContains:
+            pattern: ^Merge .* to .*$
+            isRegex: True
+      then:
+      - addLabel:
+          label: Needs UX Triage
+
+    - description: Adds "Needs API Review" on PRs that touch public APIs
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Pull_Request
+      - isPullRequest
+      - filesMatchPattern:
+          pattern: '.*/PublicAPI\.(Shipped|Unshipped)\.txt'
+          matchAny: true
+      - not:
+          isActivitySender:
+            user: dotnet-bot
+            issueAuthor: False
+      - or:
+        - isAction:
+            action: Opened
+        - isAction:
+            action: Synchronize
+      - and:
+        - not:
+            hasLabel:
+              label: api-approved
+        - not:
+            hasLabel:
+              label: Needs API Review
+      then:
+      - addLabel:
+          label: Needs API Review
+      - addReply:
+          reply: This PR modifies public API files. Please follow the instructions at https://github.com/dotnet/roslyn/blob/main/docs/contributing/API%20Review%20Process.md for ensuring all public APIs are reviewed before merging.
+
+    - description: Close automatically generated PR tagger issues
+      triggerOnOwnActions: false
+      if:
+      - payloadType: Issues
+      - isIssue
+      - hasLabel:
+          label: vs-insertion
+      - titleContains:
+          pattern: '[Automated] PRs inserted in VS build'
+          isRegex: False
+      then:
+      - closeIssue
+
+onFailure: 
+onSuccess:

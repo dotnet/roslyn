@@ -10,7 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics;
@@ -38,7 +38,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         /// these through <see cref="GetLastComputedDocumentDiagnosticsAsync"/> and <see
         /// cref="GetLastComputedProjectDiagnosticsAsync"/>.
         /// </summary>
-        private readonly ConcurrentSet<ProjectId> _analyzedProjectIds = new();
+        private readonly ConcurrentSet<ProjectId> _analyzedProjectIds = [];
 
         /// <summary>
         /// Previously analyzed projects that we no longer want to report results for.  This happens when an explicit
@@ -47,7 +47,7 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
         /// still think it should process it, as that will the cause the diagnostics to be removed when they now
         /// transition to an empty list returned from this type.
         /// </summary>
-        private readonly ConcurrentSet<ProjectId> _clearedProjectIds = new();
+        private readonly ConcurrentSet<ProjectId> _clearedProjectIds = [];
 
         public CodeAnalysisDiagnosticAnalyzerService(
             IDiagnosticAnalyzerService diagnosticAnalyzerService,
@@ -105,15 +105,14 @@ internal sealed class CodeAnalysisDiagnosticAnalyzerServiceFactory() : IWorkspac
             else
             {
                 // We run analysis for all the projects concurrently as this is a user invoked operation.
-                using var _ = ArrayBuilder<Task>.GetInstance(solution.ProjectIds.Count, out var tasks);
-                foreach (var project in solution.Projects)
-                    tasks.Add(Task.Run(() => AnalyzeProjectCoreAsync(project, onAfterProjectAnalyzed, cancellationToken), cancellationToken));
-
-                await Task.WhenAll(tasks).ConfigureAwait(false);
+                await RoslynParallel.ForEachAsync(
+                    source: solution.Projects,
+                    cancellationToken,
+                    (project, cancellationToken) => AnalyzeProjectCoreAsync(project, onAfterProjectAnalyzed, cancellationToken)).ConfigureAwait(false);
             }
         }
 
-        private async Task AnalyzeProjectCoreAsync(Project project, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken)
+        private async ValueTask AnalyzeProjectCoreAsync(Project project, Action<Project> onAfterProjectAnalyzed, CancellationToken cancellationToken)
         {
             // Execute force analysis for the project.
             await _diagnosticAnalyzerService.ForceAnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);

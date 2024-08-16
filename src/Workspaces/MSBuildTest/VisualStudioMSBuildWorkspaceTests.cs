@@ -17,7 +17,6 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.MSBuild.Build;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
@@ -88,6 +87,20 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             var compilation = await vbProject.GetCompilationAsync();
             var compReferences = compilation.References.ToList();
             Assert.Equal(5, compReferences.Count);
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestDirectUseOfMSBuildProjectLoader()
+        {
+            CreateFiles(GetSimpleCSharpSolutionFiles());
+            var solutionFilePath = GetSolutionFileName("TestSolution.sln");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var msbuildProjectLoader = new MSBuildProjectLoader(workspace);
+            var solutionInfo = await msbuildProjectLoader.LoadSolutionInfoAsync(solutionFilePath);
+            var projectInfo = Assert.Single(solutionInfo.Projects);
+
+            Assert.Single(projectInfo.Documents.Where(d => d.Name == "CSharpClass.cs"));
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -2349,18 +2362,18 @@ class C1
 
             CreateFiles(files);
 
-            using var workspace = new AdhocWorkspace(MSBuildMefHostServices.DefaultServices, WorkspaceKind.MSBuild);
+            using var workspace = CreateMSBuildWorkspace();
             var projectFullPath = GetSolutionFileName(@"AnalyzerSolution\CSharpProject_AnalyzerReference.csproj");
 
-            var loader = new MSBuildProjectLoader(workspace);
-            var infos = await loader.LoadProjectInfoAsync(projectFullPath);
+            var project = await workspace.OpenProjectAsync(projectFullPath);
 
-            var doc = infos[0].Documents[0];
-            var tav = doc.TextLoader.LoadTextAndVersionSynchronously(new LoadTextOptions(SourceHashAlgorithms.Default), CancellationToken.None);
+            var document = project.Documents.Single(d => d.Name == "CSharpClass.cs");
+            var documentText = document.GetTextSynchronously(CancellationToken.None);
+            Assert.Contains("public class CSharpClass", documentText.ToString(), StringComparison.Ordinal);
 
-            var adoc = infos[0].AdditionalDocuments.First(a => a.Name == "XamlFile.xaml");
-            var atav = adoc.TextLoader.LoadTextAndVersionSynchronously(new LoadTextOptions(SourceHashAlgorithms.Default), CancellationToken.None);
-            Assert.Contains("Window", atav.Text.ToString(), StringComparison.Ordinal);
+            var additionalDocument = project.AdditionalDocuments.Single(a => a.Name == "XamlFile.xaml");
+            var additionalDocumentText = additionalDocument.GetTextSynchronously(CancellationToken.None);
+            Assert.Contains("Window", additionalDocumentText.ToString(), StringComparison.Ordinal);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -2418,7 +2431,7 @@ class C1
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
-        public async Task TestProjectReferenceWithReferenceOutputAssemblyFalse()
+        public async Task TestProjectReferenceWithReferenceOutputAssemblyFalse_SolutionRoot()
         {
             var files = GetProjectReferenceSolutionFiles();
             files = VisitProjectReferences(
@@ -2435,6 +2448,29 @@ class C1
             {
                 Assert.Empty(project.ProjectReferences);
             }
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        public async Task TestProjectReferenceWithReferenceOutputAssemblyFalse_ProjectRoot()
+        {
+            var files = GetProjectReferenceSolutionFiles();
+            files = VisitProjectReferences(
+                files,
+                r => r.Add(new XElement(XName.Get("ReferenceOutputAssembly", MSBuildNamespace), "false")));
+
+            CreateFiles(files);
+
+            var referencingProjectPath = GetSolutionFileName(@"CSharpProject\CSharpProject_ProjectReference.csproj");
+            var referencedProjectPath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
+
+            using var workspace = CreateMSBuildWorkspace();
+            var project = await workspace.OpenProjectAsync(referencingProjectPath);
+
+            Assert.Empty(project.ProjectReferences);
+
+            // Project referenced through ProjectReference with ReferenceOutputAssembly=false
+            // should be present in the solution.
+            Assert.NotNull(project.Solution.GetProjectsByName("CSharpProject").SingleOrDefault());
         }
 
         private static FileSet VisitProjectReferences(FileSet files, Action<XElement> visitProjectReference)
@@ -3079,18 +3115,17 @@ class C { }";
             CreateFiles(GetSimpleCSharpSolutionFiles());
 
             using var workspace = CreateMSBuildWorkspace();
-            var loader = new CSharpProjectFileLoader();
 
             var projectFilePath = GetSolutionFileName(@"CSharpProject\CSharpProject.csproj");
 
             await using var buildHostProcessManager = new BuildHostProcessManager(ImmutableDictionary<string, string>.Empty);
 
-            var (buildHost, _) = await buildHostProcessManager.GetBuildHostAsync(projectFilePath, CancellationToken.None);
+            var buildHost = await buildHostProcessManager.GetBuildHostWithFallbackAsync(projectFilePath, CancellationToken.None);
             var projectFile = await buildHost.LoadProjectFileAsync(projectFilePath, LanguageNames.CSharp, CancellationToken.None);
             var projectFileInfo = (await projectFile.GetProjectFileInfosAsync(CancellationToken.None)).Single();
 
             var commandLineParser = workspace.Services
-                .GetLanguageServices(loader.Language)
+                .GetLanguageServices(LanguageNames.CSharp)
                 .GetRequiredService<ICommandLineParserService>();
 
             var projectDirectory = Path.GetDirectoryName(projectFilePath);
@@ -3290,7 +3325,7 @@ class C { }";
             using var workspace = CreateMSBuildWorkspace();
             var project = await workspace.OpenProjectAsync(GetSolutionFileName("Project.csproj"));
             var document = project.Documents.Single(d => d.Name == "MyClass.cs");
-            Assert.Equal(new[] { "dir1", "dir2", "dir3" }, document.Folders);
+            Assert.Equal(["dir1", "dir2", "dir3"], document.Folders);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -3303,7 +3338,7 @@ class C { }";
             using var workspace = CreateMSBuildWorkspace();
             var project = await workspace.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
             var linkedDocument = project.Documents.Single(d => d.Name == "Foo.cs");
-            Assert.Equal(new[] { "Blah" }, linkedDocument.Folders);
+            Assert.Equal(["Blah"], linkedDocument.Folders);
         }
 
         [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
@@ -3316,7 +3351,7 @@ class C { }";
             using var workspace = CreateMSBuildWorkspace();
             var project = await workspace.OpenProjectAsync(GetSolutionFileName(@"CSharpProject\CSharpProject.csproj"));
             var linkedDocument = project.Documents.Single(d => d.Name == "MyClass.cs");
-            Assert.Equal(new[] { "..", "MyDir" }, linkedDocument.Folders);
+            Assert.Equal(["..", "MyDir"], linkedDocument.Folders);
         }
 
         private class InMemoryAssemblyLoader : IAnalyzerAssemblyLoader

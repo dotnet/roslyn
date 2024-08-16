@@ -4,72 +4,71 @@
 
 using System;
 
-namespace Microsoft.CodeAnalysis.Shared.Extensions
+namespace Microsoft.CodeAnalysis.Shared.Extensions;
+
+internal partial class ITypeSymbolExtensions
 {
-    internal partial class ITypeSymbolExtensions
+    private class MinimalAccessibilityVisitor : SymbolVisitor<Accessibility>
     {
-        private class MinimalAccessibilityVisitor : SymbolVisitor<Accessibility>
+        public static readonly SymbolVisitor<Accessibility> Instance = new MinimalAccessibilityVisitor();
+
+        public override Accessibility DefaultVisit(ISymbol node)
+            => throw new NotImplementedException();
+
+        public override Accessibility VisitAlias(IAliasSymbol symbol)
+            => symbol.Target.Accept(this);
+
+        public override Accessibility VisitArrayType(IArrayTypeSymbol symbol)
+            => symbol.ElementType.Accept(this);
+
+        public override Accessibility VisitDynamicType(IDynamicTypeSymbol symbol)
+            => Accessibility.Public;
+
+        public override Accessibility VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
         {
-            public static readonly SymbolVisitor<Accessibility> Instance = new MinimalAccessibilityVisitor();
+            var accessibility = symbol.DeclaredAccessibility;
 
-            public override Accessibility DefaultVisit(ISymbol node)
-                => throw new NotImplementedException();
+            accessibility = AccessibilityUtilities.Minimum(accessibility, symbol.Signature.ReturnType.Accept(this));
 
-            public override Accessibility VisitAlias(IAliasSymbol symbol)
-                => symbol.Target.Accept(this);
-
-            public override Accessibility VisitArrayType(IArrayTypeSymbol symbol)
-                => symbol.ElementType.Accept(this);
-
-            public override Accessibility VisitDynamicType(IDynamicTypeSymbol symbol)
-                => Accessibility.Public;
-
-            public override Accessibility VisitFunctionPointerType(IFunctionPointerTypeSymbol symbol)
+            foreach (var parameter in symbol.Signature.Parameters)
             {
-                var accessibility = symbol.DeclaredAccessibility;
-
-                accessibility = AccessibilityUtilities.Minimum(accessibility, symbol.Signature.ReturnType.Accept(this));
-
-                foreach (var parameter in symbol.Signature.Parameters)
-                {
-                    accessibility = AccessibilityUtilities.Minimum(accessibility, parameter.Type.Accept(this));
-                }
-
-                // CallingConvention types are currently specced to always be public, but if that spec ever changes
-                // or the runtime creates special private types for it's own use, we'll be ready.
-                foreach (var callingConventionType in symbol.Signature.UnmanagedCallingConventionTypes)
-                {
-                    accessibility = AccessibilityUtilities.Minimum(accessibility, callingConventionType.Accept(this));
-                }
-
-                return accessibility;
+                accessibility = AccessibilityUtilities.Minimum(accessibility, parameter.Type.Accept(this));
             }
 
-            public override Accessibility VisitNamedType(INamedTypeSymbol symbol)
+            // CallingConvention types are currently specced to always be public, but if that spec ever changes
+            // or the runtime creates special private types for it's own use, we'll be ready.
+            foreach (var callingConventionType in symbol.Signature.UnmanagedCallingConventionTypes)
             {
-                var accessibility = symbol.DeclaredAccessibility;
-
-                foreach (var arg in symbol.TypeArguments)
-                {
-                    accessibility = AccessibilityUtilities.Minimum(accessibility, arg.Accept(this));
-                }
-
-                if (symbol.ContainingType != null)
-                {
-                    accessibility = AccessibilityUtilities.Minimum(accessibility, symbol.ContainingType.Accept(this));
-                }
-
-                return accessibility;
+                accessibility = AccessibilityUtilities.Minimum(accessibility, callingConventionType.Accept(this));
             }
 
-            public override Accessibility VisitPointerType(IPointerTypeSymbol symbol)
-                => symbol.PointedAtType.Accept(this);
+            return accessibility;
+        }
 
-            public override Accessibility VisitTypeParameter(ITypeParameterSymbol symbol)
+        public override Accessibility VisitNamedType(INamedTypeSymbol symbol)
+        {
+            var accessibility = symbol.DeclaredAccessibility;
+
+            foreach (var arg in symbol.TypeArguments)
             {
-                // TODO(cyrusn): Do we have to consider the constraints?
-                return Accessibility.Public;
+                accessibility = AccessibilityUtilities.Minimum(accessibility, arg.Accept(this));
             }
+
+            if (symbol.ContainingType != null)
+            {
+                accessibility = AccessibilityUtilities.Minimum(accessibility, symbol.ContainingType.Accept(this));
+            }
+
+            return accessibility;
+        }
+
+        public override Accessibility VisitPointerType(IPointerTypeSymbol symbol)
+            => symbol.PointedAtType.Accept(this);
+
+        public override Accessibility VisitTypeParameter(ITypeParameterSymbol symbol)
+        {
+            // TODO(cyrusn): Do we have to consider the constraints?
+            return Accessibility.Public;
         }
     }
 }

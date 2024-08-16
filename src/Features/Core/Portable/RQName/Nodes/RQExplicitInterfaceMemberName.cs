@@ -4,19 +4,18 @@
 
 using Microsoft.CodeAnalysis.Features.RQName.SimpleTree;
 
-namespace Microsoft.CodeAnalysis.Features.RQName.Nodes
+namespace Microsoft.CodeAnalysis.Features.RQName.Nodes;
+
+internal class RQExplicitInterfaceMemberName(RQType interfaceType, RQOrdinaryMethodPropertyOrEventName name) : RQMethodPropertyOrEventName
 {
-    internal class RQExplicitInterfaceMemberName(RQType interfaceType, RQOrdinaryMethodPropertyOrEventName name) : RQMethodPropertyOrEventName
+    public readonly RQType InterfaceType = interfaceType;
+    public readonly RQOrdinaryMethodPropertyOrEventName Name = name;
+
+    public override string OrdinaryNameValue
     {
-        public readonly RQType InterfaceType = interfaceType;
-        public readonly RQOrdinaryMethodPropertyOrEventName Name = name;
-
-        public override string OrdinaryNameValue
-        {
-            get { return Name.OrdinaryNameValue; }
-        }
-
-        public override SimpleGroupNode ToSimpleTree()
-            => new(RQNameStrings.IntfExplName, InterfaceType.ToSimpleTree(), Name.ToSimpleTree());
+        get { return Name.OrdinaryNameValue; }
     }
+
+    public override SimpleGroupNode ToSimpleTree()
+        => new(RQNameStrings.IntfExplName, InterfaceType.ToSimpleTree(), Name.ToSimpleTree());
 }

@@ -424,7 +424,7 @@ namespace Microsoft.Cci
         private object[] _pseudoSymbolTokenToReferenceMap;
         private UserStringHandle[] _pseudoStringTokenToTokenMap;
         private bool _userStringTokenOverflow;
-        private List<string> _pseudoStringTokenToStringMap;
+        private string[] _pseudoStringTokenToStringMap;
         private ReferenceIndexer _referenceVisitor;
 
         protected readonly MetadataBuilder metadata;
@@ -489,8 +489,8 @@ namespace Microsoft.Cci
 
         private void CreateUserStringIndices()
         {
-            _pseudoStringTokenToStringMap = [.. module.GetStrings()];
-            _pseudoStringTokenToTokenMap = new UserStringHandle[_pseudoStringTokenToStringMap.Count];
+            _pseudoStringTokenToStringMap = module.CopyStrings();
+            _pseudoStringTokenToTokenMap = new UserStringHandle[_pseudoStringTokenToStringMap.Length];
         }
 
         private void CreateIndicesForModule()
@@ -876,6 +876,11 @@ namespace Microsoft.Cci
                 result |= GenericParameterAttributes.NotNullableValueTypeConstraint;
             }
 
+            if (genPar.AllowsRefLikeType)
+            {
+                result |= MetadataHelpers.GenericParameterAttributesAllowByRefLike;
+            }
+
             if (genPar.MustHaveDefaultConstructor)
             {
                 result |= GenericParameterAttributes.DefaultConstructorConstraint;
@@ -897,27 +902,6 @@ namespace Microsoft.Cci
             return aref == null || ReferenceEquals(aref, this.module.GetContainingAssembly(Context))
                 ? (EntityHandle)GetAssemblyFileHandle(mref)
                 : GetAssemblyReferenceHandle(aref);
-        }
-
-        private static uint GetManagedResourceOffset(ManagedResource resource, BlobBuilder resourceWriter)
-        {
-            if (resource.ExternalFile != null)
-            {
-                return resource.Offset;
-            }
-
-            int result = resourceWriter.Count;
-            resource.WriteData(resourceWriter);
-            return (uint)result;
-        }
-
-        private static uint GetManagedResourceOffset(BlobBuilder resource, BlobBuilder resourceWriter)
-        {
-            int result = resourceWriter.Count;
-            resourceWriter.WriteInt32(resource.Count);
-            resource.WriteContentTo(resourceWriter);
-            resourceWriter.Align(8);
-            return (uint)result;
         }
 
         public static string GetMetadataName(INamedTypeReference namedType, int generation)
@@ -1696,7 +1680,8 @@ namespace Microsoft.Cci
             };
         }
 
-        public void WriteMetadataAndIL(PdbWriter nativePdbWriterOpt, Stream metadataStream, Stream ilStream, Stream portablePdbStreamOpt, out MetadataSizes metadataSizes)
+#nullable enable
+        public void WriteMetadataAndIL(PdbWriter? nativePdbWriterOpt, Stream metadataStream, Stream ilStream, Stream? portablePdbStreamOpt, out MetadataSizes metadataSizes)
         {
             Debug.Assert(nativePdbWriterOpt == null ^ portablePdbStreamOpt == null);
 
@@ -1705,8 +1690,8 @@ namespace Microsoft.Cci
             // TODO: we can precalculate the exact size of IL stream
             var ilBuilder = new BlobBuilder(1024);
             var metadataBuilder = new BlobBuilder(4 * 1024);
-            var mappedFieldDataBuilder = new BlobBuilder(0);
-            var managedResourceDataBuilder = new BlobBuilder(0);
+            PooledBlobBuilder? mappedFieldDataBuilder = null;
+            PooledBlobBuilder? managedResourceDataBuilder = null;
 
             // Add 4B of padding to the start of the separated IL stream,
             // so that method RVAs, which are offsets to this stream, are never 0.
@@ -1721,8 +1706,8 @@ namespace Microsoft.Cci
             BuildMetadataAndIL(
                 nativePdbWriterOpt,
                 ilBuilder,
-                mappedFieldDataBuilder,
-                managedResourceDataBuilder,
+                out mappedFieldDataBuilder,
+                out managedResourceDataBuilder,
                 out Blob mvidFixup,
                 out Blob mvidStringFixup);
 
@@ -1731,8 +1716,8 @@ namespace Microsoft.Cci
             Debug.Assert(typeSystemRowCounts[(int)TableIndex.EncMap] == 0);
             PopulateEncTables(typeSystemRowCounts);
 
-            Debug.Assert(mappedFieldDataBuilder.Count == 0);
-            Debug.Assert(managedResourceDataBuilder.Count == 0);
+            Debug.Assert(mappedFieldDataBuilder == null);
+            Debug.Assert(managedResourceDataBuilder == null);
             Debug.Assert(mvidFixup.IsDefault);
             Debug.Assert(mvidStringFixup.IsDefault);
 
@@ -1740,7 +1725,7 @@ namespace Microsoft.Cci
             // https://github.com/dotnet/roslyn/issues/70389
             if (!IsFullMetadata)
             {
-                metadata.GetType().GetField("_customAttributeTableNeedsSorting", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(metadata, false);
+                metadata.GetType().GetField("_customAttributeTableNeedsSorting", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(metadata, false);
             }
 
             // TODO (https://github.com/dotnet/roslyn/issues/3905):
@@ -1783,10 +1768,10 @@ namespace Microsoft.Cci
         }
 
         public void BuildMetadataAndIL(
-            PdbWriter nativePdbWriterOpt,
+            PdbWriter? nativePdbWriterOpt,
             BlobBuilder ilBuilder,
-            BlobBuilder mappedFieldDataBuilder,
-            BlobBuilder managedResourceDataBuilder,
+            out PooledBlobBuilder? mappedFieldDataBuilder,
+            out PooledBlobBuilder? managedResourceDataBuilder,
             out Blob mvidFixup,
             out Blob mvidStringFixup)
         {
@@ -1849,15 +1834,17 @@ namespace Microsoft.Cci
 
             ReportReferencesToAddedSymbols();
 
-            BlobBuilder dynamicAnalysisDataOpt = null;
+            PooledBlobBuilder? dynamicAnalysisData = null;
             if (_dynamicAnalysisDataWriterOpt != null)
             {
-                dynamicAnalysisDataOpt = new BlobBuilder();
-                _dynamicAnalysisDataWriterOpt.SerializeMetadataTables(dynamicAnalysisDataOpt);
+                dynamicAnalysisData = PooledBlobBuilder.GetInstance();
+                _dynamicAnalysisDataWriterOpt.SerializeMetadataTables(dynamicAnalysisData);
             }
 
-            PopulateTypeSystemTables(methodBodyOffsets, mappedFieldDataBuilder, managedResourceDataBuilder, dynamicAnalysisDataOpt, out mvidFixup);
+            PopulateTypeSystemTables(methodBodyOffsets, out mappedFieldDataBuilder, out managedResourceDataBuilder, dynamicAnalysisData, out mvidFixup);
+            dynamicAnalysisData?.Free();
         }
+#nullable disable
 
         public virtual void PopulateEncTables(ImmutableArray<int> typeSystemRowCounts)
         {
@@ -1916,7 +1903,8 @@ namespace Microsoft.Cci
             }).ToImmutableArray();
         }
 
-        private void PopulateTypeSystemTables(int[] methodBodyOffsets, BlobBuilder mappedFieldDataWriter, BlobBuilder resourceWriter, BlobBuilder dynamicAnalysisDataOpt, out Blob mvidFixup)
+#nullable enable
+        private void PopulateTypeSystemTables(int[] methodBodyOffsets, out PooledBlobBuilder? mappedFieldDataWriter, out PooledBlobBuilder? resourceWriter, BlobBuilder? dynamicAnalysisData, out Blob mvidFixup)
         {
             var sortedGenericParameters = GetSortedGenericParameters();
 
@@ -1930,13 +1918,13 @@ namespace Microsoft.Cci
             this.PopulateExportedTypeTableRows();
             this.PopulateFieldLayoutTableRows();
             this.PopulateFieldMarshalTableRows();
-            this.PopulateFieldRvaTableRows(mappedFieldDataWriter);
+            this.PopulateFieldRvaTableRows(out mappedFieldDataWriter);
             this.PopulateFieldTableRows();
             this.PopulateFileTableRows();
             this.PopulateGenericParameters(sortedGenericParameters);
             this.PopulateImplMapTableRows();
             this.PopulateInterfaceImplTableRows();
-            this.PopulateManifestResourceTableRows(resourceWriter, dynamicAnalysisDataOpt);
+            this.PopulateManifestResourceTableRows(out resourceWriter, dynamicAnalysisData);
             this.PopulateMemberRefTableRows();
             this.PopulateMethodImplTableRows();
             this.PopulateMethodTableRows(methodBodyOffsets);
@@ -1956,6 +1944,7 @@ namespace Microsoft.Cci
             // This table is populated after the others because it depends on the order of the entries of the generic parameter table.
             this.PopulateCustomAttributeTableRows(sortedGenericParameters);
         }
+#nullable disable
 
         private void PopulateAssemblyRefTableRows()
         {
@@ -2336,14 +2325,19 @@ namespace Microsoft.Cci
             }
         }
 
-        private void PopulateFieldRvaTableRows(BlobBuilder mappedFieldDataWriter)
+#nullable enable
+        private void PopulateFieldRvaTableRows(out PooledBlobBuilder? mappedFieldDataWriter)
         {
+            mappedFieldDataWriter = null;
+
             foreach (IFieldDefinition fieldDef in this.GetFieldDefs())
             {
                 if (fieldDef.MappedData.IsDefault)
                 {
                     continue;
                 }
+
+                mappedFieldDataWriter ??= PooledBlobBuilder.GetInstance();
 
                 // The compiler always aligns each RVA data field to an 8-byte boundary; this accomodates the alignment
                 // needs for all primitive types, regardless of which type is actually being used, at the expense of
@@ -2362,6 +2356,7 @@ namespace Microsoft.Cci
                     offset: offset);
             }
         }
+#nullable disable
 
         private void PopulateFieldTableRows()
         {
@@ -2417,6 +2412,7 @@ namespace Microsoft.Cci
                     continue;
                 }
 
+                Debug.Assert(propDef.DefaultValue != null);
                 metadata.AddConstant(
                     parent: GetPropertyDefIndex(propDef),
                     value: propDef.DefaultValue.Value);
@@ -2506,15 +2502,19 @@ namespace Microsoft.Cci
             }
         }
 
-        private void PopulateManifestResourceTableRows(BlobBuilder resourceDataWriter, BlobBuilder dynamicAnalysisDataOpt)
+#nullable enable
+        private void PopulateManifestResourceTableRows(out PooledBlobBuilder? resourceDataWriter, BlobBuilder? dynamicAnalysisData)
         {
-            if (dynamicAnalysisDataOpt != null)
+            resourceDataWriter = null;
+
+            if (dynamicAnalysisData != null)
             {
+                resourceDataWriter = PooledBlobBuilder.GetInstance();
                 metadata.AddManifestResource(
                     attributes: ManifestResourceAttributes.Private,
                     name: metadata.GetOrAddString("<DynamicAnalysisData>"),
                     implementation: default(EntityHandle),
-                    offset: GetManagedResourceOffset(dynamicAnalysisDataOpt, resourceDataWriter)
+                    offset: writeBuilderResourceAndGetOffset(dynamicAnalysisData, resourceDataWriter)
                 );
             }
 
@@ -2536,12 +2536,35 @@ namespace Microsoft.Cci
                     attributes: resource.IsPublic ? ManifestResourceAttributes.Public : ManifestResourceAttributes.Private,
                     name: GetStringHandleForNameAndCheckLength(resource.Name),
                     implementation: implementation,
-                    offset: GetManagedResourceOffset(resource, resourceDataWriter));
+                    offset: writeManagedResourceAndGetOffset(resource, ref resourceDataWriter));
             }
 
             // the stream should be aligned:
-            Debug.Assert((resourceDataWriter.Count % ManagedPEBuilder.ManagedResourcesDataAlignment) == 0);
+            Debug.Assert(resourceDataWriter == null || (resourceDataWriter.Count % ManagedPEBuilder.ManagedResourcesDataAlignment) == 0);
+
+            static uint writeManagedResourceAndGetOffset(ManagedResource resource, ref PooledBlobBuilder? resourceWriter)
+            {
+                if (resource.ExternalFile != null)
+                {
+                    return resource.Offset;
+                }
+
+                resourceWriter ??= PooledBlobBuilder.GetInstance();
+                int result = resourceWriter.Count;
+                resource.WriteData(resourceWriter);
+                return (uint)result;
+            }
+
+            static uint writeBuilderResourceAndGetOffset(BlobBuilder resource, BlobBuilder resourceWriter)
+            {
+                int result = resourceWriter.Count;
+                resourceWriter.WriteInt32(resource.Count);
+                resource.WriteContentTo(resourceWriter);
+                resourceWriter.Align(8);
+                return (uint)result;
+            }
         }
+#nullable disable
 
         private void PopulateMemberRefTableRows()
         {

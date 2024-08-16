@@ -7,14 +7,13 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
-namespace Microsoft.CodeAnalysis.Host
+namespace Microsoft.CodeAnalysis.Host;
+
+internal interface ICompilationFactoryService : ILanguageService
 {
-    internal interface ICompilationFactoryService : ILanguageService
-    {
-        Compilation CreateCompilation(string assemblyName, CompilationOptions options);
-        Compilation CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type? hostObjectType);
-        CompilationOptions GetDefaultCompilationOptions();
-        CompilationOptions? TryParsePdbCompilationOptions(IReadOnlyDictionary<string, string> compilationOptionsMetadata);
-        GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts);
-    }
+    Compilation CreateCompilation(string assemblyName, CompilationOptions options);
+    Compilation CreateSubmissionCompilation(string assemblyName, CompilationOptions options, Type? hostObjectType);
+    CompilationOptions GetDefaultCompilationOptions();
+    CompilationOptions? TryParsePdbCompilationOptions(IReadOnlyDictionary<string, string> compilationOptionsMetadata);
+    GeneratorDriver CreateGeneratorDriver(ParseOptions parseOptions, ImmutableArray<ISourceGenerator> generators, AnalyzerConfigOptionsProvider optionsProvider, ImmutableArray<AdditionalText> additionalTexts);
 }

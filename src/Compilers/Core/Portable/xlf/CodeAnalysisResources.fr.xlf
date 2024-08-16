@@ -59,22 +59,22 @@
       </trans-unit>
       <trans-unit id="EncDeletedLambdaInvoked">
         <source>Attempted to invoke a deleted lambda or local function implementation. This can happen when lambda or local function is deleted while the application is running.</source>
-        <target state="new">Attempted to invoke a deleted lambda or local function implementation. This can happen when lambda or local function is deleted while the application is running.</target>
+        <target state="translated">Tentative d’appel d’une implémentation de fonction lambda ou locale supprimée. Cela peut se produire quand une fonction lambda ou locale est supprimée pendant l’exécution de l’application.</target>
         <note />
       </trans-unit>
       <trans-unit id="EncDeletedMethodInvoked">
         <source>Attempted to invoke a deleted method implementation. This can happen when a method is deleted or its name or signature is changed while the application is running.</source>
-        <target state="new">Attempted to invoke a deleted method implementation. This can happen when a method is deleted or its name or signature is changed while the application is running.</target>
+        <target state="translated">Tentative d’appel d’une implémentation de méthode supprimée. Cela peut se produire lorsqu’une méthode est supprimée ou lorsque son nom ou sa signature est modifié pendant l’exécution de l’application.</target>
         <note />
       </trans-unit>
       <trans-unit id="EncLambdaRudeEdit">
         <source>Attempted to invoke lambda or local function with an unsupported change made while the application is running: {0}</source>
-        <target state="new">Attempted to invoke lambda or local function with an unsupported change made while the application is running: {0}</target>
+        <target state="translated">Tentative d’appel d’une fonction lambda ou locale présentant une modification non prise en charge effectuée pendant l’exécution de l’application : {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="EncLambdaRudeEdit_CapturedVariables">
         <source>Attempted to invoke lambda or local function that has an unsupported change to captured variables made while the application is running</source>
-        <target state="new">Attempted to invoke lambda or local function that has an unsupported change to captured variables made while the application is running</target>
+        <target state="translated">Tentative d’appel d’une fonction lambda ou locale qui présente une modification non prise en charge des variables capturées effectuée pendant l’exécution de l’application</target>
         <note />
       </trans-unit>
       <trans-unit id="EndMustNotBeLessThanStart">

@@ -4,14 +4,13 @@
 
 #nullable disable
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense;
+
+internal interface ISession<TModel>
 {
-    internal interface ISession<TModel>
-    {
-        TModel InitialUnfilteredModel { get; }
+    TModel InitialUnfilteredModel { get; }
 
-        void Stop();
+    void Stop();
 
-        TModel WaitForController();
-    }
+    TModel WaitForController();
 }

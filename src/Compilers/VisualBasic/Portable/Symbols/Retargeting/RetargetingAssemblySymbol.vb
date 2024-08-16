@@ -190,7 +190,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
         ''' <param name="type"></param>
         ''' <returns></returns>
         ''' <remarks></remarks>
-        Friend Overrides Function GetDeclaredSpecialType(type As SpecialType) As NamedTypeSymbol
+        Friend Overrides Function GetDeclaredSpecialType(type As ExtendedSpecialType) As NamedTypeSymbol
             ' Cor library should not have any references and, therefore, should never be
             ' wrapped by a RetargetingAssemblySymbol.
             Throw ExceptionUtilities.Unreachable

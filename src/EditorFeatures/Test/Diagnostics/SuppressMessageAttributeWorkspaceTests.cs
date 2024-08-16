@@ -13,24 +13,20 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
-{
-    [UseExportProvider]
-    public class SuppressMessageAttributeWorkspaceTests : SuppressMessageAttributeTests
-    {
-        private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures
-            .AddExcludedPartTypes(typeof(IDiagnosticUpdateSourceRegistrationService))
-            .AddParts(typeof(MockDiagnosticUpdateSourceRegistrationService));
+namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 
-        private static readonly Lazy<MetadataReference> _unconditionalSuppressMessageRef = new(() =>
-        {
-            const string unconditionalSuppressMessageDef = @"
+[UseExportProvider]
+public class SuppressMessageAttributeWorkspaceTests : SuppressMessageAttributeTests
+{
+    private static readonly TestComposition s_compositionWithMockDiagnosticUpdateSourceRegistrationService = EditorTestCompositions.EditorFeatures;
+
+    private static readonly Lazy<MetadataReference> _unconditionalSuppressMessageRef = new(() =>
+    {
+        const string unconditionalSuppressMessageDef = @"
 namespace System.Diagnostics.CodeAnalysis
 {
     [System.AttributeUsage(System.AttributeTargets.All, AllowMultiple=true, Inherited=false)]
@@ -49,64 +45,64 @@ namespace System.Diagnostics.CodeAnalysis
         public string Justification { get; set; }
     }
 }";
-            return CSharpCompilation.Create("unconditionalsuppress",
-                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
-                syntaxTrees: new[] { CSharpSyntaxTree.ParseText(unconditionalSuppressMessageDef) },
-                references: new[] { TestBase.MscorlibRef }).EmitToImageReference();
-        }, LazyThreadSafetyMode.PublicationOnly);
+        return CSharpCompilation.Create("unconditionalsuppress",
+             options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
+            syntaxTrees: new[] { CSharpSyntaxTree.ParseText(unconditionalSuppressMessageDef) },
+            references: new[] { TestBase.MscorlibRef }).EmitToImageReference();
+    }, LazyThreadSafetyMode.PublicationOnly);
 
-        protected override async Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, string rootNamespace = null)
+    protected override async Task VerifyAsync(string source, string language, DiagnosticAnalyzer[] analyzers, DiagnosticDescription[] expectedDiagnostics, string rootNamespace = null)
+    {
+        using var workspace = CreateWorkspaceFromFile(source, language, rootNamespace);
+
+        workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[]
         {
-            using var workspace = CreateWorkspaceFromFile(source, language, rootNamespace);
+            new AnalyzerImageReference(analyzers.ToImmutableArray())
+        }).WithProjectMetadataReferences(
+            workspace.Projects.Single().Id,
+            workspace.Projects.Single().MetadataReferences.Append(_unconditionalSuppressMessageRef.Value)));
 
-            workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[]
-            {
-                new AnalyzerImageReference(analyzers.ToImmutableArray())
-            }).WithProjectMetadataReferences(
-                workspace.Projects.Single().Id,
-                workspace.Projects.Single().MetadataReferences.Append(_unconditionalSuppressMessageRef.Value)));
+        var documentId = workspace.Documents[0].Id;
+        var document = workspace.CurrentSolution.GetDocument(documentId);
+        var span = (await document.GetSyntaxRootAsync()).FullSpan;
 
-            var documentId = workspace.Documents[0].Id;
-            var document = workspace.CurrentSolution.GetDocument(documentId);
-            var span = (await document.GetSyntaxRootAsync()).FullSpan;
+        var actualDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
+        actualDiagnostics.Verify(expectedDiagnostics);
+    }
 
-            var actualDiagnostics = await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(workspace, document, span);
-            actualDiagnostics.Verify(expectedDiagnostics);
+    private static TestWorkspace CreateWorkspaceFromFile(string source, string language, string rootNamespace)
+    {
+        if (language == LanguageNames.CSharp)
+        {
+            return TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
         }
-
-        private static TestWorkspace CreateWorkspaceFromFile(string source, string language, string rootNamespace)
+        else
         {
-            if (language == LanguageNames.CSharp)
-            {
-                return TestWorkspace.CreateCSharp(source, composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
-            }
-            else
-            {
-                return TestWorkspace.CreateVisualBasic(
-                    source,
-                    compilationOptions: new VisualBasic.VisualBasicCompilationOptions(
-                        OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace),
-                    composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
-            }
+            return TestWorkspace.CreateVisualBasic(
+                source,
+                compilationOptions: new VisualBasic.VisualBasicCompilationOptions(
+                    OutputKind.DynamicallyLinkedLibrary, rootNamespace: rootNamespace),
+                composition: s_compositionWithMockDiagnosticUpdateSourceRegistrationService);
         }
+    }
 
-        protected override bool ConsiderArgumentsForComparingDiagnostics
+    protected override bool ConsiderArgumentsForComparingDiagnostics
+    {
+        get
         {
-            get
-            {
-                // Round tripping diagnostics from DiagnosticData causes the Arguments info stored within compiler DiagnosticWithInfo to be lost, so don't compare Arguments in IDE.
-                // NOTE: We will still compare squiggled text for the diagnostics, which is also a sufficient test.
-                return false;
-            }
+            // Round tripping diagnostics from DiagnosticData causes the Arguments info stored within compiler DiagnosticWithInfo to be lost, so don't compare Arguments in IDE.
+            // NOTE: We will still compare squiggled text for the diagnostics, which is also a sufficient test.
+            return false;
         }
+    }
 
-        [Fact]
-        public async Task AnalyzerExceptionDiagnosticsWithDifferentContext()
-        {
-            var diagnostic = Diagnostic("AD0001", null);
+    [Fact]
+    public async Task AnalyzerExceptionDiagnosticsWithDifferentContext()
+    {
+        var diagnostic = Diagnostic("AD0001", null);
 
-            // expect 3 different diagnostics with 3 different contexts.
-            await VerifyCSharpAsync(@"
+        // expect 3 different diagnostics with 3 different contexts.
+        await VerifyCSharpAsync(@"
 public class C
 {
 }
@@ -117,18 +113,17 @@ public class C2
 {
 }
 ",
-                new[] { new ThrowExceptionForEachNamedTypeAnalyzer(ExceptionDispatchInfo.Capture(new Exception())) },
-                diagnostics: [diagnostic, diagnostic, diagnostic]);
-        }
+            new[] { new ThrowExceptionForEachNamedTypeAnalyzer(ExceptionDispatchInfo.Capture(new Exception())) },
+            diagnostics: [diagnostic, diagnostic, diagnostic]);
+    }
 
-        [Fact]
-        public async Task AnalyzerExceptionFromSupportedDiagnosticsCall()
-        {
-            var diagnostic = Diagnostic("AD0001", null);
+    [Fact]
+    public async Task AnalyzerExceptionFromSupportedDiagnosticsCall()
+    {
+        var diagnostic = Diagnostic("AD0001", null);
 
-            await VerifyCSharpAsync("public class C { }",
-                new[] { new ThrowExceptionFromSupportedDiagnostics(new Exception()) },
-                diagnostics: [diagnostic]);
-        }
+        await VerifyCSharpAsync("public class C { }",
+            new[] { new ThrowExceptionFromSupportedDiagnostics(new Exception()) },
+            diagnostics: [diagnostic]);
     }
 }

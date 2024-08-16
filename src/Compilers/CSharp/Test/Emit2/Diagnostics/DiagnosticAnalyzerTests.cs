@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#pragma warning disable RSEXPERIMENTAL001 // Internal usage of experimental API
 #nullable disable
 
 using System;
@@ -4006,9 +4007,9 @@ public class C
         {
             private readonly ConcurrentDictionary<SyntaxTree, SemanticModel> _cache = new ConcurrentDictionary<SyntaxTree, SemanticModel>();
 
-            public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, bool ignoreAccessibility = false)
+            public override SemanticModel GetSemanticModel(SyntaxTree tree, Compilation compilation, SemanticModelOptions options)
             {
-                return _cache.GetOrAdd(tree, compilation.CreateSemanticModel(tree, ignoreAccessibility));
+                return _cache.GetOrAdd(tree, compilation.CreateSemanticModel(tree, options));
             }
 
             public void VerifyCachedModel(SyntaxTree tree, SemanticModel model)
@@ -4358,6 +4359,41 @@ partial class B
 
             Assert.True(analyzer.AnalyzerInvoked);
             Assert.Equal(expectedMinimumReportedSeverity, analyzer.MinimumReportedSeverity);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74315")]
+        public async Task TestOperationConstructorBlockCallbackOnInvalidBaseCall()
+        {
+            // lang=C#-Test
+            string source = """
+                record B(int I) : A(I);
+                """;
+
+            var tree = CSharpSyntaxTree.ParseText(source);
+            var compilation = CreateCompilationWithCSharp(new[] { tree, CSharpSyntaxTree.ParseText(IsExternalInitTypeDefinition) });
+            compilation.VerifyDiagnostics(
+                // (1,19): error CS0246: The type or namespace name 'A' could not be found (are you missing a using directive or an assembly reference?)
+                // record B(int I) : A(I);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A").WithArguments("A").WithLocation(1, 19),
+                // (1,20): error CS1729: 'A' does not contain a constructor that takes 1 arguments
+                // record B(int I) : A(I);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(I)").WithArguments("A", "1").WithLocation(1, 20));
+
+            // Verify analyzer execution from command line
+            // 'VerifyAnalyzerDiagnostics' helper executes the analyzers on the entire compilation without any state-based analysis.
+            var analyzer = new RegisterOperationBlockAndOperationActionAnalyzer();
+            compilation.VerifyAnalyzerDiagnostics([analyzer],
+                expected: Diagnostic("ID0001", "B").WithLocation(1, 8));
+
+            // Now verify analyzer execution for a single file.
+            // 'GetAnalyzerSemanticDiagnosticsAsync' executes the analyzers on the given file with state-based analysis.
+            var model = compilation.GetSemanticModel(tree);
+            var compWithAnalyzers = new CompilationWithAnalyzers(
+                compilation,
+                [analyzer],
+                new AnalyzerOptions([]));
+            var diagnostics = await compWithAnalyzers.GetAnalyzerSemanticDiagnosticsAsync(model, filterSpan: null, CancellationToken.None);
+            diagnostics.Verify(Diagnostic("ID0001", "B").WithLocation(1, 8));
         }
     }
 }

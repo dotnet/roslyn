@@ -5,21 +5,20 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.Completion;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.ArgumentProviders
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.ArgumentProviders;
+
+public abstract class AbstractCSharpArgumentProviderTests<TWorkspaceFixture>
+    : AbstractArgumentProviderTests<TWorkspaceFixture>
+    where TWorkspaceFixture : TestWorkspaceFixture, new()
 {
-    public abstract class AbstractCSharpArgumentProviderTests<TWorkspaceFixture>
-        : AbstractArgumentProviderTests<TWorkspaceFixture>
-        where TWorkspaceFixture : TestWorkspaceFixture, new()
+    protected override (SyntaxNode argumentList, ImmutableArray<SyntaxNode> arguments) GetArgumentList(SyntaxToken token)
     {
-        protected override (SyntaxNode argumentList, ImmutableArray<SyntaxNode> arguments) GetArgumentList(SyntaxToken token)
-        {
-            var argumentList = token.GetRequiredParent().GetAncestorsOrThis<BaseArgumentListSyntax>().First();
-            return (argumentList, argumentList.Arguments.ToImmutableArray<SyntaxNode>());
-        }
+        var argumentList = token.GetRequiredParent().GetAncestorsOrThis<BaseArgumentListSyntax>().First();
+        return (argumentList, argumentList.Arguments.ToImmutableArray<SyntaxNode>());
     }
 }

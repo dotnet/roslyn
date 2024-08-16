@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 
+#pragma warning disable RS0062 // Do not implicitly capture primary constructor parameters
+
 namespace Roslyn.Test.Utilities
 {
     public class TestEqualityComparer<T>(Func<T?, T?, bool>? equals = null, Func<T, int>? getHashCode = null) : IEqualityComparer<T>

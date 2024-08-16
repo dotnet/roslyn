@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             TaskTestUtil.AssertCommandLine(csc, engine, "/out:test.dll", "/target:library", "test.cs", "blah.cs");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly), Reason = "https://github.com/dotnet/roslyn/issues/71571")]
         public void ReferenceForms()
         {
             parse(@"util.dll", null, @"/reference:util.dll");

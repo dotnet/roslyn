@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void IntegrityTest()
         {
-            for (int i = 1; i <= (int)SpecialType.Count; i++)
+            for (int i = 1; i < (int)InternalSpecialType.NextAvailable; i++)
             {
-                string name = SpecialTypes.GetMetadataName((SpecialType)i);
-                Assert.Equal((SpecialType)i, SpecialTypes.GetTypeFromMetadataName(name));
+                string name = SpecialTypes.GetMetadataName((ExtendedSpecialType)i);
+                Assert.Equal((ExtendedSpecialType)i, SpecialTypes.GetTypeFromMetadataName(name));
             }
 
             for (int i = 0; i <= (int)SpecialType.Count; i++)

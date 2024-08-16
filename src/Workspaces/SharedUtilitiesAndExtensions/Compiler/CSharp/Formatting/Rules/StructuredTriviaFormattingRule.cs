@@ -5,44 +5,43 @@
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 
-namespace Microsoft.CodeAnalysis.CSharp.Formatting
+namespace Microsoft.CodeAnalysis.CSharp.Formatting;
+
+internal class StructuredTriviaFormattingRule : BaseFormattingRule
 {
-    internal class StructuredTriviaFormattingRule : BaseFormattingRule
+    internal const string Name = "CSharp Structured Trivia Formatting Rule";
+
+    public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
     {
-        internal const string Name = "CSharp Structured Trivia Formatting Rule";
-
-        public override AdjustNewLinesOperation? GetAdjustNewLinesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustNewLinesOperation nextOperation)
+        if (previousToken.Parent is StructuredTriviaSyntax || currentToken.Parent is StructuredTriviaSyntax)
         {
-            if (previousToken.Parent is StructuredTriviaSyntax || currentToken.Parent is StructuredTriviaSyntax)
-            {
-                return null;
-            }
-
-            return nextOperation.Invoke(in previousToken, in currentToken);
+            return null;
         }
 
-        public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+        return nextOperation.Invoke(in previousToken, in currentToken);
+    }
+
+    public override AdjustSpacesOperation? GetAdjustSpacesOperation(in SyntaxToken previousToken, in SyntaxToken currentToken, in NextGetAdjustSpacesOperation nextOperation)
+    {
+        if (previousToken.Parent is StructuredTriviaSyntax || currentToken.Parent is StructuredTriviaSyntax)
         {
-            if (previousToken.Parent is StructuredTriviaSyntax || currentToken.Parent is StructuredTriviaSyntax)
+            // this doesn't take care of all cases where tokens belong to structured trivia. this is only for cases we care
+            if (previousToken.Kind() == SyntaxKind.HashToken && SyntaxFacts.IsPreprocessorKeyword(currentToken.Kind()))
             {
-                // this doesn't take care of all cases where tokens belong to structured trivia. this is only for cases we care
-                if (previousToken.Kind() == SyntaxKind.HashToken && SyntaxFacts.IsPreprocessorKeyword(currentToken.Kind()))
-                {
-                    return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-                }
-
-                if (previousToken.Kind() == SyntaxKind.RegionKeyword && currentToken.Kind() == SyntaxKind.EndOfDirectiveToken)
-                {
-                    return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.PreserveSpaces);
-                }
-
-                if (currentToken.Kind() == SyntaxKind.EndOfDirectiveToken)
-                {
-                    return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.ForceSpacesIfOnSingleLine);
-                }
+                return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.ForceSpacesIfOnSingleLine);
             }
 
-            return nextOperation.Invoke(in previousToken, in currentToken);
+            if (previousToken.Kind() == SyntaxKind.RegionKeyword && currentToken.Kind() == SyntaxKind.EndOfDirectiveToken)
+            {
+                return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.PreserveSpaces);
+            }
+
+            if (currentToken.Kind() == SyntaxKind.EndOfDirectiveToken)
+            {
+                return CreateAdjustSpacesOperation(space: 0, option: AdjustSpacesOption.ForceSpacesIfOnSingleLine);
+            }
         }
+
+        return nextOperation.Invoke(in previousToken, in currentToken);
     }
 }

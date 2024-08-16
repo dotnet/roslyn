@@ -10,7 +10,9 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="$(MSBuildThisFileDirectory)CodeFixesResources.resx" GenerateSource="true" Link="CodeFixesResources.resx" />
-    <None Include="$(MSBuildThisFileDirectory)CodeFixesResources.resx" />
+    <None Include="$(MSBuildThisFileDirectory)CodeFixesResources.resx">
+      <SubType>Designer</SubType>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)AddAccessibilityModifiers\AbstractAddAccessibilityModifiersCodeFixProvider.cs" />
@@ -36,8 +38,64 @@
     <Compile Include="$(MSBuildThisFileDirectory)DocumentationComments\AbstractRemoveDocCommentNodeCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FileHeaders\AbstractFileHeaderCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ForEachCast\AbstractForEachCastCodeFixProvider.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingCodeFixHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Formatting\FormattingCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\AbstractGenerateConstructorService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\AbstractGenerateConstructorService.State.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\Argument.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\GenerateConstructorHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateConstructor\IGenerateConstructorService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\AbstractGenerateDefaultConstructorCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\AbstractGenerateDefaultConstructorsService.AbstractCodeAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\AbstractGenerateDefaultConstructorsService.CodeAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\AbstractGenerateDefaultConstructorsService.CodeActionAll.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\AbstractGenerateDefaultConstructorsService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\AbstractGenerateDefaultConstructorsService.State.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateDefaultConstructors\IGenerateDefaultConstructorsService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateEnumMember\AbstractGenerateEnumMemberService.CodeAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateEnumMember\AbstractGenerateEnumMemberService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateEnumMember\AbstractGenerateEnumMemberService.State.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateEnumMember\IGenerateEnumMemberService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateMember\AbstractGenerateMemberCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateMember\AbstractGenerateMemberService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\AbstractGenerateConversionService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\AbstractGenerateConversionService.State.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\AbstractGenerateDeconstructMethodService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\AbstractGenerateDeconstructMethodService.State.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\AbstractGenerateMethodService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\AbstractGenerateMethodService.State.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\AbstractGenerateParameterizedMemberService.AbstractInvocationInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\AbstractGenerateParameterizedMemberService.CodeAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\AbstractGenerateParameterizedMemberService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\AbstractGenerateParameterizedMemberService.MethodSignatureInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\AbstractGenerateParameterizedMemberService.SignatureInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\AbstractGenerateParameterizedMemberService.State.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\IGenerateConversionService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\IGenerateDeconstructMemberService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\IGenerateParameterizedMemberService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\MethodGenerationKind.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateParameterizedMember\TypeParameterSubstitution.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\AbstractGenerateVariableService.CodeAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\AbstractGenerateVariableService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\AbstractGenerateVariableService.GenerateLocalCodeAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\AbstractGenerateVariableService.GenerateParameterCodeAction.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\AbstractGenerateVariableService.State.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)GenerateVariable\IGenerateVariableService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\AbstractImplementAbstractClassCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementAbstractClass\ImplementAbstractClassData.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\AbstractImplementInterfaceCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\AbstractImplementInterfaceService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\AbstractImplementInterfaceService.State.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\IImplementInterfaceInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\IImplementInterfaceService.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceGenerator.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceGenerator_Conflicts.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceGenerator_DisposePattern.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceGenerator_Method.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementInterface\ImplementInterfaceGenerator_Property.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementType\ImplementTypeInsertionBehavior.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementType\ImplementTypeOptions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ImplementType\ImplementTypePropertyGenerationBehavior.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Iterator\AbstractIteratorCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeFieldReadonly\AbstractMakeFieldReadonlyCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MakeMemberStatic\AbstractMakeMemberStaticCodeFixProvider.cs" />
@@ -48,6 +106,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\AbstractChangeNamespaceToMatchFolderCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)MatchFolderAndNamespace\AbstractChangeNamespaceToMatchFolderCodeFixProvider.CustomFixAllProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NamingStyle\NamingStyleCodeFixProvider.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Naming\FallbackNamingRules.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Naming\NamingExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\ConsecutiveStatementPlacement\ConsecutiveStatementPlacementCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)NewLines\MultipleBlankLines\AbstractMultipleBlankLinesCodeFixProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)OrderModifiers\AbstractOrderModifiersCodeFixProvider.cs" />

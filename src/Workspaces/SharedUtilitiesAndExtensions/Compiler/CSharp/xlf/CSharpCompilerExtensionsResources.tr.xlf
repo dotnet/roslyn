@@ -7,6 +7,11 @@
         <target state="translated">Kod bloğu tercihleri</target>
         <note />
       </trans-unit>
+      <trans-unit id="EditorConfig_option_0_contains_unrecognized_value_1">
+        <source>EditorConfig option '{0}' contains unrecognized value '{1}'</source>
+        <target state="new">EditorConfig option '{0}' contains unrecognized value '{1}'</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Expected_string_or_char_literal">
         <source>Expected string or char literal</source>
         <target state="translated">Beklenen dize veya karakter sabiti değeri</target>
@@ -26,12 +31,6 @@
         <source>Pattern matching preferences</source>
         <target state="translated">Desen eşleştirme tercihleri</target>
         <note />
-      </trans-unit>
-      <trans-unit id="_0_1_is_not_supported_in_this_version">
-        <source>'{0}.{1}' is not supported in this version</source>
-        <target state="translated">'{0}.{1}' bu sürümde desteklenmiyor</target>
-        <note>{0}: A type name
-{1}: A member name</note>
       </trans-unit>
       <trans-unit id="using_directive_preferences">
         <source>'using' directive preferences</source>

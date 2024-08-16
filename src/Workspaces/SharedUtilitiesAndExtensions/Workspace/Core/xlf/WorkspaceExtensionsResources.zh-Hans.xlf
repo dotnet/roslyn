@@ -47,6 +47,11 @@
         <target state="translated">目标类型必须是 {0} 或 {1}，但给定类型是 {2}。</target>
         <note />
       </trans-unit>
+      <trans-unit id="Document_does_not_support_syntax_trees">
+        <source>Document does not support syntax trees</source>
+        <target state="new">Document does not support syntax trees</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_all_0">
         <source>Fix all '{0}'</source>
         <target state="translated">修复所有“{0}”</target>
@@ -70,16 +75,6 @@
       <trans-unit id="Fix_all_0_in_Solution">
         <source>Fix all '{0}' in Solution</source>
         <target state="translated">修复解决方案中的所有“{0}”</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_containing_member_for_1">
-        <source>Fix all '{0}' in containing member for '{1}'</source>
-        <target state="translated">修复包含 '{1}' 成员中的所有 '{0}'</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Fix_all_0_in_containing_type_for_1">
-        <source>Fix all '{0}' in containing type for '{1}'</source>
-        <target state="translated">修复“{1}”的“包含”类型中的所有 '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="Invalid_number_of_parameters_for_binary_operator">
@@ -130,6 +125,11 @@
       <trans-unit id="The_solution_does_not_contain_the_specified_document">
         <source>The solution does not contain the specified document.</source>
         <target state="translated">解决方案不包含指定的文档。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Type_members">
+        <source>Type members</source>
+        <target state="new">Type members</target>
         <note />
       </trans-unit>
       <trans-unit id="Warning_colon_Declaration_changes_scope_and_may_change_meaning">

@@ -123,6 +123,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     instrumenter = codeCoverageInstrumenter;
                 }
 
+                StackOverflowProbingInstrumenter? stackOverflowProbingInstrumenter = null;
+                if (instrumentation.Kinds.Contains(InstrumentationKind.StackOverflowProbing) &&
+                    StackOverflowProbingInstrumenter.TryCreate(method, factory, instrumenter, out stackOverflowProbingInstrumenter))
+                {
+                    instrumenter = stackOverflowProbingInstrumenter;
+                }
+
+                ModuleCancellationInstrumenter? moduleCancellationInstrumenter = null;
+                if (instrumentation.Kinds.Contains(InstrumentationKind.ModuleCancellation) &&
+                    ModuleCancellationInstrumenter.TryCreate(method, factory, instrumenter, out moduleCancellationInstrumenter))
+                {
+                    instrumenter = moduleCancellationInstrumenter;
+                }
+
                 instrumentationState.Instrumenter = DebugInfoInjector.Create(instrumenter);
 
                 // We don't want IL to differ based upon whether we write the PDB to a file/stream or not.
@@ -233,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(!nameofOperator.WasCompilerGenerated);
                 var nameofIdentiferSyntax = (IdentifierNameSyntax)((InvocationExpressionSyntax)nameofOperator.Syntax).Expression;
-                if (this._compilation.TryGetInterceptor(nameofIdentiferSyntax.Location) is not null)
+                if (this._compilation.TryGetInterceptor(nameofIdentiferSyntax) is not null)
                 {
                     this._diagnostics.Add(ErrorCode.ERR_InterceptorCannotInterceptNameof, nameofIdentiferSyntax.Location);
                 }
@@ -311,6 +325,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLambda(BoundLambda node)
         {
+            Debug.Assert(_factory.ModuleBuilderOpt is { });
+
+            var delegateType = node.Type.GetDelegateType();
+
+            if (delegateType?.IsAnonymousType == true && delegateType.ContainingModule == _compilation.SourceModule &&
+                delegateType.DelegateInvokeMethod() is MethodSymbol delegateInvoke &&
+                delegateInvoke.Parameters.Any(static (p) => p.IsParamsCollection))
+            {
+                Location location;
+                if (node.Symbol.Parameters.LastOrDefault(static (p) => p.IsParamsCollection) is { } parameter)
+                {
+                    location = ParameterHelpers.GetParameterLocation(parameter);
+                }
+                else
+                {
+                    location = node.Syntax.Location;
+                }
+
+                _factory.ModuleBuilderOpt.EnsureParamCollectionAttributeExists(_diagnostics, location);
+            }
+
             _sawLambdas = true;
 
             var lambda = node.Symbol;
@@ -558,11 +593,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundBadExpression(syntax, LookupResultKind.NotReferencable, ImmutableArray<Symbol?>.Empty, children, resultType);
         }
 
-        private bool TryGetWellKnownTypeMember<TSymbol>(SyntaxNode? syntax, WellKnownMember member, out TSymbol symbol, bool isOptional = false, Location? location = null) where TSymbol : Symbol
+        private bool TryGetWellKnownTypeMember<TSymbol>(SyntaxNode? syntax, WellKnownMember member, [NotNullWhen(true)] out TSymbol? symbol, bool isOptional = false, Location? location = null) where TSymbol : Symbol
         {
             Debug.Assert((syntax != null) ^ (location != null));
 
-            symbol = (TSymbol)Binder.GetWellKnownTypeMember(_compilation, member, _diagnostics, syntax: syntax, isOptional: isOptional, location: location);
+            symbol = (TSymbol?)Binder.GetWellKnownTypeMember(_compilation, member, _diagnostics, syntax: syntax, isOptional: isOptional, location: location);
             return symbol is { };
         }
 
@@ -591,7 +626,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 MemberDescriptor descriptor = SpecialMembers.GetDescriptor(specialMember);
-                SpecialType type = (SpecialType)descriptor.DeclaringTypeId;
+                ExtendedSpecialType type = descriptor.DeclaringSpecialType;
                 TypeSymbol container = compilation.Assembly.GetSpecialType(type);
                 TypeSymbol returnType = new ExtendedErrorTypeSymbol(compilation: compilation, name: descriptor.Name, errorInfo: null, arity: descriptor.Arity);
                 return new ErrorMethodSymbol(container, returnType, "Missing");
@@ -610,6 +645,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitTypeOfOperator(BoundTypeOfOperator node)
         {
+            Debug.Assert(node.Type.ExtendedSpecialType == InternalSpecialType.System_Type ||
+                         TypeSymbol.Equals(node.Type, _compilation.GetWellKnownType(WellKnownType.System_Type), TypeCompareKind.AllIgnoreOptions));
             Debug.Assert(node.GetTypeFromHandle is null);
 
             var sourceType = (BoundTypeExpression?)this.Visit(node.SourceType);
@@ -617,12 +654,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = this.VisitType(node.Type);
 
             // Emit needs this helper
-            MethodSymbol getTypeFromHandle;
-            if (!TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Type__GetTypeFromHandle, out getTypeFromHandle))
+            MethodSymbol? getTypeFromHandle;
+            bool tryGetResult;
+
+            if (node.Type.ExtendedSpecialType == InternalSpecialType.System_Type)
+            {
+                tryGetResult = TryGetSpecialTypeMethod(node.Syntax, SpecialMember.System_Type__GetTypeFromHandle, out getTypeFromHandle);
+            }
+            else
+            {
+                tryGetResult = TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Type__GetTypeFromHandle, out getTypeFromHandle);
+            }
+
+            if (!tryGetResult)
             {
                 return new BoundTypeOfOperator(node.Syntax, sourceType, null, type, hasErrors: true);
             }
 
+            Debug.Assert(getTypeFromHandle is not null);
+            Debug.Assert(TypeSymbol.Equals(type, getTypeFromHandle.ReturnType, TypeCompareKind.AllIgnoreOptions));
             return node.Update(sourceType, getTypeFromHandle, type);
         }
 
@@ -634,7 +684,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var type = this.VisitType(node.Type);
 
             // Emit needs this helper
-            MethodSymbol getTypeFromHandle;
+            MethodSymbol? getTypeFromHandle;
             if (!TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Type__GetTypeFromHandle, out getTypeFromHandle))
             {
                 return new BoundRefTypeOperator(node.Syntax, operand, null, type, hasErrors: true);

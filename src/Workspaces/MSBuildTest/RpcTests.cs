@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.MSBuild.Rpc;
 using Nerdbank.Streams;
 using Xunit;
 
@@ -190,6 +189,20 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             Assert.Contains("Exception thrown by test method!", exception.Message);
         }
 
+        [Fact]
+        public async Task CancelledTaskDoesNotLeakRequest()
+        {
+            await using var rpcPair = new RpcPair();
+
+            var tokenSource = new CancellationTokenSource();
+            tokenSource.Cancel();
+
+            rpcPair.Server.AddTarget(new ObjectWithHelloMethod());
+            await Assert.ThrowsAnyAsync<OperationCanceledException>(async () => await rpcPair.Client.InvokeAsync<string>(targetObject: 0, nameof(ObjectWithHelloMethod.Hello), [], tokenSource.Token));
+
+            Assert.Equal(0, rpcPair.Client.GetTestAccessor().GetOutstandingRequestCount());
+        }
+
 #pragma warning disable CA1822 // Mark members as static
 
         private sealed class ObjectWithHelloMethod { public string Hello(string name) { return "Hello " + name; } }
@@ -209,7 +222,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
         private sealed class ObjectWithRealAsyncMethod
         {
-            private readonly List<TaskCompletionSource<object?>> _completionSources = new List<TaskCompletionSource<object?>>();
+            private readonly List<TaskCompletionSource<object?>> _completionSources = [];
 
             public Task WaitAsync()
             {

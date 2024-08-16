@@ -55,12 +55,11 @@ internal abstract class AbstractUseObjectInitializerCodeFixProvider<
         ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches);
 
     public override ImmutableArray<string> FixableDiagnosticIds
-        => ImmutableArray.Create(IDEDiagnosticIds.UseObjectInitializerDiagnosticId);
+        => [IDEDiagnosticIds.UseObjectInitializerDiagnosticId];
 
     protected override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         TObjectCreationExpressionSyntax objectCreation,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)

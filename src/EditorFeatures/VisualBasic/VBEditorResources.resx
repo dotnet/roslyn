@@ -117,12 +117,6 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="Case_Correction" xml:space="preserve">
-    <value>Case Correction</value>
-  </data>
-  <data name="Correcting_word_casing" xml:space="preserve">
-    <value>Correcting word casing...</value>
-  </data>
   <data name="This_call_is_required_by_the_designer" xml:space="preserve">
     <value>This call is required by the designer.</value>
   </data>
@@ -132,17 +126,11 @@
   <data name="End_Construct" xml:space="preserve">
     <value>End Construct</value>
   </data>
-  <data name="Smart_Indenting" xml:space="preserve">
-    <value>Smart Indenting</value>
-  </data>
   <data name="Formatting_Document" xml:space="preserve">
     <value>Formatting Document...</value>
   </data>
   <data name="Insert_new_line" xml:space="preserve">
     <value>Insert new line</value>
-  </data>
-  <data name="Format_Paste" xml:space="preserve">
-    <value>Format Paste</value>
   </data>
   <data name="Formatting_pasted_text" xml:space="preserve">
     <value>Formatting pasted text...</value>

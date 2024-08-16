@@ -4,34 +4,30 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
-using System.IO;
 using System.Linq;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Build.Construction;
 using Microsoft.Build.Locator;
 using Microsoft.Build.Logging;
-using Microsoft.CodeAnalysis.MSBuild;
-using Microsoft.CodeAnalysis.MSBuild.Build;
-using Microsoft.CodeAnalysis.MSBuild.Rpc;
-using Microsoft.Extensions.Logging;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Workspaces.MSBuild.BuildHost;
+namespace Microsoft.CodeAnalysis.MSBuild;
 
-internal sealed class BuildHost
+internal sealed class BuildHost : IBuildHost
 {
-    private readonly ILogger _logger;
+    private readonly BuildHostLogger _logger;
     private readonly ImmutableDictionary<string, string> _globalMSBuildProperties;
     private readonly string? _binaryLogPath;
     private readonly RpcServer _server;
     private readonly object _gate = new object();
     private ProjectBuildManager? _buildManager;
 
-    public BuildHost(ILoggerFactory loggerFactory, ImmutableDictionary<string, string> globalMSBuildProperties, string? binaryLogPath, RpcServer server)
+    public BuildHost(BuildHostLogger logger, ImmutableDictionary<string, string> globalMSBuildProperties, string? binaryLogPath, RpcServer server)
     {
-        _logger = loggerFactory.CreateLogger<BuildHost>();
+        _logger = logger;
         _globalMSBuildProperties = globalMSBuildProperties;
         _binaryLogPath = binaryLogPath;
         _server = server;
@@ -159,7 +155,7 @@ internal sealed class BuildHost
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     /// <summary>
@@ -172,8 +168,8 @@ internal sealed class BuildHost
 
         ProjectFileLoader projectLoader = languageName switch
         {
-            LanguageNames.CSharp => new CSharp.CSharpProjectFileLoader(),
-            LanguageNames.VisualBasic => new VisualBasic.VisualBasicProjectFileLoader(),
+            LanguageNames.CSharp => new CSharpProjectFileLoader(),
+            LanguageNames.VisualBasic => new VisualBasicProjectFileLoader(),
             _ => throw ExceptionUtilities.UnexpectedValue(languageName)
         };
 

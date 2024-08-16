@@ -18,7 +18,7 @@ internal static class INavigableLocationExtensions
         if (location == null)
             return false;
 
-        // This switch is currently unnecessary.  Howevver, it helps support a future where location.NavigateTo becomes
+        // This switch is currently unnecessary.  However, it helps support a future where location.NavigateTo becomes
         // async and must be on the UI thread.
         await threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         return await location.NavigateToAsync(options, cancellationToken).ConfigureAwait(false);

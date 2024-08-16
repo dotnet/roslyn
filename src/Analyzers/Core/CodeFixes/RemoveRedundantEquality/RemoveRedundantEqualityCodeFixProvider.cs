@@ -21,53 +21,58 @@ namespace Microsoft.CodeAnalysis.RemoveRedundantEquality;
 [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.RemoveRedundantEquality), Shared]
 [method: ImportingConstructor]
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-internal sealed class RemoveRedundantEqualityCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+internal sealed class RemoveRedundantEqualityCodeFixProvider() : ForkingSyntaxEditorBasedCodeFixProvider<SyntaxNode>
 {
-    public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.RemoveRedundantEqualityDiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds => [IDEDiagnosticIds.RemoveRedundantEqualityDiagnosticId];
 
-    public override Task RegisterCodeFixesAsync(CodeFixContext context)
-    {
-        foreach (var diagnostic in context.Diagnostics)
-        {
-            RegisterCodeFix(context, AnalyzersResources.Remove_redundant_equality, nameof(AnalyzersResources.Remove_redundant_equality), diagnostic);
-        }
+    protected override (string title, string equivalenceKey) GetTitleAndEquivalenceKey(CodeFixContext context)
+        => (AnalyzersResources.Remove_redundant_equality, nameof(AnalyzersResources.Remove_redundant_equality));
 
-        return Task.CompletedTask;
-    }
-
-    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override async Task FixAsync(
+        Document document,
+        SyntaxEditor editor,
+        SyntaxNode node,
+        ImmutableDictionary<string, string?> properties,
+        CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var generator = editor.Generator;
+        var generatorInternal = document.GetRequiredLanguageService<SyntaxGeneratorInternal>();
+
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-        var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+        var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
-        foreach (var diagnostic in diagnostics)
-        {
-            var node = root.FindNode(diagnostic.AdditionalLocations[0].SourceSpan, getInnermostNodeForTie: true);
-
-            editor.ReplaceNode(node, (n, _) =>
-            {
-                if (!syntaxFacts.IsBinaryExpression(n))
-                {
-                    // This should happen only in error cases.
-                    return n;
-                }
-
-                syntaxFacts.GetPartsOfBinaryExpression(n, out var left, out var right);
-                if (diagnostic.Properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Right)
-                {
-                    return WithElasticTrailingTrivia(left);
-                }
-                else if (diagnostic.Properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Left)
-                {
-                    return WithElasticTrailingTrivia(right);
-                }
-
-                return n;
-            });
-        }
+        editor.ReplaceNode(node, WithElasticTrailingTrivia(RewriteNode()));
 
         return;
+
+        SyntaxNode RewriteNode()
+        {
+            if (syntaxFacts.IsBinaryExpression(node))
+            {
+                syntaxFacts.GetPartsOfBinaryExpression(node, out var left, out var right);
+                var rewritten =
+                    properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Right ? left :
+                    properties[RedundantEqualityConstants.RedundantSide] == RedundantEqualityConstants.Left ? right : node;
+
+                if (properties.ContainsKey(RedundantEqualityConstants.Negate))
+                    rewritten = generator.Negate(generatorInternal, rewritten, semanticModel, cancellationToken);
+
+                return rewritten;
+            }
+            else if (syntaxFacts.IsIsPatternExpression(node))
+            {
+                syntaxFacts.GetPartsOfIsPatternExpression(node, out var left, out _, out var right);
+                var rewritten = left;
+                if (properties.ContainsKey(RedundantEqualityConstants.Negate))
+                    rewritten = generator.Negate(generatorInternal, rewritten, semanticModel, cancellationToken);
+
+                return rewritten;
+            }
+
+            // This should happen only in error cases.
+            return node;
+        }
 
         static SyntaxNode WithElasticTrailingTrivia(SyntaxNode node)
         {

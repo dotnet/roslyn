@@ -1653,5 +1653,43 @@ struct A
 
             CompileAndVerify(source, expectedOutput: "0");
         }
+
+        [Fact]
+        public void Var_ExtensionGetEnumerator()
+        {
+            var source = """
+                using System.Collections.Generic;
+                class MyCollection<T>
+                {
+                    public readonly List<T> Items;
+                    public MyCollection(params T[] items) { Items = new(items); }
+                }
+                static class Extensions
+                {
+                    public static IEnumerator<T> GetEnumerator<T>(this MyCollection<T> c) => c.Items.GetEnumerator();
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        MyCollection<int> x = new(1, 2, 3);
+                        int total = 0;
+                        foreach (var y in x)
+                            total += y;
+                    }
+                }
+                """;
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularDefault.WithFeature("run-nullable-analysis", "never"));
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var decl = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            var local = (SourceLocalSymbol)model.GetDeclaredSymbol(decl).GetSymbol<LocalSymbol>();
+            Assert.True(local.IsVar);
+            Assert.Equal("System.Int32", local.Type.ToTestDisplayString());
+
+            comp.VerifyDiagnostics();
+        }
     }
 }

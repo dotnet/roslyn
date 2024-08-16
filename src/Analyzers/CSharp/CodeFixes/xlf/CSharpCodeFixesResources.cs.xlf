@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
-        <target state="new">Remove unnecessary usings</target>
+        <target state="translated">Odebrat nepotřebné direktivy using</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">

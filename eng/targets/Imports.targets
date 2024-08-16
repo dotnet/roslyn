@@ -3,6 +3,7 @@
 <Project>
   <Import Project="VisualStudio.targets" Condition="'$(UsingToolVSSDK)' == 'true'"/>
   <Import Project="XUnit.targets" Condition="'$(IsTestProject)' == 'true'" />
+  <Import Project="WpfTempProjectWorkarounds.targets" Condition="'$(IsWpfTempProject)' == 'true'" />
 
   <!--
     Work around .editorconfig evaluation bugs in command line builds.
@@ -46,6 +47,9 @@
     -->
     <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND '$(DisableNullableWarnings)' == 'true'">false</RoslynCheckCodeStyle>
     <RoslynCheckCodeStyle Condition="'$(RoslynCheckCodeStyle)' == '' AND ('$(ContinuousIntegrationBuild)' != 'true' OR '$(RoslynEnforceCodeStyle)' == 'true')">true</RoslynCheckCodeStyle>
+
+    <!--https://github.com/dotnet/sdk/issues/37826 -->
+    <MSBuildWarningsAsMessages Condition="'$(OutputType)' == 'Library'">$(MSBuildWarningsAsMessages);NETSDK1206</MSBuildWarningsAsMessages>
   </PropertyGroup>
 
   <!--
@@ -202,6 +206,14 @@
   -->
   <ItemGroup Condition="'$(IsPackable)' == 'true' and '$(IsShipping)' == 'true'">
     <None Include="$(ThirdPartyNoticesFilePath)" PackagePath="ThirdPartyNotices.rtf" Visible="false" Pack="true"/>
+  </ItemGroup>
+
+  <!--
+    Microsoft.VisualStudio.Extensibility.JsonGenerators.Sdk.props creates content items for all files in .vsextension dir.
+    NuGet includes content items in package, by default but these items should only be included in the VSIX.
+  -->
+  <ItemGroup>
+    <Content Update=".vsextension\**\*" Pack="false" />
   </ItemGroup>
 
   <!--

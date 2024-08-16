@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Append(result, p.GetType(new EmitContext()));
             }
 
-            result.Builder.Append(")");
+            result.Builder.Append(')');
 
             return result.ToStringAndFree();
         }

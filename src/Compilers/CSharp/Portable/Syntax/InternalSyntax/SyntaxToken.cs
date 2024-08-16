@@ -23,39 +23,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             : base(kind)
         {
             FullWidth = this.Text.Length;
-            this.flags |= NodeFlags.IsNotMissing; //note: cleared by subclasses representing missing tokens
+            SetFlags(NodeFlags.IsNotMissing); //note: cleared by subclasses representing missing tokens
         }
 
         internal SyntaxToken(SyntaxKind kind, DiagnosticInfo[] diagnostics)
             : base(kind, diagnostics)
         {
             FullWidth = this.Text.Length;
-            this.flags |= NodeFlags.IsNotMissing; //note: cleared by subclasses representing missing tokens
+            SetFlags(NodeFlags.IsNotMissing); //note: cleared by subclasses representing missing tokens
         }
 
         internal SyntaxToken(SyntaxKind kind, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
             : base(kind, diagnostics, annotations)
         {
             FullWidth = this.Text.Length;
-            this.flags |= NodeFlags.IsNotMissing; //note: cleared by subclasses representing missing tokens
+            SetFlags(NodeFlags.IsNotMissing); //note: cleared by subclasses representing missing tokens
         }
 
         internal SyntaxToken(SyntaxKind kind, int fullWidth)
             : base(kind, fullWidth)
         {
-            this.flags |= NodeFlags.IsNotMissing; //note: cleared by subclasses representing missing tokens
+            SetFlags(NodeFlags.IsNotMissing); //note: cleared by subclasses representing missing tokens
         }
 
         internal SyntaxToken(SyntaxKind kind, int fullWidth, DiagnosticInfo[] diagnostics)
             : base(kind, diagnostics, fullWidth)
         {
-            this.flags |= NodeFlags.IsNotMissing; //note: cleared by subclasses representing missing tokens
+            SetFlags(NodeFlags.IsNotMissing); //note: cleared by subclasses representing missing tokens
         }
 
         internal SyntaxToken(SyntaxKind kind, int fullWidth, DiagnosticInfo[] diagnostics, SyntaxAnnotation[] annotations)
             : base(kind, diagnostics, annotations, fullWidth)
         {
-            this.flags |= NodeFlags.IsNotMissing; //note: cleared by subclasses representing missing tokens
+            SetFlags(NodeFlags.IsNotMissing); //note: cleared by subclasses representing missing tokens
         }
 
         //====================

@@ -1151,24 +1151,27 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             static ImmutableDictionary<Diagnostic, ProgrammaticSuppressionInfo> createProgrammaticSuppressionsByDiagnosticMap(ConcurrentSet<Suppression> programmaticSuppressions)
             {
-                var programmaticSuppressionsBuilder = PooledDictionary<Diagnostic, ImmutableHashSet<(string, LocalizableString)>.Builder>.GetInstance();
+                var programmaticSuppressionsBuilder = PooledDictionary<Diagnostic, ArrayBuilder<Suppression>>.GetInstance();
+
                 foreach (var programmaticSuppression in programmaticSuppressions)
                 {
-                    if (!programmaticSuppressionsBuilder.TryGetValue(programmaticSuppression.SuppressedDiagnostic, out var set))
+                    if (!programmaticSuppressionsBuilder.TryGetValue(programmaticSuppression.SuppressedDiagnostic, out var array))
                     {
-                        set = ImmutableHashSet.CreateBuilder<(string, LocalizableString)>();
-                        programmaticSuppressionsBuilder.Add(programmaticSuppression.SuppressedDiagnostic, set);
+                        array = ArrayBuilder<Suppression>.GetInstance();
+                        programmaticSuppressionsBuilder.Add(programmaticSuppression.SuppressedDiagnostic, array);
                     }
 
-                    set.Add((programmaticSuppression.Descriptor.Id, programmaticSuppression.Descriptor.Justification));
+                    if (!array.Contains(programmaticSuppression))
+                        array.Add(programmaticSuppression);
                 }
 
                 var mapBuilder = ImmutableDictionary.CreateBuilder<Diagnostic, ProgrammaticSuppressionInfo>();
                 foreach (var (diagnostic, set) in programmaticSuppressionsBuilder)
                 {
-                    mapBuilder.Add(diagnostic, new ProgrammaticSuppressionInfo(set.ToImmutable()));
+                    mapBuilder.Add(diagnostic, new ProgrammaticSuppressionInfo(set.ToImmutableAndFree()));
                 }
 
+                programmaticSuppressionsBuilder.Free();
                 return mapBuilder.ToImmutable();
             }
         }
@@ -2310,7 +2313,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 //     generated_code = true | false
                 // If there is no explicit user configuration, fallback to our generated code heuristic.
                 var options = AnalyzerExecutor.AnalyzerOptions.AnalyzerConfigOptionsProvider.GetOptions(tree);
-                return GeneratedCodeUtilities.GetIsGeneratedCodeFromOptions(options) ??
+                return GeneratedCodeUtilities.GetGeneratedCodeKindFromOptions(options).ToNullable() ??
                     _isGeneratedCode(tree, cancellationToken);
             }
         }
@@ -2956,8 +2959,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                 break;
 
                             case OperationKind.ExpressionStatement:
-                                // For constructor initializer, we generate an IInvocationOperation with an implicit IExpressionStatementOperation parent.
-                                Debug.Assert(operationBlock.Kind == OperationKind.Invocation);
+                                // For constructor initializer, we generate an IInvocationOperation (or invalid
+                                // operation in the case of an error) with an implicit IExpressionStatementOperation parent.
+                                Debug.Assert(operationBlock.Kind is OperationKind.Invocation or OperationKind.Invalid);
                                 Debug.Assert(operationBlock.Parent.IsImplicit);
                                 Debug.Assert(operationBlock.Parent.Parent is IConstructorBodyOperation ctorBody &&
                                     ctorBody.Initializer == operationBlock.Parent);

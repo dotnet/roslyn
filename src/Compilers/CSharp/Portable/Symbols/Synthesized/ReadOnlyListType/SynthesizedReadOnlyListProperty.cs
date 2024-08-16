@@ -9,11 +9,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     internal sealed class SynthesizedReadOnlyListProperty : PropertySymbol
     {
-        private readonly SynthesizedReadOnlyListTypeSymbol _containingType;
+        private readonly NamedTypeSymbol _containingType;
         private readonly PropertySymbol _interfaceProperty;
 
         internal SynthesizedReadOnlyListProperty(
-            SynthesizedReadOnlyListTypeSymbol containingType,
+            NamedTypeSymbol containingType,
             PropertySymbol interfaceProperty,
             GenerateMethodBodyDelegate getAccessorBody,
             GenerateMethodBodyDelegate? setAccessorBody = null)
@@ -77,5 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override bool HasUnscopedRefAttribute => false;
 
         internal override ObsoleteAttributeData? ObsoleteAttributeData => null;
+
+        internal override int? TryGetOverloadResolutionPriority() => null;
     }
 }

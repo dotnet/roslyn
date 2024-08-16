@@ -20,11 +20,30 @@ namespace Microsoft.CodeAnalysis.CommandLine
 {
     internal sealed class BuildServerConnection
     {
-        // Spend up to 1s connecting to existing process (existing processes should be always responsive).
-        internal const int TimeOutMsExistingProcess = 1000;
+        /// <summary>
+        /// The time to wait for a named pipe connection to complete to an existing server 
+        /// process.
+        /// </summary>
+        /// <remarks>
+        /// The compiler server is designed to be responsive to new connections so in ideal 
+        /// circumstances a timeout as short as one second is fine. However, in practice the
+        /// server can become temporarily unresponsive if say the machine is under heavy load
+        /// or a connection occurs just as a gen2 GC occurs.
+        ///
+        /// In any of these cases abandoning the connection attempt means falling back to 
+        /// starting csc.exe / vbc.exe which will likely make the above problems. That will 
+        /// create a new process that adds more load to the system. 
+        /// 
+        /// As such this timeout should be significantly longer than the average gen2 pause
+        /// time for the server. When changing this value consider profiling building 
+        /// Roslyn.sln and consulting the GC stats to see what a typical pause time is.
+        /// </remarks>
+        internal const int TimeOutMsExistingProcess = 5_000;
 
-        // Spend up to 20s connecting to a new process, to allow time for it to start.
-        internal const int TimeOutMsNewProcess = 20000;
+        /// <summary>
+        /// The time to wait for a named pipe connection to complete for a newly started server
+        /// </summary>
+        internal const int TimeOutMsNewProcess = 20_000;
 
         // To share a mutex between processes the name should have the Global prefix
         private const string GlobalMutexPrefix = "Global\\";
@@ -38,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// Create a build request for processing on the server. 
         /// </summary>
         internal static BuildRequest CreateBuildRequest(
-            Guid requestId,
+            string requestId,
             RequestLanguage language,
             List<string> arguments,
             string workingDirectory,
@@ -145,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     buildRequest,
                     pipeName,
                     timeoutOverride: null,
-                    tryCreateServerFunc: (pipeName, logger) => TryCreateServer(clientDirectory, pipeName, logger),
+                    tryCreateServerFunc: (pipeName, logger) => TryCreateServer(clientDirectory, pipeName, logger, out int _),
                     logger,
                     cancellationToken);
 
@@ -318,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// </summary>
         internal static async Task MonitorDisconnectAsync(
             PipeStream pipeStream,
-            Guid requestId,
+            string requestId,
             ICompilerServerLogger logger,
             CancellationToken cancellationToken = default)
         {
@@ -427,8 +446,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
         /// compiler server process was successful, it does not state whether the server successfully
         /// started or not (it could crash on startup).
         /// </summary>
-        private static bool TryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger)
+        internal static bool TryCreateServer(string clientDirectory, string pipeName, ICompilerServerLogger logger, out int processId)
         {
+            processId = 0;
             var serverInfo = GetServerProcessInfo(clientDirectory, pipeName);
 
             if (!File.Exists(serverInfo.toolFilePath))
@@ -473,6 +493,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     logger.Log("Successfully created process with process id {0}", processInfo.dwProcessId);
                     CloseHandle(processInfo.hProcess);
                     CloseHandle(processInfo.hThread);
+                    processId = processInfo.dwProcessId;
                 }
                 else
                 {
@@ -496,8 +517,15 @@ namespace Microsoft.CodeAnalysis.CommandLine
                         CreateNoWindow = true
                     };
 
-                    Process.Start(startInfo);
-                    return true;
+                    if (Process.Start(startInfo) is { } process)
+                    {
+                        processId = process.Id;
+                        return true;
+                    }
+                    else
+                    {
+                        return false;
+                    }
                 }
                 catch
                 {
@@ -591,65 +619,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             return $"{GlobalMutexPrefix}{pipeName}.client";
         }
-
-        /// <summary>
-        /// Gets the value of the temporary path for the provided environment settings. This behavior
-        /// is OS specific.
-        ///   - On Windows it seeks to emulate Path.GetTempPath as closely as possible with 
-        ///     provided working directory.
-        /// </summary>
-        internal static string? GetTempPath(string? workingDir)
-        {
-            return PlatformInformation.IsUnix
-                ? getTempPathLinux()
-                : getTempPathWindows(workingDir);
-
-            static string? getTempPathLinux()
-            {
-                // Unix temp path is fine: it does not use the working directory
-                // (it uses ${TMPDIR} if set, otherwise, it returns /tmp)
-                //
-                // https://github.com/dotnet/roslyn/issues/65415 tracks moving to a directory 
-                // to a per user location.
-                return Path.GetTempPath();
-            }
-
-            static string? getTempPathWindows(string? workingDir)
-            {
-                var tmp = Environment.GetEnvironmentVariable("TMP");
-                if (Path.IsPathRooted(tmp))
-                {
-                    return tmp;
-                }
-
-                var temp = Environment.GetEnvironmentVariable("TEMP");
-                if (Path.IsPathRooted(temp))
-                {
-                    return temp;
-                }
-
-                if (!string.IsNullOrEmpty(workingDir))
-                {
-                    if (!string.IsNullOrEmpty(tmp))
-                    {
-                        return Path.Combine(workingDir, tmp);
-                    }
-
-                    if (!string.IsNullOrEmpty(temp))
-                    {
-                        return Path.Combine(workingDir, temp);
-                    }
-                }
-
-                var userProfile = Environment.GetEnvironmentVariable("USERPROFILE");
-                if (Path.IsPathRooted(userProfile))
-                {
-                    return userProfile;
-                }
-
-                return Environment.GetEnvironmentVariable("SYSTEMROOT");
-            }
-        }
     }
 
     internal interface IServerMutex : IDisposable
@@ -678,7 +647,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static string GetMutexDirectory()
         {
-            var tempPath = BuildServerConnection.GetTempPath(null);
+            var tempPath = Path.GetTempPath();
             var result = Path.Combine(tempPath!, ".roslyn");
             Directory.CreateDirectory(result);
             return result;

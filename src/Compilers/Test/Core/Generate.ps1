@@ -121,10 +121,6 @@ Add-TargetFramework "Net20" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net
   'System.dll',
   'Microsoft.VisualBasic.dll')
 
-Add-TargetFramework "Net35" '$(Pkgjnm2_ReferenceAssemblies_net35)\build\.NETFramework\v3.5' @(
-  'System.Core.dll'
-)
-
 Add-TargetFramework "Net40" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net40)\build\.NETFramework\v4.0' @(
   'mscorlib.dll',
   'System.dll',
@@ -158,12 +154,12 @@ Add-TargetFramework "Net451" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_ne
   'Facades\System.Threading.Tasks.dll'
 )
 
-Add-TargetFramework "MicrosoftCSharp" '$(NuGetPackageRoot)\microsoft.csharp\$(MicrosoftCSharpVersion)' @(
+Add-TargetFramework "MicrosoftCSharp" '$(PkgMicrosoft_CSharp)' @(
   'Netstandard10#ref\netstandard1.0\Microsoft.CSharp.dll'
   'Netstandard13Lib#lib\netstandard1.3\Microsoft.CSharp.dll'
 )
 
-Add-TargetFramework "MicrosoftVisualBasic" '$(NuGetPackageRoot)\microsoft.visualbasic\$(MicrosoftVisualBasicVersion)\ref' @(
+Add-TargetFramework "MicrosoftVisualBasic" '$(PkgMicrosoft_VisualBasic)\ref' @(
   'Netstandard11#netstandard1.1\Microsoft.VisualBasic.dll'
 )
 
@@ -186,5 +182,11 @@ $codeContent += @"
 }
 "@
 
-$targetsContent | Out-File "Generated.targets" -Encoding Utf8
-$codeContent | Out-File "Generated.cs" -Encoding Utf8
+try {
+  Push-Location $PSScriptRoot
+  $targetsContent | Out-File "Generated.targets" -Encoding Utf8
+  $codeContent | Out-File "Generated.cs" -Encoding Utf8
+}
+finally {
+  Pop-Location
+}

@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,11 +18,16 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    using static TemporaryStorageService;
+
     [UseExportProvider]
+#if NETCOREAPP
+    [SupportedOSPlatform("windows")]
+#endif
     [Trait(Traits.Feature, Traits.Features.Workspace)]
     public class TemporaryStorageServiceTests
     {
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void TestTemporaryStorageText()
         {
             using var workspace = new AdhocWorkspace();
@@ -41,13 +47,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TestTemporaryStorage(service, text);
         }
 
-        [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531188")]
+        [ConditionalFact(typeof(WindowsOnly)), WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531188")]
         public void TestTemporaryStorageStream()
         {
             using var workspace = new AdhocWorkspace();
             var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
-            var temporaryStorage = service.CreateTemporaryStreamStorage();
 
             using var data = SerializableBytes.CreateWritableStream();
             for (var i = 0; i < SharedPools.ByteBufferSize; i++)
@@ -55,9 +60,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 data.WriteByte((byte)(i % 2));
             }
 
-            data.Position = 0;
-            temporaryStorage.WriteStreamAsync(data).Wait();
-            using var result = temporaryStorage.ReadStreamAsync().Result;
+            var handle = service.WriteToTemporaryStorage(data, CancellationToken.None);
+
+            using var result = handle.ReadFromTemporaryStorage(CancellationToken.None);
             Assert.Equal(data.Length, result.Length);
 
             for (var i = 0; i < SharedPools.ByteBufferSize; i++)
@@ -68,88 +73,36 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static void TestTemporaryStorage(ITemporaryStorageServiceInternal temporaryStorageService, SourceText text)
         {
-            // create a temporary storage location
-            var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage();
-
             // write text into it
-            temporaryStorage.WriteTextAsync(text).Wait();
+            var handle = temporaryStorageService.WriteToTemporaryStorage(text, CancellationToken.None);
 
             // read text back from it
-            var text2 = temporaryStorage.ReadTextAsync().Result;
+            var text2 = handle.ReadFromTemporaryStorage(CancellationToken.None);
 
             Assert.NotSame(text, text2);
             Assert.Equal(text.ToString(), text2.ToString());
             Assert.Equal(text.Encoding, text2.Encoding);
-
-            temporaryStorage.Dispose();
         }
 
-        [Fact]
-        public void TestTemporaryTextStorageExceptions()
-        {
-            using var workspace = new AdhocWorkspace();
-            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
-            var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
-            var storage = service.CreateTemporaryTextStorage();
-
-            // Nothing has been written yet
-            Assert.Throws<InvalidOperationException>(() => storage.ReadText());
-            Assert.Throws<AggregateException>(() => storage.ReadTextAsync().Result);
-
-            // write a normal string
-            var text = SourceText.From(new string(' ', 4096) + "public class A {}");
-            storage.WriteTextAsync(text).Wait();
-
-            // Writing multiple times is not allowed
-            Assert.Throws<InvalidOperationException>(() => storage.WriteText(text));
-            Assert.Throws<AggregateException>(() => storage.WriteTextAsync(text).Wait());
-        }
-
-        [Fact]
-        public void TestTemporaryStreamStorageExceptions()
-        {
-            using var workspace = new AdhocWorkspace();
-            var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
-            var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
-            var storage = service.CreateTemporaryStreamStorage();
-
-            // Nothing has been written yet
-            Assert.Throws<InvalidOperationException>(() => storage.ReadStream(CancellationToken.None));
-            Assert.Throws<AggregateException>(() => storage.ReadStreamAsync().Result);
-
-            // write a normal stream
-            var stream = new MemoryStream();
-            stream.Write([42], 0, 1);
-            stream.Position = 0;
-            storage.WriteStreamAsync(stream).Wait();
-
-            // Writing multiple times is not allowed
-            // These should also throw before ever getting to the point where they would look at the null stream arg.
-            Assert.Throws<InvalidOperationException>(() => storage.WriteStream(null!));
-            Assert.Throws<AggregateException>(() => storage.WriteStreamAsync(null!).Wait());
-        }
-
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void TestZeroLengthStreams()
         {
             using var workspace = new AdhocWorkspace();
             var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
-            var storage = service.CreateTemporaryStreamStorage();
 
             // 0 length streams are allowed
+            TemporaryStorageStreamHandle handle;
             using (var stream1 = new MemoryStream())
             {
-                storage.WriteStream(stream1);
+                handle = service.WriteToTemporaryStorage(stream1, CancellationToken.None);
             }
 
-            using (var stream2 = storage.ReadStream(CancellationToken.None))
-            {
-                Assert.Equal(0, stream2.Length);
-            }
+            using var stream2 = handle.ReadFromTemporaryStorage(CancellationToken.None);
+            Assert.Equal(0, stream2.Length);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void TestTemporaryStorageMemoryMappedFileManagement()
         {
             using var workspace = new AdhocWorkspace();
@@ -166,19 +119,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 for (var j = 1; j < 5; j++)
                 {
-                    using ITemporaryStreamStorageInternal storage1 = service.CreateTemporaryStreamStorage(),
-                                                  storage2 = service.CreateTemporaryStreamStorage();
-                    var storage3 = service.CreateTemporaryStreamStorage(); // let the finalizer run for this instance
-
-                    storage1.WriteStream(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i - 1));
-                    storage2.WriteStream(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i));
-                    storage3.WriteStream(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i + 1));
+                    var handle1 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i - 1), CancellationToken.None);
+                    var handle2 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i), CancellationToken.None);
+                    var handle3 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i + 1), CancellationToken.None);
 
                     await Task.Yield();
 
-                    using Stream s1 = storage1.ReadStream(),
-                        s2 = storage2.ReadStream(),
-                        s3 = storage3.ReadStream(CancellationToken.None);
+                    using var s1 = handle1.ReadFromTemporaryStorage(CancellationToken.None);
+                    using var s2 = handle2.ReadFromTemporaryStorage(CancellationToken.None);
+                    using var s3 = handle3.ReadFromTemporaryStorage(CancellationToken.None);
                     Assert.Equal(1024 * i - 1, s1.Length);
                     Assert.Equal(1024 * i, s2.Length);
                     Assert.Equal(1024 * i + 1, s3.Length);
@@ -210,31 +159,27 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                 // Create 4GB of memory mapped files
                 var fileCount = (int)((long)4 * 1024 * 1024 * 1024 / data.Length);
-                var storageHandles = new List<ITemporaryStreamStorageInternal>(fileCount);
+                var storageHandles = new List<TemporaryStorageStreamHandle>(fileCount);
                 for (var i = 0; i < fileCount; i++)
                 {
-                    var s = service.CreateTemporaryStreamStorage();
-                    storageHandles.Add(s);
-                    data.Position = 0;
-                    s.WriteStreamAsync(data).Wait();
+                    var handle = service.WriteToTemporaryStorage(data, CancellationToken.None);
+                    storageHandles.Add(handle);
                 }
 
                 for (var i = 0; i < 1024 * 5; i++)
                 {
-                    using var s = storageHandles[i].ReadStreamAsync().Result;
+                    using var s = storageHandles[i].ReadFromTemporaryStorage(CancellationToken.None);
                     Assert.Equal(1, s.ReadByte());
-                    storageHandles[i].Dispose();
                 }
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void StreamTest1()
         {
             using var workspace = new AdhocWorkspace();
             var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
-            var storage = service.CreateTemporaryStreamStorage();
 
             using var expected = new MemoryStream();
             for (var i = 0; i < 10000; i++)
@@ -242,11 +187,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expected.WriteByte((byte)(i % byte.MaxValue));
             }
 
-            expected.Position = 0;
-            storage.WriteStream(expected);
+            var handle = service.WriteToTemporaryStorage(expected, CancellationToken.None);
 
             expected.Position = 0;
-            using var stream = storage.ReadStream(CancellationToken.None);
+            using var stream = handle.ReadFromTemporaryStorage(CancellationToken.None);
             Assert.Equal(expected.Length, stream.Length);
 
             for (var i = 0; i < expected.Length; i++)
@@ -255,13 +199,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void StreamTest2()
         {
             using var workspace = new AdhocWorkspace();
             var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
-            var storage = service.CreateTemporaryStreamStorage();
 
             using var expected = new MemoryStream();
             for (var i = 0; i < 10000; i++)
@@ -269,11 +212,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expected.WriteByte((byte)(i % byte.MaxValue));
             }
 
-            expected.Position = 0;
-            storage.WriteStream(expected);
+            var handle = service.WriteToTemporaryStorage(expected, CancellationToken.None);
 
             expected.Position = 0;
-            using var stream = storage.ReadStream(CancellationToken.None);
+            using var stream = handle.ReadFromTemporaryStorage(CancellationToken.None);
             Assert.Equal(expected.Length, stream.Length);
 
             var index = 0;
@@ -292,13 +234,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(index, stream.Length);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void StreamTest3()
         {
             using var workspace = new AdhocWorkspace();
             var textFactory = Assert.IsType<TextFactoryService>(workspace.Services.GetService<ITextFactoryService>());
             var service = Assert.IsType<TemporaryStorageService>(workspace.Services.GetRequiredService<ITemporaryStorageServiceInternal>());
-            var storage = service.CreateTemporaryStreamStorage();
 
             using var expected = new MemoryStream();
             var random = new Random(Environment.TickCount);
@@ -311,11 +252,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expected.WriteByte(value);
             }
 
-            expected.Position = 0;
-            storage.WriteStream(expected);
+            var handle = service.WriteToTemporaryStorage(expected, CancellationToken.None);
 
             expected.Position = 0;
-            using var stream = storage.ReadStream(CancellationToken.None);
+            using var stream = handle.ReadFromTemporaryStorage(CancellationToken.None);
             Assert.Equal(expected.Length, stream.Length);
 
             for (var i = 0; i < expected.Length; i++)
@@ -329,7 +269,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void TestTemporaryStorageTextEncoding()
         {
             using var workspace = new AdhocWorkspace();

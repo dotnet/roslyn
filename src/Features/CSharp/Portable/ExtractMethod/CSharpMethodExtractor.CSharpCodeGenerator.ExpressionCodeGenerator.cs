@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -13,175 +12,170 @@ using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.ExtractMethod;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
+namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
+
+internal partial class CSharpMethodExtractor
 {
-    internal partial class CSharpMethodExtractor
+    private partial class CSharpCodeGenerator
     {
-        private partial class CSharpCodeGenerator
+        private sealed class ExpressionCodeGenerator(
+            CSharpSelectionResult selectionResult,
+            AnalyzerResult analyzerResult,
+            CSharpCodeGenerationOptions options,
+            bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
         {
-            private sealed class ExpressionCodeGenerator(
-                CSharpSelectionResult selectionResult,
-                AnalyzerResult analyzerResult,
-                CSharpCodeGenerationOptions options,
-                bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
+            protected override SyntaxToken CreateMethodName()
             {
-                protected override SyntaxToken CreateMethodName()
+                var methodName = GenerateMethodNameFromUserPreference();
+
+                var containingScope = this.SelectionResult.GetContainingScope();
+
+                methodName = GetMethodNameBasedOnExpression(methodName, containingScope);
+
+                var semanticModel = SemanticDocument.SemanticModel;
+                var nameGenerator = new UniqueNameGenerator(semanticModel);
+                return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, methodName));
+            }
+
+            private static string GetMethodNameBasedOnExpression(string methodName, SyntaxNode expression)
+            {
+                if (expression.Parent != null &&
+                    expression.Parent.Kind() == SyntaxKind.EqualsValueClause &&
+                    expression.Parent.Parent != null &&
+                    expression.Parent.Parent.Kind() == SyntaxKind.VariableDeclarator)
                 {
-                    var methodName = GenerateMethodNameFromUserPreference();
-
-                    var containingScope = this.SelectionResult.GetContainingScope();
-
-                    methodName = GetMethodNameBasedOnExpression(methodName, containingScope);
-
-                    var semanticModel = SemanticDocument.SemanticModel;
-                    var nameGenerator = new UniqueNameGenerator(semanticModel);
-                    return SyntaxFactory.Identifier(nameGenerator.CreateUniqueMethodName(containingScope, methodName));
+                    var name = ((VariableDeclaratorSyntax)expression.Parent.Parent).Identifier.ValueText;
+                    return (name != null && name.Length > 0) ? MakeMethodName("Get", name, methodName.Equals(NewMethodCamelCaseStr)) : methodName;
                 }
 
-                private static string GetMethodNameBasedOnExpression(string methodName, SyntaxNode expression)
+                if (expression is MemberAccessExpressionSyntax memberAccess)
                 {
-                    if (expression.Parent != null &&
-                        expression.Parent.Kind() == SyntaxKind.EqualsValueClause &&
-                        expression.Parent.Parent != null &&
-                        expression.Parent.Parent.Kind() == SyntaxKind.VariableDeclarator)
-                    {
-                        var name = ((VariableDeclaratorSyntax)expression.Parent.Parent).Identifier.ValueText;
-                        return (name != null && name.Length > 0) ? MakeMethodName("Get", name, methodName.Equals(NewMethodCamelCaseStr)) : methodName;
-                    }
-
-                    if (expression is MemberAccessExpressionSyntax memberAccess)
-                    {
-                        expression = memberAccess.Name;
-                    }
-
-                    if (expression is NameSyntax)
-                    {
-                        SimpleNameSyntax unqualifiedName;
-
-                        switch (expression.Kind())
-                        {
-                            case SyntaxKind.IdentifierName:
-                            case SyntaxKind.GenericName:
-                                unqualifiedName = (SimpleNameSyntax)expression;
-                                break;
-                            case SyntaxKind.QualifiedName:
-                                unqualifiedName = ((QualifiedNameSyntax)expression).Right;
-                                break;
-                            case SyntaxKind.AliasQualifiedName:
-                                unqualifiedName = ((AliasQualifiedNameSyntax)expression).Name;
-                                break;
-                            default:
-                                throw new System.NotSupportedException("Unexpected name kind: " + expression.Kind().ToString());
-                        }
-
-                        var unqualifiedNameIdentifierValueText = unqualifiedName.Identifier.ValueText;
-                        return (unqualifiedNameIdentifierValueText != null && unqualifiedNameIdentifierValueText.Length > 0) ?
-                            MakeMethodName("Get", unqualifiedNameIdentifierValueText, methodName.Equals(NewMethodCamelCaseStr)) : methodName;
-                    }
-
-                    return methodName;
+                    expression = memberAccess.Name;
                 }
 
-                protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
+                if (expression is NameSyntax)
                 {
-                    Contract.ThrowIfFalse(this.SelectionResult.SelectionInExpression);
+                    SimpleNameSyntax unqualifiedName;
 
-                    // special case for array initializer
-                    var returnType = AnalyzerResult.ReturnType;
-                    var containingScope = this.SelectionResult.GetContainingScope();
+                    switch (expression.Kind())
+                    {
+                        case SyntaxKind.IdentifierName:
+                        case SyntaxKind.GenericName:
+                            unqualifiedName = (SimpleNameSyntax)expression;
+                            break;
+                        case SyntaxKind.QualifiedName:
+                            unqualifiedName = ((QualifiedNameSyntax)expression).Right;
+                            break;
+                        case SyntaxKind.AliasQualifiedName:
+                            unqualifiedName = ((AliasQualifiedNameSyntax)expression).Name;
+                            break;
+                        default:
+                            throw new System.NotSupportedException("Unexpected name kind: " + expression.Kind().ToString());
+                    }
 
-                    ExpressionSyntax expression;
-                    if (returnType.TypeKind == TypeKind.Array && containingScope is InitializerExpressionSyntax)
-                    {
-                        var typeSyntax = returnType.GenerateTypeSyntax();
-
-                        expression = SyntaxFactory.ArrayCreationExpression(typeSyntax as ArrayTypeSyntax, containingScope as InitializerExpressionSyntax);
-                    }
-                    else
-                    {
-                        expression = containingScope as ExpressionSyntax;
-                    }
-
-                    if (AnalyzerResult.HasReturnType)
-                    {
-                        return ImmutableArray.Create<StatementSyntax>(
-                            SyntaxFactory.ReturnStatement(
-                                WrapInCheckedExpressionIfNeeded(expression)));
-                    }
-                    else
-                    {
-                        return ImmutableArray.Create<StatementSyntax>(
-                            SyntaxFactory.ExpressionStatement(
-                                WrapInCheckedExpressionIfNeeded(expression)));
-                    }
+                    var unqualifiedNameIdentifierValueText = unqualifiedName.Identifier.ValueText;
+                    return (unqualifiedNameIdentifierValueText != null && unqualifiedNameIdentifierValueText.Length > 0) ?
+                        MakeMethodName("Get", unqualifiedNameIdentifierValueText, methodName.Equals(NewMethodCamelCaseStr)) : methodName;
                 }
 
-                private ExpressionSyntax WrapInCheckedExpressionIfNeeded(ExpressionSyntax expression)
-                {
-                    var kind = this.SelectionResult.UnderCheckedExpressionContext();
-                    if (kind == SyntaxKind.None)
-                    {
-                        return expression;
-                    }
+                return methodName;
+            }
 
-                    return SyntaxFactory.CheckedExpression(kind, expression);
+            protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
+            {
+                Contract.ThrowIfFalse(this.SelectionResult.SelectionInExpression);
+
+                // special case for array initializer
+                var returnType = AnalyzerResult.ReturnType;
+                var containingScope = this.SelectionResult.GetContainingScope();
+
+                ExpressionSyntax expression;
+                if (returnType.TypeKind == TypeKind.Array && containingScope is InitializerExpressionSyntax)
+                {
+                    var typeSyntax = returnType.GenerateTypeSyntax();
+
+                    expression = SyntaxFactory.ArrayCreationExpression(typeSyntax as ArrayTypeSyntax, containingScope as InitializerExpressionSyntax);
+                }
+                else
+                {
+                    expression = containingScope as ExpressionSyntax;
                 }
 
-                protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
+                if (AnalyzerResult.HasReturnType)
                 {
-                    var scope = (SyntaxNode)this.SelectionResult.GetContainingScopeOf<StatementSyntax>();
-                    scope ??= this.SelectionResult.GetContainingScopeOf<FieldDeclarationSyntax>();
+                    return [SyntaxFactory.ReturnStatement(
+                            WrapInCheckedExpressionIfNeeded(expression))];
+                }
+                else
+                {
+                    return [SyntaxFactory.ExpressionStatement(
+                            WrapInCheckedExpressionIfNeeded(expression))];
+                }
+            }
 
-                    scope ??= this.SelectionResult.GetContainingScopeOf<ConstructorInitializerSyntax>();
-
-                    // This is similar to FieldDeclaration case but we only want to do this 
-                    // if the member has an expression body.
-                    scope ??= this.SelectionResult.GetContainingScopeOf<ArrowExpressionClauseSyntax>().Parent;
-
-                    return scope;
+            private ExpressionSyntax WrapInCheckedExpressionIfNeeded(ExpressionSyntax expression)
+            {
+                var kind = this.SelectionResult.UnderCheckedExpressionContext();
+                if (kind == SyntaxKind.None)
+                {
+                    return expression;
                 }
 
-                protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
-                    => GetFirstStatementOrInitializerSelectedAtCallSite();
+                return SyntaxFactory.CheckedExpression(kind, expression);
+            }
 
-                protected override async Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
-                {
-                    var enclosingStatement = GetFirstStatementOrInitializerSelectedAtCallSite();
+            protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
+            {
+                var scope = (SyntaxNode)this.SelectionResult.GetContainingScopeOf<StatementSyntax>();
+                scope ??= this.SelectionResult.GetContainingScopeOf<FieldDeclarationSyntax>();
 
-                    var callSignature = CreateCallSignature().WithAdditionalAnnotations(CallSiteAnnotation);
+                scope ??= this.SelectionResult.GetContainingScopeOf<ConstructorInitializerSyntax>();
 
-                    var sourceNode = this.SelectionResult.GetContainingScope();
-                    Contract.ThrowIfTrue(
-                        sourceNode.Parent is MemberAccessExpressionSyntax memberAccessExpression && memberAccessExpression.Name == sourceNode,
-                        "invalid scope. given scope is not an expression");
+                // This is similar to FieldDeclaration case but we only want to do this 
+                // if the member has an expression body.
+                scope ??= this.SelectionResult.GetContainingScopeOf<ArrowExpressionClauseSyntax>().Parent;
 
-                    // To lower the chances that replacing sourceNode with callSignature will break the user's
-                    // code, we make the enclosing statement semantically explicit. This ends up being a little
-                    // bit more work because we need to annotate the sourceNode so that we can get back to it
-                    // after rewriting the enclosing statement.
-                    var updatedDocument = SemanticDocument.Document;
-                    var sourceNodeAnnotation = new SyntaxAnnotation();
-                    var enclosingStatementAnnotation = new SyntaxAnnotation();
-                    var newEnclosingStatement = enclosingStatement
-                        .ReplaceNode(sourceNode, sourceNode.WithAdditionalAnnotations(sourceNodeAnnotation))
-                        .WithAdditionalAnnotations(enclosingStatementAnnotation);
+                return scope;
+            }
 
-                    updatedDocument = await updatedDocument.ReplaceNodeAsync(enclosingStatement, newEnclosingStatement, cancellationToken).ConfigureAwait(false);
+            protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
+                => GetFirstStatementOrInitializerSelectedAtCallSite();
 
-                    var updatedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-                    newEnclosingStatement = updatedRoot.GetAnnotatedNodesAndTokens(enclosingStatementAnnotation).Single().AsNode();
+            protected override async Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
+            {
+                var enclosingStatement = GetFirstStatementOrInitializerSelectedAtCallSite();
 
-                    // because of the complexification we cannot guarantee that there is only one annotation.
-                    // however complexification of names is prepended, so the last annotation should be the original one.
-                    sourceNode = updatedRoot.GetAnnotatedNodesAndTokens(sourceNodeAnnotation).Last().AsNode();
+                var callSignature = CreateCallSignature().WithAdditionalAnnotations(CallSiteAnnotation);
 
-                    return newEnclosingStatement.ReplaceNode(sourceNode, callSignature);
-                }
+                var sourceNode = this.SelectionResult.GetContainingScope();
+                Contract.ThrowIfTrue(
+                    sourceNode.Parent is MemberAccessExpressionSyntax memberAccessExpression && memberAccessExpression.Name == sourceNode,
+                    "invalid scope. given scope is not an expression");
+
+                // To lower the chances that replacing sourceNode with callSignature will break the user's
+                // code, we make the enclosing statement semantically explicit. This ends up being a little
+                // bit more work because we need to annotate the sourceNode so that we can get back to it
+                // after rewriting the enclosing statement.
+                var updatedDocument = SemanticDocument.Document;
+                var sourceNodeAnnotation = new SyntaxAnnotation();
+                var enclosingStatementAnnotation = new SyntaxAnnotation();
+                var newEnclosingStatement = enclosingStatement
+                    .ReplaceNode(sourceNode, sourceNode.WithAdditionalAnnotations(sourceNodeAnnotation))
+                    .WithAdditionalAnnotations(enclosingStatementAnnotation);
+
+                updatedDocument = await updatedDocument.ReplaceNodeAsync(enclosingStatement, newEnclosingStatement, cancellationToken).ConfigureAwait(false);
+
+                var updatedRoot = await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                newEnclosingStatement = updatedRoot.GetAnnotatedNodesAndTokens(enclosingStatementAnnotation).Single().AsNode();
+
+                // because of the complexification we cannot guarantee that there is only one annotation.
+                // however complexification of names is prepended, so the last annotation should be the original one.
+                sourceNode = updatedRoot.GetAnnotatedNodesAndTokens(sourceNodeAnnotation).Last().AsNode();
+
+                return newEnclosingStatement.ReplaceNode(sourceNode, callSignature);
             }
         }
     }

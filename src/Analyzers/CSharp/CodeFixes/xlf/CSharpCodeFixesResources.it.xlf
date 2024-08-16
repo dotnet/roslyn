@@ -154,7 +154,7 @@
       </trans-unit>
       <trans-unit id="Remove_unnecessary_usings">
         <source>Remove unnecessary usings</source>
-        <target state="new">Remove unnecessary usings</target>
+        <target state="translated">Rimuovi istruzioni using non necessarie</target>
         <note />
       </trans-unit>
       <trans-unit id="Remove_unreachable_code">
@@ -194,7 +194,7 @@
       </trans-unit>
       <trans-unit id="Use_collection_expression">
         <source>Use collection expression</source>
-        <target state="translated">Usa espressione di raccolta</target>
+        <target state="translated">Usa l'espressione di raccolta</target>
         <note />
       </trans-unit>
       <trans-unit id="Use_interpolated_verbatim_string">

@@ -8,7 +8,7 @@
     <License>EULA.rtf</License>
     <AllowClientRole>true</AllowClientRole>
   </Metadata>
-  <Installation Experimental="true">
+  <Installation Experimental="true" ExtensionType="VSSDK+VisualStudio.Extensibility">
     <InstallationTarget Id="Microsoft.VisualStudio.Pro" Version="[17.0,]">
       <ProductArchitecture>amd64</ProductArchitecture>
     </InstallationTarget>

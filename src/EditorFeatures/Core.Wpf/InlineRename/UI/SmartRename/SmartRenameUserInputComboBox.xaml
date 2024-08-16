@@ -8,22 +8,47 @@
           xmlns:vsui="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.15.0"
           xmlns:sr="clr-namespace:Microsoft.CodeAnalysis.InlineRename.UI.SmartRename"
           mc:Ignorable="d"
-          GotKeyboardFocus="ComboBox_GotKeyboardFocus"
-          LostKeyboardFocus="ComboBox_LostKeyboardFocus"
+          Name="SmartRenameInputControl"
           Unloaded="ComboBox_Unloaded"
-          PreviewKeyUp="ComboBox_PreviewKeyUp"
           SelectionChanged="ComboBox_SelectionChanged"
           Text="{Binding BaseViewModel.IdentifierText, UpdateSourceTrigger=PropertyChanged, Mode=TwoWay}"
           ItemsSource="{Binding SuggestedNames}"
           StaysOpenOnEdit="True"
           IsEditable="True"
           Style="{StaticResource {x:Static vsfx:VsResourceKeys.ComboBoxStyleKey}}"
+          GotKeyboardFocus="ComboBox_GotKeyboardFocus"
           VirtualizingStackPanel.IsVirtualizing="True"
           VirtualizingStackPanel.VirtualizationMode="Recycling">
     <ComboBox.Resources>
         <ResourceDictionary>
             <vsui:BooleanToHiddenVisibilityConverter x:Key="BooleanToHiddenVisibilityConverter"/>
+            <vsui:BooleanToCustomVisibilityConverter x:Key="BooleanToCollapsedVisibilityConverter"/>
             <SolidColorBrush x:Key="copilotBranding" Color="#6F66E3"/>
+
+            <ControlTemplate x:Key="ComboBoxItemTemplate" TargetType="{x:Type ComboBoxItem}">
+                <Border Name="Bd"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        Padding="{TemplateBinding Padding}"
+                        SnapsToDevicePixels="true">
+                    <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                        VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                        SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"/>
+                </Border>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsHighlighted" Value="true">
+                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverBackgroundGradientBrushKey}}"/>
+                        <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverBorderBrushKey}}" />
+                        <Setter TargetName="Bd" Property="TextElement.Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextHoverBrushKey}}" />
+                    </Trigger>
+                    <Trigger Property="IsMouseOver" Value="true">
+                        <Setter TargetName="Bd" Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverBackgroundGradientBrushKey}}"/>
+                        <Setter TargetName="Bd" Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverBorderBrushKey}}" />
+                        <Setter TargetName="Bd" Property="TextElement.Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextHoverBrushKey}}" />
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
 
             <Style x:Key="ComboBoxEditableTextBox" TargetType="{x:Type TextBox}">
                 <Setter Property="OverridesDefaultStyle" Value="true"/>
@@ -42,17 +67,27 @@
                 </Setter>
             </Style>
 
-            <Style x:Key="GetSuggestionButtonStyle" BasedOn="{StaticResource {x:Static vsfx:VsResourceKeys.ButtonStyleKey}}" TargetType="Button">
-                <Setter Property="Padding" Value="4,3,2,1"/>
+            <Style x:Key="GetSuggestionsButtonStyle" BasedOn="{StaticResource {x:Static vsfx:VsResourceKeys.ButtonStyleKey}}" TargetType="Button">
+                <Setter Property="Padding" Value="4,4,1,0"/>
+                <Setter Property="Margin" Value="3,1,1,1"/>
                 <Setter Property="MinHeight" Value="0"/>
                 <Setter Property="MinWidth" Value="0"/>
-                <Setter Property="BorderBrush" Value="Transparent"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderBrushKey}}"/>
+                <Setter Property="Background" Value="Transparent"/>
+                <Setter Property="Cursor" Value="Arrow"/>
+                <Setter Property="ForceCursor" Value="True"/>
                 <Style.Triggers>
+                    <DataTrigger Binding="{Binding IsAutomaticSuggestionsEnabled}" Value="True">
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonDefaultBrushKey}}"/>
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderPressedBrushKey}}"/>
+                    </DataTrigger>
                     <Trigger Property="IsMouseOver" Value="true">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderHoverBrushKey}}"/>
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonHoverBrushKey}}"/>
                     </Trigger>
                     <Trigger Property="IsKeyboardFocused" Value="true">
                         <Setter Property="BorderBrush" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonBorderFocusedBrushKey}}"/>
+                        <Setter Property="Background" Value="{DynamicResource {x:Static vsui:CommonControlsColors.ButtonFocusedBrushKey}}"/>
                     </Trigger>
                 </Style.Triggers>
             </Style>
@@ -60,52 +95,26 @@
     </ComboBox.Resources>
     <ComboBox.Template>
         <ControlTemplate TargetType="{x:Type ComboBox}">
-            <Grid x:Name="templateRoot" SnapsToDevicePixels="true">
+            <Grid x:Name="templateRoot" x:Uid="templateRoot" SnapsToDevicePixels="true">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
                 <Border x:Name="border"
+                        x:Uid="border"
                         Grid.Row="0"
+                        Grid.Column="0"
                         Margin="{TemplateBinding BorderThickness}"
                         Background="{TemplateBinding Background}"
                         BorderBrush="{TemplateBinding BorderBrush}"
                         BorderThickness="{TemplateBinding BorderThickness}">
-                    <Grid SnapsToDevicePixels="true">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <Popup x:Name="PART_Popup"
-                               AllowsTransparency="true"
-                               Grid.ColumnSpan="2"
-                               Placement="Bottom"
-                               PopupAnimation="{DynamicResource {x:Static SystemParameters.ComboBoxPopupAnimationKey}}">
-                            <vsui:SystemDropShadowChrome x:Name="shadow"
-                                                         Color="Transparent"
-                                                         MinWidth="{Binding ActualWidth, ElementName=templateRoot}"
-                                                         MaxHeight="{TemplateBinding MaxDropDownHeight}">
-                                <Border x:Name="dropDownBorder"
-                                        BorderBrush="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBorderBrushKey}}"
-                                        BorderThickness="1">
-                                    <ScrollViewer x:Name="DropDownScrollViewer">
-                                        <Grid x:Name="grid"
-                                              RenderOptions.ClearTypeHint="Enabled"
-                                              RenderOptions.BitmapScalingMode="{x:Static vsui:DpiHelper.BitmapScalingMode}"
-                                              Background="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBackgroundGradientBrushKey}}">
-                                            <ItemsPresenter x:Name="ItemsPresenter"
-                                                            VirtualizingStackPanel.IsVirtualizing="True"
-                                                            KeyboardNavigation.DirectionalNavigation="Contained"
-                                                            SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}"
-                                                            PreviewMouseUp="ItemsPresenter_PreviewMouseUp">
-                                            </ItemsPresenter>
-                                        </Grid>
-                                    </ScrollViewer>
-                                </Border>
-                            </vsui:SystemDropShadowChrome>
-                        </Popup>
-                        <TextBox x:Name="PART_EditableTextBox"
-                                 Grid.Column="0"
+                    <TextBox x:Name="PART_EditableTextBox"
+                                 x:Uid="PART_EditableTextBox"
                                  Margin="0"
                                  VerticalAlignment="Center"
                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
@@ -114,19 +123,19 @@
                                  Foreground="{TemplateBinding Foreground}"
                                  SelectionBrush="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxSelectionBrushKey}}"
                                  IsReadOnly="{Binding IsReadOnly, RelativeSource={RelativeSource Mode=TemplatedParent}}"
-                                 Style="{StaticResource ComboBoxEditableTextBox}"
-                                 GotFocus="InnerTextBox_GotFocus"
-                                 LostFocus="InnerTextBox_LostFocus"
-                                 PreviewKeyDown="InnerTextBox_PreviewKeyDown"/>
-                        <Button x:Name="GetSuggestionsButton"
-                                Grid.Column="1"
-                                Style="{StaticResource GetSuggestionButtonStyle}"
-                                ToolTip="{x:Static sr:SmartRenameViewModel.GetSuggestionsTooltip}"
-                                Command="{Binding GetSuggestionsCommand}">
-                            <Button.Content>
-                                <Canvas Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center">
-                                    <!-- TODO: Replace by KnownMoniker once available. -->
-                                    <Path Stretch="Uniform"
+                                 Style="{StaticResource ComboBoxEditableTextBox}" />
+                </Border>
+                <Button x:Name="GetSuggestionsButton"
+                        x:Uid="GetSuggestionsButton"
+                        Grid.Row="0"
+                        Grid.Column="1"
+                        Style="{StaticResource GetSuggestionsButtonStyle}"
+                        ToolTip="{Binding GetSuggestionsTooltip}"
+                        Click="GetSuggestionsButtonClick">
+                    <Button.Content>
+                        <Canvas Width="16" Height="16" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <!-- TODO: Replace by KnownMoniker once available. -->
+                            <Path Stretch="Uniform"
                                           Fill="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxGlyphBrushKey}}"
                                           Data="M5.46595 9.82802C5.62258 9.93869 5.80966 9.99811 6.00145 9.99811C6.19324 9.99811 6.38031 9.93869 6.53695 9.82802C6.69342
                                           9.71202 6.81206 9.55231 6.87795 9.36902L7.22495 8.30002C7.30883 8.04828 7.45023 7.81956 7.63795 7.63202C7.82366 7.44587 8.05038
@@ -158,43 +167,66 @@
                                           11.3175 10.2128 11.5462 10.4414C11.7749 10.6699 12.0539 10.8417 12.3609 10.943L12.5609 11.006L12.3809 11.065C12.0734 11.1668
                                           11.794 11.3393 11.5652 11.5688C11.3365 11.7982 11.1648 12.0781 11.0639 12.386L10.9999 12.56L10.9419 12.379C10.8401 12.0707
                                           10.6675 11.7906 10.4379 11.561C10.2084 11.3315 9.92822 11.1588 9.61995 11.057H9.62095Z"/>
-                                </Canvas>
-                            </Button.Content>
-                        </Button>
-                    </Grid>
+                        </Canvas>
+                    </Button.Content>
+                </Button>
+                <Border x:Name="ProgressBarHost"
+                        x:Uid="ProgressBarHost"
+                        Grid.Row="1"
+                        Grid.Column="0"
+                        BorderThickness="0">
+                    <ProgressBar x:Name="ProgressBar"
+                                 x:Uid="ProgressBar"
+                                 Height="2"
+                                 Margin="{TemplateBinding BorderThickness}"
+                                 IsIndeterminate="{Binding IsInProgress}"
+                                 Visibility="{Binding IsInProgress, Converter={StaticResource BooleanToHiddenVisibilityConverter}, Mode=OneWay}"
+                                 Template="{DynamicResource {x:Static vsfx:VsResourceKeys.ProgressBarTemplateKey}}"
+                                 Foreground="{StaticResource copilotBranding}"
+                                 Background="Transparent" />
                 </Border>
-                <ProgressBar x:Name="ProgressBar"
-                             Grid.Row="1"
-                             Margin="{TemplateBinding BorderThickness}"
-                             IsIndeterminate="{Binding IsInProgress}"
-                             Visibility="{Binding IsInProgress, Converter={StaticResource BooleanToHiddenVisibilityConverter}, Mode=OneWay}"
-                             Foreground="{StaticResource copilotBranding}"
-                             Background="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarMenuBackgroundGradientBeginKey}}" />
+                <Border x:Name="SuggestionsPanel"
+                        x:Uid="SuggestionsPanel"
+                        Grid.Row="2"
+                        Grid.Column="0"
+                        Grid.ColumnSpan="2"
+                        Margin="1 0"
+                        Height="62"
+                        Visibility="{Binding IsSuggestionsPanelExpanded, Converter={StaticResource BooleanToCollapsedVisibilityConverter}, Mode=OneWay}"
+                        BorderBrush="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBorderBrushKey}}"
+                        BorderThickness="1">
+                    <ScrollViewer x:Name="SuggestionsPanelScrollViewer"
+                        x:Uid="SuggestionsPanelScrollViewer"
+                        HorizontalScrollBarVisibility="Hidden"
+                        MouseDoubleClick="SuggestionsPanelScrollViewer_MouseDoubleClick">
+                        <Grid x:Name="SuggestionsPanelGrid"
+                            x:Uid="SuggestionsPanelGrid"
+                            RenderOptions.ClearTypeHint="Enabled"
+                            RenderOptions.BitmapScalingMode="{x:Static vsui:DpiHelper.BitmapScalingMode}"
+                            Background="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxPopupBackgroundGradientBrushKey}}">
+                            <ItemsPresenter x:Name="AltItemsPresenter"
+                                    x:Uid="AltItemsPresenter"
+                                    VirtualizingStackPanel.IsVirtualizing="True"
+                                    KeyboardNavigation.DirectionalNavigation="Contained"
+                                    SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" >
+                            </ItemsPresenter>
+                        </Grid>
+                    </ScrollViewer>
+                </Border>
             </Grid>
             <ControlTemplate.Triggers>
-                <Trigger Property="IsEnabled" Value="false">
+                <Trigger SourceName="PART_EditableTextBox" Property="IsEnabled" Value="false">
                     <Setter Property="Opacity" TargetName="border" Value="0.56"/>
                 </Trigger>
-                <Trigger Property="IsKeyboardFocusWithin" Value="true">
+                <Trigger SourceName="PART_EditableTextBox" Property="IsKeyboardFocusWithin" Value="true">
                     <Setter Property="TextElement.Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxFocusedTextBrushKey}}" />
                     <Setter TargetName="border" Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxFocusedBackgroundBrushKey}}" />
                     <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxFocusedBorderBrushKey}}" />
-                    <Setter TargetName="GetSuggestionsButton" Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxFocusedButtonBackgroundBrushKey}}" />
-                    <Setter TargetName="GetSuggestionsButton" Property="TextElement.Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxFocusedGlyphBrushKey}}" />
                 </Trigger>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter TargetName="GetSuggestionsButton" Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxButtonMouseOverBackgroundBrushKey}}" />
-                    <Setter TargetName="GetSuggestionsButton" Property="TextElement.Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverGlyphBrushKey}}" />
+                <Trigger SourceName="PART_EditableTextBox" Property="IsMouseOver" Value="True">
                     <Setter TargetName="border" Property="Background" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverBackgroundGradientBrushKey}}" />
                     <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverBorderBrushKey}}" />
                     <Setter Property="TextElement.Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxMouseOverTextBrushKey}}" />
-                </Trigger>
-                <Trigger Property="HasDropShadow" SourceName="PART_Popup" Value="true">
-                    <Setter Property="Margin" TargetName="shadow" Value="0,0,5,5"/>
-                    <Setter Property="Color" TargetName="shadow" Value="#71000000"/>
-                </Trigger>
-                <Trigger Property="HasItems" Value="false">
-                    <Setter Property="Height" TargetName="dropDownBorder" Value="95"/>
                 </Trigger>
                 <MultiTrigger>
                     <MultiTrigger.Conditions>
@@ -214,4 +246,15 @@
                 VirtualizationMode="{Binding RelativeSource={RelativeSource TemplatedParent},Path=(VirtualizingStackPanel.VirtualizationMode)}" />
         </ItemsPanelTemplate>
     </ComboBox.ItemsPanel>
+    <ComboBox.ItemContainerStyle>
+        <Style TargetType="{x:Type ComboBoxItem}">
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="Transparent" />
+            <Setter Property="Foreground" Value="{DynamicResource {x:Static vsui:EnvironmentColors.ComboBoxItemTextBrushKey}}"/>
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template" Value="{StaticResource ComboBoxItemTemplate}" />
+            <Setter Property="Margin" Value="2,0,2,0" />
+            <Setter Property="Padding" Value="4,1,24,1" /> <!-- Add 20px to the right over the default template to prevent popup from changing size -->
+        </Style>
+    </ComboBox.ItemContainerStyle>
 </ComboBox>

@@ -8,31 +8,30 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 
-namespace Microsoft.CodeAnalysis.CSharp.Extensions
+namespace Microsoft.CodeAnalysis.CSharp.Extensions;
+
+internal static partial class CastExpressionSyntaxExtensions
 {
-    internal static partial class CastExpressionSyntaxExtensions
+    public static ExpressionSyntax Uncast(this CastExpressionSyntax node)
     {
-        public static ExpressionSyntax Uncast(this CastExpressionSyntax node)
-        {
-            var leadingTrivia = node.OpenParenToken.LeadingTrivia
-                .Concat(node.OpenParenToken.TrailingTrivia)
-                .Concat(node.Type.GetLeadingTrivia())
-                .Concat(node.Type.GetTrailingTrivia())
-                .Concat(node.CloseParenToken.LeadingTrivia)
-                .Concat(node.CloseParenToken.TrailingTrivia)
-                .Concat(node.Expression.GetLeadingTrivia())
-                .Where(t => !t.IsElastic());
+        var leadingTrivia = node.OpenParenToken.LeadingTrivia
+            .Concat(node.OpenParenToken.TrailingTrivia)
+            .Concat(node.Type.GetLeadingTrivia())
+            .Concat(node.Type.GetTrailingTrivia())
+            .Concat(node.CloseParenToken.LeadingTrivia)
+            .Concat(node.CloseParenToken.TrailingTrivia)
+            .Concat(node.Expression.GetLeadingTrivia())
+            .Where(t => !t.IsElastic());
 
-            var trailingTrivia = node.GetTrailingTrivia().Where(t => !t.IsElastic());
+        var trailingTrivia = node.GetTrailingTrivia().Where(t => !t.IsElastic());
 
-            var resultNode = node.Expression
-                .WithLeadingTrivia(leadingTrivia)
-                .WithTrailingTrivia(trailingTrivia)
-                .WithAdditionalAnnotations(Simplifier.Annotation);
+        var resultNode = node.Expression
+            .WithLeadingTrivia(leadingTrivia)
+            .WithTrailingTrivia(trailingTrivia)
+            .WithAdditionalAnnotations(Simplifier.Annotation);
 
-            resultNode = SimplificationHelpers.CopyAnnotations(from: node, to: resultNode);
+        resultNode = SimplificationHelpers.CopyAnnotations(from: node, to: resultNode);
 
-            return resultNode;
-        }
+        return resultNode;
     }
 }

@@ -550,6 +550,28 @@ class C { }
             Assert.Empty(results.Results);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74033")]
+        public void RunResults_Are_Empty_Before_Generation_With_Generators()
+        {
+            var generator = new SingleFileTestGenerator("public class D {}", "source.cs");
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: TestOptions.Regular);
+            var results = driver.GetRunResult();
+
+            Assert.Empty(results.GeneratedTrees);
+            Assert.Empty(results.Diagnostics);
+
+            var result = Assert.Single(results.Results);
+
+            Assert.Null(result.Exception);
+            Assert.True(result.Diagnostics.IsDefault);
+            Assert.True(result.GeneratedSources.IsDefault);
+            Assert.Null(result.TrackedSteps);
+            Assert.Null(result.TrackedOutputSteps);
+            Assert.Equal(TimeSpan.Zero, result.ElapsedTime);
+            Assert.Equal(generator, result.Generator);
+        }
+
         [Fact]
         public void RunResults_Are_Available_After_Generation()
         {
@@ -4079,6 +4101,369 @@ class C { }
             Assert.Equal(message, diagnostic.Arguments[2]);
             var expectedDetails = $"System.{typeName}: {message}{Environment.NewLine}   ";
             Assert.StartsWith(expectedDetails, diagnostic.Arguments[3] as string);
+        }
+
+        [Fact]
+        public void GetInterceptsLocationSpecifier_01()
+        {
+            var generator = new IncrementalGeneratorWrapper(new InterceptorGenerator1());
+
+            var parseOptions = TestOptions.RegularPreview.WithFeature("InterceptorsPreviewNamespaces", "global");
+
+            var source1 = ("""
+                public class Program
+                {
+                    public static void Main()
+                    {
+                        var program = new Program();
+                        program.M(1);
+                    }
+
+                    public void M(int param) => throw null!;
+                }
+
+                namespace System.Runtime.CompilerServices
+                {
+                    public class InterceptsLocationAttribute : Attribute { public InterceptsLocationAttribute(int version, string data) { } }
+                }
+                """, PlatformInformation.IsWindows ? @"C:\project\src\Program.cs" : "/project/src/Program.cs");
+
+            Compilation compilation = CreateCompilation([source1], options: TestOptions.DebugExe, parseOptions: parseOptions);
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions, driverOptions: new GeneratorDriverOptions() { BaseDirectory = PlatformInformation.IsWindows ? @"C:\project\obj\" : "/project/obj" });
+            verify(ref driver, compilation);
+
+            void verify(ref GeneratorDriver driver, Compilation compilation)
+            {
+                driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var generatorDiagnostics);
+                outputCompilation.VerifyDiagnostics();
+                CompileAndVerify(outputCompilation, expectedOutput: "1");
+                generatorDiagnostics.Verify();
+            }
+        }
+
+        [Generator(LanguageNames.CSharp)]
+        private class InterceptorGenerator1 : IIncrementalGenerator
+        {
+#pragma warning disable RSEXPERIMENTAL002 // test
+            record InterceptorInfo(InterceptableLocation locationSpecifier, object data);
+
+            private static bool IsInterceptableCall(SyntaxNode node, CancellationToken token) => node is InvocationExpressionSyntax;
+
+            private static object GetData(GeneratorSyntaxContext context) => 1;
+
+            public void Initialize(IncrementalGeneratorInitializationContext context)
+            {
+                var interceptorInfos = context.SyntaxProvider.CreateSyntaxProvider(
+                    predicate: IsInterceptableCall,
+                    transform: (GeneratorSyntaxContext context, CancellationToken token) =>
+                    {
+                        var model = context.SemanticModel;
+                        var locationSpecifier = model.GetInterceptableLocation((InvocationExpressionSyntax)context.Node, token);
+                        if (locationSpecifier is null)
+                        {
+                            return null; // generator wants to intercept call, but host thinks call is not interceptable. bug.
+                        }
+
+                        // generator is careful to propagate only equatable data (i.e., not syntax nodes or symbols).
+                        return new InterceptorInfo(locationSpecifier, GetData(context));
+                    })
+                    .Where(info => info != null)
+                    .Collect();
+
+                context.RegisterSourceOutput(interceptorInfos, (context, interceptorInfos) =>
+                {
+                    var builder = new StringBuilder();
+                    builder.AppendLine("using System.Runtime.CompilerServices;");
+                    builder.AppendLine("using System;");
+                    builder.AppendLine("public static class Interceptors");
+                    builder.AppendLine("{");
+                    // builder boilerplate..
+                    foreach (var interceptorInfo in interceptorInfos)
+                    {
+                        var (locationSpecifier, data) = interceptorInfo!;
+                        builder.AppendLine($$"""
+                                // {{locationSpecifier.GetDisplayLocation()}}
+                                [InterceptsLocation({{locationSpecifier.Version}}, "{{locationSpecifier.Data}}")]
+                                public static void Interceptor(this Program program, int param)
+                                {
+                                    Console.Write(1);
+                                }
+                            """);
+                    }
+                    // builder boilerplate..
+                    builder.AppendLine("}");
+
+                    context.AddSource("MyInterceptors.cs", builder.ToString());
+                });
+            }
+        }
+
+        [Fact]
+        public void SourceGenerator_As_IncrementalGenerator_As_SourceGenerator()
+        {
+            ISourceGenerator generator = new TestSourceGenerator();
+
+            var incrementalGenerator = generator.AsIncrementalGenerator();
+            var sourceGenerator = incrementalGenerator.AsSourceGenerator();
+
+            Assert.Same(generator, sourceGenerator);
+        }
+
+        [Fact]
+        public void SourceGenerator_As_IncrementalGenerator_GetGeneratorType()
+        {
+            ISourceGenerator generator = new TestSourceGenerator();
+
+            var incrementalGenerator = generator.AsIncrementalGenerator();
+            var type = incrementalGenerator.GetGeneratorType();
+
+            Assert.Same(generator.GetType(), type);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_As_SourceGenerator_As_IncrementalGenerator()
+        {
+            IIncrementalGenerator generator = new PipelineCallbackGenerator(ctx => { });
+
+            var sourceGenerator = generator.AsSourceGenerator();
+            var incrementalGenerator = sourceGenerator.AsIncrementalGenerator();
+
+            Assert.Same(generator, incrementalGenerator);
+        }
+
+        [Fact]
+        public void IncrementalGenerator_As_SourceGenerator_GetGeneratorType()
+        {
+            IIncrementalGenerator generator = new PipelineCallbackGenerator(ctx => { });
+
+            var sourceGenerator = generator.AsSourceGenerator();
+            var type = sourceGenerator.GetGeneratorType();
+
+            Assert.Same(generator.GetType(), type);
+        }
+
+        [Fact]
+        public void GeneratorDriver_CreateWith_Wrapped_ISourceGenerator()
+        {
+            bool executeCalled = false;
+            ISourceGenerator generator = new TestSourceGenerator() { ExecuteImpl = (context) => { executeCalled = true; } };
+
+            var incrementalGenerator = generator.AsIncrementalGenerator();
+
+            var generatorDriver = CSharpGeneratorDriver.Create(incrementalGenerator);
+            generatorDriver.RunGenerators(CreateCompilation("class C { }"));
+
+            Assert.True(executeCalled);
+        }
+
+        [Fact]
+        public void GeneratorDriver_CanFilter_GeneratorsToRun()
+        {
+            var generator1 = new PipelineCallbackGenerator((ctx) => { ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { spc.AddSource("gen1Source.cs", c.SyntaxTrees.First().GetRoot().ToFullString() + " //generator1"); }); }).AsSourceGenerator();
+            var generator2 = new PipelineCallbackGenerator2((ctx) => { ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { spc.AddSource("gen2Source.cs", c.SyntaxTrees.First().GetRoot().ToFullString() + " //generator2"); }); }).AsSourceGenerator();
+
+            var compilation = CreateCompilation("class Compilation1{}");
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(generator1, generator2);
+
+            driver = driver.RunGenerators(compilation);
+            var result = driver.GetRunResult();
+
+            Assert.Equal(2, result.GeneratedTrees.Length);
+            Assert.Equal("class Compilation1{} //generator1", result.GeneratedTrees[0].ToString());
+            Assert.Equal("class Compilation1{} //generator2", result.GeneratedTrees[1].ToString());
+
+            // change the generated source, but only run generator 1
+            compilation = CreateCompilation("class Compilation2{}");
+            driver = driver.RunGenerators(compilation, ctx => ctx.Generator == generator1);
+            result = driver.GetRunResult();
+
+            // only the first generator should have run, generator 2 hasn't been updated
+            Assert.Equal(2, result.GeneratedTrees.Length);
+            Assert.Equal("class Compilation2{} //generator1", result.GeneratedTrees[0].ToString());
+            Assert.Equal("class Compilation1{} //generator2", result.GeneratedTrees[1].ToString());
+
+            // now only run generator 2
+            compilation = CreateCompilation("class Compilation3{}");
+            driver = driver.RunGenerators(compilation, ctx => ctx.Generator == generator2);
+            result = driver.GetRunResult();
+
+            Assert.Equal(2, result.GeneratedTrees.Length);
+            Assert.Equal("class Compilation2{} //generator1", result.GeneratedTrees[0].ToString());
+            Assert.Equal("class Compilation3{} //generator2", result.GeneratedTrees[1].ToString());
+
+            // run everything
+            compilation = CreateCompilation("class Compilation4{}");
+            driver = driver.RunGenerators(compilation);
+            result = driver.GetRunResult();
+
+            Assert.Equal(2, result.GeneratedTrees.Length);
+            Assert.Equal("class Compilation4{} //generator1", result.GeneratedTrees[0].ToString());
+            Assert.Equal("class Compilation4{} //generator2", result.GeneratedTrees[1].ToString());
+        }
+
+        [Fact]
+        public void GeneratorDriver_CanFilter_GeneratorsToRun_AndUpdateCompilation()
+        {
+            var generator1 = new PipelineCallbackGenerator((ctx) => { ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { spc.AddSource("gen1Source.cs", "//" + c.SyntaxTrees.First().GetRoot().ToFullString() + " generator1"); }); }).AsSourceGenerator();
+            var generator2 = new PipelineCallbackGenerator2((ctx) => { ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { spc.AddSource("gen2Source.cs", "//" + c.SyntaxTrees.First().GetRoot().ToFullString() + " generator2"); }); }).AsSourceGenerator();
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator1, generator2], parseOptions: parseOptions);
+
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out var outputDiagnostics);
+            Assert.Empty(outputDiagnostics);
+
+            // change the generated source, but only run generator 1
+            compilation = CreateCompilation("class Compilation2{}", parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation, ctx => ctx.Generator == generator1);
+
+            // now run all the generators and update the compilation
+            driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out outputCompilation, out outputDiagnostics);
+            Assert.Empty(outputDiagnostics);
+        }
+
+        [Fact]
+        public void GeneratorDriver_ReturnsEmptyRunResult_IfFiltered_BeforeRunning()
+        {
+            bool initWasCalled = false;
+
+            var generator1 = new PipelineCallbackGenerator((ctx) => { ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { spc.AddSource("gen1Source.cs", c.SyntaxTrees.First().GetRoot().ToFullString() + " //generator1"); }); }).AsSourceGenerator();
+            var generator2 = new PipelineCallbackGenerator2((ctx) => { initWasCalled = true; ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { spc.AddSource("gen2Source.cs", c.SyntaxTrees.First().GetRoot().ToFullString() + " //generator2"); }); }).AsSourceGenerator();
+
+            var compilation = CreateCompilation("class Compilation1{}");
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(generator1, generator2);
+
+            driver = driver.RunGenerators(compilation, ctx => ctx.Generator == generator1);
+            var result = driver.GetRunResult();
+
+            // only a single tree is generated
+            Assert.Equal(1, result.GeneratedTrees.Length);
+            Assert.Equal("class Compilation1{} //generator1", result.GeneratedTrees[0].ToString());
+
+            // but both generators are represented in the run results
+            Assert.Equal(2, result.Results.Length);
+
+            Assert.Equal(generator1, result.Results[0].Generator);
+            Assert.Equal(1, result.Results[0].GeneratedSources.Length);
+
+            // the second generator was never initialized and produced no results
+            Assert.False(initWasCalled);
+            Assert.Equal(generator2, result.Results[1].Generator);
+            Assert.True(result.Results[1].GeneratedSources.IsDefault);
+        }
+
+        [Fact]
+        public void GeneratorDriver_GeneratorIsNotRun_IfAlreadyUpToDate_DueToFiltering()
+        {
+            bool stepRan = false;
+            var generator1 = new PipelineCallbackGenerator((ctx) => { ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, c) => { stepRan = true; }); }).AsSourceGenerator();
+
+            var compilation = CreateCompilation("class Compilation1{}");
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(generator1);
+
+            // don't run
+            driver = driver.RunGenerators(compilation, ctx => false);
+            Assert.False(stepRan);
+
+            // run
+            driver = driver.RunGenerators(compilation, ctx => true);
+            Assert.True(stepRan);
+
+            // re-run everything
+            stepRan = false;
+            driver = driver.RunGenerators(compilation);
+
+            // step didn't run because the generator was already up to date
+            Assert.False(stepRan);
+        }
+
+        [Fact]
+        public void ReplaceGenerators_Initializes_New_Generators()
+        {
+            var generator1 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator(ctx => { }));
+
+            bool initWasCalled = false;
+            var generator2 = new IncrementalGeneratorWrapper(new PipelineCallbackGenerator2(ctx =>
+            {
+                initWasCalled = true;
+                ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, text) =>
+                {
+                    context.AddSource("generated", "");
+                });
+            }));
+
+            var compilation = CreateCompilation("class C{}");
+
+            GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator1 });
+            driver = driver.RunGenerators(compilation);
+            var results = driver.GetRunResult();
+            Assert.Empty(results.GeneratedTrees);
+
+            driver = driver.ReplaceGenerators([generator2]);
+            driver = driver.RunGenerators(compilation);
+
+            results = driver.GetRunResult();
+            Assert.True(initWasCalled);
+            Assert.Single(results.GeneratedTrees);
+        }
+
+        // check post init trees get re-parsed if we change parse options while suppressed
+
+        [Fact]
+        public void GeneratorDriver_DoesNotIncludePostInitTrees_WhenFiltered()
+        {
+            var generator = new PipelineCallbackGenerator((ctx) => { ctx.RegisterPostInitializationOutput(postInitCtx => { postInitCtx.AddSource("staticSource.cs", "//static"); }); }).AsSourceGenerator();
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator], parseOptions: parseOptions);
+
+            driver = driver.RunGenerators(compilation, (ctx) => false);
+            var result = driver.GetRunResult();
+
+            Assert.Empty(result.GeneratedTrees);
+
+            driver = driver.RunGenerators(compilation);
+            result = driver.GetRunResult();
+
+            Assert.Single(result.GeneratedTrees);
+        }
+
+        [Fact]
+        public void GeneratorDriver_ReparsesPostInitTrees_IfParseOptionsChange_WhileSuppressed()
+        {
+            var generator1 = new PipelineCallbackGenerator((ctx) => { ctx.RegisterPostInitializationOutput(postInitCtx => { postInitCtx.AddSource("staticSource.cs", "//static"); }); }).AsSourceGenerator();
+            var generator2 = new PipelineCallbackGenerator2((ctx) => { ctx.RegisterPostInitializationOutput(postInitCtx => { postInitCtx.AddSource("staticSource2.cs", "//static 2"); }); }).AsSourceGenerator();
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator1, generator2], parseOptions: parseOptions);
+
+            driver = driver.RunGenerators(compilation);
+            var result = driver.GetRunResult();
+            Assert.Equal(2, result.GeneratedTrees.Length);
+
+            // change the parse options, but only run one of the generators
+            var newParseOptions = parseOptions.WithLanguageVersion(LanguageVersion.CSharp9);
+            compilation = CreateCompilation("class Compilation2{}", parseOptions: newParseOptions);
+            driver = driver.WithUpdatedParseOptions(newParseOptions);
+            driver = driver.RunGenerators(compilation, (ctx) => ctx.Generator == generator1);
+            result = driver.GetRunResult();
+
+            // the post init tree from generator2 still has the old parse options, as it didn't run
+            Assert.Equal(2, result.GeneratedTrees.Length);
+            Assert.Same(newParseOptions, result.GeneratedTrees[0].Options);
+            Assert.Same(parseOptions, result.GeneratedTrees[1].Options);
+
+            // now run everything and ensure it brings the init trees up to date
+            driver = driver.RunGenerators(compilation);
+            result = driver.GetRunResult();
+
+            Assert.Equal(2, result.GeneratedTrees.Length);
+            Assert.Same(newParseOptions, result.GeneratedTrees[0].Options);
+            Assert.Same(newParseOptions, result.GeneratedTrees[1].Options);
         }
     }
 }

@@ -12,14 +12,14 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Features.EmbeddedLanguages
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
     <Trait(Traits.Feature, Traits.Features.ValidateRegexString)>
     Public Class ValidateRegexStringTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (New VisualBasicRegexDiagnosticAnalyzer(), Nothing)
         End Function
 
         Private Function OptionOn() As OptionsCollection
-            Return [Option](IdeAnalyzerOptionsStorage.ReportInvalidRegexPatterns, True)
+            Return [Option](RegexOptionsStorage.ReportInvalidRegexPatterns, True)
         End Function
 
         <Fact>
@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
                 var r = new Regex(""[|)|]"")
             end sub
         end class",
-                        globalOptions:=OptionOn(),
+                        options:=OptionOn(),
                         diagnosticId:=AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
                         diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens))
@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EmbeddedLanguages
                 var r = new Regex(""""""[|)|]"")
             end sub
         end class",
-                        globalOptions:=OptionOn(),
+                        options:=OptionOn(),
                         diagnosticId:=AbstractRegexDiagnosticAnalyzer.DiagnosticId,
                         diagnosticSeverity:=DiagnosticSeverity.Warning,
                         diagnosticMessage:=String.Format(FeaturesResources.Regex_issue_0, FeaturesResources.Too_many_close_parens))

@@ -2,30 +2,28 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 
-namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging
+namespace Microsoft.CodeAnalysis.Editor.Shared.Tagging;
+
+internal partial class TaggerEventSources
 {
-    internal partial class TaggerEventSources
+    private class DocumentActiveContextChangedEventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
     {
-        private class DocumentActiveContextChangedEventSource(ITextBuffer subjectBuffer) : AbstractWorkspaceTrackingTaggerEventSource(subjectBuffer)
+        protected override void ConnectToWorkspace(Workspace workspace)
+            => workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
+
+        protected override void DisconnectFromWorkspace(Workspace workspace)
+            => workspace.DocumentActiveContextChanged -= OnDocumentActiveContextChanged;
+
+        private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
         {
-            protected override void ConnectToWorkspace(Workspace workspace)
-                => workspace.DocumentActiveContextChanged += OnDocumentActiveContextChanged;
+            var document = SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
 
-            protected override void DisconnectFromWorkspace(Workspace workspace)
-                => workspace.DocumentActiveContextChanged -= OnDocumentActiveContextChanged;
-
-            private void OnDocumentActiveContextChanged(object? sender, DocumentActiveContextChangedEventArgs e)
+            if (document != null && document.Id == e.NewActiveContextDocumentId)
             {
-                var document = SubjectBuffer.AsTextContainer().GetOpenDocumentInCurrentContext();
-
-                if (document != null && document.Id == e.NewActiveContextDocumentId)
-                {
-                    this.RaiseChanged();
-                }
+                this.RaiseChanged();
             }
         }
     }

@@ -3,8 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.CSharp.Wrapping;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -14,9 +12,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Wrapping;
 [Trait(Traits.Feature, Traits.Features.CodeActionsWrapping)]
 public class CollectionExpressionWrappingTests : AbstractWrappingTests
 {
-    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-        => new CSharpWrappingCodeRefactoringProvider();
-
     [Fact]
     public async Task TestNoWrappingSuggestions()
     {

@@ -9,7 +9,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateMethod
     <Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
     Partial Public Class GenerateMethodTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New GenerateParameterizedMemberCodeFixProvider())
@@ -1347,14 +1347,16 @@ End Class")
  [|[Me]|]([string])
     End Sub
 End Module",
-"Module Program
+"Imports System
+
+Module Program
     Sub Main(args As String())
         Dim [string] As String = ""hello"" 
  [Me]([string])
     End Sub
 
     Private Sub [Me]([string] As String)
-        Throw New System.NotImplementedException()
+        Throw New NotImplementedException()
     End Sub
 End Module")
         End Function

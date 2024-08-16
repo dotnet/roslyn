@@ -12,25 +12,24 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Diagnostics
-{
-    [ExportLanguageService(typeof(IAnalyzerDriverService), LanguageNames.CSharp), Shared]
-    internal sealed class CSharpAnalyzerDriverService : IAnalyzerDriverService
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpAnalyzerDriverService()
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Diagnostics;
 
-        public void ComputeDeclarationsInSpan(
-            SemanticModel model,
-            TextSpan span,
-            bool getSymbol,
-            ArrayBuilder<DeclarationInfo> builder,
-            CancellationToken cancellationToken)
-        {
-            CSharpDeclarationComputer.ComputeDeclarationsInSpan(model, span, getSymbol, builder, cancellationToken);
-        }
+[ExportLanguageService(typeof(IAnalyzerDriverService), LanguageNames.CSharp), Shared]
+internal sealed class CSharpAnalyzerDriverService : IAnalyzerDriverService
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpAnalyzerDriverService()
+    {
+    }
+
+    public void ComputeDeclarationsInSpan(
+        SemanticModel model,
+        TextSpan span,
+        bool getSymbol,
+        ArrayBuilder<DeclarationInfo> builder,
+        CancellationToken cancellationToken)
+    {
+        CSharpDeclarationComputer.ComputeDeclarationsInSpan(model, span, getSymbol, builder, cancellationToken);
     }
 }

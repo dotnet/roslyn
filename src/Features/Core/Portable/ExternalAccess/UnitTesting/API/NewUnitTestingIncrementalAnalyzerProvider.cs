@@ -53,7 +53,7 @@ internal sealed partial class NewUnitTestingIncrementalAnalyzerProvider : IUnitT
 
         var metadata = new UnitTestingIncrementalAnalyzerProviderMetadata(
             analyzerName,
-            new[] { workspaceKind });
+            [workspaceKind]);
 
         solutionCrawlerRegistrationService.AddAnalyzerProvider(analyzerProvider, metadata);
         return analyzerProvider;

@@ -2,6 +2,8 @@
 param([string]$configuration = "Debug",
       [string]$msbuildEngine = "vs",
       [string]$altRootDrive = "q:",
+      [string]$bootstrapDir = "",
+      [switch]$ci = $false,
       [switch]$help)
 
 Set-StrictMode -version 2.0
@@ -264,6 +266,8 @@ function Run-Test() {
 
 try {
   . (Join-Path $PSScriptRoot "build-utils.ps1")
+  Push-Location $RepoRoot
+  $prepareMachine = $ci
 
   # Create all of the logging directories
   $errorDir = Join-Path $LogDir "DeterminismFailures"
@@ -274,28 +278,29 @@ try {
   Create-Directory $errorDirLeft
   Create-Directory $errorDirRight
 
-  $ci = $true
   $runAnalyzers = $false
   $binaryLog = $true
   $officialBuildId = ""
   $nodeReuse = $false
   $properties = @()
 
-  $script:bootstrapConfiguration = "Release"
-  $bootstrapDir = Make-BootstrapBuild
+  if ($bootstrapDir -eq "") {
+    Write-Host "Building bootstrap compiler"
+    $bootstrapDir = Join-Path $ArtifactsDir "bootstrap" "determinism"
+    & eng/make-bootstrap.ps1 -output $bootstrapDir -ci:$ci
+    Test-LastExitCode
+  }
 
   Run-Test
-  exit 0
+  ExitWithExitCode 0
 }
 catch {
   Write-Host $_
   Write-Host $_.Exception
   Write-Host $_.ScriptStackTrace
-  exit 1
+  ExitWithExitCode 1
 }
 finally {
-  Write-Host "Stopping VBCSCompiler"
-  Get-Process VBCSCompiler -ErrorAction SilentlyContinue | Stop-Process
-  Write-Host "Stopped VBCSCompiler"
+  Pop-Location
 }
 

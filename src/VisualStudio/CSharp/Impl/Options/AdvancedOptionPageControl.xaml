@@ -51,24 +51,9 @@
                                      Content="{x:Static local:AdvancedOptionPageStrings.Option_on_the_right_edge_of_the_editor_window}"/>
                         </StackPanel>
                     </StackPanel>
-                    <CheckBox x:Name="Enable_pull_diagnostics_experimental_requires_restart"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Enable_pull_diagnostics_experimental_requires_restart}" 
-                              Checked="Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged"
-                              Unchecked="Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged"
-                              Indeterminate="Enable_pull_diagnostics_experimental_requires_restart_CheckedChanged"
-                              IsThreeState="True"/>
 
                     <CheckBox x:Name="Run_code_analysis_in_separate_process"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}"
-                              Checked="Run_code_analysis_in_separate_process_Checked"
-                              Unchecked="Run_code_analysis_in_separate_process_Unchecked"/>
-                    <StackPanel Margin="15, 0, 0, 0">
-                        <CheckBox x:Name="Run_code_analysis_on_dotnet"
-                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_on_dotnet}" />
-                    </StackPanel>
-                    
-                    <CheckBox x:Name="Analyze_source_generated_files"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_run_code_analysis_in_separate_process}" />
 
                     <CheckBox x:Name="Show_Remove_Unused_References_command_in_Solution_Explorer_experimental"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_Remove_Unused_References_command_in_Solution_Explorer_experimental}" />
@@ -80,7 +65,30 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Skip_analyzers_for_implicitly_triggered_builds}" />
                 </StackPanel>
             </GroupBox>
-            
+
+            <GroupBox x:Uid="SourceGeneratorsGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Source_Generators}">
+                <StackPanel>
+  
+                    <StackPanel Margin="0, -5, 0, 5">
+                        <Label x:Name="Run_source_generators_label" Content="{x:Static local:AdvancedOptionPageStrings.Option_Source_generator_execution_requires_restart}"/>
+
+                        <StackPanel Margin="15, 0, 0, 0">
+                            <RadioButton GroupName="Run_source_generators_location"
+                                     x:Name="Automatic_Run_generators_after_any_change"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_Automatic_Run_generators_after_any_change}"/>
+                            
+                            <RadioButton GroupName="Run_source_generators_location"
+                                     x:Name="Balanced_Run_generators_after_saving_or_building"
+                                     Content="{x:Static local:AdvancedOptionPageStrings.Option_Balanced_Run_generators_after_saving_or_building}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <CheckBox x:Name="Analyze_source_generated_files"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_analyze_source_generated_files}" />
+                </StackPanel>
+            </GroupBox>
+
             <GroupBox x:Uid="GoToDefinitionGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Go_To_Definition}">
                 <StackPanel>
@@ -193,6 +201,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_declaration_level_constructs}" />
                     <CheckBox x:Name="Show_guides_for_code_level_constructs"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_code_level_constructs}" />
+                    <CheckBox x:Name="Show_guides_for_comments_and_preprocessor_regions"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_guides_for_comments_and_preprocessor_regions}" />
                 </StackPanel>
             </GroupBox>
             
@@ -224,8 +234,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Report_invalid_placeholders_in_string_dot_format_calls}" />
                     <CheckBox x:Name="Underline_reassigned_variables"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_Underline_reassigned_variables}" />
-                    <CheckBox x:Name="Enable_all_features_in_opened_files_from_source_generators"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Enable_all_features_in_opened_files_from_source_generators_experimental}" />
+                    <CheckBox x:Name="Strike_out_obsolete_symbols"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Strike_out_obsolete_symbols}" />
                 </StackPanel>
             </GroupBox>
 
@@ -365,6 +375,9 @@
                         <CheckBox x:Uid="ShowHintsForImplicitObjectCreation"
                                   x:Name="ShowHintsForImplicitObjectCreation"
                                   Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_implicit_object_creation}" />
+                        <CheckBox x:Uid="ShowHintsForCollectionExpressions"
+                                  x:Name="ShowHintsForCollectionExpressions"
+                                  Content="{x:Static local:AdvancedOptionPageStrings.Option_Show_hints_for_collection_expressions}" />
                     </StackPanel>
                 </StackPanel>
             </GroupBox>

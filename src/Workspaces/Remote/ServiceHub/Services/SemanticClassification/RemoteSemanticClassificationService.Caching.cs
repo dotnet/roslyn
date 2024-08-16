@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var classifiedSpans = await TryGetOrReadCachedSemanticClassificationsAsync(
                 documentKey, type, checksum, cancellationToken).ConfigureAwait(false);
-            var textSpanIntervalTree = new TextSpanIntervalTree(textSpans);
+            var textSpanIntervalTree = new TextSpanMutableIntervalTree(textSpans);
             return classifiedSpans.IsDefault
                 ? null
                 : SerializableClassifiedSpans.Dehydrate(classifiedSpans.WhereAsArray(c => textSpanIntervalTree.HasIntervalThatIntersectsWith(c.TextSpan)));
@@ -117,7 +117,6 @@ namespace Microsoft.CodeAnalysis.Remote
             var persistenceService = solution.Services.GetPersistentStorageService();
 
             var storage = await persistenceService.GetStorageAsync(SolutionKey.ToSolutionKey(solution), cancellationToken).ConfigureAwait(false);
-            await using var _1 = storage.ConfigureAwait(false);
             if (storage == null)
                 return;
 
@@ -156,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Remote
             }
 
             using var stream = SerializableBytes.CreateWritableStream();
-            using (var writer = new ObjectWriter(stream, leaveOpen: true, cancellationToken))
+            using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
                 WriteTo(classifiedSpans, writer);
             }
@@ -280,13 +279,12 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             var persistenceService = GetWorkspaceServices().GetPersistentStorageService();
             var storage = await persistenceService.GetStorageAsync(documentKey.Project.Solution, cancellationToken).ConfigureAwait(false);
-            await using var _ = storage.ConfigureAwait(false);
             if (storage == null)
                 return default;
 
             var persistenceName = GetPersistenceName(type);
             using var stream = await storage.ReadStreamAsync(documentKey, persistenceName, checksum, cancellationToken).ConfigureAwait(false);
-            using var reader = ObjectReader.TryGetReader(stream, cancellationToken: cancellationToken);
+            using var reader = ObjectReader.TryGetReader(stream);
             if (reader == null)
                 return default;
 
@@ -307,10 +305,10 @@ namespace Microsoft.CodeAnalysis.Remote
                 using var _1 = ArrayBuilder<string>.GetInstance(classificationTypesCount, out var classificationTypes);
 
                 for (var i = 0; i < classificationTypesCount; i++)
-                    classificationTypes.Add(reader.ReadString());
+                    classificationTypes.Add(reader.ReadRequiredString());
 
                 var classifiedSpanCount = reader.ReadInt32();
-                using var _2 = ArrayBuilder<ClassifiedSpan>.GetInstance(classifiedSpanCount, out var classifiedSpans);
+                var classifiedSpans = new FixedSizeArrayBuilder<ClassifiedSpan>(classifiedSpanCount);
 
                 for (var i = 0; i < classifiedSpanCount; i++)
                 {
@@ -324,7 +322,7 @@ namespace Microsoft.CodeAnalysis.Remote
                     }
                 }
 
-                return classifiedSpans.ToImmutableAndClear();
+                return classifiedSpans.MoveToImmutable();
             }
             catch
             {

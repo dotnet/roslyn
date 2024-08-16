@@ -641,6 +641,38 @@ class C
         }
 
         [Fact]
+        public void ChooseExpandedFormIfBadArgCountAndBadArgument_Constructor()
+        {
+            var source =
+@"class C
+{
+    static void M(object o)
+    {
+        _ = new C();
+        _ = new C(o);
+        _ = new C(1, o);
+        _ = new C(1, 2, o);
+    }
+
+    C(int i, params int[] args) { }
+}";
+            CreateCompilation(source).VerifyDiagnostics(
+                // (5,17): error CS7036: There is no argument given that corresponds to the required parameter 'i' of 'C.C(int, params int[])'
+                //         _ = new C();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "C").WithArguments("i", "C.C(int, params int[])").WithLocation(5, 17),
+                // (6,19): error CS1503: Argument 1: cannot convert from 'object' to 'int'
+                //         _ = new C(o);
+                Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("1", "object", "int").WithLocation(6, 19),
+                // (7,22): error CS1503: Argument 2: cannot convert from 'object' to 'int'
+                //         _ = new C(1, o);
+                Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("2", "object", "int").WithLocation(7, 22),
+                // (8,25): error CS1503: Argument 3: cannot convert from 'object' to 'int'
+                //         _ = new C(1, 2, o);
+                Diagnostic(ErrorCode.ERR_BadArgType, "o").WithArguments("3", "object", "int").WithLocation(8, 25)
+                );
+        }
+
+        [Fact]
         public void AmbiguousAndBadArgument()
         {
             var source =
@@ -2178,12 +2210,12 @@ class C<T> : System.Attribute { }";
     partial void I.M();
 }";
             CreateCompilation(source, parseOptions: TestOptions.Regular7, targetFramework: TargetFramework.NetCoreApp).VerifyDiagnostics(
-                // (3,20): error CS0754: A partial method may not explicitly implement an interface method
+                // (3,20): error CS0754: A partial member may not explicitly implement an interface member
                 //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_PartialMethodNotExplicit, "M").WithLocation(3, 20),
-                // (3,20): error CS0751: A partial method must be declared within a partial type
+                Diagnostic(ErrorCode.ERR_PartialMemberNotExplicit, "M").WithLocation(3, 20),
+                // (3,20): error CS0751: A partial member must be declared within a partial type
                 //     partial void I.M();
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "M").WithLocation(3, 20),
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "M").WithLocation(3, 20),
                 // (3,20): error CS8652: The feature 'default interface implementation' is not available in C# 7.0. Please use language version 8.0 or greater.
                 //     partial void I.M();
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7, "M").WithArguments("default interface implementation", "8.0").WithLocation(3, 20),

@@ -7,7 +7,6 @@
 using System;
 using System.ComponentModel.Composition;
 using Microsoft.CodeAnalysis.Editor.Host;
-using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -17,35 +16,34 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
+
+[ContentType(ContentTypeNames.RoslynContentType)]
+[Export(typeof(IAsyncQuickInfoSourceProvider))]
+[Name("RoslynQuickInfoProvider")]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal partial class QuickInfoSourceProvider(
+    IThreadingContext threadingContext,
+    IUIThreadOperationExecutor operationExecutor,
+    IAsynchronousOperationListenerProvider listenerProvider,
+    Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
+    EditorOptionsService editorOptionsService,
+    IInlineRenameService inlineRenameService) : IAsyncQuickInfoSourceProvider
 {
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [Export(typeof(IAsyncQuickInfoSourceProvider))]
-    [Name("RoslynQuickInfoProvider")]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal partial class QuickInfoSourceProvider(
-        IThreadingContext threadingContext,
-        IUIThreadOperationExecutor operationExecutor,
-        IAsynchronousOperationListenerProvider listenerProvider,
-        Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
-        EditorOptionsService editorOptionsService,
-        IInlineRenameService inlineRenameService) : IAsyncQuickInfoSourceProvider
+    private readonly IThreadingContext _threadingContext = threadingContext;
+    private readonly IUIThreadOperationExecutor _operationExecutor = operationExecutor;
+    private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter = streamingPresenter;
+    private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
+    private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
+    private readonly IInlineRenameService _inlineRenameService = inlineRenameService;
+
+    public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
     {
-        private readonly IThreadingContext _threadingContext = threadingContext;
-        private readonly IUIThreadOperationExecutor _operationExecutor = operationExecutor;
-        private readonly Lazy<IStreamingFindUsagesPresenter> _streamingPresenter = streamingPresenter;
-        private readonly IAsynchronousOperationListener _listener = listenerProvider.GetListener(FeatureAttribute.QuickInfo);
-        private readonly EditorOptionsService _editorOptionsService = editorOptionsService;
-        private readonly IInlineRenameService _inlineRenameService = inlineRenameService;
+        if (textBuffer.IsInLspEditorContext())
+            return null;
 
-        public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
-        {
-            if (textBuffer.IsInLspEditorContext())
-                return null;
-
-            return new QuickInfoSource(
-                textBuffer, _threadingContext, _operationExecutor, _listener, _streamingPresenter, _editorOptionsService, _inlineRenameService);
-        }
+        return new QuickInfoSource(
+            textBuffer, _threadingContext, _operationExecutor, _listener, _streamingPresenter, _editorOptionsService, _inlineRenameService);
     }
 }

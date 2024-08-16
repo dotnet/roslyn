@@ -43,15 +43,16 @@ namespace Microsoft.CodeAnalysis
         internal AssemblyLoadContext CompilerLoadContext => _compilerLoadContext;
         internal AnalyzerLoadOption AnalyzerLoadOption => _loadOption;
 
-        internal AnalyzerAssemblyLoader()
-            : this(null, AnalyzerLoadOption.LoadFromDisk)
+        internal AnalyzerAssemblyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+            : this(null, AnalyzerLoadOption.LoadFromDisk, externalResolvers)
         {
         }
 
-        internal AnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, AnalyzerLoadOption loadOption)
+        internal AnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, AnalyzerLoadOption loadOption, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
         {
             _loadOption = loadOption;
             _compilerLoadContext = compilerLoadContext ?? AssemblyLoadContext.GetLoadContext(typeof(AnalyzerAssemblyLoader).GetTypeInfo().Assembly)!;
+            _externalResolvers = [.. externalResolvers, new CompilerAnalyzerAssemblyResolver(_compilerLoadContext)];
         }
 
         public bool IsHostAssembly(Assembly assembly)
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!_loadContextByDirectory.TryGetValue(fullDirectoryPath, out loadContext))
                 {
-                    loadContext = new DirectoryLoadContext(fullDirectoryPath, this, _compilerLoadContext);
+                    loadContext = new DirectoryLoadContext(fullDirectoryPath, this);
                     _loadContextByDirectory[fullDirectoryPath] = loadContext;
                 }
             }
@@ -107,37 +108,27 @@ namespace Microsoft.CodeAnalysis
         {
             internal string Directory { get; }
             private readonly AnalyzerAssemblyLoader _loader;
-            private readonly AssemblyLoadContext _compilerLoadContext;
 
-            public DirectoryLoadContext(string directory, AnalyzerAssemblyLoader loader, AssemblyLoadContext compilerLoadContext)
+            public DirectoryLoadContext(string directory, AnalyzerAssemblyLoader loader)
                 : base(isCollectible: true)
             {
                 Directory = directory;
                 _loader = loader;
-                _compilerLoadContext = compilerLoadContext;
             }
 
             protected override Assembly? Load(AssemblyName assemblyName)
             {
-                var simpleName = assemblyName.Name!;
-                try
+                if (_loader.ResolveAssemblyExternally(assemblyName) is { } externallyResolvedAssembly)
                 {
-                    if (_compilerLoadContext.LoadFromAssemblyName(assemblyName) is { } compilerAssembly)
-                    {
-                        return compilerAssembly;
-                    }
-                }
-                catch
-                {
-                    // Expected to happen when the assembly cannot be resolved in the compiler / host
-                    // AssemblyLoadContext.
+                    return externallyResolvedAssembly;
                 }
 
                 // Prefer registered dependencies in the same directory first.
+                var simpleName = assemblyName.Name!;
                 var assemblyPath = Path.Combine(Directory, simpleName + ".dll");
                 if (_loader.IsAnalyzerDependencyPath(assemblyPath))
                 {
-                    (_, var loadPath, _) = _loader.GetAssemblyInfoForPath(assemblyPath);
+                    (_, var loadPath) = _loader.GetAssemblyInfoForPath(assemblyPath);
                     return loadCore(loadPath);
                 }
 
@@ -147,13 +138,13 @@ namespace Microsoft.CodeAnalysis
                 // Note: when loading from disk the .NET runtime has a fallback step that will handle
                 // satellite assembly loading if the call to Load(satelliteAssemblyName) fails. This
                 // loader has a mode where it loads from Stream though and the runtime will not handle
-                // that automatically. Rather than bifurate our loading behavior between Disk and
+                // that automatically. Rather than bifurcate our loading behavior between Disk and
                 // Stream both modes just handle satellite loading directly
-                if (!string.IsNullOrEmpty(assemblyName.CultureName) && simpleName.EndsWith(".resources", StringComparison.Ordinal))
+                if (assemblyName.CultureInfo is not null && simpleName.EndsWith(".resources", StringComparison.Ordinal))
                 {
                     var analyzerFileName = Path.ChangeExtension(simpleName, ".dll");
                     var analyzerFilePath = Path.Combine(Directory, analyzerFileName);
-                    var satelliteLoadPath = _loader.GetSatelliteInfoForPath(analyzerFilePath, assemblyName.CultureName);
+                    var satelliteLoadPath = _loader.GetRealSatelliteLoadPath(analyzerFilePath, assemblyName.CultureInfo);
                     if (satelliteLoadPath is not null)
                     {
                         return loadCore(satelliteLoadPath);
@@ -166,7 +157,8 @@ namespace Microsoft.CodeAnalysis
                 // be necessary but msbuild target defaults have caused a number of customers to 
                 // fall into this path. See discussion here for where it comes up
                 // https://github.com/dotnet/roslyn/issues/56442
-                if (_loader.GetBestPath(assemblyName) is string bestRealPath)
+                var (_, bestRealPath) = _loader.GetBestPath(assemblyName);
+                if (bestRealPath is not null)
                 {
                     return loadCore(bestRealPath);
                 }
@@ -193,12 +185,33 @@ namespace Microsoft.CodeAnalysis
                 var assemblyPath = Path.Combine(Directory, unmanagedDllName + ".dll");
                 if (_loader.IsAnalyzerDependencyPath(assemblyPath))
                 {
-                    (_, var loadPath, _) = _loader.GetAssemblyInfoForPath(assemblyPath);
+                    (_, var loadPath) = _loader.GetAssemblyInfoForPath(assemblyPath);
                     return LoadUnmanagedDllFromPath(loadPath);
                 }
 
                 return IntPtr.Zero;
             }
+        }
+
+        /// <summary>
+        /// A resolver which allows a passed in <see cref="AssemblyLoadContext"/> from the compiler 
+        /// to control assembly resolution. This is important because there are many exchange types
+        /// that need to unify across the multiple analyzer ALCs. These include common types from
+        /// <c>Microsoft.CodeAnalysis.dll</c> etc, as well as platform assemblies provided by a 
+        /// host such as visual studio.
+        /// </summary>
+        /// <remarks>
+        /// This resolver essentially forces any assembly that was loaded as a 'core' part of the
+        /// compiler to be shared across analyzers, and not loaded multiple times into each individual
+        /// analyzer ALC, even if the analyzer itself shipped a copy of said assembly.
+        /// </remarks>
+        /// <param name="compilerContext">The <see cref="AssemblyLoadContext"/> that the core
+        /// compiler assemblies are already loaded into.</param>
+        internal sealed class CompilerAnalyzerAssemblyResolver(AssemblyLoadContext compilerContext) : IAnalyzerAssemblyResolver
+        {
+            private readonly AssemblyLoadContext _compilerAlc = compilerContext;
+
+            public Assembly? ResolveAssembly(AssemblyName assemblyName) => _compilerAlc.LoadFromAssemblyName(assemblyName);
         }
     }
 }

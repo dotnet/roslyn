@@ -9,22 +9,21 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.CSharp.Formatting
-{
-    /// <summary>
-    /// this holds onto changes made by formatting engine.
-    /// </summary>
-    internal class FormattingResult : AbstractFormattingResult
-    {
-        internal FormattingResult(TreeData treeInfo, TokenStream tokenStream, TextSpan spanToFormat)
-            : base(treeInfo, tokenStream, spanToFormat)
-        {
-        }
+namespace Microsoft.CodeAnalysis.CSharp.Formatting;
 
-        protected override SyntaxNode Rewriter(Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> changeMap, CancellationToken cancellationToken)
-        {
-            var rewriter = new TriviaRewriter(this.TreeInfo.Root, new TextSpanIntervalTree(this.FormattedSpan), changeMap, cancellationToken);
-            return rewriter.Transform();
-        }
+/// <summary>
+/// this holds onto changes made by formatting engine.
+/// </summary>
+internal class FormattingResult : AbstractFormattingResult
+{
+    internal FormattingResult(TreeData treeInfo, TokenStream tokenStream, TextSpan spanToFormat)
+        : base(treeInfo, tokenStream, spanToFormat)
+    {
+    }
+
+    protected override SyntaxNode Rewriter(Dictionary<ValueTuple<SyntaxToken, SyntaxToken>, TriviaData> changeMap, CancellationToken cancellationToken)
+    {
+        var rewriter = new TriviaRewriter(this.TreeInfo.Root, new TextSpanMutableIntervalTree(this.FormattedSpan), changeMap, cancellationToken);
+        return rewriter.Transform();
     }
 }

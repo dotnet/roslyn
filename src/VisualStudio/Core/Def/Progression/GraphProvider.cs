@@ -2,16 +2,16 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -25,7 +25,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
-internal abstract class AbstractGraphProvider : IGraphProvider
+[GraphProvider(Name = nameof(RoslynGraphProvider), ProjectCapability = "(CSharp | VB)")]
+internal sealed class RoslynGraphProvider : IGraphProvider
 {
     private readonly IThreadingContext _threadingContext;
     private readonly IGlyphService _glyphService;
@@ -37,11 +38,13 @@ internal abstract class AbstractGraphProvider : IGraphProvider
 
     private bool _initialized = false;
 
-    protected AbstractGraphProvider(
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RoslynGraphProvider(
         IThreadingContext threadingContext,
         IGlyphService glyphService,
         SVsServiceProvider serviceProvider,
-        Workspace workspace,
+        VisualStudioWorkspace workspace,
         Lazy<IStreamingFindUsagesPresenter> streamingPresenter,
         IAsynchronousOperationListenerProvider listenerProvider)
     {
@@ -66,9 +69,7 @@ internal abstract class AbstractGraphProvider : IGraphProvider
         _initialized = true;
     }
 
-    public static ImmutableArray<IGraphQuery> GetGraphQueries(
-        IGraphContext context,
-        IAsynchronousOperationListener asyncListener)
+    public static ImmutableArray<IGraphQuery> GetGraphQueries(IGraphContext context)
     {
         using var _ = ArrayBuilder<IGraphQuery>.GetInstance(out var graphQueries);
 
@@ -149,19 +150,19 @@ internal abstract class AbstractGraphProvider : IGraphProvider
                 // Create two queries.  One to find results in normal docs, and one to find results in generated
                 // docs.  That way if the generated docs take a long time we can still report the regular doc
                 // results immediately.
-                graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToSearchScope.RegularDocuments, asyncListener));
-                graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToSearchScope.GeneratedDocuments, asyncListener));
+                graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToDocumentSupport.RegularDocuments));
+                graphQueries.Add(new SearchGraphQuery(searchParameters.SearchQuery.SearchString, NavigateToDocumentSupport.GeneratedDocuments));
             }
         }
 
-        return graphQueries.ToImmutable();
+        return graphQueries.ToImmutableAndClear();
     }
 
     public void BeginGetGraphData(IGraphContext context)
     {
         EnsureInitialized();
 
-        var graphQueries = GetGraphQueries(context, _asyncListener);
+        var graphQueries = GetGraphQueries(context);
 
         // Perform the queries asynchronously  in a fire-and-forget fashion.  This helper will be responsible
         // for always completing the context. AddQueriesAsync is `async`, so it always returns a task and will never
@@ -354,7 +355,7 @@ internal abstract class AbstractGraphProvider : IGraphProvider
     private static readonly GraphCommandDefinition s_implementedByCommandDefinition =
         new("ImplementedBy", ServicesVSResources.Implemented_By, GraphContextDirection.Source, 600);
 
-    public T GetExtension<T>(GraphObject graphObject, T previous) where T : class
+    public T? GetExtension<T>(GraphObject graphObject, T previous) where T : class
     {
         if (graphObject is GraphNode graphNode)
         {
@@ -379,7 +380,7 @@ internal abstract class AbstractGraphProvider : IGraphProvider
         return null;
     }
 
-    public Graph Schema
+    public Graph? Schema
     {
         get { return null; }
     }

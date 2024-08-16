@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Enter_to_rename_shift_enter_to_preview_ctrl_space_for_ai_suggestion">
         <source>Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</source>
-        <target state="new">Enter to rename, Shift+Enter to preview, Ctrl+Space for rename suggestions</target>
+        <target state="translated">按 Enter 可重命名，按 Shift+Enter 可预览，按 Ctrl+空格键可获取重命名建议</target>
         <note />
       </trans-unit>
       <trans-unit id="Error_performing_rename_0">
@@ -34,12 +34,12 @@
       </trans-unit>
       <trans-unit id="Generating_suggestions">
         <source>Generating suggestions...</source>
-        <target state="new">Generating suggestions...</target>
+        <target state="translated">正在生成建议...</target>
         <note />
       </trans-unit>
       <trans-unit id="Get_AI_suggestions">
         <source>Get AI-powered rename suggestions (Ctrl+Space)</source>
-        <target state="new">Get AI-powered rename suggestions (Ctrl+Space)</target>
+        <target state="translated">获取 AI 支持的重命名建议(Ctrl+空格键)</target>
         <note />
       </trans-unit>
       <trans-unit id="Interactive_host_process_platform">
@@ -47,14 +47,9 @@
         <target state="translated">交互式主机进程平台</target>
         <note />
       </trans-unit>
-      <trans-unit id="Print_a_list_of_referenced_assemblies">
-        <source>Print a list of referenced assemblies.</source>
-        <target state="translated">打印引用程序集的列表。</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Reset_the_execution_environment_to_the_initial_state_and_keep_history_with_the_option_to_switch_the_runtime_of_the_host_process">
         <source>Reset the execution environment to the initial state and keep history, with the option to switch the runtime of the host process.</source>
-        <target state="new">Reset the execution environment to the initial state and keep history, with the option to switch the runtime of the host process.</target>
+        <target state="translated">通过选择切换主机进程的运行时，将执行环境重置为初始状态并保留历史记录。</target>
         <note />
       </trans-unit>
       <trans-unit id="Reset_to_a_clean_environment_only_mscorlib_referenced_do_not_run_initialization_script">
@@ -77,9 +72,9 @@
         <target state="translated">只能对 CurrentWindow 属性进行一次赋值。</target>
         <note />
       </trans-unit>
-      <trans-unit id="The_references_command_is_not_supported_in_this_Interactive_Window_implementation">
-        <source>The references command is not supported in this Interactive Window implementation.</source>
-        <target state="translated">此交互窗口实现中不支持引用命令。</target>
+      <trans-unit id="Toggle_AI_suggestions">
+        <source>Toggle rename suggestions (Ctrl+Space)</source>
+        <target state="translated">切换重命名建议(Ctrl+空格)</target>
         <note />
       </trans-unit>
     </body>

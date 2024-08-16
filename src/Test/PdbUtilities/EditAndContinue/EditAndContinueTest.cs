@@ -13,7 +13,6 @@ using System.Text;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
@@ -22,9 +21,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         where TSelf : EditAndContinueTest<TSelf>
     {
         private readonly Verification _verification = verification ?? Verification.Passes;
-        private readonly List<IDisposable> _disposables = new();
-        private readonly List<GenerationInfo> _generations = new();
-        private readonly List<SourceWithMarkedNodes> _sources = new();
+        private readonly List<IDisposable> _disposables = [];
+        private readonly List<GenerationInfo> _generations = [];
+        private readonly List<SourceWithMarkedNodes> _sources = [];
 
         private bool _hasVerified;
 

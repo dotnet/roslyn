@@ -19,7 +19,7 @@
       </trans-unit>
       <trans-unit id="Add_explicit_cast">
         <source>Add explicit cast</source>
-        <target state="translated">Aggiungi cast esplicito</target>
+        <target state="needs-review-translation">Aggiungi cast esplicito</target>
         <note />
       </trans-unit>
       <trans-unit id="Add_file_header">
@@ -62,6 +62,11 @@
         <target state="translated">Converti il tipo in '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Do_not_change_this_code_Put_cleanup_code_in_0_method">
+        <source>Do not change this code. Put cleanup code in '{0}' method</source>
+        <target state="new">Do not change this code. Put cleanup code in '{0}' method</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Fix_all_occurrences_in">
         <source>Fix all occurrences in</source>
         <target state="translated">Correggi tutte le occorrenze in</target>
@@ -70,6 +75,156 @@
       <trans-unit id="Fix_name_violation_colon_0">
         <source>Fix name violation: {0}</source>
         <target state="translated">Correggi violazione del nome: {0}</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_method_0">
+        <source>Generate abstract method '{0}'</source>
+        <target state="new">Generate abstract method '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_abstract_property_0">
+        <source>Generate abstract property '{0}'</source>
+        <target state="new">Generate abstract property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_all">
+        <source>Generate all</source>
+        <target state="new">Generate all</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constant_0">
+        <source>Generate constant '{0}'</source>
+        <target state="new">Generate constant '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_0_1">
+        <source>Generate constructor '{0}({1})'</source>
+        <target state="new">Generate constructor '{0}({1})'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0">
+        <source>Generate constructor in '{0}'</source>
+        <target state="new">Generate constructor in '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0_with_fields">
+        <source>Generate constructor in '{0}' (with fields)</source>
+        <target state="new">Generate constructor in '{0}' (with fields)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_constructor_in_0_with_properties">
+        <source>Generate constructor in '{0}' (with properties)</source>
+        <target state="new">Generate constructor in '{0}' (with properties)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_enum_member_0">
+        <source>Generate enum member '{0}'</source>
+        <target state="new">Generate enum member '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_explicit_conversion_operator_in_0">
+        <source>Generate explicit conversion operator in '{0}'</source>
+        <target state="new">Generate explicit conversion operator in '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_field_0">
+        <source>Generate field '{0}'</source>
+        <target state="new">Generate field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_field_assigning_constructor_0_1">
+        <source>Generate field assigning constructor '{0}({1})'</source>
+        <target state="new">Generate field assigning constructor '{0}({1})'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_implicit_conversion_operator_in_0">
+        <source>Generate implicit conversion operator in '{0}'</source>
+        <target state="new">Generate implicit conversion operator in '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_local_0">
+        <source>Generate local '{0}'</source>
+        <target state="new">Generate local '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_method_0">
+        <source>Generate method '{0}'</source>
+        <target state="new">Generate method '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_narrowing_conversion_in_0">
+        <source>Generate narrowing conversion in '{0}'</source>
+        <target state="new">Generate narrowing conversion in '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_parameter_0">
+        <source>Generate parameter '{0}'</source>
+        <target state="new">Generate parameter '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_parameter_0_and_overrides_implementations">
+        <source>Generate parameter '{0}' (and overrides/implementations)</source>
+        <target state="new">Generate parameter '{0}' (and overrides/implementations)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_property_0">
+        <source>Generate property '{0}'</source>
+        <target state="new">Generate property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_field_0">
+        <source>Generate read-only field '{0}'</source>
+        <target state="new">Generate read-only field '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_read_only_property_0">
+        <source>Generate read-only property '{0}'</source>
+        <target state="new">Generate read-only property '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_variable_0">
+        <source>Generate variable '{0}'</source>
+        <target state="new">Generate variable '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Generate_widening_conversion_in_0">
+        <source>Generate widening conversion in '{0}'</source>
+        <target state="new">Generate widening conversion in '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_all_members_explicitly">
+        <source>Implement all members explicitly</source>
+        <target state="new">Implement all members explicitly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface">
+        <source>Implement interface</source>
+        <target state="new">Implement interface</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_abstractly">
+        <source>Implement interface abstractly</source>
+        <target state="new">Implement interface abstractly</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_explicitly_with_Dispose_pattern">
+        <source>Implement interface explicitly with Dispose pattern</source>
+        <target state="new">Implement interface explicitly with Dispose pattern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_through_0">
+        <source>Implement interface through '{0}'</source>
+        <target state="new">Implement interface through '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_interface_with_Dispose_pattern">
+        <source>Implement interface with Dispose pattern</source>
+        <target state="new">Implement interface with Dispose pattern</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Implement_remaining_members_explicitly">
+        <source>Implement remaining members explicitly</source>
+        <target state="new">Implement remaining members explicitly</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_class_abstract">
@@ -122,6 +277,26 @@
         <target state="translated">Elimina o configura i problemi</target>
         <note />
       </trans-unit>
+      <trans-unit id="TODO_colon_dispose_managed_state_managed_objects">
+        <source>TODO: dispose managed state (managed objects)</source>
+        <target state="new">TODO: dispose managed state (managed objects)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_free_unmanaged_resources_unmanaged_objects_and_override_finalizer">
+        <source>TODO: free unmanaged resources (unmanaged objects) and override finalizer</source>
+        <target state="new">TODO: free unmanaged resources (unmanaged objects) and override finalizer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_override_finalizer_only_if_0_has_code_to_free_unmanaged_resources">
+        <source>TODO: override finalizer only if '{0}' has code to free unmanaged resources</source>
+        <target state="new">TODO: override finalizer only if '{0}' has code to free unmanaged resources</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="TODO_colon_set_large_fields_to_null">
+        <source>TODO: set large fields to null</source>
+        <target state="new">TODO: set large fields to null</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Take_0">
         <source>Take '{0}'</source>
         <target state="translated">Accetta '{0}'</target>
@@ -159,7 +334,7 @@
       </trans-unit>
       <trans-unit id="_0_may_change_semantics">
         <source>{0} (may change semantics)</source>
-        <target state="new">{0} (may change semantics)</target>
+        <target state="translated">{0} (può modificare la semantica)</target>
         <note />
       </trans-unit>
     </body>

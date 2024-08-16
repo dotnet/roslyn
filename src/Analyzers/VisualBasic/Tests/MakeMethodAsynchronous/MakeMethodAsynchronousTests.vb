@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.MakeMethodAsynchronous
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.MakeMethodAsynchronous
     <Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)>
     Public Class MakeMethodAsynchronousTests
-        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
+        Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest_NoEditor
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As (DiagnosticAnalyzer, CodeFixProvider)
             Return (Nothing, New VisualBasicMakeMethodAsynchronousCodeFixProvider())

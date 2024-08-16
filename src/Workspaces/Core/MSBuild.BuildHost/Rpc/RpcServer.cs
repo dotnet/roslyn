@@ -13,7 +13,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Rpc;
+namespace Microsoft.CodeAnalysis.MSBuild;
 
 /// <summary>
 /// Implements the server side of the RPC channel used to communicate with the build host.
@@ -29,7 +29,7 @@ internal sealed class RpcServer
     private readonly SemaphoreSlim _sendingStreamSemaphore = new SemaphoreSlim(initialCount: 1);
     private readonly TextReader _receivingStream;
 
-    private readonly ConcurrentDictionary<int, object> _rpcTargets = new();
+    private readonly ConcurrentDictionary<int, object> _rpcTargets = [];
     private volatile int _nextRpcTargetIndex = -1; // We'll start at -1 so the first value becomes zero
 
     private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();

@@ -104,7 +104,7 @@ internal partial class CSharpRecommendationService
             else if (_context.IsDestructorTypeContext)
             {
                 var symbol = _context.SemanticModel.GetDeclaredSymbol(_context.ContainingTypeOrEnumDeclaration!, _cancellationToken);
-                return symbol == null ? ImmutableArray<ISymbol>.Empty : ImmutableArray.Create<ISymbol>(symbol);
+                return symbol == null ? [] : [symbol];
             }
             else if (_context.IsNamespaceDeclarationNameContext)
             {
@@ -115,7 +115,7 @@ internal partial class CSharpRecommendationService
                 return GetSymbolsForEnumBaseList(container: null);
             }
 
-            return ImmutableArray<ISymbol>.Empty;
+            return [];
         }
 
         private RecommendedSymbols GetSymbolsOffOfContainer()
@@ -276,7 +276,7 @@ internal partial class CSharpRecommendationService
 
             var symbols = enclosingSymbol != null
                 ? enclosingSymbol.GetTypeArguments()
-                : ImmutableArray<ITypeSymbol>.Empty;
+                : [];
 
             return ImmutableArray<ISymbol>.CastUp(symbols);
         }
@@ -375,7 +375,7 @@ internal partial class CSharpRecommendationService
 
                 if (symbol.IsExtensionMethod() &&
                     !Equals(enclosingNamedType, symbol.ContainingType) &&
-                    !outerTypes.Any(outerType => outerType.Equals(symbol.ContainingType)))
+                    !outerTypes.Contains(symbol.ContainingType))
                 {
                     return true;
                 }
@@ -810,7 +810,7 @@ internal partial class CSharpRecommendationService
             var semanticModel = _context.SemanticModel;
             var container = GetContainerForUnnamedSymbols(semanticModel, originalExpression);
             if (container == null)
-                return ImmutableArray<ISymbol>.Empty;
+                return [];
 
             // In a case like `x?.Y` if we bind the type of `.Y` we will get a value type back (like `int`), and not
             // `int?`.  However, we want to think of the constructed type as that's the type of the overall expression
@@ -824,7 +824,7 @@ internal partial class CSharpRecommendationService
             AddOperators(container, symbols);
             AddConversions(container, symbols);
 
-            return symbols.ToImmutable();
+            return symbols.ToImmutableAndClear();
         }
 
         private ITypeSymbol? GetContainerForUnnamedSymbols(SemanticModel semanticModel, ExpressionSyntax originalExpression)

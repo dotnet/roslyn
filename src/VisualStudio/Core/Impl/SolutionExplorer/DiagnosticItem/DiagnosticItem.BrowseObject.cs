@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.ComponentModel;
 using System.Globalization;
 using Microsoft.CodeAnalysis;
@@ -16,11 +15,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         internal class BrowseObject : LocalizableProperties
         {
-            private readonly DiagnosticItem _diagnosticItem;
-
             public BrowseObject(DiagnosticItem diagnosticItem)
             {
-                _diagnosticItem = diagnosticItem;
+                DiagnosticItem = diagnosticItem;
             }
 
             [BrowseObjectDisplayName(nameof(SolutionExplorerShim.ID))]
@@ -28,7 +25,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 get
                 {
-                    return _diagnosticItem.Descriptor.Id;
+                    return DiagnosticItem.Descriptor.Id;
                 }
             }
 
@@ -37,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 get
                 {
-                    return _diagnosticItem.Descriptor.Title.ToString(CultureInfo.CurrentUICulture);
+                    return DiagnosticItem.Descriptor.Title.ToString(CultureInfo.CurrentUICulture);
                 }
             }
 
@@ -46,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 get
                 {
-                    return _diagnosticItem.Descriptor.Description.ToString(CultureInfo.CurrentUICulture);
+                    return DiagnosticItem.Descriptor.Description.ToString(CultureInfo.CurrentUICulture);
                 }
             }
 
@@ -55,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 get
                 {
-                    return _diagnosticItem.Descriptor.GetValidHelpLinkUri()?.AbsoluteUri;
+                    return DiagnosticItem.Descriptor.GetValidHelpLinkUri()?.AbsoluteUri;
                 }
             }
 
@@ -64,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 get
                 {
-                    return _diagnosticItem.Descriptor.Category;
+                    return DiagnosticItem.Descriptor.Category;
                 }
             }
 
@@ -73,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 get
                 {
-                    return MapDiagnosticSeverityToText(_diagnosticItem.Descriptor.DefaultSeverity);
+                    return MapDiagnosticSeverityToText(DiagnosticItem.Descriptor.DefaultSeverity);
                 }
             }
 
@@ -82,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 get
                 {
-                    return _diagnosticItem.Descriptor.IsEnabledByDefault;
+                    return DiagnosticItem.Descriptor.IsEnabledByDefault;
                 }
             }
 
@@ -91,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 get
                 {
-                    return _diagnosticItem.Descriptor.MessageFormat.ToString(CultureInfo.CurrentUICulture);
+                    return DiagnosticItem.Descriptor.MessageFormat.ToString(CultureInfo.CurrentUICulture);
                 }
             }
 
@@ -100,18 +97,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 get
                 {
-                    return string.Join(" ", _diagnosticItem.Descriptor.CustomTags);
+                    return string.Join(" ", DiagnosticItem.Descriptor.CustomTags);
                 }
             }
 
             [BrowseObjectDisplayName(nameof(SolutionExplorerShim.Effective_severity))]
             public string EffectiveSeverity
-            {
-                get
-                {
-                    return MapReportDiagnosticToText(_diagnosticItem.EffectiveSeverity);
-                }
-            }
+                => MapReportDiagnosticToText(DiagnosticItem._effectiveSeverity);
 
             public override string GetClassName()
             {
@@ -120,14 +112,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
             public override string GetComponentName()
             {
-                return _diagnosticItem.Descriptor.Id;
+                return DiagnosticItem.Descriptor.Id;
             }
 
             [Browsable(false)]
-            public DiagnosticItem DiagnosticItem
-            {
-                get { return _diagnosticItem; }
-            }
+            public DiagnosticItem DiagnosticItem { get; }
 
             private static string MapDiagnosticSeverityToText(DiagnosticSeverity severity)
                 => severity switch

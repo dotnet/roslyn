@@ -250,11 +250,10 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
 
         var newRoot = root.ReplaceNode(
             isGlobalStatement ? localDeclarationStatement.GetRequiredParent() : localDeclarationStatement,
-            new[]
-            {
+            [
                 WrapGlobal(updatedLocalDeclarationStatement),
                 WrapGlobal(ifStatement),
-            });
+            ]);
 
         return document.WithSyntaxRoot(newRoot);
 
@@ -290,8 +289,8 @@ internal abstract class AbstractReplaceConditionalWithStatementsCodeRefactoringP
 
         return (TStatementSyntax)generator.IfStatement(
             condition.WithoutTrivia(),
-            new[] { Rewrite((TExpressionSyntax)whenTrue) },
-            new[] { Rewrite((TExpressionSyntax)whenFalse) });
+            [Rewrite((TExpressionSyntax)whenTrue)],
+            [Rewrite((TExpressionSyntax)whenFalse)]);
 
         SyntaxNode Rewrite(TExpressionSyntax expression)
         {

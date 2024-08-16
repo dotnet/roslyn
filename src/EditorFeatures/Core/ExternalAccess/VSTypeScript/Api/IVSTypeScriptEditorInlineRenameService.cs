@@ -4,17 +4,17 @@
 
 #nullable disable
 
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api
+namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
+
+/// <summary>
+/// Language service that allows a language to participate in the editor's inline rename feature.
+/// </summary>
+internal abstract class VSTypeScriptEditorInlineRenameServiceImplementation
 {
-    /// <summary>
-    /// Language service that allows a language to participate in the editor's inline rename feature.
-    /// </summary>
-    internal abstract class VSTypeScriptEditorInlineRenameServiceImplementation
-    {
-        public abstract Task<VSTypeScriptInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
-    }
+    public virtual bool IsEnabled() => true;
+
+    public abstract Task<VSTypeScriptInlineRenameInfo> GetRenameInfoAsync(Document document, int position, CancellationToken cancellationToken);
 }

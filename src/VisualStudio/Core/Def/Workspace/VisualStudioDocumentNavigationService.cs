@@ -41,7 +41,7 @@ internal sealed class VisualStudioDocumentNavigationService(
     IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
     // lazy to avoid circularities
     Lazy<SourceGeneratedFileManager> sourceGeneratedFileManager)
-    : ForegroundThreadAffinitizedObject(threadingContext), IDocumentNavigationService
+    : IDocumentNavigationService
 {
     private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService = editorAdaptersFactoryService;
@@ -205,7 +205,7 @@ internal sealed class VisualStudioDocumentNavigationService(
         }
 
         // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
-        var spanMappingService = document.Services.GetService<ISpanMappingService>();
+        var spanMappingService = document.DocumentServiceProvider.GetService<ISpanMappingService>();
         if (spanMappingService != null)
         {
             var mappedSpan = await GetMappedSpanAsync(
@@ -313,7 +313,7 @@ internal sealed class VisualStudioDocumentNavigationService(
         ISpanMappingService spanMappingService, Document generatedDocument, TextSpan textSpan, CancellationToken cancellationToken)
     {
         var results = await spanMappingService.MapSpansAsync(
-            generatedDocument, SpecializedCollections.SingletonEnumerable(textSpan), cancellationToken).ConfigureAwait(false);
+            generatedDocument, [textSpan], cancellationToken).ConfigureAwait(false);
 
         if (!results.IsDefaultOrEmpty)
         {
@@ -387,14 +387,16 @@ internal sealed class VisualStudioDocumentNavigationService(
                 return false;
             }
 
+            // Find the active ITextView of the buffer, ensures the span is visible, selects it and places the cursor to its start.
+            // Note that we swap the start and the end of the span in order to place the cursor at the start of the span rather than the end.
             return ErrorHandler.Succeeded(
                 textManager.NavigateToLineAndColumn2(
                     vsTextBuffer,
                     VSConstants.LOGVIEWID.TextView_guid,
-                    vsTextSpan.iStartLine,
-                    vsTextSpan.iStartIndex,
-                    vsTextSpan.iEndLine,
-                    vsTextSpan.iEndIndex,
+                    iStartRow: vsTextSpan.iEndLine,
+                    iStartIndex: vsTextSpan.iEndIndex,
+                    iEndRow: vsTextSpan.iStartLine,
+                    iEndIndex: vsTextSpan.iStartIndex,
                     (uint)_VIEWFRAMETYPE.vftCodeWindow));
         }
     }

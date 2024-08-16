@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             object provider,
             CodeAction codeAction,
             SuggestedActionSet nestedActionSet)
-            : this(threadingContext, sourceProvider, workspace, originalSolution, subjectBuffer, provider, codeAction, ImmutableArray.Create(nestedActionSet))
+            : this(threadingContext, sourceProvider, workspace, originalSolution, subjectBuffer, provider, codeAction, [nestedActionSet])
         {
         }
 

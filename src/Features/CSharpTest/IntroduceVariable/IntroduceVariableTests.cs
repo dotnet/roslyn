@@ -13,15 +13,16 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.IntroduceVariable;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.IntroduceVariable;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
-public class IntroduceVariableTests : AbstractCSharpCodeActionTest
+public class IntroduceVariableTests : AbstractCSharpCodeActionTest_NoEditor
 {
-    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
+    protected override CodeRefactoringProvider CreateCodeRefactoringProvider(TestWorkspace workspace, TestParameters parameters)
         => new IntroduceVariableCodeRefactoringProvider();
 
     protected override ImmutableArray<CodeAction> MassageActions(ImmutableArray<CodeAction> actions)
@@ -1125,7 +1126,7 @@ count: 2);
 
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/552389")]
     [WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540482")]
-    [WpfFact(Skip = "552389")]
+    [Fact(Skip = "552389")]
     public async Task TestConstantForFixedBufferInitializer()
     {
         await TestInRegularAndScriptAsync(
@@ -1886,7 +1887,7 @@ options: ImplicitTypingEverywhere());
 
                 private const int {|Rename:V|} = 1 + 1;
             }
-            """, parameters: new TestParameters(Options.Regular));
+            """, parameters: new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -1934,7 +1935,7 @@ options: ImplicitTypingEverywhere());
             #line hidden
             }
             #line default
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -1948,7 +1949,7 @@ options: ImplicitTypingEverywhere());
             #line hidden
             }
             #line default
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -1965,7 +1966,7 @@ options: ImplicitTypingEverywhere());
             #line hidden
             }
             #line default
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -1982,7 +1983,7 @@ options: ImplicitTypingEverywhere());
             #line hidden
             }
             #line default
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -2003,7 +2004,7 @@ options: ImplicitTypingEverywhere());
                             select [|x + x|];
                 }
             }
-            """, new TestParameters(Options.Regular));
+            """, new TestParameters(TestOptions.Regular));
     }
 
     [Fact]
@@ -2047,7 +2048,7 @@ options: ImplicitTypingEverywhere());
             }
             #line default
             """,
-parseOptions: Options.Regular);
+parseOptions: TestOptions.Regular);
     }
 
     [Fact]
@@ -2133,7 +2134,7 @@ parseOptions: Options.Regular);
             }
             """;
 
-        await TestExactActionSetOfferedAsync(code, new[] { string.Format(FeaturesResources.Introduce_local_constant_for_0, "5") });
+        await TestExactActionSetOfferedAsync(code, [string.Format(FeaturesResources.Introduce_local_constant_for_0, "5")]);
 
         await TestInRegularAndScriptAsync(code,
             """
@@ -2175,7 +2176,7 @@ parseOptions: Options.Regular);
             """;
 
         await TestExactActionSetOfferedAsync(code,
-            new[] { string.Format(FeaturesResources.Introduce_local_constant_for_0, "5"), string.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5") });
+            [string.Format(FeaturesResources.Introduce_local_constant_for_0, "5"), string.Format(FeaturesResources.Introduce_local_constant_for_all_occurrences_of_0, "5")]);
     }
 
     [Fact, WorkItem("http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529795")]
@@ -5976,7 +5977,7 @@ class C
             {
                 int x = 1;
                 int {|Rename:y1|} = C.y;
-                var t = new { y= y1, y= y1 }; // this is an error already
+                var t = new { y = y1, y = y1 }; // this is an error already
             }
         }
         """;

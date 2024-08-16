@@ -8,94 +8,89 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.ChangeNamespace;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeActions.WorkspaceServices;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.MoveToNamespace
+namespace Microsoft.CodeAnalysis.MoveToNamespace;
+
+internal abstract partial class AbstractMoveToNamespaceCodeAction(
+    IMoveToNamespaceService moveToNamespaceService,
+    MoveToNamespaceAnalysisResult analysisResult) : CodeActionWithOptions
 {
-    internal abstract partial class AbstractMoveToNamespaceCodeAction(
-        IMoveToNamespaceService moveToNamespaceService,
-        MoveToNamespaceAnalysisResult analysisResult,
-        CodeCleanupOptionsProvider cleanupOptions) : CodeActionWithOptions
+    private readonly IMoveToNamespaceService _moveToNamespaceService = moveToNamespaceService;
+    private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult = analysisResult;
+
+    /// <summary>
+    /// This code action does notify clients about the rename it performs.  However, this is an optional part of
+    /// this work, that happens after the move has happened.  As such, this does not require non document changes
+    /// and can run in all our hosts.
+    /// </summary>
+    public sealed override ImmutableArray<string> Tags => [];
+
+    public sealed override object GetOptions(CancellationToken cancellationToken)
     {
-        private readonly IMoveToNamespaceService _moveToNamespaceService = moveToNamespaceService;
-        private readonly MoveToNamespaceAnalysisResult _moveToNamespaceAnalysisResult = analysisResult;
-        private readonly CodeCleanupOptionsProvider _cleanupOptions = cleanupOptions;
-
-        /// <summary>
-        /// This code action does notify clients about the rename it performs.  However, this is an optional part of
-        /// this work, that happens after the move has happened.  As such, this does not require non document changes
-        /// and can run in all our hosts.
-        /// </summary>
-        public sealed override ImmutableArray<string> Tags => ImmutableArray<string>.Empty;
-
-        public sealed override object GetOptions(CancellationToken cancellationToken)
-        {
-            return _moveToNamespaceService.GetChangeNamespaceOptions(
-                _moveToNamespaceAnalysisResult.Document,
-                _moveToNamespaceAnalysisResult.OriginalNamespace,
-                _moveToNamespaceAnalysisResult.Namespaces);
-        }
-
-        protected sealed override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
-            object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
-        {
-            // We won't get an empty target namespace from VS, but still should handle it w/o crashing.
-            if (options is MoveToNamespaceOptionsResult moveToNamespaceOptions &&
-                !moveToNamespaceOptions.IsCancelled &&
-                !string.IsNullOrEmpty(moveToNamespaceOptions.Namespace))
-            {
-                var moveToNamespaceResult = await _moveToNamespaceService.MoveToNamespaceAsync(
-                    _moveToNamespaceAnalysisResult,
-                    moveToNamespaceOptions.Namespace,
-                    _cleanupOptions,
-                    cancellationToken).ConfigureAwait(false);
-
-                if (moveToNamespaceResult.Succeeded)
-                {
-                    return CreateRenameOperations(moveToNamespaceResult);
-                }
-            }
-
-            return SpecializedCollections.EmptyEnumerable<CodeActionOperation>();
-        }
-
-        private static ImmutableArray<CodeActionOperation> CreateRenameOperations(MoveToNamespaceResult moveToNamespaceResult)
-        {
-            Debug.Assert(moveToNamespaceResult.Succeeded);
-
-            using var _ = PooledObjects.ArrayBuilder<CodeActionOperation>.GetInstance(out var operations);
-            operations.Add(new ApplyChangesOperation(moveToNamespaceResult.UpdatedSolution));
-
-            var symbolRenameCodeActionOperationFactory = moveToNamespaceResult.UpdatedSolution.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
-
-            // It's possible we're not in a host context providing this service, in which case just provide a code
-            // action that won't notify of the symbol rename. Without the symbol rename operation, code generators (like
-            // WPF) may not know to regenerate code correctly.
-            if (symbolRenameCodeActionOperationFactory != null)
-            {
-                foreach (var (newName, symbol) in moveToNamespaceResult.NewNameOriginalSymbolMapping)
-                {
-                    operations.Add(symbolRenameCodeActionOperationFactory.CreateSymbolRenamedOperation(
-                        symbol,
-                        newName,
-                        moveToNamespaceResult.OriginalSolution,
-                        moveToNamespaceResult.UpdatedSolution));
-                }
-            }
-
-            return operations.ToImmutable();
-        }
-
-        public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult, CodeCleanupOptionsProvider cleanupOptions)
-            => analysisResult.Container switch
-            {
-                MoveToNamespaceAnalysisResult.ContainerType.NamedType => new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult, cleanupOptions),
-                MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult, cleanupOptions),
-                _ => throw ExceptionUtilities.UnexpectedValue(analysisResult.Container)
-            };
+        return _moveToNamespaceService.GetChangeNamespaceOptions(
+            _moveToNamespaceAnalysisResult.Document,
+            _moveToNamespaceAnalysisResult.OriginalNamespace,
+            _moveToNamespaceAnalysisResult.Namespaces);
     }
+
+    protected sealed override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+        object options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken)
+    {
+        // We won't get an empty target namespace from VS, but still should handle it w/o crashing.
+        if (options is MoveToNamespaceOptionsResult moveToNamespaceOptions &&
+            !moveToNamespaceOptions.IsCancelled &&
+            !string.IsNullOrEmpty(moveToNamespaceOptions.Namespace))
+        {
+            var moveToNamespaceResult = await _moveToNamespaceService.MoveToNamespaceAsync(
+                _moveToNamespaceAnalysisResult,
+                moveToNamespaceOptions.Namespace,
+                cancellationToken).ConfigureAwait(false);
+
+            if (moveToNamespaceResult.Succeeded)
+            {
+                return CreateRenameOperations(moveToNamespaceResult);
+            }
+        }
+
+        return [];
+    }
+
+    private static ImmutableArray<CodeActionOperation> CreateRenameOperations(MoveToNamespaceResult moveToNamespaceResult)
+    {
+        Debug.Assert(moveToNamespaceResult.Succeeded);
+
+        using var _ = PooledObjects.ArrayBuilder<CodeActionOperation>.GetInstance(out var operations);
+        operations.Add(new ApplyChangesOperation(moveToNamespaceResult.UpdatedSolution));
+
+        var symbolRenameCodeActionOperationFactory = moveToNamespaceResult.UpdatedSolution.Services.GetService<ISymbolRenamedCodeActionOperationFactoryWorkspaceService>();
+
+        // It's possible we're not in a host context providing this service, in which case just provide a code
+        // action that won't notify of the symbol rename. Without the symbol rename operation, code generators (like
+        // WPF) may not know to regenerate code correctly.
+        if (symbolRenameCodeActionOperationFactory != null)
+        {
+            foreach (var (newName, symbol) in moveToNamespaceResult.NewNameOriginalSymbolMapping)
+            {
+                operations.Add(symbolRenameCodeActionOperationFactory.CreateSymbolRenamedOperation(
+                    symbol,
+                    newName,
+                    moveToNamespaceResult.OriginalSolution,
+                    moveToNamespaceResult.UpdatedSolution));
+            }
+        }
+
+        return operations.ToImmutableAndClear();
+    }
+
+    public static AbstractMoveToNamespaceCodeAction Generate(IMoveToNamespaceService changeNamespaceService, MoveToNamespaceAnalysisResult analysisResult)
+        => analysisResult.Container switch
+        {
+            MoveToNamespaceAnalysisResult.ContainerType.NamedType => new MoveTypeToNamespaceCodeAction(changeNamespaceService, analysisResult),
+            MoveToNamespaceAnalysisResult.ContainerType.Namespace => new MoveItemsToNamespaceCodeAction(changeNamespaceService, analysisResult),
+            _ => throw ExceptionUtilities.UnexpectedValue(analysisResult.Container)
+        };
 }

@@ -784,7 +784,7 @@ class C
                     metadataReferences: new[] { TestMetadata.Net451.mscorlib }));
 
             var project = emptyProject
-                .AddMetadataReferences(new[] { otherAssemblyReference })
+                .AddMetadataReferences([otherAssemblyReference])
                 .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
             project = project.AddDocument("duplicate.cs", externalCode).Project;
@@ -833,7 +833,7 @@ class C
             var tree = CSharpSyntaxTree.ParseText(code);
 
             var compilation = CSharpCompilation
-                .Create("test.dll", new[] { tree })
+                .Create("test.dll", [tree])
                 .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
                 .AddReferences(TestMetadata.Net451.mscorlib);
 

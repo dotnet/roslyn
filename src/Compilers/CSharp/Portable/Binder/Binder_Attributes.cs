@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder attributeArgumentBinder = this.WithAdditionalFlags(BinderFlags.AttributeArgument);
             AnalyzedAttributeArguments analyzedArguments = attributeArgumentBinder.BindAttributeArguments(argumentListOpt, attributeTypeForBinding, diagnostics);
 
-            ImmutableArray<int> argsToParamsOpt = default;
+            ImmutableArray<int> argsToParamsOpt;
             bool expanded = false;
             BitVector defaultArguments = default;
             MethodSymbol? attributeConstructor = null;
@@ -191,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundConstructorArguments = analyzedArguments.ConstructorArguments.Arguments.SelectAsArray(
                     static (arg, attributeArgumentBinder) => attributeArgumentBinder.BindToTypeForErrorRecovery(arg),
                     attributeArgumentBinder);
+                argsToParamsOpt = default;
             }
             else
             {
@@ -204,10 +205,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     out var memberResolutionResult,
                     out var candidateConstructors,
                     allowProtectedConstructorsOfBaseType: true,
-                    suppressUnsupportedRequiredMembersError: false);
+                    out CompoundUseSiteInfo<AssemblySymbol> overloadResolutionUseSiteInfo);
+
+                ReportConstructorUseSiteDiagnostics(node.Location, diagnostics, suppressUnsupportedRequiredMembersError: false, in overloadResolutionUseSiteInfo);
+
+                if (memberResolutionResult.IsNotNull)
+                {
+                    this.CheckAndCoerceArguments<MethodSymbol>(node, memberResolutionResult, analyzedArguments.ConstructorArguments, diagnostics, receiver: null, invokedAsExtensionMethod: false, out argsToParamsOpt);
+                }
+                else
+                {
+                    argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
+                }
+
                 attributeConstructor = memberResolutionResult.Member;
                 expanded = memberResolutionResult.Resolution == MemberResolutionKind.ApplicableInExpandedForm;
-                argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
 
                 if (!found)
                 {
@@ -221,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    attributeArgumentBinder.BindDefaultArgumentsAndParamsArray(
+                    attributeArgumentBinder.BindDefaultArguments(
                         node,
                         attributeConstructor.Parameters,
                         analyzedArguments.ConstructorArguments.Arguments,
@@ -234,7 +246,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics,
                         attributedMember: attributedMember);
                     boundConstructorArguments = analyzedArguments.ConstructorArguments.Arguments.ToImmutable();
-                    attributeArgumentBinder.ReportDiagnosticsIfObsolete(diagnostics, attributeConstructor, node, hasBaseReceiver: false);
 
                     if (attributeConstructor.Parameters.Any(static p => p.RefKind is RefKind.In or RefKind.RefReadOnlyParameter))
                     {
@@ -246,14 +257,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(boundConstructorArguments.All(a => !a.NeedsToBeConverted()));
 
             ImmutableArray<string?> boundConstructorArgumentNamesOpt = analyzedArguments.ConstructorArguments.GetNames();
+            // We delay reporting required member errors because:
+            // 1. If we didn't do it lazily during early attribute binding, we'd cause a cycle.
+            // 2. If we do it lazily during early attribute binding, we force every early-bound attribute to rebind later because the lazy diagnostic can't be computed yet.
+            // So instead, we report the error in `LoadAndValidateAttributes` after all attributes have been bound.
             ImmutableArray<BoundAssignmentOperator> boundNamedArguments = analyzedArguments.NamedArguments?.ToImmutableAndFree() ?? ImmutableArray<BoundAssignmentOperator>.Empty;
             Debug.Assert(boundNamedArguments.All(arg => !arg.Right.NeedsToBeConverted()));
-
-            if (attributeConstructor is not null)
-            {
-                CheckRequiredMembersInObjectInitializer(attributeConstructor, ImmutableArray<BoundExpression>.CastUp(boundNamedArguments), node, diagnostics);
-            }
-
             analyzedArguments.ConstructorArguments.Free();
 
             return new BoundAttribute(
@@ -340,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return default;
                 }
 
-                Debug.Assert(arguments.Count(a => a.IsParamsArray) == (boundAttribute.ConstructorExpanded ? 1 : 0));
+                Debug.Assert(arguments.Count(a => a.IsParamsArrayOrCollection) == (boundAttribute.ConstructorExpanded ? 1 : 0));
 
                 // make source indices if we have anything that doesn't map 1:1 from arguments to parameters:
                 // 1. implicit default arguments
@@ -372,10 +381,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 constructorArgumentSourceIndices.Count = lengthAfterRewriting;
                 for (int argIndex = 0; argIndex < lengthAfterRewriting; argIndex++)
                 {
+                    Debug.Assert(!arguments[argIndex].IsParamsArrayOrCollection || arguments[argIndex] is BoundArrayCreation);
+
                     int paramIndex = argsToParamsOpt.IsDefault ? argIndex : argsToParamsOpt[argIndex];
                     constructorArgumentSourceIndices[paramIndex] =
                         defaultArguments[argIndex] ||
-                            (arguments[argIndex].IsParamsArray && arguments[argIndex] is BoundArrayCreation { Bounds: [BoundLiteral { ConstantValueOpt.Value: 0 }] }) ?
+                            (arguments[argIndex].IsParamsArrayOrCollection && arguments[argIndex] is BoundArrayCreation { Bounds: [BoundLiteral { ConstantValueOpt.Value: 0 }] }) ?
                         -1 : argIndex;
                 }
                 return constructorArgumentSourceIndices.ToImmutableAndFree();
@@ -901,7 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var operandType = operand.Type;
 
                 if (node.Conversion.IsCollectionExpression
-                    && node.Conversion.GetCollectionExpressionTypeKind(out _) == CollectionExpressionTypeKind.Array)
+                    && node.Conversion.GetCollectionExpressionTypeKind(out _, out _, out _) == CollectionExpressionTypeKind.Array)
                 {
                     Debug.Assert(type.IsSZArray());
                     return VisitArrayCollectionExpression(type, (BoundCollectionExpression)operand, diagnostics, ref attrHasErrors, curArgumentHasErrors);

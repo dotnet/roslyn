@@ -33,19 +33,18 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
         CSharpCodeFixesResources.Use_collection_expression,
         IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId)
 {
-    public override ImmutableArray<string> FixableDiagnosticIds { get; } = ImmutableArray.Create(IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId);
+    public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.UseCollectionExpressionForBuilderDiagnosticId];
 
     protected override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         InvocationExpressionSyntax invocationExpression,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var expressionType = semanticModel.Compilation.ExpressionOfTType();
-        if (AnalyzeInvocation(semanticModel, invocationExpression, expressionType, allowInterfaceConversion: true, cancellationToken) is not { } analysisResult)
+        if (AnalyzeInvocation(semanticModel, invocationExpression, expressionType, allowSemanticsChange: true, cancellationToken) is not { } analysisResult)
             return;
 
         // We want to replace the final invocation (`builder.ToImmutable()`) with `new()`.  That way we can call into
@@ -66,7 +65,6 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
         // Get the new collection expression.
         var collectionExpression = await CreateCollectionExpressionAsync(
             newDocument,
-            fallbackOptions,
             dummyObjectCreation,
             analysisResult.Matches.SelectAsArray(m => new CollectionExpressionMatch<StatementSyntax>(m.Statement, m.UseSpread)),
             static o => o.Initializer,

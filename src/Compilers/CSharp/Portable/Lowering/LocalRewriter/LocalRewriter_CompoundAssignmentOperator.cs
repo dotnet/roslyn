@@ -153,7 +153,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     RemovePlaceholderReplacement(node.FinalPlaceholder);
                 }
 
-                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, node.Left.Type, used: used, isChecked: isChecked, isCompoundAssignment: true);
+                Debug.Assert(TypeSymbol.Equals(transformedLHS.Type, node.Left.Type, TypeCompareKind.AllIgnoreOptions));
+                return MakeAssignmentOperator(syntax, transformedLHS, opFinal, used: used, isChecked: isChecked, isCompoundAssignment: true);
             }
         }
 
@@ -343,10 +344,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 refKinds,
                 storesToTemps);
 
-            if (expanded)
+            if (expanded && actualArguments[actualArguments.Length - 1] is { IsParamsArrayOrCollection: true } array)
             {
-                BoundExpression array = actualArguments[actualArguments.Length - 1];
-                Debug.Assert(array.IsParamsArray);
+                Debug.Assert(array is BoundArrayCreation);
 
                 if (TryOptimizeParamsArray(array, out BoundExpression? optimized))
                 {
@@ -396,6 +396,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 argumentNamesOpt: default(ImmutableArray<string?>),
                 argumentRefKinds,
                 expanded: false,
+                accessorKind: indexerAccess.AccessorKind,
                 argsToParamsOpt: default(ImmutableArray<int>),
                 defaultArguments: default(BitVector),
                 indexerAccess.Type);
@@ -833,6 +834,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return !ConstantValueIsTrivial(type);
             }
 
+            // Note, we can get here with a node that hasn't been lowered yet.
+            // For example, from TransformCompoundAssignmentFieldOrEventAccessReceiver.
+
             switch (expression.Kind)
             {
                 case BoundKind.ThisReference:
@@ -846,8 +850,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return !ConstantValueIsTrivial(type);
 
                 case BoundKind.Parameter:
-                    Debug.Assert(!IsCapturedPrimaryConstructorParameter(expression));
-                    return localsMayBeAssignedOrCaptured || ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None;
+                    return localsMayBeAssignedOrCaptured ||
+                           ((BoundParameter)expression).ParameterSymbol.RefKind != RefKind.None ||
+                           IsCapturedPrimaryConstructorParameter(expression); // captured primary constructor parameters should be treated as a field
 
                 case BoundKind.Local:
                     return localsMayBeAssignedOrCaptured || ((BoundLocal)expression).LocalSymbol.RefKind != RefKind.None;

@@ -7,115 +7,114 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Updater;
 using Microsoft.CodeAnalysis.Options;
 
-namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data
+namespace Microsoft.CodeAnalysis.Editor.EditorConfigSettings.Data;
+
+internal abstract class CodeStyleSetting(OptionKey2 optionKey, string description, OptionUpdater updater, SettingLocation location) : Setting(optionKey, description, updater, location)
 {
-    internal abstract class CodeStyleSetting(OptionKey2 optionKey, string description, OptionUpdater updater, SettingLocation location) : Setting(optionKey, description, updater, location)
+    private static readonly bool[] s_boolValues = [true, false];
+
+    public abstract ICodeStyleOption2 GetCodeStyle();
+
+    public ReportDiagnostic GetSeverity()
     {
-        private static readonly bool[] s_boolValues = [true, false];
+        var severity = GetCodeStyle().Notification.Severity;
+        if (severity is ReportDiagnostic.Default or ReportDiagnostic.Suppress)
+            severity = ReportDiagnostic.Hidden;
+        return severity;
+    }
 
-        public abstract ICodeStyleOption GetCodeStyle();
+    public sealed override object? GetValue()
+        => GetCodeStyle();
 
-        public ReportDiagnostic GetSeverity()
+    public abstract string[] GetValueDescriptions();
+    public abstract string GetCurrentValueDescription();
+
+    protected abstract object GetPossibleValue(int valueIndex);
+
+    public void ChangeSeverity(ReportDiagnostic severity)
+    {
+        var notification = severity switch
         {
-            var severity = GetCodeStyle().Notification.Severity;
-            if (severity is ReportDiagnostic.Default or ReportDiagnostic.Suppress)
-                severity = ReportDiagnostic.Hidden;
-            return severity;
-        }
+            ReportDiagnostic.Hidden => NotificationOption2.Silent,
+            ReportDiagnostic.Info => NotificationOption2.Suggestion,
+            ReportDiagnostic.Warn => NotificationOption2.Warning,
+            ReportDiagnostic.Error => NotificationOption2.Error,
+            _ => NotificationOption2.None,
+        };
 
-        public sealed override object? GetValue()
-            => GetCodeStyle();
+        SetValue(GetCodeStyle().WithNotification(notification));
+    }
 
-        public abstract string[] GetValueDescriptions();
-        public abstract string GetCurrentValueDescription();
+    public void ChangeValue(int valueIndex)
+    {
+        SetValue(GetCodeStyle().WithValue(GetPossibleValue(valueIndex)));
+    }
 
-        protected abstract object GetPossibleValue(int valueIndex);
+    internal static CodeStyleSetting Create(
+        Option2<CodeStyleOption2<bool>> option,
+        string description,
+        TieredAnalyzerConfigOptions options,
+        OptionUpdater updater,
+        string? trueValueDescription = null,
+        string? falseValueDescription = null)
+    {
+        var optionKey = new OptionKey2(option);
+        options.GetInitialLocationAndValue<CodeStyleOption2<bool>>(option, out var initialLocation, out var initialValue);
 
-        public void ChangeSeverity(ReportDiagnostic severity)
+        var valueDescriptions = new[]
         {
-            var notification = severity switch
-            {
-                ReportDiagnostic.Hidden => NotificationOption2.Silent,
-                ReportDiagnostic.Info => NotificationOption2.Suggestion,
-                ReportDiagnostic.Warn => NotificationOption2.Warning,
-                ReportDiagnostic.Error => NotificationOption2.Error,
-                _ => NotificationOption2.None,
-            };
+            trueValueDescription ?? EditorFeaturesResources.Yes,
+            falseValueDescription ?? EditorFeaturesResources.No
+        };
 
-            SetValue(GetCodeStyle().WithNotification(notification));
-        }
+        return new CodeStyleSetting<bool>(optionKey, description, updater, initialLocation, initialValue, s_boolValues, valueDescriptions);
+    }
 
-        public void ChangeValue(int valueIndex)
+    internal static CodeStyleSetting Create(
+        PerLanguageOption2<CodeStyleOption2<bool>> option,
+        string description,
+        TieredAnalyzerConfigOptions options,
+        OptionUpdater updater,
+        string? trueValueDescription = null,
+        string? falseValueDescription = null)
+    {
+        var optionKey = new OptionKey2(option, options.Language);
+        options.GetInitialLocationAndValue<CodeStyleOption2<bool>>(option, out var initialLocation, out var initialValue);
+
+        var valueDescriptions = new[]
         {
-            SetValue(GetCodeStyle().WithValue(GetPossibleValue(valueIndex)));
-        }
+            trueValueDescription ?? EditorFeaturesResources.Yes,
+            falseValueDescription ?? EditorFeaturesResources.No
+        };
 
-        internal static CodeStyleSetting Create(
-            Option2<CodeStyleOption2<bool>> option,
-            string description,
-            TieredAnalyzerConfigOptions options,
-            OptionUpdater updater,
-            string? trueValueDescription = null,
-            string? falseValueDescription = null)
-        {
-            var optionKey = new OptionKey2(option);
-            options.GetInitialLocationAndValue<CodeStyleOption2<bool>>(option, out var initialLocation, out var initialValue);
+        return new CodeStyleSetting<bool>(optionKey, description, updater, initialLocation, initialValue, s_boolValues, valueDescriptions);
+    }
 
-            var valueDescriptions = new[]
-            {
-                trueValueDescription ?? EditorFeaturesResources.Yes,
-                falseValueDescription ?? EditorFeaturesResources.No
-            };
+    internal static CodeStyleSetting Create<T>(
+        Option2<CodeStyleOption2<T>> option,
+        string description,
+        TieredAnalyzerConfigOptions options,
+        OptionUpdater updater,
+        T[] enumValues,
+        string[] valueDescriptions)
+        where T : Enum
+    {
+        var optionKey = new OptionKey2(option);
+        options.GetInitialLocationAndValue<CodeStyleOption2<T>>(option, out var initialLocation, out var initialValue);
+        return new CodeStyleSetting<T>(optionKey, description, updater, initialLocation, initialValue, enumValues, valueDescriptions);
+    }
 
-            return new CodeStyleSetting<bool>(optionKey, description, updater, initialLocation, initialValue, s_boolValues, valueDescriptions);
-        }
-
-        internal static CodeStyleSetting Create(
-            PerLanguageOption2<CodeStyleOption2<bool>> option,
-            string description,
-            TieredAnalyzerConfigOptions options,
-            OptionUpdater updater,
-            string? trueValueDescription = null,
-            string? falseValueDescription = null)
-        {
-            var optionKey = new OptionKey2(option, options.Language);
-            options.GetInitialLocationAndValue<CodeStyleOption2<bool>>(option, out var initialLocation, out var initialValue);
-
-            var valueDescriptions = new[]
-            {
-                trueValueDescription ?? EditorFeaturesResources.Yes,
-                falseValueDescription ?? EditorFeaturesResources.No
-            };
-
-            return new CodeStyleSetting<bool>(optionKey, description, updater, initialLocation, initialValue, s_boolValues, valueDescriptions);
-        }
-
-        internal static CodeStyleSetting Create<T>(
-            Option2<CodeStyleOption2<T>> option,
-            string description,
-            TieredAnalyzerConfigOptions options,
-            OptionUpdater updater,
-            T[] enumValues,
-            string[] valueDescriptions)
-            where T : Enum
-        {
-            var optionKey = new OptionKey2(option);
-            options.GetInitialLocationAndValue<CodeStyleOption2<T>>(option, out var initialLocation, out var initialValue);
-            return new CodeStyleSetting<T>(optionKey, description, updater, initialLocation, initialValue, enumValues, valueDescriptions);
-        }
-
-        internal static CodeStyleSetting Create<T>(
-            PerLanguageOption2<CodeStyleOption2<T>> option,
-            string description,
-            TieredAnalyzerConfigOptions options,
-            OptionUpdater updater,
-            T[] enumValues,
-            string[] valueDescriptions)
-            where T : Enum
-        {
-            var optionKey = new OptionKey2(option, options.Language);
-            options.GetInitialLocationAndValue<CodeStyleOption2<T>>(option, out var initialLocation, out var initialValue);
-            return new CodeStyleSetting<T>(optionKey, description, updater, initialLocation, initialValue, enumValues, valueDescriptions);
-        }
+    internal static CodeStyleSetting Create<T>(
+        PerLanguageOption2<CodeStyleOption2<T>> option,
+        string description,
+        TieredAnalyzerConfigOptions options,
+        OptionUpdater updater,
+        T[] enumValues,
+        string[] valueDescriptions)
+        where T : Enum
+    {
+        var optionKey = new OptionKey2(option, options.Language);
+        options.GetInitialLocationAndValue<CodeStyleOption2<T>>(option, out var initialLocation, out var initialValue);
+        return new CodeStyleSetting<T>(optionKey, description, updater, initialLocation, initialValue, enumValues, valueDescriptions);
     }
 }

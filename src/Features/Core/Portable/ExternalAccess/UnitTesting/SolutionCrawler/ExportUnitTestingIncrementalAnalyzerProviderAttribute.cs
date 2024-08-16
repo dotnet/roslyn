@@ -7,20 +7,19 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler
-{
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class)]
-    internal class ExportUnitTestingIncrementalAnalyzerProviderAttribute : ExportAttribute
-    {
-        public string Name { get; }
-        public string[] WorkspaceKinds { get; }
+namespace Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.SolutionCrawler;
 
-        public ExportUnitTestingIncrementalAnalyzerProviderAttribute(string name, string[] workspaceKinds)
-            : base(typeof(IUnitTestingIncrementalAnalyzerProvider))
-        {
-            this.WorkspaceKinds = workspaceKinds;
-            this.Name = name ?? throw new ArgumentNullException(nameof(name));
-        }
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class)]
+internal class ExportUnitTestingIncrementalAnalyzerProviderAttribute : ExportAttribute
+{
+    public string Name { get; }
+    public string[] WorkspaceKinds { get; }
+
+    public ExportUnitTestingIncrementalAnalyzerProviderAttribute(string name, string[] workspaceKinds)
+        : base(typeof(IUnitTestingIncrementalAnalyzerProvider))
+    {
+        this.WorkspaceKinds = workspaceKinds;
+        this.Name = name ?? throw new ArgumentNullException(nameof(name));
     }
 }

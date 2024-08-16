@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Indentation;
@@ -20,6 +21,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 internal static class CSharpCollectionExpressionRewriter
@@ -30,7 +32,6 @@ internal static class CSharpCollectionExpressionRewriter
     /// </summary>
     public static async Task<CollectionExpressionSyntax> CreateCollectionExpressionAsync<TParentExpression, TMatchNode>(
         Document workspaceDocument,
-        CodeActionOptionsProvider fallbackOptions,
         TParentExpression expressionToReplace,
         ImmutableArray<CollectionExpressionMatch<TMatchNode>> matches,
         Func<TParentExpression, InitializerExpressionSyntax?> getInitializer,
@@ -45,21 +46,10 @@ internal static class CSharpCollectionExpressionRewriter
 
         var document = await ParsedDocument.CreateAsync(workspaceDocument, cancellationToken).ConfigureAwait(false);
 
-#if CODE_STYLE
-        var formattingOptions = SyntaxFormattingOptions.CommonDefaults;
-#else
-        var formattingOptions = await workspaceDocument.GetSyntaxFormattingOptionsAsync(
-            fallbackOptions, cancellationToken).ConfigureAwait(false);
-#endif
-
+        var formattingOptions = await workspaceDocument.GetCSharpSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
         var indentationOptions = new IndentationOptions(formattingOptions);
 
-        // the option is currently not an editorconfig option, so not available in code style layer
-#if CODE_STYLE
-        var wrappingLength = CodeActionOptions.DefaultCollectionExpressionWrappingLength;
-#else
-        var wrappingLength = fallbackOptions.GetOptions(document.LanguageServices).CollectionExpressionWrappingLength;
-#endif
+        var wrappingLength = formattingOptions.CollectionExpressionWrappingLength;
 
         var initializer = getInitializer(expressionToReplace);
         var endOfLine = DetermineEndOfLine(document, expressionToReplace, formattingOptions);
@@ -102,10 +92,10 @@ internal static class CSharpCollectionExpressionRewriter
                 //
                 // For that sort of case.  Single element collections should stay closely associated with the original
                 // expression.
-                return CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(
+                return CollectionExpression([
                     match.UseSpread
                         ? SpreadElement(expression.WithoutTrivia())
-                        : ExpressionElement(expression.WithoutTrivia()))).WithTriviaFrom(expressionToReplace);
+                        : ExpressionElement(expression.WithoutTrivia())]).WithTriviaFrom(expressionToReplace);
             }
             else if (makeMultiLineCollectionExpression)
             {
@@ -117,9 +107,9 @@ internal static class CSharpCollectionExpressionRewriter
                 var nullTokenAnnotation = new SyntaxAnnotation();
                 var initializer = InitializerExpression(
                     SyntaxKind.CollectionInitializerExpression,
-                    Token(SyntaxKind.OpenBraceToken).WithAdditionalAnnotations(openBraceTokenAnnotation),
-                    SingletonSeparatedList<ExpressionSyntax>(LiteralExpression(SyntaxKind.NullLiteralExpression, Token(SyntaxKind.NullKeyword).WithAdditionalAnnotations(nullTokenAnnotation))),
-                    Token(SyntaxKind.CloseBraceToken));
+                    OpenBraceToken.WithAdditionalAnnotations(openBraceTokenAnnotation),
+                    [LiteralExpression(SyntaxKind.NullLiteralExpression, NullKeyword.WithAdditionalAnnotations(nullTokenAnnotation))],
+                    CloseBraceToken);
 
                 // Update the doc with the new object (now with initializer).
                 var updatedRoot = document.Root.ReplaceNode(
@@ -146,9 +136,9 @@ internal static class CSharpCollectionExpressionRewriter
 
                 // Make the collection expression with the braces on new lines, at the desired brace indentation.
                 var finalCollection = CollectionExpression(
-                    Token(SyntaxKind.OpenBracketToken).WithLeadingTrivia(endOfLine, Whitespace(openBraceIndentation)).WithTrailingTrivia(endOfLine),
+                    OpenBracketToken.WithLeadingTrivia(endOfLine, Whitespace(openBraceIndentation)).WithTrailingTrivia(endOfLine),
                     SeparatedList<CollectionElementSyntax>(nodesAndTokens),
-                    Token(SyntaxKind.CloseBracketToken).WithLeadingTrivia(Whitespace(openBraceIndentation)));
+                    CloseBracketToken.WithLeadingTrivia(Whitespace(openBraceIndentation)));
 
                 // Now, figure out what trivia to move over from the original object over to the new collection.
                 return UseCollectionExpressionHelpers.ReplaceWithCollectionExpression(
@@ -167,10 +157,42 @@ internal static class CSharpCollectionExpressionRewriter
                     nodesAndTokens[^1] = RemoveTrailingWhitespace(nodesAndTokens[^1]);
 
                 var collectionExpression = CollectionExpression(
-                    Token(SyntaxKind.OpenBracketToken).WithoutTrivia(),
+                    OpenBracketToken.WithoutTrivia(),
                     SeparatedList<CollectionElementSyntax>(nodesAndTokens),
-                    Token(SyntaxKind.CloseBracketToken).WithoutTrivia());
-                return collectionExpression.WithTriviaFrom(expressionToReplace);
+                    CloseBracketToken.WithoutTrivia());
+
+                // Even though the collection expression itself fits on a single line, there could be
+                // additional trivia between the array creation expression and the initializer list.
+                // We should include this additional trivia in the final collection expression.
+                //
+                // int[][] = new int[]
+                // {
+                //     new int[] // some identifying comment
+                //     { 1, 2, 3 }
+                // }
+                //
+                //  ...
+                //
+                // int[][] =
+                // [
+                //    // some identifying comment
+                //    [1, 2, 3]
+                // ]
+                var shouldIncludeAdditionalLeadingTrivia = initializer is not null &&
+                    initializer.OpenBraceToken.GetPreviousToken().TrailingTrivia.Any(static x => x.IsSingleOrMultiLineComment());
+
+                if (shouldIncludeAdditionalLeadingTrivia)
+                {
+                    var additionalLeadingTrivia = initializer!.OpenBraceToken.GetPreviousToken().TrailingTrivia
+                        .SkipInitialWhitespace()
+                        .Concat(initializer.OpenBraceToken.LeadingTrivia);
+                    return collectionExpression.WithLeadingTrivia(additionalLeadingTrivia);
+                }
+                else
+                {
+                    // otherwise, we want to unconditionally preserve any and all trivia in the original expression
+                    return collectionExpression.WithTriviaFrom(expressionToReplace);
+                }
             }
         }
 
@@ -337,7 +359,7 @@ internal static class CSharpCollectionExpressionRewriter
 
                     nodesAndTokens[^1] = lastNode.WithTrailingTrivia(lastNode.GetTrailingTrivia().Where(t => !trailingWhitespaceAndComments.Contains(t)));
 
-                    var commaToken = Token(SyntaxKind.CommaToken)
+                    var commaToken = CommaToken
                         .WithoutLeadingTrivia()
                         .WithTrailingTrivia(TriviaList(trailingWhitespaceAndComments).AddRange(triviaAfterComma));
 
@@ -403,7 +425,7 @@ internal static class CSharpCollectionExpressionRewriter
         {
             return useSpread
                 ? SpreadElement(
-                    Token(SyntaxKind.DotDotToken).WithLeadingTrivia(expression.GetLeadingTrivia()).WithTrailingTrivia(Space),
+                    DotDotToken.WithLeadingTrivia(expression.GetLeadingTrivia()).WithTrailingTrivia(Space),
                     expression.WithoutLeadingTrivia())
                 : ExpressionElement(expression);
         }
@@ -424,8 +446,27 @@ internal static class CSharpCollectionExpressionRewriter
 
                 Contract.ThrowIfTrue(expressions.Length >= 2 && match.UseSpread);
 
-                foreach (var expression in expressions)
-                    yield return CreateCollectionElement(match.UseSpread, expression);
+                if (match.UseSpread && expressions is [CollectionExpressionSyntax collectionExpression])
+                {
+                    // If we're spreading a collection expression, just insert those inner collection expression
+                    // elements as is into the outer collection expression.
+                    foreach (var element in collectionExpression.Elements)
+                    {
+                        if (element is SpreadElementSyntax spreadElement)
+                        {
+                            yield return CreateCollectionElement(useSpread: true, spreadElement.Expression);
+                        }
+                        else if (element is ExpressionElementSyntax expressionElement)
+                        {
+                            yield return CreateCollectionElement(useSpread: false, expressionElement.Expression);
+                        }
+                    }
+                }
+                else
+                {
+                    foreach (var expression in expressions)
+                        yield return CreateCollectionElement(match.UseSpread, expression);
+                }
             }
             else if (node is ForEachStatementSyntax foreachStatement)
             {
@@ -444,8 +485,8 @@ internal static class CSharpCollectionExpressionRewriter
                     // Create: `x ? [y] : []` for `if (x) collection.Add(y)`
                     var expression = ConditionalExpression(
                         condition,
-                        CollectionExpression(SingletonSeparatedList<CollectionElementSyntax>(
-                            ExpressionElement(ConvertExpression(trueStatement.Expression, indent: null)))),
+                        CollectionExpression([
+                            ExpressionElement(ConvertExpression(trueStatement.Expression, indent: null))]),
                         CollectionExpression());
                     yield return CreateCollectionElement(match.UseSpread, expression);
                 }
@@ -745,7 +786,7 @@ internal static class CSharpCollectionExpressionRewriter
         static ImmutableArray<ExpressionSyntax> ConvertAssignment(
             AssignmentExpressionSyntax assignment, Func<ExpressionSyntax, ExpressionSyntax> indent)
         {
-            return ImmutableArray.Create(indent(assignment.Right));
+            return [indent(assignment.Right)];
         }
 
         static ImmutableArray<ExpressionSyntax> ConvertInvocation(

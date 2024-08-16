@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.MSBuild
@@ -18,7 +17,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public DiagnosticReporter(Workspace workspace)
         {
             _workspace = workspace;
-            Diagnostics = ImmutableList<WorkspaceDiagnostic>.Empty;
+            Diagnostics = [];
         }
 
         public void Report(DiagnosticReportingMode mode, string message, Func<string, Exception>? createException = null)

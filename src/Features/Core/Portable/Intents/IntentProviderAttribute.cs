@@ -5,13 +5,12 @@
 using System;
 using System.Composition;
 
-namespace Microsoft.CodeAnalysis.Features.Intents
+namespace Microsoft.CodeAnalysis.Features.Intents;
+
+[MetadataAttribute]
+[AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
+internal class IntentProviderAttribute(string intentName, string languageName) : ExportAttribute(typeof(IIntentProvider)), IIntentProviderMetadata
 {
-    [MetadataAttribute]
-    [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
-    internal class IntentProviderAttribute(string intentName, string languageName) : ExportAttribute(typeof(IIntentProvider)), IIntentProviderMetadata
-    {
-        public string IntentName { get; } = intentName;
-        public string LanguageName { get; } = languageName;
-    }
+    public string IntentName { get; } = intentName;
+    public string LanguageName { get; } = languageName;
 }

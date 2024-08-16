@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServer;
 using Microsoft.CodeAnalysis.Options;
+using StreamJsonRpc;
 using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Roslyn.Test.Utilities
@@ -15,17 +16,19 @@ namespace Roslyn.Test.Utilities
     {
         internal readonly record struct InitializationOptions()
         {
-            internal string[] SourceGeneratedMarkups { get; init; } = Array.Empty<string>();
+            internal string[] SourceGeneratedMarkups { get; init; } = [];
             // Use this to specify the containing folders for each document.
             // Its count need to be same as documents' count.
             internal string[]? DocumentFileContainingFolders { get; init; } = null;
             internal LSP.ClientCapabilities ClientCapabilities { get; init; } = new LSP.ClientCapabilities();
             internal WellKnownLspServerKinds ServerKind { get; init; } = WellKnownLspServerKinds.AlwaysActiveVSLspServer;
             internal Action<IGlobalOptionService>? OptionUpdater { get; init; } = null;
+            internal bool CallInitialize { get; init; } = true;
             internal bool CallInitialized { get; init; } = true;
             internal object? ClientTarget { get; init; } = null;
             internal string? Locale { get; init; } = null;
             internal IEnumerable<DiagnosticAnalyzer>? AdditionalAnalyzers { get; init; } = null;
+            internal IJsonRpcMessageFormatter? ClientMessageFormatter { get; init; } = null;
         }
     }
 }

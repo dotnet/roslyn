@@ -20,51 +20,50 @@ using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TaskList
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TaskList;
+
+[UseExportProvider]
+public class NoCompilationTaskListTests : AbstractTaskListTests
 {
-    [UseExportProvider]
-    public class NoCompilationTaskListTests : AbstractTaskListTests
+    protected override EditorTestWorkspace CreateWorkspace(string codeWithMarker, TestComposition composition)
     {
-        protected override TestWorkspace CreateWorkspace(string codeWithMarker, TestComposition composition)
-        {
-            var workspace = TestWorkspace.CreateWorkspace(XElement.Parse(
+        var workspace = EditorTestWorkspace.CreateWorkspace(XElement.Parse(
 $@"<Workspace>
     <Project Language=""NoCompilation"">
         <Document>{codeWithMarker}</Document>
     </Project>
 </Workspace>"), composition: composition.AddParts(
-                typeof(NoCompilationContentTypeDefinitions),
-                typeof(NoCompilationContentTypeLanguageService),
-                typeof(NoCompilationTaskListService)));
+            typeof(NoCompilationContentTypeDefinitions),
+            typeof(NoCompilationContentTypeLanguageService),
+            typeof(NoCompilationTaskListService)));
 
-            return workspace;
-        }
-
-        [Theory, CombinatorialData, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1192024")]
-        public async Task TodoCommentInNoCompilationProject(TestHost host)
-        {
-            var code = @"(* [|Message|] *)";
-
-            await TestAsync(code, host);
-        }
+        return workspace;
     }
 
-    [PartNotDiscoverable]
-    [ExportLanguageService(typeof(ITaskListService), language: NoCompilationConstants.LanguageName), Shared]
-    internal class NoCompilationTaskListService : ITaskListService
+    [Theory, CombinatorialData, WorkItem("https://dev.azure.com/devdiv/DevDiv/_workitems/edit/1192024")]
+    public async Task TodoCommentInNoCompilationProject(TestHost host)
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public NoCompilationTaskListService()
-        {
-        }
+        var code = @"(* [|Message|] *)";
 
-        public Task<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken)
-            => Task.FromResult(ImmutableArray.Create(new TaskListItem(
-                descriptors.First().Priority,
-                "Message",
-                document.Id,
-                Span: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)),
-                MappedSpan: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)))));
+        await TestAsync(code, host);
     }
+}
+
+[PartNotDiscoverable]
+[ExportLanguageService(typeof(ITaskListService), language: NoCompilationConstants.LanguageName), Shared]
+internal class NoCompilationTaskListService : ITaskListService
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public NoCompilationTaskListService()
+    {
+    }
+
+    public Task<ImmutableArray<TaskListItem>> GetTaskListItemsAsync(Document document, ImmutableArray<TaskListItemDescriptor> descriptors, CancellationToken cancellationToken)
+        => Task.FromResult(ImmutableArray.Create(new TaskListItem(
+            descriptors.First().Priority,
+            "Message",
+            document.Id,
+            Span: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)),
+            MappedSpan: new FileLinePositionSpan("dummy", new LinePosition(0, 3), new LinePosition(0, 3)))));
 }

@@ -26,7 +26,6 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Interactive
 {
     using InteractiveHost::Microsoft.CodeAnalysis.Interactive;
-    using Microsoft.VisualStudio.Text.Editor;
 
     // TODO: Rename to InteractiveEvaluator https://github.com/dotnet/roslyn/issues/6441
     // The code is not specific to C#, but Interactive Window has hardcoded "CSharpInteractiveEvaluator" name.
@@ -53,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Interactive
         /// Includes both command buffers as well as language buffers.
         /// Does not include the current buffer unless it has been submitted.
         /// </remarks>
-        private readonly List<ITextBuffer> _submittedBuffers = new();
+        private readonly List<ITextBuffer> _submittedBuffers = [];
 
         #endregion
 
@@ -84,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             _commandsFactory = commandsFactory;
             _commands = commands;
 
-            _workspace = new InteractiveWindowWorkspace(hostServices, editorOptionsService.GlobalOptions);
+            _workspace = new InteractiveWindowWorkspace(hostServices);
 
             _session = new InteractiveSession(
                 _workspace,

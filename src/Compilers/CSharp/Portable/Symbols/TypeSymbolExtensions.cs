@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Text;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -218,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var underlyingType = type.GetEnumUnderlyingType();
             // SpecialType will be None if the underlying type is invalid.
-            return (underlyingType is object) && (underlyingType.SpecialType != SpecialType.None);
+            return underlyingType is not null && underlyingType.SpecialType.CanOptimizeBehavior();
         }
 
         /// <summary>
@@ -528,9 +527,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        internal static bool IsErrorTypeOrRefLikeType(this TypeSymbol type)
+        internal static bool IsErrorOrRefLikeOrAllowsRefLikeType(this TypeSymbol type)
         {
-            return type.IsErrorType() || type.IsRefLikeType;
+            return type.IsErrorType() || type.IsRefLikeOrAllowsRefLikeType();
+        }
+
+        internal static bool IsRefLikeOrAllowsRefLikeType(this TypeSymbol type)
+        {
+            return type is { IsRefLikeType: true } or TypeParameterSymbol { AllowsRefLikeType: true };
         }
 
         private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
@@ -1387,9 +1391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
             }
 
-            return ignoreSpanLikeTypes ?
-                        false :
-                        type.IsRefLikeType;
+            return ignoreSpanLikeTypes ? false : type.IsRefLikeOrAllowsRefLikeType();
         }
 
         public static bool IsIntrinsicType(this TypeSymbol type)
@@ -2077,6 +2079,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => typeSymbol.IsWellKnownCompilerServicesTopLevelType("IsExternalInit");
 
         internal static bool IsWellKnownTypeOutAttribute(this TypeSymbol typeSymbol) => typeSymbol.IsWellKnownInteropServicesTopLevelType("OutAttribute");
+
+        // Keep consistent with ISymbolExtensions.IsWellKnownTypeLock and VB equivalent.
+        internal static bool IsWellKnownTypeLock(this TypeSymbol typeSymbol)
+        {
+            return typeSymbol is NamedTypeSymbol { Name: WellKnownMemberNames.LockTypeName, Arity: 0, ContainingType: null } &&
+                typeSymbol.IsContainedInNamespace(nameof(System), nameof(System.Threading));
+        }
 
         private static bool IsWellKnownInteropServicesTopLevelType(this TypeSymbol typeSymbol, string name)
         {

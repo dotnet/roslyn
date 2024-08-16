@@ -8,63 +8,61 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.BraceMatching
+namespace Microsoft.CodeAnalysis.BraceMatching;
+
+internal abstract class AbstractDirectiveTriviaBraceMatcher<TDirectiveTriviaSyntax,
+    TIfDirectiveTriviaSyntax, TElseIfDirectiveTriviaSyntax,
+    TElseDirectiveTriviaSyntax, TEndIfDirectiveTriviaSyntax,
+    TRegionDirectiveTriviaSyntax, TEndRegionDirectiveTriviaSyntax> : IBraceMatcher
+        where TDirectiveTriviaSyntax : SyntaxNode
+        where TIfDirectiveTriviaSyntax : TDirectiveTriviaSyntax
+        where TElseIfDirectiveTriviaSyntax : TDirectiveTriviaSyntax
+        where TElseDirectiveTriviaSyntax : TDirectiveTriviaSyntax
+        where TEndIfDirectiveTriviaSyntax : TDirectiveTriviaSyntax
+        where TRegionDirectiveTriviaSyntax : TDirectiveTriviaSyntax
+        where TEndRegionDirectiveTriviaSyntax : TDirectiveTriviaSyntax
 {
-    internal abstract class AbstractDirectiveTriviaBraceMatcher<TDirectiveTriviaSyntax,
-        TIfDirectiveTriviaSyntax, TElseIfDirectiveTriviaSyntax,
-        TElseDirectiveTriviaSyntax, TEndIfDirectiveTriviaSyntax,
-        TRegionDirectiveTriviaSyntax, TEndRegionDirectiveTriviaSyntax> : IBraceMatcher
-            where TDirectiveTriviaSyntax : SyntaxNode
-            where TIfDirectiveTriviaSyntax : TDirectiveTriviaSyntax
-            where TElseIfDirectiveTriviaSyntax : TDirectiveTriviaSyntax
-            where TElseDirectiveTriviaSyntax : TDirectiveTriviaSyntax
-            where TEndIfDirectiveTriviaSyntax : TDirectiveTriviaSyntax
-            where TRegionDirectiveTriviaSyntax : TDirectiveTriviaSyntax
-            where TEndRegionDirectiveTriviaSyntax : TDirectiveTriviaSyntax
+    protected abstract ImmutableArray<TDirectiveTriviaSyntax> GetMatchingConditionalDirectives(TDirectiveTriviaSyntax directive, CancellationToken cancellationToken);
+    protected abstract TDirectiveTriviaSyntax? GetMatchingDirective(TDirectiveTriviaSyntax directive, CancellationToken cancellationToken);
+    internal abstract TextSpan GetSpanForTagging(TDirectiveTriviaSyntax directive);
+
+    public async Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
     {
-        protected abstract ImmutableArray<TDirectiveTriviaSyntax> GetMatchingConditionalDirectives(TDirectiveTriviaSyntax directive, CancellationToken cancellationToken);
-        protected abstract TDirectiveTriviaSyntax? GetMatchingDirective(TDirectiveTriviaSyntax directive, CancellationToken cancellationToken);
-        internal abstract TextSpan GetSpanForTagging(TDirectiveTriviaSyntax directive);
+        var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+        var token = root.FindToken(position, findInsideTrivia: true);
 
-        public async Task<BraceMatchingResult?> FindBracesAsync(Document document, int position, BraceMatchingOptions options, CancellationToken cancellationToken)
+        if (token.Parent is not TDirectiveTriviaSyntax directive)
         {
-            var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var token = root.FindToken(position, findInsideTrivia: true);
-
-            if (token.Parent is not TDirectiveTriviaSyntax directive)
-            {
-                return null;
-            }
-
-            TDirectiveTriviaSyntax? matchingDirective = null;
-            if (IsConditionalDirective(directive))
-            {
-                // #if/#elif/#else/#endif directive cases.
-                var matchingDirectives = GetMatchingConditionalDirectives(directive, cancellationToken);
-                if (matchingDirectives.Length > 0)
-                    matchingDirective = matchingDirectives[(matchingDirectives.IndexOf(directive) + 1) % matchingDirectives.Length];
-            }
-            else
-            {
-                // #region/#endregion or other directive cases.
-                matchingDirective = GetMatchingDirective(directive, cancellationToken);
-            }
-
-            if (matchingDirective == null)
-            {
-                // one line directives, that do not have a matching begin/end directive pair.
-                return null;
-            }
-
-            return new BraceMatchingResult(
-                LeftSpan: GetSpanForTagging(directive),
-                RightSpan: GetSpanForTagging(matchingDirective));
+            return null;
         }
 
-        private static bool IsConditionalDirective(TDirectiveTriviaSyntax directive)
-            => directive is TIfDirectiveTriviaSyntax or
-                   TElseIfDirectiveTriviaSyntax or
-                   TElseDirectiveTriviaSyntax or
-                   TEndIfDirectiveTriviaSyntax;
+        TDirectiveTriviaSyntax? matchingDirective = null;
+        if (directive
+                is TIfDirectiveTriviaSyntax
+                or TElseIfDirectiveTriviaSyntax
+                or TElseDirectiveTriviaSyntax
+                or TEndIfDirectiveTriviaSyntax)
+        {
+            // #if/#elif/#else/#endif directive cases.
+            var matchingDirectives = GetMatchingConditionalDirectives(directive, cancellationToken);
+            if (matchingDirectives.Length > 0)
+                matchingDirective = matchingDirectives[(matchingDirectives.IndexOf(directive) + 1) % matchingDirectives.Length];
+        }
+        else if (directive
+                is TRegionDirectiveTriviaSyntax
+                or TEndRegionDirectiveTriviaSyntax)
+        {
+            matchingDirective = GetMatchingDirective(directive, cancellationToken);
+        }
+
+        if (matchingDirective == null)
+        {
+            // one line directives, that do not have a matching begin/end directive pair.
+            return null;
+        }
+
+        return new BraceMatchingResult(
+            LeftSpan: GetSpanForTagging(directive),
+            RightSpan: GetSpanForTagging(matchingDirective));
     }
 }

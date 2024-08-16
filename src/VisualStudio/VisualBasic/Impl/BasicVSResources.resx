@@ -244,15 +244,6 @@
   <data name="Never_add_new_line_on_enter" xml:space="preserve">
     <value>_Never add new line on enter</value>
   </data>
-  <data name="Always_include_snippets" xml:space="preserve">
-    <value>Always include snippets</value>
-  </data>
-  <data name="Include_snippets_when_Tab_is_typed_after_an_identifier" xml:space="preserve">
-    <value>Include snippets when ?-Tab is typed after an identifier</value>
-  </data>
-  <data name="Never_include_snippets" xml:space="preserve">
-    <value>Never include snippets</value>
-  </data>
   <data name="Snippets_behavior" xml:space="preserve">
     <value>Snippets behavior</value>
   </data>
@@ -313,10 +304,6 @@
   </data>
   <data name="Remove_unnecessary_imports" xml:space="preserve">
     <value>Remove unnecessary imports</value>
-    <comment>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</comment>
-  </data>
-  <data name="Sort_imports" xml:space="preserve">
-    <value>Sort imports</value>
     <comment>{Locked="Import"} 'import' is a Visual Basic keyword and should not be localized</comment>
   </data>
   <data name="Prefer_simplified_object_creation" xml:space="preserve">

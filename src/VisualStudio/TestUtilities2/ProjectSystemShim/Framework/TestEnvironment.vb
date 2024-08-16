@@ -50,7 +50,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         '        GetType(MockWorkspaceEventListenerProvider))
 
         Private Shared ReadOnly s_composition As TestComposition = EditorTestCompositions.EditorFeaturesWpf _
-            .AddExcludedPartTypes(GetType(IDiagnosticUpdateSourceRegistrationService)) _
             .AddParts(
                 GetType(FileChangeWatcherProvider),
                 GetType(MockVisualStudioWorkspace),
@@ -63,12 +62,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 GetType(ProjectCodeModelFactory),
                 GetType(CPSProjectFactory),
                 GetType(VisualStudioRuleSetManagerFactory),
-                GetType(VsMetadataServiceFactory),
+                GetType(VisualStudioMetadataServiceFactory),
                 GetType(VisualStudioMetadataReferenceManagerFactory),
                 GetType(MockWorkspaceEventListenerProvider),
-                GetType(HostDiagnosticUpdateSource),
                 GetType(HierarchyItemToProjectIdMap),
-                GetType(DiagnosticService))
+                GetType(DiagnosticAnalyzerService))
 
         Private ReadOnly _workspace As VisualStudioWorkspaceImpl
         Private ReadOnly _projectFilePaths As New List(Of String)

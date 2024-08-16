@@ -70,3 +70,5 @@ M:Microsoft.CodeAnalysis.CodeActions.CodeAction.GetPreviewOperationsAsync(System
 M:Microsoft.CodeAnalysis.CodeActions.CodeAction.ComputeOperationsAsync(System.Threading.CancellationToken); Use overload that takes progress
 M:Microsoft.CodeAnalysis.CodeActions.CodeAction.GetChangedSolutionAsync(CSystem.Threading.CancellationToken); Use overload that takes progress
 M:Microsoft.CodeAnalysis.CodeActions.CodeAction.GetChangedDocumentAsync(CancellationToken); Use overload that takes progress
+M:Microsoft.CodeAnalysis.DesktopStrongNameProvider.#ctor(System.Collections.Immutable.ImmutableArray{System.String}); Use overload that takes in temp directory
+M:System.Diagnostics.Tracing.EventSource.WriteEvent(System.Int32,System.Object[]); Use WriteEventCore instead

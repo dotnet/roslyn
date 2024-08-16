@@ -20,7 +20,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Public Shared Async Function CreateResultAsync(
             originalSpan As TextSpan,
             finalSpan As TextSpan,
-            options As ExtractMethodOptions,
             selectionInExpression As Boolean,
             document As SemanticDocument,
             firstToken As SyntaxToken,
@@ -40,7 +39,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             Return New VisualBasicSelectionResult(
                 originalSpan,
                 finalSpan,
-                options,
                 selectionInExpression,
                 newDocument,
                 firstAnnotation,
@@ -51,7 +49,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
         Private Sub New(
             originalSpan As TextSpan,
             finalSpan As TextSpan,
-            options As ExtractMethodOptions,
             selectionInExpression As Boolean,
             document As SemanticDocument,
             firstTokenAnnotation As SyntaxAnnotation,
@@ -61,7 +58,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
             MyBase.New(
                 originalSpan,
                 finalSpan,
-                options,
                 selectionInExpression,
                 document,
                 firstTokenAnnotation,

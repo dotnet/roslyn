@@ -1728,9 +1728,9 @@ class C(int X) : Base(this.X)
             var src = @"
 class Base
 {
-    public Base(int X)
-    {
-    }
+    public Base(int X) {}
+
+    public Base(long X) {}
 
     public Base() {}
 }
@@ -6065,6 +6065,40 @@ public " + keyword + @" C(int I1);
             Assert.Equal("", constructor.GetParameters()[0].GetDocumentationCommentXml());
         }
 
+        [Theory, CombinatorialData, WorkItem("https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1931501")]
+        public void XmlDoc_InsideType(
+            [CombinatorialValues("class ", "struct")] string keyword,
+            [CombinatorialValues("x", "p")] string identifier,
+            [CombinatorialValues("param", "paramref")] string tag)
+        {
+            var source = $$"""
+                {{keyword}} C(int p)
+                {
+                    /// <{{tag}} name="{{identifier}}"></{{tag}}>
+                }
+                """;
+            var comp = CreateCompilation(source, parseOptions: TestOptions.RegularPreview.WithDocumentationMode(DocumentationMode.Diagnose));
+            comp.VerifyDiagnostics(
+                // (1,14): warning CS9113: Parameter 'p' is unread.
+                // struct C(int p)
+                Diagnostic(ErrorCode.WRN_UnreadPrimaryConstructorParameter, "p").WithArguments("p").WithLocation(1, 14),
+                // (3,5): warning CS1587: XML comment is not placed on a valid language element
+                //     /// <param name="x"></param>
+                Diagnostic(ErrorCode.WRN_UnprocessedXMLComment, "/").WithLocation(3, 5));
+
+            var tree = comp.SyntaxTrees.Single();
+            var doc = tree.GetRoot().DescendantTrivia().Select(trivia => trivia.GetStructure()).OfType<DocumentationCommentTriviaSyntax>().Single();
+            var x = doc.DescendantNodes().OfType<IdentifierNameSyntax>().Single();
+            Assert.Equal(identifier, x.Identifier.ValueText);
+
+            var model = comp.GetSemanticModel(tree);
+            var symbolInfo = model.GetSymbolInfo(x);
+            Assert.Null(symbolInfo.Symbol);
+            Assert.True(symbolInfo.IsEmpty);
+            Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
+            Assert.Empty(symbolInfo.CandidateSymbols);
+        }
+
         [Theory]
         [CombinatorialData]
         public void XmlDoc_Cref([CombinatorialValues("class ", "struct")] string keyword)
@@ -7083,7 +7117,10 @@ struct Example()
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "ReadOnlySpan<int>").WithArguments("System.ReadOnlySpan<int>").WithLocation(5, 12),
                 // (5,50): error CS8353: A result of a stackalloc expression of type 'Span<int>' cannot be used in this context because it may be exposed outside of the containing method
                 //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
-                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50));
+                Diagnostic(ErrorCode.ERR_EscapeStackAlloc, "stackalloc int[512]").WithArguments("System.Span<int>").WithLocation(5, 50),
+                // (5,50): error CS8347: Cannot use a result of 'Span<int>.implicit operator ReadOnlySpan<int>(Span<int>)' in this context because it may expose variables referenced by parameter 'span' outside of their declaration scope
+                //     public ReadOnlySpan<int> Property { get; } = stackalloc int[512];
+                Diagnostic(ErrorCode.ERR_EscapeCall, "stackalloc int[512]").WithArguments("System.Span<int>.implicit operator System.ReadOnlySpan<int>(System.Span<int>)", "span").WithLocation(5, 50));
         }
 
         public static IEnumerable<object[]> ParameterScope_MemberData()
@@ -19354,6 +19391,293 @@ class C(int y)
         }
 
         [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71400")]
+        public void ParameterCapturing_174_InInterfaceImplementation()
+        {
+            var source =
+@"
+using System;
+
+interface I
+{
+    event EventHandler E;
+}
+
+class C1(int i) : I
+{
+    public event EventHandler E
+    {
+        add { Console.WriteLine(""C1"" + i++); }
+        remove { }
+    }
+}
+
+class C2(int i) : I
+{
+    public event EventHandler E
+    {
+        add { }
+        remove { Console.WriteLine(""C2"" + i++); }
+    }
+}
+
+class C3(int i) : I
+{
+    event EventHandler I.E
+    {
+        add { Console.WriteLine(""C3"" + i++); }
+        remove { }
+    }
+}
+
+class C4(int i) : I
+{
+    event EventHandler I.E
+    {
+        add { }
+        remove { Console.WriteLine(""C4"" + i++); }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        I c1 = new C1(123);
+        c1.E += null;
+        c1.E += null;
+
+        I c2 = new C2(123);
+        c2.E -= null;
+        c2.E -= null;
+
+        I c3 = new C3(123);
+        c3.E += null;
+        c3.E += null;
+
+        I c4 = new C4(123);
+        c4.E -= null;
+        c4.E -= null;
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput:
+@"C1123
+C1124
+C2123
+C2124
+C3123
+C3124
+C4123
+C4124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71400")]
+        public void ParameterCapturing_175_InInterfaceImplementation()
+        {
+            var source =
+@"
+using System;
+
+interface I
+{
+    int P { get; set; }
+}
+
+class C1(int i) : I
+{
+    public int P
+    {
+        get { Console.WriteLine(""C1"" + i++); return 0; }
+        set { }
+    }
+}
+
+class C2(int i) : I
+{
+    public int P
+    {
+        get {  return 0; }
+        set { Console.WriteLine(""C2"" + i++); }
+    }
+}
+
+class C3(int i) : I
+{
+    int I.P
+    {
+        get { Console.WriteLine(""C3"" + i++);  return 0; }
+        set { }
+    }
+}
+
+class C4(int i) : I
+{
+    int I.P
+    {
+        get {  return 0; }
+        set { Console.WriteLine(""C4"" + i++); }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        I c1 = new C1(123);
+        _ = c1.P;
+        _ = c1.P;
+
+        I c2 = new C2(123);
+        c2.P = 0;
+        c2.P = 0;
+
+        I c3 = new C3(123);
+        _ = c3.P;
+        _ = c3.P;
+
+        I c4 = new C4(123);
+        c4.P = 0;
+        c4.P = 0;
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput:
+@"C1123
+C1124
+C2123
+C2124
+C3123
+C3124
+C4123
+C4124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71400")]
+        public void ParameterCapturing_176_InInterfaceImplementation()
+        {
+            var source =
+@"
+using System;
+
+interface I
+{
+    void M();
+}
+
+class C1(int i) : I
+{
+    public void M() { Console.WriteLine(""C1"" + i++); }
+}
+
+class C3(int i) : I
+{
+    void I.M() { Console.WriteLine(""C3"" + i++); }
+}
+
+class Program
+{
+    static void Main()
+    {
+        I c1 = new C1(123);
+        c1.M();
+        c1.M();
+
+        I c3 = new C3(123);
+        c3.M();
+        c3.M();
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput:
+@"C1123
+C1124
+C3123
+C3124").VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/71400")]
+        public void ParameterCapturing_177_InInterfaceImplementation()
+        {
+            var source =
+@"
+#nullable enable
+
+using System;
+using System.ComponentModel;
+
+internal class MyClass(MyOtherClass otherClass, string key, int value) : INotifyPropertyChanged
+{
+    public string MyProperty { get; private set; } = GetValue(otherClass.MyProperty, key, value);
+    private PropertyChangedEventHandler? _propertyChanged;
+
+
+    private static string GetValue(string myProperty, string key, int value)
+    {
+        throw new NotImplementedException();
+    }
+
+    public event PropertyChangedEventHandler? PropertyChanged
+    {
+        add
+        {
+            lock (this)
+            {
+                if (_propertyChanged is null)
+                {
+                    otherClass.SomethingChanged += OnSomethingChanged;
+                }
+                _propertyChanged += value;
+
+            }
+        }
+        remove
+        {
+            lock (this)
+            {
+                if (_propertyChanged is null)
+                {
+                    return;
+                }
+                _propertyChanged -= value;
+                if (_propertyChanged is null)
+                {
+                    otherClass.SomethingChanged -= OnSomethingChanged;
+                }
+            }
+        }
+    }
+
+    private void OnSomethingChanged(object? sender, EventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+}
+
+internal class MyOtherClass
+{
+    public event EventHandler? SomethingChanged;
+    public string MyProperty { get; set; }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CompileAndVerify(comp).VerifyDiagnostics(
+                // (57,32): warning CS0067: The event 'MyOtherClass.SomethingChanged' is never used
+                //     public event EventHandler? SomethingChanged;
+                Diagnostic(ErrorCode.WRN_UnreferencedEvent, "SomethingChanged").WithArguments("MyOtherClass.SomethingChanged").WithLocation(57, 32),
+                // (58,19): warning CS8618: Non-nullable property 'MyProperty' must contain a non-null value when exiting constructor. Consider adding the 'required' modifier or declaring the property as nullable.
+                //     public string MyProperty { get; set; }
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "MyProperty").WithArguments("property", "MyProperty").WithLocation(58, 19)
+                );
+        }
+
+        [Fact]
         public void CycleDueToIndexerNameAttribute_01()
         {
             var source = @"
@@ -21744,6 +22068,59 @@ public struct S2(string x)
                 //         new Test<S1>();
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "S1").WithArguments("Test<T>", "T", "S1").WithLocation(6, 18)
                 );
+        }
+
+        [Fact]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72626")]
+        public void CompoundAssignment_CapturedParameterAsReceiverOfTargetField()
+        {
+            var source =
+@"
+using System;
+using System.Threading.Tasks;
+
+internal partial class EditorDocumentManagerListener
+{
+    internal TestAccessor GetTestAccessor() => new(this);
+
+    internal sealed class TestAccessor(EditorDocumentManagerListener instance)
+    {
+        public Task ProjectChangedTask => instance._projectChangedTask;
+
+        public event EventHandler OnChangedOnDisk
+        {
+            add => instance._onChangedOnDisk += value;
+            remove => instance._onChangedOnDisk -= value;
+        }
+
+        public event EventHandler OnChangedInEditor
+        {
+            add => instance._onChangedInEditor += value;
+            remove => instance._onChangedInEditor -= value;
+        }
+
+        public event EventHandler OnOpened
+        {
+            add => instance._onOpened += value;
+            remove => instance._onOpened -= value;
+        }
+
+        public event EventHandler OnClosed
+        {
+            add => instance._onClosed += value;
+            remove => instance._onClosed -= value;
+        }
+    }
+
+    private Task _projectChangedTask = Task.CompletedTask;
+    private EventHandler _onChangedOnDisk;
+    private EventHandler _onChangedInEditor;
+    private EventHandler _onOpened;
+    private EventHandler _onClosed;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            comp.VerifyEmitDiagnostics();
         }
     }
 }

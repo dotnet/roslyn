@@ -4,7 +4,6 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SpellCheck;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -14,8 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SpellCheck;
 [UseExportProvider]
 public class SpellCheckSpanTests : AbstractSpellCheckSpanTests
 {
-    protected override TestWorkspace CreateWorkspace(string content)
-        => TestWorkspace.CreateCSharp(content);
+    protected override EditorTestWorkspace CreateWorkspace(string content)
+        => EditorTestWorkspace.CreateCSharp(content);
 
     [Fact]
     public async Task TestSingleLineComment1()

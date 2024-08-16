@@ -6,10 +6,11 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Roslyn.Utilities;
 using System.Collections.Immutable;
+using System.Reflection;
 
 #if NETCOREAPP
 using System.Runtime.Loader;
@@ -35,25 +36,24 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private readonly Lazy<(string directory, Mutex)> _shadowCopyDirectoryAndMutex;
 
-        /// <summary>
-        /// Used to generate unique names for per-assembly directories. Should be updated with <see cref="Interlocked.Increment(ref int)"/>.
-        /// </summary>
-        private int _assemblyDirectoryId;
+        private readonly ConcurrentDictionary<Guid, Task<string>> _mvidPathMap = new ConcurrentDictionary<Guid, Task<string>>();
+        private readonly ConcurrentDictionary<(Guid, string), Task<string>> _mvidSatelliteAssemblyPathMap = new ConcurrentDictionary<(Guid, string), Task<string>>();
 
         internal string BaseDirectory => _baseDirectory;
 
-        internal int CopyCount => _assemblyDirectoryId;
+        internal int CopyCount => _mvidPathMap.Count;
 
 #if NETCOREAPP
-        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory)
-            : this(null, baseDirectory)
+        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+            : this(null, baseDirectory, externalResolvers)
         {
         }
 
-        public ShadowCopyAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, string baseDirectory)
-            : base(compilerLoadContext, AnalyzerLoadOption.LoadFromDisk)
+        public ShadowCopyAnalyzerAssemblyLoader(AssemblyLoadContext? compilerLoadContext, string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+            : base(compilerLoadContext, AnalyzerLoadOption.LoadFromDisk, externalResolvers ?? [])
 #else
-        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory)
+        public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
+            : base(externalResolvers ?? [])
 #endif
         {
             if (baseDirectory is null)
@@ -129,41 +129,89 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        protected override string PreparePathToLoad(string originalAnalyzerPath, ImmutableHashSet<string> cultureNames)
+        protected override string PreparePathToLoad(string originalAnalyzerPath)
         {
-            var analyzerFileName = Path.GetFileName(originalAnalyzerPath);
-            var shadowDirectory = CreateUniqueDirectoryForAssembly();
-            var shadowAnalyzerPath = Path.Combine(shadowDirectory, analyzerFileName);
-            copyFile(originalAnalyzerPath, shadowAnalyzerPath);
+            var mvid = AssemblyUtilities.ReadMvid(originalAnalyzerPath);
 
-            if (cultureNames.IsEmpty)
+            return PrepareLoad(_mvidPathMap, mvid, copyAnalyzerContents);
+
+            string copyAnalyzerContents()
             {
+                var analyzerFileName = Path.GetFileName(originalAnalyzerPath);
+                var shadowDirectory = Path.Combine(_shadowCopyDirectoryAndMutex.Value.directory, mvid.ToString());
+                var shadowAnalyzerPath = Path.Combine(shadowDirectory, analyzerFileName);
+                CopyFile(originalAnalyzerPath, shadowAnalyzerPath);
+
                 return shadowAnalyzerPath;
             }
+        }
 
-            var originalDirectory = Path.GetDirectoryName(originalAnalyzerPath)!;
-            var satelliteFileName = GetSatelliteFileName(analyzerFileName);
-            foreach (var cultureName in cultureNames)
+        protected override string PrepareSatelliteAssemblyToLoad(string originalAnalyzerPath, string cultureName)
+        {
+            var mvid = AssemblyUtilities.ReadMvid(originalAnalyzerPath);
+
+            return PrepareLoad(_mvidSatelliteAssemblyPathMap, (mvid, cultureName), copyAnalyzerContents);
+
+            string copyAnalyzerContents()
             {
+                var analyzerFileName = Path.GetFileName(originalAnalyzerPath);
+                var shadowDirectory = Path.Combine(_shadowCopyDirectoryAndMutex.Value.directory, mvid.ToString());
+                var shadowAnalyzerPath = Path.Combine(shadowDirectory, analyzerFileName);
+
+                var originalDirectory = Path.GetDirectoryName(originalAnalyzerPath)!;
+                var satelliteFileName = GetSatelliteFileName(analyzerFileName);
+
                 var originalSatellitePath = Path.Combine(originalDirectory, cultureName, satelliteFileName);
                 var shadowSatellitePath = Path.Combine(shadowDirectory, cultureName, satelliteFileName);
-                copyFile(originalSatellitePath, shadowSatellitePath);
+                CopyFile(originalSatellitePath, shadowSatellitePath);
+
+                return shadowSatellitePath;
             }
+        }
 
-            return shadowAnalyzerPath;
-
-            static void copyFile(string originalPath, string shadowCopyPath)
+        private static string PrepareLoad<TKey>(ConcurrentDictionary<TKey, Task<string>> mvidPathMap, TKey mvidKey, Func<string> copyContents)
+            where TKey : notnull
+        {
+            if (mvidPathMap.TryGetValue(mvidKey, out Task<string>? copyTask))
             {
-                var directory = Path.GetDirectoryName(shadowCopyPath);
-                if (directory is null)
-                {
-                    throw new ArgumentException($"Shadow copy path '{shadowCopyPath}' must not be the root directory");
-                }
-
-                _ = Directory.CreateDirectory(directory);
-                File.Copy(originalPath, shadowCopyPath);
-                ClearReadOnlyFlagOnFile(new FileInfo(shadowCopyPath));
+                return copyTask.Result;
             }
+
+            var tcs = new TaskCompletionSource<string>();
+            var task = mvidPathMap.GetOrAdd(mvidKey, tcs.Task);
+            if (object.ReferenceEquals(task, tcs.Task))
+            {
+                // This thread won and we need to do the copy.
+                try
+                {
+                    var shadowAnalyzerPath = copyContents();
+                    tcs.SetResult(shadowAnalyzerPath);
+                    return shadowAnalyzerPath;
+                }
+                catch (Exception ex)
+                {
+                    tcs.SetException(ex);
+                    throw;
+                }
+            }
+            else
+            {
+                // This thread lost and we need to wait for the winner to finish the copy.
+                return task.Result;
+            }
+        }
+
+        private static void CopyFile(string originalPath, string shadowCopyPath)
+        {
+            var directory = Path.GetDirectoryName(shadowCopyPath);
+            if (directory is null)
+            {
+                throw new ArgumentException($"Shadow copy path '{shadowCopyPath}' must not be the root directory");
+            }
+
+            _ = Directory.CreateDirectory(directory);
+            File.Copy(originalPath, shadowCopyPath);
+            ClearReadOnlyFlagOnFile(new FileInfo(shadowCopyPath));
         }
 
         private static void ClearReadOnlyFlagOnFiles(string directoryPath)
@@ -189,16 +237,6 @@ namespace Microsoft.CodeAnalysis
             {
                 // There are many reasons this could fail. Ignore it and keep going.
             }
-        }
-
-        private string CreateUniqueDirectoryForAssembly()
-        {
-            int directoryId = Interlocked.Increment(ref _assemblyDirectoryId);
-
-            string directory = Path.Combine(_shadowCopyDirectoryAndMutex.Value.directory, directoryId.ToString());
-
-            Directory.CreateDirectory(directory);
-            return directory;
         }
 
         private (string directory, Mutex mutex) CreateUniqueDirectoryForProcess()

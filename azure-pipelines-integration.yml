@@ -44,7 +44,13 @@ pr:
       - README.md
       - src/Compilers/*
       - src/Features/LanguageServer/Microsoft.CommonLanguageServerProtocol.Framework/README.md
- 
+
+variables:
+- name: Codeql.Enabled
+  value: false
+- name: Codeql.SkipTaskAutoInjection
+  value: true
+
 parameters:
 - name: poolName
   displayName: Pool Name
@@ -56,7 +62,7 @@ parameters:
 - name: queueName
   displayName: Queue Name
   type: string
-  default: windows.vs2022preview.amd64.open
+  default: windows.vs2022preview.scout.amd64.open
   values:
   - windows.vs2022.amd64.open
   - windows.vs2022.scout.amd64.open
@@ -77,11 +83,9 @@ stages:
     testRuns:
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - oop64bit: false
-          oopCoreClr: false
           lspEditor: false
           runName: VS_Integration_Debug_32
       - oop64bit: true
-        oopCoreClr: false
         lspEditor: false
         runName: VS_Integration_Debug_64
 
@@ -93,11 +97,9 @@ stages:
     configuration: Release
     testRuns:
       - oop64bit: false
-        oopCoreClr: false
         lspEditor: false
         runName: VS_Integration_Release_32
       - ${{ if ne(variables['Build.Reason'], 'PullRequest') }}:
         - oop64bit: true
-          oopCoreClr: false
           lspEditor: false
           runName: VS_Integration_Release_64

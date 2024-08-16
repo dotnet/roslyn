@@ -11,83 +11,81 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
+namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod;
+
+internal partial class CSharpMethodExtractor
 {
-    internal partial class CSharpMethodExtractor
+    private partial class CSharpCodeGenerator
     {
-        private partial class CSharpCodeGenerator
+        public sealed class MultipleStatementsCodeGenerator(
+            CSharpSelectionResult selectionResult,
+            AnalyzerResult analyzerResult,
+            CSharpCodeGenerationOptions options,
+            bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
         {
-            public sealed class MultipleStatementsCodeGenerator(
-                CSharpSelectionResult selectionResult,
-                AnalyzerResult analyzerResult,
-                CSharpCodeGenerationOptions options,
-                bool localFunction) : CSharpCodeGenerator(selectionResult, analyzerResult, options, localFunction)
+            protected override SyntaxToken CreateMethodName()
+                => GenerateMethodNameForStatementGenerators();
+
+            protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
             {
-                protected override SyntaxToken CreateMethodName()
-                    => GenerateMethodNameForStatementGenerators();
+                var firstSeen = false;
+                var firstStatementUnderContainer = this.SelectionResult.GetFirstStatementUnderContainer();
+                var lastStatementUnderContainer = this.SelectionResult.GetLastStatementUnderContainer();
 
-                protected override ImmutableArray<StatementSyntax> GetInitialStatementsForMethodDefinitions()
+                using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var list);
+                foreach (var statement in GetStatementsFromContainer(firstStatementUnderContainer.Parent))
                 {
-                    var firstSeen = false;
-                    var firstStatementUnderContainer = this.SelectionResult.GetFirstStatementUnderContainer();
-                    var lastStatementUnderContainer = this.SelectionResult.GetLastStatementUnderContainer();
-
-                    using var _ = ArrayBuilder<StatementSyntax>.GetInstance(out var list);
-                    foreach (var statement in GetStatementsFromContainer(firstStatementUnderContainer.Parent))
+                    // reset first seen
+                    if (!firstSeen)
                     {
-                        // reset first seen
-                        if (!firstSeen)
-                        {
-                            firstSeen = statement == firstStatementUnderContainer;
-                        }
-
-                        // continue until we see the first statement
-                        if (!firstSeen)
-                        {
-                            continue;
-                        }
-
-                        list.Add(statement);
-
-                        // exit if we see last statement
-                        if (statement == lastStatementUnderContainer)
-                        {
-                            break;
-                        }
+                        firstSeen = statement == firstStatementUnderContainer;
                     }
 
-                    return list.ToImmutable();
-                }
-
-                private static IEnumerable<StatementSyntax> GetStatementsFromContainer(SyntaxNode node)
-                {
-                    Contract.ThrowIfNull(node);
-                    Contract.ThrowIfFalse(node.IsStatementContainerNode());
-
-                    return node switch
+                    // continue until we see the first statement
+                    if (!firstSeen)
                     {
-                        BlockSyntax blockNode => blockNode.Statements,
-                        SwitchSectionSyntax switchSectionNode => switchSectionNode.Statements,
-                        GlobalStatementSyntax globalStatement => ((CompilationUnitSyntax)globalStatement.Parent).Members.OfType<GlobalStatementSyntax>().Select(globalStatement => globalStatement.Statement),
-                        _ => throw ExceptionUtilities.UnexpectedValue(node),
-                    };
+                        continue;
+                    }
+
+                    list.Add(statement);
+
+                    // exit if we see last statement
+                    if (statement == lastStatementUnderContainer)
+                    {
+                        break;
+                    }
                 }
 
-                protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
-                    => this.SelectionResult.GetFirstStatementUnderContainer();
+                return list.ToImmutableAndClear();
+            }
 
-                protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
-                    => this.SelectionResult.GetLastStatementUnderContainer();
+            private static IEnumerable<StatementSyntax> GetStatementsFromContainer(SyntaxNode node)
+            {
+                Contract.ThrowIfNull(node);
+                Contract.ThrowIfFalse(node.IsStatementContainerNode());
 
-                protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
+                return node switch
                 {
-                    var statement = GetStatementContainingInvocationToExtractedMethodWorker();
-                    return Task.FromResult<SyntaxNode>(statement.WithAdditionalAnnotations(CallSiteAnnotation));
-                }
+                    BlockSyntax blockNode => blockNode.Statements,
+                    SwitchSectionSyntax switchSectionNode => switchSectionNode.Statements,
+                    GlobalStatementSyntax globalStatement => ((CompilationUnitSyntax)globalStatement.Parent).Members.OfType<GlobalStatementSyntax>().Select(globalStatement => globalStatement.Statement),
+                    _ => throw ExceptionUtilities.UnexpectedValue(node),
+                };
+            }
+
+            protected override SyntaxNode GetFirstStatementOrInitializerSelectedAtCallSite()
+                => this.SelectionResult.GetFirstStatementUnderContainer();
+
+            protected override SyntaxNode GetLastStatementOrInitializerSelectedAtCallSite()
+                => this.SelectionResult.GetLastStatementUnderContainer();
+
+            protected override Task<SyntaxNode> GetStatementOrInitializerContainingInvocationToExtractedMethodAsync(CancellationToken cancellationToken)
+            {
+                var statement = GetStatementContainingInvocationToExtractedMethodWorker();
+                return Task.FromResult<SyntaxNode>(statement.WithAdditionalAnnotations(CallSiteAnnotation));
             }
         }
     }

@@ -10,18 +10,17 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices
-{
-    [ExportLanguageServiceFactory(typeof(ISymbolDisplayService), LanguageNames.CSharp), Shared]
-    internal partial class CSharpSymbolDisplayServiceFactory : ILanguageServiceFactory
-    {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public CSharpSymbolDisplayServiceFactory()
-        {
-        }
+namespace Microsoft.CodeAnalysis.Editor.CSharp.LanguageServices;
 
-        public ILanguageService CreateLanguageService(HostLanguageServices provider)
-            => new CSharpSymbolDisplayService(provider.LanguageServices);
+[ExportLanguageServiceFactory(typeof(ISymbolDisplayService), LanguageNames.CSharp), Shared]
+internal partial class CSharpSymbolDisplayServiceFactory : ILanguageServiceFactory
+{
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public CSharpSymbolDisplayServiceFactory()
+    {
     }
+
+    public ILanguageService CreateLanguageService(HostLanguageServices provider)
+        => new CSharpSymbolDisplayService(provider.LanguageServices);
 }
