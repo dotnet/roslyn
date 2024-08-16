@@ -5,6 +5,7 @@
 #nullable disable
 
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.BackgroundWorkIndicator;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -63,12 +64,6 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             return;
         }
 
-        var backgroundWorkIndicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
-        using var context = backgroundWorkIndicatorFactory.Create(
-            args.TextView,
-            args.TextView.GetTextElementSpan(caretPoint.Value),
-            EditorFeaturesResources.Finding_token_to_rename);
-
         // If there is already an active session, commit it first
         if (_renameService.ActiveSession != null)
         {
@@ -82,9 +77,15 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             else
             {
                 // Otherwise, commit the existing session and start a new one.
-                _renameService.ActiveSession.Commit();
+                await _renameService.ActiveSession.CommitXAsync(previewChanges: false, forceCommitSynchronously: false, CancellationToken.None).ConfigureAwait(true);
             }
         }
+
+        var backgroundWorkIndicatorFactory = workspace.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();
+        using var context = backgroundWorkIndicatorFactory.Create(
+            args.TextView,
+            args.TextView.GetTextElementSpan(caretPoint.Value),
+            EditorFeaturesResources.Finding_token_to_rename);
 
         var cancellationToken = context.UserCancellationToken;
 

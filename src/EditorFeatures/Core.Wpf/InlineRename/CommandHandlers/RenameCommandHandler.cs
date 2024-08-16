@@ -5,6 +5,8 @@
 using System;
 using System.ComponentModel.Composition;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Commanding;
@@ -94,11 +96,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        protected override void Commit(InlineRenameSession activeSession, ITextView textView)
+
+        protected override async Task CommitAndSetFocusAsync(InlineRenameSession activeSession, ITextView textView, CancellationToken cancellationToken)
         {
             try
             {
-                base.Commit(activeSession, textView);
+                await base.CommitAndSetFocusAsync(activeSession, textView, cancellationToken).ConfigureAwait(false);
             }
             catch (NotSupportedException ex)
             {
