@@ -2,9 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -18,19 +21,18 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
         if (_renameService.ActiveSession != null)
         {
             // Prevent Editor's typing responsiveness auto canceling the rename operation.
-            // InlineRenameSession will call IUIThreadOperationExecutor to sets up our own IUIThreadOperationContext
+            // InlineRenameSession will call IBackgroundWorkIndicator to sets up our own IUIThreadOperationContext
             context.OperationContext.TakeOwnership();
-
-            Commit(_renameService.ActiveSession, args.TextView);
+            _ = CommitAndSetFocusAsync(_renameService.ActiveSession, args.TextView, CancellationToken.None).ReportNonFatalErrorAsync();
             return true;
         }
 
         return false;
     }
 
-    protected virtual void Commit(InlineRenameSession activeSession, ITextView textView)
+    private async Task CommitAndSetFocusAsync(InlineRenameSession activeSession, ITextView textView, CancellationToken cancellationToken)
     {
-        activeSession.Commit();
+        await activeSession.CommitXAsync(previewChanges: false, forceCommitSynchronously: false, cancellationToken).ConfigureAwait(true);
         SetFocusToTextView(textView);
     }
 }
