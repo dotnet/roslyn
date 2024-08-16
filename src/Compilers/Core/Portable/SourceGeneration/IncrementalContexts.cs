@@ -246,19 +246,19 @@ namespace Microsoft.CodeAnalysis
 
         internal readonly GeneratorRunStateTable.Builder GeneratorRunStateBuilder;
 
-        internal readonly ArrayBuilder<(string Key, object Value)> HostOutputBuilder;
+        internal readonly ImmutableDictionary<string, object>.Builder HostOutputBuilder;
 
         public IncrementalExecutionContext(DriverStateTable.Builder? tableBuilder, GeneratorRunStateTable.Builder generatorRunStateBuilder, AdditionalSourcesCollection sources)
         {
             TableBuilder = tableBuilder;
             GeneratorRunStateBuilder = generatorRunStateBuilder;
             Sources = sources;
-            HostOutputBuilder = ArrayBuilder<(string, object)>.GetInstance();
+            HostOutputBuilder = ImmutableDictionary.CreateBuilder<string, object>();
             Diagnostics = DiagnosticBag.GetInstance();
         }
 
-        internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics, GeneratorRunStateTable executedSteps, ImmutableArray<(string Key, object Value)> hostOutputs) ToImmutableAndFree()
-                => (Sources.ToImmutableAndFree(), Diagnostics.ToReadOnlyAndFree(), GeneratorRunStateBuilder.ToImmutableAndFree(), HostOutputBuilder.ToImmutableAndFree());
+        internal (ImmutableArray<GeneratedSourceText> sources, ImmutableArray<Diagnostic> diagnostics, GeneratorRunStateTable executedSteps, ImmutableDictionary<string, object> hostOutputs) ToImmutableAndFree()
+                => (Sources.ToImmutableAndFree(), Diagnostics.ToReadOnlyAndFree(), GeneratorRunStateBuilder.ToImmutableAndFree(), HostOutputBuilder.ToImmutable());
 
         internal void Free()
         {

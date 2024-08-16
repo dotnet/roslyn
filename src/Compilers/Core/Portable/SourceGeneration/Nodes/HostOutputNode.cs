@@ -73,7 +73,17 @@ namespace Microsoft.CodeAnalysis
             {
                 if (state != EntryState.Removed)
                 {
-                    context.HostOutputBuilder.AddRange(list);
+                    foreach (var (key, value) in list)
+                    {
+                        try
+                        {
+                            context.HostOutputBuilder.Add(key, value);
+                        }
+                        catch (ArgumentException e)
+                        {
+                            throw new UserFunctionException(e);
+                        }
+                    }
                 }
             }
 

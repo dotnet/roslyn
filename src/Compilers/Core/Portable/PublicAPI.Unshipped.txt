@@ -6,7 +6,7 @@ Microsoft.CodeAnalysis.GeneratorFilterContext
 Microsoft.CodeAnalysis.GeneratorFilterContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.GeneratorFilterContext.Generator.get -> Microsoft.CodeAnalysis.ISourceGenerator!
 Microsoft.CodeAnalysis.GeneratorFilterContext.GeneratorFilterContext() -> void
-Microsoft.CodeAnalysis.GeneratorRunResult.HostOutputs.get -> System.Collections.Immutable.ImmutableArray<(string! Key, object! Value)>
+Microsoft.CodeAnalysis.GeneratorRunResult.HostOutputs.get -> System.Collections.Immutable.ImmutableDictionary<string!, object!>!
 Microsoft.CodeAnalysis.HostOutputProductionContext
 Microsoft.CodeAnalysis.HostOutputProductionContext.AddOutput(string! name, object! value) -> void
 Microsoft.CodeAnalysis.HostOutputProductionContext.CancellationToken.get -> System.Threading.CancellationToken

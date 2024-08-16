@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
             ImmutableArray<Diagnostic> diagnostics,
             ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> namedSteps,
             ImmutableDictionary<string, ImmutableArray<IncrementalGeneratorRunStep>> outputSteps,
-            ImmutableArray<(string Key, object Value)> hostOutputs,
+            ImmutableDictionary<string, object> hostOutputs,
             Exception? exception,
             TimeSpan elapsedTime)
         {
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// A collection of items added via <see cref="HostOutputProductionContext.AddOutput(string, object)"/>.
         /// </summary>
-        public ImmutableArray<(string Key, object Value)> HostOutputs { get; }
+        public ImmutableDictionary<string, object> HostOutputs { get; }
 
         /// <summary>
         /// An <see cref="System.Exception"/> instance that was thrown by the generator, or <c>null</c> if the generator completed without error.
