@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
                 case ErrorCode.WRN_PartialPropertySignatureDifference:
-
+                case ErrorCode.WRN_FieldIsAmbiguous:
                     return 1;
                 default:
                     return 0;
@@ -2449,7 +2449,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 or ErrorCode.ERR_PartialPropertyTypeDifference
                 or ErrorCode.WRN_PartialPropertySignatureDifference
                 or ErrorCode.ERR_PartialPropertyRequiredDifference
-                or ErrorCode.INF_IdentifierConflictWithContextualKeyword
+                or ErrorCode.WRN_FieldIsAmbiguous
                 or ErrorCode.ERR_InlineArrayAttributeOnRecord
                 or ErrorCode.ERR_FeatureNotAvailableInVersion13
                 or ErrorCode.ERR_CannotApplyOverloadResolutionPriorityToOverride

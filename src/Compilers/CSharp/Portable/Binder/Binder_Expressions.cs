@@ -1440,7 +1440,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(ContainingType is { });
             SynthesizedBackingFieldSymbolBase? field = null;
 
-            ReportFieldContextualKeywordConflict(node, node.Token, diagnostics);
+            if (hasOtherFieldSymbolInScope())
+            {
+                diagnostics.Add(ErrorCode.WRN_FieldIsAmbiguous, node, Compilation.LanguageVersion.ToDisplayString());
+            }
 
             switch (ContainingMember())
             {
@@ -1469,6 +1472,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var implicitReceiver = field.IsStatic ? null : ThisReference(node, field.ContainingType, wasCompilerGenerated: true);
             return new BoundFieldAccess(node, implicitReceiver, field, constantValueOpt: null);
+
+            bool hasOtherFieldSymbolInScope()
+            {
+                var lookupResult = LookupResult.GetInstance();
+                var useSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+                this.LookupIdentifier(lookupResult, name: "field", arity: 0, invoked: false, ref useSiteInfo);
+                bool result = lookupResult.Kind != LookupResultKind.Empty;
+                Debug.Assert(!result || lookupResult.Symbols.Count > 0);
+                lookupResult.Free();
+                return result;
+            }
         }
 
         /// <returns>true if managed type-related errors were found, otherwise false.</returns>
@@ -1586,8 +1600,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool isError;
                 var members = ArrayBuilder<Symbol>.GetInstance();
                 Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, name, node.Arity, members, diagnostics, out isError, qualifierOpt: null);  // reports diagnostics in result.
-
-                ReportFieldContextualKeywordConflictIfAny(node, node.Identifier, diagnostics);
 
                 if ((object)symbol == null)
                 {
@@ -1771,32 +1783,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-#nullable enable
-        /// <summary>
-        /// Report a diagnostic for a 'field' identifier that the meaning will
-        /// change when the identifier is considered a contextual keyword.
-        /// </summary>
-        internal void ReportFieldContextualKeywordConflictIfAny(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
-        {
-            string name = identifier.Text;
-            if (name == "field" &&
-                ContainingMember() is MethodSymbol { MethodKind: MethodKind.PropertyGet or MethodKind.PropertySet, AssociatedSymbol: PropertySymbol { IsIndexer: false } })
-            {
-                ReportFieldContextualKeywordConflict(syntax, identifier, diagnostics);
-            }
-        }
-
-        private static void ReportFieldContextualKeywordConflict(SyntaxNode syntax, SyntaxToken identifier, BindingDiagnosticBag diagnostics)
-        {
-            // PROTOTYPE: Should this diagnostic be dropped when compiling with the latest language version
-            // when 'field' would not otherwise bind to a different symbol?
-            string name = identifier.Text;
-            var requiredVersion = MessageID.IDS_FeatureFieldKeyword.RequiredVersion();
-            diagnostics.Add(ErrorCode.INF_IdentifierConflictWithContextualKeyword, syntax, name, requiredVersion.ToDisplayString());
-        }
-#nullable disable
-
         private void LookupIdentifier(LookupResult lookupResult, SimpleNameSyntax node, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        {
+            LookupIdentifier(lookupResult, name: node.Identifier.ValueText, arity: node.Arity, invoked, useSiteInfo: ref useSiteInfo);
+        }
+
+        private void LookupIdentifier(LookupResult lookupResult, string name, int arity, bool invoked, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
             LookupOptions options = LookupOptions.AllMethodsOnArityZero;
             if (invoked)
@@ -1810,7 +1802,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.MustNotBeMethodTypeParameter;
             }
 
-            this.LookupSymbolsWithFallback(lookupResult, node.Identifier.ValueText, arity: node.Arity, useSiteInfo: ref useSiteInfo, options: options);
+            this.LookupSymbolsWithFallback(lookupResult, name, arity, useSiteInfo: ref useSiteInfo, options: options);
         }
 
         /// <summary>

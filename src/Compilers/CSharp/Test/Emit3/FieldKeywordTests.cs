@@ -194,10 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             comp.VerifyEmitDiagnostics(
                 // (6,29): error CS1061: 'C' does not contain a definition for 'field' and no accessible extension method 'field' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         get { return _other.field; }
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "field").WithArguments("C", "field").WithLocation(6, 29),
-                // (7,19): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //         set { _ = field; }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(7, 19));
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "field").WithArguments("C", "field").WithLocation(6, 29));
         }
 
         [Fact]
@@ -215,9 +212,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (6,15): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //         set { field = value.field; }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(6, 15),
                 // (6,29): error CS1061: 'C' does not contain a definition for 'field' and no accessible extension method 'field' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         set { field = value.field; }
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "field").WithArguments("C", "field").WithLocation(6, 29));
@@ -248,9 +242,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (5,22): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //         get { return field; }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(5, 22),
                 // (6,29): error CS0117: 'C' does not contain a definition for 'field'
                 //         set { _ = this is { field: 0 }; }
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "field").WithArguments("C", "field").WithLocation(6, 29));
@@ -297,9 +288,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 // (3,12): error CS8050: Only auto-implemented properties can have initializers.
                 //     object P { get => field; } = field;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(3, 12),
-                // (3,23): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P { get => field; } = field;
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 23),
                 // (3,34): error CS0103: The name 'field' does not exist in the current context
                 //     object P { get => field; } = field;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "field").WithArguments("field").WithLocation(3, 34));
@@ -613,18 +601,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (3,17): error CS0501: 'I.Q1.get' must declare a body because it is not marked abstract, extern, or partial
                     //     object Q1 { get; set { _ = field; } }
                     Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I.Q1.get").WithLocation(3, 17),
-                    // (3,32): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //     object Q1 { get; set { _ = field; } }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(3, 32),
-                    // (4,30): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //     object Q2 { get { return field; } set; }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(4, 30),
                     // (4,39): error CS0501: 'I.Q2.set' must declare a body because it is not marked abstract, extern, or partial
                     //     object Q2 { get { return field; } set; }
                     Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I.Q2.set").WithLocation(4, 39),
-                    // (5,30): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                    //     object Q3 { get { return field; } init; }
-                    Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(5, 30),
                     // (5,39): error CS0501: 'I.Q3.init' must declare a body because it is not marked abstract, extern, or partial
                     //     object Q3 { get { return field; } init; }
                     Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "init").WithArguments("I.Q3.init").WithLocation(5, 39));
@@ -889,9 +868,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     public A(object o) { }
                 }
-                class C
+                class B
                 {
                     [A(field)] object P1 { get { return null; } set { } }
+                }
+                class C
+                {
+                    const object field = null;
+                    [A(field)] object P2 { get { return null; } set { } }
                 }
                 """;
 
@@ -908,6 +892,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var argument = attributeArguments[0];
             Assert.IsType<IdentifierNameSyntax>(argument);
             Assert.Null(model.GetSymbolInfo(argument).Symbol);
+
+            argument = attributeArguments[1];
+            Assert.IsType<IdentifierNameSyntax>(argument);
+            Assert.Equal("System.Object C.field", model.GetSymbolInfo(argument).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -919,27 +907,32 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     public A(object o) { }
                 }
+                class B
+                {
+                    object P1 { [A(field)] get { return null; } set { } }
+                    object P2 { get { return null; } [A(field)] set { } }
+                }
                 class C
                 {
-                    object P2 { [A(field)] get { return null; } set { } }
-                    object P3 { get { return null; } [A(field)] set { } }
+                    const object field = null;
+                    object P3 { [A(field)] get { return null; } set { } }
                 }
                 """;
 
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (8,20): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P2 { [A(field)] get { return null; } set { } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(8, 20),
                 // (8,20): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //     object P2 { [A(field)] get { return null; } set { } }
+                //     object P1 { [A(field)] get { return null; } set { } }
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(8, 20),
-                // (9,41): info CS9258: 'field' is a contextual keyword in property accessors starting in language version preview. Use '@field' instead.
-                //     object P3 { get { return null; } [A(field)] set { } }
-                Diagnostic(ErrorCode.INF_IdentifierConflictWithContextualKeyword, "field").WithArguments("field", "preview").WithLocation(9, 41),
                 // (9,41): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
-                //     object P3 { get { return null; } [A(field)] set { } }
-                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(9, 41));
+                //     object P2 { get { return null; } [A(field)] set { } }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(9, 41),
+                // (14,20): warning CS9258: In language version preview, the 'field' keyword binds to a synthesized backing field for the property. To avoid generating a synthesized backing field, and to refer to the existing member, use 'this.field' or '@field' instead.
+                //     object P3 { [A(field)] get { return null; } set { } }
+                Diagnostic(ErrorCode.WRN_FieldIsAmbiguous, "field").WithArguments("preview").WithLocation(14, 20),
+                // (14,20): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                //     object P3 { [A(field)] get { return null; } set { } }
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "field").WithLocation(14, 20));
 
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
@@ -947,9 +940,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var argument = attributeArguments[0];
             Assert.IsType<FieldExpressionSyntax>(argument);
-            Assert.Equal("System.Object C.<P2>k__BackingField", model.GetSymbolInfo(argument).Symbol.ToTestDisplayString());
+            Assert.Equal("System.Object B.<P1>k__BackingField", model.GetSymbolInfo(argument).Symbol.ToTestDisplayString());
 
             argument = attributeArguments[1];
+            Assert.IsType<FieldExpressionSyntax>(argument);
+            Assert.Equal("System.Object B.<P2>k__BackingField", model.GetSymbolInfo(argument).Symbol.ToTestDisplayString());
+
+            argument = attributeArguments[2];
             Assert.IsType<FieldExpressionSyntax>(argument);
             Assert.Equal("System.Object C.<P3>k__BackingField", model.GetSymbolInfo(argument).Symbol.ToTestDisplayString());
         }
@@ -958,7 +955,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Attribute_03()
         {
             string source = $$"""
-                #pragma warning disable 9258 // 'field' is a contextual keyword
                 using System;
                 using System.Reflection;
 
@@ -1006,18 +1002,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var comp = CreateCompilation(source, options: TestOptions.ReleaseExe, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (18,25): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                // (17,25): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
                 //     public object P4 { [field: A(4)] get; }
-                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(18, 25),
-                // (19,37): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(17, 25),
+                // (18,37): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
                 //     public static object P5 { get; [field: A(5)] set; }
-                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(19, 37),
-                // (23,25): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(18, 37),
+                // (22,25): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
                 //     public object Q4 { [field: A(4)] get => field; }
-                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(23, 25),
-                // (24,54): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, return").WithLocation(22, 25),
+                // (23,54): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, param, return'. All attributes in this block will be ignored.
                 //     public static object Q5 { get { return field; } [field: A(5)] set { } }
-                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(24, 54));
+                Diagnostic(ErrorCode.WRN_AttributeLocationOnBadDeclaration, "field").WithArguments("field", "method, param, return").WithLocation(23, 54));
 
             CompileAndVerify(comp, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("""
                 B.<P1>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute, A(1),
@@ -1039,8 +1035,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void RestrictedTypes()
         {
             string source = """
-                #pragma warning disable 9258 // 'field' is a contextual keyword
                 using System;
+
                 class C
                 {
                     static TypedReference P1 { get; }
@@ -1074,10 +1070,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ByRefLikeType_01(string typeKind, bool allow)
         {
             string source = $$"""
-                #pragma warning disable 9258 // 'field' is a contextual keyword
                 ref struct R
                 {
                 }
+
                 {{typeKind}} C
                 {
                     R P1 { get; }
@@ -1087,6 +1083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     R Q3 { set { _ = field; } }
                     public override string ToString() => "C";
                 }
+
                 class Program
                 {
                     static void Main()
@@ -1131,10 +1128,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ByRefLikeType_02(string typeKind)
         {
             string source = $$"""
-                #pragma warning disable 9258 // 'field' is a contextual keyword
                 ref struct R
                 {
                 }
+
                 {{typeKind}} C
                 {
                     static R P1 { get; }
@@ -1167,10 +1164,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ByRefLikeType_03()
         {
             string source = """
-                #pragma warning disable 9258 // 'field' is a contextual keyword
                 ref struct R
                 {
                 }
+
                 interface I
                 {
                     static R P1 { get; }

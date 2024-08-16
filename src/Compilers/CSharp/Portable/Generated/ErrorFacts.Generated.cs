@@ -339,6 +339,7 @@
                 case ErrorCode.WRN_CollectionExpressionRefStructSpreadMayAllocate:
                 case ErrorCode.WRN_ConvertingLock:
                 case ErrorCode.WRN_PartialPropertySignatureDifference:
+                case ErrorCode.WRN_FieldIsAmbiguous:
                     return true;
                 default:
                     return false;
@@ -368,7 +369,6 @@
             {
                 case ErrorCode.INF_UnableToLoadSomeTypesInAnalyzer:
                 case ErrorCode.INF_TooManyBoundLambdas:
-                case ErrorCode.INF_IdentifierConflictWithContextualKeyword:
                     return true;
                 default:
                     return false;
