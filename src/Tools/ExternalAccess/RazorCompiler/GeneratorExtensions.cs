@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 
@@ -15,6 +16,8 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler
     /// </summary>
     internal static partial class GeneratorExtensions
     {
+#pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
         public static void RegisterHostOutput<TSource>(ref this IncrementalGeneratorInitializationContext @this, IncrementalValuesProvider<TSource> source, Action<HostProductionContext, TSource, CancellationToken> action)
         {
             @this.RegisterHostOutput(source, (ctx, source) =>
@@ -30,8 +33,9 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.RazorCompiler
             });
         }
 
-        public static ImmutableArray<(string Key, string Value)> GetHostOutputs(this GeneratorRunResult runResult) => runResult.HostOutputs.SelectAsArray(a => (a.Key, a.Value.ToString() ?? ""));
+        public static ImmutableArray<(string Key, string Value)> GetHostOutputs(this GeneratorRunResult runResult) => runResult.HostOutputs.ToImmutableArray().SelectAsArray(a => (a.Key, a.Value.ToString() ?? ""));
     }
+#pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
     internal readonly struct HostProductionContext
     {
