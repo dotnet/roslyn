@@ -10476,11 +10476,13 @@ class C
 
             var generator = new PipelineCallbackGenerator((ctx) =>
             {
+#pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
                 ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, value) =>
                 {
                     hostOutputRan = true;
                     hostCtx.AddOutput("output", "value");
                 });
+#pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (spc, po) =>
                 {
@@ -10592,8 +10594,6 @@ class C
 
             return output;
         }
-
-
 
         [WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
         [Fact]
