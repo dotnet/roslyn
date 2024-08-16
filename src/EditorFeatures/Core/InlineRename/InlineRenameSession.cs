@@ -778,8 +778,11 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
         previewChanges = previewChanges || PreviewChanges;
 
+        var prohibitUserInputValue = _triggerView.Options.GetOptionValue<bool>(DefaultTextViewOptions.ViewProhibitUserInputName);
+
         try
         {
+            _triggerView.Options.SetOptionValue(DefaultTextViewOptions.ViewProhibitUserInputName, true);
             if (canUseBackgroundWorkIndicator)
             {
                 // We do not cancel on edit because as part of the rename system we have asynchronous work still
@@ -811,8 +814,13 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         catch (OperationCanceledException)
         {
             await DismissUIAndRollbackEditsAndEndRenameSessionAsync(
-                RenameLogMessage.UserActionOutcome.Canceled | RenameLogMessage.UserActionOutcome.Committed, previewChanges).ConfigureAwait(false);
+                RenameLogMessage.UserActionOutcome.Canceled | RenameLogMessage.UserActionOutcome.Committed,
+                previewChanges).ConfigureAwait(false);
             return false;
+        }
+        finally
+        {
+            _triggerView.Options.SetOptionValue(DefaultTextViewOptions.ViewProhibitUserInputName, prohibitUserInputValue);
         }
 
         return true;
