@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Threading;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
@@ -17,7 +18,7 @@ internal abstract partial class AbstractRenameCommandHandler : IChainedCommandHa
     {
         HandlePossibleTypingCommand(args, nextHandler, (activeSession, span) =>
         {
-            activeSession.Commit();
+            _ = activeSession.CommitXAsync(previewChanges: false, forceCommitSynchronously: true, CancellationToken.None);
             nextHandler();
         });
     }
