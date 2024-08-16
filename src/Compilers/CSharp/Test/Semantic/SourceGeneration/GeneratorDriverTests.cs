@@ -4530,10 +4530,8 @@ class C { }
             var runResult = driver.GetRunResult();
             var result = Assert.Single(runResult.Results);
 
-            Assert.Collection(result.HostOutputs,
-                (e) => { Assert.Equal("a", e.Key); Assert.Equal("value", e.Value); },
-                (e) => { Assert.Equal("a", e.Key); Assert.Equal("value2", e.Value); }
-            );
+            Assert.Empty(result.HostOutputs);
+            Assert.IsType<ArgumentException>(result.Exception);
         }
 
         [Fact]
@@ -4545,7 +4543,6 @@ class C { }
             var parseOptions = CSharpParseOptions.Default;
             var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
             GeneratorDriver driver = CSharpGeneratorDriver.Create([generator1.AsSourceGenerator(), generator2.AsSourceGenerator()], parseOptions: parseOptions);
-           
             driver = driver.RunGenerators(compilation);
             var runResult = driver.GetRunResult();
 
