@@ -114,6 +114,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
                 Public Function CommitAsync(previewChanges As Boolean, cancellationToken As CancellationToken) As Task Implements IInlineRenameSession.CommitAsync
                     Throw New NotImplementedException()
                 End Function
+
+                Public Function CommitXAsync(previewChanges As Boolean, forceCommitSynchronously As Boolean, cancellationToken As CancellationToken) As Task(Of Boolean) Implements IInlineRenameSession.CommitXAsync
+                    Throw New NotImplementedException
+                End Function
             End Class
         End Class
 
