@@ -8,6 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation.Peers;
 using System.Windows.Controls;
@@ -19,6 +20,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -328,11 +330,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private void Apply_Click(object sender, RoutedEventArgs e)
             => Commit();
 
-        private void Commit()
+        private void Commit() => _ = CommitAsync().ReportNonFatalErrorAsync();
+
+        private async Task CommitAsync()
         {
             try
             {
-                _ = _model.Session.CommitAsync(previewChanges: false, cancellationToken: CancellationToken.None);
+                await _model.Session.CommitAsync(previewChanges: false, cancellationToken: CancellationToken.None).ConfigureAwait(true);
                 _textView.VisualElement.Focus();
             }
             catch (NotSupportedException ex)

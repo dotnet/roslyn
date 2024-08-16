@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
 using Microsoft.VisualStudio.PlatformUI.OleComponentSupport;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
@@ -31,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
     {
         private readonly bool _registerOleComponent;
         private readonly IGlobalOptionService _globalOptionService;
+        private readonly IAsynchronousOperationListener _asyncListener;
         private OleComponent? _oleComponent;
         private bool _disposedValue;
         private bool _isReplacementTextValid = true;
@@ -55,6 +57,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             Session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             StartingSelection = selectionSpan;
             InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
+            _asyncListener = listenerProvider.GetListener(FeatureAttribute.Rename);
             var smartRenameSession = smartRenameSessionFactory?.Value.CreateSmartRenameSession(Session.TriggerSpan);
             if (smartRenameSession is not null)
             {
@@ -211,13 +214,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public bool Submit()
         {
+            using var token = _asyncListener.BeginAsyncOperation(nameof(Submit));
             if (StatusSeverity == Severity.Error)
             {
                 return false;
             }
 
             SmartRenameViewModel?.Commit(IdentifierText);
-            _ = Session.CommitAsync(previewChanges: false, cancellationToken: CancellationToken.None);
+            _ = Session.CommitAsync(previewChanges: false, cancellationToken: CancellationToken.None).ReportNonFatalErrorAsync();
             return true;
         }
 
