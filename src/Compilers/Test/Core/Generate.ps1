@@ -121,10 +121,6 @@ Add-TargetFramework "Net20" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net
   'System.dll',
   'Microsoft.VisualBasic.dll')
 
-Add-TargetFramework "Net35" '$(Pkgjnm2_ReferenceAssemblies_net35)\build\.NETFramework\v3.5' @(
-  'System.Core.dll'
-)
-
 Add-TargetFramework "Net40" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net40)\build\.NETFramework\v4.0' @(
   'mscorlib.dll',
   'System.dll',
@@ -186,5 +182,11 @@ $codeContent += @"
 }
 "@
 
-$targetsContent | Out-File "Generated.targets" -Encoding Utf8
-$codeContent | Out-File "Generated.cs" -Encoding Utf8
+try {
+  Push-Location $PSScriptRoot
+  $targetsContent | Out-File "Generated.targets" -Encoding Utf8
+  $codeContent | Out-File "Generated.cs" -Encoding Utf8
+}
+finally {
+  Pop-Location
+}

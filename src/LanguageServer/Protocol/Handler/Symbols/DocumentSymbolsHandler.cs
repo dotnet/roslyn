@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
     /// </summary>
     [ExportCSharpVisualBasicStatelessLspService(typeof(DocumentSymbolsHandler)), Shared]
     [Method(Methods.TextDocumentDocumentSymbolName)]
-    internal sealed class DocumentSymbolsHandler : ILspServiceDocumentRequestHandler<RoslynDocumentSymbolParams, object[]>
+    internal sealed class DocumentSymbolsHandler : ILspServiceDocumentRequestHandler<RoslynDocumentSymbolParams, SumType<DocumentSymbol[], SymbolInformation[]>>
     {
         public bool MutatesSolutionState => false;
         public bool RequiresLSPSolution => true;
@@ -38,53 +38,58 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
 
         public TextDocumentIdentifier GetTextDocumentIdentifier(RoslynDocumentSymbolParams request) => request.TextDocument;
 
-        public async Task<object[]> HandleRequestAsync(RoslynDocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
+        public Task<SumType<DocumentSymbol[], SymbolInformation[]>> HandleRequestAsync(RoslynDocumentSymbolParams request, RequestContext context, CancellationToken cancellationToken)
         {
             var document = context.GetRequiredDocument();
             var clientCapabilities = context.GetRequiredClientCapabilities();
+            var useHierarchicalSymbols = clientCapabilities.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true || request.UseHierarchicalSymbols;
+            var service = document.Project.Solution.Services.GetRequiredService<ILspSymbolInformationCreationService>();
 
+            return GetDocumentSymbolsAsync(document, useHierarchicalSymbols, service, cancellationToken);
+        }
+
+        internal static async Task<SumType<DocumentSymbol[], SymbolInformation[]>> GetDocumentSymbolsAsync(Document document, bool useHierarchicalSymbols, ILspSymbolInformationCreationService symbolInformationCreationService, CancellationToken cancellationToken)
+        {
             var navBarService = document.Project.Services.GetRequiredService<INavigationBarItemService>();
             var navBarItems = await navBarService.GetItemsAsync(document, supportsCodeGeneration: false, frozenPartialSemantics: false, cancellationToken).ConfigureAwait(false);
             if (navBarItems.IsEmpty)
-                return [];
+                return Array.Empty<DocumentSymbol>();
 
             var text = await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
-
-            // TODO - Return more than 2 levels of symbols.
-            // https://github.com/dotnet/roslyn/projects/45#card-20033869
-            using var _ = ArrayBuilder<object>.GetInstance(out var symbols);
-            if (clientCapabilities.TextDocument?.DocumentSymbol?.HierarchicalDocumentSymbolSupport == true || request.UseHierarchicalSymbols)
+            if (useHierarchicalSymbols)
             {
+                using var _ = ArrayBuilder<DocumentSymbol>.GetInstance(out var symbols);
                 // only top level ones
                 foreach (var item in navBarItems)
                     symbols.AddIfNotNull(GetDocumentSymbol(item, text, cancellationToken));
+
+                return symbols.ToArray();
             }
             else
             {
+                using var _ = ArrayBuilder<SymbolInformation>.GetInstance(out var symbols);
                 foreach (var item in navBarItems)
                 {
-                    symbols.AddIfNotNull(GetSymbolInformation(item, document, text, containerName: null));
+                    symbols.AddIfNotNull(GetSymbolInformation(item, document, text, containerName: null, symbolInformationCreationService));
 
                     foreach (var childItem in item.ChildItems)
-                        symbols.AddIfNotNull(GetSymbolInformation(childItem, document, text, item.Text));
+                        symbols.AddIfNotNull(GetSymbolInformation(childItem, document, text, item.Text, symbolInformationCreationService));
                 }
-            }
 
-            var result = symbols.ToArray();
-            return result;
+                return symbols.ToArray();
+            }
         }
 
         /// <summary>
         /// Get a symbol information from a specified nav bar item.
         /// </summary>
         private static SymbolInformation? GetSymbolInformation(
-            RoslynNavigationBarItem item, Document document, SourceText text, string? containerName = null)
+            RoslynNavigationBarItem item, Document document, SourceText text, string? containerName, ILspSymbolInformationCreationService symbolInformationCreationService)
         {
             if (item is not RoslynNavigationBarItem.SymbolItem symbolItem || symbolItem.Location.InDocumentInfo == null)
                 return null;
 
-            var service = document.Project.Solution.Services.GetRequiredService<ILspSymbolInformationCreationService>();
-            return service.Create(
+            return symbolInformationCreationService.Create(
                 GetDocumentSymbolName(item.Text),
                 containerName,
                 ProtocolConversions.GlyphToSymbolKind(item.Glyph),

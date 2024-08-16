@@ -265,7 +265,6 @@
     <PackageVersion Include="Microsoft.ILVerification" Version="8.0.0-rtm.23523.3" />
     <PackageVersion Include="Microsoft.NET.Build.Extensions" Version="2.2.101" />
     <PackageVersion Include="Microsoft.NETCore.Platforms" Version="5.0.0" />
-    <PackageVersion Include="jnm2.ReferenceAssemblies.net35" Version="1.0.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Cache" Version="17.3.26-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.Measurement" Version="17.9.36343-preview.3" />
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="17.8.36726" />
