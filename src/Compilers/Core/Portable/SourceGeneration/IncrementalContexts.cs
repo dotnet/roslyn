@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -13,6 +14,8 @@ using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
+
+#pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 namespace Microsoft.CodeAnalysis
 {
@@ -72,8 +75,10 @@ namespace Microsoft.CodeAnalysis
 
         public void RegisterPostInitializationOutput(Action<IncrementalGeneratorPostInitializationContext> callback) => _outputNodes.Add(new PostInitOutputNode(callback.WrapUserAction(CatchAnalyzerExceptions)));
 
+        [Experimental(RoslynExperiments.GeneratorHostOutputs, UrlFormat = RoslynExperiments.GeneratorHostOutputs_Url)]
         public void RegisterHostOutput<TSource>(IncrementalValueProvider<TSource> source, Action<HostOutputProductionContext, TSource> action) => source.Node.RegisterOutput(new HostOutputNode<TSource>(source.Node, action.WrapUserAction(CatchAnalyzerExceptions)));
 
+        [Experimental(RoslynExperiments.GeneratorHostOutputs, UrlFormat = RoslynExperiments.GeneratorHostOutputs_Url)]
         public void RegisterHostOutput<TSource>(IncrementalValuesProvider<TSource> source, Action<HostOutputProductionContext, TSource> action) => source.Node.RegisterOutput(new HostOutputNode<TSource>(source.Node, action.WrapUserAction(CatchAnalyzerExceptions)));
 
         private void RegisterOutput(IIncrementalGeneratorOutputNode outputNode)
@@ -205,6 +210,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Context passed to an incremental generator when it has registered an output via <see cref="IncrementalGeneratorInitializationContext.RegisterHostOutput{TSource}(IncrementalValuesProvider{TSource}, Action{HostOutputProductionContext, TSource})"/>
     /// </summary>
+    [Experimental(RoslynExperiments.GeneratorHostOutputs, UrlFormat = RoslynExperiments.GeneratorHostOutputs_Url)]
     public readonly struct HostOutputProductionContext
     {
         internal readonly ArrayBuilder<(string, object)> Outputs;

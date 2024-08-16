@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using TOutput = System.Collections.Immutable.ImmutableArray<(string, object)>;
 
+#pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
 namespace Microsoft.CodeAnalysis
 {
     internal sealed class HostOutputNode<TInput> : IIncrementalGeneratorOutputNode, IIncrementalGeneratorNode<TOutput>

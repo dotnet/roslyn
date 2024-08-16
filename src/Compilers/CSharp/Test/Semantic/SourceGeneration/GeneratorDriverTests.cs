@@ -4466,6 +4466,8 @@ class C { }
             Assert.Same(newParseOptions, result.GeneratedTrees[1].Options);
         }
 
+#pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+
         [Fact]
         public void GeneratorDriver_Makes_HostOutputs_Available()
         {
@@ -4551,5 +4553,7 @@ class C { }
                 (r) => { var result = Assert.Single(r.HostOutputs); Assert.Equal("gen2", result.Key); Assert.Equal("value2", result.Value); }
             );
         }
+
+#pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     }
 }
