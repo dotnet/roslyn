@@ -65,7 +65,7 @@ internal class SimpleConsoleLogger : ILogger
         return (int)logLevel >= (int)_minimalLogLevel;
     }
 
-    public IDisposable BeginScope<TState>(TState state)
+    public IDisposable? BeginScope<TState>(TState state) where TState : notnull
     {
         return NullScope.Instance;
     }

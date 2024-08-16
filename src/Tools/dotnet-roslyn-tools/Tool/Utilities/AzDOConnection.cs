@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
-using Microsoft.TeamFoundation.TestManagement.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.FileContainer.Client;
 using Microsoft.VisualStudio.Services.WebApi;
@@ -25,11 +24,11 @@ internal sealed class AzDOConnection : IDisposable
     public FileContainerHttpClient ContainerClient { get; }
     public ProjectHttpClient ProjectClient { get; }
 
-    public AzDOConnection(string azdoUrl, string projectName, string azdoToken)
+    public AzDOConnection(VssConnection vssConnection, string projectName)
     {
+        Connection = vssConnection;
         BuildProjectName = projectName;
 
-        Connection = new VssConnection(new Uri(azdoUrl), new VssBasicCredential(string.Empty, azdoToken));
         NuGetClient = new HttpClient();
 
         GitClient = Connection.GetClient<GitHttpClient>();

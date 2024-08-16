@@ -35,14 +35,21 @@ namespace Microsoft.RoslynTools.Authentication.PopUps
             // Initialize line contents.
             Contents = new ReadOnlyCollection<Line>(new List<Line>
             {
-                new Line("Create new GitHub personal access tokens at https://github.com/settings/tokens (repo_public scopes needed)", isComment: true),
-                new Line($"{githubTokenElement}={GetCurrentSettingForDisplay(Settings.GitHubToken, string.Empty, isSecret: true)}"),
-                new Line("Create new DevDiv Azure Dev Ops tokens at https://dev.azure.com/devdiv/_usersSettings/tokens (build_execute,code_full,release_execute,packaging scopes are needed)", isComment: true),
-                new Line($"{devdivAzureDevOpsTokenElement}={GetCurrentSettingForDisplay(Settings.DevDivAzureDevOpsToken, string.Empty, isSecret: true)}"),
-                new Line("Create new DncEng Azure Dev Ops tokens at https://dev.azure.com/dnceng/_usersSettings/tokens (build_execute,code_full,release_execute,packaging scopes are needed)", isComment: true),
-                new Line($"{dncengAzureDevOpsTokenElement}={GetCurrentSettingForDisplay(Settings.DncEngAzureDevOpsToken, string.Empty, isSecret: true)}"),
-                new Line(""),
-                new Line("Set elements above before saving.", isComment: true),
+                new("Create new GitHub personal access tokens at https://github.com/settings/tokens (repo_public scopes needed)", isComment: true),
+                new($"{githubTokenElement}={GetCurrentSettingForDisplay(Settings.GitHubToken, string.Empty, isSecret: true)}"),
+                new(string.Empty),
+                new("[OPTIONAL]", isComment: true),
+                new("Set Azure DevOps tokens (or leave empty to use local credentials)", isComment: true),
+                new(string.Empty),
+                new("Use the PatGeneratorTool https://dev.azure.com/dnceng/public/_artifacts/feed/dotnet-eng/NuGet/Microsoft.DncEng.PatGeneratorTool", isComment: true),
+                new("with the `dotnet pat-generator --scopes build_execute code_full release_execute packaging --organizations devdiv --expires-in 7` command", isComment: true),
+                new($"{devdivAzureDevOpsTokenElement}={GetCurrentSettingForDisplay(Settings.DevDivAzureDevOpsToken, string.Empty, true)}"),
+                new(string.Empty),
+                new("Use the PatGeneratorTool https://dev.azure.com/dnceng/public/_artifacts/feed/dotnet-eng/NuGet/Microsoft.DncEng.PatGeneratorTool", isComment: true),
+                new("with the `dotnet pat-generator --scopes build_execute code_full release_execute packaging --organizations dnceng --expires-in 7` command", isComment: true),
+                new($"{dncengAzureDevOpsTokenElement}={GetCurrentSettingForDisplay(Settings.DncEngAzureDevOpsToken, string.Empty, true)}"),
+                new(string.Empty),
+                new("Set elements above before saving.", isComment: true),
             });
         }
 

@@ -19,6 +19,7 @@ internal static class CommonOptions
     public static readonly Option<string> GitHubTokenOption = new(new[] { "--github-token" }, () => string.Empty, "Token used to authenticate GitHub.");
     public static readonly Option<string> DevDivAzDOTokenOption = new(new[] { "--devdiv-azdo-token" }, () => string.Empty, "Token used to authenticate to DevDiv Azure DevOps.");
     public static readonly Option<string> DncEngAzDOTokenOption = new(new[] { "--dnceng-azdo-token" }, () => string.Empty, "Token used to authenticate to DncEng Azure DevOps.");
+    public static readonly Option<bool> IsCIOption = new(new[] { "--ci" }, "Indicate that the command is running in a CI environment.");
 
     public static RoslynToolsSettings LoadSettings(this ParseResult parseResult, ILogger logger)
     {
@@ -26,8 +27,9 @@ internal static class CommonOptions
         var githubToken = parseResult.GetValueForOption(GitHubTokenOption) ?? string.Empty;
         var devdivAzDOToken = parseResult.GetValueForOption(DevDivAzDOTokenOption) ?? string.Empty;
         var dncengAzDOToken = parseResult.GetValueForOption(DncEngAzDOTokenOption) ?? string.Empty;
+        var isCI = parseResult.GetValueForOption(IsCIOption);
 
-        return LocalSettings.GetRoslynToolsSettings(githubToken, devdivAzDOToken, dncengAzDOToken, logger);
+        return LocalSettings.GetRoslynToolsSettings(githubToken, devdivAzDOToken, dncengAzDOToken, isCI, logger);
     }
 
     public static LogLevel ParseVerbosity(this ParseResult parseResult)

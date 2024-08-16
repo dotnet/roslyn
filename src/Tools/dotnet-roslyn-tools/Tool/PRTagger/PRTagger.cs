@@ -88,7 +88,7 @@ internal static class PRTagger
     private static async Task<TagResult> TagProductAsync(
         IProduct product, string gitHubRepoName, ILogger logger, string vsCommitSha, string vsBuild, string previousVsCommitSha, RemoteConnections remoteConnections)
     {
-        var connections = new[] { remoteConnections.DevDivConnection, remoteConnections.DncengConnection };
+        var connections = new[] { remoteConnections.DevDivConnection, remoteConnections.DncEngConnection };
         logger.LogInformation($"GitHub repo: {gitHubRepoName}");
 
         var issueTitle = $"[Automated] PRs inserted in VS build {vsBuild}";
