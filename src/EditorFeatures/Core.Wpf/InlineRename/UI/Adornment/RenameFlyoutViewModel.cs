@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             SmartRenameViewModel?.Commit(IdentifierText);
-            _ = Session.CommitXAsync(previewChanges: false, forceCommitSynchronously: false, cancellationToken: CancellationToken.None);
+            _ = Session.CommitAsync(previewChanges: false, cancellationToken: CancellationToken.None);
             return true;
         }
 

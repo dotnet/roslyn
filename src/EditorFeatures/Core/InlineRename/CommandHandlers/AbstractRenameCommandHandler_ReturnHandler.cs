@@ -32,7 +32,7 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
 
     protected virtual async Task CommitAndSetFocusAsync(InlineRenameSession activeSession, ITextView textView, CancellationToken cancellationToken)
     {
-        await activeSession.CommitXAsync(previewChanges: false, forceCommitSynchronously: false, cancellationToken).ConfigureAwait(true);
+        await activeSession.CommitAsync(previewChanges: false, cancellationToken).ConfigureAwait(true);
         SetFocusToTextView(textView);
     }
 }

@@ -723,18 +723,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         }
     }
 
-    public async Task<bool> CommitXAsync(bool previewChanges, bool forceCommitSynchronously, CancellationToken cancellationToken)
-    {
-        if (!forceCommitSynchronously && this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
-        {
-            return await CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, cancellationToken).ConfigureAwait(false);
-        }
-        else
-        {
-            return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false, cancellationToken));
-        }
-    }
-
     public void Commit(bool previewChanges = false)
         => CommitWorker(previewChanges);
 
@@ -750,8 +738,17 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, CancellationToken.None));
     }
 
-    public Task CommitAsync(bool previewChanges, CancellationToken cancellationToken)
-       => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, cancellationToken);
+    public async Task CommitAsync(bool previewChanges, CancellationToken cancellationToken)
+    {
+        if (this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
+        {
+            await CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            Commit(previewChanges);
+        }
+    }
 
     /// <returns><see langword="true"/> if the rename operation was committed, <see
     /// langword="false"/> otherwise</returns>
