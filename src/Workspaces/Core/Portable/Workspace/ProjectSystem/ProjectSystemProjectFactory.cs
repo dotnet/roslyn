@@ -102,8 +102,7 @@ internal sealed partial class ProjectSystemProjectFactory
             assemblyName,
             creationInfo.CompilationOptions,
             creationInfo.FilePath,
-            creationInfo.ParseOptions,
-            creationInfo.CompilationOutputAssemblyFilePath);
+            creationInfo.ParseOptions);
 
         var versionStamp = creationInfo.FilePath != null
             ? VersionStamp.Create(File.GetLastWriteTimeUtc(creationInfo.FilePath))
@@ -163,6 +162,10 @@ internal sealed partial class ProjectSystemProjectFactory
                 onBeforeUpdate: null,
                 onAfterUpdate: null);
         }).ConfigureAwait(false);
+
+        // Set this value early after solution is created so it is available to Razor.  This will get updated
+        // when the command line is set, but we want a non-null value to be available as soon as possible.
+        project.CompilationOutputAssemblyFilePath = creationInfo.CompilationOutputAssemblyFilePath;
 
         return project;
     }

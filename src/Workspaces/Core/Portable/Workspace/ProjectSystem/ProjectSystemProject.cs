@@ -149,8 +149,7 @@ internal sealed partial class ProjectSystemProject
         string assemblyName,
         CompilationOptions? compilationOptions,
         string? filePath,
-        ParseOptions? parseOptions,
-        string? compilationOutputAssemblyFilePath)
+        ParseOptions? parseOptions)
     {
         _projectSystemProjectFactory = projectSystemProjectFactory;
         _hostInfo = hostInfo;
@@ -197,7 +196,6 @@ internal sealed partial class ProjectSystemProject
         _compilationOptions = compilationOptions;
         _filePath = filePath;
         _parseOptions = parseOptions;
-        _compilationOutputAssemblyFilePath = compilationOutputAssemblyFilePath;
 
         var watchedDirectories = GetWatchedDirectories(language, filePath);
         _documentFileChangeContext = _projectSystemProjectFactory.FileChangeWatcher.CreateContext(watchedDirectories);
