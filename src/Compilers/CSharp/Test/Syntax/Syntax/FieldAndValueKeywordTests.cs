@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Field_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Event_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 #pragma warning disable 649
@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ExplicitImplementation_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ExplicitImplementation_02(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void ExplicitImplementation_04(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion,
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion,
             bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_IdentifierNameSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 8981
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_GenericNameSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 8981
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_Invocation(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_Index(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_TupleElementSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 219
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_FromClauseSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 using System.Linq;
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_LetClauseSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 using System.Linq;
@@ -366,7 +366,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_JoinClauseSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 using System.Linq;
@@ -393,7 +393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_JoinIntoClauseSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 using System.Linq;
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_QueryContinuationSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 using System.Linq;
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_LocalFunctionStatementSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 8321
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_VariableDeclaratorSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 219
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_SingleVariableDesignationSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 class C
@@ -498,7 +498,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_LabeledStatementSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 164
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_ForEachStatementSyntax_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 class C
@@ -531,7 +531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_ForEachStatementSyntax_02(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 class C
@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_CatchDeclarationSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 168
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_TypeParameterSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 8321, 8981
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_ParameterSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 8321
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void IdentifierToken_AttributeTargetSpecifierSyntax(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = $$"""
                 #pragma warning disable 657
@@ -640,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Deconstruction(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 168 // variable is declared but never used
@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Lambda_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649
@@ -719,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void LocalFunction_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 #pragma warning disable 649, 8321
@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Attribute_01(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion, bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
             string source = $$"""
@@ -945,7 +945,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void Attribute_LocalFunction(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion, bool escapeIdentifier)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion, bool escapeIdentifier)
         {
             string identifier = escapeIdentifier ? "@field" : "field";
             string source = $$"""
@@ -1023,7 +1023,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void NameOf_03(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string source = """
                 class C
@@ -1058,7 +1058,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Theory]
         [CombinatorialData]
         public void BaseClassMember(
-            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersion.Preview)] LanguageVersion languageVersion)
+            [CombinatorialValues(LanguageVersion.CSharp13, LanguageVersionFacts.CSharpNext)] LanguageVersion languageVersion)
         {
             string sourceA = """
                 public class Base
