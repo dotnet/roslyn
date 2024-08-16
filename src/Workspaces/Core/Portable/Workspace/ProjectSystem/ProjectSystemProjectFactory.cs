@@ -165,6 +165,11 @@ internal sealed partial class ProjectSystemProjectFactory
 
         // Set this value early after solution is created so it is available to Razor.  This will get updated
         // when the command line is set, but we want a non-null value to be available as soon as possible.
+        //
+        // Set the property in a batch; if we set the property directly we'll be taking a synchronous lock here and
+        // potentially block up thread pool threads. Doing this in a batch means the global lock will be acquired asynchronously.
+        var disposableBatchScope = await project.CreateBatchScopeAsync(CancellationToken.None).ConfigureAwait(false);
+        await using var _ = disposableBatchScope.ConfigureAwait(false);
         project.CompilationOutputAssemblyFilePath = creationInfo.CompilationOutputAssemblyFilePath;
 
         return project;
