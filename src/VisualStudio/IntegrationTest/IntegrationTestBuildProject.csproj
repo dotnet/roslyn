@@ -4,10 +4,6 @@
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies.net45" />
-  </ItemGroup>
-
   <!--
     This build project is used to allow CI to only build the projects required to build and run integration tests.
     Everything else (for example other unit test projects) are excluded to speed up the build time.
