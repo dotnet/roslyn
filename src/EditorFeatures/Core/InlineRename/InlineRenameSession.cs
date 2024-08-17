@@ -395,6 +395,14 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
             Cancel();
         }
+
+        if (args.Kind == WorkspaceChangeKind.DocumentChanged)
+        {
+            if (_conflictResolutionTask.Task.Status is not TaskStatus.RanToCompletion and not TaskStatus.Faulted)
+            {
+                Cancel();
+            }
+        }
     }
 
     private void RaiseSessionSpansUpdated(ImmutableArray<InlineRenameLocation> locations)
@@ -741,17 +749,16 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     }
 
     public Task CommitAsync(bool previewChanges, CancellationToken cancellationToken)
-        => StartCommitAsync(previewChanges, cancellationToken)
+        => StartCommitAsync(previewChanges, cancellationToken);
 
-    private async Task StartCommitAsync(bool previewChanges, CancellationToken cancellationToken)
+    private async Task<bool> StartCommitAsync(bool previewChanges, CancellationToken cancellationToken)
     {
         if (_dismissed)
         {
-            return;
+            return false;
         }
 
         _commitTask ??= CommitWorkerAsync(previewChanges, cancellationToken);
-
         await _commitTask.ConfigureAwait(false);
     }
 
