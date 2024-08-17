@@ -7,65 +7,52 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets;
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Snippets;
 
-[Trait(Traits.Feature, Traits.Features.Completion)]
-public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
+[Trait(Traits.Feature, Traits.Features.Snippets)]
+public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippetProviderTests
 {
-    protected override string ItemToCommit => "ctor";
+    protected override string SnippetIdentifier => "ctor";
 
-    [WpfFact]
+    [Fact]
     public async Task ConstructorSnippetMissingInNamespace()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetIsAbsentAsync("""
             namespace Namespace
             {
                 $$
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task ConstructorSnippetMissingInFileScopedNamespace()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetIsAbsentAsync("""
             namespace Namespace;
 
             $$
-            """;
-
-        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task ConstructorSnippetMissingInTopLevelContext()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetIsAbsentAsync("""
             System.Console.WriteLine();
             $$
-            """;
-
-        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertConstructorSnippetInClassTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetAsync("""
             class MyClass
             {
                 $$
             }
-            """;
-
-        var expectedCodeAfterCommit =
-            """
+            """, """
             class MyClass
             {
                 public MyClass()
@@ -73,23 +60,18 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
                     $$
                 }
             }
-            """;
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertConstructorSnippetInAbstractClassTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetAsync("""
             abstract class MyClass
             {
                 $$
             }
-            """;
-
-        var expectedCodeAfterCommit =
-            """
+            """, """
             abstract class MyClass
             {
                 protected MyClass()
@@ -97,15 +79,13 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
                     $$
                 }
             }
-            """;
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertConstructorSnippetInAbstractClassTest_AbstractModifierInOtherPartialDeclaration()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetAsync("""
             partial class MyClass
             {
                 $$
@@ -114,10 +94,7 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
             abstract partial class MyClass
             {
             }
-            """;
-
-        var expectedCodeAfterCommit =
-            """
+            """, """
             partial class MyClass
             {
                 protected MyClass()
@@ -129,15 +106,13 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
             abstract partial class MyClass
             {
             }
-            """;
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertConstructorSnippetInNestedAbstractClassTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetAsync("""
             class MyClass
             {
                 abstract class NestedClass
@@ -145,10 +120,7 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
                     $$
                 }
             }
-            """;
-
-        var expectedCodeAfterCommit =
-            """
+            """, """
             class MyClass
             {
                 abstract class NestedClass
@@ -159,23 +131,18 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
                     }
                 }
             }
-            """;
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertConstructorSnippetInStructTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetAsync("""
             struct MyStruct
             {
                 $$
             }
-            """;
-
-        var expectedCodeAfterCommit =
-            """
+            """, """
             struct MyStruct
             {
                 public MyStruct()
@@ -183,23 +150,18 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
                     $$
                 }
             }
-            """;
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertConstructorSnippetInRecordTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetAsync("""
             record MyRecord
             {
                 $$
             }
-            """;
-
-        var expectedCodeAfterCommit =
-            """
+            """, """
             record MyRecord
             {
                 public MyRecord()
@@ -207,29 +169,24 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
                     $$
                 }
             }
-            """;
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task ConstructorSnippetMissingInInterface()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetIsAbsentAsync("""
             interface MyInterface
             {
                 $$
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertConstructorSnippetInNestedClassTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetAsync("""
             class MyClass
             {
                 class MyClass1
@@ -237,10 +194,7 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
                     $$
                 }
             }
-            """;
-
-        var expectedCodeAfterCommit =
-            """
+            """, """
             class MyClass
             {
                 class MyClass1
@@ -251,11 +205,10 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
                     }
                 }
             }
-            """;
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfTheory]
+    [Theory]
     [InlineData("public")]
     [InlineData("private")]
     [InlineData("protected")]
@@ -265,14 +218,12 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
     [InlineData("static")]
     public async Task InsertConstructorSnippetAfterValidModifiersTest(string modifiers)
     {
-        var markupBeforeCommit = $$"""
+        await VerifySnippetAsync($$"""
             class MyClass
             {
                 {{modifiers}} $$
             }
-            """;
-
-        var expectedCodeAfterCommit = $$"""
+            """, $$"""
             class MyClass
             {
                 {{modifiers}} MyClass()
@@ -280,12 +231,10 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
                     $$
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfTheory]
+    [Theory]
     [InlineData("abstract")]
     [InlineData("sealed")]
     [InlineData("virtual")]
@@ -295,17 +244,15 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
     [InlineData("file")]
     public async Task ConstructorSnippetMissingAfterInvalidModifierTest(string modifier)
     {
-        var markupBeforeCommit = $$"""
+        await VerifySnippetIsAbsentAsync($$"""
             class MyClass
             {
                 {{modifier}} $$
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+            """);
     }
 
-    [WpfTheory]
+    [Theory]
     [InlineData("public")]
     [InlineData("private")]
     [InlineData("protected")]
@@ -314,28 +261,24 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
     [InlineData("protected internal")]
     public async Task ConstructorSnippetMissingAfterBothAccessibilityModifierAndStaticKeywordTest(string accessibilityModifier)
     {
-        var markupBeforeCommit = $$"""
+        await VerifySnippetIsAbsentAsync($$"""
             class MyClass
             {
                 {{accessibilityModifier}} static $$
             }
-            """;
-
-        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertConstructorSnippetAfterAccessibilityModifierBeforeOtherMemberTest()
     {
-        var markupBeforeCommit = """
+        await VerifySnippetAsync("""
             class C
             {
                 private $$
                 readonly int Value = 3;
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, """
             class C
             {
                 private C()
@@ -344,23 +287,19 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
                 }
                 readonly int Value = 3;
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertConstructorSnippetBetweenAccessibilityModifiersBeforeOtherMemberTest()
     {
-        var markupBeforeCommit = """
+        await VerifySnippetAsync("""
             class C
             {
                 protected $$
                 internal int Value = 3;
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, """
             class C
             {
                 protected C()
@@ -369,23 +308,19 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
                 }
                 internal int Value = 3;
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertConstructorSnippetAfterAccessibilityModifierBeforeOtherStaticMemberTest()
     {
-        var markupBeforeCommit = """
+        await VerifySnippetAsync("""
             class C
             {
                 internal $$
                 static int Value = 3;
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, """
             class C
             {
                 internal C()
@@ -394,15 +329,13 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
                 }
                 static int Value = 3;
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/68176")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68176")]
     public async Task InsertCorrectConstructorSnippetInNestedTypeTest_CtorBeforeNestedType()
     {
-        var markupBeforeCommit = """
+        await VerifySnippetAsync("""
             class Outer
             {
                 $$
@@ -410,9 +343,7 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
                 {
                 }
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, """
             class Outer
             {
                 public Outer()
@@ -423,15 +354,13 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
                 {
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfFact, WorkItem("https://github.com/dotnet/roslyn/issues/68176")]
+    [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/68176")]
     public async Task InsertCorrectConstructorSnippetInNestedTypeTest_CtorAfterNestedType()
     {
-        var markupBeforeCommit = """
+        await VerifySnippetAsync("""
             class Outer
             {
                 class Inner
@@ -439,9 +368,7 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
                 }
                 $$
             }
-            """;
-
-        var expectedCodeAfterCommit = """
+            """, """
             class Outer
             {
                 class Inner
@@ -452,8 +379,6 @@ public class CSharpConstructorSnippetCompletionProviderTests : AbstractCSharpSni
                     $$
                 }
             }
-            """;
-
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 }
