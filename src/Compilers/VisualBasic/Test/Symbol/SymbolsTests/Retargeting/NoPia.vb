@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
 Imports System.Xml.Linq
 Imports Xunit
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
     Public Class NoPia
@@ -226,7 +227,7 @@ End Class
             Dim assemblies = MetadataTestHelpers.GetSymbolsForReferences(New Object() {
                     compilation1,
                     compilation2,
-                    TestMetadata.Net40.mscorlib
+                    Net40.References.mscorlib
                 })
             Dim localTypes1 = assemblies(0).Modules(0)
             Dim localTypes2 = assemblies(1).Modules(0)

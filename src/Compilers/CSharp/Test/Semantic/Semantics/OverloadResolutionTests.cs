@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -8192,7 +8193,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source1, new[] { TestMetadata.Net40.SystemCore }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source1, new[] { Net40.References.SystemCore }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -8228,7 +8229,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source1, new[] { TestMetadata.Net40.SystemCore }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source1, new[] { Net40.References.SystemCore }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -11497,7 +11498,7 @@ public static class Extensions
 }
 ";
 
-            var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
+            var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics();
 
             var code = @"
  class D

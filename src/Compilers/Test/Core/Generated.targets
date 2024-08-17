@@ -12,38 +12,6 @@
           <LogicalName>net20.Microsoft.VisualBasic.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\net20\Microsoft.VisualBasic.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net40)\build\.NETFramework\v4.0\mscorlib.dll">
-          <LogicalName>net40.mscorlib.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\net40\mscorlib.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net40)\build\.NETFramework\v4.0\System.dll">
-          <LogicalName>net40.System.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\net40\System.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net40)\build\.NETFramework\v4.0\System.Core.dll">
-          <LogicalName>net40.System.Core.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\net40\System.Core.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net40)\build\.NETFramework\v4.0\System.Data.dll">
-          <LogicalName>net40.System.Data.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\net40\System.Data.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net40)\build\.NETFramework\v4.0\System.Xml.dll">
-          <LogicalName>net40.System.Xml.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\net40\System.Xml.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net40)\build\.NETFramework\v4.0\System.Xml.Linq.dll">
-          <LogicalName>net40.System.Xml.Linq.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\net40\System.Xml.Linq.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net40)\build\.NETFramework\v4.0\Microsoft.VisualBasic.dll">
-          <LogicalName>net40.Microsoft.VisualBasic.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\net40\Microsoft.VisualBasic.dll</Link>
-        </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net40)\build\.NETFramework\v4.0\Microsoft.CSharp.dll">
-          <LogicalName>net40.Microsoft.CSharp.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\net40\Microsoft.CSharp.dll</Link>
-        </EmbeddedResource>
         <EmbeddedResource Include="$(PkgMicrosoft_CSharp)\ref\netstandard1.0\Microsoft.CSharp.dll">
           <LogicalName>netstandard10.microsoftcsharp.Microsoft.CSharp.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\microsoftcsharp\Microsoft.CSharp.dll</Link>

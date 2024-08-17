@@ -15,8 +15,8 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 using Utils = Microsoft.CodeAnalysis.CSharp.UnitTests.CompilationUtils;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
@@ -1005,7 +1005,7 @@ static class S3
 {
     internal static object F3(this N.C x, object y) { return null; }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore },
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore },
                     parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (10,16): error CS0407: 'void S2.F1(object, object)' has the wrong return type
                 //             M1(c.F1); // wrong return type
@@ -1028,7 +1028,7 @@ static class S3
             // diagnostic (the caller has to grub through the diagnostic bag to see that there is no error there) and then the caller
             // has to produce a generic error message, which we see below. It does not appear that all callers have that test, though,
             // suggesting there may be a latent bug of missing diagnostics.
-            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics(
                 // (10,16): error CS1503: Argument 1: cannot convert from 'method group' to 'Func<object, object>'
                 //             M1(c.F1); // wrong return type
                 Diagnostic(ErrorCode.ERR_BadArgType, "c.F1").WithArguments("1", "method group", "System.Func<object, object>").WithLocation(10, 16),
@@ -2202,7 +2202,7 @@ internal static class C
     private static void Main(string[] args) { }
 }
 ";
-            var compilation = CreateEmptyCompilation(source, new[] { Net40.mscorlib });
+            var compilation = CreateEmptyCompilation(source, new[] { Net40.References.mscorlib });
             compilation.VerifyDiagnostics(
                 // (4,29): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(4, 29));

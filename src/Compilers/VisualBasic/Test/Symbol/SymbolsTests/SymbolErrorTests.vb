@@ -6906,7 +6906,7 @@ BC30002: Type 'C1' is not defined.
         Public Sub BC30656ERR_UnsupportedField1()
             Dim csharpComp = CSharp.CSharpCompilation.Create("Test", options:=New CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
             Dim text = "public class A  {      public static volatile int X;  }"
-            Dim ref = Net40.mscorlib
+            Dim ref = Net40.References.mscorlib
             csharpComp = csharpComp.AddSyntaxTrees(CSharp.SyntaxFactory.ParseSyntaxTree(text))
             csharpComp = csharpComp.AddReferences(ref)
             Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
@@ -17302,7 +17302,7 @@ BC36015: 'Private Sub DisposeI(Of T As base)(ByRef Instance As T)' has the same 
                 End Sub
             End Class
         ]]></file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
 
             Dim expectedErrors1 = <errors><![CDATA[
 BC36551: Extension methods can be defined only in modules.
@@ -17324,7 +17324,7 @@ BC36551: Extension methods can be defined only in modules.
                 End Sub
             End Module
         ]]></file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             Dim expectedErrors1 = <errors><![CDATA[
 BC36552: Extension methods must declare at least one parameter. The first parameter specifies which type to extend.
                 Public Sub Print()
@@ -17345,7 +17345,7 @@ BC36552: Extension methods must declare at least one parameter. The first parame
                 End Sub
             End Module
         ]]></file>
-   </compilation>, {Net40.SystemCore})
+   </compilation>, {Net40.References.SystemCore})
             Dim expectedErrors1 = <errors><![CDATA[
 BC36553: 'Optional' cannot be applied to the first parameter of an extension method. The first parameter specifies which type to extend.
                 Public Sub Print(Optional ByVal str As String = "hello")
@@ -17366,7 +17366,7 @@ BC36553: 'Optional' cannot be applied to the first parameter of an extension met
                 End Sub
             End Module
         ]]></file>
-    </compilation>, {Net40.SystemCore})
+    </compilation>, {Net40.References.SystemCore})
             Dim expectedErrors1 = <errors><![CDATA[
 BC36554: 'ParamArray' cannot be applied to the first parameter of an extension method. The first parameter specifies which type to extend.
                 Public Sub Print(ByVal ParamArray str() As String)
@@ -17398,7 +17398,7 @@ Module M
     End Sub
 End Module
 ]]></file>
-</compilation>, {Net40.SystemCore})
+</compilation>, {Net40.References.SystemCore})
             Dim expectedErrors1 = <errors><![CDATA[
 BC36561: Extension method 'M2' has type constraints that can never be satisfied.
     Sub M2(Of T As I(Of U), U)(o As T)

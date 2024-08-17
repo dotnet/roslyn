@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -28,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
                     TestResources.General.MDTestLib2,
                     TestResources.SymbolsTests.Methods.CSMethods,
                     TestResources.SymbolsTests.Methods.VBMethods,
-                    ResourcesNet40.mscorlib,
+                    Net40.Resources.mscorlib,
                     TestResources.SymbolsTests.Methods.ByRefReturn
                 }, importInternals:=True)
 

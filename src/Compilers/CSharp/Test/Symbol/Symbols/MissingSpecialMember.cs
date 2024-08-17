@@ -122,7 +122,7 @@ public static class Program
 
     public static void Extension(this string x) {}
 }";
-            var comp = CreateEmptyCompilation(source, new[] { Net40.mscorlib }, options: TestOptions.ReleaseDll);
+            var comp = CreateEmptyCompilation(source, new[] { Net40.References.mscorlib }, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
