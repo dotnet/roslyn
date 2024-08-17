@@ -88,7 +88,7 @@ namespace System
 
         public Span<T> Slice(int offset) => Slice(offset, Length - offset);
 
-        public override string ToString()
+        public new string ToString()
         {
             if (typeof(T) == typeof(char))
             {
@@ -177,7 +177,7 @@ namespace System
 
         public ReadOnlySpan<T> Slice(int offset) => Slice(offset, Length - offset);
 
-        public override string ToString()
+        public new string ToString()
         {
             if (typeof(T) == typeof(char))
             {
