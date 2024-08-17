@@ -11117,10 +11117,8 @@ static class Program
 
         [CombinatorialData]
         [Theory]
-        public void ArrayEmpty_01([CombinatorialValues(TargetFramework.Mscorlib45Extended, TargetFramework.Net80)] TargetFramework targetFramework)
+        public void ArrayEmpty_01(bool includeEmptyArray)
         {
-            if (!ExecutionConditionUtil.IsCoreClr && targetFramework == TargetFramework.Net80) return;
-
             string source = """
                 using System.Collections.Generic;
                 class Program
@@ -11142,12 +11140,18 @@ static class Program
                     static IReadOnlyList<T> EmptyIReadOnlyList<T>() => [];
                 }
                 """;
+
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
+            if (!includeEmptyArray)
+            {
+                comp.MakeMemberMissing(SpecialMember.System_Array__Empty);
+            }
+
             var verifier = CompileAndVerify(
-                new[] { source, s_collectionExtensions },
-                targetFramework: targetFramework,
+                comp,
                 expectedOutput: "[], [], [], [], [], [], ");
 
-            string expectedIL = (targetFramework == TargetFramework.Mscorlib45Extended) ?
+            string expectedIL = !includeEmptyArray ?
                 """
                 {
                   // Code size        7 (0x7)
@@ -11185,10 +11189,8 @@ static class Program
 
         [CombinatorialData]
         [Theory]
-        public void ArrayEmpty_02([CombinatorialValues(TargetFramework.Mscorlib45Extended, TargetFramework.Net80)] TargetFramework targetFramework)
+        public void ArrayEmpty_02(bool includeEmptyArray)
         {
-            if (!ExecutionConditionUtil.IsCoreClr && targetFramework == TargetFramework.Net80) return;
-
             string source = """
                 using System.Collections.Generic;
                 class Program
@@ -11210,12 +11212,16 @@ static class Program
                     static IReadOnlyList<string> EmptyIReadOnlyList() => [];
                 }
                 """;
+            var comp = CreateCompilation(new[] { source, s_collectionExtensions }, options: TestOptions.ReleaseExe);
+            if (!includeEmptyArray)
+            {
+                comp.MakeMemberMissing(SpecialMember.System_Array__Empty);
+            }
             var verifier = CompileAndVerify(
-                new[] { source, s_collectionExtensions },
-                targetFramework: targetFramework,
+                comp,
                 expectedOutput: "[], [], [], [], [], [], ");
 
-            string expectedIL = (targetFramework == TargetFramework.Mscorlib45Extended) ?
+            string expectedIL = !includeEmptyArray ?
                 """
                 {
                   // Code size        7 (0x7)
@@ -18258,7 +18264,7 @@ partial class Program
                     }
                 }
                 """;
-            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Mscorlib45);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, targetFramework: TargetFramework.Mscorlib461);
             comp.VerifyEmitDiagnostics(
                 // (6,11): error CS9187: Could not find an accessible 'Create' method with the expected signature: a static method with a single parameter of type 'ReadOnlySpan<T>' and return type 'MyCollection<T>'.
                 //         F([]);

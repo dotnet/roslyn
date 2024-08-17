@@ -1701,7 +1701,7 @@ Imports System.Runtime.InteropServices
 Public Structure Test
 End Structure
 "
-            Dim piaCompilation = CreateCompilationWithMscorlib45(pia, options:=TestOptions.ReleaseDll, assemblyName:="Pia")
+            Dim piaCompilation = CreateCompilationWithMscorlib461(pia, options:=TestOptions.ReleaseDll, assemblyName:="Pia")
 
             Dim consumer1 = "
 Public Class UsePia1 
@@ -1719,7 +1719,7 @@ Public Class Program
 End Class
 "
             For Each piaRef As MetadataReference In {piaCompilation.EmitToImageReference(), piaCompilation.ToMetadataReference()}
-                Dim compilation1 = CreateCompilationWithMscorlib45(consumer1, references:={piaRef.WithEmbedInteropTypes(True)}, options:=TestOptions.ReleaseDll)
+                Dim compilation1 = CreateCompilationWithMscorlib461(consumer1, references:={piaRef.WithEmbedInteropTypes(True)}, options:=TestOptions.ReleaseDll)
 
                 For Each consumer1Ref As MetadataReference In {compilation1.EmitToImageReference(), compilation1.ToMetadataReference()}
                     Dim compilation2 = CreateEmptyCompilation(consumer2, references:={MscorlibRef_v46, piaRef, consumer1Ref})

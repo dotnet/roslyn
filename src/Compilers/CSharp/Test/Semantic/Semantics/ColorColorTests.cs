@@ -2102,7 +2102,7 @@ class M
                 references: new MetadataReference[]
                 {
                     new CSharpCompilationReference(refLib),
-                    TestMetadata.Net451.mscorlib
+                    NetFramework.mscorlib
                 });
 
             var unifyReferenceWarning =
@@ -2145,7 +2145,7 @@ class C
                 references: new MetadataReference[]
                 {
                     new CSharpCompilationReference(refLib),
-                    TestMetadata.Net451.mscorlib
+                    NetFramework.mscorlib
                 });
 
             var unifyReferenceWarning =

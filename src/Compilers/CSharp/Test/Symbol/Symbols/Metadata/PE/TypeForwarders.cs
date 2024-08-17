@@ -1092,7 +1092,9 @@ class Test
                 !ns.StartsWith("System", StringComparison.Ordinal) &&
                 !ns.StartsWith("Windows", StringComparison.Ordinal) &&
                 !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
-                !ns.StartsWith("Microsoft", StringComparison.Ordinal));
+                !ns.StartsWith("Microsoft", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CppImplementationDetails>", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CrtImplementationDetails>", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "Ns", "Ns.Ms" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }
@@ -1154,7 +1156,9 @@ namespace N1
                 !ns.StartsWith("System", StringComparison.Ordinal) &&
                 !ns.StartsWith("Windows", StringComparison.Ordinal) &&
                 !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
-                !ns.StartsWith("Microsoft", StringComparison.Ordinal));
+                !ns.StartsWith("Microsoft", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CppImplementationDetails>", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CrtImplementationDetails>", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "N1", "N1.N2", "N1.N2.N3" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }
@@ -1216,7 +1220,9 @@ namespace N1
                 !ns.StartsWith("System", StringComparison.Ordinal) &&
                 !ns.StartsWith("Windows", StringComparison.Ordinal) &&
                 !ns.StartsWith("FxResources", StringComparison.Ordinal) &&
-                !ns.StartsWith("Microsoft", StringComparison.Ordinal));
+                !ns.StartsWith("Microsoft", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CppImplementationDetails>", StringComparison.Ordinal) &&
+                !ns.StartsWith("<CrtImplementationDetails>", StringComparison.Ordinal));
             var expectedNamespaces = new[] { "N1", "N1.N2", "N1.N2.N3" };
             Assert.True(actualNamespaces.SetEquals(expectedNamespaces, EqualityComparer<string>.Default));
         }

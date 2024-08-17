@@ -6508,7 +6508,7 @@ class C
     }
 }");
             var root = srcTree.GetRoot();
-            var comp = CreateCompilationWithMscorlib45(new[] { srcTree });
+            var comp = CreateCompilationWithMscorlib461(new[] { srcTree });
 
             var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
             var local = root.DescendantNodes()
@@ -6603,7 +6603,7 @@ class C
     }
 }");
             var root = srcTree.GetRoot();
-            var comp = CreateCompilationWithMscorlib45(new[] { srcTree });
+            var comp = CreateCompilationWithMscorlib461(new[] { srcTree });
 
             var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
             var local = root.DescendantNodes()

@@ -13119,7 +13119,7 @@ namespace System.Runtime.CompilerServices
         [Fact, WorkItem(807, "https://github.com/dotnet/roslyn/issues/807")]
         public void TestAttributePropagationForAsyncAndIterators_01()
         {
-            var source = CreateCompilationWithMscorlib45(@"
+            var source = CreateCompilationWithMscorlib461(@"
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -13235,7 +13235,7 @@ class MyAttribute : System.Attribute
         [Fact, WorkItem(4521, "https://github.com/dotnet/roslyn/issues/4521")]
         public void TestAttributePropagationForAsyncAndIterators_02()
         {
-            var source = CreateCompilationWithMscorlib45(@"
+            var source = CreateCompilationWithMscorlib461(@"
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

@@ -17859,7 +17859,7 @@ Module M
     End Function
 End Module
     ]]></file>
-</compilation>, targetFramework:=TargetFramework.Mscorlib45AndVBRuntime, references:=Net451XmlReferences)
+</compilation>, targetFramework:=TargetFramework.Mscorlib461AndVBRuntime, references:=Net461XmlReferences)
             compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC36710: Extension Method 'Public Function E2(y As Object) As Object' defined in 'M' does not have a signature compatible with delegate 'Delegate Function D() As Object'.
     Private F2 As New D(AddressOf <x/>.E2)

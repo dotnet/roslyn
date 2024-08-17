@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 {
@@ -1169,8 +1170,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         public void TestAttributesAssemblyVersionValue()
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] {
-                Net451.SystemCore,
-                Net451.System,
+                NetFramework.SystemCore,
+                NetFramework.System,
                 Net40.mscorlib
             });
 
@@ -1180,19 +1181,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var asmFileAttr = (NamedTypeSymbol)refNS.GetTypeMembers("AssemblyFileVersionAttribute").Single();
             var attr1 = assemblies[0].GetAttribute(asmFileAttr);
-            attr1.VerifyValue(0, TypedConstantKind.Primitive, "4.0.30319.18408");
+            attr1.VerifyValue(0, TypedConstantKind.Primitive, "4.6.1055.0");
 
             var asmInfoAttr = (NamedTypeSymbol)refNS.GetTypeMembers("AssemblyInformationalVersionAttribute").Single();
             attr1 = assemblies[0].GetAttribute(asmInfoAttr);
-            attr1.VerifyValue(0, TypedConstantKind.Primitive, "4.0.30319.18408");
+            attr1.VerifyValue(0, TypedConstantKind.Primitive, "4.6.1055.0");
         }
 
         [Fact]
         public void TestAttributesWithTypeOfInternalClass()
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]{
-                Net451.SystemCore,
-                Net451.System,
+                NetFramework.SystemCore,
+                NetFramework.System,
                 Net40.mscorlib
             });
 
@@ -1221,9 +1222,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
-                Net451.SystemConfiguration,
-                Net451.System,
-                Net40.mscorlib
+                Net461.References.SystemConfiguration,
+                Net461.References.System,
+                Net461.References.mscorlib
             });
 
             var sysNS = (NamespaceSymbol)assemblies[1].GlobalNamespace.GetMember("System");
@@ -1251,9 +1252,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]
             {
-                Net451.SystemData,
-                Net451.SystemCore,
-                Net451.System,
+                NetFramework.SystemData,
+                NetFramework.SystemCore,
+                NetFramework.System,
                 Net40.mscorlib
             });
 

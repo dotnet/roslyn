@@ -1583,7 +1583,7 @@ using System.Runtime.InteropServices;
 public struct ImageMoniker
 { }";
 
-            CSharpCompilation comp1 = CreateCompilationWithMscorlib45(source1, assemblyName: "Pia948674_1");
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib461(source1, assemblyName: "Pia948674_1");
 
             var source2 = @"
 public interface IBar
@@ -1591,7 +1591,7 @@ public interface IBar
     ImageMoniker? Moniker { get; }
 }";
 
-            CSharpCompilation comp2 = CreateCompilationWithMscorlib45(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_1");
+            CSharpCompilation comp2 = CreateCompilationWithMscorlib461(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_1");
 
             var source3 = @"
 public class BarImpl : IBar
@@ -1602,7 +1602,7 @@ public class BarImpl : IBar
     }
 }";
 
-            CSharpCompilation comp3 = CreateCompilationWithMscorlib45(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
+            CSharpCompilation comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
 
             comp3.VerifyDiagnostics(
     // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
@@ -1610,7 +1610,7 @@ public class BarImpl : IBar
     Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
                 );
 
-            comp3 = CreateCompilationWithMscorlib45(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
+            comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
 
             comp3.VerifyDiagnostics(
     // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
@@ -1636,7 +1636,7 @@ using System.Runtime.InteropServices;
 public struct ImageMoniker
 { }";
 
-            CSharpCompilation comp1 = CreateCompilationWithMscorlib45(source1, assemblyName: "Pia948674_2");
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib461(source1, assemblyName: "Pia948674_2");
 
             var source2 = @"
 public interface IBar
@@ -1644,7 +1644,7 @@ public interface IBar
     ImageMoniker? Moniker { get; }
 }";
 
-            CSharpCompilation comp2 = CreateCompilationWithMscorlib45(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_2");
+            CSharpCompilation comp2 = CreateCompilationWithMscorlib461(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_2");
 
             var source3 = @"
 public class BarImpl : IBar
@@ -1655,7 +1655,7 @@ public class BarImpl : IBar
     }
 }";
 
-            CSharpCompilation comp3 = CreateCompilationWithMscorlib45(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
+            CSharpCompilation comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
 
             comp3.VerifyDiagnostics(
     // (4,24): error CS0539: 'BarImpl.Moniker' in explicit interface declaration is not a member of interface
@@ -1666,7 +1666,7 @@ public class BarImpl : IBar
     Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
                 );
 
-            comp3 = CreateCompilationWithMscorlib45(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
+            comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
 
             comp3.VerifyDiagnostics(
     // (4,24): error CS0539: 'BarImpl.Moniker' in explicit interface declaration is not a member of interface
@@ -1692,7 +1692,7 @@ using System.Runtime.InteropServices;
 public struct ImageMoniker
 { }";
 
-            CSharpCompilation comp1 = CreateCompilationWithMscorlib45(source1, assemblyName: "Pia948674_3");
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib461(source1, assemblyName: "Pia948674_3");
 
             var source2 = @"
 public interface IBar
@@ -1700,7 +1700,7 @@ public interface IBar
     void SetMoniker(ImageMoniker? moniker);
 }";
 
-            CSharpCompilation comp2 = CreateCompilationWithMscorlib45(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_3");
+            CSharpCompilation comp2 = CreateCompilationWithMscorlib461(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_3");
 
             var source3 = @"
 public class BarImpl : IBar
@@ -1709,7 +1709,7 @@ public class BarImpl : IBar
     {}
 }";
 
-            CSharpCompilation comp3 = CreateCompilationWithMscorlib45(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
+            CSharpCompilation comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
 
             comp3.VerifyDiagnostics(
     // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
@@ -1717,7 +1717,7 @@ public class BarImpl : IBar
     Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
                 );
 
-            comp3 = CreateCompilationWithMscorlib45(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
+            comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
 
             comp3.VerifyDiagnostics(
     // (2,24): error CS1769: Type 'ImageMoniker?' from assembly 'Bar948674_3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' cannot be used across assembly boundaries because it has a generic type argument that is an embedded interop type.
@@ -1740,7 +1740,7 @@ using System.Runtime.InteropServices;
 public struct ImageMoniker
 { }";
 
-            CSharpCompilation comp1 = CreateCompilationWithMscorlib45(source1, assemblyName: "Pia948674_4");
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib461(source1, assemblyName: "Pia948674_4");
 
             var source2 = @"
 public interface IBar
@@ -1748,7 +1748,7 @@ public interface IBar
     void SetMoniker(ImageMoniker? moniker);
 }";
 
-            CSharpCompilation comp2 = CreateCompilationWithMscorlib45(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_4");
+            CSharpCompilation comp2 = CreateCompilationWithMscorlib461(source2, new MetadataReference[] { new CSharpCompilationReference(comp1, embedInteropTypes: true) }, assemblyName: "Bar948674_4");
 
             var source3 = @"
 public class BarImpl : IBar
@@ -1757,7 +1757,7 @@ public class BarImpl : IBar
     {}
 }";
 
-            CSharpCompilation comp3 = CreateCompilationWithMscorlib45(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
+            CSharpCompilation comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { new CSharpCompilationReference(comp2), new CSharpCompilationReference(comp1, embedInteropTypes: true) });
 
             comp3.VerifyDiagnostics(
     // (4,15): error CS0539: 'BarImpl.SetMoniker(ImageMoniker?)' in explicit interface declaration is not a member of interface
@@ -1768,7 +1768,7 @@ public class BarImpl : IBar
     Diagnostic(ErrorCode.ERR_GenericsUsedAcrossAssemblies, "IBar").WithArguments("ImageMoniker?", "Bar948674_4, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(2, 24)
                 );
 
-            comp3 = CreateCompilationWithMscorlib45(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
+            comp3 = CreateCompilationWithMscorlib461(source3, new MetadataReference[] { comp2.EmitToImageReference(), comp1.EmitToImageReference().WithEmbedInteropTypes(true) });
 
             comp3.VerifyDiagnostics(
     // (4,15): error CS0539: 'BarImpl.SetMoniker(ImageMoniker?)' in explicit interface declaration is not a member of interface
@@ -2410,7 +2410,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2435,12 +2435,12 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (15,15): error CS8189: Ref mismatch between 'C.M()' and delegate 'D'
                 //         new D(M)();
                 Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "M").WithArguments("C.M()", "D").WithLocation(15, 15)
                 );
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
                 // (15,15): error CS8189: Ref mismatch between 'C.M()' and delegate 'D'
                 //         new D(M)();
                 Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "M").WithArguments("C.M()", "D").WithLocation(15, 15)
@@ -2473,7 +2473,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2502,12 +2502,12 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, parseOptions: TestOptions.WithoutImprovedOverloadCandidates).VerifyDiagnostics(
                 // (19,11): error CS8189: Ref mismatch between 'C.M()' and delegate 'D'
                 //         M(M);
                 Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "M").WithArguments("C.M()", "D").WithLocation(19, 11)
                 );
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
                 // (19,11): error CS8189: Ref mismatch between 'C.M()' and delegate 'D'
                 //         M(M);
                 Diagnostic(ErrorCode.ERR_DelegateRefMismatch, "M").WithArguments("C.M()", "D").WithLocation(19, 11)
@@ -3359,7 +3359,7 @@ static class Extension2
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
 
             comp.VerifyDiagnostics(
     // (16,9): error CS0103: The name 'MathMin' does not exist in the current context
@@ -3421,7 +3421,7 @@ internal class AnyClass : AnyBaseClass
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
 
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
@@ -3453,7 +3453,7 @@ internal class AnyClass : AnyBaseClass
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
 
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
@@ -3486,7 +3486,7 @@ internal class AnyClass : AnyBaseClass
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
 
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
@@ -3521,7 +3521,7 @@ internal class AnyClass : AnyBaseClass
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
 
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
@@ -3553,7 +3553,7 @@ internal class AnyClass : AnyBaseClass
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
 
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
@@ -3585,7 +3585,7 @@ internal class AnyClass : AnyBaseClass
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
 
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
@@ -3615,7 +3615,7 @@ internal class AnyClass : AnyBaseClass
     internal delegate void AnyEnum();
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
 
             comp.VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
@@ -3638,7 +3638,7 @@ using static Test<System.String>;
 
 public static class Test<T> where T : struct { }
 ";
-            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(code).VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using static Test<System.String>;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static Test<System.String>;").WithLocation(2, 1),
@@ -3658,7 +3658,7 @@ class A<T> where T : class
     internal static class B { }
 }
 ";
-            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(code).VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using static A<A<int>[]>.B;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A<A<int>[]>.B;").WithLocation(2, 1),
@@ -3674,7 +3674,7 @@ class A<T> where T : class
 using static A<int, string>;
 static class A<T, U> where T : class where U : struct { }
 ";
-            CreateCompilationWithMscorlib45(code).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(code).VerifyDiagnostics(
                 // (2,1): hidden CS8019: Unnecessary using directive.
                 // using static A<int, string>;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using static A<int, string>;").WithLocation(2, 1),

@@ -525,7 +525,7 @@ class C
     }
 
 }";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
                 // (16,10): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
@@ -570,7 +570,7 @@ class C
     }
 
 }";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
                 // (16,10): error CS8325: 'await' cannot be used in an expression containing a ref conditional operator
@@ -597,7 +597,7 @@ class C
     static int val2 = 44;
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
                 // (8,43): error CS8326: Both conditional operator values must be ref values or neither may be a ref value
@@ -628,7 +628,7 @@ class C
     static int val1 = 33;
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
                 // (8,27): error CS8156: An expression cannot be used in this context because it may not be returned by reference
@@ -662,7 +662,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular7_1);
 
             comp.VerifyEmitDiagnostics(
                 // (15,25): error CS8302: Feature 'ref conditional expression' is not available in C# 7.1. Please use language version 7.2 or greater.
@@ -692,7 +692,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
                 // (15,27): error CS8168: Cannot return local 'local1' by reference because it is not a ref local
@@ -723,7 +723,7 @@ class C
     static int val1 = 33;
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
                 // (14,37): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
@@ -759,7 +759,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
                 // (14,38): error CS8168: Cannot return local 'local2' by reference because it is not a ref local
@@ -796,7 +796,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
                 // (15,20): error CS8157: Cannot return 'temp' by reference because it was initialized to a value that cannot be returned by reference
@@ -943,7 +943,7 @@ class C
     static short val2 = 44;
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
                 // (8,47): error CS8327: The expression must be of type 'int' to match the alternative ref value
@@ -968,7 +968,7 @@ class C
     static System.Func<int> val1 = null;
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
                 // (8,47): error CS8156: An expression cannot be used in this context because it may not be returned by reference
@@ -1194,7 +1194,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib461(source, references: new[] { SystemRuntimeFacadeRef, ValueTupleRef }, options: TestOptions.ReleaseExe);
 
             comp.VerifyEmitDiagnostics(
                 // (9,32): error CS1061: '(int Alice, int)' does not contain a definition for 'Bob' and no extension method 'Bob' accepting a first argument of type '(int Alice, int)' could be found (are you missing a using directive or an assembly reference?)

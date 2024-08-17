@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
             Dim c1 = VisualBasicCompilation.Create("C1", references:={oldMsCorLib, TestReferences.SymbolsTests.CustomModifiers.Modifiers.netmodule})
 
             Dim c1Assembly = c1.Assembly
-            Dim newMsCorLib = Net451.mscorlib
+            Dim newMsCorLib = NetFramework.mscorlib
             Dim c2 = VisualBasicCompilation.Create("C2", references:=New MetadataReference() {newMsCorLib, New VisualBasicCompilationReference(c1)})
             Dim mscorlibAssembly = c2.GetReferencedAssemblySymbol(newMsCorLib)
             Assert.NotSame(mscorlibAssembly, c1.GetReferencedAssemblySymbol(oldMsCorLib))
@@ -103,7 +103,7 @@ End Class"
             Dim c1 = VisualBasicCompilation.Create("C1", {Parse(source)}, {oldMsCorLib})
 
             Dim c1Assembly = c1.Assembly
-            Dim newMsCorLib = Net451.mscorlib
+            Dim newMsCorLib = NetFramework.mscorlib
 
             Dim r1 = New VisualBasicCompilationReference(c1)
             Dim c2 As VisualBasicCompilation = VisualBasicCompilation.Create("C2", references:={newMsCorLib, r1})

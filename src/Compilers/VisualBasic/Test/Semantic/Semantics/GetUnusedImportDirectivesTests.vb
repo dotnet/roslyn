@@ -305,7 +305,7 @@ End Class
         <Fact()>
         Public Sub UnusedImportScript()
             Dim tree = Parse("Imports System", options:=TestOptions.Script)
-            Dim compilation = CreateCompilationWithMscorlib45({tree})
+            Dim compilation = CreateCompilationWithMscorlib461({tree})
             compilation.AssertTheseDiagnostics(
                 <errors>
 BC50001: Unused import statement.
