@@ -4217,7 +4217,7 @@ class S
 
         [Theory]
         [CombinatorialData]
-        public void SingleOverloadReadOnlySpan(bool isMissing , bool useCorLib)
+        public void SingleOverloadReadOnlySpan(bool isMissing, bool useCorLib)
         {
 
             string source = """
@@ -4239,7 +4239,30 @@ class S
             var verify = CompileAndVerify(comp,
                     expectedOutput: executable ? "123" : null,
                     verify: ExecutionConditionUtil.IsCoreClr
-                        ? Verification.FailsILVerify.WithILVerifyMessage("[SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x8 }")
+                        ? Verification.FailsILVerify.WithILVerifyMessage(
+                            """
+                            [SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x12 }
+                            [.ctor]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
+                            [GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x6 }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xd }
+                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xf }
+                            [get_Item]: Unexpected type on the stack. { Offset = 0xe, Found = readonly address of 'T', Expected = address of 'T' }
+                            [.ctor]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
+                            [GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x18 }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x22 }
+                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xd }
+                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xf }
+                            [ToArray]: Unmanaged pointers are not a verifiable type. { Offset = 0x0 }
+                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }
+                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1d }
+                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
+                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }
+                            """)
                         : Verification.FailsPEVerify);
             verify.VerifyDiagnostics();
             verify.VerifyIL("Util.SecondToLast",
@@ -4298,7 +4321,30 @@ class S
             var verify = CompileAndVerify(comp,
                     expectedOutput: executable ? "123" : null,
                     verify: ExecutionConditionUtil.IsCoreClr
-                        ? Verification.FailsILVerify.WithILVerifyMessage("[SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x8 }")
+                        ? Verification.FailsILVerify.WithILVerifyMessage(
+                            """
+                            [SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x8 }
+                            [.ctor]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
+                            [GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x6 }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xd }
+                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xf }
+                            [get_Item]: Unexpected type on the stack. { Offset = 0xe, Found = readonly address of 'T', Expected = address of 'T' }
+                            [.ctor]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
+                            [GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x18 }
+                            [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x22 }
+                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xd }
+                            [Slice]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xf }
+                            [ToArray]: Unmanaged pointers are not a verifiable type. { Offset = 0x0 }
+                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }
+                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x1d }
+                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x9 }
+                            [AsSpan]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x13 }
+                            """)
                         : Verification.FailsPEVerify);
             verify.VerifyDiagnostics();
             verify.VerifyIL("Util.SecondToLast",
