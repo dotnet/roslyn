@@ -615,6 +615,8 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute:
                     case WellKnownType.System_Span_T:
                     case WellKnownType.System_ReadOnlySpan_T:
+                    case WellKnownType.System_Memory_T:
+                    case WellKnownType.System_ReadOnlyMemory_T:
                     case WellKnownType.System_Collections_Immutable_ImmutableArray_T:
                     case WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute:
                     case WellKnownType.System_Index:
@@ -956,6 +958,7 @@ namespace System
                     case WellKnownMember.System_Span_T__ctor_Array:
                     case WellKnownMember.System_Span_T__get_Item:
                     case WellKnownMember.System_Span_T__get_Length:
+                    case WellKnownMember.System_Span_T__Slice_Int:
                     case WellKnownMember.System_Span_T__Slice_Int_Int:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer:
                     case WellKnownMember.System_ReadOnlySpan_T__ctor_Array:

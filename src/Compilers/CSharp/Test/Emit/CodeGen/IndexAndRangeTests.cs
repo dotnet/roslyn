@@ -4240,8 +4240,10 @@ class S
                     expectedOutput: executable ? "123" : null,
                     verify: ExecutionConditionUtil.IsCoreClr
                         ? Verification.FailsILVerify.WithILVerifyMessage(
-                            """
-                            [SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x12 }
+                            "[SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x"
+                            + (isMissing ? "12" : "8")
+                            + """
+                             }
                             [.ctor]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
                             [GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
                             [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x6 }
@@ -4322,8 +4324,10 @@ class S
                     expectedOutput: executable ? "123" : null,
                     verify: ExecutionConditionUtil.IsCoreClr
                         ? Verification.FailsILVerify.WithILVerifyMessage(
-                            """
-                            [SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x8 }
+                            "[SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x"
+                            + (isMissing ? "12" : "8")
+                            + """
+                             }
                             [.ctor]: Unmanaged pointers are not a verifiable type. { Offset = 0x1 }
                             [GetEnumerator]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0xb }
                             [op_Implicit]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x6 }

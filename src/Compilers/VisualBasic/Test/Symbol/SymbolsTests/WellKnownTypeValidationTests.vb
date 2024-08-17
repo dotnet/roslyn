@@ -712,8 +712,7 @@ End Namespace
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
                          WellKnownMember.System_Span_T__Slice_Int_Int,
-                         WellKnownMember.System_ReadOnlySpan_T__Slice_Int,
-                         WellKnownMember.System_ReadOnlySpan_T__Slice_Int,
+                         WellKnownMember.System_Span_T__Slice_Int,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length,
@@ -833,7 +832,11 @@ End Namespace
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan,
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty,
                          WellKnownMember.System_Span_T__ctor_ref_T,
-                         WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T
+                         WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T,
+                         WellKnownMember.System_Memory_T__Slice_Int,
+                         WellKnownMember.System_Memory_T__Slice_Int_Int,
+                         WellKnownMember.System_ReadOnlyMemory_T__Slice_Int,
+                         WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int
                         ' Not always available.
                         Continue For
                 End Select
@@ -922,12 +925,14 @@ End Namespace
                          WellKnownMember.System_Span_T__ctor_Array,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
+                         WellKnownMember.System_Span_T__Slice_Int,
                          WellKnownMember.System_Span_T__Slice_Int_Int,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Pointer,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array,
                          WellKnownMember.System_ReadOnlySpan_T__ctor_Array_Start_Length,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length,
+                         WellKnownMember.System_ReadOnlySpan_T__Slice_Int,
                          WellKnownMember.System_ReadOnlySpan_T__Slice_Int_Int,
                          WellKnownMember.System_Runtime_CompilerServices_AsyncIteratorStateMachineAttribute__ctor,
                          WellKnownMember.System_IAsyncDisposable__DisposeAsync,
@@ -1041,7 +1046,11 @@ End Namespace
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__AsSpan,
                          WellKnownMember.System_Collections_Immutable_ImmutableArray_T__Empty,
                          WellKnownMember.System_Span_T__ctor_ref_T,
-                         WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T
+                         WellKnownMember.System_ReadOnlySpan_T__ctor_ref_readonly_T,
+                         WellKnownMember.System_Memory_T__Slice_Int,
+                         WellKnownMember.System_Memory_T__Slice_Int_Int,
+                         WellKnownMember.System_ReadOnlyMemory_T__Slice_Int,
+                         WellKnownMember.System_ReadOnlyMemory_T__Slice_Int_Int
                         ' Not always available.
                         Continue For
                 End Select
