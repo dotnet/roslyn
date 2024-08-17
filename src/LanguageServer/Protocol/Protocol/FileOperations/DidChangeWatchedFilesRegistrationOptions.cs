@@ -18,7 +18,7 @@ internal class DidChangeWatchedFilesRegistrationOptions : DynamicRegistrationSet
     /// The watchers to register.
     /// </summary>
     /// <remarks>Since LSP 3.17</remarks>
-    [JsonPropertyName("relativePatternSupport")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    [JsonPropertyName("watchers")]
+    [JsonRequired]
     public FileSystemWatcher[] Watchers { get; init; }
 }

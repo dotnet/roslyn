@@ -31,7 +31,6 @@ internal class FileSystemWatcher
     /// which is <c>7</c>.
     /// </summary>
     [JsonPropertyName("kind")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    [DefaultValue(WatchKind.Create | WatchKind.Change | WatchKind.Delete)]
-    public WatchKind Kind { get; init; } = WatchKind.Create | WatchKind.Change | WatchKind.Delete;
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public WatchKind? Kind { get; init; }
 }
