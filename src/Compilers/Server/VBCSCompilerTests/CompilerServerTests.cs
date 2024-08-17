@@ -1243,7 +1243,7 @@ End Module
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task AssemblyIdentityComparer1()
         {
-            _tempDirectory.CreateFile("mscorlib20.dll").WriteAllBytes(TestMetadata.ResourcesNet20.mscorlib);
+            _tempDirectory.CreateFile("mscorlib20.dll").WriteAllBytes(Net20.Resources.mscorlib);
             _tempDirectory.CreateFile("mscorlib40.dll").WriteAllBytes(Net40.Resources.mscorlib);
 
             // Create DLL "lib.dll"
