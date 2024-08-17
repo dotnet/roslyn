@@ -128,7 +128,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
     private Task<bool> _commitTask;
 
-    public bool IsCommitInProgress => _commitTask is not { Status: TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled };
+    public bool IsCommitInProgress => !_dismissed && _commitTask is not { Status: TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled };
 
     /// <summary>
     /// The initial text being renamed.
@@ -349,6 +349,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     public event EventHandler<ImmutableArray<InlineRenameLocation>> ReferenceLocationsChanged;
     public event EventHandler<IInlineRenameReplacementInfo> ReplacementsComputed;
     public event EventHandler ReplacementTextChanged;
+    public event EventHandler<bool> CommitStateChange;
 
     internal OpenTextBufferManager GetBufferManager(ITextBuffer buffer)
         => _openTextBuffers[buffer];
@@ -788,6 +789,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             return false;
         }
 
+
         previewChanges = previewChanges || PreviewChanges;
 
         try
@@ -833,6 +835,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
     private async Task CommitCoreAsync(IUIThreadOperationContext operationContext, bool previewChanges, CancellationToken cancellationToken)
     {
+        CommitStateChange?.Invoke(this, true);
         using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(operationContext.UserCancellationToken, cancellationToken);
         var linkedCancellationToken = operationContext.UserCancellationToken;
         var eventName = previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore;
@@ -859,6 +862,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 if (newSolution == null)
                 {
                     // User clicked cancel.
+                    CommitStateChange?.Invoke(this, false);
                     return;
                 }
             }

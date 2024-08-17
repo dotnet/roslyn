@@ -10,6 +10,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Windows;
 using System.Windows.Interop;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -55,6 +56,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             Session.ReplacementTextChanged += OnReplacementTextChanged;
             Session.ReplacementsComputed += OnReplacementsComputed;
             Session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
+            Session.CommitStateChange += SessionOnCommitStateChange;
             StartingSelection = selectionSpan;
             InitialTrackingSpan = session.TriggerSpan.CreateTrackingSpan(SpanTrackingMode.EdgeInclusive);
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.Rename);
@@ -65,6 +67,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             RegisterOleComponent();
+        }
+
+        private void SessionOnCommitStateChange(object sender, bool e)
+        {
+            if (e)
+            {
+                Visibility = Visibility.Hidden;
+            }
+            else
+            {
+                Visibility = Visibility.Visible;
+            }
         }
 
         public SmartRenameViewModel? SmartRenameViewModel { get; }
@@ -210,6 +224,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public bool IsRenameOverloadsVisible
             => Session.HasRenameOverloads;
 
+        public bool AllowUserInput
+            => !Session.IsCommitInProgress;
+
+
+        private Visibility _visibility;
+        public Visibility Visibility
+        {
+            get => _visibility;
+            set
+            {
+                if (value != _visibility)
+                {
+                    _visibility = value;
+                    NotifyPropertyChanged();
+                }
+            }
+        }
+
         public TextSpan StartingSelection { get; }
 
         public bool Submit()
@@ -315,6 +347,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 {
                     Session.ReplacementTextChanged -= OnReplacementTextChanged;
                     Session.ReplacementsComputed -= OnReplacementsComputed;
+                    Session.CommitStateChange -= SessionOnCommitStateChange;
 
                     if (SmartRenameViewModel is not null)
                     {
