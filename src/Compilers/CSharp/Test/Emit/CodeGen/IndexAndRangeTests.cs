@@ -1,4 +1,4 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+﻿// Licensed to the .NET Foundation under one or more agreements.0Context)
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
@@ -4217,7 +4217,7 @@ class S
 
         [Theory]
         [CombinatorialData]
-        public void SingleOverloadReadOnlySpan(bool isMissing)
+        public void SingleOverloadReadOnlySpan(bool isMissing , bool useCorLib)
         {
 
             string source = """
@@ -4234,10 +4234,13 @@ class S
                                                    TestOptions.UnsafeReleaseExe);
             if (isMissing)
                 comp.MakeMemberMissing(WellKnownMember.System_ReadOnlySpan_T__Slice_Int);
-            // If Verification.Skipped is not passed, the IL Verify will fail with:
-            //     System.Exception : IL Verify failed unexpectedly:
-            //     [SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x8 }
-            var verify = CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Skipped);
+
+            var executable = !useCorLib || ExecutionConditionUtil.IsCoreClr;
+            var verify = CompileAndVerify(comp,
+                    expectedOutput: executable ? "123" : null,
+                    verify: ExecutionConditionUtil.IsCoreClr
+                        ? Verification.FailsILVerify.WithILVerifyMessage("[SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x8 }")
+                        : Verification.FailsPEVerify);
             verify.VerifyDiagnostics();
             verify.VerifyIL("Util.SecondToLast",
                 isMissing
@@ -4272,7 +4275,7 @@ class S
 
         [Theory]
         [CombinatorialData]
-        public void SingleOverloadSpan(bool isMissing)
+        public void SingleOverloadSpan(bool isMissing, bool useCorLib)
         {
 
             string source = """
@@ -4291,10 +4294,12 @@ class S
             if (isMissing)
                 comp.MakeMemberMissing(WellKnownMember.System_Span_T__Slice_Int);
 
-            // If Verification.Skipped is not passed, the IL Verify will fail with:
-            //     System.Exception : IL Verify failed unexpectedly:
-            //     [SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x8 }
-            var verify = CompileAndVerify(comp, expectedOutput: "123", verify: Verification.Skipped);
+            var executable = !useCorLib || ExecutionConditionUtil.IsCoreClr;
+            var verify = CompileAndVerify(comp,
+                    expectedOutput: executable ? "123" : null,
+                    verify: ExecutionConditionUtil.IsCoreClr
+                        ? Verification.FailsILVerify.WithILVerifyMessage("[SecondToLast]: Return type is ByRef, TypedReference, ArgHandle, or ArgIterator. { Offset = 0x8 }")
+                        : Verification.FailsPEVerify);
             verify.VerifyDiagnostics();
             verify.VerifyIL("Util.SecondToLast",
                 isMissing
@@ -4329,19 +4334,27 @@ class S
 
         [Theory]
         [CombinatorialData]
-        public void SingleOverloadString(bool isMissing)
+        public void SingleOverloadString(bool isMissing, bool useCorLib)
         {
             string source = """
                 using System;
                 
                 Console.Write("0123"[1..]);
                 """;
-            var comp = CreateCompilationWithIndexAndRange(
+            var comp = useCorLib
+                ? CreateCompilation(
+                    source, targetFramework: TargetFramework.Net70)
+                : CreateCompilationWithIndexAndRange(
                 new[] { source, TestSources.GetSubArray, },
                 TestOptions.ReleaseExe);
             if (isMissing)
                 comp.MakeMemberMissing(SpecialMember.System_String__SubstringInt);
-            var verify = CompileAndVerify(comp, expectedOutput: "123");
+            var executable = !useCorLib || ExecutionConditionUtil.IsCoreClr;
+            var verify = CompileAndVerify(comp,
+                    expectedOutput: executable ? "123" : null,
+                    verify: executable
+                        ? default
+                        : Verification.FailsPEVerify);
             verify.VerifyDiagnostics();
             verify.VerifyIL("<top-level-statements-entry-point>",
                 isMissing
@@ -4373,6 +4386,49 @@ class S
               IL_0006:  callvirt   "string string.Substring(int)"
               IL_000b:  call       "void System.Console.Write(string)"
               IL_0010:  ret
+            }
+            """);
+        }
+
+        [Fact]
+        public void SingleOverloadMemory()
+        {
+            string source = """
+            using System;
+
+            Console.Write(Util.ReadOnly("0123".AsMemory()).ToString());
+            Console.Write(Util.Writable("ABCD".ToCharArray().AsMemory()).ToString());
+
+            static class Util
+            {
+                public static ReadOnlyMemory<char> ReadOnly(ReadOnlyMemory<char> s) => s[1..];
+                public static Memory<char> Writable(Memory<char> s) => s[1..];
+            }
+            """;
+
+            var comp = CompileAndVerify(source,
+                expectedOutput: ExecutionConditionUtil.IsCoreClr ? "123BCD" : null,
+                targetFramework: TargetFramework.Net70,
+                verify: ExecutionConditionUtil.IsCoreClr ? default : Verification.FailsPEVerify);
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("Util.ReadOnly", """
+            {
+              // Code size        9 (0x9)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  ldc.i4.1
+              IL_0003:  call       "System.ReadOnlyMemory<char> System.ReadOnlyMemory<char>.Slice(int)"
+              IL_0008:  ret
+            }
+            """);
+            comp.VerifyIL("Util.Writable", """
+            {
+              // Code size        9 (0x9)
+              .maxstack  2
+              IL_0000:  ldarga.s   V_0
+              IL_0002:  ldc.i4.1
+              IL_0003:  call       "System.Memory<char> System.Memory<char>.Slice(int)"
+              IL_0008:  ret
             }
             """);
         }
