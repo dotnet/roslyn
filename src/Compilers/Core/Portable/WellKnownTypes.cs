@@ -336,6 +336,9 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_CompilerServices_ParamCollectionAttribute,
 
+        System_Memory_T,
+        System_ReadOnlyMemory_T,
+
         NextAvailable,
         // Remember to update the AllWellKnownTypes tests when making changes here
     }
@@ -658,6 +661,9 @@ namespace Microsoft.CodeAnalysis
             "System.Runtime.CompilerServices.Unsafe",
 
             "System.Runtime.CompilerServices.ParamCollectionAttribute",
+
+            "System.Memory`1",
+            "System.ReadOnlyMemory`1",
         };
 
         private static readonly Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
