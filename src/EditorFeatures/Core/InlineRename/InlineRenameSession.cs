@@ -837,6 +837,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     {
         CommitStateChange?.Invoke(this, true);
         using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(operationContext.UserCancellationToken, cancellationToken);
+
         var linkedCancellationToken = operationContext.UserCancellationToken;
         var eventName = previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore;
         using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), linkedCancellationToken))
