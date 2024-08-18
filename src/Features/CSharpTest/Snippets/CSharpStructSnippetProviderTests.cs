@@ -10,12 +10,12 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Snippets;
 
 [Trait(Traits.Feature, Traits.Features.Snippets)]
-public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProviderTests
+public sealed class CSharpStructSnippetProviderTests : AbstractCSharpSnippetProviderTests
 {
-    protected override string SnippetIdentifier => "class";
+    protected override string SnippetIdentifier => "struct";
 
     [Fact]
-    public async Task InsertClassSnippetInBlockNamespaceTest()
+    public async Task InsertStructSnippetInBlockNamespaceTest()
     {
         await VerifySnippetAsync("""
             namespace Namespace
@@ -25,7 +25,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             """, """
             namespace Namespace
             {
-                class {|0:MyClass|}
+                struct {|0:MyStruct|}
                 {
                     $$
                 }
@@ -34,7 +34,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     }
 
     [Fact]
-    public async Task InsertClassSnippetInFileScopedNamespaceTest()
+    public async Task InsertStructSnippetInFileScopedNamespaceTest()
     {
         await VerifySnippetAsync("""
             namespace Namespace;
@@ -43,7 +43,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             """, """
             namespace Namespace;
 
-            class {|0:MyClass|}
+            struct {|0:MyStruct|}
             {
                 $$
             }
@@ -51,12 +51,12 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     }
 
     [Fact]
-    public async Task InsertClassSnippetTest()
+    public async Task InsertStructSnippetTest()
     {
         await VerifySnippetAsync("""
             $$
             """, """
-            class {|0:MyClass|}
+            struct {|0:MyStruct|}
             {
                 $$
             }
@@ -64,14 +64,14 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     }
 
     [Fact]
-    public async Task InsertClassTopLevelSnippetTest()
+    public async Task InsertStructTopLevelSnippetTest()
     {
         await VerifySnippetAsync("""
             System.Console.WriteLine();
             $$
             """, """
             System.Console.WriteLine();
-            class {|0:MyClass|}
+            struct {|0:MyStruct|}
             {
                 $$
             }
@@ -79,7 +79,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     }
 
     [Fact]
-    public async Task InsertClassSnippetInClassTest()
+    public async Task InsertStructSnippetInClassTest()
     {
         await VerifySnippetAsync("""
             class MyClass
@@ -89,7 +89,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             """, """
             class MyClass
             {
-                class {|0:MyClass1|}
+                struct {|0:MyStruct|}
                 {
                     $$
                 }
@@ -98,7 +98,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     }
 
     [Fact]
-    public async Task InsertClassSnippetInRecordTest()
+    public async Task InsertStructSnippetInRecordTest()
     {
         await VerifySnippetAsync("""
             record MyRecord
@@ -108,7 +108,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             """, """
             record MyRecord
             {
-                class {|0:MyClass|}
+                struct {|0:MyStruct|}
                 {
                     $$
                 }
@@ -117,7 +117,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     }
 
     [Fact]
-    public async Task InsertClassSnippetInStructTest()
+    public async Task InsertStructSnippetInStructTest()
     {
         await VerifySnippetAsync("""
             struct MyStruct
@@ -127,7 +127,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             """, """
             struct MyStruct
             {
-                class {|0:MyClass|}
+                struct {|0:MyStruct1|}
                 {
                     $$
                 }
@@ -136,7 +136,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     }
 
     [Fact]
-    public async Task InsertClassSnippetInInterfaceTest()
+    public async Task InsertStructSnippetInInterfaceTest()
     {
         await VerifySnippetAsync("""
             interface MyInterface
@@ -146,7 +146,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             """, """
             interface MyInterface
             {
-                class {|0:MyClass|}
+                struct {|0:MyStruct|}
                 {
                     $$
                 }
@@ -155,12 +155,12 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     }
 
     [Fact]
-    public async Task InsertClassSnippetWithModifiersTest()
+    public async Task InsertStructSnippetWithModifiersTest()
     {
         await VerifySnippetAsync("""
             $$
             """, """
-            public class {|0:MyClass|}
+            public struct {|0:MyStruct|}
             {
                 $$
             }
@@ -174,7 +174,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     }
 
     [Fact]
-    public async Task NoClassSnippetInEnumTest()
+    public async Task NoStructSnippetInEnumTest()
     {
         await VerifySnippetIsAbsentAsync("""
             enum MyEnum
@@ -185,10 +185,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     }
 
     [Fact]
-    public async Task NoClassSnippetInMethodTest()
+    public async Task NoStructSnippetInMethodTest()
     {
         await VerifySnippetIsAbsentAsync("""
-            class Program
+            struct Program
             {
                 public void Method()
                 {
@@ -199,10 +199,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     }
 
     [Fact]
-    public async Task NoClassSnippetInConstructorTest()
+    public async Task NoStructSnippetInConstructorTest()
     {
         await VerifySnippetIsAbsentAsync("""
-            class Program
+            struct Program
             {
                 public Program()
                 {
@@ -214,12 +214,12 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertClassSnippetAfterAccessibilityModifier(string modifier)
+    public async Task InsertStructSnippetAfterAccessibilityModifier(string modifier)
     {
         await VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
-            {{modifier}} class {|0:MyClass|}
+            {{modifier}} struct {|0:MyStruct|}
             {
                 $$
             }
@@ -228,12 +228,12 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
 
     [Theory]
     [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
-    public async Task InsertClassSnippetAfterAccessibilityModifier_RequireAccessibilityModifiers(string modifier)
+    public async Task InsertStructSnippetAfterAccessibilityModifier_RequireAccessibilityModifiers(string modifier)
     {
         await VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
-            {{modifier}} class {|0:MyClass|}
+            {{modifier}} struct {|0:MyStruct|}
             {
                 $$
             }
@@ -247,16 +247,15 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     }
 
     [Theory]
-    [InlineData("abstract")]
-    [InlineData("sealed")]
-    [InlineData("static")]
+    [InlineData("ref")]
+    [InlineData("readonly")]
     [InlineData("unsafe")]
-    public async Task InsertClassSnippetAfterValidModifiersTest(string modifier)
+    public async Task InsertStructSnippetAfterValidModifiersTest(string modifier)
     {
         await VerifySnippetAsync($"""
             {modifier} $$
             """, $$"""
-            {{modifier}} class {|0:MyClass|}
+            {{modifier}} struct {|0:MyStruct|}
             {
                 $$
             }
@@ -264,9 +263,10 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     }
 
     [Theory]
-    [InlineData("ref")]
-    [InlineData("readonly")]
-    public async Task NoClassSnippetAfterInvalidModifiersTest(string modifier)
+    [InlineData("abstract")]
+    [InlineData("sealed")]
+    [InlineData("static")]
+    public async Task NoStructSnippetAfterInvalidModifiersTest(string modifier)
     {
         await VerifySnippetIsAbsentAsync($"""
             {modifier} $$
@@ -280,7 +280,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
         await VerifySnippetAsync($"""
             {modifier} partial $$
             """, $$"""
-            {{modifier}} partial class {|0:MyClass|}
+            {{modifier}} partial struct {|0:MyStruct|}
             {
                 $$
             }
@@ -299,7 +299,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
         await VerifySnippetAsync("""
             partial $$
             """, """
-            public partial class {|0:MyClass|}
+            public partial struct {|0:MyStruct|}
             {
                 $$
             }
@@ -318,7 +318,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
         await VerifySnippetAsync("""
             partial $$
             """, """
-            public partial class {|0:MyClass|}
+            public partial struct {|0:MyStruct|}
             {
                 $$
             }
@@ -337,9 +337,9 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBeforeAllOthers()
     {
         await VerifySnippetAsync("""
-            sealed unsafe $$
+            readonly ref $$
             """, """
-            public sealed unsafe class {|0:MyClass|}
+            public readonly ref struct {|0:MyStruct|}
             {
                 $$
             }
@@ -350,7 +350,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             [*]
             dotnet_style_require_accessibility_modifiers = always
             
-            csharp_preferred_modifier_order = public,sealed,unsafe
+            csharp_preferred_modifier_order = public,readonly,ref
             """);
     }
 
@@ -358,9 +358,9 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBeforeAllOthers_NotAllModifiersInTheList()
     {
         await VerifySnippetAsync("""
-            sealed unsafe $$
+            readonly ref $$
             """, """
-            public sealed unsafe class {|0:MyClass|}
+            public readonly ref struct {|0:MyStruct|}
             {
                 $$
             }
@@ -371,7 +371,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             [*]
             dotnet_style_require_accessibility_modifiers = always
             
-            csharp_preferred_modifier_order = public,sealed
+            csharp_preferred_modifier_order = public,readonly
             """);
     }
 
@@ -379,9 +379,9 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierBetweenOthers()
     {
         await VerifySnippetAsync("""
-            sealed unsafe $$
+            readonly ref $$
             """, """
-            sealed public unsafe class {|0:MyClass|}
+            readonly public ref struct {|0:MyStruct|}
             {
                 $$
             }
@@ -392,7 +392,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             [*]
             dotnet_style_require_accessibility_modifiers = always
             
-            csharp_preferred_modifier_order = sealed,public,unsafe
+            csharp_preferred_modifier_order = readonly,public,ref
             """);
     }
 
@@ -400,9 +400,9 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
     public async Task EnsureCorrectModifierOrderFromOptionsTest_PublicModifierAfterAllOthers()
     {
         await VerifySnippetAsync("""
-            sealed unsafe $$
+            readonly ref $$
             """, """
-            sealed unsafe public class {|0:MyClass|}
+            readonly ref public struct {|0:MyStruct|}
             {
                 $$
             }
@@ -413,7 +413,7 @@ public sealed class CSharpClassSnippetProviderTests : AbstractCSharpSnippetProvi
             [*]
             dotnet_style_require_accessibility_modifiers = always
             
-            csharp_preferred_modifier_order = sealed,unsafe,public
+            csharp_preferred_modifier_order = readonly,ref,public
             """);
     }
 }
