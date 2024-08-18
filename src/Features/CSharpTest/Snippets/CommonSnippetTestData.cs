@@ -28,4 +28,14 @@ public static class CommonSnippetTestData
         "System.DateTime",
         "System.Action",
     };
+
+    public static TheoryData<string> AllAccessibilityModifiers => new()
+    {
+        "public",
+        "private",
+        "protected",
+        "internal",
+        "private protected",
+        "protected internal",
+    };
 }

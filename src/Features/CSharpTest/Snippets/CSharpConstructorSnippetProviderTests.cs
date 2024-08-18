@@ -209,13 +209,8 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
     }
 
     [Theory]
-    [InlineData("public")]
-    [InlineData("private")]
-    [InlineData("protected")]
-    [InlineData("internal")]
-    [InlineData("private protected")]
-    [InlineData("protected internal")]
     [InlineData("static")]
+    [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
     public async Task InsertConstructorSnippetAfterValidModifiersTest(string modifiers)
     {
         await VerifySnippetAsync($$"""
@@ -253,12 +248,7 @@ public sealed class CSharpConstructorSnippetProviderTests : AbstractCSharpSnippe
     }
 
     [Theory]
-    [InlineData("public")]
-    [InlineData("private")]
-    [InlineData("protected")]
-    [InlineData("internal")]
-    [InlineData("private protected")]
-    [InlineData("protected internal")]
+    [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
     public async Task ConstructorSnippetMissingAfterBothAccessibilityModifierAndStaticKeywordTest(string accessibilityModifier)
     {
         await VerifySnippetIsAbsentAsync($$"""
