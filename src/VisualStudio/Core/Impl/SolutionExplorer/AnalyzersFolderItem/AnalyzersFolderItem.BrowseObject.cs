@@ -9,7 +9,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 
 internal partial class AnalyzersFolderItem
 {
-    private sealed class BrowseObject(AnalyzersFolderItem analyzersFolderItem) : LocalizableProperties
+    internal sealed class BrowseObject(AnalyzersFolderItem analyzersFolderItem) : LocalizableProperties
     {
         [Browsable(false)]
         public AnalyzersFolderItem Folder { get; } = analyzersFolderItem;
