@@ -3198,8 +3198,8 @@ public class C : A
                 "System (net461) -> System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
                 "System (net461) -> System.Xml, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
                 "A -> System, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089",
-                "System.dll (net20) -> System.Configuration, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
-                "System.dll (net20) -> System.Xml, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
+                "System (net20) -> System.Configuration, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a",
+                "System (net20) -> System.Xml, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089");
 
             c.VerifyAssemblyVersionsAndAliases(
                 "mscorlib, Version=4.0.0.0",
