@@ -52,12 +52,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var declType = decl.Declaration.Type;
             var namedTypeSymbol = (INamedTypeSymbol)model.GetTypeInfo(declType).Type!;
             var delegateSymbol = namedTypeSymbol.GetSymbol<AnonymousTypeManager.AnonymousDelegatePublicSymbol>();
-            var typeSymbol = delegateSymbol.MapToImplementationSymbol();
+            var typeSymbol = delegateSymbol.MapToImplementationSymbol().OriginalDefinition.GetPublicSymbol();
 
-            Assert.True(typeSymbol.TypeKind == TypeKind.Delegate);
-            Assert.True(typeSymbol.TypeParameters.Length == 1);
-            Assert.True(!typeSymbol.TypeParameters[0].AllowsRefLikeType);
-            Assert.True(typeSymbol.GetMember("Invoke").GetParameters()[0].Type is IArrayTypeSymbol arr && SymbolEqualityComparer.Default.Equals(arr.ElementType, typeSymbol.TypeParameters[0]));
+            Assert.Equal(TypeKind.Delegate, typeSymbol.TypeKind);
+            Assert.Equal(typeSymbol.TypeParameters.Length, 1);
+            Assert.True(!typeSymbol.TypeParameters[0].AllowsRefLikeType, "arrays can never allow ref like types");
+
+            var invokeMethod = typeSymbol.GetMember("Invoke");
+            var invokeMethodParams = invokeMethod.GetParameters();
+            Assert.Equal(1, invokeMethodParams.Length);
+            var arrayType = (IArrayTypeSymbol)invokeMethodParams[0].Type;
+            var arrayElementType = arrayType.ElementType;
+            Assert.True(SymbolEqualityComparer.Default.Equals(arrayElementType, typeSymbol.TypeParameters[0]), "array element type is not the type parameter!");
         }
 
         [Fact, WorkItem(29656, "https://github.com/dotnet/roslyn/issues/29656")]
