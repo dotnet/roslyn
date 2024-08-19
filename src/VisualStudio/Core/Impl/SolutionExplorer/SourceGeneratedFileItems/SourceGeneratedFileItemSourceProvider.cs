@@ -29,6 +29,6 @@ internal sealed class SourceGeneratedFileItemSourceProvider(
 
     protected override IAttachedCollectionSource? CreateCollectionSource(SourceGeneratorItem item, string relationshipName)
         => relationshipName == KnownRelationships.Contains
-            ? new SourceGeneratedFileItemSource(item, workspace, _asyncListener, threadingContext)
+            ? new SourceGeneratedFileItemSource(item, threadingContext, workspace, _asyncListener)
             : null;
 }
