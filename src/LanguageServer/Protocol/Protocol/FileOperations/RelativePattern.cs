@@ -21,7 +21,7 @@ internal class RelativePattern
     /// </summary>
     [JsonPropertyName("baseUri")]
     [JsonRequired]
-    public SumType<Uri, WorkspaceFolder> BaseUri { get; init; }
+    public SumType<WorkspaceFolder, Uri> BaseUri { get; init; }
 
     /// <summary>
     /// The actual glob pattern. See <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#pattern">Glob Pattern</see> for more detail.
