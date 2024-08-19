@@ -68,8 +68,19 @@ internal partial class RemoteWorkspace
 
                 if (oldSolutionChecksums.AnalyzerReferences.Checksum != newSolutionChecksums.AnalyzerReferences.Checksum)
                 {
-                    solution = solution.WithAnalyzerReferences(await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
-                        AssetPathKind.SolutionAnalyzerReferences, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false));
+                    var serializedReferences = await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
+                        AssetPathKind.SolutionAnalyzerReferences, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+
+                    // Absolutely no AnalyzerFileReferences should have come through here.  We should only have
+                    // SerializedAnalyzerReferences, as well as any in-memory references made by tests.
+                    Contract.ThrowIfTrue(serializedReferences.Any(r => r is AnalyzerFileReference));
+
+                    // Take the new set of references we've gotten and create a dedicated set of AnalyzerReferences with
+                    // their own ALC that they can cleanly load (and unload) from.
+                    var isolatedAnalyzerReferences = await this.Workspace.CreateAnalyzerReferencesInIsolatedAssemblyLoadContextAsync(
+                        newSolutionChecksums.AnalyzerReferences.Checksum, serializedReferences, cancellationToken).ConfigureAwait(false);
+
+                    solution = solution.WithAnalyzerReferences(isolatedAnalyzerReferences);
                 }
 
                 if (oldSolutionChecksums.FallbackAnalyzerOptions != newSolutionChecksums.FallbackAnalyzerOptions)
