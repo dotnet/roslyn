@@ -74,14 +74,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         private void SessionOnCommitStateChange(object sender, bool e)
         {
-            if (e)
-            {
-                Visibility = Visibility.Hidden;
-            }
-            else
-            {
-                Visibility = Visibility.Visible;
-            }
+            Visibility = e ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public SmartRenameViewModel? SmartRenameViewModel { get; }
