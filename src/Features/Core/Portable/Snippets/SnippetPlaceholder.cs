@@ -10,15 +10,15 @@ namespace Microsoft.CodeAnalysis.Snippets;
 internal readonly struct SnippetPlaceholder
 {
     /// <summary>
-    /// The identifier in the snippet that needs to be renamed.
+    /// Editable text in the snippet.
     /// </summary>
-    public readonly string Identifier;
+    public readonly string Text;
 
     /// <summary>
     /// The positions associated with the identifier that will need to
     /// be converted into LSP formatted strings.
     /// </summary>
-    public readonly ImmutableArray<int> PlaceHolderPositions;
+    public readonly ImmutableArray<int> StartingPositions;
 
     /// <summary>
     /// <example> 
@@ -26,26 +26,26 @@ internal readonly struct SnippetPlaceholder
     /// <code>
     ///     for (var {1:i} = 0; {1:i} &lt; {2:length}; {1:i}++)
     /// </code>
-    /// Identifier: i, 3 associated positions <br/>
-    /// Identifier: length, 1 associated position <br/>
+    /// Text: <c>i</c>, 3 associated positions <br/>
+    /// Text: <c>length</c>, 1 associated position <br/>
     /// </example>
     /// </summary>
-    public SnippetPlaceholder(string identifier, ImmutableArray<int> placeholderPositions)
+    public SnippetPlaceholder(string text, ImmutableArray<int> startingPositions)
     {
-        if (string.IsNullOrEmpty(identifier))
+        if (string.IsNullOrEmpty(text))
         {
-            throw new ArgumentException($"{nameof(identifier)} must not be an null or empty.");
+            throw new ArgumentException($"{nameof(text)} must not be an null or empty.");
         }
 
-        Identifier = identifier;
-        PlaceHolderPositions = placeholderPositions;
+        Text = text;
+        StartingPositions = startingPositions;
     }
 
     /// <summary>
     /// Initialize a placeholder with a single position
     /// </summary>
-    public SnippetPlaceholder(string identifier, int placeholderPosition)
-        : this(identifier, [placeholderPosition])
+    public SnippetPlaceholder(string text, int startingPosition)
+        : this(text, [startingPosition])
     {
     }
 }

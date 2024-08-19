@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseDll, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilationWithMscorlib461AndCSharp(source, options: TestOptions.ReleaseDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
         }
     }
@@ -2721,7 +2721,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45AndCSharp(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source, parseOptions: TestOptions.Regular9).VerifyDiagnostics(
                 // (9,32): error CS4019: CallerMemberNameAttribute cannot be applied because there are no standard conversions from type 'string' to type 'int'
                 //         void CallerMemberName([CallerMemberName] int s = 2) // 1
                 Diagnostic(ErrorCode.ERR_NoConversionForCallerMemberNameParam, "CallerMemberName").WithArguments("string", "int").WithLocation(9, 32),
@@ -4115,7 +4115,7 @@ class Program
         Console.WriteLine(f());
     }
 }";
-                var comp = CreateCompilationWithMscorlib45(source, parseOptions: DefaultParseOptions);
+                var comp = CreateCompilationWithMscorlib461(source, parseOptions: DefaultParseOptions);
                 comp.VerifyDiagnostics(
                     // (7,9): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                     //         var f() => 42;
@@ -4628,7 +4628,7 @@ namespace System
 ";
             // the scope of an expression variable introduced in the default expression
             // of a local function parameter is that default expression.
-            var compilation = CreateCompilationWithMscorlib45(text);
+            var compilation = CreateCompilationWithMscorlib461(text);
             compilation.VerifyDiagnostics(
                 // (6,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
                 //         void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
@@ -4977,7 +4977,7 @@ class Test : System.Attribute
     public bool p {get; set;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics(
                 // (10,23): error CS0103: The name 'b2' does not exist in the current context
                 //             [Test(p = b2)]
@@ -5011,7 +5011,7 @@ class C
         L(m => L(d => d, m), null);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
+            var comp = CreateCompilationWithMscorlib461(source, references: new[] { SystemCoreRef, CSharpRef });
             comp.VerifyEmitDiagnostics(
                 // (8,18): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 //         L(m => L(d => d, m), null);
@@ -5036,7 +5036,7 @@ class C
             => await L(async m => L(async d => await d, m), p);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
+            var comp = CreateCompilationWithMscorlib461(source, references: new[] { SystemCoreRef, CSharpRef });
             comp.VerifyEmitDiagnostics(
                 // (8,37): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 //             => await L(async m => L(async d => await d, m), p);

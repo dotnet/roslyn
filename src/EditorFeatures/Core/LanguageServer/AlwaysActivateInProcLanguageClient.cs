@@ -69,6 +69,10 @@ internal class AlwaysActivateInProcLanguageClient(
         serverCapabilities.BreakableRangeProvider = true;
 
         serverCapabilities.SupportsDiagnosticRequests = true;
+
+        serverCapabilities.DiagnosticOptions ??= new();
+        serverCapabilities.DiagnosticOptions.WorkspaceDiagnostics = true;
+
         serverCapabilities.DiagnosticProvider ??= new();
 
         // VS does not distinguish between document and workspace diagnostics, so we need to merge them.
