@@ -26,7 +26,8 @@ internal class CreateReleaseTagsCommand
             ProductOption,
             VerbosityOption,
             DevDivAzDOTokenOption,
-            DncEngAzDOTokenOption
+            DncEngAzDOTokenOption,
+            IsCIOption,
         };
         command.Handler = s_defaultHandler;
         return command;

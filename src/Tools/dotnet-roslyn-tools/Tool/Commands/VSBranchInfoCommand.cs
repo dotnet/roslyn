@@ -32,7 +32,8 @@ internal class VSBranchInfoCommand
             ShowArtifacts,
             VerbosityOption,
             DevDivAzDOTokenOption,
-            DncEngAzDOTokenOption
+            DncEngAzDOTokenOption,
+            IsCIOption,
         };
         command.Handler = s_vsBranchInfoCommandHandler;
         return command;
@@ -57,4 +58,3 @@ internal class VSBranchInfoCommand
         }
     }
 }
-

@@ -13,13 +13,8 @@ namespace Microsoft.RoslynTools.Authentication
     internal class LocalSettings
     {
         public string GitHubToken { get; set; } = "";
-
         public string DevDivAzureDevOpsToken { get; set; } = "";
-        public string DevDivAzureDevOpsBaseUri { get; set; } = RoslynToolsSettings.DefaultDevDivAzureDevOpsBaseUri;
-
         public string DncEngAzureDevOpsToken { get; set; } = "";
-        public string DncEngAzureDevOpsBaseUri { get; set; } = RoslynToolsSettings.DefaultDncEngAzureDevOpsBaseUri;
-
 
         public int SaveSettingsFile(ILogger logger)
         {
@@ -38,7 +33,7 @@ namespace Microsoft.RoslynTools.Authentication
         /// </summary>
         /// <returns>Settings for use in remote commands</returns>
         /// <remarks>The command line takes precedence over the settings file.</remarks>
-        public static RoslynToolsSettings GetRoslynToolsSettings(string githubToken, string devDivAzDOToken, string dncEngAzDOToken, ILogger logger)
+        public static RoslynToolsSettings GetRoslynToolsSettings(string githubToken, string devdivAzDOToken, string dncengAzDOToken, bool isCI, ILogger logger)
         {
             var roslynToolsSettings = new RoslynToolsSettings();
 
@@ -48,9 +43,8 @@ namespace Microsoft.RoslynTools.Authentication
 
                 roslynToolsSettings.GitHubToken = localSettings.GitHubToken;
                 roslynToolsSettings.DevDivAzureDevOpsToken = localSettings.DevDivAzureDevOpsToken;
-                roslynToolsSettings.DevDivAzureDevOpsBaseUri = localSettings.DevDivAzureDevOpsBaseUri;
                 roslynToolsSettings.DncEngAzureDevOpsToken = localSettings.DncEngAzureDevOpsToken;
-                roslynToolsSettings.DncEngAzureDevOpsBaseUri = localSettings.DncEngAzureDevOpsBaseUri;
+                roslynToolsSettings.IsCI = isCI;
             }
             catch (Exception e)
             {
@@ -63,14 +57,14 @@ namespace Microsoft.RoslynTools.Authentication
                 roslynToolsSettings.GitHubToken = githubToken;
             }
 
-            if (devDivAzDOToken.Length > 0)
+            if (devdivAzDOToken.Length > 0)
             {
-                roslynToolsSettings.DevDivAzureDevOpsToken = devDivAzDOToken;
+                roslynToolsSettings.DevDivAzureDevOpsToken = devdivAzDOToken;
             }
 
-            if (dncEngAzDOToken.Length > 0)
+            if (dncengAzDOToken.Length > 0)
             {
-                roslynToolsSettings.DncEngAzureDevOpsToken = dncEngAzDOToken;
+                roslynToolsSettings.DncEngAzureDevOpsToken = dncengAzDOToken;
             }
 
             return roslynToolsSettings;

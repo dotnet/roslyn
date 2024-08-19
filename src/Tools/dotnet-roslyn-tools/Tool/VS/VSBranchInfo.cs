@@ -5,6 +5,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Authentication;
 using Microsoft.RoslynTools.Products;
+using Microsoft.RoslynTools.PRTagger;
 using Microsoft.RoslynTools.Utilities;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
@@ -27,8 +28,9 @@ internal static class VSBranchInfo
     {
         try
         {
-            using var devdivConnection = new AzDOConnection(settings.DevDivAzureDevOpsBaseUri, "DevDiv", settings.DevDivAzureDevOpsToken);
-            using var dncengConnection = new AzDOConnection(settings.DncEngAzureDevOpsBaseUri, "internal", settings.DncEngAzureDevOpsToken);
+            using var remoteConnections = new RemoteConnections(settings);
+            var devdivConnection = remoteConnections.DevDivConnection;
+            var dncengConnection = remoteConnections.DncEngConnection;
 
             foreach (var productConfig in AllProducts)
             {

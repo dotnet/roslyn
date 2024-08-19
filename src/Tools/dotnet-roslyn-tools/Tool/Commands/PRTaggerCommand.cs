@@ -9,6 +9,8 @@ using Microsoft.RoslynTools.PRTagger;
 
 namespace Microsoft.RoslynTools.Commands;
 
+using static CommonOptions;
+
 internal static class PRTaggerCommand
 {
     private static readonly PRTaggerCommandDefaultHandler s_prTaggerCommandHandler = new();
@@ -26,9 +28,10 @@ The checking build list is created:
         {
             VSBuild,
             maxVsBuildCheckNumber,
-            CommonOptions.GitHubTokenOption,
-            CommonOptions.DevDivAzDOTokenOption,
-            CommonOptions.DncEngAzDOTokenOption,
+            GitHubTokenOption,
+            DevDivAzDOTokenOption,
+            DncEngAzDOTokenOption,
+            IsCIOption,
         };
 
         command.Handler = s_prTaggerCommandHandler;

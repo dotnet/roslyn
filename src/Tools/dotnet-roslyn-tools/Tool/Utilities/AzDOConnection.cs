@@ -27,11 +27,11 @@ internal sealed class AzDOConnection : IDisposable
     public ProjectHttpClient ProjectClient { get; }
     public PipelinesHttpClient PipelinesHttpClient { get; }
 
-    public AzDOConnection(string azdoUrl, string projectName, string azdoToken)
+    public AzDOConnection(VssConnection vssConnection, string projectName)
     {
+        Connection = vssConnection;
         BuildProjectName = projectName;
 
-        Connection = new VssConnection(new Uri(azdoUrl), new VssBasicCredential(string.Empty, azdoToken));
         NuGetClient = new HttpClient();
 
         GitClient = Connection.GetClient<GitHttpClient>();
