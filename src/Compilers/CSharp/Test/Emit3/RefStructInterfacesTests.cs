@@ -17390,11 +17390,9 @@ class C
 ";
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (10,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
+                // (10,15): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in new S1())
-        {
-        }").WithArguments("S2").WithLocation(10, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 15)
                 );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
@@ -17470,14 +17468,20 @@ class C
             comp2.VerifyEmitDiagnostics(
                 // (6,9): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (var i in new S1()) {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "await foreach (var i in new S1()) {}").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 9)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "await foreach (var i in new S1()) {}").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 9),
+                // (6,15): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         await foreach (var i in new S1()) {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 15)
                 );
 
             comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
                 // (14,24): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // public ref struct S2 : IAsyncDisposable
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "IAsyncDisposable").WithArguments("ref struct interfaces", "13.0").WithLocation(14, 24)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "IAsyncDisposable").WithArguments("ref struct interfaces", "13.0").WithLocation(14, 24),
+                // (40,15): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         await foreach (var i in new S1()) {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(40, 15)
                 );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
@@ -17553,7 +17557,10 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(21, 65),
                 // (22,73): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         where TEnumerator : ICustomEnumerator, IAsyncDisposable, allows ref struct 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(22, 73)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(22, 73),
+                // (24,15): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         await foreach (var i in default(TEnumerable)) {}
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(24, 15)
                 );
 
             comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);

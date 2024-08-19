@@ -2086,6 +2086,11 @@ public ref struct S
                 }
                 """;
 
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,15): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         await foreach (var s in new C())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 15));
+
             var expectedDiagnostics = new[]
             {
                 // (6,9): error CS4007: Instance of type 'C.Enumerator' cannot be preserved across 'await' or 'yield' boundary.
@@ -2096,7 +2101,6 @@ public ref struct S
         }").WithArguments("C.Enumerator").WithLocation(6, 9)
             };
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
         }
@@ -2131,6 +2135,11 @@ public ref struct S
                 }
                 """ + AsyncStreamsTypes;
 
+            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (7,15): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         await foreach (var x in new C())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 15));
+
             var expectedDiagnostics = new[]
             {
                 // (7,9): error CS4007: Instance of type 'C.Enumerator' cannot be preserved across 'await' or 'yield' boundary.
@@ -2141,7 +2150,6 @@ public ref struct S
         }").WithArguments("C.Enumerator").WithLocation(7, 9)
             };
 
-            CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilationWithTasksExtensions(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilationWithTasksExtensions(source).VerifyEmitDiagnostics(expectedDiagnostics);
         }
@@ -2169,6 +2177,11 @@ public ref struct S
                 }
                 """;
 
+            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (6,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         foreach (var x in new C())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(6, 9));
+
             var expectedDiagnostics = new[]
             {
                 // (6,9): error CS4007: Instance of type 'C.Enumerator' cannot be preserved across 'await' or 'yield' boundary.
@@ -2179,7 +2192,6 @@ public ref struct S
         }").WithArguments("C.Enumerator").WithLocation(6, 9)
             };
 
-            CreateCompilation(source, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilation(source).VerifyEmitDiagnostics(expectedDiagnostics);
         }

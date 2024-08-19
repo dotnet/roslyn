@@ -987,6 +987,11 @@ class C1
 
 ";
 
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (15,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         foreach (var i in obj)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(15, 9));
+
             var expectedDiagnostics = new[]
             {
                 // (15,9): error CS4007: Instance of type 'C1.S1' cannot be preserved across 'await' or 'yield' boundary.
@@ -998,7 +1003,6 @@ class C1
         }").WithArguments("C1.S1").WithLocation(15, 9)
             };
 
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilationWithMscorlibAndSpan(text).VerifyEmitDiagnostics(expectedDiagnostics);
         }
@@ -1047,12 +1051,14 @@ class C1
 
 ";
 
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (10,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         foreach (var i in obj)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 9));
+
             var expectedOutput = "12-1";
 
-            var comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular12);
-            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
-
-            comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular13);
+            var comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular13);
             CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe);
@@ -1123,6 +1129,11 @@ class C1
 }
 ";
 
+            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (33,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         foreach (var i in new C1())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(33, 9));
+
             var expectedDiagnostics = new[]
             {
                 // (33,9): error CS4007: Instance of type 'C1.S1' cannot be preserved across 'await' or 'yield' boundary.
@@ -1133,7 +1144,6 @@ class C1
         }").WithArguments("C1.S1").WithLocation(33, 9)
             };
 
-            CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular12).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilationWithMscorlibAndSpan(text, parseOptions: TestOptions.Regular13).VerifyEmitDiagnostics(expectedDiagnostics);
             CreateCompilationWithMscorlibAndSpan(text).VerifyEmitDiagnostics(expectedDiagnostics);
         }
@@ -1188,12 +1198,14 @@ class C1
 }
 ";
 
+            CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular12).VerifyDiagnostics(
+                // (17,9): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //         foreach (var i in new C1())
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "foreach").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(17, 9));
+
             var expectedOutput = "12-1-2";
 
-            var comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular12);
-            CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
-
-            comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular13);
+            var comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe, TestOptions.Regular13);
             CompileAndVerify(comp, expectedOutput: expectedOutput, verify: Verification.FailsILVerify).VerifyDiagnostics();
 
             comp = CreateCompilationWithMscorlibAndSpan(text, TestOptions.ReleaseExe);
