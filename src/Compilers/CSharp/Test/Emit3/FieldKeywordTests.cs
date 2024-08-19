@@ -1971,6 +1971,49 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_RefPropertyMustHaveGetAccessor, "PI").WithLocation(12, 32));
         }
 
+        [Theory]
+        [InlineData(false, false)]
+        [InlineData(false, true)]
+        [InlineData(true, false)]
+        public void SetOnly(bool useStatic, bool useInit)
+        {
+            string modifier = useStatic ? "static" : "      ";
+            string setter = useInit ? "init" : "set";
+            string source = $$"""
+                class C
+                {
+                    {{modifier}} object P02 { {{setter}}; }
+                    {{modifier}} object P03 { {{setter}} { } }
+                    {{modifier}} object P04 { {{setter}} { field = value; } }
+                    {{modifier}} object P11 { get; }
+                    {{modifier}} object P12 { get; {{setter}}; }
+                    {{modifier}} object P13 { get; {{setter}} { } }
+                    {{modifier}} object P14 { get; {{setter}} { field = value; } }
+                    {{modifier}} object P21 { get => field; }
+                    {{modifier}} object P22 { get => field; {{setter}}; }
+                    {{modifier}} object P23 { get => field; {{setter}} { } }
+                    {{modifier}} object P24 { get => field; {{setter}} { field = value; } }
+                    {{modifier}} object P31 { get => null; }
+                    {{modifier}} object P32 { get => null; {{setter}}; }
+                    {{modifier}} object P33 { get => null; {{setter}} { } }
+                    {{modifier}} object P34 { get => null; {{setter}} { field = value; } }
+                    {{modifier}} object P41 { get { return field; } }
+                    {{modifier}} object P42 { get { return field; } {{setter}}; }
+                    {{modifier}} object P43 { get { return field; } {{setter}} { } }
+                    {{modifier}} object P44 { get { return field; } {{setter}} { field = value; } }
+                    {{modifier}} object P51 { get { return null; } }
+                    {{modifier}} object P52 { get { return null; } {{setter}}; }
+                    {{modifier}} object P53 { get { return null; } {{setter}} { } }
+                    {{modifier}} object P54 { get { return null; } {{setter}} { field = value; } }
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,25): error CS8051: Auto-implemented properties must have get accessors.
+                //            object P02 { set; }
+                Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, setter).WithLocation(3, 25));
+        }
+
         // PROTOTYPE: Confirm that both accessors must be overridden.
         [Theory]
         [CombinatorialData]
