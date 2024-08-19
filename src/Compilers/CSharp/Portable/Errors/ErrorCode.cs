@@ -1529,7 +1529,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_AutoPropsInRoStruct = 8341,
         ERR_FieldlikeEventsInRoStruct = 8342,
         // ERR_RefStructInterfaceImpl = 8343,
-        ERR_BadSpecialByRefIterator = 8344,
+        // ERR_BadSpecialByRefIterator = 8344,
         ERR_FieldAutoPropCantBeByRefLike = 8345,
         ERR_StackAllocConversionNotPossible = 8346,
 

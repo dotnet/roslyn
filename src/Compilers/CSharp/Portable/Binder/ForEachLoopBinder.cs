@@ -525,11 +525,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol getEnumeratorType = getEnumeratorMethod.ReturnType;
 
-            if (builder.InlineArraySpanType == WellKnownType.Unknown && getEnumeratorType.IsRestrictedType() && (IsDirectlyInIterator || IsInAsyncMethod()))
-            {
-                diagnostics.Add(ErrorCode.ERR_BadSpecialByRefIterator, foreachKeyword.GetLocation(), getEnumeratorType);
-            }
-
             diagnostics.Add(_syntax.ForEachKeyword, useSiteInfo);
 
             // Due to the way we extracted the various types, these conversions should always be possible.

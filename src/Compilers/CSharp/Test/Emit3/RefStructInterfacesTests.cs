@@ -16373,10 +16373,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (27,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (27,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(27, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }").WithArguments("S2").WithLocation(27, 9)
                 );
         }
 
@@ -16422,10 +16425,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (30,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (30,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(30, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }").WithArguments("S2").WithLocation(30, 9)
                 );
         }
 
@@ -16480,10 +16486,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (39,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (39,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable))
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(39, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }").WithArguments("TEnumerator").WithLocation(39, 9)
                 );
         }
 
@@ -16544,10 +16553,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (45,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (45,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable))
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(45, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }").WithArguments("TEnumerator").WithLocation(45, 9)
                 );
         }
 
@@ -16733,10 +16745,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (27,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (27,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(27, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }").WithArguments("S2").WithLocation(27, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -16795,10 +16810,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (27,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (27,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(27, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }").WithArguments("S2").WithLocation(27, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -16857,10 +16875,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (27,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (27,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(27, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in new S1())
+        {
+            System.Console.Write(i);
+        }").WithArguments("S2").WithLocation(27, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -16938,10 +16959,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (46,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (46,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable))
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(46, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }").WithArguments("TEnumerator").WithLocation(46, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -17023,10 +17047,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (50,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (50,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable))
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(50, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }").WithArguments("TEnumerator").WithLocation(50, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -17113,10 +17140,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (55,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (55,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable))
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(55, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }").WithArguments("TEnumerator").WithLocation(55, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -17207,10 +17237,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (59,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (59,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable))
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(59, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }").WithArguments("TEnumerator").WithLocation(59, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -17288,10 +17321,13 @@ class C
 ";
             var comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, options: TestOptions.ReleaseExe);
 
-            comp.VerifyDiagnostics(
-                // (46,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+            comp.VerifyEmitDiagnostics(
+                // (46,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable))
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(46, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in default(TEnumerable))
+        {
+            System.Console.Write(i);
+        }").WithArguments("TEnumerator").WithLocation(46, 9)
                 );
 
             var tree = comp.SyntaxTrees.Single();
@@ -17354,23 +17390,29 @@ class C
 ";
             var comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
-                // (10,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                // (10,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(10, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in new S1())
+        {
+        }").WithArguments("S2").WithLocation(10, 9)
                 );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (10,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                // (10,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(10, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in new S1())
+        {
+        }").WithArguments("S2").WithLocation(10, 9)
                 );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp2.VerifyEmitDiagnostics(
-                // (10,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                // (10,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1())
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(10, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, @"await foreach (var i in new S1())
+        {
+        }").WithArguments("S2").WithLocation(10, 9)
                 );
         }
 
@@ -17428,34 +17470,28 @@ class C
             comp2.VerifyEmitDiagnostics(
                 // (6,9): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         await foreach (var i in new S1()) {}
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "await foreach (var i in new S1()) {}").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 9),
-                // (6,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
-                //         await foreach (var i in new S1()) {}
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "await foreach (var i in new S1()) {}").WithArguments("ref struct interfaces", "13.0").WithLocation(6, 9)
                 );
 
             comp2 = CreateCompilation(src1 + src2, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular12);
             comp2.VerifyEmitDiagnostics(
                 // (14,24): error CS9202: Feature 'ref struct interfaces' is not available in C# 12.0. Please use language version 13.0 or greater.
                 // public ref struct S2 : IAsyncDisposable
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "IAsyncDisposable").WithArguments("ref struct interfaces", "13.0").WithLocation(14, 24),
-                // (40,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
-                //         await foreach (var i in new S1()) {}
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(40, 15)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "IAsyncDisposable").WithArguments("ref struct interfaces", "13.0").WithLocation(14, 24)
                 );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp2.VerifyEmitDiagnostics(
-                // (6,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                // (6,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1()) {}
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await foreach (var i in new S1()) {}").WithArguments("S2").WithLocation(6, 9)
                 );
 
             comp2 = CreateCompilation(src2, references: [comp1.ToMetadataReference()], targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp2.VerifyEmitDiagnostics(
-                // (6,15): error CS8344: foreach statement cannot operate on enumerators of type 'S2' in async or iterator methods because 'S2' is a ref struct or a type parameter that allows ref struct.
+                // (6,9): error CS4007: Instance of type 'S2' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in new S1()) {}
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("S2").WithLocation(6, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await foreach (var i in new S1()) {}").WithArguments("S2").WithLocation(6, 9)
                 );
 
             var src3 = @"
@@ -17517,24 +17553,21 @@ class C
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(21, 65),
                 // (22,73): error CS9202: Feature 'allows ref struct constraint' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //         where TEnumerator : ICustomEnumerator, IAsyncDisposable, allows ref struct 
-                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(22, 73),
-                // (24,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
-                //         await foreach (var i in default(TEnumerable)) {}
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(24, 15)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "ref struct").WithArguments("allows ref struct constraint", "13.0").WithLocation(22, 73)
                 );
 
             comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics, parseOptions: TestOptions.Regular13);
             comp.VerifyEmitDiagnostics(
-                // (24,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+                // (24,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable)) {}
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(24, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await foreach (var i in default(TEnumerable)) {}").WithArguments("TEnumerator").WithLocation(24, 9)
                 );
 
             comp = CreateCompilation(src, targetFramework: s_targetFrameworkSupportingByRefLikeGenerics);
             comp.VerifyEmitDiagnostics(
-                // (24,15): error CS8344: foreach statement cannot operate on enumerators of type 'TEnumerator' in async or iterator methods because 'TEnumerator' is a ref struct or a type parameter that allows ref struct.
+                // (24,9): error CS4007: Instance of type 'TEnumerator' cannot be preserved across 'await' or 'yield' boundary.
                 //         await foreach (var i in default(TEnumerable)) {}
-                Diagnostic(ErrorCode.ERR_BadSpecialByRefIterator, "foreach").WithArguments("TEnumerator").WithLocation(24, 15)
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "await foreach (var i in default(TEnumerable)) {}").WithArguments("TEnumerator").WithLocation(24, 9)
                 );
         }
 
