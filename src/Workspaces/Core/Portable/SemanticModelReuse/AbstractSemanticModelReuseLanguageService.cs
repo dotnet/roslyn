@@ -106,28 +106,38 @@ internal abstract class AbstractSemanticModelReuseLanguageService<
         }
         else
         {
-            using var pooledCurrentMembers = SharedPools.Default<List<SyntaxNode>>().GetPooledObject();
-            var currentMembers = pooledCurrentMembers.Object;
+            var currentMembersCount = 0;
+            var index = 0;
 
-            this.SyntaxFacts.AddMethodLevelMembers(currentRoot, currentMembers);
-            var index = currentMembers.IndexOf(currentBodyNode);
-            if (index < 0)
+            // Explicitly scope these pooled objects to allow earlier disposal and reduced pool pressure.
+            using (var pooledMembers = SharedPools.Default<List<SyntaxNode>>().GetPooledObject())
             {
-                Debug.Fail($"Unhandled member type in {nameof(GetPreviousBodyNode)}");
-                return null;
+                var currentMembers = pooledMembers.Object;
+
+                this.SyntaxFacts.AddMethodLevelMembers(currentRoot, currentMembers);
+                index = currentMembers.IndexOf(currentBodyNode);
+                if (index < 0)
+                {
+                    Debug.Fail($"Unhandled member type in {nameof(GetPreviousBodyNode)}");
+                    return null;
+                }
+
+                currentMembersCount = currentMembers.Count;
             }
 
-            using var pooledPreviousMembers = SharedPools.Default<List<SyntaxNode>>().GetPooledObject();
-            var previousMembers = pooledPreviousMembers.Object;
-
-            this.SyntaxFacts.AddMethodLevelMembers(previousRoot, previousMembers);
-            if (currentMembers.Count != previousMembers.Count)
+            using (var pooledMembers = SharedPools.Default<List<SyntaxNode>>().GetPooledObject())
             {
-                Debug.Fail("Member count shouldn't have changed as there were no top level edits.");
-                return null;
-            }
+                var previousMembers = pooledMembers.Object;
 
-            return previousMembers[index];
+                this.SyntaxFacts.AddMethodLevelMembers(previousRoot, previousMembers);
+                if (currentMembersCount != previousMembers.Count)
+                {
+                    Debug.Fail("Member count shouldn't have changed as there were no top level edits.");
+                    return null;
+                }
+
+                return previousMembers[index];
+            }
         }
     }
 
