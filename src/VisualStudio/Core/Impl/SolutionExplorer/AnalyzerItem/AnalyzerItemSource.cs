@@ -52,6 +52,8 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource
             _cancellationTokenSource.Token);
 
         this.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+
+        // Kick off the initial work to determine the starting set of items.
         _workQueue.AddWork();
     }
 
