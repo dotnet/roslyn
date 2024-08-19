@@ -22,7 +22,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
-internal sealed class AnalyzerItemSource : IAttachedCollectionSource, INotifyPropertyChanged
+internal sealed class AnalyzerItemSource : IAttachedCollectionSource
 {
     private readonly AnalyzersFolderItem _analyzersFolder;
     private readonly IAnalyzersCommandHandler _commandHandler;
@@ -33,8 +33,6 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource, INotifyPro
     private readonly AsyncBatchingWorkQueue _workQueue;
 
     private IReadOnlyCollection<AnalyzerReference>? _analyzerReferences;
-
-    public event PropertyChangedEventHandler PropertyChanged = null!;
 
     private Workspace Workspace => _analyzersFolder.Workspace;
     private ProjectId ProjectId => _analyzersFolder.ProjectId;
@@ -63,9 +61,6 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource, INotifyPro
     public bool HasItems => !_cancellationTokenSource.IsCancellationRequested;
 
     public IEnumerable Items => _items;
-
-    private void NotifyPropertyChanged(string propertyName)
-        => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
     private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
     {
@@ -99,9 +94,10 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource, INotifyPro
             this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
 
             _cancellationTokenSource.Cancel();
+
+            // Note: mutating _items will be picked up automatically by clients who are bound to the collection.  We do
+            // not need to notify them through some other mechanism.
             _items.Clear();
-            NotifyPropertyChanged(nameof(HasItems));
-            NotifyPropertyChanged(nameof(Items));
             return;
         }
 
@@ -129,7 +125,6 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource, INotifyPro
         finally
         {
             _items.EndBulkOperation();
-            NotifyPropertyChanged(nameof(Items));
         }
 
         async Task<ImmutableArray<AnalyzerReference>> GetAnalyzerReferencesWithAnalyzersOrGeneratorsAsync(
