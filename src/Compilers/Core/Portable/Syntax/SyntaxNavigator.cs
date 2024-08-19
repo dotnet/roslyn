@@ -101,7 +101,9 @@ namespace Microsoft.CodeAnalysis
 
                 while (stack.Count > 0)
                 {
-                    var en = stack.Pop();
+                    // only pop enumerator off the stack if it is actually done
+                    var en = stack.Peek();
+
                     if (en.MoveNext())
                     {
                         var child = en.Current;
@@ -111,12 +113,11 @@ namespace Microsoft.CodeAnalysis
                             var token = GetFirstToken(child.AsToken(), predicate, stepInto);
                             if (token.RawKind != None)
                             {
+                                // done, pop enumerator off stack
+                                stack.Pop();
                                 return token;
                             }
                         }
-
-                        // push this enumerator back, not done yet
-                        stack.Push(en);
 
                         if (child.IsNode)
                         {
@@ -147,7 +148,8 @@ namespace Microsoft.CodeAnalysis
 
                 while (stack.Count > 0)
                 {
-                    var en = stack.Pop();
+                    // only pop enumerator off the stack if it is actually done
+                    var en = stack.Peek();
 
                     if (en.MoveNext())
                     {
@@ -158,12 +160,11 @@ namespace Microsoft.CodeAnalysis
                             var token = GetLastToken(child.AsToken(), predicate, stepInto);
                             if (token.RawKind != None)
                             {
+                                // done, pop enumerator off stack
+                                stack.Pop();
                                 return token;
                             }
                         }
-
-                        // push this enumerator back, not done yet
-                        stack.Push(en);
 
                         if (child.IsNode)
                         {
