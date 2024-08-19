@@ -2,11 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
+using System.Reflection;
+using Microsoft.Azure.Pipelines.WebApi;
 using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.Core.WebApi;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
-using Microsoft.TeamFoundation.TestManagement.WebApi;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.FileContainer.Client;
 using Microsoft.VisualStudio.Services.WebApi;
@@ -24,6 +25,7 @@ internal sealed class AzDOConnection : IDisposable
     public HttpClient NuGetClient { get; }
     public FileContainerHttpClient ContainerClient { get; }
     public ProjectHttpClient ProjectClient { get; }
+    public PipelinesHttpClient PipelinesHttpClient { get; }
 
     public AzDOConnection(string azdoUrl, string projectName, string azdoToken)
     {
@@ -38,6 +40,8 @@ internal sealed class AzDOConnection : IDisposable
         ContainerClient = Connection.GetClient<FileContainerHttpClient>();
 
         ProjectClient = Connection.GetClient<ProjectHttpClient>();
+
+        PipelinesHttpClient = Connection.GetClient<PipelinesHttpClient>();
     }
 
     public async Task<List<Build>?> TryGetBuildsAsync(string pipelineName, string? buildNumber = null, ILogger? logger = null, int? maxFetchingVsBuildNumber = null, BuildResult? resultsFilter = null, BuildQueryOrder? buildQueryOrder = null)
@@ -62,6 +66,42 @@ internal sealed class AzDOConnection : IDisposable
         catch
         {
             return null;
+        }
+    }
+
+    public async Task TryRunPipelineAsync(string branchName, string pipelineName, string sha, int prNumber, ILogger logger)
+    {
+        try
+        {
+            var buildDefinition = (await BuildClient.GetDefinitionsAsync(BuildProjectName, name: pipelineName)).Single();
+            var repositoryParams = new Dictionary<string, RepositoryResourceParameters>
+            {
+                {
+                    "self", new RepositoryResourceParameters
+                    {
+                        RefName = $"refs/heads/{branchName}",
+                        Version = sha
+                    }
+                }
+            };
+
+            var runPipelineParameters = new RunPipelineParameters
+            {
+                Resources = new RunResourcesParameters
+                {
+                   
+                },
+                TemplateParameters = new Dictionary<string, string> { { "prNumber", prNumber.ToString() }, { "sha", sha } }
+            };
+
+            var repositoryField = runPipelineParameters.Resources.GetType().GetField("m_repositories", BindingFlags.NonPublic | BindingFlags.Instance);
+            repositoryField?.SetValue(runPipelineParameters.Resources, repositoryParams);
+            var run = await PipelinesHttpClient.RunPipelineAsync(runPipelineParameters, BuildProjectName, buildDefinition.Id);
+            logger.LogInformation($"Pipeline running at: {((ReferenceLink)run.Links.Links["web"]).Href}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error running pipeline: {ex.Message}");
         }
     }
 

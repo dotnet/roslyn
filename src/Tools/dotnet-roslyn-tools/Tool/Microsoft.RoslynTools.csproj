@@ -26,8 +26,8 @@
     <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.3.0-beta.4" />
     <PackageReference Include="LibGit2Sharp" Version="0.27.0-preview-0175" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
-    <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="16.201.0-preview" />
-    <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="16.201.0-preview" />
+    <PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="19.239.0-preview" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.Client" Version="19.239.0-preview" />
     <PackageReference Include="Newtonsoft.Json" Version="$(NewtonsoftJsonVersion)" />
     <PackageReference Include="NuGet.Protocol" Version="6.9.1" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta2.21615.1" />
