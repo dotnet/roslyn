@@ -4,9 +4,13 @@
 
 namespace Microsoft.CodeAnalysis.InlineRename;
 
-internal enum InlineRenameSessionCommitState
+/// <summary>
+/// State represents different stages when commit starts in InlineRenameSession.
+/// </summary>
+internal enum CommitState
 {
-    None,
+    NotStart,
     WaitConflictResolution,
-    CancelledByPreview,
+    StartApplyChanges,
+    End,
 }

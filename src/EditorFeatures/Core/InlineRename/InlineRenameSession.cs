@@ -342,6 +342,21 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         QueueApplyReplacements();
     }
 
+
+    private CommitState _commitState = CommitState.NotStart;
+    public CommitState CommitState
+    {
+        get => _commitState;
+        set
+        {
+            if (_commitState != value)
+            {
+                _commitState = value;
+                CommitStateChange?.Invoke(this, value);
+            }
+        }
+    }
+
     public Workspace Workspace { get; }
     public SymbolRenameOptions Options { get; private set; }
     public bool PreviewChanges { get; private set; }
@@ -357,7 +372,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// <summary>
     /// True if commit operation starts, False if commit operation ends.
     /// </summary>
-    public event EventHandler<bool> CommitStateChange;
+    public event EventHandler<CommitState> CommitStateChange;
 
     internal OpenTextBufferManager GetBufferManager(ITextBuffer buffer)
         => _openTextBuffers[buffer];
@@ -842,13 +857,13 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
     private async Task CommitCoreAsync(IUIThreadOperationContext operationContext, bool previewChanges, CancellationToken cancellationToken)
     {
-        CommitStateChange?.Invoke(this, true);
         using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(operationContext.UserCancellationToken, cancellationToken);
 
         var linkedCancellationToken = operationContext.UserCancellationToken;
         var eventName = previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore;
         using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), linkedCancellationToken))
         {
+            CommitState = CommitState.WaitConflictResolution;
             var info = await _conflictResolutionTask.JoinAsync(linkedCancellationToken).ConfigureAwait(true);
             var newSolution = info.NewSolution;
 
@@ -869,8 +884,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
                 if (newSolution == null)
                 {
-                    // User clicked cancel.
-                    CommitStateChange?.Invoke(this, false);
+                    // User clicked cancel. Head back to NotStart state.
+                    CommitState = CommitState.NotStart;
                     return;
                 }
             }
@@ -882,6 +897,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 RenameLogMessage.UserActionOutcome.Committed, previewChanges,
                 async () =>
                 {
+                    CommitState = CommitState.StartApplyChanges;
                     var error = await TryApplyRenameAsync(newSolution, linkedCancellationToken).ConfigureAwait(false);
                     if (error is not null)
                     {
@@ -890,7 +906,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                         notificationService.SendNotification(
                             error.Value.message, EditorFeaturesResources.Rename_Symbol, error.Value.severity);
                     }
-                    CommitStateChange?.Invoke(this, false);
+
+                    CommitState = CommitState.End;
                 }).ConfigureAwait(false);
         }
     }
