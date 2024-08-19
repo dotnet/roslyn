@@ -8,9 +8,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
 internal static class AnalyzerReferenceExtensions
 {
-    public static bool HasAnalyzersOrSourceGenerators(
-        this AnalyzerReference analyzerFileReference,
-        string language)
+    public static bool HasAnalyzersOrSourceGenerators(this AnalyzerReference analyzerFileReference, string language)
         => !analyzerFileReference.GetAnalyzers(language).IsDefaultOrEmpty ||
            !analyzerFileReference.GetGenerators(language).IsDefaultOrEmpty;
 }
