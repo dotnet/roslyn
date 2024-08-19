@@ -116,11 +116,6 @@ namespace Roslyn.Test.Utilities
 "@
 
 
-Add-TargetFramework "Net20" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net20)\build\.NETFramework\v2.0' @(
-  'mscorlib.dll',
-  'System.dll',
-  'Microsoft.VisualBasic.dll')
-
 Add-TargetFramework "MicrosoftCSharp" '$(PkgMicrosoft_CSharp)' @(
   'Netstandard10#ref\netstandard1.0\Microsoft.CSharp.dll'
   'Netstandard13Lib#lib\netstandard1.3\Microsoft.CSharp.dll'

@@ -22,27 +22,6 @@ namespace Roslyn.Test.Utilities
                 ImageBytes = imageBytes;
             }
         }
-        public static class ResourcesNet20
-        {
-            private static byte[] _mscorlib;
-            public static byte[] mscorlib => ResourceLoader.GetOrCreateResource(ref _mscorlib, "net20.mscorlib.dll");
-            private static byte[] _System;
-            public static byte[] System => ResourceLoader.GetOrCreateResource(ref _System, "net20.System.dll");
-            private static byte[] _MicrosoftVisualBasic;
-            public static byte[] MicrosoftVisualBasic => ResourceLoader.GetOrCreateResource(ref _MicrosoftVisualBasic, "net20.Microsoft.VisualBasic.dll");
-            public static ReferenceInfo[] All => new[]
-            {
-                new ReferenceInfo("mscorlib.dll", mscorlib),
-                new ReferenceInfo("System.dll", System),
-                new ReferenceInfo("Microsoft.VisualBasic.dll", MicrosoftVisualBasic),
-            };
-        }
-        public static class Net20
-        {
-            public static PortableExecutableReference mscorlib { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet20.mscorlib).GetReference(display: "mscorlib.dll (net20)", filePath: "mscorlib.dll");
-            public static PortableExecutableReference System { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet20.System).GetReference(display: "System.dll (net20)", filePath: "System.dll");
-            public static PortableExecutableReference MicrosoftVisualBasic { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet20.MicrosoftVisualBasic).GetReference(display: "Microsoft.VisualBasic.dll (net20)", filePath: "Microsoft.VisualBasic.dll");
-        }
         public static class ResourcesMicrosoftCSharp
         {
             private static byte[] _Netstandard10;
