@@ -28,20 +28,23 @@ internal partial class StreamingFindUsagesPresenter
     /// This context supports showing reference items, and will display appropriate messages
     /// about no-references being found for a definition at the end of the search.
     /// </summary>
-    private sealed class WithReferencesFindUsagesContext : AbstractTableDataSourceFindUsagesContext
+    private sealed class WithReferencesFindUsagesContext(
+        StreamingFindUsagesPresenter presenter,
+        IFindAllReferencesWindow findReferencesWindow,
+        ImmutableArray<ITableColumnDefinition> customColumns,
+        IGlobalOptionService globalOptions,
+        bool includeContainingTypeAndMemberColumns,
+        bool includeKindColumn,
+        IThreadingContext threadingContext)
+        : AbstractTableDataSourceFindUsagesContext(
+            presenter,
+            findReferencesWindow,
+            customColumns,
+            globalOptions,
+            includeContainingTypeAndMemberColumns,
+            includeKindColumn,
+            threadingContext)
     {
-        public WithReferencesFindUsagesContext(
-            StreamingFindUsagesPresenter presenter,
-            IFindAllReferencesWindow findReferencesWindow,
-            ImmutableArray<ITableColumnDefinition> customColumns,
-            IGlobalOptionService globalOptions,
-            bool includeContainingTypeAndMemberColumns,
-            bool includeKindColumn,
-            IThreadingContext threadingContext)
-            : base(presenter, findReferencesWindow, customColumns, globalOptions, includeContainingTypeAndMemberColumns, includeKindColumn, threadingContext)
-        {
-        }
-
         protected override async ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken)
         {
             // If this is a definition we always want to show, then create entries for all the declaration locations
@@ -83,7 +86,7 @@ internal partial class StreamingFindUsagesPresenter
                 {
                     // We only include declaration entries in the entries we show when 
                     // not grouping by definition.
-                    AddRange(PrimaryEntriesWhenNotGroupingByDefinition, NonPrimaryEntriesWhenNotGroupingByDefinition, entries, isPrimary);
+                    AddRange(EntriesWhenNotGroupingByDefinition, entries, isPrimary);
                     CurrentVersionNumber++;
                     changed = true;
                 }
@@ -100,13 +103,13 @@ internal partial class StreamingFindUsagesPresenter
         {
             lock (Gate)
             {
-                foreach (var entry in PrimaryEntriesWhenNotGroupingByDefinition)
+                foreach (var entry in EntriesWhenNotGroupingByDefinition.primary)
                 {
                     if (entry.DefinitionBucket.DefinitionItem == definition)
                         return true;
                 }
 
-                foreach (var entry in NonPrimaryEntriesWhenNotGroupingByDefinition)
+                foreach (var entry in EntriesWhenNotGroupingByDefinition.nonPrimary)
                 {
                     if (entry.DefinitionBucket.DefinitionItem == definition)
                         return true;
@@ -165,10 +168,10 @@ internal partial class StreamingFindUsagesPresenter
                 {
                     // Once we can make the new entry, add it to the appropriate list.
                     if (addToEntriesWhenGroupingByDefinition)
-                        Add(PrimaryEntriesWhenGroupingByDefinition, NonPrimaryEntriesWhenGroupingByDefinition, entry, isPrimary);
+                        Add(EntriesWhenGroupingByDefinition, entry, isPrimary);
 
                     if (addToEntriesWhenNotGroupingByDefinition)
-                        Add(PrimaryEntriesWhenNotGroupingByDefinition, NonPrimaryEntriesWhenNotGroupingByDefinition, entry, isPrimary);
+                        Add(EntriesWhenNotGroupingByDefinition, entry, isPrimary);
                 }
 
                 CurrentVersionNumber++;
@@ -236,7 +239,7 @@ internal partial class StreamingFindUsagesPresenter
         {
             lock (Gate)
             {
-                var entries = whenGroupingByDefinition
+                var (primary, nonPrimary) = whenGroupingByDefinition
                     ? EntriesWhenGroupingByDefinition
                     : EntriesWhenNotGroupingByDefinition;
 
@@ -244,7 +247,9 @@ internal partial class StreamingFindUsagesPresenter
                 // them if they want to be displayed without any references.  This will 
                 // ensure that we still see things like overrides and whatnot, but we
                 // won't show property-accessors.
-                var seenDefinitions = entries.Select(r => r.DefinitionBucket.DefinitionItem).ToSet();
+                var seenDefinitions = primary.Concat(nonPrimary)
+                    .Select(r => r.DefinitionBucket.DefinitionItem)
+                    .ToSet();
                 var q = from definition in Definitions
                         where !seenDefinitions.Contains(definition) &&
                               definition.DisplayIfNoReferences
@@ -253,19 +258,15 @@ internal partial class StreamingFindUsagesPresenter
                 // If we find at least one of these types of definitions, then just return those.
                 var result = ImmutableArray.CreateRange(q);
                 if (result.Length > 0)
-                {
                     return result;
-                }
 
-                // We found no definitions that *want* to be displayed.  However, we still 
-                // want to show something.  So, if necessary, show at lest the first definition
-                // even if we found no references and even if it would prefer to not be seen.
-                if (entries.Count == 0 && Definitions.Count > 0)
-                {
+                // We found no definitions that *want* to be displayed.  However, we still want to show something.  So,
+                // if necessary, show at lest the first definition even if we found no references and even if it would
+                // prefer to not be seen.
+                if (primary.Count == 0 && nonPrimary.Count == 0 && Definitions.Count > 0)
                     return [Definitions.First()];
-                }
 
-                return ImmutableArray<DefinitionItem>.Empty;
+                return [];
             }
         }
 

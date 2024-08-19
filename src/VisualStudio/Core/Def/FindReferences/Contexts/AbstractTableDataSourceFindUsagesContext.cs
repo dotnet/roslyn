@@ -109,10 +109,8 @@ internal partial class StreamingFindUsagesPresenter
         /// </summary>
         private bool _currentlyGroupingByDefinition;
 
-        protected readonly List<Entry> PrimaryEntriesWhenNotGroupingByDefinition = [];
-        protected readonly List<Entry> PrimaryEntriesWhenGroupingByDefinition = [];
-        protected readonly List<Entry> NonPrimaryEntriesWhenNotGroupingByDefinition = [];
-        protected readonly List<Entry> NonPrimaryEntriesWhenGroupingByDefinition = [];
+        protected readonly (List<Entry> primary, List<Entry> nonPrimary) EntriesWhenNotGroupingByDefinition = ([], []);
+        protected readonly (List<Entry> primary, List<Entry> nonPrimary) EntriesWhenGroupingByDefinition = ([], []);
 
         private TableEntriesSnapshot? _lastSnapshot;
         public int CurrentVersionNumber { get; protected set; }
@@ -184,15 +182,15 @@ internal partial class StreamingFindUsagesPresenter
         protected abstract ValueTask OnDefinitionFoundWorkerAsync(DefinitionItem definition, CancellationToken cancellationToken);
         protected abstract ValueTask OnReferenceFoundWorkerAsync(SourceReferenceItem reference, CancellationToken cancellationToken);
 
-        protected static void Add<T>(List<T> primaryList, List<T> nonPrimaryList, T item, bool isPrimary)
+        protected static void Add<T>((List<T> primary, List<T> nonPrimary) entries, T item, bool isPrimary)
         {
-            var list = isPrimary ? primaryList : nonPrimaryList;
+            var list = isPrimary ? entries.primary : entries.nonPrimary;
             list.Add(item);
         }
 
-        protected static void AddRange<T>(List<T> primaryList, List<T> nonPrimaryList, ArrayBuilder<T> builder, bool isPrimary)
+        protected static void AddRange<T>((List<T> primary, List<T> nonPrimary) entries, ArrayBuilder<T> builder, bool isPrimary)
         {
-            var list = isPrimary ? primaryList : nonPrimaryList;
+            var list = isPrimary ? entries.primary : entries.nonPrimary;
             list.Capacity = list.Count + builder.Count;
 
             foreach (var item in builder)
@@ -599,8 +597,8 @@ internal partial class StreamingFindUsagesPresenter
                     var entries = _cleared
                         ? []
                         : _currentlyGroupingByDefinition
-                            ? ToImmutableArray(PrimaryEntriesWhenGroupingByDefinition, NonPrimaryEntriesWhenGroupingByDefinition)
-                            : ToImmutableArray(PrimaryEntriesWhenNotGroupingByDefinition, NonPrimaryEntriesWhenNotGroupingByDefinition);
+                            ? ToImmutableArray(EntriesWhenGroupingByDefinition)
+                            : ToImmutableArray(EntriesWhenNotGroupingByDefinition);
 
                     _lastSnapshot = new TableEntriesSnapshot(entries, CurrentVersionNumber);
                 }
@@ -609,13 +607,13 @@ internal partial class StreamingFindUsagesPresenter
             }
         }
 
-        private static ImmutableArray<Entry> ToImmutableArray(List<Entry> entries1, List<Entry> entries2)
+        private static ImmutableArray<Entry> ToImmutableArray((List<Entry> primary, List<Entry> nonPrimary) entries)
         {
-            var result = new FixedSizeArrayBuilder<Entry>(entries1.Count + entries2.Count);
-            foreach (var entry in entries1)
+            var result = new FixedSizeArrayBuilder<Entry>(entries.nonPrimary.Count + entries.primary.Count);
+            foreach (var entry in entries.primary)
                 result.Add(entry);
 
-            foreach (var entry in entries2)
+            foreach (var entry in entries.nonPrimary)
                 result.Add(entry);
 
             return result.MoveToImmutable();
