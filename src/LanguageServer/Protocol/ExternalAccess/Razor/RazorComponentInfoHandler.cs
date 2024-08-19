@@ -52,33 +52,10 @@ internal sealed class RazorComponentInfoHandler : ILspServiceRequestHandler<Razo
             return null;
         }
 
-        // Create a document in-memory to represent the file Razor wants to add
-        //var newFilePath = ProtocolConversions.GetDocumentFilePathFromUri(request.NewDocument.Uri);
-        //var newSource = SourceText.From(request.NewContents);
-        //var newFileLoader = new SourceTextLoader(newSource, newFilePath);
-        //var newDocumentId = DocumentId.CreateNewId(project.Id);
-        //var newSolution = project.Solution.AddDocument(
-        //    DocumentInfo.Create(
-        //        newDocumentId,
-        //        name: newFilePath,
-        //        loader: newFileLoader,
-        //        filePath: newFilePath));
-
-        //var newDocument = newSolution.GetRequiredDocument(newDocumentId);
-
-        //var formattingService = newDocument.GetLanguageService<INewDocumentFormattingService>();
-        //if (formattingService is not null)
-        //{
-        //    var hintDocument = project.Documents.FirstOrDefault();
-        //    var cleanupOptions = await newDocument.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
-        //    newDocument = await formattingService.FormatNewDocumentAsync(newDocument, hintDocument, cleanupOptions, cancellationToken).ConfigureAwait(false);
-        //}
-
         var document = context.Solution.GetDocument(request.Document);
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var syntaxTree = semanticModel.SyntaxTree;
         var root = (CompilationUnitSyntax)syntaxTree.GetRoot(cancellationToken);
-
 
         var (methods, fields) = GetInfoInsideRazorDocument(root, semanticModel, cancellationToken);
 
@@ -107,7 +84,6 @@ internal sealed class RazorComponentInfoHandler : ILspServiceRequestHandler<Razo
             {
                 continue;
             }
-
 
             var targetMethod = invocationOperation.TargetMethod;
             if (targetMethod is null)
