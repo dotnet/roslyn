@@ -121,39 +121,6 @@ Add-TargetFramework "Net20" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net
   'System.dll',
   'Microsoft.VisualBasic.dll')
 
-Add-TargetFramework "Net40" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net40)\build\.NETFramework\v4.0' @(
-  'mscorlib.dll',
-  'System.dll',
-  'System.Core.dll',
-  'System.Data.dll',
-  'System.Xml.dll',
-  'System.Xml.Linq.dll',
-  'Microsoft.VisualBasic.dll',
-  'Microsoft.CSharp.dll'
-)
-
-Add-TargetFramework "Net451" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_net451)\build\.NETFramework\v4.5.1' @(
-  'mscorlib.dll',
-  'System.dll',
-  'System.Configuration.dll',
-  'System.Core.dll',
-  'System.Data.dll',
-  'System.Drawing.dll',
-  'System.EnterpriseServices.dll',
-  'System.Runtime.Serialization.dll',
-  'System.Windows.Forms.dll',
-  'System.Web.Services.dll',
-  'System.Xml.dll',
-  'System.Xml.Linq.dll',
-  'Microsoft.CSharp.dll',
-  'Microsoft.VisualBasic.dll',
-  'Facades\System.ObjectModel.dll',
-  'Facades\System.Runtime.dll',
-  'Facades\System.Runtime.InteropServices.WindowsRuntime.dll',
-  'Facades\System.Threading.dll',
-  'Facades\System.Threading.Tasks.dll'
-)
-
 Add-TargetFramework "MicrosoftCSharp" '$(PkgMicrosoft_CSharp)' @(
   'Netstandard10#ref\netstandard1.0\Microsoft.CSharp.dll'
   'Netstandard13Lib#lib\netstandard1.3\Microsoft.CSharp.dll'
