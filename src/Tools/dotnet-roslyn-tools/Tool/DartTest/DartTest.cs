@@ -41,7 +41,7 @@ internal static class DartTest
             }
         }
 
-        var directory = await ClonePullRequest(remoteConnections.DncengConnection, remoteConnections.GitHubClient, prNumber, azureBranchName, logger, sha, cancellationToken).ConfigureAwait(false);
+        var directory = await ClonePullRequest(prNumber, azureBranchName, logger, sha, cancellationToken).ConfigureAwait(false);
         await remoteConnections.DevDivConnection.TryRunPipelineAsync(azureBranchName, "Roslyn Integration CI DartLab", sha, prNumber, logger).ConfigureAwait(false);
         CleanupDirectory(directory, logger);
         return 0;
@@ -51,7 +51,7 @@ internal static class DartTest
     {
         try
         {
-            var requestUri = $"pulls/{prNumber}";
+            var requestUri = $"/repos/dotnet/roslyn/pulls/{prNumber}";
             var response = await gitHubClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
@@ -73,7 +73,7 @@ internal static class DartTest
     }
 
 
-    private static async Task<string?> ClonePullRequest(AzDOConnection dncengConnection, HttpClient gitHubClient, int prNumber, string azureBranchName, ILogger logger, string sha, CancellationToken cancellationToken)
+    private static async Task<string?> ClonePullRequest(int prNumber, string azureBranchName, ILogger logger, string sha, CancellationToken cancellationToken)
     {
         string? targetDirectory = null;
 

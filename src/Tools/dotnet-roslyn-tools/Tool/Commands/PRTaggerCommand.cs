@@ -5,7 +5,7 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using Microsoft.Extensions.Logging;
-using Microsoft.RoslynTools.PRTagger;
+using Microsoft.RoslynTools.Utilities;
 
 namespace Microsoft.RoslynTools.Commands;
 

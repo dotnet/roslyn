@@ -1,4 +1,4 @@
-﻿// Licensed to the.NET Foundation under one or more agreements.
+// Licensed to the.NET Foundation under one or more agreements.
 // The.NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
@@ -6,11 +6,10 @@ using System.Net.Http.Headers;
 using Maestro.Common;
 using Maestro.Common.AzureDevOpsTokens;
 using Microsoft.RoslynTools.Authentication;
-using Microsoft.RoslynTools.Utilities;
 using Microsoft.VisualStudio.Services.Common;
 using Microsoft.VisualStudio.Services.WebApi;
 
-namespace Microsoft.RoslynTools.PRTagger;
+namespace Microsoft.RoslynTools.Utilities;
 
 internal record RemoteConnections : IDisposable
 {
