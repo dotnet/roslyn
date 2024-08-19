@@ -128,7 +128,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
     private Task<bool> _commitTask;
 
-    public bool IsCommitInProgress => !_dismissed && _commitTask is not { Status: TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled };
+    public bool IsCommitInProgress => !_dismissed && _commitTask is not null && _commitTask is not { Status: TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled };
 
     /// <summary>
     /// The initial text being renamed.

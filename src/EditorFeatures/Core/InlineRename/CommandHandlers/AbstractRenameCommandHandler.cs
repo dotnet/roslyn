@@ -70,7 +70,6 @@ internal abstract partial class AbstractRenameCommandHandler
         }
 
         var selectedSpans = args.TextView.Selection.GetSnapshotSpansOnBuffer(args.SubjectBuffer);
-
         if (selectedSpans.Count > 1)
         {
             // If we have multiple spans active, then that means we have something like box
