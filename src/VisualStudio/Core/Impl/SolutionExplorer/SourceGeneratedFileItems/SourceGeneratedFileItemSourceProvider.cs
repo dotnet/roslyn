@@ -12,35 +12,23 @@ using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
+
+[Export(typeof(IAttachedCollectionSourceProvider))]
+[Name(nameof(SourceGeneratedFileItemSourceProvider)), Order]
+[AppliesToProject("CSharp | VB")]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class SourceGeneratedFileItemSourceProvider(
+    VisualStudioWorkspace workspace,
+    IAsynchronousOperationListenerProvider asyncListenerProvider,
+    IThreadingContext threadingContext)
+    : AttachedCollectionSourceProvider<SourceGeneratorItem>
 {
-    [Export(typeof(IAttachedCollectionSourceProvider))]
-    [Name(nameof(SourceGeneratedFileItemSourceProvider))]
-    [Order]
-    [AppliesToProject("CSharp | VB")]
-    internal sealed class SourceGeneratedFileItemSourceProvider : AttachedCollectionSourceProvider<SourceGeneratorItem>
-    {
-        private readonly Workspace _workspace;
-        private readonly IAsynchronousOperationListener _asyncListener;
-        private readonly IThreadingContext _threadingContext;
+    private readonly IAsynchronousOperationListener _asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.SourceGenerators);
 
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public SourceGeneratedFileItemSourceProvider(VisualStudioWorkspace workspace, IAsynchronousOperationListenerProvider asyncListenerProvider, IThreadingContext threadingContext)
-        {
-            _workspace = workspace;
-            _asyncListener = asyncListenerProvider.GetListener(FeatureAttribute.SourceGenerators);
-            _threadingContext = threadingContext;
-        }
-
-        protected override IAttachedCollectionSource? CreateCollectionSource(SourceGeneratorItem item, string relationshipName)
-        {
-            if (relationshipName == KnownRelationships.Contains)
-            {
-                return new SourceGeneratedFileItemSource(item, _workspace, _asyncListener, _threadingContext);
-            }
-
-            return null;
-        }
-    }
+    protected override IAttachedCollectionSource? CreateCollectionSource(SourceGeneratorItem item, string relationshipName)
+        => relationshipName == KnownRelationships.Contains
+            ? new SourceGeneratedFileItemSource(item, workspace, _asyncListener, threadingContext)
+            : null;
 }
