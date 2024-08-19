@@ -43,10 +43,23 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
         customTags: [.. DiagnosticCustomTags.Microsoft, EnforceOnBuild.Never.ToCustomTag()]);
 #pragma warning restore RS0030 // Do not used banned APIs
 
+    /// <summary>
+    /// Contains the subset of <see cref="AbstractBuiltInCodeStyleDiagnosticAnalyzer.SupportedDiagnostics"/> which is
+    /// related to the analysis in <see cref="AnalyzeCompilation"/>. The specific condition for inclusion in this array
+    /// is <see cref="AnalyzeCompilation"/> needs to run when one or more descriptors in this array are enabled at or
+    /// above <see cref="AnalysisContext.MinimumReportedSeverity"/>.
+    /// </summary>
     private static readonly ImmutableArray<DiagnosticDescriptor> s_compilationAnalysisDescriptors = [s_enableGenerateDocumentationFileIdDescriptor];
 
     private readonly DiagnosticDescriptor _classificationIdDescriptor;
     private readonly DiagnosticDescriptor _generatedCodeClassificationIdDescriptor;
+
+    /// <summary>
+    /// Contains the subset of <see cref="AbstractBuiltInCodeStyleDiagnosticAnalyzer.SupportedDiagnostics"/> which is
+    /// related to the analysis in <see cref="AnalyzeSemanticModel"/>. The specific condition for inclusion in this
+    /// array is <see cref="AnalyzeSemanticModel"/> needs to run when one or more descriptors in this array are enabled
+    /// at or above <see cref="AnalysisContext.MinimumReportedSeverity"/>.
+    /// </summary>
     private readonly ImmutableArray<DiagnosticDescriptor> _semanticModelAnalysisDescriptors;
 
     protected AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer(LocalizableString titleAndMessage)

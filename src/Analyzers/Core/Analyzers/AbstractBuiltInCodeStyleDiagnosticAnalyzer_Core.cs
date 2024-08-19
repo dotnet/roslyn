@@ -156,7 +156,12 @@ internal abstract partial class AbstractBuiltInCodeStyleDiagnosticAnalyzer : Dia
         // Check if any of the notifications are enabled, if so we need to execute analysis.
         foreach (var notification in notifications)
         {
-            if (!ShouldSkipAnalysis(tree, analyzerOptions, compilationOptions, notification, _minimumReportedSeverity.Value, performDescriptorsCheck ? SupportedDiagnostics : [], cancellationToken))
+            // When we are performing the descriptors check, pass all 'SupportedDiagnostics' through in accordance with
+            // the default check. After the descriptor check has been performed, future calls pass an empty array to
+            // indicate that no descriptors need to be checked.
+            var descriptorsToCheck = performDescriptorsCheck ? SupportedDiagnostics : [];
+
+            if (!ShouldSkipAnalysis(tree, analyzerOptions, compilationOptions, notification, _minimumReportedSeverity.Value, descriptorsToCheck, cancellationToken))
                 return false;
 
             if (performDescriptorsCheck)
