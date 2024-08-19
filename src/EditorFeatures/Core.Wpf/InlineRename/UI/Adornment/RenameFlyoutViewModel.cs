@@ -10,16 +10,19 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Interop;
 using Microsoft.CodeAnalysis.Editor.InlineRename;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.EditorFeatures.Lightup;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.InlineRename;
 using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Telemetry;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -253,8 +256,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
 
             SmartRenameViewModel?.Commit(IdentifierText);
-            _ = Session.CommitAsync(previewChanges: false, cancellationToken: CancellationToken.None).ReportNonFatalErrorAsync();
+            _ = CommitAsync().ReportNonFatalErrorAsync();
             return true;
+        }
+
+        private async Task CommitAsync()
+        {
+            try
+            {
+                await Session.CommitAsync(previewChanges: false, cancellationToken: CancellationToken.None).ReportNonFatalErrorAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
+            {
+                // Show a nice error to the user via an info bar
+                var errorReportingService = Session.Workspace.Services.GetService<IErrorReportingService>();
+                if (errorReportingService is null)
+                {
+                    return;
+                }
+
+                errorReportingService.ShowGlobalErrorInfo(
+                    message: string.Format(EditorFeaturesWpfResources.Error_performing_rename_0, ex.Message),
+                    TelemetryFeatureName.InlineRename,
+                    ex,
+                    new InfoBarUI(
+                        WorkspacesResources.Show_Stack_Trace,
+                        InfoBarUI.UIKind.HyperLink,
+                        () => errorReportingService.ShowDetailedErrorInfo(ex), closeAfterAction: true));
+            }
         }
 
         public void Cancel()

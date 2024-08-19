@@ -349,6 +349,10 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     public event EventHandler<ImmutableArray<InlineRenameLocation>> ReferenceLocationsChanged;
     public event EventHandler<IInlineRenameReplacementInfo> ReplacementsComputed;
     public event EventHandler ReplacementTextChanged;
+
+    /// <summary>
+    /// True if commit operation starts, False if commit operation ends.
+    /// </summary>
     public event EventHandler<bool> CommitStateChange;
 
     internal OpenTextBufferManager GetBufferManager(ITextBuffer buffer)
@@ -740,10 +744,10 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         // which at least will allow the user to cancel the rename if they want.
         //
         // In the future we should remove this entrypoint and have all callers use CommitAsync instead.
-        return _threadingContext.JoinableTaskFactory.Run(() => StartCommitAsync(previewChanges, canUseBackgroundWorkIndicator: false, CancellationToken.None));
+        return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false, CancellationToken.None));
     }
 
-    public async Task CommitAsync(bool previewChanges, CancellationToken cancellationToken)
+    public async Task<bool> CommitAsync(bool previewChanges, CancellationToken cancellationToken)
     {
         if (this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
         {
@@ -876,7 +880,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 async () =>
                 {
                     var error = await TryApplyRenameAsync(newSolution, linkedCancellationToken).ConfigureAwait(false);
-
                     if (error is not null)
                     {
                         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(linkedCancellationToken);
@@ -884,6 +887,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                         notificationService.SendNotification(
                             error.Value.message, EditorFeaturesResources.Rename_Symbol, error.Value.severity);
                     }
+                    CommitStateChange?.Invoke(this, false);
                 }).ConfigureAwait(false);
         }
     }
