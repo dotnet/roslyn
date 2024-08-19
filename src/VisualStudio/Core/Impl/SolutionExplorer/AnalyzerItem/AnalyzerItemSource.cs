@@ -54,6 +54,7 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource, INotifyPro
             _cancellationTokenSource.Token);
 
         this.Workspace.WorkspaceChanged += OnWorkspaceChanged;
+        _workQueue.AddWork();
     }
 
     public object SourceItem => _analyzersFolder;
