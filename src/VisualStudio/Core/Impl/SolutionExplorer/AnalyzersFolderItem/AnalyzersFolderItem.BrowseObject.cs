@@ -5,29 +5,19 @@
 using System.ComponentModel;
 using Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
+
+internal partial class AnalyzersFolderItem
 {
-    internal partial class AnalyzersFolderItem
+    private sealed class BrowseObject(AnalyzersFolderItem analyzersFolderItem) : LocalizableProperties
     {
-        internal class BrowseObject : LocalizableProperties
-        {
-            public BrowseObject(AnalyzersFolderItem analyzersFolderItem)
-            {
-                Folder = analyzersFolderItem;
-            }
+        [Browsable(false)]
+        public AnalyzersFolderItem Folder { get; } = analyzersFolderItem;
 
-            public override string GetClassName()
-            {
-                return SolutionExplorerShim.Folder_Properties;
-            }
+        public override string GetClassName()
+            => SolutionExplorerShim.Folder_Properties;
 
-            public override string GetComponentName()
-            {
-                return Folder.Text;
-            }
-
-            [Browsable(false)]
-            public AnalyzersFolderItem Folder { get; }
-        }
+        public override string GetComponentName()
+            => Folder.Text;
     }
 }
