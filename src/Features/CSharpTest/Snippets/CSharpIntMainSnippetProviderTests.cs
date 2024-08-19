@@ -109,11 +109,7 @@ public sealed class CSharpIntMainSnippetProviderTests : AbstractCSharpSnippetPro
     }
 
     [Theory]
-    [InlineData("public")]
-    [InlineData("private")]
-    [InlineData("protected")]
-    [InlineData("private protected")]
-    [InlineData("protected internal")]
+    [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
     public async Task TestInsertSnippetAfterAccessibilityModifier(string modifier)
     {
         await VerifySnippetAsync($$"""
