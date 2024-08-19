@@ -19,7 +19,7 @@ using Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 {
-    internal class AnalyzerItemSource : IAttachedCollectionSource, INotifyPropertyChanged
+    internal sealed class AnalyzerItemSource : IAttachedCollectionSource, INotifyPropertyChanged
     {
         private readonly AnalyzersFolderItem _analyzersFolder;
         private readonly IAnalyzersCommandHandler _commandHandler;
@@ -27,6 +27,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
         private BulkObservableCollection<AnalyzerItem> _analyzerItems;
 
         public event PropertyChangedEventHandler PropertyChanged;
+
+        public object SourceItem => _analyzersFolder;
 
         public AnalyzerItemSource(AnalyzersFolderItem analyzersFolder, IAnalyzersCommandHandler commandHandler)
         {
@@ -128,27 +130,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
-        public bool HasItems
-        {
-            get
-            {
-                if (_analyzerItems != null)
-                {
-                    return _analyzerItems.Count > 0;
-                }
-
-                var project = _analyzersFolder.Workspace
-                                                .CurrentSolution
-                                                .GetProject(_analyzersFolder.ProjectId);
-
-                if (project != null)
-                {
-                    return project.AnalyzerReferences.Count > 0;
-                }
-
-                return false;
-            }
-        }
+        // Defer actual determination and computation of the items until later.
+        public bool HasItems => true;
 
         public IEnumerable Items
         {
@@ -177,14 +160,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
                     KeyValueLogMessage.Create(m => m["Count"] = _analyzerItems.Count));
 
                 return _analyzerItems;
-            }
-        }
-
-        public object SourceItem
-        {
-            get
-            {
-                return _analyzersFolder;
             }
         }
 
