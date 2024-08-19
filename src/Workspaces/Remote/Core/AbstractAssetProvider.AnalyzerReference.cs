@@ -13,6 +13,8 @@ using System.Threading;
 using Roslyn.Utilities;
 using System.Runtime.CompilerServices;
 using System.Reflection;
+using Microsoft.VisualStudio.Telemetry;
+using System.Linq;
 
 #if NET
 using System.Runtime.Loader;
@@ -20,7 +22,7 @@ using System.Runtime.Loader;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-internal partial class RemoteWorkspace
+internal abstract partial class AbstractAssetProvider
 {
 #if NET
 
@@ -159,12 +161,34 @@ internal partial class RemoteWorkspace
 
 #endif
 
+    public async ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
+        AssetPath assetPath,
+        ChecksumCollection analyzerReferencesChecksum,
+        IAnalyzerAssemblyLoaderProvider analyzerAssemblyLoader,
+        CancellationToken cancellationToken)
+    {
+        var serializedReferences = await this.GetAssetsArrayInternalAsync<AnalyzerReference>(
+            assetPath, analyzerReferencesChecksum, cancellationToken).ConfigureAwait(false);
+
+        // Absolutely no AnalyzerFileReferences should have come through here.  We should only have
+        // SerializedAnalyzerReferences, as well as any in-memory references made by tests.
+        Contract.ThrowIfTrue(serializedReferences.Any(static r => r is AnalyzerFileReference));
+
+        // Take the new set of references we've gotten and create a dedicated set of AnalyzerReferences with
+        // their own ALC that they can cleanly load (and unload) from.
+        var isolatedAnalyzerReferences = await this.CreateAnalyzerReferencesInIsolatedAssemblyLoadContextAsync(
+            analyzerReferencesChecksum.Checksum, serializedReferences, analyzerAssemblyLoader, cancellationToken).ConfigureAwait(false);
+
+        return isolatedAnalyzerReferences;
+    }
+
 #pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     private async Task<ImmutableArray<AnalyzerReference>> CreateAnalyzerReferencesInIsolatedAssemblyLoadContextAsync(
-        Checksum checksum, ImmutableArray<AnalyzerReference> serializedReferences, CancellationToken cancellationToken)
+        Checksum checksum,
+        ImmutableArray<AnalyzerReference> serializedReferences,
+        IAnalyzerAssemblyLoaderProvider analyzerAssemblyLoaderProvider,
+        CancellationToken cancellationToken)
     {
-        var provider = this.Services.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-
 #if NET
 
         using (await _isolatedReferenceSetGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
@@ -175,7 +199,7 @@ internal partial class RemoteWorkspace
                 return isolatedAssemblyReferenceSet.AnalyzerReferences;
             }
 
-            isolatedAssemblyReferenceSet = new IsolatedAssemblyReferenceSet(serializedReferences, provider);
+            isolatedAssemblyReferenceSet = new IsolatedAssemblyReferenceSet(serializedReferences, analyzerAssemblyLoaderProvider);
 
             if (weakIsolatedReferenceSet is null)
             {
@@ -190,7 +214,7 @@ internal partial class RemoteWorkspace
 #else
 
         // Assembly load contexts not supported here.
-        var shadowCopyLoader = provider.GetShadowCopyLoader();
+        var shadowCopyLoader = analyzerAssemblyLoaderProvider.GetShadowCopyLoader();
         var builder = new FixedSizeArrayBuilder<AnalyzerReference>(serializedReferences.Length);
 
         foreach (var analyzerReference in serializedReferences)

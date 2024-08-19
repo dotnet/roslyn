@@ -5,12 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -18,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// <summary>
 /// Provides corresponding data of the given checksum
 /// </summary>
-internal abstract class AbstractAssetProvider
+internal abstract partial class AbstractAssetProvider
 {
     /// <summary>
     /// return data of type T whose checksum is the given checksum
@@ -26,7 +29,10 @@ internal abstract class AbstractAssetProvider
     public abstract ValueTask<T> GetAssetAsync<T>(AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken);
     public abstract Task GetAssetsAsync<T, TArg>(AssetPath assetPath, HashSet<Checksum> checksums, Action<Checksum, T, TArg>? callback, TArg? arg, CancellationToken cancellationToken);
 
-    public async Task<SolutionInfo> CreateSolutionInfoAsync(Checksum solutionChecksum, CancellationToken cancellationToken)
+    public async Task<SolutionInfo> CreateSolutionInfoAsync(
+        Checksum solutionChecksum,
+        IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider,
+        CancellationToken cancellationToken)
     {
         var solutionCompilationChecksums = await GetAssetAsync<SolutionCompilationStateChecksums>(AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
         var solutionChecksums = await GetAssetAsync<SolutionStateChecksums>(AssetPathKind.SolutionStateChecksums, solutionCompilationChecksums.SolutionState, cancellationToken).ConfigureAwait(false);
@@ -40,11 +46,17 @@ internal abstract class AbstractAssetProvider
         await this.GetAssetHelper<ProjectStateChecksums>().GetAssetsAsync(
             AssetPathKind.ProjectStateChecksums,
             solutionChecksums.Projects.Checksums,
-            static (_, projectStateChecksums, tuple) => tuple.projectsTasks.Add(tuple.@this.CreateProjectInfoAsync(projectStateChecksums, tuple.cancellationToken)),
-            (@this: this, projectsTasks, cancellationToken),
+            static (_, projectStateChecksums, args) =>
+            {
+                var (@this, projectsTasks, assemblyLoaderProvider, cancellationToken) = args;
+                projectsTasks.Add(@this.CreateProjectInfoAsync(projectStateChecksums, assemblyLoaderProvider, cancellationToken));
+            },
+            (@this: this, projectsTasks, assemblyLoaderProvider, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        var analyzerReferences = await this.GetAssetsArrayAsync<AnalyzerReference>(AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+        var isolatedAnalyzerReferences = await this.CreateIsolatedAnalyzerReferencesAsync(
+            AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, assemblyLoaderProvider, cancellationToken).ConfigureAwait(false);
+
         var fallbackAnalyzerOptions = await GetAssetAsync<ImmutableDictionary<string, StructuredAnalyzerConfigOptions>>(AssetPathKind.SolutionFallbackAnalyzerOptions, solutionChecksums.FallbackAnalyzerOptions, cancellationToken).ConfigureAwait(false);
 
         // Fetch the projects in parallel.
@@ -54,11 +66,14 @@ internal abstract class AbstractAssetProvider
             solutionAttributes.Version,
             solutionAttributes.FilePath,
             ImmutableCollectionsMarshal.AsImmutableArray(projects),
-            analyzerReferences,
+            isolatedAnalyzerReferences,
             fallbackAnalyzerOptions).WithTelemetryId(solutionAttributes.TelemetryId);
     }
 
-    public async Task<ProjectInfo> CreateProjectInfoAsync(ProjectStateChecksums projectChecksums, CancellationToken cancellationToken)
+    public async Task<ProjectInfo> CreateProjectInfoAsync(
+        ProjectStateChecksums projectChecksums,
+        IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider,
+        CancellationToken cancellationToken)
     {
         await Task.Yield();
 
@@ -73,7 +88,9 @@ internal abstract class AbstractAssetProvider
 
         var projectReferencesTask = this.GetAssetsArrayAsync<ProjectReference>(new(AssetPathKind.ProjectProjectReferences, projectId), projectChecksums.ProjectReferences, cancellationToken);
         var metadataReferencesTask = this.GetAssetsArrayAsync<MetadataReference>(new(AssetPathKind.ProjectMetadataReferences, projectId), projectChecksums.MetadataReferences, cancellationToken);
-        var analyzerReferencesTask = this.GetAssetsArrayAsync<AnalyzerReference>(new(AssetPathKind.ProjectAnalyzerReferences, projectId), projectChecksums.AnalyzerReferences, cancellationToken);
+
+        var isolatedAnalyzerReferencesTask = this.CreateIsolatedAnalyzerReferencesAsync(
+            new(AssetPathKind.ProjectAnalyzerReferences, projectId), projectChecksums.AnalyzerReferences, assemblyLoaderProvider, cancellationToken);
 
         // Attempt to fetch all the documents for this project in bulk.  This will allow for all the data to be fetched
         // efficiently.  We can then go and create the DocumentInfos for each document in the project.
@@ -90,7 +107,7 @@ internal abstract class AbstractAssetProvider
             await documentInfosTask.ConfigureAwait(false),
             await projectReferencesTask.ConfigureAwait(false),
             await metadataReferencesTask.ConfigureAwait(false),
-            await analyzerReferencesTask.ConfigureAwait(false),
+            await isolatedAnalyzerReferencesTask.ConfigureAwait(false),
             await additionalDocumentInfosTask.ConfigureAwait(false),
             await analyzerConfigDocumentInfosTask.ConfigureAwait(false),
             hostObjectType: null); // TODO: https://github.com/dotnet/roslyn/issues/62804
@@ -195,7 +212,14 @@ internal static class AbstractAssetProviderExtensions
     /// Returns an array of assets, corresponding to all the checksums found in the given <paramref name="checksums"/>.
     /// The assets will be returned in the order corresponding to their checksum in <paramref name="checksums"/>.
     /// </summary>
-    public static async Task<ImmutableArray<T>> GetAssetsArrayAsync<T>(
+    public static Task<ImmutableArray<T>> GetAssetsArrayAsync<T>(
+        this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, CancellationToken cancellationToken) where T : class
+    {
+        Contract.ThrowIfTrue(typeof(T) == typeof(AssemblyReference), $"Call {nameof(AbstractAssetProvider.CreateIsolatedAnalyzerReferencesAsync)} instead");
+        return GetAssetsArrayInternalAsync<T>(assetProvider, assetPath, checksums, cancellationToken);
+    }
+
+    internal static async Task<ImmutableArray<T>> GetAssetsArrayInternalAsync<T>(
         this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, CancellationToken cancellationToken) where T : class
     {
         // Note: nothing stops 'checksums' from having multiple identical checksums in it.  First, collapse this down to

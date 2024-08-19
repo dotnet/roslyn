@@ -68,17 +68,11 @@ internal partial class RemoteWorkspace
 
                 if (oldSolutionChecksums.AnalyzerReferences.Checksum != newSolutionChecksums.AnalyzerReferences.Checksum)
                 {
-                    var serializedReferences = await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
-                        AssetPathKind.SolutionAnalyzerReferences, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
-
-                    // Absolutely no AnalyzerFileReferences should have come through here.  We should only have
-                    // SerializedAnalyzerReferences, as well as any in-memory references made by tests.
-                    Contract.ThrowIfTrue(serializedReferences.Any(r => r is AnalyzerFileReference));
-
                     // Take the new set of references we've gotten and create a dedicated set of AnalyzerReferences with
                     // their own ALC that they can cleanly load (and unload) from.
-                    var isolatedAnalyzerReferences = await this.Workspace.CreateAnalyzerReferencesInIsolatedAssemblyLoadContextAsync(
-                        newSolutionChecksums.AnalyzerReferences.Checksum, serializedReferences, cancellationToken).ConfigureAwait(false);
+                    var assemblyLoaderProvider = this.Workspace.Services.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+                    var isolatedAnalyzerReferences = await _assetProvider.CreateIsolatedAnalyzerReferencesAsync(
+                        AssetPathKind.SolutionAnalyzerReferences, newSolutionChecksums.AnalyzerReferences, assemblyLoaderProvider, cancellationToken).ConfigureAwait(false);
 
                     solution = solution.WithAnalyzerReferences(isolatedAnalyzerReferences);
                 }
@@ -277,6 +271,8 @@ internal partial class RemoteWorkspace
             // efficiently in bulk and in parallel.
             await _assetProvider.SynchronizeProjectAssetsAsync(projectStateChecksumsToAdd, cancellationToken).ConfigureAwait(false);
 
+            var assemblyLoaderProvider = this.Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+
             using var _3 = ArrayBuilder<ProjectInfo>.GetInstance(projectStateChecksumsToAdd.Count, out var projectInfos);
             foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
             {
@@ -284,7 +280,8 @@ internal partial class RemoteWorkspace
                 {
                     // Now make a ProjectInfo corresponding to the new project checksums.  This should be fast due
                     // to the bulk sync we just performed above.
-                    var projectInfo = await _assetProvider.CreateProjectInfoAsync(newProjectChecksums, cancellationToken).ConfigureAwait(false);
+                    var projectInfo = await _assetProvider.CreateProjectInfoAsync(
+                        newProjectChecksums, assemblyLoaderProvider, cancellationToken).ConfigureAwait(false);
                     projectInfos.Add(projectInfo);
                 }
             }
@@ -380,17 +377,11 @@ internal partial class RemoteWorkspace
             // changed analyzer references
             if (oldProjectChecksums.AnalyzerReferences.Checksum != newProjectChecksums.AnalyzerReferences.Checksum)
             {
-                var serializedReferences = await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
-                    assetPath: project.Id, newProjectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
-
-                // Absolutely no AnalyzerFileReferences should have come through here.  We should only have
-                // SerializedAnalyzerReferences, as well as any in-memory references made by tests.
-                Contract.ThrowIfTrue(serializedReferences.Any(r => r is AnalyzerFileReference));
-
                 // Take the new set of references we've gotten and create a dedicated set of AnalyzerReferences with
                 // their own ALC that they can cleanly load (and unload) from.
-                var isolatedAnalyzerReferences = await this.Workspace.CreateAnalyzerReferencesInIsolatedAssemblyLoadContextAsync(
-                    newProjectChecksums.AnalyzerReferences.Checksum, serializedReferences, cancellationToken).ConfigureAwait(false);
+                var provider = this.Workspace.Services.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+                var isolatedAnalyzerReferences = await _assetProvider.CreateIsolatedAnalyzerReferencesAsync(
+                    assetPath: project.Id, newProjectChecksums.AnalyzerReferences, provider, cancellationToken).ConfigureAwait(false);
                 project = project.WithAnalyzerReferences(isolatedAnalyzerReferences);
             }
 
@@ -625,7 +616,8 @@ internal partial class RemoteWorkspace
             if (checksumFromRequest == currentSolutionChecksum)
                 return;
 
-            var solutionInfo = await _assetProvider.CreateSolutionInfoAsync(checksumFromRequest, cancellationToken).ConfigureAwait(false);
+            var assemblyLoaderProvider = this.Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+            var solutionInfo = await _assetProvider.CreateSolutionInfoAsync(checksumFromRequest, assemblyLoaderProvider, cancellationToken).ConfigureAwait(false);
             var workspace = new AdhocWorkspace(this.Workspace.Services.HostServices);
             workspace.AddSolution(solutionInfo);
 
