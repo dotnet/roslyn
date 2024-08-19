@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 if (value != Session.ReplacementText)
                 {
                     Session.ApplyReplacementText(value, propagateEditImmediately: true, updateSelection: false);
-                    NotifyPropertyChanged(nameof(IdentifierText));
+                    NotifyPropertyChanged();
                 }
             }
         }
