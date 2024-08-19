@@ -6,10 +6,10 @@ using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions;
 
-internal static class AnalyzerFileReferenceExtensions
+internal static class AnalyzerReferenceExtensions
 {
     public static bool HasAnalyzersOrSourceGenerators(
-        this AnalyzerFileReference analyzerFileReference,
+        this AnalyzerReference analyzerFileReference,
         string language)
         => !analyzerFileReference.GetAnalyzers(language).IsDefaultOrEmpty ||
            !analyzerFileReference.GetGenerators(language).IsDefaultOrEmpty;
