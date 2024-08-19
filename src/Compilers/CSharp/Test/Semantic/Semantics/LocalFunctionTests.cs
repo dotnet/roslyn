@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var typeSymbol = delegateSymbol.MapToImplementationSymbol().OriginalDefinition.GetPublicSymbol();
 
             Assert.Equal(TypeKind.Delegate, typeSymbol.TypeKind);
-            Assert.Equal(typeSymbol.TypeParameters.Length, 1);
+            Assert.Equal(1, typeSymbol.TypeParameters.Length);
             Assert.True(!typeSymbol.TypeParameters[0].AllowsRefLikeType, "arrays can never allow ref like types");
 
             var invokeMethod = typeSymbol.GetMember("Invoke");
