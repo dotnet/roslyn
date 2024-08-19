@@ -17,6 +17,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
 Imports Xunit
 Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 #If Not Retargeting Then
@@ -25,7 +26,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 
         <Fact>
         Public Sub Test1()
-            Dim oldMsCorLib = Net40.mscorlib
+            Dim oldMsCorLib = Net40.References.mscorlib
             Dim c1 = VisualBasicCompilation.Create("C1", references:={oldMsCorLib, TestReferences.SymbolsTests.CustomModifiers.Modifiers.netmodule})
 
             Dim c1Assembly = c1.Assembly
@@ -90,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
 
         <Fact>
         Public Sub Test2()
-            Dim oldMsCorLib = Net40.mscorlib
+            Dim oldMsCorLib = Net40.References.mscorlib
             Dim source = "
 public class Modifiers
 

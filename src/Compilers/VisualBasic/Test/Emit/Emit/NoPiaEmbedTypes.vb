@@ -16,6 +16,7 @@ Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.Emit
 Imports System.Collections.Immutable
 Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -1743,7 +1744,7 @@ End Structure
                                                        End Sub
             Dim compilation1 = CreateEmptyCompilationWithReferences(
                 sources1,
-                references:={Net40.mscorlib, Net40.System, compilation0.EmitToImageReference(embedInteropTypes:=True)})
+                references:={Net40.References.mscorlib, Net40.References.System, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
             verifier.VerifyIL("S.F", <![CDATA[

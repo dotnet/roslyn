@@ -43,47 +43,6 @@ namespace Roslyn.Test.Utilities
             public static PortableExecutableReference System { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet20.System).GetReference(display: "System.dll (net20)", filePath: "System.dll");
             public static PortableExecutableReference MicrosoftVisualBasic { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet20.MicrosoftVisualBasic).GetReference(display: "Microsoft.VisualBasic.dll (net20)", filePath: "Microsoft.VisualBasic.dll");
         }
-        public static class ResourcesNet40
-        {
-            private static byte[] _mscorlib;
-            public static byte[] mscorlib => ResourceLoader.GetOrCreateResource(ref _mscorlib, "net40.mscorlib.dll");
-            private static byte[] _System;
-            public static byte[] System => ResourceLoader.GetOrCreateResource(ref _System, "net40.System.dll");
-            private static byte[] _SystemCore;
-            public static byte[] SystemCore => ResourceLoader.GetOrCreateResource(ref _SystemCore, "net40.System.Core.dll");
-            private static byte[] _SystemData;
-            public static byte[] SystemData => ResourceLoader.GetOrCreateResource(ref _SystemData, "net40.System.Data.dll");
-            private static byte[] _SystemXml;
-            public static byte[] SystemXml => ResourceLoader.GetOrCreateResource(ref _SystemXml, "net40.System.Xml.dll");
-            private static byte[] _SystemXmlLinq;
-            public static byte[] SystemXmlLinq => ResourceLoader.GetOrCreateResource(ref _SystemXmlLinq, "net40.System.Xml.Linq.dll");
-            private static byte[] _MicrosoftVisualBasic;
-            public static byte[] MicrosoftVisualBasic => ResourceLoader.GetOrCreateResource(ref _MicrosoftVisualBasic, "net40.Microsoft.VisualBasic.dll");
-            private static byte[] _MicrosoftCSharp;
-            public static byte[] MicrosoftCSharp => ResourceLoader.GetOrCreateResource(ref _MicrosoftCSharp, "net40.Microsoft.CSharp.dll");
-            public static ReferenceInfo[] All => new[]
-            {
-                new ReferenceInfo("mscorlib.dll", mscorlib),
-                new ReferenceInfo("System.dll", System),
-                new ReferenceInfo("System.Core.dll", SystemCore),
-                new ReferenceInfo("System.Data.dll", SystemData),
-                new ReferenceInfo("System.Xml.dll", SystemXml),
-                new ReferenceInfo("System.Xml.Linq.dll", SystemXmlLinq),
-                new ReferenceInfo("Microsoft.VisualBasic.dll", MicrosoftVisualBasic),
-                new ReferenceInfo("Microsoft.CSharp.dll", MicrosoftCSharp),
-            };
-        }
-        public static class Net40
-        {
-            public static PortableExecutableReference mscorlib { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet40.mscorlib).GetReference(display: "mscorlib.dll (net40)", filePath: "mscorlib.dll");
-            public static PortableExecutableReference System { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet40.System).GetReference(display: "System.dll (net40)", filePath: "System.dll");
-            public static PortableExecutableReference SystemCore { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet40.SystemCore).GetReference(display: "System.Core.dll (net40)", filePath: "System.Core.dll");
-            public static PortableExecutableReference SystemData { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet40.SystemData).GetReference(display: "System.Data.dll (net40)", filePath: "System.Data.dll");
-            public static PortableExecutableReference SystemXml { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet40.SystemXml).GetReference(display: "System.Xml.dll (net40)", filePath: "System.Xml.dll");
-            public static PortableExecutableReference SystemXmlLinq { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet40.SystemXmlLinq).GetReference(display: "System.Xml.Linq.dll (net40)", filePath: "System.Xml.Linq.dll");
-            public static PortableExecutableReference MicrosoftVisualBasic { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet40.MicrosoftVisualBasic).GetReference(display: "Microsoft.VisualBasic.dll (net40)", filePath: "Microsoft.VisualBasic.dll");
-            public static PortableExecutableReference MicrosoftCSharp { get; } = AssemblyMetadata.CreateFromImage(ResourcesNet40.MicrosoftCSharp).GetReference(display: "Microsoft.CSharp.dll (net40)", filePath: "Microsoft.CSharp.dll");
-        }
         public static class ResourcesMicrosoftCSharp
         {
             private static byte[] _Netstandard10;

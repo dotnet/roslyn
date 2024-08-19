@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1835,7 +1836,7 @@ public class Example
         {
             var tree = Parse(text);
 
-            var comp = CreateCompilationWithMscorlib40(new[] { tree }, new[] { TestMetadata.Net40.SystemCore });
+            var comp = CreateCompilationWithMscorlib40(new[] { tree }, new[] { Net40.References.SystemCore });
             comp.VerifyDiagnostics(expectedDiagnostics);
 
             var model = comp.GetSemanticModel(tree);

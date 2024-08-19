@@ -15,7 +15,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -3123,7 +3123,7 @@ class C1 {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
                 {
                     TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                    Net40.mscorlib
+                    Net40.References.mscorlib
                 });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
@@ -3252,7 +3252,7 @@ class C1 {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
@@ -3313,7 +3313,7 @@ class C1 {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var globalNamespace = assemblies[0].GlobalNamespace;
@@ -3374,7 +3374,7 @@ class C1 {
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var globalNamespace = assemblies[0].GlobalNamespace;

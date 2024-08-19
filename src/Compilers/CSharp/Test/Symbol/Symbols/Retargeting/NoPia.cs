@@ -2639,7 +2639,7 @@ public struct Test
 }
 ";
 
-            var piaCompilation = CreateEmptyCompilation(pia, references: [Net40.mscorlib], options: TestOptions.DebugDll, assemblyName: "Pia");
+            var piaCompilation = CreateEmptyCompilation(pia, references: [Net40.References.mscorlib], options: TestOptions.DebugDll, assemblyName: "Pia");
 
             string consumer1 = @"
 public class UsePia1
@@ -2663,7 +2663,7 @@ class UsePia2
 
             foreach (MetadataReference piaRef in new[] { piaCompilation.EmitToImageReference(), piaCompilation.ToMetadataReference() })
             {
-                var compilation1 = CreateEmptyCompilation(consumer1, references: [Net40.mscorlib, piaRef.WithEmbedInteropTypes(true)]);
+                var compilation1 = CreateEmptyCompilation(consumer1, references: [Net40.References.mscorlib, piaRef.WithEmbedInteropTypes(true)]);
 
                 foreach (MetadataReference consumer1Ref in new[] { compilation1.EmitToImageReference(), compilation1.ToMetadataReference() })
                 {

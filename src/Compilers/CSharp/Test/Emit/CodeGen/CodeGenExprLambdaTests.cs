@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
@@ -3512,7 +3513,7 @@ class Program
 
             var comp = CreateEmptyCompilation(
                 new[] { source, ExpressionTestLibrary },
-                new[] { TestMetadata.Net40.mscorlib, TestMetadata.Net40.SystemCore },
+                new[] { Net40.References.mscorlib, Net40.References.SystemCore },
                 TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: expectedOutput);

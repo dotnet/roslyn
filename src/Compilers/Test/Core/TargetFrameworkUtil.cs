@@ -13,11 +13,11 @@ using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Basic.Reference.Assemblies;
-using static TestReferences;
-using static Roslyn.Test.Utilities.TestMetadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using System.Reflection;
 using System.Collections.Concurrent;
+using static TestReferences;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Roslyn.Test.Utilities
 {
@@ -203,24 +203,24 @@ namespace Roslyn.Test.Utilities
 
         public static ImmutableArray<MetadataReference> Mscorlib40References { get; } =
         [
-            Net40.mscorlib
+            Net40.References.mscorlib
         ];
         public static ImmutableArray<MetadataReference> Mscorlib40ExtendedReferences { get; } =
         [
-            Net40.mscorlib,
-            Net40.System,
-            Net40.SystemCore
+            Net40.References.mscorlib,
+            Net40.References.System,
+            Net40.References.SystemCore
         ];
         public static ImmutableArray<MetadataReference> Mscorlib40andSystemCoreReferences { get; } =
         [
-            Net40.mscorlib,
-            Net40.SystemCore
+            Net40.References.mscorlib,
+            Net40.References.SystemCore
         ];
         public static ImmutableArray<MetadataReference> Mscorlib40andVBRuntimeReferences { get; } =
         [
-            Net40.mscorlib,
-            Net40.System,
-            Net40.MicrosoftVisualBasic
+            Net40.References.mscorlib,
+            Net40.References.System,
+            Net40.References.MicrosoftVisualBasic
         ];
         public static ImmutableArray<MetadataReference> Mscorlib45References { get; } =
         [

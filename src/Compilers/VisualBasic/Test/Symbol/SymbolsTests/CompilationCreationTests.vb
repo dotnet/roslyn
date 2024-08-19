@@ -12,6 +12,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace CompilationCreationTestHelpers
     Friend Module Helpers
@@ -261,7 +262,7 @@ End Namespace
             Dim varV1MTTestLib2Path = TestReferences.SymbolsTests.V1.MTTestLib2.dll
             Dim asm1 = GetSymbolsForReferences(
             {
-            Net40.mscorlib,
+                Net40.References.mscorlib,
                 varV1MTTestLib2Path
             })
 
@@ -274,9 +275,9 @@ End Namespace
 
             Dim asm2 = GetSymbolsForReferences(
             {
-            Net40.mscorlib,
+                Net40.References.mscorlib,
                 varV1MTTestLib2Path,
-            TestReferences.SymbolsTests.V1.MTTestLib1.dll
+                TestReferences.SymbolsTests.V1.MTTestLib1.dll
             })
 
             Assert.Same(asm2(0), asm1(0))
@@ -298,9 +299,9 @@ End Namespace
             Dim varV2MTTestLib3Path = TestReferences.SymbolsTests.V2.MTTestLib3.dll
             Dim asm3 = GetSymbolsForReferences(
             {
-            Net40.mscorlib,
+                Net40.References.mscorlib,
                 varV1MTTestLib2Path,
-            TestReferences.SymbolsTests.V2.MTTestLib1.dll,
+                TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                 varV2MTTestLib3Path
             })
 
@@ -341,7 +342,7 @@ End Namespace
             Dim varV3MTTestLib4Path = TestReferences.SymbolsTests.V3.MTTestLib4.dll
             Dim asm4 = GetSymbolsForReferences(
             {
-            Net40.mscorlib,
+            Net40.References.mscorlib,
                 varV1MTTestLib2Path,
             TestReferences.SymbolsTests.V3.MTTestLib1.dll,
                 varV2MTTestLib3Path,
@@ -409,7 +410,7 @@ End Namespace
             Assert.Same(retval14, asm4(3).GlobalNamespace.GetMembers("Class5").Single())
             Dim asm5 = GetSymbolsForReferences(
             {
-                Net40.mscorlib,
+                Net40.References.mscorlib,
                 TestReferences.SymbolsTests.V2.MTTestLib3.dll
             })
 
@@ -417,7 +418,7 @@ End Namespace
             Assert.True(asm5(1).RepresentsTheSameAssemblyButHasUnresolvedReferencesByComparisonTo(asm3(3)))
             Dim asm6 = GetSymbolsForReferences(
             {
-                Net40.mscorlib,
+                Net40.References.mscorlib,
                 TestReferences.SymbolsTests.V1.MTTestLib2.dll
             })
 
@@ -425,7 +426,7 @@ End Namespace
             Assert.Same(asm6(1), asm1(1))
             Dim asm7 = GetSymbolsForReferences(
             {
-            Net40.mscorlib,
+            Net40.References.mscorlib,
             TestReferences.SymbolsTests.V1.MTTestLib2.dll,
             TestReferences.SymbolsTests.V2.MTTestLib3.dll,
             TestReferences.SymbolsTests.V3.MTTestLib4.dll
@@ -472,7 +473,7 @@ End Namespace
             ' This test shows that simple reordering of references doesn't pick different set of assemblies
             Dim asm8 = GetSymbolsForReferences(
             {
-            Net40.mscorlib,
+            Net40.References.mscorlib,
             TestReferences.SymbolsTests.V3.MTTestLib4.dll,
             TestReferences.SymbolsTests.V1.MTTestLib2.dll,
             TestReferences.SymbolsTests.V2.MTTestLib3.dll
@@ -487,7 +488,7 @@ End Namespace
             Assert.Same(asm8(1), asm7(3))
             Dim asm9 = GetSymbolsForReferences(
             {
-                Net40.mscorlib,
+                Net40.References.mscorlib,
                 TestReferences.SymbolsTests.V3.MTTestLib4.dll
             })
 
@@ -495,7 +496,7 @@ End Namespace
             Assert.True(asm9(1).RepresentsTheSameAssemblyButHasUnresolvedReferencesByComparisonTo(asm4(4)))
             Dim asm10 = GetSymbolsForReferences(
             {
-            Net40.mscorlib,
+            Net40.References.mscorlib,
             TestReferences.SymbolsTests.V1.MTTestLib2.dll,
             TestReferences.SymbolsTests.V3.MTTestLib1.dll,
             TestReferences.SymbolsTests.V2.MTTestLib3.dll,

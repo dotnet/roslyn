@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
 {
@@ -506,7 +507,7 @@ class C
             // Test with CompileExpression rather than CompileExpressions
             // so field references in IL are named.
             // Debug build.
-            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, references: new[] { TestMetadata.Net40.SystemCore });
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, references: new[] { Net40.References.SystemCore });
             WithRuntimeInstance(
                 comp,
                 references: null,

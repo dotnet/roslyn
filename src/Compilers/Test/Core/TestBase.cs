@@ -81,7 +81,7 @@ namespace Roslyn.Test.Utilities
         #region Metadata References
 
         private static readonly Lazy<MetadataReference[]> s_lazyDefaultVbReferences = new Lazy<MetadataReference[]>(
-            () => new[] { Net40.mscorlib, Net40.System, Net40.SystemCore, Net40.MicrosoftVisualBasic },
+            () => new[] { Net40.References.mscorlib, Net40.References.System, Net40.References.SystemCore, Net40.References.MicrosoftVisualBasic },
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference[] DefaultVbReferences => s_lazyDefaultVbReferences.Value;
 

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var assembly0 = assemblies[0];
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var assembly1 = assemblies[1];
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             //<AString("C1")>
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var aBoolClass = assemblies[1].Modules[0].GlobalNamespace.GetMember("ABooleanAttribute") as NamedTypeSymbol;
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var aBoolClass = assemblies[1].Modules[0].GlobalNamespace.GetMember("ABooleanAttribute") as NamedTypeSymbol;
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             //<AString("C1")>
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeApplicationLib,
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             //Public Class C2(Of T1)
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.MDTestAttributeDefLib ,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var assemblyArgs = new AttributeArgs[] {
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.AttributeInterop01,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             //[assembly: ImportedFromTypeLib("InteropAttributes")]
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.AttributeInterop01,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             //[ComImport, Guid("ABCDEF5D-2448-447A-B786-64682CBEF123")]
@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.AttributeInterop01,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             // [Serializable, ComVisible(false)]
@@ -767,7 +767,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.AttributeInterop02,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             // [Guid("31230DD5-2448-447A-B786-64682CBEFEEE"), Flags]
@@ -805,7 +805,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(new[]
             {
                 TestReferences.SymbolsTests.Metadata.AttributeInterop01,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             //[ComImport, TypeLibType(TypeLibTypeFlags.FAggregatable)]
@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.AttributeTestLib01,
                 TestReferences.SymbolsTests.Metadata.AttributeTestDef01,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var caNS = (NamespaceSymbol)assemblies[1].GlobalNamespace.GetMember("CustomAttribute");
@@ -940,7 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             {
                 TestReferences.SymbolsTests.Metadata.AttributeTestLib01 ,
                 TestReferences.SymbolsTests.Metadata.AttributeTestDef01 ,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var caNS = (NamespaceSymbol)assemblies[1].GlobalNamespace.GetMember("CustomAttribute");
@@ -1042,7 +1042,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]{
                 TestReferences.SymbolsTests.Metadata.AttributeTestLib01,
                 TestReferences.SymbolsTests.Metadata.AttributeTestDef01,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var caNS = (NamespaceSymbol)assemblies[1].GlobalNamespace.GetMember("CustomAttribute");
@@ -1172,7 +1172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[] {
                 NetFramework.SystemCore,
                 NetFramework.System,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var sysNS = (NamespaceSymbol)assemblies[2].GlobalNamespace.GetMember("System");
@@ -1194,7 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(mrefs: new[]{
                 NetFramework.SystemCore,
                 NetFramework.System,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var corsysNS = assemblies[2].GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol;
@@ -1255,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 NetFramework.SystemData,
                 NetFramework.SystemCore,
                 NetFramework.System,
-                Net40.mscorlib
+                Net40.References.mscorlib
             });
 
             var sysNS = (NamespaceSymbol)assemblies[0].GlobalNamespace.GetMember("System");

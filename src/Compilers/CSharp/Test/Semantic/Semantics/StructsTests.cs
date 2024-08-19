@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
@@ -370,7 +371,7 @@ class Test
         [Fact]
         public void RetargetedSynthesizedStructConstructor()
         {
-            var oldMsCorLib = TestMetadata.Net40.mscorlib;
+            var oldMsCorLib = Net40.References.mscorlib;
 
             var c1 = CSharpCompilation.Create("C1",
                 new[] { Parse(@"public struct S { }") },
