@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.Text
             /// <summary>
             /// The starting line number for the correspondingly indexed SourceTexts in _compositeText.Segments.
             /// Multiple consecutive entries could indicate the same line number if the corresponding
-            /// segments don't contain newline characters. 
+            /// segments don't contain newline characters.
             /// </summary>
             /// <remarks>
             /// This will be of the same length as _compositeText.Segments
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Text
                     var segment = compositeText.Segments[i];
 
                     // Account for this segments lines in our accumulated lines. Subtract one as each segment
-                    // views it's line count as one greater than the number of line breaks it contains.
+                    // views its line count as one greater than the number of line breaks it contains.
                     accumulatedLineCount += (segment.Lines.Count - 1);
 
                     Debug.Assert(segment.Length > 0);

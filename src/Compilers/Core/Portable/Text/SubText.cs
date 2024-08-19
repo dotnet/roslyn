@@ -170,12 +170,17 @@ namespace Microsoft.CodeAnalysis.Text
                     // |   ST2   |     0      |         0          |         2         |            3             |         4         |
                     // |   ST2   |     1      |         3          |         2         |            4             |         4         |
                     // ----------------------------------------------------------------------------------------------------------------
+
+                    // These two variables represent this subtext's view on the start/end of the requested line,
+                    // but in the coordinate space of _subText.UnderlyingText.
                     var startInUnderlyingText = Math.Max(underlyingTextLine.Start, _subText.UnderlyingSpan.Start);
                     var endInUnderlyingText = Math.Min(underlyingTextLine.EndIncludingLineBreak, _subText.UnderlyingSpan.End);
 
+                    // This variable represent this subtext's view on start of the requested line,
+                    // in it's coordinate space
                     var startInSubText = startInUnderlyingText - _subText.UnderlyingSpan.Start;
-                    var length = endInUnderlyingText - startInUnderlyingText;
 
+                    var length = endInUnderlyingText - startInUnderlyingText;
                     var resultLine = TextLine.FromSpanUnsafe(_subText, new TextSpan(startInSubText, length));
 
                     var shouldContainLineBreak = (lineNumber != _lineCount - 1);
