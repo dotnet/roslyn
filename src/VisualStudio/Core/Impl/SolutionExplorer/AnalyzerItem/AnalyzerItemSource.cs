@@ -115,6 +115,7 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource, INotifyPro
         var references = await GetAnalyzerReferencesWithAnalyzersOrGeneratorsAsync(
             project, cancellationToken).ConfigureAwait(false);
 
+        await _analyzersFolder.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         try
         {
             _items.BeginBulkOperation();
@@ -139,7 +140,7 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource, INotifyPro
 
             // If we can't make a remote call.  Fall back to processing in the VS host.
             if (client is null)
-                return project.AnalyzerReferences.Where(r => r.HasAnalyzersOrSourceGenerators(project.Language)).ToImmutableArray();
+                return project.AnalyzerReferences.Where(r => r is not AnalyzerFileReference || r.HasAnalyzersOrSourceGenerators(project.Language)).ToImmutableArray();
 
             using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
 

@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Imaging.Interop;
@@ -13,11 +14,13 @@ using VSLangProj140;
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
 internal sealed partial class AnalyzersFolderItem(
+    IThreadingContext threadingContext,
     Workspace workspace,
     ProjectId projectId,
     IVsHierarchyItem parentItem,
     IContextMenuController contextMenuController) : BaseItem(SolutionExplorerShim.Analyzers)
 {
+    public readonly IThreadingContext ThreadingContext = threadingContext;
     public Workspace Workspace { get; } = workspace;
     public ProjectId ProjectId { get; } = projectId;
     public IVsHierarchyItem ParentItem { get; } = parentItem;

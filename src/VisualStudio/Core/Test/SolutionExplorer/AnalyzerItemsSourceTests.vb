@@ -10,7 +10,7 @@ Imports Roslyn.Test.Utilities
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
     <UseExportProvider>
     Public NotInheritable Class AnalyzerItemsSourceTests
-        <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Async Function Ordering() As Task
             Dim workspaceXml =
                 <Workspace>
