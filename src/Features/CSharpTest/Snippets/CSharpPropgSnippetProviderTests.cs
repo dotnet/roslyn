@@ -4,16 +4,15 @@
 
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets;
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Snippets;
 
-public class CSharpPropSnippetCompletionProviderTests : AbstractCSharpAutoPropertyCompletionProviderTests
+public sealed class CSharpPropgSnippetProviderTests : AbstractCSharpAutoPropertySnippetProviderTests
 {
-    protected override string ItemToCommit => "prop";
+    protected override string SnippetIdentifier => "propg";
 
-    protected override string GetDefaultPropertyBlockText()
-        => "{ get; set; }";
+    protected override string DefaultPropertyBlockText => "{ get; private set; }";
 
-    public override async Task InsertSnippetInReadonlyStruct()
+    public override async Task InsertSnippetInReadonlyStructTest()
     {
         // Ensure we don't generate redundant `set` accessor when executed in readonly struct
         await VerifyPropertyAsync("""
@@ -21,10 +20,10 @@ public class CSharpPropSnippetCompletionProviderTests : AbstractCSharpAutoProper
             {
                 $$
             }
-            """, "public int MyProperty { get; }");
+            """, "public {|0:int|} {|1:MyProperty|} { get; }");
     }
 
-    public override async Task InsertSnippetInReadonlyStruct_ReadonlyModifierInOtherPartialDeclaration()
+    public override async Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration()
     {
         // Ensure we don't generate redundant `set` accessor when executed in readonly struct
         await VerifyPropertyAsync("""
@@ -36,10 +35,10 @@ public class CSharpPropSnippetCompletionProviderTests : AbstractCSharpAutoProper
             readonly partial struct MyStruct
             {
             }
-            """, "public int MyProperty { get; }");
+            """, "public {|0:int|} {|1:MyProperty|} { get; }");
     }
 
-    public override async Task InsertSnippetInReadonlyStruct_ReadonlyModifierInOtherPartialDeclaration_MissingPartialModifier()
+    public override async Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration_MissingPartialModifier()
     {
         // Even though there is no `partial` modifier on the first declaration
         // compiler still treats the whole type as partial since it is more likely that
@@ -54,16 +53,17 @@ public class CSharpPropSnippetCompletionProviderTests : AbstractCSharpAutoProper
             readonly partial struct MyStruct
             {
             }
-            """, "public int MyProperty { get; }");
+            """, "public {|0:int|} {|1:MyProperty|} { get; }");
     }
 
-    public override async Task InsertSnippetInInterface()
+    public override async Task InsertSnippetInInterfaceTest()
     {
-        await VerifyDefaultPropertyAsync("""
+        // Ensure we don't generate redundant `set` accessor when executed in interface
+        await VerifyPropertyAsync("""
             interface MyInterface
             {
                 $$
             }
-            """);
+            """, "public {|0:int|} {|1:MyProperty|} { get; }");
     }
 }

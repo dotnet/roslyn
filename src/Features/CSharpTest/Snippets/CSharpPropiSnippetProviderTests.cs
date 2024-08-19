@@ -4,16 +4,15 @@
 
 using System.Threading.Tasks;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets;
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Snippets;
 
-public class CSharpPropiSnippetCompletionProviderTests : AbstractCSharpAutoPropertyCompletionProviderTests
+public sealed class CSharpPropiSnippetProviderTests : AbstractCSharpAutoPropertySnippetProviderTests
 {
-    protected override string ItemToCommit => "propi";
+    protected override string SnippetIdentifier => "propi";
 
-    protected override string GetDefaultPropertyBlockText()
-        => "{ get; init; }";
+    protected override string DefaultPropertyBlockText => "{ get; init; }";
 
-    public override async Task InsertSnippetInReadonlyStruct()
+    public override async Task InsertSnippetInReadonlyStructTest()
     {
         await VerifyDefaultPropertyAsync("""
             readonly struct MyStruct
@@ -23,7 +22,7 @@ public class CSharpPropiSnippetCompletionProviderTests : AbstractCSharpAutoPrope
             """);
     }
 
-    public override async Task InsertSnippetInReadonlyStruct_ReadonlyModifierInOtherPartialDeclaration()
+    public override async Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration()
     {
         await VerifyDefaultPropertyAsync("""
             partial struct MyStruct
@@ -37,7 +36,7 @@ public class CSharpPropiSnippetCompletionProviderTests : AbstractCSharpAutoPrope
             """);
     }
 
-    public override async Task InsertSnippetInReadonlyStruct_ReadonlyModifierInOtherPartialDeclaration_MissingPartialModifier()
+    public override async Task InsertSnippetInReadonlyStructTest_ReadonlyModifierInOtherPartialDeclaration_MissingPartialModifier()
     {
         await VerifyDefaultPropertyAsync("""
             struct MyStruct
@@ -51,7 +50,7 @@ public class CSharpPropiSnippetCompletionProviderTests : AbstractCSharpAutoPrope
             """);
     }
 
-    public override async Task InsertSnippetInInterface()
+    public override async Task InsertSnippetInInterfaceTest()
     {
         await VerifyDefaultPropertyAsync("""
             interface MyInterface
