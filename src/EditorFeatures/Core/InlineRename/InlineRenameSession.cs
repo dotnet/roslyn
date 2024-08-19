@@ -421,6 +421,20 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
             Cancel();
         }
+        else
+        {
+            if (_commitState == CommitState.WaitConflictResolution)
+            {
+                var openDocuments = _openTextBuffers.Values
+                    .SelectMany(static textBufferManager => textBufferManager.BaseDocuments)
+                    .Select(doc => doc.Id)
+                    .Distinct();
+                if (openDocuments.Contains(args.DocumentId))
+                {
+                    Cancel();
+                }
+            }
+        }
     }
 
     private void RaiseSessionSpansUpdated(ImmutableArray<InlineRenameLocation> locations)
@@ -869,6 +883,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
             if (previewChanges)
             {
+                CommitState = CommitState.PreviewChanges;
                 var previewService = Workspace.Services.GetService<IPreviewDialogService>();
 
                 // The preview service needs to be called from the UI thread, since it's doing COM calls underneath.
@@ -891,13 +906,13 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             }
 
             // The user hasn't canceled by now, so we're done waiting for them. Off to rename!
+            CommitState = CommitState.StartApplyChanges;
             using var _ = operationContext.AddScope(allowCancellation: false, EditorFeaturesResources.Updating_files);
 
             await DismissUIAndRollbackEditsAndEndRenameSessionAsync(
                 RenameLogMessage.UserActionOutcome.Committed, previewChanges,
                 async () =>
                 {
-                    CommitState = CommitState.StartApplyChanges;
                     var error = await TryApplyRenameAsync(newSolution, linkedCancellationToken).ConfigureAwait(false);
                     if (error is not null)
                     {

@@ -11,6 +11,7 @@ internal enum CommitState
 {
     NotStart,
     WaitConflictResolution,
+    PreviewChanges,
     StartApplyChanges,
     End,
 }
