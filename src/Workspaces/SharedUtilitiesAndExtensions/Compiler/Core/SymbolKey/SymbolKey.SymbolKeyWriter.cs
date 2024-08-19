@@ -26,6 +26,7 @@ internal partial struct SymbolKey
         ErrorType = 'E',
         Field = 'F',
         FunctionPointer = 'G',
+        SpecialType = 'H',
         DynamicType = 'I',
         BuiltinOperator = 'L',
         Method = 'M',
@@ -401,7 +402,13 @@ internal partial struct SymbolKey
 
         public override void VisitNamedType(INamedTypeSymbol namedTypeSymbol)
         {
-            if (namedTypeSymbol.TypeKind == TypeKind.Error)
+            if (namedTypeSymbol.IsSpecialType())
+            {
+                WriteType(SymbolKeyType.SpecialType);
+                WriteInteger((int)namedTypeSymbol.SpecialType);
+                throw new NotSupportedException("Forced exception to identify impacted tests.");
+            }
+            else if (namedTypeSymbol.TypeKind == TypeKind.Error)
             {
                 WriteType(SymbolKeyType.ErrorType);
                 ErrorTypeSymbolKey.Instance.Create(namedTypeSymbol, this);
