@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -12,16 +11,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
-using VSLangProj140;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
@@ -34,11 +31,10 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource, INotifyPro
 
     private readonly CancellationTokenSource _cancellationTokenSource = new();
     private readonly AsyncBatchingWorkQueue _workQueue;
-    private readonly IThreadingContext _threadingContext;
 
-    private IReadOnlyCollection<AnalyzerReference> _analyzerReferences;
+    private IReadOnlyCollection<AnalyzerReference>? _analyzerReferences;
 
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler PropertyChanged = null!;
 
     private Workspace Workspace => _analyzersFolder.Workspace;
     private ProjectId ProjectId => _analyzersFolder.ProjectId;
@@ -115,7 +111,7 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource, INotifyPro
         // Set the new set of analyzer references we're going to have AnalyzerItems for.
         _analyzerReferences = project.AnalyzerReferences;
 
-        var computedItems = await GetItemsWithAnalyzersOrGeneratorsAsync(
+        var references = await GetAnalyzerReferencesWithAnalyzersOrGeneratorsAsync(
             project, cancellationToken).ConfigureAwait(false);
 
         try
@@ -123,7 +119,8 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource, INotifyPro
             _items.BeginBulkOperation();
 
             _items.Clear();
-            _items.AddRange(computedItems);
+            foreach (var analyzerReference in references)
+                _items.Add(new AnalyzerItem(_analyzersFolder, analyzerReference, _commandHandler.AnalyzerContextMenuController));
 
             return;
         }
@@ -133,60 +130,43 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource, INotifyPro
             NotifyPropertyChanged(nameof(Items));
         }
 
-        async Task<ImmutableArray<AnalyzerItem>> GetItemsWithAnalyzersOrGeneratorsAsync(
+        async Task<ImmutableArray<AnalyzerFileReference>> GetAnalyzerReferencesWithAnalyzersOrGeneratorsAsync(
             Project project,
             CancellationToken cancellationToken)
         {
             // Can only remote AnalyzerFileReferences over to the oop side.  Ignore all other kinds in the VS process.
-            var analyzerFileReferences = project.AnalyzerReferences.OfType<AnalyzerFileReference>().ToImmutableArray();
-            var analyzerFileReferencePaths = analyzerReferences
+            var analyzerFileReferences = project.AnalyzerReferences
                 .OfType<AnalyzerFileReference>()
-                .SelectAsArray(r => r.FullPath);
+                .Where(static r => r.FullPath != null)
+                .ToImmutableArray();
 
             var client = await RemoteHostClient.TryGetClientAsync(this.Workspace, cancellationToken).ConfigureAwait(false);
             if (client is not null)
             {
-                var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, ImmutableArray<SourceGeneratorIdentity>>(
+                var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, ImmutableArray<bool>>(
                     project,
-                    (service, solutionChecksum, cancellationToken) => service.GetSourceGeneratorIdentitiesAsync(
-                        solutionChecksum, project.Id, analyzerFileReference.FullPath, cancellationToken),
+                    (service, solutionChecksum, cancellationToken) => service.HasAnalyzersOrSourceGeneratorsAsync(
+                        solutionChecksum, project.Id, analyzerFileReferences.SelectAsArray(static r => r.FullPath), cancellationToken),
                     cancellationToken).ConfigureAwait(false);
 
                 // If the call fails, the OOP substrate will have already reported an error
                 if (!result.HasValue)
                     return [];
 
-                return result.Value;
+                Contract.ThrowIfTrue(result.Value.Length != analyzerFileReferences.Length);
+                using var _ = ArrayBuilder<AnalyzerFileReference>.GetInstance(analyzerFileReferences.Length, out var builder);
+                for (var i = 0; i < analyzerFileReferences.Length; i++)
+                {
+                    var hasAnalyzersOrGenerators = result.Value[i];
+                    if (hasAnalyzersOrGenerators)
+                        builder.Add(analyzerFileReferences[i]);
+                }
+
+                return builder.ToImmutableAndClear();
             }
 
-
-            _analyzerItems.Add(new AnalyzerItem(_analyzersFolder, reference, _commandHandler.AnalyzerContextMenuController));
+            // Couldn't make a remote call.  Fall back to processing in the VS host.
+            return analyzerFileReferences.WhereAsArray(r => r.HasAnalyzersOrSourceGenerators(project.Language));
         }
-    }
-
-    private ImmutableArray<AnalyzerReference> GetFilteredAnalyzers(IEnumerable<AnalyzerReference> analyzerReferences, Project project)
-    {
-        // Filter out analyzer dependencies which have no diagnostic analyzers, but still retain the unresolved analyzers and analyzers with load errors.
-        var builder = ArrayBuilder<AnalyzerReference>.GetInstance();
-        foreach (var analyzerReference in analyzerReferences)
-        {
-            // Analyzer dependency:
-            // 1. Must be an Analyzer file reference (we don't understand other analyzer dependencies).
-            // 2. Mush have no diagnostic analyzers.
-            // 3. Must have no source generators.
-            // 4. Must have non-null full path.
-            // 5. Must not have any assembly or analyzer load failures.
-            if (analyzerReference is AnalyzerFileReference &&
-                analyzerReference.GetAnalyzers(project.Language).IsDefaultOrEmpty &&
-                analyzerReference.GetGenerators(project.Language).IsDefaultOrEmpty &&
-                analyzerReference.FullPath != null)
-            {
-                continue;
-            }
-
-            builder.Add(analyzerReference);
-        }
-
-        return builder.ToImmutableAndFree();
     }
 }

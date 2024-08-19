@@ -57,6 +57,14 @@ internal interface IRemoteSourceGenerationService
     /// </summary>
     ValueTask<ImmutableArray<SourceGeneratorIdentity>> GetSourceGeneratorIdentitiesAsync(
         Checksum solutionChecksum, ProjectId projectId, string analyzerReferenceFullPath, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns an array of <see langword="bool"/>s (each one corresponding to the <see
+    /// cref="AnalyzerFileReference.FullPath"/> in the provided <paramref name="analyzerReferenceFullPaths"/> array)
+    /// specifying if the corresponding analyzer reference has any analyzers or source generators.
+    /// </summary>
+    ValueTask<ImmutableArray<bool>> HasAnalyzersOrSourceGeneratorsAsync(
+        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<string> analyzerReferenceFullPaths, CancellationToken cancellationToken);
 }
 
 /// <summary>

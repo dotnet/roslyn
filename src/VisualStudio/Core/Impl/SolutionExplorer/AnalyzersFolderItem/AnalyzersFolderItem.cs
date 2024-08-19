@@ -64,7 +64,7 @@ internal sealed partial class AnalyzersFolderItem(
     /// <summary>
     /// Remove an analyzer with the given path from this folder.
     /// </summary>
-    public void RemoveAnalyzer(string path)
+    public void RemoveAnalyzer(string? path)
     {
         var vsproject = GetVSProject();
         if (vsproject == null)
