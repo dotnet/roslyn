@@ -751,11 +751,11 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     {
         if (this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
         {
-            await StartCommitAsync(previewChanges, canUseBackgroundWorkIndicator: true, cancellationToken).ConfigureAwait(false);
+            return await StartCommitAsync(previewChanges, canUseBackgroundWorkIndicator: true, cancellationToken).ConfigureAwait(false);
         }
         else
         {
-            CommitSynchronously(previewChanges);
+            return CommitSynchronously(previewChanges);
         }
     }
 
@@ -792,7 +792,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             Cancel();
             return false;
         }
-
 
         previewChanges = previewChanges || PreviewChanges;
 

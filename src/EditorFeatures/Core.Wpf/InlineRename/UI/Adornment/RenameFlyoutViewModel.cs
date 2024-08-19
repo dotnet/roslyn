@@ -230,7 +230,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         public bool AllowUserInput
             => !Session.IsCommitInProgress;
 
-
         private Visibility _visibility;
         public Visibility Visibility
         {
@@ -239,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             {
                 if (value != _visibility)
                 {
-                    _visibility = value;
+                    Set(ref _visibility, value);
                     NotifyPropertyChanged();
                 }
             }
