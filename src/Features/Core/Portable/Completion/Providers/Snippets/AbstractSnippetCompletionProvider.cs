@@ -82,7 +82,7 @@ internal abstract class AbstractSnippetCompletionProvider : CompletionProvider
 
         var syntaxContext = await context.GetSyntaxContextWithExistingSpeculativeModelAsync(document, cancellationToken).ConfigureAwait(false);
         var snippetContext = new SnippetContext(syntaxContext);
-        var snippets = await service.GetSnippetsAsync(snippetContext, cancellationToken).ConfigureAwait(false);
+        var snippets = service.GetSnippets(snippetContext, cancellationToken);
 
         foreach (var snippetData in snippets)
         {

@@ -32,7 +32,7 @@ public abstract class AbstractCodeGenerationTests
             .AddProject(projectId, languageName, $"{languageName}.dll", languageName).GetRequiredProject(projectId);
 
         var normalizedSyntax = syntaxNode.NormalizeWhitespace().ToFullString();
-        var document = project.AddMetadataReference(TestMetadata.Net451.mscorlib)
+        var document = project.AddMetadataReference(NetFramework.mscorlib)
             .AddDocument("Fake Document", SourceText.From(normalizedSyntax));
 
         var root = document.GetRequiredSyntaxRootAsync(default).AsTask().Result;
