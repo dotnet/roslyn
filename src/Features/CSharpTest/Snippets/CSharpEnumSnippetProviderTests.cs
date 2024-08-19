@@ -247,7 +247,7 @@ public sealed class CSharpEnumSnippetProviderTests : AbstractCSharpSnippetProvid
 
     [Theory]
     [InlineData("abstract")]
-    //[InlineData("partial")]
+    [InlineData("partial")]
     [InlineData("sealed")]
     [InlineData("static")]
     [InlineData("ref")]
