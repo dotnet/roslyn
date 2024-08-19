@@ -609,6 +609,9 @@ internal partial class StreamingFindUsagesPresenter
 
         private static ImmutableArray<Entry> ToImmutableArray((List<Entry> primary, List<Entry> nonPrimary) entries)
         {
+            // When returning the final list of entries to the UI layer, we want primary entries to come first, followed
+            // by non-primary ones.
+
             var result = new FixedSizeArrayBuilder<Entry>(entries.nonPrimary.Count + entries.primary.Count);
             foreach (var entry in entries.primary)
                 result.Add(entry);
