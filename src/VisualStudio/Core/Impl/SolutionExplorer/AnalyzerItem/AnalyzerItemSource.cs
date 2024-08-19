@@ -120,7 +120,7 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource, INotifyPro
             _items.BeginBulkOperation();
 
             _items.Clear();
-            foreach (var analyzerReference in references)
+            foreach (var analyzerReference in references.OrderBy(static r => r.Display))
                 _items.Add(new AnalyzerItem(_analyzersFolder, analyzerReference, _commandHandler.AnalyzerContextMenuController));
 
             return;
@@ -131,43 +131,44 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource, INotifyPro
             NotifyPropertyChanged(nameof(Items));
         }
 
-        async Task<ImmutableArray<AnalyzerFileReference>> GetAnalyzerReferencesWithAnalyzersOrGeneratorsAsync(
+        async Task<ImmutableArray<AnalyzerReference>> GetAnalyzerReferencesWithAnalyzersOrGeneratorsAsync(
             Project project,
             CancellationToken cancellationToken)
         {
-            // Can only remote AnalyzerFileReferences over to the oop side.  Ignore all other kinds in the VS process.
-            var analyzerFileReferences = project.AnalyzerReferences
-                .OfType<AnalyzerFileReference>()
-                .Where(static r => r.FullPath != null)
-                .ToImmutableArray();
-
             var client = await RemoteHostClient.TryGetClientAsync(this.Workspace, cancellationToken).ConfigureAwait(false);
-            if (client is not null)
+
+            // If we can't make a remote call.  Fall back to processing in the VS host.
+            if (client is null)
+                return project.AnalyzerReferences.Where(r => r.HasAnalyzersOrSourceGenerators(project.Language)).ToImmutableArray();
+
+            using var connection = client.CreateConnection<IRemoteSourceGenerationService>(callbackTarget: null);
+
+            using var _ = ArrayBuilder<AnalyzerReference>.GetInstance(out var builder);
+            foreach (var reference in project.AnalyzerReferences)
             {
-                var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, ImmutableArray<bool>>(
-                    project,
-                    (service, solutionChecksum, cancellationToken) => service.HasAnalyzersOrSourceGeneratorsAsync(
-                        solutionChecksum, project.Id, analyzerFileReferences.SelectAsArray(static r => r.FullPath), cancellationToken),
-                    cancellationToken).ConfigureAwait(false);
-
-                // If the call fails, the OOP substrate will have already reported an error
-                if (!result.HasValue)
-                    return [];
-
-                Contract.ThrowIfTrue(result.Value.Length != analyzerFileReferences.Length);
-                using var _ = ArrayBuilder<AnalyzerFileReference>.GetInstance(analyzerFileReferences.Length, out var builder);
-                for (var i = 0; i < analyzerFileReferences.Length; i++)
+                // Can only remote AnalyzerFileReferences over to the oop side.
+                if (reference is AnalyzerFileReference analyzerFileReference)
                 {
-                    var hasAnalyzersOrGenerators = result.Value[i];
-                    if (hasAnalyzersOrGenerators)
-                        builder.Add(analyzerFileReferences[i]);
-                }
+                    var result = await connection.TryInvokeAsync<bool>(
+                        project,
+                        (service, solutionChecksum, cancellationToken) => service.HasAnalyzersOrSourceGeneratorsAsync(
+                            solutionChecksum, project.Id, analyzerFileReference.FullPath, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
 
-                return builder.ToImmutableAndClear();
+                    // If the call fails, the OOP substrate will have already reported an error
+                    if (!result.HasValue)
+                        return [];
+
+                    if (result.Value)
+                        builder.Add(analyzerFileReference);
+                }
+                else if (reference.HasAnalyzersOrSourceGenerators(project.Language))
+                {
+                    builder.Add(reference);
+                }
             }
 
-            // Couldn't make a remote call.  Fall back to processing in the VS host.
-            return analyzerFileReferences.WhereAsArray(r => r.HasAnalyzersOrSourceGenerators(project.Language));
+            return builder.ToImmutableAndClear();
         }
     }
 }
