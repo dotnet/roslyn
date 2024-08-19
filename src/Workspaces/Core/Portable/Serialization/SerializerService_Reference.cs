@@ -60,13 +60,18 @@ internal partial class SerializerService
 
         using var stream = SerializableBytes.CreateWritableStream();
 
+#if NET
+        if (reference is IsolatedAnalyzerFileReference isolatedReference)
+            reference = isolatedReference.UnderlyingAnalyzerReference;
+#endif
+
         using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
             switch (reference)
             {
-                case AnalyzerFileReference file:
-                    writer.WriteString(file.FullPath);
-                    writer.WriteGuid(TryGetAnalyzerFileReferenceMvid(file));
+                case AnalyzerFileReference fileReference:
+                    writer.WriteString(fileReference.FullPath);
+                    writer.WriteGuid(TryGetAnalyzerFileReferenceMvid(fileReference));
                     break;
 
                 case AnalyzerImageReference analyzerImageReference:
