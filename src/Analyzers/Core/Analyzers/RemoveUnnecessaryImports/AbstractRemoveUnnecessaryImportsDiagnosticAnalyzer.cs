@@ -43,14 +43,18 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
         customTags: [.. DiagnosticCustomTags.Microsoft, EnforceOnBuild.Never.ToCustomTag()]);
 #pragma warning restore RS0030 // Do not used banned APIs
 
+    private static readonly ImmutableArray<DiagnosticDescriptor> s_compilationAnalysisDescriptors = [s_enableGenerateDocumentationFileIdDescriptor];
+
     private readonly DiagnosticDescriptor _classificationIdDescriptor;
     private readonly DiagnosticDescriptor _generatedCodeClassificationIdDescriptor;
+    private readonly ImmutableArray<DiagnosticDescriptor> _semanticModelAnalysisDescriptors;
 
     protected AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer(LocalizableString titleAndMessage)
         : base(GetDescriptors(titleAndMessage, out var classificationIdDescriptor, out var generatedCodeClassificationIdDescriptor), FadingOptions.FadeOutUnusedImports)
     {
         _classificationIdDescriptor = classificationIdDescriptor;
         _generatedCodeClassificationIdDescriptor = generatedCodeClassificationIdDescriptor;
+        _semanticModelAnalysisDescriptors = [_generatedCodeClassificationIdDescriptor, _classificationIdDescriptor, s_fixableIdDescriptor];
     }
 
     private static ImmutableArray<DiagnosticDescriptor> GetDescriptors(LocalizableString titleAndMessage, out DiagnosticDescriptor classificationIdDescriptor, out DiagnosticDescriptor generatedCodeClassificationIdDescriptor)
@@ -83,7 +87,7 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
 
     private void AnalyzeSemanticModel(SemanticModelAnalysisContext context)
     {
-        if (ShouldSkipAnalysis(context, notification: null))
+        if (ShouldSkipAnalysis(context, notification: null, _semanticModelAnalysisDescriptors))
             return;
 
         var tree = context.SemanticModel.SyntaxTree;
@@ -130,7 +134,7 @@ internal abstract class AbstractRemoveUnnecessaryImportsDiagnosticAnalyzer<TSynt
         if (tree is null || tree.Options.DocumentationMode != DocumentationMode.None)
             return;
 
-        if (ShouldSkipAnalysis(tree, context.Options, compilation.Options, notification: null, context.CancellationToken))
+        if (ShouldSkipAnalysis(tree, context.Options, compilation.Options, notification: null, s_compilationAnalysisDescriptors, context.CancellationToken))
             return;
 
         var effectiveSeverity = _classificationIdDescriptor.GetEffectiveSeverity(compilation.Options, tree, context.Options);
