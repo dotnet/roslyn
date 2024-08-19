@@ -75,6 +75,7 @@ internal partial class StreamingFindUsagesPresenter
             await AddDocumentSpanEntriesAsync(entries, definitionBucket, definition, cancellationToken).ConfigureAwait(false);
 
             var changed = false;
+            var isPrimary = IsPrimary(definition);
             lock (Gate)
             {
                 // Do one final check to ensure that no other thread beat us here.
@@ -82,7 +83,7 @@ internal partial class StreamingFindUsagesPresenter
                 {
                     // We only include declaration entries in the entries we show when 
                     // not grouping by definition.
-                    AddRange(EntriesWhenNotGroupingByDefinition, entries);
+                    AddRange(PrimaryEntriesWhenNotGroupingByDefinition, NonPrimaryEntriesWhenNotGroupingByDefinition, entries, isPrimary);
                     CurrentVersionNumber++;
                     changed = true;
                 }
@@ -99,7 +100,13 @@ internal partial class StreamingFindUsagesPresenter
         {
             lock (Gate)
             {
-                foreach (var entry in EntriesWhenNotGroupingByDefinition)
+                foreach (var entry in PrimaryEntriesWhenNotGroupingByDefinition)
+                {
+                    if (entry.DefinitionBucket.DefinitionItem == definition)
+                        return true;
+                }
+
+                foreach (var entry in NonPrimaryEntriesWhenNotGroupingByDefinition)
                 {
                     if (entry.DefinitionBucket.DefinitionItem == definition)
                         return true;
@@ -151,16 +158,17 @@ internal partial class StreamingFindUsagesPresenter
             // Proceed, even if we didn't create an entry.  It's possible that we augmented
             // an existing entry and we want the UI to refresh to show the results of that.
 
+            var isPrimary = IsPrimary(definition);
             lock (Gate)
             {
                 if (entry != null)
                 {
                     // Once we can make the new entry, add it to the appropriate list.
                     if (addToEntriesWhenGroupingByDefinition)
-                        EntriesWhenGroupingByDefinition.Add(entry);
+                        Add(PrimaryEntriesWhenGroupingByDefinition, NonPrimaryEntriesWhenGroupingByDefinition, entry, isPrimary);
 
                     if (addToEntriesWhenNotGroupingByDefinition)
-                        EntriesWhenNotGroupingByDefinition.Add(entry);
+                        Add(PrimaryEntriesWhenNotGroupingByDefinition, NonPrimaryEntriesWhenNotGroupingByDefinition, entry, isPrimary);
                 }
 
                 CurrentVersionNumber++;

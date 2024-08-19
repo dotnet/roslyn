@@ -60,10 +60,13 @@ internal partial class StreamingFindUsagesPresenter
             var definitionBucket = GetOrCreateDefinitionBucket(CreateNoResultsDefinitionItem(message), expandedByDefault: true);
             var entry = await SimpleMessageEntry.CreateAsync(definitionBucket, navigationBucket: null, message).ConfigureAwait(false);
 
+            var isPrimary = IsPrimary(definitionBucket.DefinitionItem);
+
             lock (Gate)
             {
-                EntriesWhenGroupingByDefinition.Add(entry);
-                EntriesWhenNotGroupingByDefinition.Add(entry);
+                Add(PrimaryEntriesWhenGroupingByDefinition, NonPrimaryEntriesWhenGroupingByDefinition, entry, isPrimary);
+                Add(PrimaryEntriesWhenNotGroupingByDefinition, NonPrimaryEntriesWhenNotGroupingByDefinition, entry, isPrimary);
+
                 CurrentVersionNumber++;
             }
 
@@ -105,10 +108,12 @@ internal partial class StreamingFindUsagesPresenter
 
             if (entries.Count > 0)
             {
+                var isPrimary = IsPrimary(definition);
+
                 lock (Gate)
                 {
-                    AddRange(EntriesWhenGroupingByDefinition, entries);
-                    AddRange(EntriesWhenNotGroupingByDefinition, entries);
+                    AddRange(EntriesWhenGroupingByDefinition, entries, isPrimary);
+                    AddRange(EntriesWhenNotGroupingByDefinition, entries, isPrimary);
                     CurrentVersionNumber++;
                 }
 
