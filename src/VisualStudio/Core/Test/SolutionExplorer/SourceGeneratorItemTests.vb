@@ -270,7 +270,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
             Return New LegacyDiagnosticItemSource(
                 workspace.GetService(Of IThreadingContext),
-                New AnalyzerItem(New AnalyzersFolderItem(workspace, projectId, Nothing, Nothing), analyzerReference, Nothing),
+                New AnalyzerItem(New AnalyzersFolderItem(workspace.GetService(Of IThreadingContext), workspace, projectId, Nothing, Nothing), analyzerReference, Nothing),
                 New FakeAnalyzersCommandHandler,
                 workspace.GetService(Of IDiagnosticAnalyzerService),
                 workspace.GetService(Of IAsynchronousOperationListenerProvider))

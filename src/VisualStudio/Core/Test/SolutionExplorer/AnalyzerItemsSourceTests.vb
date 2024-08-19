@@ -2,6 +2,7 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
@@ -24,7 +25,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
             Using workspace = EditorTestWorkspace.Create(workspaceXml)
                 Dim project = workspace.Projects.Single()
 
-                Dim analyzerFolder = New AnalyzersFolderItem(workspace, project.Id, Nothing, Nothing)
+                Dim analyzerFolder = New AnalyzersFolderItem(workspace.GetService(Of IThreadingContext), workspace, project.Id, Nothing, Nothing)
                 Dim listenerProvider = workspace.GetService(Of IAsynchronousOperationListenerProvider)
                 Dim analyzerItemsSource = New AnalyzerItemSource(
                     analyzerFolder, New FakeAnalyzersCommandHandler(), listenerProvider)

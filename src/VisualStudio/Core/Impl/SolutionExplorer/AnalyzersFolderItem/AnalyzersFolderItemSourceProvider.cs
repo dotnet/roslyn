@@ -7,6 +7,7 @@ using System.ComponentModel.Composition;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -21,13 +22,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
 [method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
 [method: ImportingConstructor]
 internal sealed class AnalyzersFolderItemSourceProvider(
+    IThreadingContext threadingContext,
     VisualStudioWorkspace workspace,
     [Import(typeof(AnalyzersCommandHandler))] IAnalyzersCommandHandler commandHandler)
     : AttachedCollectionSourceProvider<IVsHierarchyItem>
 {
-    private readonly IAnalyzersCommandHandler _commandHandler = commandHandler;
-    private IHierarchyItemToProjectIdMap? _projectMap;
+    private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly Workspace _workspace = workspace;
+    private readonly IAnalyzersCommandHandler _commandHandler = commandHandler;
+
+    private IHierarchyItemToProjectIdMap? _projectMap;
 
     protected override IAttachedCollectionSource? CreateCollectionSource(IVsHierarchyItem item, string relationshipName)
     {
@@ -46,7 +50,7 @@ internal sealed class AnalyzersFolderItemSourceProvider(
                 if (hierarchyMapper != null &&
                     hierarchyMapper.TryGetProjectId(item.Parent, targetFrameworkMoniker: null, projectId: out var projectId))
                 {
-                    return new AnalyzersFolderItemSource(_workspace, projectId, item, _commandHandler);
+                    return new AnalyzersFolderItemSource(_threadingContext, _workspace, projectId, item, _commandHandler);
                 }
 
                 return null;
