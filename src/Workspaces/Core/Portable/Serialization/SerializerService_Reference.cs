@@ -293,7 +293,7 @@ internal partial class SerializerService
             //       should we shadow copy xml doc comment?
 
             // image doesn't exist
-            return new MissingMetadataReference(properties, filePath, XmlDocumentationProvider.Default);
+            return new MissingMetadataReference(properties, filePath, DocumentationProvider.Default);
         }
 
         // for now, we will use IDocumentationProviderService to get DocumentationProvider for metadata
@@ -306,7 +306,7 @@ internal partial class SerializerService
         var documentProvider = filePath != null && _documentationService != null ?
             _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
 
-        return new SerializedMetadataReference(
+        return new SerializedPortableExecutableReference(
             properties, filePath, metadata, storageHandles, documentProvider);
     }
 
