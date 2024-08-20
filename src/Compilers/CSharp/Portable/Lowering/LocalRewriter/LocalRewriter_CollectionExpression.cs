@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CollectionExpressionTypeKind.ImplementsIEnumerable:
                         if (ConversionsBase.IsSpanOrListType(_compilation, node.Type, WellKnownType.System_Collections_Generic_List_T, out var listElementType))
                         {
-                            if (tryRewriteSingleElementSpreadToList(node, _compilation, this, _factory, listElementType, out var result))
+                            if (TryRewriteSingleElementSpreadToList(node, listElementType, out var result))
                             {
                                 return result;
                             }
@@ -92,65 +92,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             finally
             {
                 _factory.Syntax = previousSyntax;
-            }
-
-            // If we have something like `List<int> l = [.. someEnumerable]` try rewrite it using
-            // `Enumerable.ToList` or `new List(IEnumerable)` members if possible
-            static bool tryRewriteSingleElementSpreadToList(
-                BoundCollectionExpression node,
-                CSharpCompilation compilation,
-                LocalRewriter self,
-                SyntheticBoundNodeFactory factory,
-                TypeWithAnnotations listElementType,
-                [NotNullWhen(true)] out BoundExpression? result)
-            {
-                result = null;
-
-                if (node.Elements is not [BoundCollectionExpressionSpreadElement singleSpread])
-                {
-                    return false;
-                }
-
-                var iEnumerableOfTType = compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
-                var iEnumerableOfElementType = iEnumerableOfTType.Construct([listElementType]);
-
-                var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-
-                var singleSpreadExpression = singleSpread.Expression;
-                var conversion = compilation.Conversions.ClassifyImplicitConversionFromExpression(singleSpreadExpression, iEnumerableOfElementType, ref discardedUseSiteInfo);
-                if (!conversion.IsIdentity && !conversion.IsReference)
-                {
-                    return false;
-                }
-
-                if (singleSpread.EnumeratorInfoOpt?.GetEnumeratorInfo.Method.ReturnType.IsValueType == true)
-                {
-                    var iCollectionOfTType = compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T);
-                    var iCollectionOfElementType = iCollectionOfTType.Construct([listElementType]);
-
-                    var singleSpreadType = singleSpreadExpression.Type;
-                    Debug.Assert(singleSpreadType is not null);
-
-                    if (!singleSpreadType.ImplementsInterface(iCollectionOfElementType, ref discardedUseSiteInfo))
-                    {
-                        return false;
-                    }
-                }
-
-                if (self.TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Linq_Enumerable__ToList, out MethodSymbol? toListGeneric, isOptional: true))
-                {
-                    var toListOfElementType = toListGeneric.Construct([listElementType]);
-                    result = factory.Call(receiver: null, toListOfElementType, singleSpreadExpression);
-                    return true;
-                }
-                else if (self.TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Collections_Generic_List_T__ctorIEnumerable, out MethodSymbol? listCtorEnumerableGeneric, isOptional: true))
-                {
-                    var listCtorEnumerableOfElementType = listCtorEnumerableGeneric.AsMember((NamedTypeSymbol)node.Type);
-                    result = new BoundObjectCreationExpression(node.Syntax, listCtorEnumerableOfElementType, singleSpreadExpression);
-                    return true;
-                }
-
-                return false;
             }
 
             // If the collection type is List<T> and items are added using the expected List<T>.Add(T) method,
@@ -212,6 +153,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return result;
                 }
             }
+        }
+
+        // If we have something like `List<int> l = [.. someEnumerable]` try rewrite it using
+        // `Enumerable.ToList` or `new List(IEnumerable)` members if possible
+        private bool TryRewriteSingleElementSpreadToList(BoundCollectionExpression node, TypeWithAnnotations listElementType, [NotNullWhen(true)] out BoundExpression? result)
+        {
+            result = null;
+
+            if (node.Elements is not [BoundCollectionExpressionSpreadElement singleSpread])
+            {
+                return false;
+            }
+
+            var iEnumerableOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
+            var iEnumerableOfElementType = iEnumerableOfTType.Construct([listElementType]);
+
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            var singleSpreadExpression = singleSpread.Expression;
+            var conversion = _compilation.Conversions.ClassifyImplicitConversionFromExpression(singleSpreadExpression, iEnumerableOfElementType, ref discardedUseSiteInfo);
+            if (!conversion.IsIdentity && !conversion.IsReference)
+            {
+                return false;
+            }
+
+            if (singleSpread.EnumeratorInfoOpt?.GetEnumeratorInfo.Method.ReturnType.IsValueType == true)
+            {
+                var iCollectionOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T);
+                var iCollectionOfElementType = iCollectionOfTType.Construct([listElementType]);
+
+                var singleSpreadType = singleSpreadExpression.Type;
+                Debug.Assert(singleSpreadType is not null);
+
+                if (!singleSpreadType.ImplementsInterface(iCollectionOfElementType, ref discardedUseSiteInfo))
+                {
+                    return false;
+                }
+            }
+
+            if (TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Linq_Enumerable__ToList, out MethodSymbol? toListGeneric, isOptional: true))
+            {
+                var toListOfElementType = toListGeneric.Construct([listElementType]);
+                result = _factory.Call(receiver: null, toListOfElementType, singleSpreadExpression);
+                return true;
+            }
+            else if (TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Collections_Generic_List_T__ctorIEnumerable, out MethodSymbol? listCtorEnumerableGeneric, isOptional: true))
+            {
+                var listCtorEnumerableOfElementType = listCtorEnumerableGeneric.AsMember((NamedTypeSymbol)node.Type);
+                result = new BoundObjectCreationExpression(node.Syntax, listCtorEnumerableOfElementType, singleSpreadExpression);
+                return true;
+            }
+
+            return false;
         }
 
         private static bool CanOptimizeSingleSpreadAsCollectionBuilderArgument(BoundCollectionExpression node, [NotNullWhen(true)] out BoundExpression? spreadExpression)
