@@ -36,6 +36,7 @@ internal partial class InlineRenameSession
         private readonly DynamicReadOnlyRegionQuery _isBufferReadOnly;
         private readonly InlineRenameSession _session;
         private readonly ITextBuffer _subjectBuffer;
+        private readonly IEnumerable<Document> _baseDocuments;
         private readonly ITextBufferFactoryService _textBufferFactoryService;
         private readonly ITextBufferCloneService _textBufferCloneService;
 
@@ -61,7 +62,7 @@ internal partial class InlineRenameSession
         {
             _session = session;
             _subjectBuffer = subjectBuffer;
-            BaseDocuments = subjectBuffer.GetRelatedDocuments().ToImmutableArray();
+            _baseDocuments = subjectBuffer.GetRelatedDocuments();
             _textBufferFactoryService = textBufferFactoryService;
             _textBufferCloneService = textBufferCloneService;
             _subjectBuffer.ChangedLowPriority += OnTextBufferChanged;
@@ -76,8 +77,6 @@ internal partial class InlineRenameSession
             _isBufferReadOnly = new DynamicReadOnlyRegionQuery(isEdit => !_session._isApplyingEdit);
             UpdateReadOnlyRegions();
         }
-
-        public ImmutableArray<Document> BaseDocuments { get; }
 
         public ITextView ActiveTextView
         {
@@ -185,7 +184,7 @@ internal partial class InlineRenameSession
                 _referenceSpanToLinkedRenameSpanMap.Clear();
                 foreach (var span in spans)
                 {
-                    var document = BaseDocuments.First();
+                    var document = _baseDocuments.First();
                     var renameableSpan = _session.RenameInfo.GetReferenceEditSpan(
                         new InlineRenameLocation(document, span), GetTriggerText(document, span), CancellationToken.None);
                     var trackingSpan = new RenameTrackingSpan(
@@ -329,7 +328,7 @@ internal partial class InlineRenameSession
                 _session.UndoManager.UndoTemporaryEdits(_subjectBuffer, disconnect: false);
 
                 var newDocument = mergeResult.MergedSolution.GetDocument(documents.First().Id);
-                var originalDocument = BaseDocuments.Single(d => d.Id == newDocument.Id);
+                var originalDocument = _baseDocuments.Single(d => d.Id == newDocument.Id);
 
                 var changes = GetTextChangesFromTextDifferencingServiceAsync(originalDocument, newDocument, cancellationToken).WaitAndGetResult(cancellationToken);
 
