@@ -12,9 +12,16 @@ using Microsoft.CodeAnalysis.Diagnostics;
 namespace Microsoft.CodeAnalysis.Serialization;
 
 /// <summary>
-/// Wrapper around a real <see cref="AnalyzerReference"/>.
+/// Wrapper around a real <see cref="AnalyzerReference"/>.  An "isolated" analyzer reference is an analyzer reference
+/// associated with an AssemblyLoadContext that is connected to a set of other "isolated" analyzer references.  This
+/// allows for loading the analyzers and generators from it in a way that is associated with that load context, keeping
+/// them separate from other analyzers and generators loaded in other load contexts, while also allowing all of those
+/// instances to be collected when no longer needed.  Being isolated means that if any of the underlying assembly
+/// references change, that they can be loaded side by side with the prior references.  This enables functionality like
+/// live reloading of analyzers and generators when they change on disk.  Note: this is only supported on .Net Core, and
+/// not .Net Framework, as only the former has AssemblyLoadContexts.
 /// </summary>
-internal sealed class IsolatedAnalyzerFileReference(
+internal sealed class IsolatedAnalyzerReference(
     IsolatedAssemblyReferenceSet isolatedAssemblyReferenceSet,
     AnalyzerReference underlyingAnalyzerReference) : AnalyzerReference
 {

@@ -21,12 +21,14 @@ internal sealed class IsolatedAssemblyReferenceSet
     /// <summary>
     /// Final set of <see cref="AnalyzerReference"/> instances that will be passed through the workspace down to the compiler.
     /// </summary>
-    public readonly ImmutableArray<AnalyzerReference> AnalyzerReferences;
+    private readonly ImmutableArray<IsolatedAnalyzerReference> _analyzerReferences;
 
     /// <summary>
     /// Dedicated ALC that all analyzer references will load their <see cref="System.Reflection.Assembly"/>s within.
     /// </summary>
     private readonly AssemblyLoadContext _assemblyLoadContext;
+
+    public ImmutableArray<AnalyzerReference> AnalyzerReferences => _analyzerReferences.CastArray<AnalyzerReference>();
 
     public IsolatedAssemblyReferenceSet(
         ImmutableArray<AnalyzerReference> serializedReferences,
@@ -39,7 +41,7 @@ internal sealed class IsolatedAssemblyReferenceSet
         // Now make a loader that uses that ALC that will ensure these references are properly isolated.
         var shadowCopyLoader = provider.GetShadowCopyLoader(_assemblyLoadContext, isolatedRoot);
 
-        var builder = new FixedSizeArrayBuilder<AnalyzerReference>(serializedReferences.Length);
+        var builder = new FixedSizeArrayBuilder<IsolatedAnalyzerReference>(serializedReferences.Length);
         foreach (var analyzerReference in serializedReferences)
         {
             // Unwrap serialized analyzer references to get their file path and make a real AnalyzerFileReference
@@ -50,11 +52,11 @@ internal sealed class IsolatedAssemblyReferenceSet
 
             // Create a special wrapped analyzer reference here.  It will ensure that any DiagnosticAnalyzers and
             // ISourceGenerators handed out will keep this IsolatedAssemblyReferenceSet alive.
-            var isolatedReference = new IsolatedAnalyzerFileReference(this, underlyingAnalyzerReference);
+            var isolatedReference = new IsolatedAnalyzerReference(this, underlyingAnalyzerReference);
             builder.Add(isolatedReference);
         }
 
-        this.AnalyzerReferences = builder.MoveToImmutable();
+        _analyzerReferences = builder.MoveToImmutable();
     }
 
     /// <summary>
