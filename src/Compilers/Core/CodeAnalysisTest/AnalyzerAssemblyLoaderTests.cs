@@ -1602,7 +1602,7 @@ Delta.2: Test D2
 
             public List<AssemblyName> CalledFor { get; } = [];
 
-            public Assembly? ResolveAssembly(AssemblyName assemblyName)
+            public Assembly? ResolveAssembly(AssemblyName assemblyName, string assemblyOriginalDirectory)
             {
                 CalledFor.Add(assemblyName);
                 return _func(assemblyName);
