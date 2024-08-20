@@ -26,41 +26,35 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
         // We use a lazy here in case creating the loader requires MEF imports in the derived constructor.
         _shadowCopyLoader = new Lazy<IAnalyzerAssemblyLoader>(() => CreateShadowCopyLoader(
 #if NET
-            loadContext: null,
+            loadContext: null
 #endif
-            isolatedRoot: ""));
+            ));
         _externalResolvers = externalResolvers;
     }
 
-    private static string GetPath(string isolatedRoot)
-        => Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader", isolatedRoot);
+    internal static string GetPath()
+        => Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader");
 
     protected virtual IAnalyzerAssemblyLoader CreateShadowCopyLoader(
 #if NET
-        AssemblyLoadContext? loadContext,
+        AssemblyLoadContext? loadContext
 #endif
-        string isolatedRoot)
+        )
     {
         return DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
 #if NET
             loadContext,
 #endif
-            GetPath(isolatedRoot),
+            GetPath(),
             _externalResolvers);
     }
 
 #if NET
 
-    public IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext, string isolatedRoot)
-    {
-        // Realize the default instance.  This also ensures that the cleanup task it kicks off can try to clean up old
-        // isolated-root sub-directories left around from prior sessions.
-        var defaultShadowCopyLoader = _shadowCopyLoader.Value;
-
-        return loadContext is null && isolatedRoot == ""
-            ? defaultShadowCopyLoader
-            : CreateShadowCopyLoader(loadContext, isolatedRoot);
-    }
+    public IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext)
+        => loadContext is null
+            ? _shadowCopyLoader.Value
+            : CreateShadowCopyLoader(loadContext);
 
 #else
 

@@ -14,13 +14,10 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 {
 #if NET
     /// <summary>
-    /// In .Net core, gives back a shadow copying loader that will load all <see cref="AnalyzerReference"/> in the
-    /// requested <paramref name="loadContext"/> (or a default one if unspecified).  <paramref name="isolatedRoot"/> can
-    /// be used to ensure a dedicated directory for the shadow copying to happen in, to prevent any collisions
-    /// whatsoever.  For example, given two <see cref="AnalyzerReference"/>s with the same MVID, but loaded into
-    /// different <see cref="AssemblyLoadContext"/>s; different paths would be desired to prevent collisions.
+    /// In .Net core, gives back a fresh shadow copying loader that will load all <see cref="AnalyzerReference"/> in the
+    /// requested <paramref name="loadContext"/> (or a default one if unspecified).
     /// </summary>
-    IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext = null, string isolatedRoot = "");
+    IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext = null);
 #else
     /// <summary>
     /// In .Net Framework, returns a single shadow copuy loader which will be used to load all <see

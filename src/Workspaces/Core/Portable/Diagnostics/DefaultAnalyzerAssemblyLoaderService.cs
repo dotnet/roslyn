@@ -38,18 +38,18 @@ internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory(
 #if NET
             loadContext: null,
 #endif
-            GetPath(workspaceKind, isolatedRoot: ""),
+            GetPath(workspaceKind),
             externalResolvers);
 
-        private static string GetPath(string workspaceKind, string isolatedRoot)
-            => Path.Combine(Path.GetTempPath(), "CodeAnalysis", "WorkspacesAnalyzerShadowCopies", workspaceKind, isolatedRoot);
+        private static string GetPath(string workspaceKind)
+            => Path.Combine(Path.GetTempPath(), "CodeAnalysis", "WorkspacesAnalyzerShadowCopies", workspaceKind);
 
 #if NET
 
-        public IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext, string isolatedRoot)
-            => loadContext is null && isolatedRoot == ""
+        public IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext)
+            => loadContext is null
                 ? _shadowCopyLoader
-                : DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(loadContext, GetPath(workspaceKind, isolatedRoot));
+                : DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(loadContext, GetPath(workspaceKind));
 
 #else
 

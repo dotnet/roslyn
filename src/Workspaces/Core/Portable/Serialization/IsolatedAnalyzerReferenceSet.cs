@@ -49,11 +49,11 @@ internal sealed class IsolatedAssemblyReferenceSet
         Contract.ThrowIfTrue(serializedReferences.Any(r => r is IsolatedAnalyzerReference));
 
         // Make a unique ALC for this set of references.
-        var isolatedRoot = Guid.NewGuid().ToString("N").ToLowerInvariant();
-        _assemblyLoadContext = new AssemblyLoadContext(name: isolatedRoot, isCollectible: true);
+        _assemblyLoadContext = new AssemblyLoadContext(
+            name: Guid.NewGuid().ToString("N").ToLowerInvariant(), isCollectible: true);
 
         // Now make a loader that uses that ALC that will ensure these references are properly isolated.
-        var shadowCopyLoader = provider.GetShadowCopyLoader(_assemblyLoadContext, isolatedRoot);
+        var shadowCopyLoader = provider.GetShadowCopyLoader(_assemblyLoadContext);
 
         var builder = new FixedSizeArrayBuilder<IsolatedAnalyzerReference>(serializedReferences.Length);
         foreach (var analyzerReference in serializedReferences)

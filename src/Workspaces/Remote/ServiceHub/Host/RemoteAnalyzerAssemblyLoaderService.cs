@@ -26,37 +26,37 @@ internal sealed class RemoteAnalyzerAssemblyLoaderService(
     [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
     : IAnalyzerAssemblyLoaderProvider
 {
-    private static string GetPath(string isolatedRoot)
-        => Path.Combine(Path.GetTempPath(), "Remote", "AnalyzerAssemblyLoader", isolatedRoot);
+    private static string GetPath()
+        // Intentionally using the same path that the host uses by default.  We can load from the same shadow copy
+        // locations as they're already appropriately isolated.
+        => AbstractAnalyzerAssemblyLoaderProvider.GetPath();
 
     private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader = CreateLoader(
 #if NET
         loadContext: null,
 #endif
-        isolatedRoot: "",
         externalResolvers);
 
     private static ShadowCopyAnalyzerAssemblyLoader CreateLoader(
 #if NET
         AssemblyLoadContext? loadContext,
 #endif
-        string isolatedRoot,
         IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
     {
         return new(
 #if NET
             loadContext,
 #endif
-            GetPath(isolatedRoot),
+            GetPath(),
             externalResolvers.ToImmutableArray());
     }
 
 #if NET
 
-    public IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext, string isolatedRoot)
-        => loadContext is null && isolatedRoot is ""
+    public IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext)
+        => loadContext is null
             ? _shadowCopyLoader
-            : CreateLoader(loadContext, isolatedRoot, externalResolvers);
+            : CreateLoader(loadContext, externalResolvers);
 
 #else
 
