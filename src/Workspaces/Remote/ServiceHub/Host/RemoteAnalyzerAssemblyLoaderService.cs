@@ -34,7 +34,7 @@ internal sealed class RemoteAnalyzerAssemblyLoaderService(
     /// <summary>
     /// Default shared instance, for all callers who do not want to provide a custom <see cref="AssemblyLoadContext"/>.
     /// </summary>
-    private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader = CreateLoader(
+    private readonly ShadowCopyAnalyzerAssemblyLoader _sharedShadowCopyLoader = CreateLoader(
 #if NET
         loadContext: null,
 #endif
@@ -58,13 +58,13 @@ internal sealed class RemoteAnalyzerAssemblyLoaderService(
 
     public IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext)
         => loadContext is null
-            ? _shadowCopyLoader
+            ? _sharedShadowCopyLoader
             : CreateLoader(loadContext, externalResolvers);
 
 #else
 
     public IAnalyzerAssemblyLoader GetShadowCopyLoader()
-        => _shadowCopyLoader;
+        => _sharedShadowCopyLoader;
 
 #endif
 }

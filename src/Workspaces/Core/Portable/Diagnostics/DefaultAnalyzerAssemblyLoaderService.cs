@@ -34,7 +34,7 @@ internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory(
         /// locking it.  The exception is fine, since the cleanup is just hygienic and isn't intended to be needed for
         /// correctness.  But it is annoying and does cause noise in our perf test harness.
         /// </summary>
-        private readonly IAnalyzerAssemblyLoader _shadowCopyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
+        private readonly IAnalyzerAssemblyLoader _sharedShadowCopyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
 #if NET
             loadContext: null,
 #endif
@@ -48,13 +48,13 @@ internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory(
 
         public IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext)
             => loadContext is null
-                ? _shadowCopyLoader
+                ? _sharedShadowCopyLoader
                 : DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(loadContext, GetPath(workspaceKind));
 
 #else
 
         public IAnalyzerAssemblyLoader GetShadowCopyLoader()
-            => _shadowCopyLoader;
+            => _sharedShadowCopyLoader;
 
 #endif
     }
