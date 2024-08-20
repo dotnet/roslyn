@@ -7,15 +7,18 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing the parameter information initialization setting.
-    ///
+    /// Client capabilities specific to <see cref="ParameterInformation"/>
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.14</remarks>
     internal class ParameterInformationSetting
     {
         /// <summary>
-        /// Gets or sets a value indicating whether the client supports label offset.
+        /// The client supports processing label offsets instead of a simple label string.
         /// </summary>
+        /// <remarks>Since LSP 3.14</remarks>
         [JsonPropertyName("labelOffsetSupport")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool LabelOffsetSupport

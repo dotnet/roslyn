@@ -7,19 +7,15 @@ using System.Text.Json.Serialization;
 namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
-/// Class representing the registration options for document range formatting support.
-///
+/// Subclass of <see cref="DocumentRangeFormattingOptions"/> that allows scoping the registration.
+/// <para>
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentRangeFormattingRegistrationOptions">Language Server Protocol specification</see> for additional information.
+/// </para>
 /// </summary>
 internal class DocumentRangeFormattingRegistrationOptions : DocumentRangeFormattingOptions, ITextDocumentRegistrationOptions
 {
-    /// <summary>
-    /// Gets or sets the document filters for this registration option.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonPropertyName("documentSelector")]
-    public DocumentFilter[]? DocumentSelector
-    {
-        get;
-        set;
-    }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DocumentFilter[]? DocumentSelector { get; set; }
 }

@@ -7,15 +7,16 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing settings for inlay hint support.
-    ///
+    /// Inlay hint client capabilities.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#inlayHintClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
     internal class InlayHintSetting : DynamicRegistrationSetting
     {
         /// <summary>
-        /// Gets or sets a value indicating whether the client supports
-        /// resolving lazily on an inlay hint.
+        /// Indicates which properties a client can resolve lazily on an inlay hint.
         /// </summary>
         [JsonPropertyName("resolveSupport")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
