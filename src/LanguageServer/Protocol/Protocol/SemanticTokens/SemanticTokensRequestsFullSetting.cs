@@ -19,7 +19,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <c>textDocument/semanticTokens/full/delta</c> request if the server
         /// provides a corresponding handler.
         /// </summary>
-        [JsonPropertyName("range")]
+        [JsonPropertyName("delta")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool Delta { get; set; }
     }
