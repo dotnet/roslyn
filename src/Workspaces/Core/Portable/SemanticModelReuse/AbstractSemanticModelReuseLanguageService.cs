@@ -116,7 +116,7 @@ internal abstract class AbstractSemanticModelReuseLanguageService<
                 return null;
             }
 
-            var pooledPreviousMembers = this.SyntaxFacts.GetMethodLevelMembers(previousRoot);
+            using var pooledPreviousMembers = this.SyntaxFacts.GetMethodLevelMembers(previousRoot);
             var previousMembers = pooledPreviousMembers.Object;
 
             if (currentMembers.Count != previousMembers.Count)
