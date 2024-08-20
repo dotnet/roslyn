@@ -34792,6 +34792,71 @@ partial class Program
                 """);
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71217")]
+        public void List_SingleSpread_IEnumerable_NonGeneric()
+        {
+            var source = """
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        M(new[] { "a", "b", "c" }).Report();
+                    }
+
+                    static List<object> M(IEnumerable e) => [..e];
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, s_collectionExtensions], expectedOutput: "[a, b, c],", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size       58 (0x3a)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<object> V_0,
+                                System.Collections.IEnumerator V_1,
+                                object V_2,
+                                System.IDisposable V_3)
+                  IL_0000:  newobj     "System.Collections.Generic.List<object>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()"
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_001d
+                    IL_000f:  ldloc.1
+                    IL_0010:  callvirt   "object System.Collections.IEnumerator.Current.get"
+                    IL_0015:  stloc.2
+                    IL_0016:  ldloc.0
+                    IL_0017:  ldloc.2
+                    IL_0018:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                    IL_001d:  ldloc.1
+                    IL_001e:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0023:  brtrue.s   IL_000f
+                    IL_0025:  leave.s    IL_0038
+                  }
+                  finally
+                  {
+                    IL_0027:  ldloc.1
+                    IL_0028:  isinst     "System.IDisposable"
+                    IL_002d:  stloc.3
+                    IL_002e:  ldloc.3
+                    IL_002f:  brfalse.s  IL_0037
+                    IL_0031:  ldloc.3
+                    IL_0032:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0037:  endfinally
+                  }
+                  IL_0038:  ldloc.0
+                  IL_0039:  ret
+                }
+                """);
+        }
+
         [Theory, WorkItem("https://github.com/dotnet/roslyn/issues/71217")]
         [InlineData("ICollection<int>")]
         [InlineData("IList<int>")]
