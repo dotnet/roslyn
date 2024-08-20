@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 {
     public class GlyphExtensionsTests : TestBase
     {
+        // temp change to test out 17.10 tests on innocuous change
         [Fact]
         public void GetGlyphGroupTests()
         {
