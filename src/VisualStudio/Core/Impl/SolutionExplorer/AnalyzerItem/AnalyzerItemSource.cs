@@ -99,7 +99,14 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource
 
             // Note: mutating _items will be picked up automatically by clients who are bound to the collection.  We do
             // not need to notify them through some other mechanism.
-            _items.Clear();
+
+            if (_items.Count > 0)
+            {
+                // Go back to UI thread to update the observable collection.  Otherwise, it enqueue its own UI work that we cannot track.
+                await _analyzersFolder.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                _items.Clear();
+            }
+
             return;
         }
 
@@ -113,6 +120,7 @@ internal sealed class AnalyzerItemSource : IAttachedCollectionSource
         var references = await GetAnalyzerReferencesWithAnalyzersOrGeneratorsAsync(
             project, cancellationToken).ConfigureAwait(false);
 
+        // Go back to UI thread to update the observable collection.  Otherwise, it enqueue its own UI work that we cannot track.
         await _analyzersFolder.ThreadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         try
         {
