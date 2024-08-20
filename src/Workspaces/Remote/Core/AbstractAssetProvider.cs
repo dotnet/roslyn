@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
@@ -21,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// <summary>
 /// Provides corresponding data of the given checksum
 /// </summary>
-internal abstract partial class AbstractAssetProvider
+internal abstract class AbstractAssetProvider
 {
     /// <summary>
     /// return data of type T whose checksum is the given checksum
