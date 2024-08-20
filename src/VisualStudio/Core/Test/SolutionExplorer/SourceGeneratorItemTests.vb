@@ -270,7 +270,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
 
             Return New LegacyDiagnosticItemSource(
                 workspace.GetService(Of IThreadingContext),
-                New AnalyzerItem(New AnalyzersFolderItem(workspace, projectId, Nothing, Nothing), analyzerReference, Nothing),
+                New AnalyzerItem(New AnalyzersFolderItem(workspace.GetService(Of IThreadingContext), workspace, projectId, Nothing, Nothing), analyzerReference, Nothing),
                 New FakeAnalyzersCommandHandler,
                 workspace.GetService(Of IDiagnosticAnalyzerService),
                 workspace.GetService(Of IAsynchronousOperationListenerProvider))
@@ -279,7 +279,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
         Private Shared Function CreateSourceGeneratedFilesItemSource(workspace As EditorTestWorkspace, generatorItem As SourceGeneratorItem) As Shell.IAttachedCollectionSource
             Dim asyncListener = workspace.GetService(Of IAsynchronousOperationListenerProvider).GetListener(FeatureAttribute.SourceGenerators)
 
-            Return New SourceGeneratedFileItemSource(generatorItem, workspace, asyncListener, workspace.GetService(Of IThreadingContext)())
+            Return New SourceGeneratedFileItemSource(generatorItem, workspace.GetService(Of IThreadingContext), workspace, asyncListener)
         End Function
 
         Private Shared Function WaitForGeneratorsAndItemSourcesAsync(workspace As EditorTestWorkspace) As Task

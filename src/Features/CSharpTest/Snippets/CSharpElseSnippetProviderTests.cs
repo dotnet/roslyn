@@ -4,21 +4,19 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets;
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Snippets;
 
-[Trait(Traits.Feature, Traits.Features.Completion)]
-public class CSharpElseSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
+[Trait(Traits.Feature, Traits.Features.Snippets)]
+public sealed class CSharpElseSnippetProviderTests : AbstractCSharpSnippetProviderTests
 {
-    protected override string ItemToCommit => "else";
+    protected override string SnippetIdentifier => "else";
 
-    [WpfFact]
+    [Fact]
     public async Task InsertElseSnippetInMethodTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -29,10 +27,7 @@ public class CSharpElseSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     $$
                 }
             }
-            """;
-
-        var expectedCodeAfterCommit =
-            """
+            """, """
             class Program
             {
                 public void Method()
@@ -46,15 +41,13 @@ public class CSharpElseSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     }
                 }
             }
-            """;
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task NoElseSnippetInMethodWithoutIfStatementTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public void Method()
@@ -62,29 +55,18 @@ public class CSharpElseSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     $$
                 }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertElseSnippetGlobalTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetAsync("""
             if (true)
             {
             }
             $$
-            class Program
-            {
-                public async Task MethodAsync()
-                {
-                }
-            }
-            """;
-
-        var expectedCodeAfterCommit =
-            """
+            """, """
             if (true)
             {
             }
@@ -92,63 +74,39 @@ public class CSharpElseSnippetCompletionProviderTests : AbstractCSharpSnippetCom
             {
                 $$
             }
-            class Program
-            {
-                public async Task MethodAsync()
-                {
-                }
-            }
-            """;
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task NoElseSnippetInBlockNamespaceTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetIsAbsentAsync("""
             namespace Namespace
             {
                 if (true)
                 {
                 }
                 $$
-                class Program
-                {
-                    public async Task MethodAsync()
-                    {
-                    }
-                }
             }
-            """;
-        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task NoElseSnippetInFileScopedNamespaceTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetIsAbsentAsync("""
             namespace Namespace;
             if (true)
             {
             }
             $$
-            class Program
-            {
-                public async Task MethodAsync()
-                {
-                }
-            }
-            """;
-        await VerifyItemIsAbsentAsync(markupBeforeCommit, ItemToCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertElseSnippetInConstructorTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetAsync("""
             class Program
             {
                 public Program()
@@ -159,10 +117,7 @@ public class CSharpElseSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     $$
                 }
             }
-            """;
-
-        var expectedCodeAfterCommit =
-            """
+            """, """
             class Program
             {
                 public Program()
@@ -176,15 +131,13 @@ public class CSharpElseSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     }
                 }
             }
-            """;
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertElseSnippetInLocalFunctionTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -200,10 +153,7 @@ public class CSharpElseSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     }
                 }
             }
-            """;
-
-        var expectedCodeAfterCommit =
-            """
+            """, """
             class Program
             {
                 public void Method()
@@ -222,15 +172,13 @@ public class CSharpElseSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     }
                 }
             }
-            """;
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertElseSnippetSingleLineIfWithBlockTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -239,10 +187,7 @@ public class CSharpElseSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     $$
                 }
             }
-            """;
-
-        var expectedCodeAfterCommit =
-            """
+            """, """
             class Program
             {
                 public void Method()
@@ -254,16 +199,15 @@ public class CSharpElseSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     }
                 }
             }
-            """;
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertElseSnippetSingleLineIfTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetAsync("""
             using System;
+
             class Program
             {
                 public void Method()
@@ -272,11 +216,9 @@ public class CSharpElseSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     $$
                 }
             }
-            """;
-
-        var expectedCodeAfterCommit =
-            """
+            """, """
             using System;
+
             class Program
             {
                 public void Method()
@@ -288,15 +230,13 @@ public class CSharpElseSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     }
                 }
             }
-            """;
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertElseSnippetNestedIfTest()
     {
-        var markupBeforeCommit =
-            """
+        await VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -310,10 +250,7 @@ public class CSharpElseSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     $$
                 }
             }
-            """;
-
-        var expectedCodeAfterCommit =
-            """
+            """, """
             class Program
             {
                 public void Method()
@@ -330,7 +267,6 @@ public class CSharpElseSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     }
                 }
             }
-            """;
-        await VerifyCustomCommitProviderAsync(markupBeforeCommit, ItemToCommit, expectedCodeAfterCommit);
+            """);
     }
 }

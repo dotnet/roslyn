@@ -777,10 +777,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// langword="false"/> otherwise</returns>
     private async Task<bool> CommitWorkerAsync(bool previewChanges, bool canUseBackgroundWorkIndicator)
     {
-        _commitCancellationTokenSource?.Dispose();
-        _commitCancellationTokenSource = new();
-        var cancellationToken = _commitCancellationTokenSource.Token;
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
         VerifyNotDismissed();
 
         // If the identifier was deleted (or didn't change at all) then cancel the operation.

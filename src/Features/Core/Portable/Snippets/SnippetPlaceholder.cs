@@ -48,4 +48,10 @@ internal readonly struct SnippetPlaceholder
         : this(text, [startingPosition])
     {
     }
+
+    public void Deconstruct(out string text, out ImmutableArray<int> startingPositions)
+    {
+        text = Text;
+        startingPositions = StartingPositions;
+    }
 }
