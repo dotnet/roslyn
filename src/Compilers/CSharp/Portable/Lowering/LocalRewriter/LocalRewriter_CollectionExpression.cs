@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var singleSpreadExpression = singleSpread.Expression;
             var conversion = _compilation.Conversions.ClassifyImplicitConversionFromExpression(singleSpreadExpression, iEnumerableOfElementType, ref discardedUseSiteInfo);
-            if (!conversion.IsIdentity && !conversion.IsReference)
+            if (conversion.Kind is not (ConversionKind.Identity or ConversionKind.ImplicitReference))
             {
                 return false;
             }
