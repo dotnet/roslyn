@@ -171,8 +171,8 @@ internal partial class SerializerService
         {
             case nameof(AnalyzerFileReference):
                 // Don't rehydrate an AnalyzerFileReference.  That will happen in
-                // RemoteWorkspace.CreateAnalyzerReferencesInIsolatedAssemblyLoadContextAsync when it sees the entire
-                // set of assembly references it wants to populate its solution with.
+                // AbstractAssetProvider.CreateIsolatedAnalyzerReferencesAsync when it can see the entire set of
+                // assembly references that should be included together in their own isolated ALC.
                 return new SerializedAnalyzerReference(reader.ReadRequiredString());
 
             case nameof(AnalyzerImageReference):
