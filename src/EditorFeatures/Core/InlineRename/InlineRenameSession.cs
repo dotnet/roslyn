@@ -124,7 +124,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// <summary>
     /// The cancellation source for <see cref="_conflictResolutionTask"/>.
     /// </summary>
-    private CancellationTokenSource _conflictResolutionTaskCancellationSource = new CancellationTokenSource();
+    private CancellationTokenSource _conflictResolutionTaskCancellationSource = new();
 
     /// <summary>
     /// The initial text being renamed.
@@ -724,11 +724,11 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     }
 
     public void Commit(bool previewChanges = false)
-        => CommitWorker(previewChanges);
+        => CommitSynchronously(previewChanges);
 
     /// <returns><see langword="true"/> if the rename operation was committed, <see
     /// langword="false"/> otherwise</returns>
-    private bool CommitWorker(bool previewChanges)
+    private bool CommitSynchronously(bool previewChanges)
     {
         // We're going to synchronously block the UI thread here.  So we can't use the background work indicator (as
         // it needs the UI thread to update itself.  This will force us to go through the Threaded-Wait-Dialog path
@@ -738,10 +738,19 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false));
     }
 
-    public Task CommitAsync(bool previewChanges)
-       => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true);
+    public async Task CommitAsync(bool previewChanges)
+    {
+        if (this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
+        {
+            await CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true).ConfigureAwait(false);
+        }
+        else
+        {
+            CommitSynchronously(previewChanges);
+        }
+    }
 
-    /// <returns><see langword="true"/> if the rename operation was commited, <see
+    /// <returns><see langword="true"/> if the rename operation was committed, <see
     /// langword="false"/> otherwise</returns>
     private async Task<bool> CommitWorkerAsync(bool previewChanges, bool canUseBackgroundWorkIndicator)
     {
@@ -768,7 +777,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
         try
         {
-            if (canUseBackgroundWorkIndicator && this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
+            if (canUseBackgroundWorkIndicator)
             {
                 // We do not cancel on edit because as part of the rename system we have asynchronous work still
                 // occurring that itself may be asynchronously editing the buffer (for example, updating reference
@@ -975,6 +984,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         private readonly InlineRenameSession _inlineRenameSession = inlineRenameSession;
 
         public bool CommitWorker(bool previewChanges)
-            => _inlineRenameSession.CommitWorker(previewChanges);
+            => _inlineRenameSession.CommitSynchronously(previewChanges);
     }
 }
