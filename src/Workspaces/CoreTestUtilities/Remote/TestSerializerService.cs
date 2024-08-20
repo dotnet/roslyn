@@ -27,7 +27,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
 #if NETCOREAPP
     [SupportedOSPlatform("windows")]
 #endif
-    internal sealed class TestSerializerService : SerializerService
+    [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+    internal sealed class TestSerializerService(
+        ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences,
+        SolutionServices workspaceServices)
+        : SerializerService(workspaceServices)
     {
         private static readonly ImmutableDictionary<MetadataReference, string> s_wellKnownReferenceNames = ImmutableDictionary.Create<MetadataReference, string>(ReferenceEqualityComparer.Instance)
             .Add(TestBase.MscorlibRef_v46, nameof(TestBase.MscorlibRef_v46))
@@ -38,16 +42,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
         private static readonly ImmutableDictionary<string, MetadataReference> s_wellKnownReferences = ImmutableDictionary.Create<string, MetadataReference>()
             .AddRange(s_wellKnownReferenceNames.Select(pair => KeyValuePairUtil.Create(pair.Value, pair.Key)));
 
-        private readonly ConcurrentDictionary<Guid, TestGeneratorReference> _sharedTestGeneratorReferences;
+        private readonly ConcurrentDictionary<Guid, TestGeneratorReference> _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
 
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        public TestSerializerService(ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences, SolutionServices workspaceServices)
-            : base(workspaceServices)
-        {
-            _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
-        }
-
-        public override void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        protected override void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             var wellKnownReferenceName = s_wellKnownReferenceNames.GetValueOrDefault(reference, null);
             if (wellKnownReferenceName is not null)
@@ -62,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             }
         }
 
-        public override MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+        protected override MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             if (reader.ReadBoolean())
             {
@@ -75,7 +72,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             }
         }
 
-        public override void WriteAnalyzerReferenceTo(
+        protected override void WriteAnalyzerReferenceTo(
             AnalyzerReference reference, ObjectWriter writer, bool _, CancellationToken cancellationToken)
         {
             if (reference is TestGeneratorReference generatorReference)
@@ -93,7 +90,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             }
         }
 
-        public override AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+        protected override AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             var testGeneratorReferenceGuid = reader.ReadGuid();
 

@@ -684,7 +684,8 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                serializer.Serialize(asset.Value, writer, CancellationToken.None);
+                testSerializer.GetTestAccessor().Serialize(
+                    asset.Value, writer, forTesting: true);
             }
 
             stream.Position = 0;

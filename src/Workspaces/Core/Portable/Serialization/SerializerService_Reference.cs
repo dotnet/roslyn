@@ -84,7 +84,8 @@ internal partial class SerializerService
                     break;
 
                 // It's ok to get a serializedAnalyzerReference back in test scenarios.  In those tests we are
-                // explicitly checking the checksums directly for anayzer references.  In normal product code we should not get this. 
+                // explicitly checking the checksums directly for analyzer references.  In normal product code we should
+                // not get this. 
                 case SerializedAnalyzerReference serializedAnalyzerReference when forTesting:
                     writer.WriteString(serializedAnalyzerReference.FullPath);
                     writer.WriteGuid(serializedAnalyzerReference.GetMvidForTestingOnly());
@@ -99,7 +100,7 @@ internal partial class SerializerService
         return Checksum.Create(stream);
     }
 
-    public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    protected virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
         if (reference is PortableExecutableReference portable)
         {
@@ -117,7 +118,7 @@ internal partial class SerializerService
         throw ExceptionUtilities.UnexpectedValue(reference.GetType());
     }
 
-    public virtual MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+    protected virtual MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
     {
         var type = reader.ReadString();
         if (type == nameof(PortableExecutableReference))
@@ -128,7 +129,7 @@ internal partial class SerializerService
         throw ExceptionUtilities.UnexpectedValue(type);
     }
 
-    public virtual void WriteAnalyzerReferenceTo(
+    protected virtual void WriteAnalyzerReferenceTo(
         AnalyzerReference reference,
         ObjectWriter writer,
         bool forTesting,
@@ -173,12 +174,21 @@ internal partial class SerializerService
                 writer.WriteGuid(guid);
                 break;
 
+            // It's ok to get a serializedAnalyzerReference back in test scenarios.  In those tests we are
+            // explicitly checking the checksums directly for analyzer references.  In normal product code we should
+            // not get this. 
+            case SerializedAnalyzerReference serializedReference when forTesting:
+                writer.WriteString(nameof(AnalyzerFileReference));
+                writer.WriteString(serializedReference.FullPath);
+                writer.WriteGuid(serializedReference.GetMvidForTestingOnly());
+                break;
+
             default:
                 throw ExceptionUtilities.UnexpectedValue(reference);
         }
     }
 
-    public virtual AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+    protected virtual AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
