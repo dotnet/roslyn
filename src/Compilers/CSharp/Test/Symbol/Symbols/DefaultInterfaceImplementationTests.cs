@@ -3346,7 +3346,7 @@ public interface I1
 
         [Theory]
         [CombinatorialData]
-        public void PropertyImplementation_109(bool isStatic, bool useCSharp13)
+        public void PropertyImplementation_109A(bool isStatic, bool useCSharp13)
         {
             string declModifiers = isStatic ? "static virtual " : "";
 
@@ -3419,9 +3419,69 @@ class Test1 : I1
             Assert.True(setP1.IsMetadataVirtual());
         }
 
+        [Fact]
+        public void PropertyImplementation_109B()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static int P1 
+    {
+        get
+        {
+            System.Console.WriteLine(""get P1"");
+            return 0;
+        }
+        set;
+    }
+}
+
+class Test1 : I1
+{}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
+            // we don't want to allow only one accessor to have an implementation.
+            compilation1.VerifyDiagnostics(
+                // (11,9): error CS0501: 'I1.P1.set' must declare a body because it is not marked abstract, extern, or partial
+                //         set;
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P1.set").WithLocation(11, 9)
+                );
+
+            var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
+            var getP1 = p1.GetMethod;
+            var setP1 = p1.SetMethod;
+            Assert.False(p1.IsReadOnly);
+            Assert.False(p1.IsWriteOnly);
+
+            var field1 = ((SourcePropertySymbolBase)p1).BackingField;
+            Assert.Equal("System.Int32 I1.<P1>k__BackingField", field1?.ToTestDisplayString());
+
+            Assert.False(p1.IsAbstract);
+            Assert.False(p1.IsVirtual);
+            Assert.False(getP1.IsAbstract);
+            Assert.False(getP1.IsVirtual);
+            Assert.False(setP1.IsAbstract);
+            Assert.False(setP1.IsVirtual);
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(p1));
+            Assert.Null(test1.FindImplementationForInterfaceMember(getP1));
+            Assert.Null(test1.FindImplementationForInterfaceMember(setP1));
+
+            Assert.False(getP1.IsMetadataVirtual());
+            Assert.False(setP1.IsMetadataVirtual());
+        }
+
         [Theory]
         [CombinatorialData]
-        public void PropertyImplementation_110(bool isStatic, bool useCSharp13)
+        public void PropertyImplementation_110A(bool isStatic, bool useCSharp13)
         {
             string declModifiers = isStatic ? "static virtual " : "";
 
@@ -3488,6 +3548,62 @@ class Test1 : I1
 
             Assert.True(getP1.IsMetadataVirtual());
             Assert.True(setP1.IsMetadataVirtual());
+        }
+
+        [Fact]
+        public void PropertyImplementation_110B()
+        {
+            var source1 =
+@"
+public interface I1
+{
+    static int P1 
+    {
+        get;
+        set => System.Console.WriteLine(""set P1"");
+    }
+}
+
+class Test1 : I1
+{}
+";
+            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
+                                                 parseOptions: TestOptions.RegularPreview,
+                                                 targetFramework: TargetFramework.Net60);
+            Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
+
+            // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
+            // we don't want to allow only one accessor to have an implementation.
+            compilation1.VerifyDiagnostics(
+                // (6,9): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
+                //         get;
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P1.get").WithLocation(6, 9)
+                );
+
+            var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
+            var getP1 = p1.GetMethod;
+            var setP1 = p1.SetMethod;
+            Assert.False(p1.IsReadOnly);
+            Assert.False(p1.IsWriteOnly);
+
+            var field1 = ((SourcePropertySymbolBase)p1).BackingField;
+            Assert.Equal("System.Int32 I1.<P1>k__BackingField", field1?.ToTestDisplayString());
+
+            Assert.False(p1.IsAbstract);
+            Assert.False(p1.IsVirtual);
+            Assert.False(getP1.IsAbstract);
+            Assert.False(getP1.IsVirtual);
+            Assert.False(setP1.IsAbstract);
+            Assert.False(setP1.IsVirtual);
+
+            var test1 = compilation1.GetTypeByMetadataName("Test1");
+
+            Assert.Null(test1.FindImplementationForInterfaceMember(p1));
+            Assert.Null(test1.FindImplementationForInterfaceMember(getP1));
+            Assert.Null(test1.FindImplementationForInterfaceMember(setP1));
+
+            Assert.False(getP1.IsMetadataVirtual());
+            Assert.False(setP1.IsMetadataVirtual());
         }
 
         [Theory]
