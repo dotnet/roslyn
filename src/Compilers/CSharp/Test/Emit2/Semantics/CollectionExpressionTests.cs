@@ -34692,6 +34692,128 @@ partial class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71217")]
+        public void List_SingleSpread_IEnumerable_ElementConversions_Generics()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+
+                class C
+                {
+                    static void Main()
+                    {
+                        M1<object, string>(["a", "b", "c"]).Report();
+                        M2<IEquatable<int>, int>([1, 2, 3]).Report();
+                        M3<IEquatable<string>, string>(["a", "b", "c"]).Report();
+                        M4<int>([1, 2, 3]).Report();
+                    }
+
+                    static List<T> M1<T, U>(IEnumerable<U> e) where U : T => [..e];
+                    static List<T> M2<T, U>(IEnumerable<U> e) where U : struct, T => [..e];
+                    static List<T> M3<T, U>(IEnumerable<U> e) where U : class, T => [..e];
+                    static List<T?> M4<T>(IEnumerable<T> e) where T : struct => [..e];
+                }
+                """;
+
+            var verifier = CompileAndVerify([source, s_collectionExtensions], expectedOutput: "[a, b, c], [1, 2, 3], [a, b, c], [1, 2, 3], ", verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+
+            var expectedILWiwthBoxingConversion = """
+                {
+                  // Code size       61 (0x3d)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<T> V_0,
+                                System.Collections.Generic.IEnumerator<U> V_1,
+                                U V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<T>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "System.Collections.Generic.IEnumerator<U> System.Collections.Generic.IEnumerable<U>.GetEnumerator()"
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0027
+                    IL_000f:  ldloc.1
+                    IL_0010:  callvirt   "U System.Collections.Generic.IEnumerator<U>.Current.get"
+                    IL_0015:  stloc.2
+                    IL_0016:  ldloc.0
+                    IL_0017:  ldloc.2
+                    IL_0018:  box        "U"
+                    IL_001d:  unbox.any  "T"
+                    IL_0022:  callvirt   "void System.Collections.Generic.List<T>.Add(T)"
+                    IL_0027:  ldloc.1
+                    IL_0028:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_002d:  brtrue.s   IL_000f
+                    IL_002f:  leave.s    IL_003b
+                  }
+                  finally
+                  {
+                    IL_0031:  ldloc.1
+                    IL_0032:  brfalse.s  IL_003a
+                    IL_0034:  ldloc.1
+                    IL_0035:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_003a:  endfinally
+                  }
+                  IL_003b:  ldloc.0
+                  IL_003c:  ret
+                }
+                """;
+
+            verifier.VerifyIL("C.M1<T, U>", expectedILWiwthBoxingConversion);
+            verifier.VerifyIL("C.M2<T, U>", expectedILWiwthBoxingConversion);
+
+            verifier.VerifyIL("C.M3<T, U>", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.List<T> System.Linq.Enumerable.ToList<T>(System.Collections.Generic.IEnumerable<T>)"
+                  IL_0006:  ret
+                }
+                """);
+
+            verifier.VerifyIL("C.M4<T>", """
+                {
+                  // Code size       56 (0x38)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<T?> V_0,
+                                System.Collections.Generic.IEnumerator<T> V_1,
+                                T V_2)
+                  IL_0000:  newobj     "System.Collections.Generic.List<T?>..ctor()"
+                  IL_0005:  stloc.0
+                  IL_0006:  ldarg.0
+                  IL_0007:  callvirt   "System.Collections.Generic.IEnumerator<T> System.Collections.Generic.IEnumerable<T>.GetEnumerator()"
+                  IL_000c:  stloc.1
+                  .try
+                  {
+                    IL_000d:  br.s       IL_0022
+                    IL_000f:  ldloc.1
+                    IL_0010:  callvirt   "T System.Collections.Generic.IEnumerator<T>.Current.get"
+                    IL_0015:  stloc.2
+                    IL_0016:  ldloc.0
+                    IL_0017:  ldloc.2
+                    IL_0018:  newobj     "T?..ctor(T)"
+                    IL_001d:  callvirt   "void System.Collections.Generic.List<T?>.Add(T?)"
+                    IL_0022:  ldloc.1
+                    IL_0023:  callvirt   "bool System.Collections.IEnumerator.MoveNext()"
+                    IL_0028:  brtrue.s   IL_000f
+                    IL_002a:  leave.s    IL_0036
+                  }
+                  finally
+                  {
+                    IL_002c:  ldloc.1
+                    IL_002d:  brfalse.s  IL_0035
+                    IL_002f:  ldloc.1
+                    IL_0030:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_0035:  endfinally
+                  }
+                  IL_0036:  ldloc.0
+                  IL_0037:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71217")]
         public void List_SingleSpread_IEnumerable_ClassConstraint()
         {
             var source = """
