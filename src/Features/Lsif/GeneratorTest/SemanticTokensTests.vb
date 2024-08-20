@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.LanguageServerIndexFormat.Generator.UnitTests
         <InlineData("", "{""data"":[]}")>
         <InlineData("namespace Foo;", "{""data"":[0,0,9,15,0,0,10,3,49,0,0,3,1,55,0]}")>
         <InlineData("namespace " & vbCrLf & " Foo {}", "{""data"":[0,0,9,15,0,2,1,3,49,0,0,4,1,55,0,0,1,1,55,0]}")>
-        <InlineData("public class Foo { System.Collections.IList FooList { get; set; } int FooMethod() { int x = 0; return x; } }", "{""data"":[0,0,6,15,0,0,7,5,15,0,0,6,3,23,0,0,4,1,55,0,0,2,6,49,0,0,6,1,21,0,0,1,11,49,0,0,11,1,21,0,0,1,5,32,0,0,6,7,54,0,0,8,1,55,0,0,2,3,15,0,0,3,1,55,0,0,2,3,15,0,0,3,1,55,0,0,2,1,55,0,0,2,3,15,0,0,4,9,47,0,0,9,1,55,0,0,1,1,55,0,0,2,1,54,0,0,2,3,15,0,0,4,1,46,0,0,2,1,21,0,0,2,1,19,0,0,1,1,55,0,0,2,6,44,0,0,7,1,46,0,0,1,1,55,0,0,2,1,55,0,0,2,1,55,0]}")>
+        <InlineData("public class Foo { System.Collections.IList FooList { get; set; } int FooMethod() { int x = 0; return x; } }", "{""data"":[0,0,6,15,0,0,7,5,15,0,0,6,3,23,0,0,4,1,55,0,0,2,6,49,0,0,6,1,21,0,0,1,11,49,0,0,11,1,21,0,0,1,5,32,0,0,6,7,54,0,0,8,1,55,0,0,2,3,15,0,0,3,1,55,0,0,2,3,15,0,0,3,1,55,0,0,2,1,55,0,0,2,3,15,0,0,4,9,47,0,0,9,1,55,0,0,1,1,55,0,0,2,1,55,0,0,2,3,15,0,0,4,1,46,0,0,2,1,21,0,0,2,1,19,0,0,1,1,55,0,0,2,6,44,0,0,7,1,46,0,0,1,1,55,0,0,2,1,55,0,0,2,1,55,0]}")>
         Public Async Function TestSemanticTokensData(code As String, expectedTokens As String) As Task
             ' This test performs LSIF specific validation of the semantic tokens output. As of this writing
             ' this feature is based on the same code path used to generate semantic tokens information in LSP
