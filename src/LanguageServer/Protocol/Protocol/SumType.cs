@@ -7,6 +7,7 @@ namespace Roslyn.LanguageServer.Protocol
     using System;
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
+    using System.Linq;
     using System.Text.Json.Serialization;
     using Microsoft.CodeAnalysis.LanguageServer;
 
@@ -883,5 +884,19 @@ namespace Roslyn.LanguageServer.Protocol
                 throw new NotSupportedException(LanguageServerProtocolResources.NestedSumType);
             }
         }
+
+        public static TCommon Unify<TCommon, TDerived>(this SumType<TCommon, TDerived> sumType)
+            where TCommon : notnull
+            where TDerived : notnull, TCommon
+            => sumType.Match(common => common, derived => derived);
+
+        public static TCommon[] Unify<TCommon, TDerived>(this SumType<TCommon[], TDerived[]> sumType)
+            where TDerived : TCommon
+            => sumType.Match(common => common, derived => Array.ConvertAll(derived, d => (TCommon)d));
+
+        public static Dictionary<TKey, object> AsUntyped<TKey, TValue>(this Dictionary<TKey, TValue> dictionary)
+            where TKey : notnull
+            where TValue : notnull, ISumType
+            => dictionary.ToDictionary(kvp => kvp.Key, kvp => (object)kvp.Value);
     }
 }
