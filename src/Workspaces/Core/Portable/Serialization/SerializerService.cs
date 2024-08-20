@@ -136,15 +136,15 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.ProjectReference:
-                    SerializeProjectReference((ProjectReference)value, writer, cancellationToken);
+                    SerializeProjectReference((ProjectReference)value, writer);
                     return;
 
                 case WellKnownSynchronizationKind.MetadataReference:
-                    SerializeMetadataReference((MetadataReference)value, writer, cancellationToken);
+                    SerializeMetadataReference((MetadataReference)value, writer);
                     return;
 
                 case WellKnownSynchronizationKind.AnalyzerReference:
-                    SerializeAnalyzerReference((AnalyzerReference)value, writer, cancellationToken: cancellationToken);
+                    SerializeAnalyzerReference((AnalyzerReference)value, writer);
                     return;
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
@@ -269,8 +269,8 @@ internal partial class SerializerService : ISerializerService
                 WellKnownSynchronizationKind.CompilationOptions => DeserializeCompilationOptions(reader, cancellationToken),
                 WellKnownSynchronizationKind.ParseOptions => DeserializeParseOptions(reader, cancellationToken),
                 WellKnownSynchronizationKind.ProjectReference => DeserializeProjectReference(reader, cancellationToken),
-                WellKnownSynchronizationKind.MetadataReference => DeserializeMetadataReference(reader, cancellationToken),
-                WellKnownSynchronizationKind.AnalyzerReference => DeserializeAnalyzerReference(reader, cancellationToken),
+                WellKnownSynchronizationKind.MetadataReference => DeserializeMetadataReference(reader),
+                WellKnownSynchronizationKind.AnalyzerReference => DeserializeAnalyzerReference(reader),
                 WellKnownSynchronizationKind.SerializableSourceText => SerializableSourceText.Deserialize(reader, _storageService.Value, _textService, cancellationToken),
                 WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap => SourceGeneratorExecutionVersionMap.Deserialize(reader),
                 WellKnownSynchronizationKind.FallbackAnalyzerOptions => ReadFallbackAnalyzerOptions(reader),
