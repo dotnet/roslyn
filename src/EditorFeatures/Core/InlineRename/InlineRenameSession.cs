@@ -126,8 +126,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// </summary>
     private CancellationTokenSource _conflictResolutionTaskCancellationSource = new();
 
-    private CancellationTokenSource _commitCancellationTokenSource;
-
     private Task<bool> _commitTask;
 
     public bool IsCommitInProgress => !_dismissed && _commitTask is not null && _commitTask is not { Status: TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled };
@@ -684,7 +682,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         // We're about to perform the final commit action.  No need to do any of our BG work to find-refs or compute conflicts.
         _cancellationTokenSource.Cancel();
         _conflictResolutionTaskCancellationSource.Cancel();
-        _commitCancellationTokenSource?.Cancel();
 
         // Close the keep alive session we have open with OOP, allowing it to release the solution it is holding onto.
         _keepAliveSession.Dispose();
@@ -750,15 +747,15 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false));
     }
 
-    public async Task<bool> CommitAsync(bool previewChanges)
+    public async Task CommitAsync(bool previewChanges)
     {
         if (this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
         {
-            return await StartCommitAsync(previewChanges, canUseBackgroundWorkIndicator: true).ConfigureAwait(false);
+            await StartCommitAsync(previewChanges, canUseBackgroundWorkIndicator: true).ConfigureAwait(false);
         }
         else
         {
-            return CommitSynchronously(previewChanges);
+            CommitSynchronously(previewChanges);
         }
     }
 
@@ -812,7 +809,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                     _triggerView, TriggerSpan, EditorFeaturesResources.Computing_Rename_information,
                     cancelOnEdit: false, cancelOnFocusLost: false);
 
-                await CommitCoreAsync(context, previewChanges, cancellationToken).ConfigureAwait(true);
+                await CommitCoreAsync(context, previewChanges).ConfigureAwait(true);
             }
             else
             {
@@ -825,7 +822,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 // .ConfigureAwait(true); so we can return to the UI thread to dispose the operation context.  It
                 // has a non-JTF threading dependency on the main thread.  So it can deadlock if you call it on a BG
                 // thread when in a blocking JTF call.
-                await CommitCoreAsync(context, previewChanges, cancellationToken).ConfigureAwait(true);
+                await CommitCoreAsync(context, previewChanges).ConfigureAwait(true);
             }
         }
         catch (OperationCanceledException)
@@ -839,14 +836,12 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         return true;
     }
 
-    private async Task CommitCoreAsync(IUIThreadOperationContext operationContext, bool previewChanges, CancellationToken cancellationToken)
+    private async Task CommitCoreAsync(IUIThreadOperationContext operationContext, bool previewChanges)
     {
         CommitStateChange?.Invoke(this, true);
         // Create a cancellationToken will be cancelled by either:
         // 1. Cancel() is called.
         // 2. IUIThreadOperationContext get cancelled.
-        using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(operationContext.UserCancellationToken, cancellationToken);
-
         var linkedCancellationToken = operationContext.UserCancellationToken;
         var eventName = previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore;
         using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), linkedCancellationToken))
