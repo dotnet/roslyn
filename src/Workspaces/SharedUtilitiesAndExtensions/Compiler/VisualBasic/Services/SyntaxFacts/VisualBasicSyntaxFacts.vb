@@ -916,10 +916,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.LanguageService
             Return pooledList
         End Function
 
-        Private Shared Sub Releaser(pool As ObjectPool(Of List(Of SyntaxNode)), obj As List(Of SyntaxNode))
-            pool.ClearAndFree(obj, pool.TrimOnFree)
-        End Sub
-
         Public Function GetMembersOfTypeDeclaration(typeDeclaration As SyntaxNode) As SyntaxList(Of SyntaxNode) Implements ISyntaxFacts.GetMembersOfTypeDeclaration
             Return DirectCast(typeDeclaration, TypeBlockSyntax).Members
         End Function
