@@ -126,6 +126,9 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// </summary>
     private CancellationTokenSource _conflictResolutionTaskCancellationSource = new();
 
+    /// <summary>
+    /// Task to track the commit operation of the session. Null if commit operation has never started.
+    /// </summary>
     private Task<bool> _commitTask;
 
     public bool IsCommitInProgress => !_dismissed && _commitTask is not null && _commitTask is not { Status: TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled };
@@ -761,12 +764,21 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
     private async Task<bool> StartCommitAsync(bool previewChanges, bool canUseBackgroundWorkIndicator)
     {
+        // We are going to commit in async manner.
+        // 1. If the session is dismissed, stop and do not start another commit task
+        // 2. If the commit task is in progress, await the in progress task.
+        // _dismissed is only changed by thread, 
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
         if (_dismissed)
         {
             return false;
         }
 
-        _commitTask ??= CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator);
+        if (_commitTask is null || !IsCommitInProgress)
+        {
+            _commitTask = CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator);
+        }
+
         return await _commitTask.ConfigureAwait(false);
     }
 
