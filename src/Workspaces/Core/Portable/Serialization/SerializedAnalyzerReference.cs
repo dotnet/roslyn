@@ -17,9 +17,13 @@ internal partial class SerializerService
     /// serialized analyzer references, then create the actual <see cref="AnalyzerFileReference"/>s in their own safe
     /// AssemblyLoadContext distinct from everything else.
     /// </summary>
-    public sealed class SerializedAnalyzerReference(string fullPath) : AnalyzerReference
+    public sealed class SerializedAnalyzerReference(
+        string fullPath,
+        Guid Mvid) : AnalyzerReference
     {
         public override string FullPath { get; } = fullPath;
+
+        public Guid GetMvidForTestingOnly() => Mvid;
 
         public override object Id
             => throw new InvalidOperationException();

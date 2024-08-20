@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.UnitTests.Remote;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -70,13 +71,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         }
 
         public SolutionAssetStorage AssetStorage { get; }
-        public ISerializerService Serializer { get; }
+        public TestSerializerService Serializer { get; }
         public HostWorkspaceServices Services { get; }
 
         public SerializationValidator(HostWorkspaceServices services)
         {
             AssetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
-            Serializer = services.GetRequiredService<ISerializerService>();
+            Serializer = (TestSerializerService)services.GetRequiredService<ISerializerService>();
             Services = services;
         }
 
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             {
                 await VerifyAssetSerializationAsync<AnalyzerReference>(
                     checksum, WellKnownSynchronizationKind.AnalyzerReference,
-                    (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
+                    (v, k, s) => new SolutionAsset(s.GetTestAccessor().CreateChecksum(v, forTesting: true), v));
             }
 
             foreach (var (attributeChecksum, textChecksum, documentId) in projectObject.Documents)
@@ -193,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         internal async Task<T> VerifyAssetSerializationAsync<T>(
             Checksum checksum,
             WellKnownSynchronizationKind kind,
-            Func<T, WellKnownSynchronizationKind, ISerializerService, SolutionAsset> assetGetter)
+            Func<T, WellKnownSynchronizationKind, TestSerializerService, SolutionAsset> assetGetter)
         {
             // re-create asset from object
             var syncObject = await GetRequiredAssetAsync(checksum).ConfigureAwait(false);

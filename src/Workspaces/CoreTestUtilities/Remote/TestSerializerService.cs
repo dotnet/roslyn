@@ -75,7 +75,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             }
         }
 
-        public override void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        public override void WriteAnalyzerReferenceTo(
+            AnalyzerReference reference, ObjectWriter writer, bool _, CancellationToken cancellationToken)
         {
             if (reference is TestGeneratorReference generatorReference)
             {
@@ -86,7 +87,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             else
             {
                 writer.WriteGuid(Guid.Empty);
-                base.WriteAnalyzerReferenceTo(reference, writer, cancellationToken);
+
+                // During testing, write out analyzer guids when writing out serialized references.
+                base.WriteAnalyzerReferenceTo(reference, writer, forTesting: true, cancellationToken);
             }
         }
 

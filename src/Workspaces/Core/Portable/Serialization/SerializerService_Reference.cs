@@ -54,7 +54,7 @@ internal partial class SerializerService
         throw ExceptionUtilities.UnexpectedValue(reference.GetType());
     }
 
-    public static Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
+    public static Checksum CreateChecksum(AnalyzerReference reference, bool forTesting, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -81,6 +81,13 @@ internal partial class SerializerService
                 case AnalyzerImageReference analyzerImageReference:
                     Contract.ThrowIfFalse(TryGetAnalyzerImageReferenceGuid(analyzerImageReference, out var guid), "AnalyzerImageReferences are only supported during testing");
                     writer.WriteGuid(guid);
+                    break;
+
+                // It's ok to get a serializedAnalyzerReference back in test scenarios.  In those tests we are
+                // explicitly checking the checksums directly for anayzer references.  In normal product code we should not get this. 
+                case SerializedAnalyzerReference serializedAnalyzerReference when forTesting:
+                    writer.WriteString(serializedAnalyzerReference.FullPath);
+                    writer.WriteGuid(serializedAnalyzerReference.GetMvidForTestingOnly());
                     break;
 
                 default:
@@ -121,7 +128,11 @@ internal partial class SerializerService
         throw ExceptionUtilities.UnexpectedValue(type);
     }
 
-    public virtual void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    public virtual void WriteAnalyzerReferenceTo(
+        AnalyzerReference reference,
+        ObjectWriter writer,
+        bool forTesting,
+        CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -131,9 +142,10 @@ internal partial class SerializerService
                 writer.WriteString(nameof(AnalyzerFileReference));
                 writer.WriteString(file.FullPath);
 
-                // Note: it is intentional that we are not writing the MVID of the analyzer file reference over (even
-                // though we mixed it into the checksum).  We don't actually need the data on the other side as it will
-                // be read out from the file itself.  So the flow is as follows when an analyzer-file-reference changes:
+                // Note: it is intentional that we are not writing the MVID of the analyzer file reference over in
+                // non-testing scenarios (even though we mixed it into the checksum).  We don't actually need the data
+                // on the other side as it will be read out from the file itself.  So the flow is as follows when an
+                // analyzer-file-reference changes:
                 //
                 // 1. Change to file happens on disk and is detected by the host, which will reload the reference within it.
                 // 2. When producing the checksum for the project, this analyzer file reference will not be found in the
@@ -150,6 +162,9 @@ internal partial class SerializerService
                 //    ShadowCopyAnalyzerAssemblyLoader.  This loader will *itself* then use the MVID of the file
                 //    reference at the requested path to shadow copy to a new location specific to that mvid, ensuring
                 //    that its data can be cleanly loaded in isolation from any prior version.
+                //
+                // During testing, we do write it over for validation purposes.
+                writer.WriteGuid(forTesting ? TryGetAnalyzerFileReferenceMvid(file) : Guid.Empty);
                 break;
 
             case AnalyzerImageReference analyzerImageReference:
@@ -173,7 +188,7 @@ internal partial class SerializerService
                 // Don't rehydrate an AnalyzerFileReference.  That will happen in
                 // AbstractAssetProvider.CreateIsolatedAnalyzerReferencesAsync when it can see the entire set of
                 // assembly references that should be included together in their own isolated ALC.
-                return new SerializedAnalyzerReference(reader.ReadRequiredString());
+                return new SerializedAnalyzerReference(reader.ReadRequiredString(), reader.ReadGuid());
 
             case nameof(AnalyzerImageReference):
                 var guid = reader.ReadGuid();
@@ -583,7 +598,7 @@ internal partial class SerializerService
             => new MissingMetadataReference(properties, FilePath, _provider);
     }
 
-    public static class TestAccessor
+    public readonly partial struct TestAccessor
     {
         public static void AddAnalyzerImageReference(AnalyzerImageReference analyzerImageReference)
         {

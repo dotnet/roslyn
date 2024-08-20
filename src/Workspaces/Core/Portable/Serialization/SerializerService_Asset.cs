@@ -96,10 +96,10 @@ internal partial class SerializerService
         return ReadMetadataReferenceFrom(reader, cancellationToken);
     }
 
-    private void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    private void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, bool forTesting, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        WriteAnalyzerReferenceTo(reference, writer, cancellationToken);
+        WriteAnalyzerReferenceTo(reference, writer, forTesting, cancellationToken);
     }
 
     private AnalyzerReference DeserializeAnalyzerReference(ObjectReader reader, CancellationToken cancellationToken)
