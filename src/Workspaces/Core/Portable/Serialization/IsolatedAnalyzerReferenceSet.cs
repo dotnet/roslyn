@@ -2,22 +2,23 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if NET
+
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
-
-#if NET
-using System.Runtime.Loader;
-#endif
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
-#if NET
-
 /// <summary>
-/// A set of <see cref="IsolatedAnalyzerReference"/>s and their associated <see cref="AssemblyLoadContext"/>.  
+/// A set of <see cref="IsolatedAnalyzerReference"/>s and their associated <see cref="AssemblyLoadContext"/> (ALC).  As
+/// long as something is keeping this set alive, the ALC will be kept alive.  Once this set is dropped, the ALC will be
+/// explicitly <see cref="AssemblyLoadContext.Unload"/>'ed in its finalizer.
 /// </summary>
 internal sealed class IsolatedAssemblyReferenceSet
 {
@@ -37,9 +38,19 @@ internal sealed class IsolatedAssemblyReferenceSet
         ImmutableArray<AnalyzerReference> serializedReferences,
         IAnalyzerAssemblyLoaderProvider provider)
     {
+        // We should really only be handed SerializedAnalyzerReference here (as that's the mainline case for a host
+        // communicating references to the OOP side).  However, we may also get special test-specific analyzer
+        // references.  So we can't assert we *only* have that type.
+        //
+        // We can *firmly* state though that we should never get an AnalyzerFileReference or IsolatedAnalyzerReference
+        // as that would mean we were not properly getting the real analyzer references produced by the serialized
+        // system.
+        Contract.ThrowIfTrue(serializedReferences.Any(r => r is AnalyzerFileReference));
+        Contract.ThrowIfTrue(serializedReferences.Any(r => r is IsolatedAnalyzerReference));
+
         // Make a unique ALC for this set of references.
         var isolatedRoot = Guid.NewGuid().ToString();
-        _assemblyLoadContext = new AssemblyLoadContext(isolatedRoot, isCollectible: true);
+        _assemblyLoadContext = new AssemblyLoadContext(name: isolatedRoot, isCollectible: true);
 
         // Now make a loader that uses that ALC that will ensure these references are properly isolated.
         var shadowCopyLoader = provider.GetShadowCopyLoader(_assemblyLoadContext, isolatedRoot);
