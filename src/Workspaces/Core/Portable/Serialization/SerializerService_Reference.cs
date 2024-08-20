@@ -103,8 +103,7 @@ internal partial class SerializerService
         if (reference is PortableExecutableReference portable)
         {
             if (portable is ISupportTemporaryStorage { StorageHandles: { Count: > 0 } handles } &&
-                TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
-                    portable, handles, writer, cancellationToken))
+                TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(portable, handles, writer))
             {
                 return;
             }
@@ -300,7 +299,7 @@ internal partial class SerializerService
     private static void WritePortableExecutableReferenceTo(
         PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
-        WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.Bits, writer, cancellationToken);
+        WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.Bits, writer);
 
         WriteTo(TryGetMetadata(reference), writer, cancellationToken);
 
@@ -393,12 +392,11 @@ internal partial class SerializerService
     private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
         PortableExecutableReference reference,
         IReadOnlyList<ITemporaryStorageStreamHandle> handles,
-        ObjectWriter writer,
-        CancellationToken cancellationToken)
+        ObjectWriter writer)
     {
         Contract.ThrowIfTrue(handles.Count == 0);
 
-        WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
+        WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.MemoryMapFile, writer);
 
         writer.WriteInt32((int)MetadataImageKind.Assembly);
         writer.WriteInt32(handles.Count);

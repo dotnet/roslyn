@@ -293,7 +293,7 @@ internal partial class SerializerService : ISerializerService
             => serializerService.CreateChecksum(value, forTesting, CancellationToken.None);
 
         public void Serialize(object value, ObjectWriter writer, bool forTesting)
-            => serializerService.Serialize(value, writer, forTesting: true, CancellationToken.None);
+            => serializerService.Serialize(value, writer, forTesting, CancellationToken.None);
     }
 }
 
