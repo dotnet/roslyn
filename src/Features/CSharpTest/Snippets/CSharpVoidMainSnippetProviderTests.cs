@@ -4,46 +4,46 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets;
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Snippets;
 
-public class CSharpSvmSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
+[Trait(Traits.Feature, Traits.Features.Snippets)]
+public sealed class CSharpVoidMainSnippetProviderTests : AbstractCSharpSnippetProviderTests
 {
-    protected override string ItemToCommit => "svm";
+    protected override string SnippetIdentifier => "svm";
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-    public async Task TestMissingInNamespace()
+    [Fact]
+    public async Task TestMissingInBlockNamespace()
     {
-        await VerifyItemIsAbsentAsync("""
+        await VerifySnippetIsAbsentAsync("""
             namespace Test
             {
                 $$
             }
-            """, ItemToCommit);
+            """);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+    [Fact]
     public async Task TestMissingInFileScopedNamespace()
     {
-        await VerifyItemIsAbsentAsync("""
+        await VerifySnippetIsAbsentAsync("""
             namespace Test;
             
             $$
-            """, ItemToCommit);
+            """);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+    [Fact]
     public async Task TestMissingInTopLevelContext()
     {
-        await VerifyItemIsAbsentAsync("""
+        await VerifySnippetIsAbsentAsync("""
             System.Console.WriteLine();
             $$
-            """, ItemToCommit);
+            """);
     }
 
-    [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+    [Theory]
     [InlineData("class")]
     [InlineData("struct")]
     [InlineData("interface")]
@@ -52,12 +52,12 @@ public class CSharpSvmSnippetCompletionProviderTests : AbstractCSharpSnippetComp
     [InlineData("record struct")]
     public async Task TestInsertSnippetInType(string type)
     {
-        await VerifyCustomCommitProviderAsync($$"""
+        await VerifySnippetAsync($$"""
             {{type}} Program
             {
                 $$
             }
-            """, ItemToCommit, $$"""
+            """, $$"""
             {{type}} Program
             {
                 static void Main(string[] args)
@@ -68,21 +68,21 @@ public class CSharpSvmSnippetCompletionProviderTests : AbstractCSharpSnippetComp
             """);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+    [Fact]
     public async Task TestMissingInEnum()
     {
-        await VerifyItemIsAbsentAsync("""
+        await VerifySnippetIsAbsentAsync("""
             enum MyEnum
             {
                 $$
             }
-            """, ItemToCommit);
+            """);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+    [Fact]
     public async Task TestMissingInMethod()
     {
-        await VerifyItemIsAbsentAsync("""
+        await VerifySnippetIsAbsentAsync("""
             class Program
             {
                 void M()
@@ -90,13 +90,13 @@ public class CSharpSvmSnippetCompletionProviderTests : AbstractCSharpSnippetComp
                     $$
                 }
             }
-            """, ItemToCommit);
+            """);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+    [Fact]
     public async Task TestMissingInConstructor()
     {
-        await VerifyItemIsAbsentAsync("""
+        await VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public Program()
@@ -104,23 +104,19 @@ public class CSharpSvmSnippetCompletionProviderTests : AbstractCSharpSnippetComp
                     $$
                 }
             }
-            """, ItemToCommit);
+            """);
     }
 
-    [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
-    [InlineData("public")]
-    [InlineData("private")]
-    [InlineData("protected")]
-    [InlineData("private protected")]
-    [InlineData("protected internal")]
+    [Theory]
+    [MemberData(nameof(CommonSnippetTestData.AllAccessibilityModifiers), MemberType = typeof(CommonSnippetTestData))]
     public async Task TestInsertSnippetAfterAccessibilityModifier(string modifier)
     {
-        await VerifyCustomCommitProviderAsync($$"""
+        await VerifySnippetAsync($$"""
             class Program
             {
                 {{modifier}} $$
             }
-            """, ItemToCommit, $$"""
+            """, $$"""
             class Program
             {
                 {{modifier}} static void Main(string[] args)
@@ -131,7 +127,7 @@ public class CSharpSvmSnippetCompletionProviderTests : AbstractCSharpSnippetComp
             """);
     }
 
-    [WpfTheory, Trait(Traits.Feature, Traits.Features.Completion)]
+    [Theory]
     [InlineData("static")]
     [InlineData("virtual")]
     [InlineData("abstract")]
@@ -139,37 +135,37 @@ public class CSharpSvmSnippetCompletionProviderTests : AbstractCSharpSnippetComp
     [InlineData("file")]
     public async Task TestMissingAfterIncorrectModifiers(string modifier)
     {
-        await VerifyItemIsAbsentAsync($$"""
+        await VerifySnippetIsAbsentAsync($$"""
             class Program
             {
                 {{modifier}} $$
             }
-            """, ItemToCommit);
+            """);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+    [Fact]
     public async Task TestMissingIfAnotherMemberWithNameMainExists()
     {
-        await VerifyItemIsAbsentAsync("""
+        await VerifySnippetIsAbsentAsync("""
             class Program
             {
                 public int Main => 0;
 
                 $$
             }
-            """, ItemToCommit);
+            """);
     }
 
-    [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+    [Fact]
     public async Task TestMissingIfTopLevelStatementsArePresent()
     {
-        await VerifyItemIsAbsentAsync("""
+        await VerifySnippetIsAbsentAsync("""
             System.Console.WriteLine();
             
             class Program
             {
                 $$
             }
-            """, ItemToCommit);
+            """);
     }
 }

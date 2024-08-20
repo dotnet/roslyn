@@ -4,20 +4,19 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionProviders.Snippets;
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Snippets;
 
-[Trait(Traits.Feature, Traits.Features.Completion)]
-public class CSharpLockSnippetCompletionProviderTests : AbstractCSharpSnippetCompletionProviderTests
+[Trait(Traits.Feature, Traits.Features.Snippets)]
+public sealed class CSharpLockSnippetProviderTests : AbstractCSharpSnippetProviderTests
 {
-    protected override string ItemToCommit => "lock";
+    protected override string SnippetIdentifier => "lock";
 
-    [WpfFact]
+    [Fact]
     public async Task InsertLockSnippetInMethodTest()
     {
-        await VerifyCustomCommitProviderAsync("""
+        await VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -25,12 +24,12 @@ public class CSharpLockSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     $$
                 }
             }
-            """, ItemToCommit, """
+            """, """
             class Program
             {
                 public void Method()
                 {
-                    lock (this)
+                    lock ({|0:this|})
                     {
                         $$
                     }
@@ -39,43 +38,43 @@ public class CSharpLockSnippetCompletionProviderTests : AbstractCSharpSnippetCom
             """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertLockSnippetInGlobalContextTest()
     {
-        await VerifyCustomCommitProviderAsync("""
+        await VerifySnippetAsync("""
             $$
-            """, ItemToCommit, """
-            lock (this)
+            """, """
+            lock ({|0:this|})
             {
                 $$
             }
             """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task NoLockSnippetInBlockNamespaceTest()
     {
-        await VerifyItemIsAbsentAsync("""
+        await VerifySnippetIsAbsentAsync("""
             namespace Namespace
             {
                 $$
             }
-            """, ItemToCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task NoLockSnippetInFileScopedNamespaceTest()
     {
-        await VerifyItemIsAbsentAsync("""
+        await VerifySnippetIsAbsentAsync("""
             namespace Namespace;
             $$
-            """, ItemToCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertLockSnippetInConstructorTest()
     {
-        await VerifyCustomCommitProviderAsync("""
+        await VerifySnippetAsync("""
             class Program
             {
                 public Program()
@@ -83,12 +82,12 @@ public class CSharpLockSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     $$
                 }
             }
-            """, ItemToCommit, """
+            """, """
             class Program
             {
                 public Program()
                 {
-                    lock (this)
+                    lock ({|0:this|})
                     {
                         $$
                     }
@@ -97,21 +96,21 @@ public class CSharpLockSnippetCompletionProviderTests : AbstractCSharpSnippetCom
             """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task NoLockSnippetInTypeBodyTest()
     {
-        await VerifyItemIsAbsentAsync("""
+        await VerifySnippetIsAbsentAsync("""
             class Program
             {
                 $$
             }
-            """, ItemToCommit);
+            """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertLockSnippetInLocalFunctionTest()
     {
-        await VerifyCustomCommitProviderAsync("""
+        await VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -122,14 +121,14 @@ public class CSharpLockSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     }
                 }
             }
-            """, ItemToCommit, """
+            """, """
             class Program
             {
                 public void Method()
                 {
                     void LocalFunction()
                     {
-                        lock (this)
+                        lock ({|0:this|})
                         {
                             $$
                         }
@@ -139,10 +138,10 @@ public class CSharpLockSnippetCompletionProviderTests : AbstractCSharpSnippetCom
             """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertLockSnippetInAnonymousFunctionTest()
     {
-        await VerifyCustomCommitProviderAsync("""
+        await VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -153,14 +152,14 @@ public class CSharpLockSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     };
                 }
             }
-            """, ItemToCommit, """
+            """, """
             class Program
             {
                 public void Method()
                 {
                     var action = delegate()
                     {
-                        lock (this)
+                        lock ({|0:this|})
                         {
                             $$
                         }
@@ -170,10 +169,10 @@ public class CSharpLockSnippetCompletionProviderTests : AbstractCSharpSnippetCom
             """);
     }
 
-    [WpfFact]
+    [Fact]
     public async Task InsertLockSnippetInParenthesizedLambdaExpressionTest()
     {
-        await VerifyCustomCommitProviderAsync("""
+        await VerifySnippetAsync("""
             class Program
             {
                 public void Method()
@@ -184,14 +183,14 @@ public class CSharpLockSnippetCompletionProviderTests : AbstractCSharpSnippetCom
                     };
                 }
             }
-            """, ItemToCommit, """
+            """, """
             class Program
             {
                 public void Method()
                 {
                     var action = () =>
                     {
-                        lock (this)
+                        lock ({|0:this|})
                         {
                             $$
                         }
