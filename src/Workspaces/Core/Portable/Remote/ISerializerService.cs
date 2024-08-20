@@ -12,7 +12,7 @@ internal interface ISerializerService : IWorkspaceService
 {
     void Serialize(object value, ObjectWriter writer, CancellationToken cancellationToken);
 
-    void SerializeParseOptions(ParseOptions options, ObjectWriter writer);
+    // void SerializeParseOptions(ParseOptions options, ObjectWriter writer);
 
     object Deserialize(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken);
 

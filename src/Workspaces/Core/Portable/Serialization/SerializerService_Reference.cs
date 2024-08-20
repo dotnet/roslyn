@@ -44,7 +44,7 @@ internal partial class SerializerService
             return s_analyzerImageReferenceMap.TryGetKey(guid, out imageReference);
     }
 
-    public static Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
+    private static Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
     {
         if (reference is PortableExecutableReference portable)
         {
@@ -54,7 +54,7 @@ internal partial class SerializerService
         throw ExceptionUtilities.UnexpectedValue(reference.GetType());
     }
 
-    public static Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
+    protected virtual Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -83,7 +83,7 @@ internal partial class SerializerService
         return Checksum.Create(stream);
     }
 
-    public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    protected virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
         if (reference is PortableExecutableReference portable)
         {
@@ -101,7 +101,7 @@ internal partial class SerializerService
         throw ExceptionUtilities.UnexpectedValue(reference.GetType());
     }
 
-    public virtual MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+    protected virtual MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
     {
         var type = reader.ReadString();
         if (type == nameof(PortableExecutableReference))
@@ -112,7 +112,7 @@ internal partial class SerializerService
         throw ExceptionUtilities.UnexpectedValue(type);
     }
 
-    public virtual void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    protected virtual void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 
@@ -154,7 +154,7 @@ internal partial class SerializerService
         }
     }
 
-    public virtual AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+    protected virtual AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
 

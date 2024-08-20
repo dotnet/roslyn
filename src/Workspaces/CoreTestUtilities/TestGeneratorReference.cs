@@ -16,7 +16,7 @@ namespace Roslyn.Test.Utilities
     public class TestGeneratorReference : AnalyzerReference
     {
         private readonly ISourceGenerator _generator;
-        public readonly Checksum Checksum;
+        internal readonly Checksum Checksum;
 
         public TestGeneratorReference(ISourceGenerator generator, string? analyzerFilePath = null)
         {

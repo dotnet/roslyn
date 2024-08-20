@@ -2,8 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -12,6 +10,7 @@ using System.Composition;
 using System.Linq;
 using System.Runtime.Versioning;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -27,27 +26,24 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
 #if NETCOREAPP
     [SupportedOSPlatform("windows")]
 #endif
-    internal sealed class TestSerializerService : SerializerService
+    [method: Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+    internal sealed class TestSerializerService(
+        ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences,
+        SolutionServices workspaceServices)
+        : SerializerService(workspaceServices)
     {
-        private static readonly ImmutableDictionary<MetadataReference, string> s_wellKnownReferenceNames = ImmutableDictionary.Create<MetadataReference, string>(ReferenceEqualityComparer.Instance)
+        private static readonly ImmutableDictionary<MetadataReference, string?> s_wellKnownReferenceNames = ImmutableDictionary.Create<MetadataReference, string?>(ReferenceEqualityComparer.Instance)
             .Add(TestBase.MscorlibRef_v46, nameof(TestBase.MscorlibRef_v46))
             .Add(TestBase.SystemRef_v46, nameof(TestBase.SystemRef_v46))
             .Add(TestBase.SystemCoreRef_v46, nameof(TestBase.SystemCoreRef_v46))
             .Add(TestBase.ValueTupleRef, nameof(TestBase.ValueTupleRef))
             .Add(TestBase.SystemRuntimeFacadeRef, nameof(TestBase.SystemRuntimeFacadeRef));
         private static readonly ImmutableDictionary<string, MetadataReference> s_wellKnownReferences = ImmutableDictionary.Create<string, MetadataReference>()
-            .AddRange(s_wellKnownReferenceNames.Select(pair => KeyValuePairUtil.Create(pair.Value, pair.Key)));
+            .AddRange(s_wellKnownReferenceNames.Select(pair => KeyValuePairUtil.Create(pair.Value!, pair.Key)));
 
-        private readonly ConcurrentDictionary<Guid, TestGeneratorReference> _sharedTestGeneratorReferences;
+        private readonly ConcurrentDictionary<Guid, TestGeneratorReference> _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
 
-        [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-        public TestSerializerService(ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences, SolutionServices workspaceServices)
-            : base(workspaceServices)
-        {
-            _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
-        }
-
-        public override void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        protected override void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             var wellKnownReferenceName = s_wellKnownReferenceNames.GetValueOrDefault(reference, null);
             if (wellKnownReferenceName is not null)
@@ -62,20 +58,17 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             }
         }
 
-        public override MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
-        {
-            if (reader.ReadBoolean())
-            {
-                // this is a well-known reference
-                return s_wellKnownReferences[reader.ReadString()];
-            }
-            else
-            {
-                return base.ReadMetadataReferenceFrom(reader, cancellationToken);
-            }
-        }
+        protected override MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+            => reader.ReadBoolean()
+                ? s_wellKnownReferences[reader.ReadRequiredString()]
+                : base.ReadMetadataReferenceFrom(reader, cancellationToken);
 
-        public override void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        protected override Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
+            => reference is TestGeneratorReference generatorReference
+                ? generatorReference.Checksum
+                : base.CreateChecksum(reference, cancellationToken);
+
+        protected override void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             if (reference is TestGeneratorReference generatorReference)
             {
@@ -90,7 +83,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             }
         }
 
-        public override AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+        protected override AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
         {
             var testGeneratorReferenceGuid = reader.ReadGuid();
 
@@ -107,14 +100,16 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
 
         [ExportWorkspaceServiceFactory(typeof(ISerializerService), layer: ServiceLayer.Test), Shared, PartNotDiscoverable]
         [Export(typeof(Factory))]
-        internal new sealed class Factory : IWorkspaceServiceFactory
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal new sealed class Factory() : IWorkspaceServiceFactory
         {
-            private ConcurrentDictionary<Guid, TestGeneratorReference> _sharedTestGeneratorReferences;
+            private ConcurrentDictionary<Guid, TestGeneratorReference>? _sharedTestGeneratorReferences;
 
             /// <summary>
             /// Gate to serialize reads/writes to <see cref="_sharedTestGeneratorReferences"/>.
             /// </summary>
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
 
             /// <summary>
             /// In unit tests that are testing OOP, we want to be able to share test generator references directly
@@ -148,12 +143,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
                         _sharedTestGeneratorReferences = value;
                     }
                 }
-            }
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
-            {
             }
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
