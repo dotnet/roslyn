@@ -77,7 +77,7 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             else
             {
                 // Otherwise, commit the existing session and start a new one.
-                await _renameService.ActiveSession.CommitAsync(previewChanges: false, CancellationToken.None).ConfigureAwait(true);
+                await _renameService.ActiveSession.CommitAsync(previewChanges: false).ConfigureAwait(true);
             }
         }
 

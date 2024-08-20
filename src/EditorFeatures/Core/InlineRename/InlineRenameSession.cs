@@ -126,6 +126,8 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// </summary>
     private CancellationTokenSource _conflictResolutionTaskCancellationSource = new();
 
+    private CancellationTokenSource _commitCancellationTokenSource;
+
     private Task<bool> _commitTask;
 
     public bool IsCommitInProgress => !_dismissed && _commitTask is not null && _commitTask is not { Status: TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled };
@@ -682,6 +684,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         // We're about to perform the final commit action.  No need to do any of our BG work to find-refs or compute conflicts.
         _cancellationTokenSource.Cancel();
         _conflictResolutionTaskCancellationSource.Cancel();
+        _commitCancellationTokenSource?.Cancel();
 
         // Close the keep alive session we have open with OOP, allowing it to release the solution it is holding onto.
         _keepAliveSession.Dispose();
@@ -744,14 +747,14 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         // which at least will allow the user to cancel the rename if they want.
         //
         // In the future we should remove this entrypoint and have all callers use CommitAsync instead.
-        return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false, CancellationToken.None));
+        return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false));
     }
 
-    public async Task<bool> CommitAsync(bool previewChanges, CancellationToken cancellationToken)
+    public async Task<bool> CommitAsync(bool previewChanges)
     {
         if (this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
         {
-            return await StartCommitAsync(previewChanges, canUseBackgroundWorkIndicator: true, cancellationToken).ConfigureAwait(false);
+            return await StartCommitAsync(previewChanges, canUseBackgroundWorkIndicator: true).ConfigureAwait(false);
         }
         else
         {
@@ -759,21 +762,24 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         }
     }
 
-    private async Task<bool> StartCommitAsync(bool previewChanges, bool canUseBackgroundWorkIndicator, CancellationToken cancellationToken)
+    private async Task<bool> StartCommitAsync(bool previewChanges, bool canUseBackgroundWorkIndicator)
     {
         if (_dismissed)
         {
             return false;
         }
 
-        _commitTask ??= CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator, cancellationToken);
+        _commitTask ??= CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator);
         return await _commitTask.ConfigureAwait(false);
     }
 
     /// <returns><see langword="true"/> if the rename operation was committed, <see
     /// langword="false"/> otherwise</returns>
-    private async Task<bool> CommitWorkerAsync(bool previewChanges, bool canUseBackgroundWorkIndicator, CancellationToken cancellationToken)
+    private async Task<bool> CommitWorkerAsync(bool previewChanges, bool canUseBackgroundWorkIndicator)
     {
+        _commitCancellationTokenSource?.Dispose();
+        _commitCancellationTokenSource = new();
+        var cancellationToken = _commitCancellationTokenSource.Token;
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
         VerifyNotDismissed();
 
@@ -839,6 +845,9 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private async Task CommitCoreAsync(IUIThreadOperationContext operationContext, bool previewChanges, CancellationToken cancellationToken)
     {
         CommitStateChange?.Invoke(this, true);
+        // Create a cancellationToken will be cancelled by either:
+        // 1. Cancel() is called.
+        // 2. IUIThreadOperationContext get cancelled.
         using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(operationContext.UserCancellationToken, cancellationToken);
 
         var linkedCancellationToken = operationContext.UserCancellationToken;
@@ -878,7 +887,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 RenameLogMessage.UserActionOutcome.Committed, previewChanges,
                 async () =>
                 {
-                    CommitState = CommitState.StartApplyChanges;
                     var error = await TryApplyRenameAsync(newSolution, linkedCancellationToken).ConfigureAwait(false);
                     if (error is not null)
                     {

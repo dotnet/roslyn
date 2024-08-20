@@ -105,7 +105,7 @@ internal abstract partial class AbstractRenameCommandHandler
         {
             var selection = args.TextView.Selection.VirtualSelectedSpans.First();
 
-            _ = _renameService.ActiveSession.CommitAsync(previewChanges: false, CancellationToken.None);
+            _ = _renameService.ActiveSession.CommitAsync(previewChanges: false);
 
             var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
             args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);

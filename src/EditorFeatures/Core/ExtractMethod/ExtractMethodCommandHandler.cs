@@ -116,7 +116,7 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         if (_renameService.ActiveSession != null)
         {
             // ConfigureAwait(true) to make sure the next wait indicator would be created correctly.
-            await _renameService.ActiveSession.CommitAsync(previewChanges: false, CancellationToken.None).ConfigureAwait(true);
+            await _renameService.ActiveSession.CommitAsync(previewChanges: false).ConfigureAwait(true);
         }
 
         var indicatorFactory = document.Project.Solution.Services.GetRequiredService<IBackgroundWorkIndicatorFactory>();

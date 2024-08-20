@@ -256,7 +256,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             try
             {
-                await Session.CommitAsync(previewChanges: false, cancellationToken: CancellationToken.None).ReportNonFatalErrorAsync().ConfigureAwait(false);
+                await Session.CommitAsync(previewChanges: false).ReportNonFatalErrorAsync().ConfigureAwait(false);
             }
             catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
             {
