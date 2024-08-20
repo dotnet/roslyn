@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             /// <summary>
             /// Gate to serialize reads/writes to <see cref="_sharedTestGeneratorReferences"/>.
             /// </summary>
-            private readonly object _gate = new object();
+            private readonly object _gate = new();
 
             /// <summary>
             /// In unit tests that are testing OOP, we want to be able to share test generator references directly
