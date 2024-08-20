@@ -22,6 +22,12 @@ namespace Microsoft.CodeAnalysis.Serialization;
 /// functionality like live reloading of analyzers and generators when they change on disk.  Note: this is only
 /// supported on .Net Core, and not .Net Framework, as only the former has <see cref="AssemblyLoadContext"/>s.
 /// </summary>
+/// <remarks>
+/// The purpose of this type is to allow passing out a <see cref="AnalyzerReference"/> to the rest of the system that
+/// then ensures that as long as it is alive (or any <see cref="DiagnosticAnalyzer"/> or <see cref="ISourceGenerator"/>
+/// it passes out is alive), that the <see cref="IsolatedAssemblyReferenceSet"/> (and its corresponding <see
+/// cref="AssemblyLoadContext"/>) is kept alive as well.
+/// </remarks>
 internal sealed class IsolatedAnalyzerReference(
     IsolatedAssemblyReferenceSet isolatedAssemblyReferenceSet,
     AnalyzerReference underlyingAnalyzerReference) : AnalyzerReference
@@ -37,7 +43,7 @@ internal sealed class IsolatedAnalyzerReference(
     private static readonly ConditionalWeakTable<ISourceGenerator, IsolatedAssemblyReferenceSet> s_generatorToPinnedReferenceSet = [];
 
     /// <summary>
-    /// We keep a strong reference here.  As long as the IsolatedAnalyzerFileReference is passed out and held
+    /// We keep a strong reference here.  As long as this <see cref="IsolatedAnalyzerReference"/> is passed out and held
     /// onto (say by a Project instance), it should keep the IsolatedAssemblyReferenceSet (and its ALC) alive.
     /// </summary>
     private readonly IsolatedAssemblyReferenceSet _isolatedAssemblyReferenceSet = isolatedAssemblyReferenceSet;
