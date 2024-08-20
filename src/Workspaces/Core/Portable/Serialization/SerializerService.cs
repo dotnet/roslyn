@@ -74,11 +74,6 @@ internal partial class SerializerService : ISerializerService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (value is IChecksummedObject checksummedObject)
-            {
-                return checksummedObject.Checksum;
-            }
-
             switch (kind)
             {
                 case WellKnownSynchronizationKind.CompilationOptions:
