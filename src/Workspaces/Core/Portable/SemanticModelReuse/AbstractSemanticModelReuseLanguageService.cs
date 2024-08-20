@@ -106,38 +106,26 @@ internal abstract class AbstractSemanticModelReuseLanguageService<
         }
         else
         {
-            var currentMembersCount = 0;
-            var index = 0;
+            using var pooledCurrentMembers = this.SyntaxFacts.GetMethodLevelMembers(currentRoot);
+            var currentMembers = pooledCurrentMembers.Object;
 
-            // Explicitly scope these pooled objects to allow earlier disposal and reduced pool pressure.
-            using (var pooledMembers = SharedPools.Default<List<SyntaxNode>>().GetPooledObject())
+            var index = currentMembers.IndexOf(currentBodyNode);
+            if (index < 0)
             {
-                var currentMembers = pooledMembers.Object;
-
-                this.SyntaxFacts.AddMethodLevelMembers(currentRoot, currentMembers);
-                index = currentMembers.IndexOf(currentBodyNode);
-                if (index < 0)
-                {
-                    Debug.Fail($"Unhandled member type in {nameof(GetPreviousBodyNode)}");
-                    return null;
-                }
-
-                currentMembersCount = currentMembers.Count;
+                Debug.Fail($"Unhandled member type in {nameof(GetPreviousBodyNode)}");
+                return null;
             }
 
-            using (var pooledMembers = SharedPools.Default<List<SyntaxNode>>().GetPooledObject())
+            var pooledPreviousMembers = this.SyntaxFacts.GetMethodLevelMembers(previousRoot);
+            var previousMembers = pooledPreviousMembers.Object;
+
+            if (currentMembers.Count != previousMembers.Count)
             {
-                var previousMembers = pooledMembers.Object;
-
-                this.SyntaxFacts.AddMethodLevelMembers(previousRoot, previousMembers);
-                if (currentMembersCount != previousMembers.Count)
-                {
-                    Debug.Fail("Member count shouldn't have changed as there were no top level edits.");
-                    return null;
-                }
-
-                return previousMembers[index];
+                Debug.Fail("Member count shouldn't have changed as there were no top level edits.");
+                return null;
             }
+
+            return previousMembers[index];
         }
     }
 

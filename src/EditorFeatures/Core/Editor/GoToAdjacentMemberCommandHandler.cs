@@ -103,10 +103,8 @@ internal class GoToAdjacentMemberCommandHandler(IOutliningManagerService outlini
     /// </summary>
     internal static int? GetTargetPosition(ISyntaxFactsService service, SyntaxNode root, int caretPosition, bool next)
     {
-        using var pooledMembers = SharedPools.Default<List<SyntaxNode>>().GetPooledObject();
+        using var pooledMembers = service.GetMethodLevelMembers(root);
         var members = pooledMembers.Object;
-
-        service.AddMethodLevelMembers(root, members);
         if (members.Count == 0)
         {
             return null;

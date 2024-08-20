@@ -47,10 +47,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     var service = document.GetRequiredLanguageService<ISyntaxFactsService>();
                     var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-                    using var pooledMembers = SharedPools.Default<List<SyntaxNode>>().GetPooledObject();
+                    using var pooledMembers = service.GetMethodLevelMembers(root);
                     var members = pooledMembers.Object;
 
-                    service.AddMethodLevelMembers(root, members);
                     return members.SelectAsArray(m => m.FullSpan);
                 }
             }

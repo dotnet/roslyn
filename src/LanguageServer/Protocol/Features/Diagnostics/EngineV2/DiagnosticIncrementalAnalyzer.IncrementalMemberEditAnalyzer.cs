@@ -216,11 +216,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     return null;
                 }
 
-                using var pooledMembers = SharedPools.Default<List<SyntaxNode>>().GetPooledObject();
+                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
+                using var pooledMembers = syntaxFacts.GetMethodLevelMembers(root);
                 var members = pooledMembers.Object;
 
-                var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                syntaxFacts.AddMethodLevelMembers(root, members);
                 var memberSpans = members.SelectAsArray(member => member.FullSpan);
                 var changedMemberId = members.IndexOf(changedMember);
 

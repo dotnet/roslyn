@@ -409,9 +409,9 @@ internal interface ISyntaxFacts
     SyntaxNode? ConvertToSingleLine(SyntaxNode? node, bool useElasticTrivia = false);
 
     // Violation.  This is a feature level API.
-    void AddTopLevelAndMethodLevelMembers(SyntaxNode? root, List<SyntaxNode> list);
+    PooledObject<List<SyntaxNode>> GetTopLevelAndMethodLevelMembers(SyntaxNode? root);
     // Violation.  This is a feature level API.
-    void AddMethodLevelMembers(SyntaxNode? root, List<SyntaxNode> list);
+    PooledObject<List<SyntaxNode>> GetMethodLevelMembers(SyntaxNode? root);
     SyntaxList<SyntaxNode> GetMembersOfTypeDeclaration(SyntaxNode typeDeclaration);
 
     // Violation.  This is a feature level API.
