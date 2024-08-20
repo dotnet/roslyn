@@ -126,10 +126,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// </summary>
     private CancellationTokenSource _conflictResolutionTaskCancellationSource = new();
 
-    /// <summary>
-    /// Task tracking the commit operation.
-    /// Null if commit never starts.
-    /// </summary>
     private Task<bool> _commitTask;
 
     public bool IsCommitInProgress => !_dismissed && _commitTask is not null && _commitTask is not { Status: TaskStatus.RanToCompletion or TaskStatus.Faulted or TaskStatus.Canceled };
