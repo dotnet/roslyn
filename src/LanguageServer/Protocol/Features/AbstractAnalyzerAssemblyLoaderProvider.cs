@@ -52,6 +52,8 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
 #if NET
 
     public IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext)
+        // If no load context is provided, return the default shared instance.  Otherwise, create a fresh instance that
+        // will load within the provided ALC.
         => loadContext is null
             ? _shadowCopyLoader.Value
             : CreateShadowCopyLoader(loadContext);

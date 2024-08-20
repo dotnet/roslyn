@@ -31,6 +31,9 @@ internal sealed class RemoteAnalyzerAssemblyLoaderService(
         // locations as they're already appropriately isolated.
         => AbstractAnalyzerAssemblyLoaderProvider.GetPath();
 
+    /// <summary>
+    /// Default shared instance, for all callers who do not want to provide a custom <see cref="AssemblyLoadContext"/>.
+    /// </summary>
     private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader = CreateLoader(
 #if NET
         loadContext: null,
