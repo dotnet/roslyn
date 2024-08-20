@@ -2364,6 +2364,102 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """));
         }
 
+        [Theory]
+        [CombinatorialData]
+        public void Conditional(bool useDEBUG)
+        {
+            string sourceA = """
+                using System.Diagnostics;
+                class C
+                {
+                    public static object P1 { get { M(field); return null; } set { } }
+                    public static object P2 { get { return null; } set { M(field); } }
+                    public object P3 { get { M(field); return null; } }
+                    public object P4 { set { M(field); } }
+                    public object P5 { init { M(field); } }
+                    [Conditional("DEBUG")]
+                    static void M( object o) { }
+                }
+                """;
+            string sourceB = """
+                using System;
+                using System.Reflection;
+                class Program
+                {
+                    static void Main()
+                    {
+                        foreach (var field in typeof(C).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static))
+                            ReportField(field);
+                    }
+                    static void ReportField(FieldInfo field)
+                    {
+                        Console.Write("{0}.{1}:", field.DeclaringType.Name, field.Name);
+                        foreach (var obj in field.GetCustomAttributes())
+                            Console.Write(" {0},", obj.ToString());
+                        Console.WriteLine();
+                    }
+                }
+                """;
+            var parseOptions = TestOptions.RegularNext;
+            if (useDEBUG)
+            {
+                parseOptions = parseOptions.WithPreprocessorSymbols("DEBUG");
+            }
+            var verifier = CompileAndVerify(
+                [sourceA, sourceB],
+                parseOptions: parseOptions,
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: """
+                    C.<P3>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                    C.<P4>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                    C.<P5>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                    C.<P1>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                    C.<P2>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
+                    """);
+            if (useDEBUG)
+            {
+                verifier.VerifyIL("C.P1.get", """
+                    {
+                      // Code size       12 (0xc)
+                      .maxstack  1
+                      IL_0000:  ldsfld     "object C.<P1>k__BackingField"
+                      IL_0005:  call       "void C.M(object)"
+                      IL_000a:  ldnull
+                      IL_000b:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C.P4.set", """
+                    {
+                      // Code size       12 (0xc)
+                      .maxstack  1
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldfld      "object C.<P4>k__BackingField"
+                      IL_0006:  call       "void C.M(object)"
+                      IL_000b:  ret
+                    }
+                    """);
+            }
+            else
+            {
+                verifier.VerifyIL("C.P1.get", """
+                    {
+                      // Code size        2 (0x2)
+                      .maxstack  1
+                      IL_0000:  ldnull
+                      IL_0001:  ret
+                    }
+                    """);
+                verifier.VerifyIL("C.P4.set", """
+                    {
+                      // Code size        1 (0x1)
+                      .maxstack  0
+                      IL_0000:  ret
+                    }
+                    """);
+            }
+        }
+
         [Fact]
         public void RestrictedTypes()
         {
