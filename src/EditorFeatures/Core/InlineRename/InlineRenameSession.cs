@@ -735,17 +735,17 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         // which at least will allow the user to cancel the rename if they want.
         //
         // In the future we should remove this entrypoint and have all callers use CommitAsync instead.
-        return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false, CancellationToken.None));
+        return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false));
     }
 
-    public Task CommitAsync(bool previewChanges, CancellationToken cancellationToken)
-       => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, cancellationToken);
+    public Task CommitAsync(bool previewChanges)
+       => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true);
 
     /// <returns><see langword="true"/> if the rename operation was commited, <see
     /// langword="false"/> otherwise</returns>
-    private async Task<bool> CommitWorkerAsync(bool previewChanges, bool canUseBackgroundWorkIndicator, CancellationToken cancellationToken)
+    private async Task<bool> CommitWorkerAsync(bool previewChanges, bool canUseBackgroundWorkIndicator)
     {
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
         VerifyNotDismissed();
 
         // If the identifier was deleted (or didn't change at all) then cancel the operation.
