@@ -1028,8 +1028,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """));
         }
 
-        // PROTOTYPE: Confirm we want to allow mixed auto- and explicitly-implemented
-        // accessors when explicitly-implemented accessors do not use 'field'.
         [Fact]
         public void Initializer_01()
         {
@@ -2014,7 +2012,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, setter).WithLocation(3, 25));
         }
 
-        // PROTOTYPE: Confirm that both accessors must be overridden.
         [Theory]
         [CombinatorialData]
         public void Override_VirtualBase_01(bool useInit)

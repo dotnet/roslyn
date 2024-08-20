@@ -662,7 +662,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected bool AccessorsHaveImplementation
             => (_propertyFlags & Flags.AccessorsHaveImplementation) != 0;
 
-        // PROTOTYPE: Should this be IsAutoProperty?
         internal bool HasSynthesizedBackingField
             => IsAutoProperty || UsesFieldKeyword;
 
