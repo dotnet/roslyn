@@ -3373,9 +3373,6 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            // PROTOTYPE: Confirm that we now allow one accessor to have an implementation.
-            // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
-            // we don't want to allow only one accessor to have an implementation.
             if (isStatic && useCSharp13)
             {
                 compilation1.VerifyDiagnostics(
@@ -3389,6 +3386,8 @@ class Test1 : I1
             }
             else
             {
+                // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
+                // we don't want to allow only one accessor to have an implementation.
                 compilation1.VerifyDiagnostics(
                     // (11,9): error CS0501: 'I1.P1.set' must declare a body because it is not marked abstract, extern, or partial
                     //         set;
@@ -3401,6 +3400,9 @@ class Test1 : I1
             var setP1 = p1.SetMethod;
             Assert.False(p1.IsReadOnly);
             Assert.False(p1.IsWriteOnly);
+
+            var field1 = ((SourcePropertySymbolBase)p1).BackingField;
+            Assert.Equal(isStatic ? "System.Int32 I1.<P1>k__BackingField" : null, field1?.ToTestDisplayString());
 
             Assert.False(p1.IsAbstract);
             Assert.True(p1.IsVirtual);
@@ -3419,8 +3421,9 @@ class Test1 : I1
             Assert.True(setP1.IsMetadataVirtual());
         }
 
-        [Fact]
-        public void PropertyImplementation_109B()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyImplementation_109B(bool useCSharp13)
         {
             var source1 =
 @"
@@ -3441,17 +3444,21 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
-            // we don't want to allow only one accessor to have an implementation.
-            compilation1.VerifyDiagnostics(
-                // (11,9): error CS0501: 'I1.P1.set' must declare a body because it is not marked abstract, extern, or partial
-                //         set;
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "set").WithArguments("I1.P1.set").WithLocation(11, 9)
-                );
+            if (useCSharp13)
+            {
+                compilation1.VerifyDiagnostics(
+                    // (4,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static int P1 
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 16));
+            }
+            else
+            {
+                compilation1.VerifyDiagnostics();
+            }
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
             var getP1 = p1.GetMethod;
@@ -3504,9 +3511,6 @@ class Test1 : I1
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            // PROTOTYPE: Confirm that we now allow one accessor to have an implementation.
-            // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
-            // we don't want to allow only one accessor to have an implementation.
             if (isStatic && useCSharp13)
             {
                 compilation1.VerifyDiagnostics(
@@ -3520,6 +3524,8 @@ class Test1 : I1
             }
             else
             {
+                // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
+                // we don't want to allow only one accessor to have an implementation.
                 compilation1.VerifyDiagnostics(
                     // (6,9): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
                     //         get;
@@ -3532,6 +3538,9 @@ class Test1 : I1
             var setP1 = p1.SetMethod;
             Assert.False(p1.IsReadOnly);
             Assert.False(p1.IsWriteOnly);
+
+            var field1 = ((SourcePropertySymbolBase)p1).BackingField;
+            Assert.Equal(isStatic ? "System.Int32 I1.<P1>k__BackingField" : null, field1?.ToTestDisplayString());
 
             Assert.False(p1.IsAbstract);
             Assert.True(p1.IsVirtual);
@@ -3550,8 +3559,9 @@ class Test1 : I1
             Assert.True(setP1.IsMetadataVirtual());
         }
 
-        [Fact]
-        public void PropertyImplementation_110B()
+        [Theory]
+        [CombinatorialData]
+        public void PropertyImplementation_110B(bool useCSharp13)
         {
             var source1 =
 @"
@@ -3568,17 +3578,21 @@ class Test1 : I1
 {}
 ";
             var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll,
-                                                 parseOptions: TestOptions.RegularPreview,
+                                                 parseOptions: useCSharp13 ? TestOptions.Regular13 : TestOptions.RegularPreview,
                                                  targetFramework: TargetFramework.Net60);
             Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
 
-            // According to LDM decision captured at https://github.com/dotnet/csharplang/blob/main/meetings/2017/LDM-2017-04-18.md,
-            // we don't want to allow only one accessor to have an implementation.
-            compilation1.VerifyDiagnostics(
-                // (6,9): error CS0501: 'I1.P1.get' must declare a body because it is not marked abstract, extern, or partial
-                //         get;
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("I1.P1.get").WithLocation(6, 9)
-                );
+            if (useCSharp13)
+            {
+                compilation1.VerifyDiagnostics(
+                    // (4,16): error CS8652: The feature 'field keyword' is currently in Preview and *unsupported*. To use Preview features, use the 'preview' language version.
+                    //     static int P1 
+                    Diagnostic(ErrorCode.ERR_FeatureInPreview, "P1").WithArguments("field keyword").WithLocation(4, 16));
+            }
+            else
+            {
+                compilation1.VerifyDiagnostics();
+            }
 
             var p1 = compilation1.GetMember<PropertySymbol>("I1.P1");
             var getP1 = p1.GetMethod;
