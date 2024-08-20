@@ -137,7 +137,7 @@
     <Error Text="Crossgen2 failed with exit code $(_Crossgen2ErrorCode)." Condition="'$(_Crossgen2ErrorCode)' != '0'" />
   </Target>
 
-  <Target Name="PublishedProjectOutputGroup" DependsOnTargets="CalculateCrossgenInputs" Returns="@(_VsixItem)">
+  <Target Name="PublishedProjectOutputGroup" DependsOnTargets="CalculateCrossgenInputs" Returns="@(_VsixItem)" Condition="'$(DesignTimeBuild)' != 'true'">
     <PropertyGroup>
       <!-- 
         For BCL, we want to use the version provided by the runtime in VS, not the ones from the NuGet packages. 
