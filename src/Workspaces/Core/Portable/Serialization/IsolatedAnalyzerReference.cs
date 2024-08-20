@@ -2,31 +2,39 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+#if NET
+
 using System;
 using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics;
-
-#if NET
+using System.Runtime.Loader;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
 /// <summary>
 /// Wrapper around a real <see cref="AnalyzerReference"/>.  An "isolated" analyzer reference is an analyzer reference
-/// associated with an AssemblyLoadContext that is connected to a set of other "isolated" analyzer references.  This
-/// allows for loading the analyzers and generators from it in a way that is associated with that load context, keeping
-/// them separate from other analyzers and generators loaded in other load contexts, while also allowing all of those
-/// instances to be collected when no longer needed.  Being isolated means that if any of the underlying assembly
-/// references change, that they can be loaded side by side with the prior references.  This enables functionality like
-/// live reloading of analyzers and generators when they change on disk.  Note: this is only supported on .Net Core, and
-/// not .Net Framework, as only the former has AssemblyLoadContexts.
+/// associated with an <see cref="AssemblyLoadContext"/> that is connected to a set of other "isolated" analyzer
+/// references.  This allows for loading the analyzers and generators from it in a way that is associated with that load
+/// context, keeping them separate from other analyzers and generators loaded in other load contexts, while also
+/// allowing all of those instances to be collected when no longer needed.  Being isolated means that if any of the
+/// underlying assembly references change, that they can be loaded side by side with the prior references.  This enables
+/// functionality like live reloading of analyzers and generators when they change on disk.  Note: this is only
+/// supported on .Net Core, and not .Net Framework, as only the former has <see cref="AssemblyLoadContext"/>s.
 /// </summary>
 internal sealed class IsolatedAnalyzerReference(
     IsolatedAssemblyReferenceSet isolatedAssemblyReferenceSet,
     AnalyzerReference underlyingAnalyzerReference) : AnalyzerReference
 {
-    private static readonly ConditionalWeakTable<DiagnosticAnalyzer, IsolatedAssemblyReferenceSet> s_analyzerToPinnedReferenceSet = new();
-    private static readonly ConditionalWeakTable<ISourceGenerator, IsolatedAssemblyReferenceSet> s_generatorToPinnedReferenceSet = new();
+    /// <summary>
+    /// Conditional weak tables that ensure that as long as a particular <see cref="DiagnosticAnalyzer"/> or <see
+    /// cref="ISourceGenerator"/> is alive, that the corresponding <see cref="IsolatedAssemblyReferenceSet"/> (and its
+    /// corresponding <see cref="AssemblyLoadContext"/> is kept alive.
+    /// </summary>
+    private static readonly ConditionalWeakTable<DiagnosticAnalyzer, IsolatedAssemblyReferenceSet> s_analyzerToPinnedReferenceSet = [];
+
+    /// <inheritdoc cref="s_analyzerToPinnedReferenceSet"/>
+    private static readonly ConditionalWeakTable<ISourceGenerator, IsolatedAssemblyReferenceSet> s_generatorToPinnedReferenceSet = [];
 
     /// <summary>
     /// We keep a strong reference here.  As long as the IsolatedAnalyzerFileReference is passed out and held
@@ -86,7 +94,7 @@ internal sealed class IsolatedAnalyzerReference(
         => RuntimeHelpers.GetHashCode(this);
 
     public override string ToString()
-        => $"{nameof(IsolatedAnalyzerFileReference)}({UnderlyingAnalyzerReference})";
+        => $"{nameof(IsolatedAnalyzerReference)}({UnderlyingAnalyzerReference})";
 }
 
 #endif

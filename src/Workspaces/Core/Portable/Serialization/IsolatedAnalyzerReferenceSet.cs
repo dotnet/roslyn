@@ -16,6 +16,9 @@ namespace Microsoft.CodeAnalysis.Serialization;
 
 #if NET
 
+/// <summary>
+/// A set of <see cref="IsolatedAnalyzerReference"/>s and their associated <see cref="AssemblyLoadContext"/>.
+/// </summary>
 internal sealed class IsolatedAssemblyReferenceSet
 {
     /// <summary>
