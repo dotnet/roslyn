@@ -2082,7 +2082,7 @@ public enum Color { Red }
             var refLib = CreateEmptyCompilation(
                 sourceRefLib,
                 assemblyName: "RefLib",
-                references: new[] { TestMetadata.Net20.mscorlib });
+                references: new[] { Net20.References.mscorlib });
 
             refLib.VerifyEmitDiagnostics();
 
@@ -2127,7 +2127,7 @@ public class Base { }
             var refLib = CreateEmptyCompilation(
                 sourceRefLib,
                 assemblyName: "RefLib",
-                references: new[] { TestMetadata.Net20.mscorlib });
+                references: new[] { Net20.References.mscorlib });
 
             refLib.VerifyEmitDiagnostics();
 
