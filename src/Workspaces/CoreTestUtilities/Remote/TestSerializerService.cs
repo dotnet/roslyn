@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
 #if NETCOREAPP
     [SupportedOSPlatform("windows")]
 #endif
-    [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+    [method: Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
     internal sealed class TestSerializerService(
         ConcurrentDictionary<Guid, TestGeneratorReference> sharedTestGeneratorReferences,
         SolutionServices workspaceServices)
@@ -107,7 +107,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
 
         [ExportWorkspaceServiceFactory(typeof(ISerializerService), layer: ServiceLayer.Test), Shared, PartNotDiscoverable]
         [Export(typeof(Factory))]
-        internal new sealed class Factory : IWorkspaceServiceFactory
+        [method: ImportingConstructor]
+        [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+        internal new sealed class Factory() : IWorkspaceServiceFactory
         {
             private ConcurrentDictionary<Guid, TestGeneratorReference> _sharedTestGeneratorReferences;
 
@@ -148,12 +150,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
                         _sharedTestGeneratorReferences = value;
                     }
                 }
-            }
-
-            [ImportingConstructor]
-            [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-            public Factory()
-            {
             }
 
             [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
