@@ -34998,6 +34998,61 @@ partial class Program
         }
 
         [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71217")]
+        public void List_SingleSpread_CustomCollection_NotICollectionAndNoStructEnumerator_PublicAndExplicitGetEnumerator()
+        {
+            var source = """
+                using System;
+                using System.Collections;
+                using System.Collections.Generic;
+
+                class MyCollection(List<int> list) : IEnumerable<int>
+                {
+                    public IEnumerator<int> GetEnumerator()
+                    {
+                        Console.WriteLine("Public");
+                        return list.GetEnumerator();
+                    }
+
+                    IEnumerator<int> IEnumerable<int>.GetEnumerator()
+                    {
+                        Console.WriteLine("Explicit");
+                        return list.GetEnumerator();
+                    }
+
+                    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+                }
+
+                class C
+                {
+                    static void Main()
+                    {
+                        M(new([1, 2, 3])).Report();
+                    }
+
+                    static List<int> M(MyCollection c) => [..c];
+                }
+                """;
+
+            var expectedOutput = """
+                Explicit
+                [1, 2, 3],
+                """;
+
+            var verifier = CompileAndVerify([source, s_collectionExtensions], expectedOutput: expectedOutput, verify: Verification.Skipped);
+            verifier.VerifyDiagnostics();
+
+            verifier.VerifyIL("C.M", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
+                  IL_0006:  ret
+                }
+                """);
+        }
+
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71217")]
         public void List_SingleSpread_CustomCollection_ICollectionAndNoStructEnumerator()
         {
             var source = """
