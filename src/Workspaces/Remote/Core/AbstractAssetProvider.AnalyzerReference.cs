@@ -37,6 +37,12 @@ internal static partial class AbstractAssetProviderExtensions
 
 #endif
 
+    /// <summary>
+    /// Given a checksum for a set of analyzer references, fetches the existing ALC-isolated set of them if already
+    /// present in this process.  Otherwise, this fetches the raw serialized analyzer references from the host side,
+    /// then creates and caches an isolated set on the OOP side to hold onto them, passing out that isolated set of
+    /// references to be used by the caller (normally to be stored in a solution snapshot).
+    /// </summary>
     public static async ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
         this AbstractAssetProvider assetProvider,
         AssetPath assetPath,
