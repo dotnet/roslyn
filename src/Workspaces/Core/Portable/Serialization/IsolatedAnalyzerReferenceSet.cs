@@ -49,7 +49,7 @@ internal sealed class IsolatedAssemblyReferenceSet
         Contract.ThrowIfTrue(serializedReferences.Any(r => r is IsolatedAnalyzerReference));
 
         // Make a unique ALC for this set of references.
-        var isolatedRoot = Guid.NewGuid().ToString();
+        var isolatedRoot = Guid.NewGuid().ToString("N").ToLowerInvariant();
         _assemblyLoadContext = new AssemblyLoadContext(name: isolatedRoot, isCollectible: true);
 
         // Now make a loader that uses that ALC that will ensure these references are properly isolated.
