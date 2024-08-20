@@ -7,25 +7,25 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Requests client settings for semantic tokens.
-    ///
+    /// Represents which semantic token requests are supported by the client.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
     internal class SemanticTokensRequestsSetting
     {
         /// <summary>
-        /// Gets or sets a value indicating whether the client will send the
-        /// `textDocument/semanticTokens/range` request if the server provides a
-        /// corresponding handler.
+        /// The client will send the <c>textDocument/semanticTokens/range</c> request
+        /// if the server provides a corresponding handler.
         /// </summary>
         [JsonPropertyName("range")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public SumType<bool, object>? Range { get; set; }
 
         /// <summary>
-        /// Gets or sets a value indicating whether the client will send the
-        /// `textDocument/semanticTokens/full` request if the server provides a
-        /// corresponding handler.
+        /// The client will send the <c>textDocument/semanticTokens/full</c> request
+        /// if the server provides a corresponding handler.
         /// </summary>
         [JsonPropertyName("full")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

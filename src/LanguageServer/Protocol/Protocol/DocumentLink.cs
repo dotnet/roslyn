@@ -8,14 +8,16 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing the response of a textDocument/documentLink request.
-    ///
+    /// A document link is a range in a text document that links to an internal or
+    /// external resource, like another text document or a web site.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentLink">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class DocumentLink
     {
         /// <summary>
-        /// Gets or sets the range the link applies to.
+        /// The range this link applies to.
         /// </summary>
         [JsonPropertyName("range")]
         public Range Range
@@ -25,7 +27,7 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the uri that the link points to.
+        /// The uri this link points to. If missing a resolve request is sent later.
         /// </summary>
         [JsonPropertyName("target")]
         [JsonConverter(typeof(DocumentUriConverter))]
@@ -35,5 +37,26 @@ namespace Roslyn.LanguageServer.Protocol
             get;
             set;
         }
+
+        /// <summary>
+        /// The tooltip text when you hover over this link.
+        /// <para>
+        /// If a tooltip is provided, it will be displayed in a string that includes
+        /// instructions on how to trigger the link, such as <c>{0} (ctrl + click)</c>.
+        /// The specific instructions vary depending on OS, user settings, and localization.
+        /// </para>
+        /// </summary>
+        /// <remarks>Since LSP 3.15</remarks>
+        [JsonPropertyName("tooltip")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string? Tooltip { get; init; }
+
+        /// <summary>
+        /// A data entry field that is preserved on a document link between a
+        /// DocumentLinkRequest and a DocumentLinkResolveRequest.
+        /// </summary>
+        [JsonPropertyName("data")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public object? Data { get; init; }
     }
 }
