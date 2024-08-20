@@ -2,15 +2,12 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CodeFixes;
 
@@ -42,10 +39,6 @@ internal abstract class ForkingSyntaxEditorBasedCodeFixProvider<TDiagnosticNode>
         TDiagnosticNode diagnosticNode,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken);
-
-    protected sealed override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-        // Never try to fix the secondary diagnostics that were produced just to fade out code.
-        => !diagnostic.Descriptor.ImmutableCustomTags().Contains(WellKnownDiagnosticTags.Unnecessary);
 
     public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
     {

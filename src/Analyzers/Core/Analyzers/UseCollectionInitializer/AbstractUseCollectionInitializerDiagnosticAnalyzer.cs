@@ -64,27 +64,14 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-    private static readonly DiagnosticDescriptor s_descriptor = CreateDescriptorWithId(
-        IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
-        EnforceOnBuildValues.UseCollectionInitializer,
-        hasAnyCodeStyleOption: true,
-        new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        isUnnecessary: false);
-
-    private static readonly DiagnosticDescriptor s_unnecessaryCodeDescriptor = CreateDescriptorWithId(
-        IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
-        EnforceOnBuildValues.UseCollectionInitializer,
-        hasAnyCodeStyleOption: true,
-        new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        isUnnecessary: true);
-
     protected AbstractUseCollectionInitializerDiagnosticAnalyzer()
         : base(
-            [
-                (s_descriptor, CodeStyleOptions2.PreferCollectionInitializer)
-            ])
+            IDEDiagnosticIds.UseCollectionInitializerDiagnosticId,
+            EnforceOnBuildValues.UseCollectionInitializer,
+            CodeStyleOptions2.PreferCollectionInitializer,
+            new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
+            isUnnecessary: true)
     {
     }
 
@@ -193,15 +180,15 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         if (changesSemantics)
             properties = properties.Add(UseCollectionInitializerHelpers.ChangesSemanticsName, "");
 
-        context.ReportDiagnostic(DiagnosticHelper.Create(
-            s_descriptor,
+        var fadeLocations = FadeOutCode(matches);
+        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
+            Descriptor,
             objectCreationExpression.GetFirstToken().GetLocation(),
             notification,
             context.Options,
             additionalLocations: locations,
+            additionalUnnecessaryLocations: fadeLocations,
             properties));
-
-        FadeOutCode(context, matches, locations, properties);
 
         return;
 
@@ -246,31 +233,16 @@ internal abstract partial class AbstractUseCollectionInitializerDiagnosticAnalyz
         }
     }
 
-    private void FadeOutCode(
-        SyntaxNodeAnalysisContext context,
-        ImmutableArray<Match<TStatementSyntax>> matches,
-        ImmutableArray<Location> locations,
-        ImmutableDictionary<string, string?>? properties)
+    private ImmutableArray<Location> FadeOutCode(ImmutableArray<Match<TStatementSyntax>> matches)
     {
         var syntaxFacts = this.SyntaxFacts;
 
+        using var fadeLocations = TemporaryArray<Location>.Empty;
         foreach (var match in matches)
         {
-            var additionalUnnecessaryLocations = UseCollectionInitializerHelpers.GetLocationsToFade(
-                syntaxFacts, match);
-            if (additionalUnnecessaryLocations.IsDefaultOrEmpty)
-                continue;
-
-            // Report the diagnostic at the first unnecessary location. This is the location where the code fix
-            // will be offered.
-            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                s_unnecessaryCodeDescriptor,
-                additionalUnnecessaryLocations[0],
-                NotificationOption2.ForSeverity(s_unnecessaryCodeDescriptor.DefaultSeverity),
-                context.Options,
-                additionalLocations: locations,
-                additionalUnnecessaryLocations: additionalUnnecessaryLocations,
-                properties));
+            fadeLocations.AddRange(UseCollectionInitializerHelpers.GetLocationsToFade(syntaxFacts, match));
         }
+
+        return fadeLocations.ToImmutableAndClear();
     }
 }

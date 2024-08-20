@@ -184,6 +184,9 @@ internal static class DiagnosticHelper
         ImmutableArray<Location> additionalUnnecessaryLocations,
         ImmutableDictionary<string, string?>? properties)
     {
+        // Verify that the descriptor will not cause 'location' to fade when additional fade locations is empty.
+        Debug.Assert(!descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary));
+
         if (additionalUnnecessaryLocations.IsEmpty)
             return CreateWithMessage(descriptor, location, notificationOption, analyzerOptions, additionalLocations, properties, message);
 
@@ -214,12 +217,17 @@ internal static class DiagnosticHelper
         Contract.ThrowIfTrue(tagIndices.IsEmpty());
 
         properties ??= ImmutableDictionary<string, string?>.Empty;
-        properties = properties.AddRange(tagIndices.Select(kvp => new KeyValuePair<string, string?>(kvp.Key, EncodeIndices(kvp.Value, additionalLocations.Count()))));
+        properties = properties.AddRange(tagIndices.Select(kvp => new KeyValuePair<string, string?>(kvp.Key, EncodeIndices(descriptor, kvp.Key, kvp.Value, additionalLocations.Count()))));
 
         return CreateWithMessage(descriptor, location, notificationOption, analyzerOptions, additionalLocations, properties, message);
 
-        static string EncodeIndices(IEnumerable<int> indices, int additionalLocationsLength)
+        static string EncodeIndices(DiagnosticDescriptor descriptor, string key, IEnumerable<int> indices, int additionalLocationsLength)
         {
+            if (key == WellKnownDiagnosticTags.Unnecessary)
+            {
+                RoslynDebug.Assert(descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary));
+            }
+
             // Ensure that the provided tag index is a valid index into additional locations.
             Contract.ThrowIfFalse(indices.All(idx => idx >= 0 && idx < additionalLocationsLength));
 

@@ -6,7 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.LanguageService;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.UseCollectionInitializer;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.UseCollectionInitializer;
 using Roslyn.Utilities;
 
@@ -49,51 +49,31 @@ internal sealed partial class CSharpUseCollectionExpressionForBuilderDiagnosticA
             return;
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
+        var fadeLocations = FadeOutCode(analysisResult);
         var properties = analysisResult.ChangesSemantics ? ChangesSemantics : null;
-        context.ReportDiagnostic(DiagnosticHelper.Create(
+        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
             Descriptor,
             analysisResult.DiagnosticLocation,
             option.Notification,
             context.Options,
             additionalLocations: locations,
+            additionalUnnecessaryLocations: fadeLocations,
             properties: properties));
-
-        FadeOutCode(context, analysisResult, locations);
 
         return;
 
-        void FadeOutCode(SyntaxNodeAnalysisContext context, AnalysisResult analysisResult, ImmutableArray<Location> locations)
+        static ImmutableArray<Location> FadeOutCode(AnalysisResult analysisResult)
         {
-            var additionalUnnecessaryLocations = ImmutableArray.Create(
-                analysisResult.LocalDeclarationStatement.GetLocation());
+            using var fadeLocations = TemporaryArray<Location>.Empty;
 
-            context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                UnnecessaryCodeDescriptor,
-                additionalUnnecessaryLocations[0],
-                NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
-                context.Options,
-                additionalLocations: locations,
-                additionalUnnecessaryLocations: additionalUnnecessaryLocations,
-                properties: properties));
+            fadeLocations.Add(analysisResult.LocalDeclarationStatement.GetLocation());
 
             foreach (var statementMatch in analysisResult.Matches)
             {
-                additionalUnnecessaryLocations = UseCollectionInitializerHelpers.GetLocationsToFade(
-                    CSharpSyntaxFacts.Instance, statementMatch);
-                if (additionalUnnecessaryLocations.IsDefaultOrEmpty)
-                    continue;
-
-                // Report the diagnostic at the first unnecessary location. This is the location where the code fix
-                // will be offered.
-                context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                    UnnecessaryCodeDescriptor,
-                    additionalUnnecessaryLocations[0],
-                    NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
-                    context.Options,
-                    additionalLocations: locations,
-                    additionalUnnecessaryLocations: additionalUnnecessaryLocations,
-                    properties: properties));
+                fadeLocations.AddRange(UseCollectionInitializerHelpers.GetLocationsToFade(CSharpSyntaxFacts.Instance, statementMatch));
             }
+
+            return fadeLocations.ToImmutableAndClear();
         }
     }
 

@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Shared.CodeStyle;
@@ -52,28 +51,19 @@ internal sealed partial class CSharpUseCollectionExpressionForCreateDiagnosticAn
         }
 
         var locations = ImmutableArray.Create(invocationExpression.GetLocation());
-        var properties = unwrapArgument ? s_unwrapArgumentProperties : ImmutableDictionary<string, string?>.Empty;
-        if (changesSemantics)
-            properties = properties.Add(UseCollectionInitializerHelpers.ChangesSemanticsName, "");
-
-        context.ReportDiagnostic(DiagnosticHelper.Create(
-            Descriptor,
-            memberAccess.Name.Identifier.GetLocation(),
-            option.Notification,
-            context.Options,
-            additionalLocations: locations,
-            properties));
-
         var additionalUnnecessaryLocations = ImmutableArray.Create(
             syntaxTree.GetLocation(TextSpan.FromBounds(
                 invocationExpression.SpanStart,
                 invocationExpression.ArgumentList.OpenParenToken.Span.End)),
             invocationExpression.ArgumentList.CloseParenToken.GetLocation());
+        var properties = unwrapArgument ? s_unwrapArgumentProperties : ImmutableDictionary<string, string?>.Empty;
+        if (changesSemantics)
+            properties = properties.Add(UseCollectionInitializerHelpers.ChangesSemanticsName, "");
 
         context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-            UnnecessaryCodeDescriptor,
-            additionalUnnecessaryLocations[0],
-            NotificationOption2.ForSeverity(UnnecessaryCodeDescriptor.DefaultSeverity),
+            Descriptor,
+            memberAccess.Name.Identifier.GetLocation(),
+            option.Notification,
             context.Options,
             additionalLocations: locations,
             additionalUnnecessaryLocations: additionalUnnecessaryLocations,

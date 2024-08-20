@@ -21,25 +21,15 @@ internal abstract class AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer
     public static readonly ImmutableDictionary<string, string?> ChangesSemantics =
         ImmutableDictionary<string, string?>.Empty.Add(UseCollectionInitializerHelpers.ChangesSemanticsName, "");
 
-    protected readonly DiagnosticDescriptor UnnecessaryCodeDescriptor;
-
     protected AbstractCSharpUseCollectionExpressionDiagnosticAnalyzer(string diagnosticId, EnforceOnBuild enforceOnBuild)
         : base(
-            [
-                (CreateDescriptor(diagnosticId, enforceOnBuild, isUnnecessary: false), CodeStyleOptions2.PreferCollectionExpression)
-            ])
-    {
-        UnnecessaryCodeDescriptor = CreateDescriptor(diagnosticId, enforceOnBuild, isUnnecessary: true);
-    }
-
-    private static DiagnosticDescriptor CreateDescriptor(string diagnosticId, EnforceOnBuild enforceOnBuild, bool isUnnecessary)
-        => CreateDescriptorWithId(
             diagnosticId,
             enforceOnBuild,
-            hasAnyCodeStyleOption: true,
+            CodeStyleOptions2.PreferCollectionExpression,
             new LocalizableResourceString(nameof(AnalyzersResources.Simplify_collection_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-            new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-            isUnnecessary: isUnnecessary);
+            new LocalizableResourceString(nameof(AnalyzersResources.Collection_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)))
+    {
+    }
 
     protected abstract void InitializeWorker(CodeBlockStartAnalysisContext<SyntaxKind> context, INamedTypeSymbol? expressionType);
 

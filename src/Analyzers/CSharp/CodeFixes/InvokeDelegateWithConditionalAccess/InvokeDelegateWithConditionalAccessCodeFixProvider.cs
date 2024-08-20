@@ -30,11 +30,6 @@ internal sealed partial class InvokeDelegateWithConditionalAccessCodeFixProvider
 {
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId];
 
-    // Filter out the diagnostics we created for the faded out code.  We don't want
-    // to try to fix those as well as the normal diagnostics we created.
-    protected override bool IncludeDiagnosticDuringFixAll(Diagnostic diagnostic)
-        => !diagnostic.Properties.ContainsKey(WellKnownDiagnosticTags.Unnecessary);
-
     public override Task RegisterCodeFixesAsync(CodeFixContext context)
     {
         RegisterCodeFix(context, CSharpAnalyzersResources.Simplify_delegate_invocation, nameof(CSharpAnalyzersResources.Simplify_delegate_invocation));
