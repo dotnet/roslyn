@@ -44,11 +44,11 @@ internal partial class SerializerService
             return s_analyzerImageReferenceMap.TryGetKey(guid, out imageReference);
     }
 
-    private static Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
+    private static Checksum CreateChecksum(MetadataReference reference)
     {
         if (reference is PortableExecutableReference portable)
         {
-            return CreatePortableExecutableReferenceChecksum(portable, cancellationToken);
+            return CreatePortableExecutableReferenceChecksum(portable);
         }
 
         throw ExceptionUtilities.UnexpectedValue(reference.GetType());
@@ -209,35 +209,35 @@ internal partial class SerializerService
     }
 
     protected static void WritePortableExecutableReferenceHeaderTo(
-        PortableExecutableReference reference, SerializationKinds kind, ObjectWriter writer, CancellationToken cancellationToken)
+        PortableExecutableReference reference, SerializationKinds kind, ObjectWriter writer)
     {
         writer.WriteString(nameof(PortableExecutableReference));
         writer.WriteInt32((int)kind);
 
-        WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
+        WritePortableExecutableReferencePropertiesTo(reference, writer);
     }
 
-    private static void WritePortableExecutableReferencePropertiesTo(PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    private static void WritePortableExecutableReferencePropertiesTo(PortableExecutableReference reference, ObjectWriter writer)
     {
-        WriteTo(reference.Properties, writer, cancellationToken);
+        WriteTo(reference.Properties, writer);
         writer.WriteString(reference.FilePath);
     }
 
-    private static Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference, CancellationToken cancellationToken)
+    private static Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference)
     {
         using var stream = SerializableBytes.CreateWritableStream();
 
         using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
-            WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
-            WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
+            WritePortableExecutableReferencePropertiesTo(reference, writer);
+            WriteMvidsTo(TryGetMetadata(reference), writer);
         }
 
         stream.Position = 0;
         return Checksum.Create(stream);
     }
 
-    private static void WriteMvidsTo(Metadata? metadata, ObjectWriter writer, CancellationToken cancellationToken)
+    private static void WriteMvidsTo(Metadata? metadata, ObjectWriter writer)
     {
         if (metadata == null)
         {
@@ -255,18 +255,15 @@ internal partial class SerializerService
             }
 
             writer.WriteInt32((int)assemblyMetadata.Kind);
-
             writer.WriteInt32(modules.Length);
 
             foreach (var module in modules)
-            {
-                WriteMvidTo(module, writer, cancellationToken);
-            }
+                WriteMvidTo(module, writer);
 
             return;
         }
 
-        WriteMvidTo((ModuleMetadata)metadata, writer, cancellationToken);
+        WriteMvidTo((ModuleMetadata)metadata, writer);
     }
 
     private static bool TryGetModules(AssemblyMetadata assemblyMetadata, out ImmutableArray<ModuleMetadata> modules)
@@ -286,10 +283,8 @@ internal partial class SerializerService
         }
     }
 
-    private static void WriteMvidTo(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
+    private static void WriteMvidTo(ModuleMetadata metadata, ObjectWriter writer)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         writer.WriteInt32((int)metadata.Kind);
         writer.WriteGuid(GetMetadataGuid(metadata));
     }
@@ -338,16 +333,14 @@ internal partial class SerializerService
         // so that we can put xml doc comment as part of snapshot. but until we believe that is necessary,
         // it will go with simpler approach
         var documentProvider = filePath != null && _documentationService != null ?
-            _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
+            _documentationService.GetDocumentationProvider(filePath) : DocumentationProvider.Default;
 
         return new SerializedMetadataReference(
             properties, filePath, metadata, storageHandles, documentProvider);
     }
 
-    private static void WriteTo(MetadataReferenceProperties properties, ObjectWriter writer, CancellationToken cancellationToken)
+    private static void WriteTo(MetadataReferenceProperties properties, ObjectWriter writer)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         writer.WriteInt32((int)properties.Kind);
         writer.WriteArray(properties.Aliases, static (w, a) => w.WriteString(a));
         writer.WriteBoolean(properties.EmbedInteropTypes);
