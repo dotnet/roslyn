@@ -74,11 +74,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             Logger = logger;
 
             var path = Path.Combine(Path.GetTempPath(), "VBCSCompiler", "AnalyzerAssemblyLoader");
-#if NET
-            AnalyzerAssemblyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(loadContext: null, path);
-#else
             AnalyzerAssemblyLoader = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(path);
-#endif
         }
 
         public bool TryCreateCompiler(in RunRequest request, BuildPaths buildPaths, [NotNullWhen(true)] out CommonCompiler? compiler)
