@@ -12,6 +12,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.PooledObjects;
+
 
 #if NET
 using System.Runtime.Loader;
@@ -34,6 +36,29 @@ internal static partial class AbstractAssetProviderExtensions
     /// dropped from memory, we'll clean things up and produce a new one.
     /// </summary>
     private static readonly Dictionary<Checksum, WeakReference<IsolatedAssemblyReferenceSet>> s_checksumToReferenceSet = new();
+
+    private static void GarbageCollectReleaseReferences_NoLock()
+    {
+        Contract.ThrowIfTrue(s_isolatedReferenceSetGate.CurrentCount != 0);
+
+        // Any time we've grown the dictionary by a substantive amount, do a sweep to see if we can remove any entries.
+        if (s_checksumToReferenceSet.Count % 128 != 0)
+            return;
+
+        using var _ = ArrayBuilder<Checksum>.GetInstance(out var checksumsToRemove);
+
+        foreach (var (checksum, weakReference) in s_checksumToReferenceSet)
+        {
+            if (!weakReference.TryGetTarget(out var referenceSet) ||
+                referenceSet is null)
+            {
+                checksumsToRemove.Add(checksum);
+            }
+        }
+
+        foreach (var checksum in checksumsToRemove)
+            s_checksumToReferenceSet.Remove(checksum);
+    }
 
 #endif
 
@@ -94,6 +119,10 @@ internal static partial class AbstractAssetProviderExtensions
             }
 
             weakIsolatedReferenceSet.SetTarget(isolatedAssemblyReferenceSet);
+
+            // Do some cleaning up of old dictionary entries that are no longer in use.
+            GarbageCollectReleaseReferences_NoLock();
+
             return isolatedAssemblyReferenceSet.AnalyzerReferences;
         }
 
