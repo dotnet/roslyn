@@ -764,11 +764,9 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
     private async Task<bool> StartCommitAsync(bool previewChanges, bool canUseBackgroundWorkIndicator)
     {
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
         // We are going to commit in async manner.
         // 1. If the session is dismissed, stop and do not start another commit task
-        // 2. If the commit task is in progress, await the in progress task.
-        // _dismissed is only changed by thread, 
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
         if (_dismissed)
         {
             return false;
@@ -776,7 +774,10 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
         if (_commitTask is null || !IsCommitInProgress)
         {
+            // 2. Either commit never starts in this session
+            // or the prev commit operation ends (like user don't like the preview result and click cancel button)
             _commitTask = CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator);
+
         }
 
         return await _commitTask.ConfigureAwait(false);

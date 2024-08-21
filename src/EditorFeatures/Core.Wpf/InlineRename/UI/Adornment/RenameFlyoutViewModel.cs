@@ -72,9 +72,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             RegisterOleComponent();
         }
 
-        private void SessionOnCommitStateChange(object sender, bool e)
+        private void SessionOnCommitStateChange(object sender, bool commitStarts)
         {
-            Visibility = e ? Visibility.Collapsed : Visibility.Visible;
+            // When commit in progress, we will use background indicator to show the progress.
+            // Rename flyout would hide the tooltip so we need to hide it.
+            Visibility = commitStarts ? Visibility.Collapsed : Visibility.Visible;
         }
 
         public SmartRenameViewModel? SmartRenameViewModel { get; }
