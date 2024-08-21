@@ -75,9 +75,9 @@ internal static partial class AbstractAssetProviderExtensions
         IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider,
         CancellationToken cancellationToken)
     {
+#if NET
         var checksum = analyzerReferencesChecksum.Checksum;
 
-#if NET
         // First, see if these were already computed and stored.
         using (await s_isolatedReferenceSetGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
         {
