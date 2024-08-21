@@ -15,9 +15,9 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 #if NET
     /// <summary>
     /// In .Net core, gives back a fresh shadow copying loader that will load all <see cref="AnalyzerReference"/> in the
-    /// requested <paramref name="loadContext"/> (or a default one if unspecified).
+    /// requested <paramref name="loadContext"/> (or a default one if <see langword="null"/> is passed in).
     /// </summary>
-    IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext = null);
+    IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext);
 #else
     /// <summary>
     /// In .Net Framework, returns a single shadow copy loader which will be used to load all <see
@@ -26,4 +26,16 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
     /// </summary>
     IAnalyzerAssemblyLoader GetShadowCopyLoader();
 #endif
+}
+
+internal static class IAnalyzerAssemblyLoaderProviderExtensions
+{
+    public static IAnalyzerAssemblyLoader GetDefaultShadowCopyLoader(this IAnalyzerAssemblyLoaderProvider provider)
+    {
+#if NET
+        return provider.GetShadowCopyLoader(loadContext: null);
+#else
+        return provider.GetShadowCopyLoader();
+#endif
+    }
 }

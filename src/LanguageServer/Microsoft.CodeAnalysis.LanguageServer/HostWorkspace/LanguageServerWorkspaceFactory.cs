@@ -54,7 +54,11 @@ internal sealed class LanguageServerWorkspaceFactory
     public async Task InitializeSolutionLevelAnalyzersAsync(ImmutableArray<string> analyzerPaths)
     {
         var references = new List<AnalyzerFileReference>();
-        var analyzerLoader = Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>().GetShadowCopyLoader();
+        var loaderProvider = Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+
+        // Load all analyzers into the default load context.  In the future, if we want to support reloading of analyzer
+        // references, we should instead load these into a dedicated ALC (using an IsolatedAnalyzerReferenceSet) here.
+        var analyzerLoader = loaderProvider.GetShadowCopyLoader(loadContext: null);
 
         foreach (var analyzerPath in analyzerPaths)
         {

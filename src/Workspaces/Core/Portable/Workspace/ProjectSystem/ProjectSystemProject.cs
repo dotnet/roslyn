@@ -159,9 +159,12 @@ internal sealed partial class ProjectSystemProject
         _displayName = displayName;
 
         var provider = _projectSystemProjectFactory.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+
         // NOTE: The provider will always return the same singleton, shadow copying, analyzer loader instance, which is
-        // important to ensure that analyzer dependencies are correctly loaded.
-        _analyzerAssemblyLoader = provider.GetShadowCopyLoader();
+        // important to ensure that analyzer dependencies are correctly loaded.  Note: if we want to support reloading
+        // of analyzer references *within* this workspace (and not just in the OOP roslyn server), this would need to
+        // change to use a dedicate ALC and an IsolatedAssemblyReferenceSet.
+        _analyzerAssemblyLoader = provider.GetDefaultShadowCopyLoader();
 
         _sourceFiles = new BatchingDocumentCollection(
             this,
