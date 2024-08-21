@@ -95,9 +95,11 @@ internal static partial class AbstractAssetProviderExtensions
 
         // Absolutely no AnalyzerFileReferences should have come through here.  We should only have
         // SerializedAnalyzerReferences, as well as any in-memory references made by tests.
-        Contract.ThrowIfTrue(serializedReferences.Any(static r => r is AnalyzerFileReference));
+        Contract.ThrowIfTrue(serializedReferences.Any(r => r is AnalyzerFileReference), $"Should not have gotten an {nameof(AnalyzerFileReference)}");
 
 #if NET
+
+        Contract.ThrowIfTrue(serializedReferences.Any(static r => r is IsolatedAnalyzerReference), $"Should not have gotten an {nameof(IsolatedAnalyzerReference)}");
 
         // Take the new set of references we've gotten and create a dedicated set of AnalyzerReferences with
         // their own ALC that they can cleanly load (and unload) from.
