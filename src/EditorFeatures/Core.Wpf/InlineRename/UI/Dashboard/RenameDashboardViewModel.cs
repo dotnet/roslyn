@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private int _resolvableConflictCount;
         private int _unresolvableConflictCount;
         private bool _isReplacementTextValid;
+        private bool _commitNotStart;
 
         public RenameDashboardViewModel(InlineRenameSession session)
         {
@@ -29,9 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             Session.ReferenceLocationsChanged += OnReferenceLocationsChanged;
             Session.ReplacementsComputed += OnReplacementsComputed;
             Session.ReplacementTextChanged += OnReplacementTextChanged;
+            Session.CommitStateChange += CommitStateChange;
 
             // Set the flag to true by default if we're showing the option.
             _isReplacementTextValid = true;
+            _commitNotStart = true;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -140,11 +143,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
+        private void CommitStateChange(object sender, bool commitStart)
+            => CommitNotStart = !commitStart;
+
+        public bool CommitNotStart
+        {
+            get => _commitNotStart;
+            set
+            {
+                if (_commitNotStart != value)
+                {
+                    _commitNotStart = value;
+                    NotifyPropertyChanged();
+                    NotifyPropertyChanged(nameof(IsRenameOverloadsEditable));
+                    NotifyPropertyChanged(nameof(AllowFileRename));
+                }
+            }
+        }
+
         public InlineRenameSession Session { get; }
 
         public RenameDashboardSeverity Severity => _severity;
 
-        public bool AllowFileRename => Session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid;
+        public bool AllowFileRename => Session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid && _commitNotStart;
         public bool ShowFileRename => Session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
         public string FileRenameString => Session.FileRenameInfo switch
         {
@@ -226,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             => Session.HasRenameOverloads ? Visibility.Visible : Visibility.Collapsed;
 
         public bool IsRenameOverloadsEditable
-            => !Session.MustRenameOverloads;
+            => !Session.MustRenameOverloads && CommitNotStart;
 
         public bool DefaultRenameOverloadFlag
         {
@@ -292,6 +313,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             Session.ReplacementTextChanged -= OnReplacementTextChanged;
             Session.ReferenceLocationsChanged -= OnReferenceLocationsChanged;
             Session.ReplacementsComputed -= OnReplacementsComputed;
+            Session.CommitStateChange -= CommitStateChange;
         }
     }
 }
