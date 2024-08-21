@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.IO;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 
@@ -41,14 +40,14 @@ internal sealed class RemoteAnalyzerAssemblyLoaderService(
 
 #if NET
 
-    public IAnalyzerAssemblyLoader GetShadowCopyLoader(bool getSharedLoader)
+    public IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader(bool getSharedLoader)
         => getSharedLoader
             ? _sharedShadowCopyLoader
             : CreateLoader(externalResolvers);
 
 #else
 
-    public IAnalyzerAssemblyLoader GetShadowCopyLoader()
+    public IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader()
         => _sharedShadowCopyLoader;
 
 #endif

@@ -251,5 +251,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public bool IsHostAssembly(Assembly assembly) => false;
         public Assembly LoadFromPath(string fullPath) => throw new Exception();
         public string? GetOriginalDependencyLocation(AssemblyName assembly) => throw new Exception();
+        public void UnloadAll() { }
     }
 }
