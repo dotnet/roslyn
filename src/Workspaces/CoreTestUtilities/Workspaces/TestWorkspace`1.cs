@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServer;
@@ -113,6 +114,52 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     throw new InvalidOperationException($"{severityText} {fullMessage}");
                 };
             }
+        }
+
+        /// <summary>
+        /// Use to set specified editorconfig options as <see cref="Solution.FallbackAnalyzerOptions"/>.
+        /// </summary>
+        public void SetAnalyzerFallbackOptions(string language, params (string name, string value)[] options)
+        {
+            SetCurrentSolution(
+                s => s.WithFallbackAnalyzerOptions(s.FallbackAnalyzerOptions.SetItem(language,
+                    StructuredAnalyzerConfigOptions.Create(
+                        new DictionaryAnalyzerConfigOptions(
+                            options.Select(static o => KeyValuePairUtil.Create(o.name, o.value)).ToImmutableDictionary())))),
+                changeKind: WorkspaceChangeKind.SolutionChanged);
+        }
+
+        /// <summary>
+        /// Use to set specified editorconfig options as <see cref="Solution.FallbackAnalyzerOptions"/>.
+        /// </summary>
+        internal void SetAnalyzerFallbackOptions(OptionsCollection? options)
+        {
+            if (options == null)
+            {
+                return;
+            }
+
+            SetCurrentSolution(
+                s => s.WithFallbackAnalyzerOptions(s.FallbackAnalyzerOptions.SetItem(options.LanguageName, options.ToAnalyzerConfigOptions())),
+                changeKind: WorkspaceChangeKind.SolutionChanged);
+        }
+
+        /// <summary>
+        /// Use to set specified options both as global options and as <see cref="Solution.FallbackAnalyzerOptions"/>.
+        /// Only editorconfig options listed in <paramref name="options"/> will be set to the latter.
+        /// </summary>
+        internal void SetAnalyzerFallbackAndGlobalOptions(OptionsCollection? options)
+        {
+            if (options == null)
+            {
+                return;
+            }
+
+            var configOptions = new OptionsCollection(options.LanguageName);
+            configOptions.AddRange(options.Where(entry => entry.Key.Option.Definition.IsEditorConfigOption));
+            SetAnalyzerFallbackOptions(configOptions);
+
+            options.SetGlobalOptions(GlobalOptions);
         }
 
         private static HostServices GetHostServices([NotNull] ref TestComposition? composition, bool hasWorkspaceConfigurationOptions)

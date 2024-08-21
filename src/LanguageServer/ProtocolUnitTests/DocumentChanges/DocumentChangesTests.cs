@@ -5,6 +5,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.DocumentChanges;
 using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
@@ -245,7 +246,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
         }
 
         [Theory, CombinatorialData]
-        public async Task DidChange_MultipleChanges1(bool mutatingLspWorkspace)
+        public async Task DidChange_MultipleChanges_ForwardOrder(bool mutatingLspWorkspace)
         {
             var source =
                 """
@@ -285,7 +286,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
         }
 
         [Theory, CombinatorialData]
-        public async Task DidChange_MultipleChanges2(bool mutatingLspWorkspace)
+        public async Task DidChange_MultipleChanges_Overlapping(bool mutatingLspWorkspace)
         {
             var source =
                 """
@@ -321,6 +322,89 @@ namespace Microsoft.CodeAnalysis.LanguageServer.UnitTests.DocumentChanges
                 AssertEx.NotNull(document);
                 Assert.Equal(expected, document.ToString());
             }
+        }
+
+        [Theory, CombinatorialData]
+        public async Task DidChange_MultipleChanges_ReverseOrder(bool mutatingLspWorkspace)
+        {
+            var source =
+                """
+                class A
+                {
+                    void M()
+                    {
+                        {|type:|}
+                    }
+                }
+                """;
+            var expected =
+                """
+                class A
+                {
+                    void M()
+                    {
+                        // hi there
+                        // this builds on that
+                    }
+                }
+                """;
+
+            var (testLspServer, locationTyped, _) = await GetTestLspServerAndLocationAsync(source, mutatingLspWorkspace);
+
+            await using (testLspServer)
+            {
+                await DidOpen(testLspServer, locationTyped.Uri);
+
+                await DidChange(testLspServer, locationTyped.Uri, (5, 0, "        // this builds on that\r\n"), (4, 8, "// hi there"));
+
+                var document = testLspServer.GetTrackedTexts().FirstOrDefault();
+
+                AssertEx.NotNull(document);
+                Assert.Equal(expected, document.ToString());
+            }
+        }
+
+        private LSP.TextDocumentContentChangeEvent CreateTextDocumentContentChangeEvent(int startLine, int startCol, int endLine, int endCol, string newText)
+        {
+            return new LSP.TextDocumentContentChangeEvent()
+            {
+                Range = new LSP.Range()
+                {
+                    Start = new LSP.Position(startLine, startCol),
+                    End = new LSP.Position(endLine, endCol)
+                },
+                Text = newText
+            };
+        }
+
+        [Fact]
+        public void DidChange_AreChangesInReverseOrder_True()
+        {
+            LSP.TextDocumentContentChangeEvent change1 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 7, endLine: 0, endCol: 9, newText: "test3");
+            LSP.TextDocumentContentChangeEvent change2 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 5, endLine: 0, endCol: 7, newText: "test2");
+            LSP.TextDocumentContentChangeEvent change3 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 1, endLine: 0, endCol: 3, newText: "test1");
+
+            Assert.True(DidChangeHandler.AreChangesInReverseOrder([change1, change2, change3]));
+        }
+
+        [Fact]
+        public void DidChange_AreChangesInReverseOrder_InForwardOrder()
+        {
+            LSP.TextDocumentContentChangeEvent change1 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 1, endLine: 0, endCol: 3, newText: "test1");
+            LSP.TextDocumentContentChangeEvent change2 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 5, endLine: 0, endCol: 7, newText: "test2");
+            LSP.TextDocumentContentChangeEvent change3 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 7, endLine: 0, endCol: 9, newText: "test3");
+
+            Assert.False(DidChangeHandler.AreChangesInReverseOrder([change1, change2, change3]));
+        }
+
+        [Fact]
+        public void DidChange_AreChangesInReverseOrder_Overlapping()
+        {
+            LSP.TextDocumentContentChangeEvent change1 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 1, endLine: 0, endCol: 3, newText: "test1");
+            LSP.TextDocumentContentChangeEvent change2 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 2, endLine: 0, endCol: 4, newText: "test2");
+            LSP.TextDocumentContentChangeEvent change3 = CreateTextDocumentContentChangeEvent(startLine: 0, startCol: 3, endLine: 0, endCol: 5, newText: "test3");
+
+            Assert.False(DidChangeHandler.AreChangesInReverseOrder([change1, change2, change3]));
         }
 
         [Theory, CombinatorialData]

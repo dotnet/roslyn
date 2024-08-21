@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
         }
 
-        public ValueTask<FullyQualifyFixData?> GetFixDataAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan span, bool hideAdvancedMembers, CancellationToken cancellationToken)
+        public ValueTask<FullyQualifyFixData?> GetFixDataAsync(Checksum solutionChecksum, DocumentId documentId, TextSpan span, CancellationToken cancellationToken)
         {
             return RunServiceAsync(solutionChecksum, async solution =>
             {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var service = document.GetRequiredLanguageService<IFullyQualifyService>();
 
-                return await service.GetFixDataAsync(document, span, hideAdvancedMembers, cancellationToken).ConfigureAwait(false);
+                return await service.GetFixDataAsync(document, span, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
     }

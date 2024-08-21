@@ -145,7 +145,7 @@
         "build",
         "-c",
         "Debug",
-        "src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Microsoft.CodeAnalysis.LanguageServer.csproj"
+        "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Microsoft.CodeAnalysis.LanguageServer.csproj"
       ],
       "problemMatcher": "$msCompile",
       "group": "build"

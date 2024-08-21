@@ -39,8 +39,8 @@ internal class CSharpSyntaxFormatting : AbstractSyntaxFormatting
     public override SyntaxFormattingOptions DefaultOptions
         => CSharpSyntaxFormattingOptions.Default;
 
-    public override SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options, SyntaxFormattingOptions? fallbackOptions)
-        => new CSharpSyntaxFormattingOptions(options, (CSharpSyntaxFormattingOptions?)fallbackOptions);
+    public override SyntaxFormattingOptions GetFormattingOptions(IOptionsReader options)
+        => new CSharpSyntaxFormattingOptions(options);
 
     protected override IFormattingResult CreateAggregatedFormattingResult(SyntaxNode node, IList<AbstractFormattingResult> results, TextSpanMutableIntervalTree? formattingSpans = null)
         => new AggregatedFormattingResult(node, results, formattingSpans);

@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 }
             }
 
-            var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => uriAndEdit.TextEdit, (uri, edits) => new LSP.TextDocumentEdit
+            var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => new LSP.SumType<LSP.TextEdit, LSP.AnnotatedTextEdit>(uriAndEdit.TextEdit), (uri, edits) => new LSP.TextDocumentEdit
             {
                 TextDocument = new LSP.OptionalVersionedTextDocumentIdentifier { Uri = uri },
                 Edits = edits.ToArray(),
@@ -849,10 +849,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer
         public static async Task<SyntaxFormattingOptions> GetFormattingOptionsAsync(
             LSP.FormattingOptions? options,
             Document document,
-            IGlobalOptionService globalOptions,
             CancellationToken cancellationToken)
         {
-            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(globalOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             if (options != null)
             {
@@ -992,7 +991,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 return null;
             }
 
-            var spanMappingService = document.Services.GetService<ISpanMappingService>();
+            var spanMappingService = document.DocumentServiceProvider.GetService<ISpanMappingService>();
             if (spanMappingService == null)
             {
                 return null;

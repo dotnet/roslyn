@@ -15,12 +15,6 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.AddImport;
 
-[DataContract]
-internal readonly record struct AddImportOptions(
-    [property: DataMember(Order = 0)] SymbolSearchOptions SearchOptions,
-    [property: DataMember(Order = 1)] CodeCleanupOptions CleanupOptions,
-    [property: DataMember(Order = 2)] bool HideAdvancedMembers);
-
 internal interface IAddImportFeatureService : ILanguageService
 {
     /// <summary>

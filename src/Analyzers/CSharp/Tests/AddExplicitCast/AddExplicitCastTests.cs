@@ -16,13 +16,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddExplicitCast;
 
 [Trait(Traits.Feature, Traits.Features.CodeActionsAddExplicitCast)]
-public partial class AddExplicitCastTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor
+public partial class AddExplicitCastTests(ITestOutputHelper logger)
+    : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest_NoEditor(logger)
 {
-    public AddExplicitCastTests(ITestOutputHelper logger)
-       : base(logger)
-    {
-    }
-
     internal override (DiagnosticAnalyzer?, CodeFixProvider) CreateDiagnosticProviderAndFixer(Workspace workspace)
         => (null, new CSharpAddExplicitCastCodeFixProvider());
 
@@ -3267,6 +3263,146 @@ public partial class AddExplicitCastTests : AbstractCSharpDiagnosticProviderBase
                 void Goo() {
                     Base b;
                     Derived2 d = (Derived2)b;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem(56141, "https://github.com/dotnet/roslyn/issues/56141")]
+    public async Task CompoundAssignment1()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int a = 0;
+                    double b = 0;
+                    [||]a += b;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int a = 0;
+                    double b = 0;
+                    a += (int)b;
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem(56141, "https://github.com/dotnet/roslyn/issues/56141")]
+    public async Task CompoundAssignment2()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int a = 0;
+                    double b = 0;
+                    a = ([||]b += 1);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int a = 0;
+                    double b = 0;
+                    a = (int)(b += 1);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem(56141, "https://github.com/dotnet/roslyn/issues/56141")]
+    public async Task CompoundAssignment3()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int a = 0;
+                    double b = 0;
+                    a = [||]b += 1;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int a = 0;
+                    double b = 0;
+                    a = (int)(b += 1);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem(56141, "https://github.com/dotnet/roslyn/issues/56141")]
+    public async Task CompoundAssignment4()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int a = 0;
+                    double b = 0;
+                    b = ([||]a += b);
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int a = 0;
+                    double b = 0;
+                    b = (a += (int)b);
+                }
+            }
+            """);
+    }
+
+    [Fact, WorkItem(56141, "https://github.com/dotnet/roslyn/issues/56141")]
+    public async Task CompoundAssignment5()
+    {
+        await TestInRegularAndScriptAsync(
+            """
+            class C
+            {
+                void M()
+                {
+                    int a = 0;
+                    double b = 0;
+                    b = [||]a += b;
+                }
+            }
+            """,
+            """
+            class C
+            {
+                void M()
+                {
+                    int a = 0;
+                    double b = 0;
+                    b = a += (int)b;
                 }
             }
             """);

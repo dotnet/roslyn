@@ -48,12 +48,11 @@ internal sealed partial class SolutionState
     public ImmutableDictionary<string, StructuredAnalyzerConfigOptions> FallbackAnalyzerOptions { get; } = ImmutableDictionary<string, StructuredAnalyzerConfigOptions>.Empty;
 
     /// <summary>
-    /// Number of projects in the solution of the given language.
+    /// Number of projects in the solution of the given language.  The value is guaranteed to always be greater than zero.
+    /// If the project count does ever hit zero then there simply is no key/value pair for that language in this map.
     /// </summary>
     internal ImmutableDictionary<string, int> ProjectCountByLanguage { get; } = ImmutableDictionary<string, int>.Empty;
 
-    private readonly SolutionInfo.SolutionAttributes _solutionAttributes;
-    private readonly ImmutableDictionary<ProjectId, ProjectState> _projectIdToProjectStateMap;
     private readonly ProjectDependencyGraph _dependencyGraph;
 
     // holds on data calculated based on the AnalyzerReferences list
@@ -77,14 +76,14 @@ internal sealed partial class SolutionState
     {
         WorkspaceKind = workspaceKind;
         WorkspaceVersion = workspaceVersion;
-        _solutionAttributes = solutionAttributes;
+        SolutionAttributes = solutionAttributes;
         Services = services;
         ProjectIds = projectIds;
         Options = options;
         AnalyzerReferences = analyzerReferences;
         FallbackAnalyzerOptions = fallbackAnalyzerOptions;
         ProjectCountByLanguage = projectCountByLanguage;
-        _projectIdToProjectStateMap = idToProjectStateMap;
+        ProjectStates = idToProjectStateMap;
         _dependencyGraph = dependencyGraph;
         _lazyAnalyzers = lazyAnalyzers ?? CreateLazyHostDiagnosticAnalyzers(analyzerReferences);
 
@@ -125,24 +124,24 @@ internal sealed partial class SolutionState
 
     public HostDiagnosticAnalyzers Analyzers => _lazyAnalyzers.Value;
 
-    public SolutionInfo.SolutionAttributes SolutionAttributes => _solutionAttributes;
+    public SolutionInfo.SolutionAttributes SolutionAttributes { get; }
 
-    public ImmutableDictionary<ProjectId, ProjectState> ProjectStates => _projectIdToProjectStateMap;
+    public ImmutableDictionary<ProjectId, ProjectState> ProjectStates { get; }
 
     /// <summary>
     /// The Id of the solution. Multiple solution instances may share the same Id.
     /// </summary>
-    public SolutionId Id => _solutionAttributes.Id;
+    public SolutionId Id => SolutionAttributes.Id;
 
     /// <summary>
     /// The path to the solution file or null if there is no solution file.
     /// </summary>
-    public string? FilePath => _solutionAttributes.FilePath;
+    public string? FilePath => SolutionAttributes.FilePath;
 
     /// <summary>
     /// The solution version. This equates to the solution file's version.
     /// </summary>
-    public VersionStamp Version => _solutionAttributes.Version;
+    public VersionStamp Version => SolutionAttributes.Version;
 
     /// <summary>
     /// A list of all the ids for all the projects contained by the solution.
@@ -152,14 +151,14 @@ internal sealed partial class SolutionState
     private void CheckInvariants()
     {
         // Run these quick checks all the time.  We need to know immediately if we violate these.
-        Contract.ThrowIfFalse(_projectIdToProjectStateMap.Count == ProjectIds.Count);
-        Contract.ThrowIfFalse(_projectIdToProjectStateMap.Count == _dependencyGraph.ProjectIds.Count);
+        Contract.ThrowIfFalse(ProjectStates.Count == ProjectIds.Count);
+        Contract.ThrowIfFalse(ProjectStates.Count == _dependencyGraph.ProjectIds.Count);
 
         // Only run this in debug builds; even the .SetEquals() call across all projects can be expensive when there's a lot of them.
 #if DEBUG
         // project ids must be the same:
-        Debug.Assert(_projectIdToProjectStateMap.Keys.SetEquals(ProjectIds));
-        Debug.Assert(_projectIdToProjectStateMap.Keys.SetEquals(_dependencyGraph.ProjectIds));
+        Debug.Assert(ProjectStates.Keys.SetEquals(ProjectIds));
+        Debug.Assert(ProjectStates.Keys.SetEquals(_dependencyGraph.ProjectIds));
 #endif
     }
 
@@ -173,9 +172,9 @@ internal sealed partial class SolutionState
         ImmutableDictionary<ProjectId, ProjectState>? idToProjectStateMap = null,
         ProjectDependencyGraph? dependencyGraph = null)
     {
-        solutionAttributes ??= _solutionAttributes;
+        solutionAttributes ??= SolutionAttributes;
         projectIds ??= ProjectIds;
-        idToProjectStateMap ??= _projectIdToProjectStateMap;
+        idToProjectStateMap ??= ProjectStates;
         options ??= Options;
         analyzerReferences ??= AnalyzerReferences;
         fallbackAnalyzerOptions ??= FallbackAnalyzerOptions;
@@ -184,13 +183,13 @@ internal sealed partial class SolutionState
 
         var analyzerReferencesEqual = AnalyzerReferences.SequenceEqual(analyzerReferences);
 
-        if (solutionAttributes == _solutionAttributes &&
+        if (solutionAttributes == SolutionAttributes &&
             projectIds == ProjectIds &&
             options == Options &&
             analyzerReferencesEqual &&
             fallbackAnalyzerOptions == FallbackAnalyzerOptions &&
             projectCountByLanguage == ProjectCountByLanguage &&
-            idToProjectStateMap == _projectIdToProjectStateMap &&
+            idToProjectStateMap == ProjectStates &&
             dependencyGraph == _dependencyGraph)
         {
             return this;
@@ -234,13 +233,13 @@ internal sealed partial class SolutionState
             workspaceKind,
             workspaceVersion,
             services,
-            _solutionAttributes,
+            SolutionAttributes,
             ProjectIds,
             Options,
             AnalyzerReferences,
             FallbackAnalyzerOptions,
             ProjectCountByLanguage,
-            _projectIdToProjectStateMap,
+            ProjectStates,
             _dependencyGraph,
             _lazyAnalyzers);
     }
@@ -264,7 +263,7 @@ internal sealed partial class SolutionState
     /// True if the solution contains a project with the specified project ID.
     /// </summary>
     public bool ContainsProject([NotNullWhen(returnValue: true)] ProjectId? projectId)
-        => projectId != null && _projectIdToProjectStateMap.ContainsKey(projectId);
+        => projectId != null && ProjectStates.ContainsKey(projectId);
 
     /// <summary>
     /// True if the solution contains the document in one of its projects
@@ -309,7 +308,7 @@ internal sealed partial class SolutionState
         => GetRequiredProjectState(documentId.ProjectId).AnalyzerConfigDocumentStates.GetRequiredState(documentId);
 
     public ProjectState? GetProjectState(ProjectId projectId)
-        => _projectIdToProjectStateMap.TryGetValue(projectId, out var state) ? state : null;
+        => ProjectStates.TryGetValue(projectId, out var state) ? state : null;
 
     public ProjectState GetRequiredProjectState(ProjectId projectId)
     {
@@ -371,11 +370,11 @@ internal sealed partial class SolutionState
         SolutionState AddProjects(ArrayBuilder<ProjectState> projectStates)
         {
             // changed project list so, increment version.
-            var newSolutionAttributes = _solutionAttributes.With(version: Version.GetNewerVersion());
+            var newSolutionAttributes = SolutionAttributes.With(version: Version.GetNewerVersion());
 
             using var _1 = ArrayBuilder<ProjectId>.GetInstance(ProjectIds.Count + projectStates.Count, out var newProjectIdsBuilder);
             using var _2 = PooledHashSet<ProjectId>.GetInstance(out var addedProjectIds);
-            var newStateMapBuilder = _projectIdToProjectStateMap.ToBuilder();
+            var newStateMapBuilder = ProjectStates.ToBuilder();
 
             newProjectIdsBuilder.AddRange(ProjectIds);
 
@@ -433,14 +432,14 @@ internal sealed partial class SolutionState
             CheckContainsProject(projectId);
 
         // changed project list so, increment version.
-        var newSolutionAttributes = _solutionAttributes.With(version: this.Version.GetNewerVersion());
+        var newSolutionAttributes = SolutionAttributes.With(version: this.Version.GetNewerVersion());
 
         using var _ = PooledHashSet<ProjectId>.GetInstance(out var projectIdsSet);
         projectIdsSet.AddRange(projectIds);
 
         var newProjectIds = ProjectIds.Where(p => !projectIdsSet.Contains(p)).ToBoxedImmutableArray();
 
-        var newStateMapBuilder = _projectIdToProjectStateMap.ToBuilder();
+        var newStateMapBuilder = ProjectStates.ToBuilder();
         foreach (var projectId in projectIds)
             newStateMapBuilder.Remove(projectId);
         var newStateMap = newStateMapBuilder.ToImmutable();
@@ -453,7 +452,7 @@ internal sealed partial class SolutionState
         var languageCountDeltas = new TemporaryArray<(string language, int count)>();
         foreach (var projectId in projectIds)
         {
-            AddLanguageCountDelta(ref languageCountDeltas, _projectIdToProjectStateMap[projectId].Language, amount: -1);
+            AddLanguageCountDelta(ref languageCountDeltas, ProjectStates[projectId].Language, amount: -1);
         }
 
         return this.Branch(
@@ -636,7 +635,7 @@ internal sealed partial class SolutionState
     /// Create a new solution instance with the project specified updated to have
     /// the specified compilation options.
     /// </summary>
-    public StateChange WithProjectCompilationOptions(ProjectId projectId, CompilationOptions options)
+    public StateChange WithProjectCompilationOptions(ProjectId projectId, CompilationOptions? options)
     {
         var oldProject = GetRequiredProjectState(projectId);
         var newProject = oldProject.WithCompilationOptions(options);
@@ -653,7 +652,7 @@ internal sealed partial class SolutionState
     /// Create a new solution instance with the project specified updated to have
     /// the specified parse options.
     /// </summary>
-    public StateChange WithProjectParseOptions(ProjectId projectId, ParseOptions options)
+    public StateChange WithProjectParseOptions(ProjectId projectId, ParseOptions? options)
     {
         var oldProject = GetRequiredProjectState(projectId);
         var newProject = oldProject.WithParseOptions(options);
@@ -744,7 +743,7 @@ internal sealed partial class SolutionState
 
         ProjectDependencyGraph newDependencyGraph;
         if (newProject.ContainsReferenceToProject(projectReference.ProjectId) ||
-            !_projectIdToProjectStateMap.ContainsKey(projectReference.ProjectId))
+            !ProjectStates.ContainsKey(projectReference.ProjectId))
         {
             // Two cases:
             // 1) The project contained multiple non-equivalent references to the project,
@@ -923,7 +922,7 @@ internal sealed partial class SolutionState
             return this;
         }
 
-        var newProjectStatesMap = _projectIdToProjectStateMap.ToImmutableDictionary(
+        var newProjectStatesMap = ProjectStates.ToImmutableDictionary(
             keySelector: static entry => entry.Key,
             elementSelector: entry =>
             {
@@ -943,49 +942,23 @@ internal sealed partial class SolutionState
     }
 
     /// <summary>
-    /// Creates a new solution instance with the document specified updated to have the specified name.
+    /// Creates a new solution instance with an attribute of the document updated, if its value has changed.
     /// </summary>
-    public StateChange WithDocumentName(DocumentId documentId, string name)
+    public StateChange WithDocumentAttributes<TArg>(
+        DocumentId documentId,
+        TArg arg,
+        Func<DocumentInfo.DocumentAttributes, TArg, DocumentInfo.DocumentAttributes> updateAttributes)
     {
         var oldDocument = GetRequiredDocumentState(documentId);
-        if (oldDocument.Attributes.Name == name)
+
+        var newDocument = oldDocument.WithAttributes(updateAttributes(oldDocument.Attributes, arg));
+        if (ReferenceEquals(oldDocument, newDocument))
         {
             var oldProject = GetRequiredProjectState(documentId.ProjectId);
             return new(this, oldProject, oldProject);
         }
 
-        return UpdateDocumentState(oldDocument.UpdateName(name), contentChanged: false);
-    }
-
-    /// <summary>
-    /// Creates a new solution instance with the document specified updated to be contained in
-    /// the sequence of logical folders.
-    /// </summary>
-    public StateChange WithDocumentFolders(DocumentId documentId, IReadOnlyList<string> folders)
-    {
-        var oldDocument = GetRequiredDocumentState(documentId);
-        if (oldDocument.Folders.SequenceEqual(folders))
-        {
-            var oldProject = GetRequiredProjectState(documentId.ProjectId);
-            return new(this, oldProject, oldProject);
-        }
-
-        return UpdateDocumentState(oldDocument.UpdateFolders(folders), contentChanged: false);
-    }
-
-    /// <summary>
-    /// Creates a new solution instance with the document specified updated to have the specified file path.
-    /// </summary>
-    public StateChange WithDocumentFilePath(DocumentId documentId, string? filePath)
-    {
-        var oldDocument = GetRequiredDocumentState(documentId);
-        if (oldDocument.FilePath == filePath)
-        {
-            var oldProject = GetRequiredProjectState(documentId.ProjectId);
-            return new(this, oldProject, oldProject);
-        }
-
-        return UpdateDocumentState(oldDocument.UpdateFilePath(filePath), contentChanged: false);
+        return UpdateDocumentState(newDocument);
     }
 
     /// <summary>
@@ -1001,7 +974,7 @@ internal sealed partial class SolutionState
             return new(this, oldProject, oldProject);
         }
 
-        return UpdateDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
+        return UpdateDocumentState(oldDocument.UpdateText(text, mode));
     }
 
     public StateChange WithDocumentState(DocumentState newDocument)
@@ -1013,7 +986,7 @@ internal sealed partial class SolutionState
             return new(this, oldProject, oldProject);
         }
 
-        return UpdateDocumentState(newDocument, contentChanged: true);
+        return UpdateDocumentState(newDocument);
     }
 
     /// <summary>
@@ -1029,7 +1002,7 @@ internal sealed partial class SolutionState
             return new(this, oldProject, oldProject);
         }
 
-        return UpdateAdditionalDocumentState(oldDocument.UpdateText(text, mode), contentChanged: true);
+        return UpdateAdditionalDocumentState(oldDocument.UpdateText(text, mode));
     }
 
     /// <summary>
@@ -1061,7 +1034,7 @@ internal sealed partial class SolutionState
             return new(this, oldProject, oldProject);
         }
 
-        return UpdateDocumentState(oldDocument.UpdateText(textAndVersion, mode), contentChanged: true);
+        return UpdateDocumentState(oldDocument.UpdateText(textAndVersion, mode));
     }
 
     /// <summary>
@@ -1077,7 +1050,7 @@ internal sealed partial class SolutionState
             return new(this, oldProject, oldProject);
         }
 
-        return UpdateAdditionalDocumentState(oldDocument.UpdateText(textAndVersion, mode), contentChanged: true);
+        return UpdateAdditionalDocumentState(oldDocument.UpdateText(textAndVersion, mode));
     }
 
     /// <summary>
@@ -1109,7 +1082,7 @@ internal sealed partial class SolutionState
             return new(this, oldProject, oldProject);
         }
 
-        return UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind), contentChanged: true);
+        return UpdateDocumentState(oldDocument.UpdateSourceCodeKind(sourceCodeKind));
     }
 
     public StateChange UpdateDocumentTextLoader(DocumentId documentId, TextLoader loader, PreservationMode mode)
@@ -1118,7 +1091,7 @@ internal sealed partial class SolutionState
 
         // Assumes that content has changed. User could have closed a doc without saving and we are loading text
         // from closed file with old content.
-        return UpdateDocumentState(oldDocument.UpdateText(loader, mode), contentChanged: true);
+        return UpdateDocumentState(oldDocument.UpdateText(loader, mode));
     }
 
     /// <summary>
@@ -1131,7 +1104,7 @@ internal sealed partial class SolutionState
 
         // Assumes that content has changed. User could have closed a doc without saving and we are loading text
         // from closed file with old content.
-        return UpdateAdditionalDocumentState(oldDocument.UpdateText(loader, mode), contentChanged: true);
+        return UpdateAdditionalDocumentState(oldDocument.UpdateText(loader, mode));
     }
 
     /// <summary>
@@ -1147,10 +1120,10 @@ internal sealed partial class SolutionState
         return UpdateAnalyzerConfigDocumentState(oldDocument.UpdateText(loader, mode));
     }
 
-    private StateChange UpdateDocumentState(DocumentState newDocument, bool contentChanged)
+    private StateChange UpdateDocumentState(DocumentState newDocument)
     {
-        var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
-        var newProject = oldProject.UpdateDocument(newDocument, contentChanged);
+        var oldProject = GetRequiredProjectState(newDocument.Id.ProjectId);
+        var newProject = oldProject.UpdateDocument(newDocument);
 
         // This method shouldn't have been called if the document has not changed.
         Debug.Assert(oldProject != newProject);
@@ -1160,10 +1133,10 @@ internal sealed partial class SolutionState
             newProject);
     }
 
-    private StateChange UpdateAdditionalDocumentState(AdditionalDocumentState newDocument, bool contentChanged)
+    private StateChange UpdateAdditionalDocumentState(AdditionalDocumentState newDocument)
     {
-        var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
-        var newProject = oldProject.UpdateAdditionalDocument(newDocument, contentChanged);
+        var oldProject = GetRequiredProjectState(newDocument.Id.ProjectId);
+        var newProject = oldProject.UpdateAdditionalDocument(newDocument);
 
         // This method shouldn't have been called if the document has not changed.
         Debug.Assert(oldProject != newProject);
@@ -1173,7 +1146,7 @@ internal sealed partial class SolutionState
 
     private StateChange UpdateAnalyzerConfigDocumentState(AnalyzerConfigDocumentState newDocument)
     {
-        var oldProject = GetProjectState(newDocument.Id.ProjectId)!;
+        var oldProject = GetRequiredProjectState(newDocument.Id.ProjectId);
         var newProject = oldProject.UpdateAnalyzerConfigDocument(newDocument);
 
         // This method shouldn't have been called if the document has not changed.
@@ -1195,8 +1168,8 @@ internal sealed partial class SolutionState
     {
         var projectId = newProjectState.Id;
 
-        Contract.ThrowIfFalse(_projectIdToProjectStateMap.ContainsKey(projectId));
-        var newStateMap = _projectIdToProjectStateMap.SetItem(projectId, newProjectState);
+        Contract.ThrowIfFalse(ProjectStates.ContainsKey(projectId));
+        var newStateMap = ProjectStates.SetItem(projectId, newProjectState);
 
         newDependencyGraph ??= _dependencyGraph;
 

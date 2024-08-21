@@ -17,9 +17,9 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -34,9 +34,6 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 public abstract partial class Workspace : IDisposable
 {
-    private readonly string? _workspaceKind;
-    private readonly HostWorkspaceServices _services;
-
     private readonly ILegacyGlobalOptionService _legacyOptions;
 
     // forces serialization of mutation calls from host (OnXXX methods). Must take this lock before taking stateLock.
@@ -69,16 +66,16 @@ public abstract partial class Workspace : IDisposable
     /// <param name="workspaceKind">A string that can be used to identify the kind of workspace. Usually this matches the name of the class.</param>
     protected Workspace(HostServices host, string? workspaceKind)
     {
-        _workspaceKind = workspaceKind;
+        Kind = workspaceKind;
 
-        _services = host.CreateWorkspaceServices(this);
+        Services = host.CreateWorkspaceServices(this);
 
-        _legacyOptions = _services.GetRequiredService<ILegacyWorkspaceOptionService>().LegacyGlobalOptions;
+        _legacyOptions = Services.GetRequiredService<ILegacyWorkspaceOptionService>().LegacyGlobalOptions;
         _legacyOptions.RegisterWorkspace(this);
 
         // queue used for sending events
-        var schedulerProvider = _services.GetRequiredService<ITaskSchedulerProvider>();
-        var listenerProvider = _services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
+        var schedulerProvider = Services.GetRequiredService<ITaskSchedulerProvider>();
+        var listenerProvider = Services.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>();
         _taskQueue = new TaskQueue(listenerProvider.GetListener(), schedulerProvider.CurrentContextScheduler);
 
         // initialize with empty solution
@@ -100,7 +97,7 @@ public abstract partial class Workspace : IDisposable
     /// <summary>
     /// Services provider by the host for implementing workspace features.
     /// </summary>
-    public HostWorkspaceServices Services => _services;
+    public HostWorkspaceServices Services { get; }
 
     /// <summary>
     /// Override this property if the workspace supports partial semantics for documents.
@@ -113,7 +110,7 @@ public abstract partial class Workspace : IDisposable
     /// any other name used for a specific kind of workspace.
     /// </summary>
     // TODO (https://github.com/dotnet/roslyn/issues/37110): decide if Kind should be non-null
-    public string? Kind => _workspaceKind;
+    public string? Kind { get; }
 
     /// <summary>
     /// Create a new empty solution instance associated with this workspace.
@@ -839,13 +836,9 @@ public abstract partial class Workspace : IDisposable
 
         _legacyOptions.UnregisterWorkspace(this);
 
-        // Directly dispose IRemoteHostClientProvider if necessary. This is a test hook to ensure RemoteWorkspace
-        // gets disposed in unit tests as soon as TestWorkspace gets disposed. This would be superseded by direct
-        // support for IDisposable in https://github.com/dotnet/roslyn/pull/47951.
-        if (Services.GetService<IRemoteHostClientProvider>() is IDisposable disposableService)
-        {
-            disposableService.Dispose();
-        }
+        // Dispose per-instance services created for this workspace (direct MEF exports, including factories, will
+        // be disposed when the MEF catalog is disposed).
+        Services.Dispose();
 
         // We're disposing this workspace.  Stop any work to update SG docs in the background.
         _updateSourceGeneratorsQueueTokenSource.Cancel();
@@ -1235,10 +1228,7 @@ public abstract partial class Workspace : IDisposable
 
                 if (oldAttributes.FilePath != newInfo.FilePath)
                 {
-                    // TODO (https://github.com/dotnet/roslyn/issues/37125): Solution.WithDocumentFilePath will throw if
-                    // filePath is null, but it's odd because we *do* support null file paths. The suppression here is to silence it
-                    // but should be removed when the bug is fixed.
-                    newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath!);
+                    newSolution = newSolution.WithDocumentFilePath(documentId, newInfo.FilePath);
                 }
 
                 if (oldAttributes.SourceCodeKind != newInfo.SourceCodeKind)
@@ -1760,7 +1750,7 @@ public abstract partial class Workspace : IDisposable
         {
             // ApplyDocumentInfoChanged ignores the loader information, so we can pass null for it
             ApplyDocumentInfoChanged(newDoc.Id,
-                new DocumentInfo(newDoc.DocumentState.Attributes, loader: null, documentServiceProvider: newDoc.State.Services));
+                new DocumentInfo(newDoc.DocumentState.Attributes, loader: null, documentServiceProvider: newDoc.State.DocumentServiceProvider));
         }
     }
 
@@ -2175,7 +2165,7 @@ public abstract partial class Workspace : IDisposable
             filePath: doc.FilePath,
             isGenerated: doc.State.Attributes.IsGenerated)
             .WithDesignTimeOnly(doc.State.Attributes.DesignTimeOnly)
-            .WithDocumentServiceProvider(doc.Services);
+            .WithDocumentServiceProvider(doc.DocumentServiceProvider);
 
     /// <summary>
     /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add a project to the current solution.

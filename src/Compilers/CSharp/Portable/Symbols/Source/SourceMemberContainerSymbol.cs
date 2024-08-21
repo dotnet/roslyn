@@ -2734,7 +2734,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 foreach (var m in syntax.Members)
                 {
-                    if (HasInstanceData(m))
+                    if (hasInstanceData(m))
                     {
                         if (whereFoundField != null && whereFoundField != syntaxRef)
                         {
@@ -2754,35 +2754,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.WRN_SequentialOnPartialClass, GetFirstLocation(), this);
                 return;
             }
-        }
 
-        private static bool HasInstanceData(MemberDeclarationSyntax m)
-        {
-            switch (m.Kind())
+            static bool hasInstanceData(MemberDeclarationSyntax m)
             {
-                case SyntaxKind.FieldDeclaration:
-                    var fieldDecl = (FieldDeclarationSyntax)m;
-                    return
-                        !ContainsModifier(fieldDecl.Modifiers, SyntaxKind.StaticKeyword) &&
-                        !ContainsModifier(fieldDecl.Modifiers, SyntaxKind.ConstKeyword);
-                case SyntaxKind.PropertyDeclaration:
-                    // auto-property
-                    var propertyDecl = (PropertyDeclarationSyntax)m;
-                    return
-                        !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.StaticKeyword) &&
-                        !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.AbstractKeyword) &&
-                        !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.ExternKeyword) &&
-                        propertyDecl.AccessorList != null &&
-                        All(propertyDecl.AccessorList.Accessors, a => a.Body == null && a.ExpressionBody == null);
-                case SyntaxKind.EventFieldDeclaration:
-                    // field-like event declaration
-                    var eventFieldDecl = (EventFieldDeclarationSyntax)m;
-                    return
-                        !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.StaticKeyword) &&
-                        !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.AbstractKeyword) &&
-                        !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.ExternKeyword);
-                default:
-                    return false;
+                switch (m.Kind())
+                {
+                    case SyntaxKind.FieldDeclaration:
+                        var fieldDecl = (FieldDeclarationSyntax)m;
+                        return
+                            !ContainsModifier(fieldDecl.Modifiers, SyntaxKind.StaticKeyword) &&
+                            !ContainsModifier(fieldDecl.Modifiers, SyntaxKind.ConstKeyword);
+                    case SyntaxKind.PropertyDeclaration:
+                        // auto-property
+                        var propertyDecl = (PropertyDeclarationSyntax)m;
+                        return
+                            !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.StaticKeyword) &&
+                            !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.AbstractKeyword) &&
+                            !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.ExternKeyword) &&
+                            !ContainsModifier(propertyDecl.Modifiers, SyntaxKind.PartialKeyword) &&
+                            propertyDecl.AccessorList != null &&
+                            All(propertyDecl.AccessorList.Accessors, a => a.Body == null && a.ExpressionBody == null);
+                    case SyntaxKind.EventFieldDeclaration:
+                        // field-like event declaration
+                        var eventFieldDecl = (EventFieldDeclarationSyntax)m;
+                        return
+                            !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.StaticKeyword) &&
+                            !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.AbstractKeyword) &&
+                            !ContainsModifier(eventFieldDecl.Modifiers, SyntaxKind.ExternKeyword);
+                    default:
+                        return false;
+                }
             }
         }
 

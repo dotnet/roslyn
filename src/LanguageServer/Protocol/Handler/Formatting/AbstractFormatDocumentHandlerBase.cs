@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
         protected static async Task<LSP.TextEdit[]?> GetTextEditsAsync(
             RequestContext context,
             LSP.FormattingOptions options,
-            IGlobalOptionService globalOptions,
             CancellationToken cancellationToken,
             LSP.Range? range = null)
         {
@@ -38,14 +37,14 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
             var formattingSpan = CommonFormattingHelpers.GetFormattingSpan(root, rangeSpan);
 
             // We should use the options passed in by LSP instead of the document's options.
-            var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(options, document, globalOptions, cancellationToken).ConfigureAwait(false);
+            var formattingOptions = await ProtocolConversions.GetFormattingOptionsAsync(options, document, cancellationToken).ConfigureAwait(false);
 
             var services = document.Project.Solution.Services;
             var textChanges = Formatter.GetFormattedTextChanges(root, [formattingSpan], services, formattingOptions, rules: default, cancellationToken);
 
-            var edits = new ArrayBuilder<LSP.TextEdit>();
+            using var _ = ArrayBuilder<LSP.TextEdit>.GetInstance(out var edits);
             edits.AddRange(textChanges.Select(change => ProtocolConversions.TextChangeToTextEdit(change, text)));
-            return edits.ToArrayAndFree();
+            return edits.ToArray();
         }
 
         public abstract LSP.TextDocumentIdentifier GetTextDocumentIdentifier(RequestType request);

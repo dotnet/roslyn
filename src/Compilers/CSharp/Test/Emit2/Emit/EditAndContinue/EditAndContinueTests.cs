@@ -291,7 +291,7 @@ class A : System.Attribute
             var source0 = @"public class C { public static void F() { System.Console.WriteLine(1); } }";
             var source1 = @"public class C { public static void F() { System.Console.WriteLine(2); } }";
 
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(source0, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
@@ -2567,56 +2567,52 @@ class C
         [Fact]
         public void PartialMethod()
         {
-            var source =
-@"partial class C
-{
-    static partial void M1();
-    static partial void M2();
-    static partial void M3();
-    static partial void M1() { }
-    static partial void M2() { }
-}";
-            var compilation0 = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll)
+               .AddBaseline(
+                   source: """
+                   partial class C
+                   {
+                       static partial void M1();
+                       static partial void M2();
+                       static partial void M3();
+                       static partial void M1() { }
+                       static partial void M2() { }
+                   }
+                   """,
+                   validator: v =>
+                   {
+                       v.VerifyMethodDefNames("M1", "M2", ".ctor");
+                   })
+                .AddGeneration(
+                    source: """
+                    partial class C
+                    {
+                        static partial void M1();
+                        static partial void M2();
+                        static partial void M3();
+                        static partial void M1() { }
+                        static partial void M2() { }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.M2").PartialImplementationPart),
+                    ],
+                    validator: v =>
+                    {
+                        v.VerifyMethodDefNames("M2");
 
-            var bytes0 = compilation0.EmitToArray();
-            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
-            var reader0 = md0.MetadataReader;
+                        v.VerifyEncLogDefinitions(
+                        [
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        ]);
 
-            CheckNames(reader0, reader0.GetMethodDefNames(), "M1", "M2", ".ctor");
-
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
-
-            var generation0 = CreateInitialBaseline(compilation0,
-                md0,
-                EmptyLocalsProvider);
-
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
-
-            var methods = diff1.TestData.GetMethodsByName();
-            Assert.Equal(1, methods.Count);
-            Assert.True(methods.ContainsKey("C.M2()"));
-
-            using var md1 = diff1.GetMetadata();
-            var reader1 = md1.Reader;
-            var readers = new[] { reader0, reader1 };
-
-            EncValidation.VerifyModuleMvid(1, reader0, reader1);
-
-            CheckNames(readers, reader1.GetMethodDefNames(), "M2");
-
-            CheckEncLog(reader1,
-                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default));
-
-            CheckEncMap(reader1,
-                Handle(6, TableIndex.TypeRef),
-                Handle(2, TableIndex.MethodDef),
-                Handle(2, TableIndex.AssemblyRef));
+                        v.VerifyEncMapDefinitions(
+                        [
+                            Handle(2, TableIndex.MethodDef)
+                        ]);
+                    })
+                .Verify();
         }
 
         [WorkItem(60804, "https://github.com/dotnet/roslyn/issues/60804")]
@@ -2708,6 +2704,100 @@ partial class C
                             """);
                     })
 
+                .Verify();
+        }
+
+        [Fact]
+        public void PartialProperty()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll)
+               .AddBaseline(
+                   source: """
+                   partial class C
+                   {
+                       partial int P { get; }
+                       partial int P => 1;
+                   }
+                   """,
+                   validator: v =>
+                   {
+                       v.VerifyMethodDefNames("get_P", ".ctor");
+                   })
+                .AddGeneration(
+                    source: """
+                    partial class C
+                    {
+                        [System.Obsolete]partial int P { get; }
+                        partial int P => 1;
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart),
+                    ],
+                    validator: v =>
+                    {
+                        v.VerifyMethodDefNames();
+
+                        v.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        ]);
+
+                        v.VerifyEncMapDefinitions(
+                        [
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
+                            Handle(2, TableIndex.MethodSemantics)
+                        ]);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void PartialProperty_Accessor()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll)
+               .AddBaseline(
+                   source: """
+                   partial class C
+                   {
+                       partial int P { get; }
+                       partial int P => 1;
+                   }
+                   """,
+                   validator: v =>
+                   {
+                       v.VerifyMethodDefNames("get_P", ".ctor");
+                   })
+                .AddGeneration(
+                    source: """
+                    partial class C
+                    {
+                        partial int P { get; }
+                        partial int P => 2;
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart),
+                    ],
+                    validator: v =>
+                    {
+                        v.VerifyMethodDefNames("get_P");
+
+                        v.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        ]);
+
+                        v.VerifyEncMapDefinitions(
+                        [
+                            Handle(1, TableIndex.MethodDef)
+                        ]);
+                    })
                 .Verify();
         }
 
@@ -9977,7 +10067,7 @@ class C
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
 
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation0.WithSource(source2.Tree);
 
@@ -10100,7 +10190,7 @@ class C
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
 
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation0.WithSource(source2.Tree);
 
@@ -10269,7 +10359,7 @@ class C
     }
 }
 ");
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -10334,7 +10424,7 @@ class C
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
 
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 
@@ -11010,7 +11100,7 @@ class C
             var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
 
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);

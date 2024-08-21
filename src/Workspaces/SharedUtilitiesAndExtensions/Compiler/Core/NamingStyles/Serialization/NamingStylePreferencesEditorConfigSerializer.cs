@@ -31,30 +31,47 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
         ImmutableArray<NamingStyle> namingStyles,
         ImmutableArray<SerializableNamingRule> serializableNamingRules,
         string language,
-        StringBuilder editorconfig)
+        StringBuilder builder)
     {
-        editorconfig.AppendLine($"#### {CompilerExtensionsResources.Naming_styles} ####");
+        WriteNamingStylePreferencesToEditorConfig(
+            symbolSpecifications,
+            namingStyles,
+            serializableNamingRules,
+            language,
+            entryWriter: (name, value) => builder.AppendLine($"{name} = {value}"),
+            triviaWriter: trivia => builder.AppendLine(trivia));
+    }
+
+    public static void WriteNamingStylePreferencesToEditorConfig(
+        ImmutableArray<SymbolSpecification> symbolSpecifications,
+        ImmutableArray<NamingStyle> namingStyles,
+        ImmutableArray<SerializableNamingRule> serializableNamingRules,
+        string language,
+        Action<string, string> entryWriter,
+        Action<string>? triviaWriter)
+    {
+        triviaWriter?.Invoke($"#### {CompilerExtensionsResources.Naming_styles} ####");
 
         var serializedNameMap = AssignNamesToNamingStyleElements(symbolSpecifications, namingStyles);
         var ruleNameMap = AssignNamesToNamingStyleRules(serializableNamingRules, serializedNameMap);
         var referencedElements = new HashSet<Guid>();
 
-        editorconfig.AppendLine();
-        editorconfig.AppendLine($"# {CompilerExtensionsResources.Naming_rules}");
+        triviaWriter?.Invoke("");
+        triviaWriter?.Invoke($"# {CompilerExtensionsResources.Naming_rules}");
 
         foreach (var namingRule in serializableNamingRules)
         {
             referencedElements.Add(namingRule.SymbolSpecificationID);
             referencedElements.Add(namingRule.NamingStyleID);
 
-            editorconfig.AppendLine();
-            editorconfig.AppendLine($"dotnet_naming_rule.{ruleNameMap[namingRule]}.severity = {namingRule.EnforcementLevel.ToNotificationOption(defaultSeverity: DiagnosticSeverity.Hidden).ToEditorConfigString()}");
-            editorconfig.AppendLine($"dotnet_naming_rule.{ruleNameMap[namingRule]}.symbols = {serializedNameMap[namingRule.SymbolSpecificationID]}");
-            editorconfig.AppendLine($"dotnet_naming_rule.{ruleNameMap[namingRule]}.style = {serializedNameMap[namingRule.NamingStyleID]}");
+            triviaWriter?.Invoke("");
+            entryWriter($"dotnet_naming_rule.{ruleNameMap[namingRule]}.severity", namingRule.EnforcementLevel.ToNotificationOption(defaultSeverity: DiagnosticSeverity.Hidden).ToEditorConfigString());
+            entryWriter($"dotnet_naming_rule.{ruleNameMap[namingRule]}.symbols", serializedNameMap[namingRule.SymbolSpecificationID]);
+            entryWriter($"dotnet_naming_rule.{ruleNameMap[namingRule]}.style", serializedNameMap[namingRule.NamingStyleID]);
         }
 
-        editorconfig.AppendLine();
-        editorconfig.AppendLine($"# {CompilerExtensionsResources.Symbol_specifications}");
+        triviaWriter?.Invoke("");
+        triviaWriter?.Invoke($"# {CompilerExtensionsResources.Symbol_specifications}");
 
         foreach (var symbolSpecification in symbolSpecifications)
         {
@@ -63,14 +80,14 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
                 continue;
             }
 
-            editorconfig.AppendLine();
-            editorconfig.AppendLine($"dotnet_naming_symbols.{serializedNameMap[symbolSpecification.ID]}.applicable_kinds = {symbolSpecification.ApplicableSymbolKindList.ToEditorConfigString()}");
-            editorconfig.AppendLine($"dotnet_naming_symbols.{serializedNameMap[symbolSpecification.ID]}.applicable_accessibilities = {symbolSpecification.ApplicableAccessibilityList.ToEditorConfigString(language)}");
-            editorconfig.AppendLine($"dotnet_naming_symbols.{serializedNameMap[symbolSpecification.ID]}.required_modifiers = {symbolSpecification.RequiredModifierList.ToEditorConfigString(language)}");
+            triviaWriter?.Invoke("");
+            entryWriter($"dotnet_naming_symbols.{serializedNameMap[symbolSpecification.ID]}.applicable_kinds", symbolSpecification.ApplicableSymbolKindList.ToEditorConfigString());
+            entryWriter($"dotnet_naming_symbols.{serializedNameMap[symbolSpecification.ID]}.applicable_accessibilities", symbolSpecification.ApplicableAccessibilityList.ToEditorConfigString(language));
+            entryWriter($"dotnet_naming_symbols.{serializedNameMap[symbolSpecification.ID]}.required_modifiers", symbolSpecification.RequiredModifierList.ToEditorConfigString(language));
         }
 
-        editorconfig.AppendLine();
-        editorconfig.AppendLine($"# {CompilerExtensionsResources.Naming_styles}");
+        triviaWriter?.Invoke("");
+        triviaWriter?.Invoke($"# {CompilerExtensionsResources.Naming_styles}");
 
         foreach (var namingStyle in namingStyles)
         {
@@ -79,11 +96,11 @@ internal static partial class NamingStylePreferencesEditorConfigSerializer
                 continue;
             }
 
-            editorconfig.AppendLine();
-            editorconfig.AppendLine($"dotnet_naming_style.{serializedNameMap[namingStyle.ID]}.required_prefix = {namingStyle.Prefix}");
-            editorconfig.AppendLine($"dotnet_naming_style.{serializedNameMap[namingStyle.ID]}.required_suffix = {namingStyle.Suffix}");
-            editorconfig.AppendLine($"dotnet_naming_style.{serializedNameMap[namingStyle.ID]}.word_separator = {namingStyle.WordSeparator}");
-            editorconfig.AppendLine($"dotnet_naming_style.{serializedNameMap[namingStyle.ID]}.capitalization = {namingStyle.CapitalizationScheme.ToEditorConfigString()}");
+            triviaWriter?.Invoke("");
+            entryWriter($"dotnet_naming_style.{serializedNameMap[namingStyle.ID]}.required_prefix", namingStyle.Prefix);
+            entryWriter($"dotnet_naming_style.{serializedNameMap[namingStyle.ID]}.required_suffix", namingStyle.Suffix);
+            entryWriter($"dotnet_naming_style.{serializedNameMap[namingStyle.ID]}.word_separator", namingStyle.WordSeparator);
+            entryWriter($"dotnet_naming_style.{serializedNameMap[namingStyle.ID]}.capitalization", namingStyle.CapitalizationScheme.ToEditorConfigString());
         }
     }
 

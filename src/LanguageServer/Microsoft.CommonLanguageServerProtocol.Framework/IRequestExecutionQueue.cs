@@ -6,6 +6,7 @@
 #nullable enable
 
 using System;
+using System.Collections.Frozen;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -21,7 +22,7 @@ internal interface IRequestExecutionQueue<TRequestContext> : IAsyncDisposable
     /// Queue a request.
     /// </summary>
     /// <returns>A task that completes when the handler execution is done.</returns>
-    Task<TResponse> ExecuteAsync<TRequest, TResponse>(TRequest request, string methodName, string languageName, ILspServices lspServices, CancellationToken cancellationToken);
+    Task<object?> ExecuteAsync(object? serializedRequest, string methodName, ILspServices lspServices, CancellationToken cancellationToken);
 
     /// <summary>
     /// Start the queue accepting requests once any event handlers have been attached.

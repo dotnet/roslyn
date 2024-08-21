@@ -43,7 +43,7 @@ internal partial class SerializerService : ISerializerService
 
     private readonly SolutionServices _workspaceServices;
 
-    private readonly TemporaryStorageService _storageService;
+    private readonly Lazy<TemporaryStorageService> _storageService;
     private readonly ITextFactoryService _textService;
     private readonly IDocumentationProviderService? _documentationService;
     private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
@@ -55,9 +55,10 @@ internal partial class SerializerService : ISerializerService
     {
         _workspaceServices = workspaceServices;
 
-        // Serialization is only involved when we have a remote process.  Which is only in VS. So the type of the
-        // storage service here is well known.
-        _storageService = (TemporaryStorageService)workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>();
+        // Serialization to temporary storage is only involved when we have a remote process.  Which is only in VS. So the type of the
+        // storage service here is well known.  However the serializer is created in other cases (e.g. to compute project state checksums).
+        // So lazily instantiate the storage service to avoid attempting to get the TemporaryStorageService when not available.
+        _storageService = new Lazy<TemporaryStorageService>(() => (TemporaryStorageService)workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>());
         _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
         _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
         _documentationService = workspaceServices.GetService<IDocumentationProviderService>();
@@ -73,11 +74,6 @@ internal partial class SerializerService : ISerializerService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (value is IChecksummedObject checksummedObject)
-            {
-                return checksummedObject.Checksum;
-            }
-
             switch (kind)
             {
                 case WellKnownSynchronizationKind.CompilationOptions:
@@ -88,10 +84,10 @@ internal partial class SerializerService : ISerializerService
                     return Checksum.Create(value, this, cancellationToken);
 
                 case WellKnownSynchronizationKind.MetadataReference:
-                    return CreateChecksum((MetadataReference)value, cancellationToken);
+                    return CreateChecksum((MetadataReference)value);
 
                 case WellKnownSynchronizationKind.AnalyzerReference:
-                    return CreateChecksum((AnalyzerReference)value, cancellationToken);
+                    return CreateChecksum((AnalyzerReference)value);
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
                     throw new InvalidOperationException("Clients can already get a checksum directly from a SerializableSourceText");
@@ -140,15 +136,15 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.ProjectReference:
-                    SerializeProjectReference((ProjectReference)value, writer, cancellationToken);
+                    SerializeProjectReference((ProjectReference)value, writer);
                     return;
 
                 case WellKnownSynchronizationKind.MetadataReference:
-                    SerializeMetadataReference((MetadataReference)value, writer, cancellationToken);
+                    SerializeMetadataReference((MetadataReference)value, writer);
                     return;
 
                 case WellKnownSynchronizationKind.AnalyzerReference:
-                    SerializeAnalyzerReference((AnalyzerReference)value, writer, cancellationToken: cancellationToken);
+                    SerializeAnalyzerReference((AnalyzerReference)value, writer);
                     return;
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
@@ -273,9 +269,9 @@ internal partial class SerializerService : ISerializerService
                 WellKnownSynchronizationKind.CompilationOptions => DeserializeCompilationOptions(reader, cancellationToken),
                 WellKnownSynchronizationKind.ParseOptions => DeserializeParseOptions(reader, cancellationToken),
                 WellKnownSynchronizationKind.ProjectReference => DeserializeProjectReference(reader, cancellationToken),
-                WellKnownSynchronizationKind.MetadataReference => DeserializeMetadataReference(reader, cancellationToken),
-                WellKnownSynchronizationKind.AnalyzerReference => DeserializeAnalyzerReference(reader, cancellationToken),
-                WellKnownSynchronizationKind.SerializableSourceText => SerializableSourceText.Deserialize(reader, _storageService, _textService, cancellationToken),
+                WellKnownSynchronizationKind.MetadataReference => DeserializeMetadataReference(reader),
+                WellKnownSynchronizationKind.AnalyzerReference => DeserializeAnalyzerReference(reader),
+                WellKnownSynchronizationKind.SerializableSourceText => SerializableSourceText.Deserialize(reader, _storageService.Value, _textService, cancellationToken),
                 WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap => SourceGeneratorExecutionVersionMap.Deserialize(reader),
                 WellKnownSynchronizationKind.FallbackAnalyzerOptions => ReadFallbackAnalyzerOptions(reader),
                 _ => throw ExceptionUtilities.UnexpectedValue(kind),
