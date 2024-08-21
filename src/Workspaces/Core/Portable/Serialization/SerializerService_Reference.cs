@@ -129,9 +129,9 @@ internal partial class SerializerService
     {
         switch (reference)
         {
-            case AnalyzerFileReference file:
+            case AnalyzerFileReference fileReference:
                 writer.WriteString(nameof(AnalyzerFileReference));
-                writer.WriteString(file.FullPath);
+                writer.WriteString(fileReference.FullPath);
 
                 // Note: it is intentional that we are not writing the MVID of the analyzer file reference over in
                 // non-testing scenarios (even though we mixed it into the checksum).  We don't actually need the data
@@ -155,7 +155,7 @@ internal partial class SerializerService
                 //    that its data can be cleanly loaded in isolation from any prior version.
                 //
                 // During testing, we do write it over for validation purposes.
-                writer.WriteGuid(forTesting ? TryGetAnalyzerFileReferenceMvid(file) : Guid.Empty);
+                writer.WriteGuid(forTesting ? TryGetAnalyzerFileReferenceMvid(fileReference) : Guid.Empty);
                 break;
 
             case AnalyzerImageReference analyzerImageReference:
