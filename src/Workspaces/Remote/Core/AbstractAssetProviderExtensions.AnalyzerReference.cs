@@ -35,7 +35,7 @@ internal static partial class AbstractAssetProviderExtensions
     /// references corresponding to it.  As long as it is alive, we will try to reuse what is in memory.  But once it is
     /// dropped from memory, we'll clean things up and produce a new one.
     /// </summary>
-    private static readonly Dictionary<Checksum, WeakReference<IsolatedAssemblyReferenceSet>> s_checksumToReferenceSet = new();
+    private static readonly Dictionary<Checksum, WeakReference<IsolatedAssemblyReferenceSet>> s_checksumToReferenceSet = [];
 
     private static void GarbageCollectReleaseReferences_NoLock()
     {
