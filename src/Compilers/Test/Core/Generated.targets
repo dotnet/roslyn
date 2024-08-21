@@ -20,9 +20,5 @@
           <LogicalName>netstandard20lib.systemthreadingtasksextensions.System.Threading.Tasks.Extensions.dll</LogicalName>
           <Link>Resources\ReferenceAssemblies\systemthreadingtasksextensions\System.Threading.Tasks.Extensions.dll</Link>
         </EmbeddedResource>
-        <EmbeddedResource Include="$(PkgMicrosoft_NET_Build_Extensions)\msbuildExtensions\Microsoft\Microsoft.NET.Build.Extensions\net461\lib\netstandard.dll">
-          <LogicalName>netstandardtonet461.buildextensions.netstandard.dll</LogicalName>
-          <Link>Resources\ReferenceAssemblies\buildextensions\netstandard.dll</Link>
-        </EmbeddedResource>
   </ItemGroup>
 </Project>
