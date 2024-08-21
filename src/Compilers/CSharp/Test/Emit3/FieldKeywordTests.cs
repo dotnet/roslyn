@@ -2410,13 +2410,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 parseOptions: parseOptions,
                 targetFramework: TargetFramework.Net80,
                 verify: Verification.Skipped,
-                expectedOutput: """
+                expectedOutput: IncludeExpectedOutput("""
                     C.<P3>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
                     C.<P4>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
                     C.<P5>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
                     C.<P1>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
                     C.<P2>k__BackingField: System.Runtime.CompilerServices.CompilerGeneratedAttribute,
-                    """);
+                    """));
             if (useDEBUG)
             {
                 verifier.VerifyIL("C.P1.get", """
