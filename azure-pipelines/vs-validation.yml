@@ -35,6 +35,15 @@ extends:
           Is1ESPT: true
           RealSign: true
           windowsPool: VSEngSS-MicroBuild2022-1ES
+          linuxPool:
+            name: AzurePipelines-EO
+            demands:
+            - ImageOverride -equals 1ESPT-Ubuntu22.04
+            os: Linux
+          macOSPool:
+            name: Azure Pipelines
+            vmImage: macOS-12
+            os: macOS
           EnableMacOSBuild: false
           RunTests: false
 
