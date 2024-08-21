@@ -9,7 +9,6 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Runtime.Versioning;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -43,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
 
         private readonly ConcurrentDictionary<Guid, TestGeneratorReference> _sharedTestGeneratorReferences = sharedTestGeneratorReferences;
 
-        protected override void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        protected override void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer)
         {
             var wellKnownReferenceName = s_wellKnownReferenceNames.GetValueOrDefault(reference, null);
             if (wellKnownReferenceName is not null)
@@ -54,15 +53,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             else
             {
                 writer.WriteBoolean(false);
-                base.WriteMetadataReferenceTo(reference, writer, cancellationToken);
+                base.WriteMetadataReferenceTo(reference, writer);
             }
         }
 
-        protected override MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
-
+        protected override MetadataReference ReadMetadataReferenceFrom(ObjectReader reader)
             => reader.ReadBoolean()
                 ? s_wellKnownReferences[reader.ReadRequiredString()]
-                : base.ReadMetadataReferenceFrom(reader, cancellationToken);
+                : base.ReadMetadataReferenceFrom(reader);
 
         protected override Checksum CreateChecksum(AnalyzerReference reference, bool forTesting)
         {
@@ -80,8 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
                 : base.CreateChecksum(reference, forTesting);
         }
 
-        protected override void WriteAnalyzerReferenceTo(
-            AnalyzerReference reference, ObjectWriter writer, bool _, CancellationToken cancellationToken)
+        protected override void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer, bool _)
         {
             if (reference is TestGeneratorReference generatorReference)
             {
@@ -94,11 +91,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
                 writer.WriteGuid(Guid.Empty);
 
                 // During testing, write out analyzer guids when writing out serialized references.
-                base.WriteAnalyzerReferenceTo(reference, writer, forTesting: true, cancellationToken);
+                base.WriteAnalyzerReferenceTo(reference, writer, forTesting: true);
             }
         }
 
-        protected override AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+        protected override AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader)
         {
             var testGeneratorReferenceGuid = reader.ReadGuid();
 
@@ -109,7 +106,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             }
             else
             {
-                return base.ReadAnalyzerReferenceFrom(reader, cancellationToken);
+                return base.ReadAnalyzerReferenceFrom(reader);
             }
         }
 

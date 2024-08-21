@@ -16,7 +16,7 @@ using static TemporaryStorageService;
 internal partial class SerializerService
 {
     [DebuggerDisplay("{" + nameof(Display) + ",nq}")]
-    private sealed class SerializedMetadataReference : PortableExecutableReference, ISupportTemporaryStorage
+    private sealed class SerializedPortableExecutableReference : PortableExecutableReference, ISupportTemporaryStorage
     {
         private readonly Metadata _metadata;
         private readonly ImmutableArray<TemporaryStorageStreamHandle> _storageHandles;
@@ -24,7 +24,7 @@ internal partial class SerializerService
 
         public IReadOnlyList<ITemporaryStorageStreamHandle> StorageHandles => _storageHandles;
 
-        public SerializedMetadataReference(
+        public SerializedPortableExecutableReference(
             MetadataReferenceProperties properties,
             string? fullPath,
             Metadata metadata,
@@ -49,7 +49,7 @@ internal partial class SerializerService
             => _metadata;
 
         protected override PortableExecutableReference WithPropertiesImpl(MetadataReferenceProperties properties)
-            => new SerializedMetadataReference(properties, FilePath, _metadata, _storageHandles, _provider);
+            => new SerializedPortableExecutableReference(properties, FilePath, _metadata, _storageHandles, _provider);
 
         public override string ToString()
         {
@@ -57,7 +57,7 @@ internal partial class SerializerService
             var modules = GetModules(metadata);
 
             return $"""
-            {nameof(SerializedMetadataReference)}
+            {nameof(PortableExecutableReference)}
                 FilePath={this.FilePath}
                 Kind={this.Properties.Kind}
                 Aliases={this.Properties.Aliases.Join(",")}
