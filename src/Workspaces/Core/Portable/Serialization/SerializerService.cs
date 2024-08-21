@@ -74,11 +74,6 @@ internal partial class SerializerService : ISerializerService
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (value is IChecksummedObject checksummedObject)
-            {
-                return checksummedObject.Checksum;
-            }
-
             switch (kind)
             {
                 case WellKnownSynchronizationKind.CompilationOptions:
@@ -89,10 +84,10 @@ internal partial class SerializerService : ISerializerService
                     return Checksum.Create(value, this, cancellationToken);
 
                 case WellKnownSynchronizationKind.MetadataReference:
-                    return CreateChecksum((MetadataReference)value, cancellationToken);
+                    return CreateChecksum((MetadataReference)value);
 
                 case WellKnownSynchronizationKind.AnalyzerReference:
-                    return CreateChecksum((AnalyzerReference)value, cancellationToken);
+                    return CreateChecksum((AnalyzerReference)value);
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
                     throw new InvalidOperationException("Clients can already get a checksum directly from a SerializableSourceText");
@@ -141,15 +136,15 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.ProjectReference:
-                    SerializeProjectReference((ProjectReference)value, writer, cancellationToken);
+                    SerializeProjectReference((ProjectReference)value, writer);
                     return;
 
                 case WellKnownSynchronizationKind.MetadataReference:
-                    SerializeMetadataReference((MetadataReference)value, writer, cancellationToken);
+                    SerializeMetadataReference((MetadataReference)value, writer);
                     return;
 
                 case WellKnownSynchronizationKind.AnalyzerReference:
-                    SerializeAnalyzerReference((AnalyzerReference)value, writer, cancellationToken: cancellationToken);
+                    SerializeAnalyzerReference((AnalyzerReference)value, writer);
                     return;
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
@@ -274,8 +269,8 @@ internal partial class SerializerService : ISerializerService
                 WellKnownSynchronizationKind.CompilationOptions => DeserializeCompilationOptions(reader, cancellationToken),
                 WellKnownSynchronizationKind.ParseOptions => DeserializeParseOptions(reader, cancellationToken),
                 WellKnownSynchronizationKind.ProjectReference => DeserializeProjectReference(reader, cancellationToken),
-                WellKnownSynchronizationKind.MetadataReference => DeserializeMetadataReference(reader, cancellationToken),
-                WellKnownSynchronizationKind.AnalyzerReference => DeserializeAnalyzerReference(reader, cancellationToken),
+                WellKnownSynchronizationKind.MetadataReference => DeserializeMetadataReference(reader),
+                WellKnownSynchronizationKind.AnalyzerReference => DeserializeAnalyzerReference(reader),
                 WellKnownSynchronizationKind.SerializableSourceText => SerializableSourceText.Deserialize(reader, _storageService.Value, _textService, cancellationToken),
                 WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap => SourceGeneratorExecutionVersionMap.Deserialize(reader),
                 WellKnownSynchronizationKind.FallbackAnalyzerOptions => ReadFallbackAnalyzerOptions(reader),

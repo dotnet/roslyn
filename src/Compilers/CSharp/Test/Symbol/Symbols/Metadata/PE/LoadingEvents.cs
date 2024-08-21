@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    Net451.mscorlib,
+                    NetFramework.mscorlib,
                     TestReferences.SymbolsTests.Events,
                 });
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    Net451.mscorlib,
+                    NetFramework.mscorlib,
                     TestReferences.SymbolsTests.Events,
                 });
 
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    Net451.mscorlib,
+                    NetFramework.mscorlib,
                     TestReferences.SymbolsTests.Events,
                 });
 
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    Net451.mscorlib,
+                    NetFramework.mscorlib,
                     TestReferences.SymbolsTests.Events,
                 });
 
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    Net451.mscorlib,
+                    NetFramework.mscorlib,
                     TestReferences.SymbolsTests.Events,
                 });
 
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    Net451.mscorlib,
+                    NetFramework.mscorlib,
                     TestReferences.SymbolsTests.Events,
                 });
 
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    Net451.mscorlib,
+                    NetFramework.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Events.CSharp,
                 });
 
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    Net451.mscorlib,
+                    NetFramework.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Events.CSharp,
                 });
 
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    Net451.mscorlib,
+                    NetFramework.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Events.CSharp,
                 });
 
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    Net451.mscorlib,
+                    NetFramework.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Events.CSharp,
                 });
 
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             var assemblies = MetadataTestHelpers.GetSymbolsForReferences(
                 new[]
                 {
-                    Net451.mscorlib,
+                    NetFramework.mscorlib,
                     TestReferences.SymbolsTests.ExplicitInterfaceImplementation.Events.CSharp,
                 });
 

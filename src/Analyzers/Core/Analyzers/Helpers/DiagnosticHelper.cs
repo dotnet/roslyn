@@ -286,8 +286,8 @@ internal static class DiagnosticHelper
 
         static IEnumerable<string> GetEffectiveCustomTags(DiagnosticDescriptor descriptor, NotificationOption2 notificationOption, AnalyzerOptions analyzerOptions)
         {
-            // 'CustomSeverityConfigurable' is only enabled when AnalysisLevel >= 9.
-            var skipCustomConfiguration = !analyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions.IsAnalysisLevelGreaterThanOrEquals(9);
+            // 'CustomSeverityConfigurable' is only enabled when EnableCodeStyleSeverity is true.
+            var skipCustomConfiguration = !analyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions.IsCodeStyleSeverityEnabled();
             if (skipCustomConfiguration)
             {
                 foreach (var customTag in descriptor.CustomTags)

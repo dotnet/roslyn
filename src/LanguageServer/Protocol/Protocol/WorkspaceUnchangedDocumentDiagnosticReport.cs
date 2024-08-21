@@ -9,9 +9,11 @@ using System.Text.Json.Serialization;
 
 /// <summary>
 /// Class representing a unchanged document diagnostic report for workspace diagnostic result.
-///
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceUnchangedDocumentDiagnosticReport">Language Server Protocol specification</see> for additional information.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspaceUnchangedDocumentDiagnosticReport">Language Server Protocol specification</see> for additional information.
+/// </para>
 /// </summary>
+/// <remarks>Since LSP 3.17</remarks>
 [Kind(DocumentDiagnosticReportKind.Unchanged)]
 internal class WorkspaceUnchangedDocumentDiagnosticReport : UnchangedDocumentDiagnosticReport
 {
@@ -19,6 +21,7 @@ internal class WorkspaceUnchangedDocumentDiagnosticReport : UnchangedDocumentDia
     /// Gets or sets the URI associated with this diagnostic report.
     /// </summary>
     [JsonPropertyName("uri")]
+    [JsonRequired]
     [JsonConverter(typeof(DocumentUriConverter))]
     public Uri Uri
     {
@@ -31,6 +34,7 @@ internal class WorkspaceUnchangedDocumentDiagnosticReport : UnchangedDocumentDia
     /// If the document is not marked as open 'null' can be provided.
     /// </summary>
     [JsonPropertyName("version")]
+    [JsonRequired]
     public int? Version
     {
         get;

@@ -4076,7 +4076,7 @@ class C
     }
 }
 ";
-            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             var compilation1 = compilation0.WithSource(source);
 
             var v0 = CompileAndVerify(compilation0);

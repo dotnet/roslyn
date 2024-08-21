@@ -3232,7 +3232,7 @@ class Program
         Console.WriteLine(new S3().X);
     }
 }";
-            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Mscorlib45);
+            comp = CreateCompilation(sourceB, references: new[] { refA }, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular9, targetFramework: TargetFramework.Mscorlib461);
             CompileAndVerify(comp, expectedOutput:
 @"2
 0");

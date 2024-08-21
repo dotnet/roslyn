@@ -532,7 +532,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll,
+            var compilation0 = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -2101,7 +2101,7 @@ struct S<T> where T : class
         return this.x ?? (object)y ?? z;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(
+            var compilation0 = CreateCompilationWithMscorlib461(
                 source,
                 options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
@@ -2172,7 +2172,7 @@ class C
         await F(y);
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(
+            var compilation0 = CreateCompilationWithMscorlib461(
                 source,
                 options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
@@ -2242,7 +2242,7 @@ class C
         }
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(
+            var compilation0 = CreateCompilationWithMscorlib461(
                 source,
                 options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
@@ -2356,7 +2356,7 @@ class C
         return x;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(
+            var compilation0 = CreateCompilationWithMscorlib461(
                 source,
                 options: TestOptions.DebugDll,
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef });
@@ -2417,7 +2417,7 @@ class C
         };
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, methodName: "C.<>c.<<M>b__0_0>d.MoveNext");
@@ -2964,7 +2964,7 @@ class C
         return local;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 string displayClassName;
@@ -3237,7 +3237,7 @@ class C<T>
         return x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 string displayClassName;
@@ -3339,7 +3339,7 @@ class C
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<M>d__1.MoveNext", atLineNumber: 999);
@@ -3398,7 +3398,7 @@ class C
         yield return o;
     }
 }";
-            var compilation0 = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<M>d__1.MoveNext", atLineNumber: 999);
@@ -3495,7 +3495,7 @@ class C
         await F(() => G(s));
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<M>d__2.MoveNext()");
@@ -3547,7 +3547,7 @@ class C
 #line 999
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.<M>d__0.MoveNext()", atLineNumber: 999);
@@ -3857,7 +3857,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseDll);
             WithRuntimeInstance(comp, runtime =>
             {
                 EvaluationContext context;
