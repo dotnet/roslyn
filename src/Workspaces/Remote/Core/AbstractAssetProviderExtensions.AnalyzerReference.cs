@@ -36,12 +36,15 @@ internal static partial class AbstractAssetProviderExtensions
     /// </summary>
     private static readonly Dictionary<Checksum, WeakReference<IsolatedAssemblyReferenceSet>> s_checksumToReferenceSet = [];
 
+    private static int s_sweepCount = 0;
+
     private static void GarbageCollectReleaseReferences_NoLock()
     {
         Contract.ThrowIfTrue(s_isolatedReferenceSetGate.CurrentCount != 0);
 
-        // Any time we've grown the dictionary by a substantive amount, do a sweep to see if we can remove any entries.
-        if (s_checksumToReferenceSet.Count % 128 != 0)
+        // When we've done some reasonable number of mutations to the dictionary, we'll do a sweep to see if there are
+        // entries we can remove.
+        if (++s_sweepCount % 128 == 0)
             return;
 
         using var _ = ArrayBuilder<Checksum>.GetInstance(out var checksumsToRemove);
