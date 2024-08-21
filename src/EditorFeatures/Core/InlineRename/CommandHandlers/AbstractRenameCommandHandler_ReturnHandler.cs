@@ -4,6 +4,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
@@ -20,10 +21,11 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
     {
         if (_renameService.ActiveSession != null)
         {
+            var token = _listener.BeginAsyncOperation(string.Concat(nameof(ExecuteCommand), ".", nameof(ReturnKeyCommandArgs)));
             // Prevent Editor's typing responsiveness auto canceling the rename operation.
             // InlineRenameSession will call IUIThreadOperationExecutor to sets up our own IUIThreadOperationContext
             context.OperationContext.TakeOwnership();
-            _ = CommitAndSetFocusAsync(_renameService.ActiveSession, args.TextView).ReportNonFatalErrorAsync();
+            _ = CommitAndSetFocusAsync(_renameService.ActiveSession, args.TextView).ReportNonFatalErrorAsync().CompletesAsyncOperation(token);
             return true;
         }
 
