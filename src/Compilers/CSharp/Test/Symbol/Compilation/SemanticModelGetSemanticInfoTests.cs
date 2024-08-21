@@ -14520,9 +14520,8 @@ public class MainClass
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
-            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal("InterfaceType", semanticInfo.CandidateSymbols.First().Name);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -14681,9 +14680,8 @@ public class Program
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
-            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal("System.IFormattable", semanticInfo.CandidateSymbols.First().ToTestDisplayString());
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
