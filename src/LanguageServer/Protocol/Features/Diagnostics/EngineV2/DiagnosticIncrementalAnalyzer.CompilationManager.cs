@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        private static Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(Project project, IdeAnalyzerOptions ideOptions, IEnumerable<StateSet> stateSets, bool includeSuppressedDiagnostics, CancellationToken cancellationToken)
-            => DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, ideOptions, stateSets.SelectAsArray(s => s.Analyzer), includeSuppressedDiagnostics, cancellationToken);
+        private static Task<CompilationWithAnalyzers?> CreateCompilationWithAnalyzersAsync(Project project, IEnumerable<StateSet> stateSets, bool includeSuppressedDiagnostics, bool crashOnAnalyzerException, CancellationToken cancellationToken)
+            => DocumentAnalysisExecutor.CreateCompilationWithAnalyzersAsync(project, stateSets.SelectAsArray(s => s.Analyzer), includeSuppressedDiagnostics, crashOnAnalyzerException, cancellationToken);
     }
 }

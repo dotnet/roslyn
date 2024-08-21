@@ -93,37 +93,12 @@ internal static class DocumentExtensions
         return false;
     }
 
-    /// <summary>
-    /// Gets the set of naming rules the user has set for this document.  Will include a set of default naming rules
-    /// that match if the user hasn't specified any for a particular symbol type.  The are added at the end so they
-    /// will only be used if the user hasn't specified a preference.
-    /// </summary>
-    public static async Task<ImmutableArray<NamingRule>> GetNamingRulesAsync(
-        this Document document, CancellationToken cancellationToken)
-    {
-        var options = await document.GetNamingStylePreferencesAsync(cancellationToken).ConfigureAwait(false);
-        return options.CreateRules().NamingRules.AddRange(FallbackNamingRules.Default);
-    }
-
     public static async Task<NamingRule> GetApplicableNamingRuleAsync(this Document document, ISymbol symbol, CancellationToken cancellationToken)
     {
         var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
         foreach (var rule in rules)
         {
             if (rule.SymbolSpecification.AppliesTo(symbol))
-                return rule;
-        }
-
-        throw ExceptionUtilities.Unreachable();
-    }
-
-    public static async Task<NamingRule> GetApplicableNamingRuleAsync(
-        this Document document, SymbolKind symbolKind, Accessibility accessibility, CancellationToken cancellationToken)
-    {
-        var rules = await document.GetNamingRulesAsync(cancellationToken).ConfigureAwait(false);
-        foreach (var rule in rules)
-        {
-            if (rule.SymbolSpecification.AppliesTo(symbolKind, accessibility))
                 return rule;
         }
 

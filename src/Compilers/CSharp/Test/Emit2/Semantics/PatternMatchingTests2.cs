@@ -118,7 +118,7 @@ public static class PointExtensions
 }
 ";
             // We use a compilation profile that provides System.Runtime.CompilerServices.ExtensionAttribute needed for this test
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithRecursivePatterns);
             compilation.VerifyDiagnostics(
                 );
             var comp = CompileAndVerify(compilation, expectedOutput: "");
@@ -1149,7 +1149,7 @@ class Frog
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source); // doesn't have ITuple
+            var compilation = CreateCompilationWithMscorlib461(source); // doesn't have ITuple
             // Two errors below instead of one due to https://github.com/dotnet/roslyn/issues/25533
             compilation.VerifyDiagnostics(
                 // (8,18): error CS1061: 'object' does not contain a definition for 'Deconstruct' and no accessible extension method 'Deconstruct' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)

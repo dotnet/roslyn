@@ -81,12 +81,12 @@ namespace Roslyn.Test.Utilities
         #region Metadata References
 
         private static readonly Lazy<MetadataReference[]> s_lazyDefaultVbReferences = new Lazy<MetadataReference[]>(
-            () => new[] { Net40.mscorlib, Net40.System, Net40.SystemCore, Net40.MicrosoftVisualBasic },
+            () => new[] { Net40.References.mscorlib, Net40.References.System, Net40.References.SystemCore, Net40.References.MicrosoftVisualBasic },
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference[] DefaultVbReferences => s_lazyDefaultVbReferences.Value;
 
         private static readonly Lazy<MetadataReference[]> s_lazyLatestVbReferences = new Lazy<MetadataReference[]>(
-            () => new[] { Net451.mscorlib, Net451.System, Net451.SystemCore, Net451.MicrosoftVisualBasic },
+            () => new[] { NetFramework.mscorlib, NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftVisualBasic },
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference[] LatestVbReferences => s_lazyLatestVbReferences.Value;
 
@@ -107,21 +107,21 @@ namespace Roslyn.Test.Utilities
                     AssemblyMetadata.CreateFromImage(ProprietaryTestResources.v4_0_30319_17929.System_Runtime_WindowsRuntime).GetReference(display: "System.Runtime.WindowsRuntime.dll");
 
                 var runtime =
-                    AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemRuntime).GetReference(display: "System.Runtime.dll");
+                    AssemblyMetadata.CreateFromImage(Net461.Resources.SystemRuntime).GetReference(display: "System.Runtime.dll");
 
                 var objectModel =
-                    AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemObjectModel).GetReference(display: "System.ObjectModel.dll");
+                    AssemblyMetadata.CreateFromImage(Net461.Resources.SystemObjectModel).GetReference(display: "System.ObjectModel.dll");
 
                 var uixaml = AssemblyMetadata.CreateFromImage(ProprietaryTestResources.v4_0_30319_17929.System_Runtime_WindowsRuntime_UI_Xaml).
                     GetReference(display: "System.Runtime.WindowsRuntime.UI.Xaml.dll");
 
-                var interop = AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemRuntimeInteropServicesWindowsRuntime).
+                var interop = AssemblyMetadata.CreateFromImage(Net461.Resources.SystemRuntimeInteropServicesWindowsRuntime).
                     GetReference(display: "System.Runtime.InteropServices.WindowsRuntime.dll");
 
                 //Not mentioned in the adapter doc but pointed to from System.Runtime, so we'll put it here.
-                var system = AssemblyMetadata.CreateFromImage(ResourcesNet451.System).GetReference(display: "System.dll");
+                var system = AssemblyMetadata.CreateFromImage(Net461.Resources.System).GetReference(display: "System.dll");
 
-                var mscor = AssemblyMetadata.CreateFromImage(ResourcesNet451.mscorlib).GetReference(display: "mscorlib");
+                var mscor = AssemblyMetadata.CreateFromImage(Net461.Resources.mscorlib).GetReference(display: "mscorlib");
 
                 return new MetadataReference[] { winmd, windowsruntime, runtime, objectModel, uixaml, interop, system, mscor };
             },
@@ -148,17 +148,17 @@ namespace Roslyn.Test.Utilities
 
         private static readonly Lazy<MetadataReference> s_systemCoreRef =
             new Lazy<MetadataReference>(
-                () => AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemCore).GetReference(display: "System.Core.v4_0_30319.dll"),
+                () => AssemblyMetadata.CreateFromImage(Net461.Resources.SystemCore).GetReference(display: "System.Core.v4_0_30319.dll"),
                 LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemCoreRef => s_systemCoreRef.Value;
 
         private static readonly Lazy<MetadataReference> s_systemCoreRef_v4_0_30319_17929 = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemCore).GetReference(display: "System.Core.v4_0_30319_17929.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.Resources.SystemCore).GetReference(display: "System.Core.v4_0_30319_17929.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemCoreRef_v4_0_30319_17929 => s_systemCoreRef_v4_0_30319_17929.Value;
 
         private static readonly Lazy<MetadataReference> s_systemRuntimeSerializationRef_v4_0_30319_17929 = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemRuntimeSerialization).GetReference(display: "System.Runtime.Serialization.v4_0_30319_17929.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.Resources.SystemRuntimeSerialization).GetReference(display: "System.Runtime.Serialization.v4_0_30319_17929.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemRuntimeSerializationRef_v4_0_30319_17929 => s_systemRuntimeSerializationRef_v4_0_30319_17929.Value;
 
@@ -168,22 +168,22 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference SystemCoreRef_v46 => s_systemCoreRef_v4_0_30319_17929.Value;
 
         private static readonly Lazy<MetadataReference> s_systemWindowsFormsRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemWindowsForms).GetReference(display: "System.Windows.Forms.v4_0_30319.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.Resources.SystemWindowsForms).GetReference(display: "System.Windows.Forms.v4_0_30319.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemWindowsFormsRef => s_systemWindowsFormsRef.Value;
 
         private static readonly Lazy<MetadataReference> s_systemDrawingRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemDrawing).GetReference(display: "System.Drawing.v4_0_30319.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.Resources.SystemDrawing).GetReference(display: "System.Drawing.v4_0_30319.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemDrawingRef => s_systemDrawingRef.Value;
 
         private static readonly Lazy<MetadataReference> s_systemDataRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemData).GetReference(display: "System.Data.v4_0_30319.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.Resources.SystemData).GetReference(display: "System.Data.v4_0_30319.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemDataRef => s_systemDataRef.Value;
 
         private static readonly Lazy<MetadataReference> s_mscorlibRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.mscorlib).GetReference(display: "mscorlib.v4_0_30319.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.Resources.mscorlib).GetReference(display: "mscorlib.v4_0_30319.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference MscorlibRef => s_mscorlibRef.Value;
 
@@ -215,9 +215,9 @@ namespace Roslyn.Test.Utilities
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference AacorlibRef => s_aacorlibRef.Value;
 
-        public static MetadataReference MscorlibRef_v20 => Net20.mscorlib;
+        public static MetadataReference MscorlibRef_v20 => Net20.References.mscorlib;
 
-        public static MetadataReference MscorlibRef_v4_0_30316_17626 => Net451.mscorlib;
+        public static MetadataReference MscorlibRef_v4_0_30316_17626 => NetFramework.mscorlib;
 
         private static readonly Lazy<MetadataReference> s_mscorlibRef_v46 = new Lazy<MetadataReference>(
             () => AssemblyMetadata.CreateFromImage(Net461.ReferenceInfos.mscorlib.ImageBytes).GetReference(display: "mscorlib.v4_6_1038_0.dll", filePath: @"Z:\FxReferenceAssembliesUri"),
@@ -238,14 +238,14 @@ namespace Roslyn.Test.Utilities
 
         public static MetadataReference ValueTupleRef => TestReferences.NetFx.ValueTuple.tuplelib;
 
-        public static MetadataReference MsvbRef => Net451.MicrosoftVisualBasic;
+        public static MetadataReference MsvbRef => NetFramework.MicrosoftVisualBasic;
 
-        public static MetadataReference MsvbRef_v4_0_30319_17929 => Net451.MicrosoftVisualBasic;
+        public static MetadataReference MsvbRef_v4_0_30319_17929 => NetFramework.MicrosoftVisualBasic;
 
         public static MetadataReference CSharpRef => CSharpDesktopRef;
 
         private static readonly Lazy<MetadataReference> s_desktopCSharpRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.MicrosoftCSharp).GetReference(display: "Microsoft.CSharp.v4.0.30319.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.Resources.MicrosoftCSharp).GetReference(display: "Microsoft.CSharp.v4.0.30319.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference CSharpDesktopRef => s_desktopCSharpRef.Value;
 
@@ -262,7 +262,7 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference Net46StandardFacade => s_46NetStandardFacade.Value;
 
         private static readonly Lazy<MetadataReference> s_systemRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.System).GetReference(display: "System.v4_0_30319.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.Resources.System).GetReference(display: "System.v4_0_30319.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemRef => s_systemRef.Value;
 
@@ -272,42 +272,42 @@ namespace Roslyn.Test.Utilities
         public static MetadataReference SystemRef_v46 => s_systemRef_v46.Value;
 
         private static readonly Lazy<MetadataReference> s_systemRef_v4_0_30319_17929 = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.System).GetReference(display: "System.v4_0_30319_17929.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.Resources.System).GetReference(display: "System.v4_0_30319_17929.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemRef_v4_0_30319_17929 => s_systemRef_v4_0_30319_17929.Value;
 
         private static readonly Lazy<MetadataReference> s_systemRef_v20 = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet20.System).GetReference(display: "System.v2_0_50727.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net20.Resources.System).GetReference(display: "System.v2_0_50727.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemRef_v20 => s_systemRef_v20.Value;
 
         private static readonly Lazy<MetadataReference> s_systemXmlRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemXml).GetReference(display: "System.Xml.v4_0_30319.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.Resources.SystemXml).GetReference(display: "System.Xml.v4_0_30319.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemXmlRef => s_systemXmlRef.Value;
 
         private static readonly Lazy<MetadataReference> s_systemXmlLinqRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemXmlLinq).GetReference(display: "System.Xml.Linq.v4_0_30319.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.Resources.SystemXmlLinq).GetReference(display: "System.Xml.Linq.v4_0_30319.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemXmlLinqRef => s_systemXmlLinqRef.Value;
 
         private static readonly Lazy<MetadataReference> s_mscorlibFacadeRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.mscorlib).GetReference(display: "mscorlib.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.Resources.mscorlib).GetReference(display: "mscorlib.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference MscorlibFacadeRef => s_mscorlibFacadeRef.Value;
 
         private static readonly Lazy<MetadataReference> s_systemRuntimeFacadeRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemRuntime).GetReference(display: "System.Runtime.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.Resources.SystemRuntime).GetReference(display: "System.Runtime.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemRuntimeFacadeRef => s_systemRuntimeFacadeRef.Value;
 
         private static readonly Lazy<MetadataReference> s_systemThreadingFacadeRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemThreading).GetReference(display: "System.Threading.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.Resources.SystemThreading).GetReference(display: "System.Threading.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemThreadingFacadeRef => s_systemThreadingTasksFacadeRef.Value;
 
         private static readonly Lazy<MetadataReference> s_systemThreadingTasksFacadeRef = new Lazy<MetadataReference>(
-            () => AssemblyMetadata.CreateFromImage(ResourcesNet451.SystemThreadingTasks).GetReference(display: "System.Threading.Tasks.dll"),
+            () => AssemblyMetadata.CreateFromImage(Net461.Resources.SystemThreadingTasks).GetReference(display: "System.Threading.Tasks.dll"),
             LazyThreadSafetyMode.PublicationOnly);
         public static MetadataReference SystemThreadingTaskFacadeRef => s_systemThreadingTasksFacadeRef.Value;
 

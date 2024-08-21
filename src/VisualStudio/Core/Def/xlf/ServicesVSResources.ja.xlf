@@ -1237,11 +1237,6 @@
         <target state="translated">変更のプレビュー</target>
         <note />
       </trans-unit>
-      <trans-unit id="Roslyn_save_command_handler">
-        <source>Roslyn save command handler</source>
-        <target state="translated">Roslyn 保存コマンド ハンドラー</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Run_Code_Analysis_on_0">
         <source>Run Code Analysis on {0}</source>
         <target state="translated">{0} で Code Analysis を実行</target>

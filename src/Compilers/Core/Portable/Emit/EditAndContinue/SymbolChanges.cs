@@ -412,9 +412,8 @@ namespace Microsoft.CodeAnalysis.Emit
 
                 var newMember = GetRequiredInternalSymbol(edit.NewSymbol);
 
-                // Partial methods are supplied as implementations but recorded
+                // Partial methods/properties/indexers are supplied as implementations but recorded
                 // internally as definitions since definitions are used in emit.
-                // https://github.com/dotnet/roslyn/issues/73772: should we also make sure to use the definition for a partial property?
                 if (newMember.Kind == SymbolKind.Method)
                 {
                     var newMethod = (IMethodSymbolInternal)newMember;
@@ -437,6 +436,16 @@ namespace Microsoft.CodeAnalysis.Emit
 
                         updatedMethodsPerType.Add((oldMethod.PartialDefinitionPart ?? oldMethod, (IMethodSymbolInternal)newMember));
                     }
+                }
+                else if (newMember.Kind == SymbolKind.Property)
+                {
+                    var newProperty = (IPropertySymbolInternal)newMember;
+
+                    // Partial properties should be implementations, not definitions.
+                    Debug.Assert(newProperty.PartialImplementationPart == null);
+                    Debug.Assert(edit.OldSymbol == null || ((IPropertySymbol)edit.OldSymbol).PartialImplementationPart == null);
+
+                    newMember = newProperty.PartialDefinitionPart ?? newMember;
                 }
 
                 AddContainingSymbolChanges(changesBuilder, newMember);

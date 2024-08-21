@@ -22,14 +22,12 @@ internal abstract partial class CommonFixAllState<TProvider, TFixAllProvider, TF
     public Solution Solution => Project.Solution;
     public FixAllScope Scope { get; }
     public abstract FixAllKind FixAllKind { get; }
-    public CodeActionOptionsProvider CodeActionOptionsProvider { get; }
 
     protected CommonFixAllState(
         TFixAllProvider fixAllProvider,
         Document? document,
         Project project,
         TProvider provider,
-        CodeActionOptionsProvider optionsProvider,
         FixAllScope scope,
         string? codeActionEquivalenceKey)
     {
@@ -39,7 +37,6 @@ internal abstract partial class CommonFixAllState<TProvider, TFixAllProvider, TF
         Document = document;
         Project = project;
         Provider = provider;
-        CodeActionOptionsProvider = optionsProvider;
         Scope = scope;
         CodeActionEquivalenceKey = codeActionEquivalenceKey;
     }

@@ -5,189 +5,222 @@
 using System;
 using System.Collections;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
+
+internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttachedCollectionSource
 {
-    internal abstract partial class BaseDiagnosticAndGeneratorItemSource : IAttachedCollectionSource
+    private static readonly DiagnosticDescriptorComparer s_comparer = new();
+
+    private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
+    private readonly BulkObservableCollection<BaseItem> _items = [];
+
+    private readonly CancellationTokenSource _cancellationTokenSource = new();
+    private readonly AsyncBatchingWorkQueue _workQueue;
+    private readonly IThreadingContext _threadingContext;
+
+    protected Workspace Workspace { get; }
+    protected ProjectId ProjectId { get; }
+    protected IAnalyzersCommandHandler CommandHandler { get; }
+
+    /// <summary>
+    /// The analyzer reference that has been found. Once it's been assigned a non-null value, it'll never be assigned
+    /// <see langword="null"/> again.
+    /// </summary>
+    private AnalyzerReference? _analyzerReference_DoNotAccessDirectly;
+
+    public BaseDiagnosticAndGeneratorItemSource(
+        IThreadingContext threadingContext,
+        Workspace workspace,
+        ProjectId projectId,
+        IAnalyzersCommandHandler commandHandler,
+        IDiagnosticAnalyzerService diagnosticAnalyzerService,
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
-        private static readonly DiagnosticDescriptorComparer s_comparer = new DiagnosticDescriptorComparer();
+        _threadingContext = threadingContext;
+        Workspace = workspace;
+        ProjectId = projectId;
+        CommandHandler = commandHandler;
+        _diagnosticAnalyzerService = diagnosticAnalyzerService;
 
-        private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
+        _workQueue = new AsyncBatchingWorkQueue(
+            DelayTimeSpan.Idle,
+            ProcessQueueAsync,
+            listenerProvider.GetListener(FeatureAttribute.SourceGenerators),
+            _cancellationTokenSource.Token);
+    }
 
-        private BulkObservableCollection<BaseItem>? _items;
-        private ReportDiagnostic _generalDiagnosticOption;
-        private ImmutableDictionary<string, ReportDiagnostic>? _specificDiagnosticOptions;
-        private AnalyzerConfigData? _analyzerConfigOptions;
-
-        public BaseDiagnosticAndGeneratorItemSource(Workspace workspace, ProjectId projectId, IAnalyzersCommandHandler commandHandler, IDiagnosticAnalyzerService diagnosticAnalyzerService)
+    protected AnalyzerReference? AnalyzerReference
+    {
+        get => _analyzerReference_DoNotAccessDirectly;
+        set
         {
-            Workspace = workspace;
-            ProjectId = projectId;
-            CommandHandler = commandHandler;
-            _diagnosticAnalyzerService = diagnosticAnalyzerService;
+            Contract.ThrowIfTrue(_analyzerReference_DoNotAccessDirectly != null);
+            if (value is null)
+                return;
+
+            _analyzerReference_DoNotAccessDirectly = value;
+
+            // Listen for changes that would affect the set of analyzers/generators in this reference, and kick off work
+            // to now get the items for this source.
+            Workspace.WorkspaceChanged += OnWorkspaceChanged;
+            _workQueue.AddWork();
         }
+    }
 
-        public Workspace Workspace { get; }
-        public ProjectId ProjectId { get; }
-        protected IAnalyzersCommandHandler CommandHandler { get; }
+    public abstract object SourceItem { get; }
 
-        public abstract AnalyzerReference? AnalyzerReference { get; }
+    // Defer actual determination and computation of the items until later.
+    public bool HasItems => !_cancellationTokenSource.IsCancellationRequested;
 
-        public abstract object SourceItem { get; }
+    public IEnumerable Items => _items;
 
-        [MemberNotNullWhen(true, nameof(AnalyzerReference))]
-        public bool HasItems
+    private async ValueTask ProcessQueueAsync(CancellationToken cancellationToken)
+    {
+        var analyzerReference = this.AnalyzerReference;
+
+        // If we haven't even determined which analyzer reference we're for, there's nothing to do.
+        if (analyzerReference is null)
+            return;
+
+        // If the project went away, or no longer contains this analyzer.  Shut ourselves down.
+        var project = this.Workspace.CurrentSolution.GetProject(this.ProjectId);
+        if (project is null || !project.AnalyzerReferences.Contains(analyzerReference))
         {
-            get
+            this.Workspace.WorkspaceChanged -= OnWorkspaceChanged;
+
+            _cancellationTokenSource.Cancel();
+
+            // Note: mutating _items will be picked up automatically by clients who are bound to the collection.  We do
+            // not need to notify them through some other mechanism.
+            if (_items.Count > 0)
             {
-                if (_items != null)
-                {
-                    return _items.Count > 0;
-                }
-
-                if (AnalyzerReference == null)
-                {
-                    return false;
-                }
-
-                var project = Workspace.CurrentSolution.GetProject(ProjectId);
-
-                if (project == null)
-                {
-                    return false;
-                }
-
-                return AnalyzerReference.GetAnalyzers(project.Language).Any() ||
-                       AnalyzerReference.GetGenerators(project.Language).Any();
-            }
-        }
-
-        public IEnumerable Items
-        {
-            get
-            {
-                if (_items == null)
-                {
-                    var project = Workspace.CurrentSolution.GetRequiredProject(ProjectId);
-                    _generalDiagnosticOption = project.CompilationOptions!.GeneralDiagnosticOption;
-                    _specificDiagnosticOptions = project.CompilationOptions!.SpecificDiagnosticOptions;
-                    _analyzerConfigOptions = project.GetAnalyzerConfigOptions();
-
-                    _items = CreateDiagnosticAndGeneratorItems(project.Id, project.Language, project.CompilationOptions, _analyzerConfigOptions);
-
-                    Workspace.WorkspaceChanged += OnWorkspaceChangedLookForOptionsChanges;
-                }
-
-                Logger.Log(
-                    FunctionId.SolutionExplorer_DiagnosticItemSource_GetItems,
-                    KeyValueLogMessage.Create(m => m["Count"] = _items.Count));
-
-                return _items;
-            }
-        }
-
-        private BulkObservableCollection<BaseItem> CreateDiagnosticAndGeneratorItems(ProjectId projectId, string language, CompilationOptions options, AnalyzerConfigData? analyzerConfigOptions)
-        {
-            // Within an analyzer assembly, an individual analyzer may report multiple different diagnostics
-            // with the same ID. Or, multiple analyzers may report diagnostics with the same ID. Or a
-            // combination of the two may occur.
-            // We only want to show one node in Solution Explorer for a given ID. So we pick one, but we need
-            // to be consistent in which one we pick. Diagnostics with the same ID may have different
-            // descriptions or messages, and it would be strange if the node's name changed from one run of
-            // VS to another. So we group the diagnostics by ID, sort them within a group, and take the first
-            // one.
-
-            Contract.ThrowIfFalse(HasItems);
-
-            var collection = new BulkObservableCollection<BaseItem>();
-            collection.AddRange(
-                AnalyzerReference.GetAnalyzers(language)
-                .SelectMany(a => _diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a))
-                .GroupBy(d => d.Id)
-                .OrderBy(g => g.Key, StringComparer.CurrentCulture)
-                .Select(g =>
-                {
-                    var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
-                    var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(options, analyzerConfigOptions?.ConfigOptions, analyzerConfigOptions?.TreeOptions);
-                    return new DiagnosticItem(projectId, AnalyzerReference, selectedDiagnostic, effectiveSeverity, CommandHandler);
-                }));
-
-            collection.AddRange(
-                AnalyzerReference.GetGenerators(language)
-                .Select(g => new SourceGeneratorItem(projectId, g, AnalyzerReference)));
-
-            return collection;
-        }
-
-        private void OnWorkspaceChangedLookForOptionsChanges(object sender, WorkspaceChangeEventArgs e)
-        {
-            if (e.Kind is WorkspaceChangeKind.SolutionCleared or
-                WorkspaceChangeKind.SolutionReloaded or
-                WorkspaceChangeKind.SolutionRemoved)
-            {
-                Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForOptionsChanges;
-            }
-            else if (e.ProjectId == ProjectId)
-            {
-                if (e.Kind == WorkspaceChangeKind.ProjectRemoved)
-                {
-                    Workspace.WorkspaceChanged -= OnWorkspaceChangedLookForOptionsChanges;
-                }
-                else if (e.Kind == WorkspaceChangeKind.ProjectChanged)
-                {
-                    OnProjectConfigurationChanged();
-                }
-                else if (e.DocumentId != null)
-                {
-                    switch (e.Kind)
-                    {
-                        case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
-                        case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
-                        case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
-                        case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
-                            OnProjectConfigurationChanged();
-                            break;
-                    }
-                }
+                // Go back to UI thread to update the observable collection.  Otherwise, it enqueue its own UI work that we cannot track.
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+                _items.Clear();
             }
 
             return;
+        }
 
-            // Local functions.
-            void OnProjectConfigurationChanged()
-            {
-                var project = e.NewSolution.GetRequiredProject(ProjectId);
-                var newGeneralDiagnosticOption = project.CompilationOptions!.GeneralDiagnosticOption;
-                var newSpecificDiagnosticOptions = project.CompilationOptions!.SpecificDiagnosticOptions;
-                var newAnalyzerConfigOptions = project.GetAnalyzerConfigOptions();
+        var newDiagnosticItems = GenerateDiagnosticItems(project, analyzerReference);
+        var newSourceGeneratorItems = await GenerateSourceGeneratorItemsAsync(
+            project, analyzerReference).ConfigureAwait(false);
 
-                if (newGeneralDiagnosticOption != _generalDiagnosticOption ||
-                    !object.ReferenceEquals(newSpecificDiagnosticOptions, _specificDiagnosticOptions) ||
-                    !object.ReferenceEquals(newAnalyzerConfigOptions?.TreeOptions, _analyzerConfigOptions?.TreeOptions) ||
-                    !object.ReferenceEquals(newAnalyzerConfigOptions?.ConfigOptions, _analyzerConfigOptions?.ConfigOptions))
+        // If we computed the same set of items as the last time, we can bail out now.
+        if (_items.SequenceEqual([.. newDiagnosticItems, .. newSourceGeneratorItems]))
+            return;
+
+        // Go back to UI thread to update the observable collection.  Otherwise, it enqueue its own UI work that we cannot track.
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+
+        _items.BeginBulkOperation();
+        try
+        {
+            _items.Clear();
+            _items.AddRange(newDiagnosticItems);
+            _items.AddRange(newSourceGeneratorItems);
+        }
+        finally
+        {
+            _items.EndBulkOperation();
+        }
+
+        return;
+
+        ImmutableArray<BaseItem> GenerateDiagnosticItems(
+            Project project,
+            AnalyzerReference analyzerReference)
+        {
+            var generalDiagnosticOption = project.CompilationOptions!.GeneralDiagnosticOption;
+            var specificDiagnosticOptions = project.CompilationOptions!.SpecificDiagnosticOptions;
+            var analyzerConfigOptions = project.GetAnalyzerConfigOptions();
+
+            return analyzerReference.GetAnalyzers(project.Language)
+                .SelectMany(a => _diagnosticAnalyzerService.AnalyzerInfoCache.GetDiagnosticDescriptors(a))
+                .GroupBy(d => d.Id)
+                .OrderBy(g => g.Key, StringComparer.CurrentCulture)
+                .SelectAsArray(g =>
                 {
-                    _generalDiagnosticOption = newGeneralDiagnosticOption;
-                    _specificDiagnosticOptions = newSpecificDiagnosticOptions;
-                    _analyzerConfigOptions = newAnalyzerConfigOptions;
+                    var selectedDiagnostic = g.OrderBy(d => d, s_comparer).First();
+                    var effectiveSeverity = selectedDiagnostic.GetEffectiveSeverity(
+                        project.CompilationOptions!,
+                        analyzerConfigOptions?.ConfigOptions,
+                        analyzerConfigOptions?.TreeOptions);
+                    return (BaseItem)new DiagnosticItem(project.Id, analyzerReference, selectedDiagnostic, effectiveSeverity, CommandHandler);
+                });
+        }
 
-                    Contract.ThrowIfNull(_items, "We only subscribe to events after we create the items, so this should not be null.");
+        async Task<ImmutableArray<BaseItem>> GenerateSourceGeneratorItemsAsync(
+            Project project,
+            AnalyzerReference analyzerReference)
+        {
+            var identifies = await GetIdentitiesAsync().ConfigureAwait(false);
+            return identifies.SelectAsArray(
+                identity => (BaseItem)new SourceGeneratorItem(project.Id, identity, analyzerReference.FullPath));
+        }
 
-                    foreach (var item in _items.OfType<DiagnosticItem>())
-                    {
-                        var effectiveSeverity = item.Descriptor.GetEffectiveSeverity(project.CompilationOptions, newAnalyzerConfigOptions?.ConfigOptions, newAnalyzerConfigOptions?.TreeOptions);
-                        item.UpdateEffectiveSeverity(effectiveSeverity);
-                    }
+        async Task<ImmutableArray<SourceGeneratorIdentity>> GetIdentitiesAsync()
+        {
+            // Can only remote AnalyzerFileReferences over to the oop side.  If we have another form of reference (like
+            // in tests), we'll just fall back to loading these in process.
+            if (analyzerReference is AnalyzerFileReference analyzerFileReference)
+            {
+                var client = await RemoteHostClient.TryGetClientAsync(this.Workspace, cancellationToken).ConfigureAwait(false);
+                if (client is not null)
+                {
+                    var result = await client.TryInvokeAsync<IRemoteSourceGenerationService, ImmutableArray<SourceGeneratorIdentity>>(
+                        project,
+                        (service, solutionChecksum, cancellationToken) => service.GetSourceGeneratorIdentitiesAsync(
+                            solutionChecksum, project.Id, analyzerFileReference.FullPath, cancellationToken),
+                        cancellationToken).ConfigureAwait(false);
+
+                    // If the call fails, the OOP substrate will have already reported an error
+                    if (!result.HasValue)
+                        return [];
+
+                    return result.Value;
                 }
             }
+
+            // Do the work in process.
+            return SourceGeneratorIdentity.GetIdentities(analyzerReference, project.Language);
+        }
+    }
+
+    private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+    {
+        switch (e.Kind)
+        {
+            // Solution is going away or being reloaded. The work queue will detect this and clean up accordingly.
+            case WorkspaceChangeKind.SolutionCleared:
+            case WorkspaceChangeKind.SolutionReloaded:
+            case WorkspaceChangeKind.SolutionRemoved:
+            // The project itself is being removed.  The work queue will detect this and clean up accordingly.
+            case WorkspaceChangeKind.ProjectRemoved:
+            case WorkspaceChangeKind.ProjectChanged:
+            // Could change the severity of an analyzer.
+            case WorkspaceChangeKind.AnalyzerConfigDocumentAdded:
+            case WorkspaceChangeKind.AnalyzerConfigDocumentChanged:
+            case WorkspaceChangeKind.AnalyzerConfigDocumentReloaded:
+            case WorkspaceChangeKind.AnalyzerConfigDocumentRemoved:
+                _workQueue.AddWork();
+                break;
+            default:
+                break;
         }
     }
 }

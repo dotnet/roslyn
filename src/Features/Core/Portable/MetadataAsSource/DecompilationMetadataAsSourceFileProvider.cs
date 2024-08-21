@@ -6,6 +6,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -32,6 +33,11 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource;
 internal class DecompilationMetadataAsSourceFileProvider(IImplementationAssemblyLookupService implementationAssemblyLookupService) : IMetadataAsSourceFileProvider
 {
     internal const string ProviderName = "Decompilation";
+
+    /// <summary>
+    /// Guards access to <see cref="_openedDocumentIds"/> and workspace updates when opening / closing documents.
+    /// </summary>
+    private readonly object _gate = new();
 
     /// <summary>
     /// Accessed only in <see cref="GetGeneratedFileAsync"/> and <see cref="CleanupGeneratedFiles"/>, both of which
@@ -271,17 +277,8 @@ internal class DecompilationMetadataAsSourceFileProvider(IImplementationAssembly
         return await MetadataAsSourceHelpers.GetLocationInGeneratedSourceAsync(symbolId, temporaryDocument, cancellationToken).ConfigureAwait(false);
     }
 
-    private static void AssertIsMainThread(MetadataAsSourceWorkspace workspace)
-    {
-        Contract.ThrowIfNull(workspace);
-        var threadingService = workspace.Services.GetRequiredService<IWorkspaceThreadingServiceProvider>().Service;
-        Contract.ThrowIfFalse(threadingService.IsOnMainThread);
-    }
-
     public bool ShouldCollapseOnOpen(MetadataAsSourceWorkspace workspace, string filePath, BlockStructureOptions blockStructureOptions)
     {
-        AssertIsMainThread(workspace);
-
         if (_generatedFilenameToInformation.TryGetValue(filePath, out var info))
         {
             return info.SignaturesOnly
@@ -292,45 +289,46 @@ internal class DecompilationMetadataAsSourceFileProvider(IImplementationAssembly
         return false;
     }
 
-    public bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, SourceTextContainer sourceTextContainer)
+    public bool TryAddDocumentToWorkspace(MetadataAsSourceWorkspace workspace, string filePath, SourceTextContainer sourceTextContainer, [NotNullWhen(true)] out DocumentId? documentId)
     {
-        AssertIsMainThread(workspace);
-
-        if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
+        lock (_gate)
         {
-            Contract.ThrowIfTrue(_openedDocumentIds.ContainsKey(fileInfo));
+            if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
+            {
+                Contract.ThrowIfTrue(_openedDocumentIds.ContainsKey(fileInfo));
 
-            // We do own the file, so let's open it up in our workspace
-            var (projectInfo, documentId) = fileInfo.GetProjectInfoAndDocumentId(workspace.Services.SolutionServices, loadFileFromDisk: true);
+                // We do own the file, so let's open it up in our workspace
+                (var projectInfo, documentId) = fileInfo.GetProjectInfoAndDocumentId(workspace.Services.SolutionServices, loadFileFromDisk: true);
 
-            workspace.OnProjectAdded(projectInfo);
-            workspace.OnDocumentOpened(documentId, sourceTextContainer);
+                workspace.OnProjectAdded(projectInfo);
+                workspace.OnDocumentOpened(documentId, sourceTextContainer);
 
-            _openedDocumentIds = _openedDocumentIds.Add(fileInfo, documentId);
+                _openedDocumentIds = _openedDocumentIds.Add(fileInfo, documentId);
+                return true;
+            }
 
-            return true;
+            documentId = null;
+            return false;
         }
-
-        return false;
     }
 
     public bool TryRemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, string filePath)
     {
-        AssertIsMainThread(workspace);
-
-        if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
+        lock (_gate)
         {
-            if (_openedDocumentIds.ContainsKey(fileInfo))
-                return RemoveDocumentFromWorkspace(workspace, fileInfo);
-        }
+            if (_generatedFilenameToInformation.TryGetValue(filePath, out var fileInfo))
+            {
+                if (_openedDocumentIds.ContainsKey(fileInfo))
+                    return RemoveDocumentFromWorkspace_NoLock(workspace, fileInfo);
+            }
 
-        return false;
+            return false;
+        }
     }
 
-    private bool RemoveDocumentFromWorkspace(MetadataAsSourceWorkspace workspace, MetadataAsSourceGeneratedFileInfo fileInfo)
+    private bool RemoveDocumentFromWorkspace_NoLock(MetadataAsSourceWorkspace workspace, MetadataAsSourceGeneratedFileInfo fileInfo)
     {
-        AssertIsMainThread(workspace);
-
+        // Serial access is guaranteed by the caller.
         var documentId = _openedDocumentIds.GetValueOrDefault(fileInfo);
         Contract.ThrowIfNull(documentId);
 
@@ -359,16 +357,19 @@ internal class DecompilationMetadataAsSourceFileProvider(IImplementationAssembly
 
     public void CleanupGeneratedFiles(MetadataAsSourceWorkspace workspace)
     {
-        // Clone the list so we don't break our own enumeration
-        foreach (var generatedFileInfo in _generatedFilenameToInformation.Values.ToList())
+        lock (_gate)
         {
-            if (_openedDocumentIds.ContainsKey(generatedFileInfo))
-                RemoveDocumentFromWorkspace(workspace, generatedFileInfo);
-        }
+            // Clone the list so we don't break our own enumeration
+            foreach (var generatedFileInfo in _generatedFilenameToInformation.Values.ToList())
+            {
+                if (_openedDocumentIds.ContainsKey(generatedFileInfo))
+                    RemoveDocumentFromWorkspace_NoLock(workspace, generatedFileInfo);
+            }
 
-        _generatedFilenameToInformation.Clear();
-        _keyToInformation.Clear();
-        Contract.ThrowIfFalse(_openedDocumentIds.IsEmpty);
+            _generatedFilenameToInformation.Clear();
+            _keyToInformation.Clear();
+            Contract.ThrowIfFalse(_openedDocumentIds.IsEmpty);
+        }
     }
 
     private static async Task<UniqueDocumentKey> GetUniqueDocumentKeyAsync(Project project, INamedTypeSymbol topLevelNamedType, bool signaturesOnly, CancellationToken cancellationToken)

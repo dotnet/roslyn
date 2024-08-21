@@ -7,12 +7,6 @@ using System.Runtime.Serialization;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 
-#if !CODE_STYLE
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
-#endif
-
 namespace Microsoft.CodeAnalysis.Simplification;
 
 internal record class SimplifierOptions
@@ -60,28 +54,7 @@ internal record class SimplifierOptions
     }
 
 #if !CODE_STYLE
-    public static SimplifierOptions GetDefault(LanguageServices languageServices)
+    public static SimplifierOptions GetDefault(Host.LanguageServices languageServices)
         => languageServices.GetRequiredService<ISimplificationService>().DefaultOptions;
-#endif
-}
-
-internal interface SimplifierOptionsProvider
-#if !CODE_STYLE
-    : OptionsProvider<SimplifierOptions>
-#endif
-{
-}
-
-internal static partial class SimplifierOptionsProviders
-{
-#if !CODE_STYLE
-    public static SimplifierOptions GetSimplifierOptions(this IOptionsReader options, LanguageServices languageServices)
-        => languageServices.GetService<ISimplificationService>()?.GetSimplifierOptions(options) ?? SimplifierOptions.CommonDefaults;
-
-    public static async ValueTask<SimplifierOptions> GetSimplifierOptionsAsync(this Document document, CancellationToken cancellationToken)
-    {
-        var configOptions = await document.GetAnalyzerConfigOptionsAsync(cancellationToken).ConfigureAwait(false);
-        return configOptions.GetSimplifierOptions(document.Project.Services);
-    }
 #endif
 }

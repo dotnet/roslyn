@@ -154,7 +154,7 @@ internal partial class EnumAndCompletionListTagCompletionProvider : LSPCompletio
             type = enumType;
         }
 
-        var hideAdvancedMembers = context.CompletionOptions.HideAdvancedMembers;
+        var hideAdvancedMembers = context.CompletionOptions.MemberDisplayOptions.HideAdvancedMembers;
         if (!type.IsEditorBrowsable(hideAdvancedMembers, semanticModel.Compilation))
             return;
 

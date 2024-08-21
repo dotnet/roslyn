@@ -235,7 +235,6 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
                 SyntaxFormattingOptions.GetDefault(languageServices),
                 CodeCleanupOptions.GetDefault(languageServices),
                 CodeGenerationOptions.GetDefault(languageServices),
-                CodeActionOptions.GetDefault(languageServices),
                 IndentationOptions.GetDefault(languageServices),
                 ExtractMethodGenerationOptions.GetDefault(languageServices),
 

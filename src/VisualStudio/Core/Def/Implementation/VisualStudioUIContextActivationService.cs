@@ -7,6 +7,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.VisualStudio.Shell;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 
@@ -15,9 +16,60 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class VisualStudioUIContextActivationService() : IUIContextActivationService
 {
-    public void ExecuteWhenActivated(Guid uiContext, Action action)
+    public IDisposable ExecuteWhenActivated(Guid uiContext, Action action)
     {
         var context = UIContext.FromUIContextGuid(uiContext);
-        context.WhenActivated(action);
+        if (context.IsActive)
+        {
+            action();
+            return EmptyDisposable.Instance;
+        }
+        else
+        {
+            return new WhenActivatedHandler(context, action);
+        }
+    }
+
+    private sealed class EmptyDisposable : IDisposable
+    {
+        public static EmptyDisposable Instance = new();
+
+        public void Dispose()
+        {
+        }
+    }
+
+    private sealed class WhenActivatedHandler : IDisposable
+    {
+        private readonly Action _action;
+        private UIContext? _context;
+
+        public WhenActivatedHandler(UIContext context, Action action)
+        {
+            _context = context;
+            _action = action;
+            _context.UIContextChanged += OnContextChanged;
+        }
+
+        public void Dispose()
+        {
+            if (_context is not null)
+            {
+                _context.UIContextChanged -= OnContextChanged;
+            }
+
+            _context = null;
+        }
+
+        private void OnContextChanged(object sender, UIContextChangedEventArgs e)
+        {
+            Contract.ThrowIfNull(_context);
+
+            if (e.Activated)
+            {
+                _action();
+                Dispose();
+            }
+        }
     }
 }

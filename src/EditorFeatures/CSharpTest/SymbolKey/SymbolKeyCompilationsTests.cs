@@ -160,7 +160,6 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
         var implementation = definition.PartialImplementationPart;
 
         // Assert that both the definition and implementation resolve back to themselves
-        // https://github.com/dotnet/roslyn/issues/73772: add a similar test for properties
         Assert.Equal(definition, ResolveSymbol(definition, comp, SymbolKeyComparison.None));
         Assert.Equal(implementation, ResolveSymbol(implementation, comp, SymbolKeyComparison.None));
     }

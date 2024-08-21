@@ -22,15 +22,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CallHierarchy;
 internal class CallHierarchyItem : ICallHierarchyMemberItem
 {
     private readonly Workspace _workspace;
-    private readonly string _containingNamespaceName;
-    private readonly string _containingTypeName;
     private readonly INavigableLocation _navigableLocation;
     private readonly IEnumerable<CallHierarchyDetail> _callsites;
     private readonly IEnumerable<AbstractCallFinder> _finders;
     private readonly Func<ImageSource> _glyphCreator;
-    private readonly string _name;
     private readonly CallHierarchyProvider _provider;
-    private readonly string _sortText;
 
     public CallHierarchyItem(
         CallHierarchyProvider provider,
@@ -45,12 +41,12 @@ internal class CallHierarchyItem : ICallHierarchyMemberItem
         _provider = provider;
         _navigableLocation = navigableLocation;
         _finders = finders;
-        _containingTypeName = symbol.ContainingType.ToDisplayString(ContainingTypeFormat);
-        _containingNamespaceName = symbol.ContainingNamespace.ToDisplayString(ContainingNamespaceFormat);
+        ContainingTypeName = symbol.ContainingType.ToDisplayString(ContainingTypeFormat);
+        ContainingNamespaceName = symbol.ContainingNamespace.ToDisplayString(ContainingNamespaceFormat);
         _glyphCreator = glyphCreator;
-        _name = symbol.ToDisplayString(MemberNameFormat);
+        MemberName = symbol.ToDisplayString(MemberNameFormat);
         _callsites = callsites.SelectAsArray(loc => new CallHierarchyDetail(provider, loc, _workspace));
-        _sortText = symbol.ToDisplayString();
+        SortText = symbol.ToDisplayString();
         ProjectName = project.Name;
     }
 
@@ -83,9 +79,9 @@ internal class CallHierarchyItem : ICallHierarchyMemberItem
 
     public string ProjectName { get; }
 
-    public string ContainingNamespaceName => _containingNamespaceName;
+    public string ContainingNamespaceName { get; }
 
-    public string ContainingTypeName => _containingTypeName;
+    public string ContainingTypeName { get; }
 
     public IEnumerable<ICallHierarchyItemDetails> Details => _callsites;
 
@@ -97,11 +93,11 @@ internal class CallHierarchyItem : ICallHierarchyMemberItem
         }
     }
 
-    public string MemberName => _name;
+    public string MemberName { get; }
 
     public string NameSeparator => ".";
 
-    public string SortText => _sortText;
+    public string SortText { get; }
 
     public IEnumerable<CallHierarchySearchCategory> SupportedSearchCategories
     {

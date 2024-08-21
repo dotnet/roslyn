@@ -9,9 +9,12 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Class representing the response from a textDocument/documentHighlight request.
-    ///
+    /// A document highlight is a range inside a text document which deserves
+    /// special attention.Usually a document highlight is visualized by changing
+    /// the background color of its range.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentHighlight">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class DocumentHighlight
     {

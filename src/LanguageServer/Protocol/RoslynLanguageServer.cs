@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
             // those cases, we do not need to add an additional workspace to manage new files we hear about.  So only
             // add the LspMiscellaneousFilesWorkspace for hosts that have not already brought their own.
             if (serverKind == WellKnownLspServerKinds.CSharpVisualBasicLspServer)
-                AddLazyService<LspMiscellaneousFilesWorkspace>(lspServices => new LspMiscellaneousFilesWorkspace(lspServices, hostServices));
+                AddLazyService<LspMiscellaneousFilesWorkspace>(lspServices => lspServices.GetRequiredService<LspMiscellaneousFilesWorkspaceProvider>().CreateLspMiscellaneousFilesWorkspace(lspServices, hostServices));
 
             return baseServiceMap.ToFrozenDictionary(
                 keySelector: kvp => kvp.Key,

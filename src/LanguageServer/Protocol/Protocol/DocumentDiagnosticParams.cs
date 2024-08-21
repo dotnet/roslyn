@@ -9,14 +9,14 @@ using System.Text.Json.Serialization;
 
 /// <summary>
 /// Class representing the document diagnostic request parameters
-///
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#documentDiagnosticParams">Language Server Protocol specification</see> for additional information.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentDiagnosticParams">Language Server Protocol specification</see> for additional information.
+/// </para>
 /// </summary>
-internal class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultParams<SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>>
+/// <remarks>Since LSP 3.17</remarks>
+internal class DocumentDiagnosticParams : ITextDocumentParams, IWorkDoneProgressParams, IPartialResultParams<SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>>
 {
-    /// <summary>
-    /// Gets or sets the value of the Progress instance.
-    /// </summary>
+    /// <inheritdoc/>
     /// <remarks>
     /// Note that the first literal send needs to be either the <see cref="RelatedUnchangedDocumentDiagnosticReport"/> or <see cref="RelatedUnchangedDocumentDiagnosticReport"/>
     /// followed by n <see cref="DocumentDiagnosticReportPartialResult"/> literals.
@@ -25,9 +25,13 @@ internal class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultPar
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IProgress<SumType<RelatedFullDocumentDiagnosticReport, RelatedUnchangedDocumentDiagnosticReport, DocumentDiagnosticReportPartialResult>>? PartialResultToken
     {
-        get;
-        set;
+        get; set;
     }
+
+    /// <inheritdoc/>
+    [JsonPropertyName(Methods.WorkDoneTokenName)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
 
     /// <summary>
     /// Gets or sets the <see cref="TextDocumentIdentifier"/> to provide diagnostics for.
@@ -40,7 +44,7 @@ internal class DocumentDiagnosticParams : ITextDocumentParams, IPartialResultPar
     }
 
     /// <summary>
-    /// Gets or sets the identifier for which the client is requesting diagnostics for.
+    /// The additional identifier provided during registration
     /// </summary>
     [JsonPropertyName("identifier")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

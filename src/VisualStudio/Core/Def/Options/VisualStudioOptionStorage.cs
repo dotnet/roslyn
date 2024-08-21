@@ -131,7 +131,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_enable_argument_completion_snippets", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.EnableArgumentCompletionSnippets")},
         {"dotnet_return_key_completion_behavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.EnterKeyBehavior")},
 #pragma warning disable CS0612 // Type or member is obsolete
-        {"dotnet_hide_advanced_members_in_completion", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Hide Advanced Auto List Members", vbKey: "TextEditor.Basic.Hide Advanced Auto List Members")},
+        {"dotnet_hide_advanced_members", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Hide Advanced Auto List Members", vbKey: "TextEditor.Basic.Hide Advanced Auto List Members")},
 #pragma warning restore
         {"dotnet_highlight_matching_portions_of_completion_list_items", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.HighlightMatchingPortionsOfCompletionListItems")},
         {"dotnet_show_completion_item_filters", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ShowCompletionItemFilters")},
@@ -317,7 +317,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_generate_equality_operators", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.GenerateOperators")},
         {"dotnet_generate_iequatable_implementation", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.GenerateEqualsAndGetHashCodeFromMembersOptions.ImplementIEquatable")},
         {"dotnet_generate_overrides_for_all_members", new RoamingProfileStorage("TextEditor.Specific.GenerateOverridesOptions.SelectAll")},
-        {"dotnet_insertion_behavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.ImplementTypeOptions.InsertionBehavior")},
+        {"dotnet_member_insertion_location", new RoamingProfileStorage("TextEditor.%LANGUAGE%.ImplementTypeOptions.InsertionBehavior")},
         {"dotnet_property_generation_behavior", new RoamingProfileStorage("TextEditor.%LANGUAGE%.ImplementTypeOptions.PropertyGenerationBehavior")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"indent_size", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Indent Size", vbKey: "TextEditor.Basic.Indent Size")},
@@ -373,6 +373,7 @@ internal abstract class VisualStudioOptionStorage
         {"dotnet_unsupported_report_invalid_json_patterns", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.ReportInvalidJsonPatterns")},
         {"visual_studio_enable_key_binding_reset", new FeatureFlagStorage("Roslyn.KeybindingResetEnabled")},
         {"visual_studio_enable_semantic_search", new FeatureFlagStorage("Roslyn.SemanticSearchEnabled")},
+        {"visual_studio_enable_copilot_rename_context", new FeatureFlagStorage("Roslyn.CopilotRenameGetContext")},
         {"visual_studio_key_binding_needs_reset", new LocalUserProfileStorage(@"Roslyn\Internal\KeybindingsStatus", "NeedsReset")},
         {"visual_studio_key_binding_reset_never_show_again", new LocalUserProfileStorage(@"Roslyn\Internal\KeybindingsStatus", "NeverShowAgain")},
         {"visual_studio_resharper_key_binding_status", new LocalUserProfileStorage(@"Roslyn\Internal\KeybindingsStatus", "ReSharperStatus")},
@@ -405,7 +406,7 @@ internal abstract class VisualStudioOptionStorage
         {"visual_studio_disable_document_outline_feature_flag", new FeatureFlagStorage(@"DocumentOutline.DisableFeature")},
         {"visual_studio_document_outline_sort_order", new RoamingProfileStorage(@"DocumentOutline.SortOrder")},
         {"visual_studio_enable_symbol_search", new LocalUserProfileStorage(@"Roslyn\Features\SymbolSearch", "Enabled")},
-        {"dotnet_search_nuget_packages", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
+        {"dotnet_unsupported_search_nuget_packages", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInNuGetPackages")},
         {"dotnet_search_reference_assemblies", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Specific.SuggestForTypesInReferenceAssemblies")},
 #pragma warning disable CS0612 // Type or member is obsolete
         {"tab_width", new RoamingProfileStorage("TextEditor.%LANGUAGE%.Tab Size", "TextEditor.Basic.Tab Size")},

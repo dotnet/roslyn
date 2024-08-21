@@ -49,14 +49,6 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
         new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
         isUnnecessary: false);
 
-    private static readonly DiagnosticDescriptor s_unnecessaryCodeDescriptor = CreateDescriptorWithId(
-        IDEDiagnosticIds.UseObjectInitializerDiagnosticId,
-        EnforceOnBuildValues.UseObjectInitializer,
-        hasAnyCodeStyleOption: true,
-        new LocalizableResourceString(nameof(AnalyzersResources.Simplify_object_initialization), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        new LocalizableResourceString(nameof(AnalyzersResources.Object_initialization_can_be_simplified), AnalyzersResources.ResourceManager, typeof(AnalyzersResources)),
-        isUnnecessary: true);
-
     protected abstract bool FadeOutOperatorToken { get; }
     protected abstract TAnalyzer GetAnalyzer();
 
@@ -130,25 +122,25 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
 
         var locations = ImmutableArray.Create(objectCreationExpression.GetLocation());
 
-        context.ReportDiagnostic(DiagnosticHelper.Create(
+        var unnecessaryLocations = FadeOutCode(context, matches);
+
+        context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
             s_descriptor,
             objectCreationExpression.GetFirstToken().GetLocation(),
             option.Notification,
             context.Options,
             locations,
-            properties: null));
-
-        FadeOutCode(context, matches, locations);
+            additionalUnnecessaryLocations: unnecessaryLocations));
     }
 
-    private void FadeOutCode(
+    private ImmutableArray<Location> FadeOutCode(
         SyntaxNodeAnalysisContext context,
-        ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches,
-        ImmutableArray<Location> locations)
+        ImmutableArray<Match<TExpressionSyntax, TStatementSyntax, TMemberAccessExpressionSyntax, TAssignmentStatementSyntax>> matches)
     {
         var syntaxTree = context.Node.SyntaxTree;
 
         var syntaxFacts = GetSyntaxFacts();
+        using var locations = TemporaryArray<Location>.Empty;
 
         foreach (var match in matches)
         {
@@ -158,23 +150,15 @@ internal abstract partial class AbstractUseObjectInitializerDiagnosticAnalyzer<
 
             var location1 = Location.Create(syntaxTree, TextSpan.FromBounds(
                 match.MemberAccessExpression.SpanStart, end));
+            locations.Add(location1);
 
             if (match.Statement.Span.End > match.Initializer.FullSpan.End)
             {
-                context.ReportDiagnostic(DiagnosticHelper.CreateWithLocationTags(
-                    s_unnecessaryCodeDescriptor,
-                    location1,
-                    NotificationOption2.ForSeverity(s_unnecessaryCodeDescriptor.DefaultSeverity),
-                    context.Options,
-                    additionalLocations: locations,
-                    additionalUnnecessaryLocations: [syntaxTree.GetLocation(TextSpan.FromBounds(match.Initializer.FullSpan.End, match.Statement.Span.End))]));
-            }
-            else
-            {
-                context.ReportDiagnostic(Diagnostic.Create(
-                    s_unnecessaryCodeDescriptor, location1, additionalLocations: locations));
+                locations.Add(syntaxTree.GetLocation(TextSpan.FromBounds(match.Initializer.FullSpan.End, match.Statement.Span.End)));
             }
         }
+
+        return locations.ToImmutableAndClear();
     }
 
     public sealed override DiagnosticAnalyzerCategory GetAnalyzerCategory()

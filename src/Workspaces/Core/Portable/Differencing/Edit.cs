@@ -18,9 +18,6 @@ namespace Microsoft.CodeAnalysis.Differencing;
 public readonly struct Edit<TNode> : IEquatable<Edit<TNode>>
 {
     private readonly TreeComparer<TNode> _comparer;
-    private readonly EditKind _kind;
-    private readonly TNode _oldNode;
-    private readonly TNode _newNode;
 
     internal Edit(EditKind kind, TreeComparer<TNode> comparer, TNode oldNode, TNode newNode)
     {
@@ -33,12 +30,12 @@ public readonly struct Edit<TNode> : IEquatable<Edit<TNode>>
                      !comparer.TreesEqual(oldNode, newNode));
 
         _comparer = comparer;
-        _kind = kind;
-        _oldNode = oldNode;
-        _newNode = newNode;
+        Kind = kind;
+        OldNode = oldNode;
+        NewNode = newNode;
     }
 
-    public EditKind Kind => _kind;
+    public EditKind Kind { get; }
 
     /// <summary>
     /// Insert: 
@@ -50,7 +47,7 @@ public readonly struct Edit<TNode> : IEquatable<Edit<TNode>>
     /// Move, Update: 
     /// Node in the old tree/sequence.
     /// </summary>
-    public TNode OldNode => _oldNode;
+    public TNode OldNode { get; }
 
     /// <summary>
     /// Insert: 
@@ -62,29 +59,29 @@ public readonly struct Edit<TNode> : IEquatable<Edit<TNode>>
     /// Move, Update:
     /// Node in the new tree/sequence.
     /// </summary>
-    public TNode NewNode => _newNode;
+    public TNode NewNode { get; }
 
     public override bool Equals(object obj)
         => obj is Edit<TNode> && Equals((Edit<TNode>)obj);
 
     public bool Equals(Edit<TNode> other)
     {
-        return _kind == other._kind
-            && (_oldNode == null) ? other._oldNode == null : _oldNode.Equals(other._oldNode)
-            && (_newNode == null) ? other._newNode == null : _newNode.Equals(other._newNode);
+        return Kind == other.Kind
+            && (OldNode == null) ? other.OldNode == null : OldNode.Equals(other.OldNode)
+            && (NewNode == null) ? other.NewNode == null : NewNode.Equals(other.NewNode);
     }
 
     public override int GetHashCode()
     {
-        var hash = (int)_kind;
-        if (_oldNode != null)
+        var hash = (int)Kind;
+        if (OldNode != null)
         {
-            hash = Hash.Combine(_oldNode.GetHashCode(), hash);
+            hash = Hash.Combine(OldNode.GetHashCode(), hash);
         }
 
-        if (_newNode != null)
+        if (NewNode != null)
         {
-            hash = Hash.Combine(_newNode.GetHashCode(), hash);
+            hash = Hash.Combine(NewNode.GetHashCode(), hash);
         }
 
         return hash;
@@ -97,17 +94,17 @@ public readonly struct Edit<TNode> : IEquatable<Edit<TNode>>
         switch (Kind)
         {
             case EditKind.Delete:
-                return result + " [" + _oldNode.ToString() + "]" + DisplayPosition(_oldNode);
+                return result + " [" + OldNode.ToString() + "]" + DisplayPosition(OldNode);
 
             case EditKind.Insert:
-                return result + " [" + _newNode.ToString() + "]" + DisplayPosition(_newNode);
+                return result + " [" + NewNode.ToString() + "]" + DisplayPosition(NewNode);
 
             case EditKind.Update:
-                return result + " [" + _oldNode.ToString() + "]" + DisplayPosition(_oldNode) + " -> [" + _newNode.ToString() + "]" + DisplayPosition(_newNode);
+                return result + " [" + OldNode.ToString() + "]" + DisplayPosition(OldNode) + " -> [" + NewNode.ToString() + "]" + DisplayPosition(NewNode);
 
             case EditKind.Move:
             case EditKind.Reorder:
-                return result + " [" + _oldNode.ToString() + "]" + DisplayPosition(_oldNode) + " -> " + DisplayPosition(_newNode);
+                return result + " [" + OldNode.ToString() + "]" + DisplayPosition(OldNode) + " -> " + DisplayPosition(NewNode);
         }
 
         return result;

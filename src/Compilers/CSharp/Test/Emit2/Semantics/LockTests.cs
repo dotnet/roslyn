@@ -108,6 +108,62 @@ public class LockTests : CSharpTestBase
     }
 
     [Fact]
+    public void LockInNet9()
+    {
+        var source = """
+            using System;
+            using System.Threading;
+
+            static class C
+            {
+                static readonly Lock _lock = new();
+
+                static void Main()
+                {
+                    Console.Write("1");
+                    lock (_lock)
+                    {
+                        Console.Write("2");
+                    }
+                    Console.Write("3");
+                }
+            }
+            """;
+        var verifier = CompileAndVerify(source,
+            expectedOutput: ExecutionConditionUtil.IsMonoOrCoreClr ? "123" : null,
+            targetFramework: TargetFramework.Net90,
+            verify: Verification.FailsPEVerify);
+        verifier.VerifyDiagnostics();
+        verifier.VerifyIL("C.Main", """
+            {
+              // Code size       52 (0x34)
+              .maxstack  1
+              .locals init (System.Threading.Lock.Scope V_0)
+              IL_0000:  ldstr      "1"
+              IL_0005:  call       "void System.Console.Write(string)"
+              IL_000a:  ldsfld     "System.Threading.Lock C._lock"
+              IL_000f:  callvirt   "System.Threading.Lock.Scope System.Threading.Lock.EnterScope()"
+              IL_0014:  stloc.0
+              .try
+              {
+                IL_0015:  ldstr      "2"
+                IL_001a:  call       "void System.Console.Write(string)"
+                IL_001f:  leave.s    IL_0029
+              }
+              finally
+              {
+                IL_0021:  ldloca.s   V_0
+                IL_0023:  call       "void System.Threading.Lock.Scope.Dispose()"
+                IL_0028:  endfinally
+              }
+              IL_0029:  ldstr      "3"
+              IL_002e:  call       "void System.Console.Write(string)"
+              IL_0033:  ret
+            }
+            """);
+    }
+
+    [Fact]
     public void SemanticModel()
     {
         var source = """

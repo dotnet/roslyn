@@ -698,9 +698,8 @@ class A
         workspace.TryApplyChanges(workspace.CurrentSolution.WithAnalyzerReferences(new[] { analyzerReference }));
         var project = workspace.CurrentSolution.Projects.Single();
         var document = documentAnalysis ? project.Documents.Single() : null;
-        var ideAnalyzerOptions = IdeAnalyzerOptions.CommonDefault;
         var diagnosticsMapResults = await DiagnosticComputer.GetDiagnosticsAsync(
-            document, project, Checksum.Null, ideAnalyzerOptions, span: null, analyzerIdsToRequestDiagnostics,
+            document, project, Checksum.Null, span: null, analyzerIdsToRequestDiagnostics,
             AnalysisKind.Semantic, new DiagnosticAnalyzerInfoCache(), workspace.Services,
             isExplicit: false, reportSuppressedDiagnostics: false, logPerformanceInfo: false, getTelemetryInfo: false,
             cancellationToken: CancellationToken.None);
@@ -746,7 +745,6 @@ class B
         workspace.TryApplyChanges(project.Solution);
 
         project = workspace.CurrentSolution.Projects.Single();
-        var ideAnalyzerOptions = IdeAnalyzerOptions.CommonDefault;
         var document = project.Documents.Single();
         var additionalDocument = project.AdditionalDocuments.Single();
 
@@ -769,7 +767,7 @@ class B
                 : AnalysisKind.Semantic;
             var documentToAnalyze = kind == FilterSpanTestAnalyzer.AnalysisKind.AdditionalFile ? additionalDocument : document;
             _ = await DiagnosticComputer.GetDiagnosticsAsync(
-                documentToAnalyze, project, Checksum.Null, ideAnalyzerOptions, filterSpan, analyzerIdsToRequestDiagnostics,
+                documentToAnalyze, project, Checksum.Null, filterSpan, analyzerIdsToRequestDiagnostics,
                 analysisKind, new DiagnosticAnalyzerInfoCache(), workspace.Services,
                 isExplicit: false, reportSuppressedDiagnostics: false, logPerformanceInfo: false, getTelemetryInfo: false,
                 CancellationToken.None);
@@ -817,7 +815,6 @@ class A
         var document = project.Documents.Single();
         var diagnosticAnalyzerInfoCache = new DiagnosticAnalyzerInfoCache();
 
-        var ideAnalyzerOptions = IdeAnalyzerOptions.CommonDefault;
         var kind = actionKind == AnalyzerRegisterActionKind.SyntaxTree ? AnalysisKind.Syntax : AnalysisKind.Semantic;
         var analyzerIds = new[] { analyzer.GetAnalyzerId() };
 
@@ -825,7 +822,7 @@ class A
         Assert.Empty(analyzer.CanceledCompilations);
         try
         {
-            _ = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, ideAnalyzerOptions, span: null,
+            _ = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, span: null,
                 analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, isExplicit: false, reportSuppressedDiagnostics: false,
                 logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: analyzer.CancellationToken);
 
@@ -838,7 +835,7 @@ class A
         Assert.Single(analyzer.CanceledCompilations);
 
         // Then invoke analysis without cancellation token, and verify non-cancelled diagnostic.
-        var diagnosticsMap = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, ideAnalyzerOptions, span: null,
+        var diagnosticsMap = await DiagnosticComputer.GetDiagnosticsAsync(document, project, Checksum.Null, span: null,
             analyzerIds, kind, diagnosticAnalyzerInfoCache, workspace.Services, isExplicit: false, reportSuppressedDiagnostics: false,
             logPerformanceInfo: false, getTelemetryInfo: false, cancellationToken: CancellationToken.None);
         var builder = diagnosticsMap.Diagnostics.Single().diagnosticMap;

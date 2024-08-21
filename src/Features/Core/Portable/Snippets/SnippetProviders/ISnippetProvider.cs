@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,12 +21,17 @@ internal interface ISnippetProvider
     string Description { get; }
 
     /// <summary>
-    /// Determines if a snippet can exist at a particular location.
+    /// Additional filter texts for snippet completion item
     /// </summary>
-    ValueTask<SnippetData?> GetSnippetDataAsync(SnippetContext context, CancellationToken cancellationToken);
+    ImmutableArray<string> AdditionalFilterTexts { get; }
 
     /// <summary>
-    /// Gets the Snippet from the corresponding snippet provider.
+    /// Determines if a snippet can exist at a particular location.
     /// </summary>
-    Task<SnippetChange> GetSnippetAsync(Document document, int position, CancellationToken cancellationToken);
+    bool IsValidSnippetLocation(SnippetContext context, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Gets the Snippet change from the corresponding snippet provider.
+    /// </summary>
+    Task<SnippetChange> GetSnippetChangeAsync(Document document, int position, CancellationToken cancellationToken);
 }

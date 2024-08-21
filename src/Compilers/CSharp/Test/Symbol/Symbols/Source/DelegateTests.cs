@@ -773,7 +773,7 @@ class C
         {
             var source = @"delegate ref int D();";
 
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -790,7 +790,7 @@ class C
         {
             var source = @"delegate ref readonly int D(in int arg);";
 
-            var comp = CreateCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib461(source);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;
@@ -820,7 +820,7 @@ class C
     }
 }";
             var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
-            var compilation = CreateCompilationWithMscorlib45(new SyntaxTree[] { tree }).VerifyDiagnostics();
+            var compilation = CreateCompilationWithMscorlib461(new SyntaxTree[] { tree }).VerifyDiagnostics();
 
             var model = compilation.GetSemanticModel(tree);
 

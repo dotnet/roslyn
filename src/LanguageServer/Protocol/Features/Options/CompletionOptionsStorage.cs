@@ -26,7 +26,7 @@ internal static class CompletionOptionsStorage
             TriggerInArgumentLists = options.GetOption(TriggerInArgumentLists, language),
             EnterKeyBehavior = options.GetOption(EnterKeyBehavior, language),
             SnippetsBehavior = options.GetOption(SnippetsBehavior, language),
-            HideAdvancedMembers = options.GetOption(HideAdvancedMembers, language),
+            MemberDisplayOptions = options.GetMemberDisplayOptions(language),
             ShowNameSuggestions = options.GetOption(ShowNameSuggestions, language),
             ShowItemsFromUnimportedNamespaces = options.GetOption(ShowItemsFromUnimportedNamespaces, language),
             UnnamedSymbolCompletionDisabled = options.GetOption(UnnamedSymbolCompletionDisabledFeatureFlag),
@@ -43,7 +43,6 @@ internal static class CompletionOptionsStorage
 
     public static readonly Option2<bool> UnnamedSymbolCompletionDisabledFeatureFlag = new("dotnet_disable_unnamed_symbol_completion", CompletionOptions.Default.UnnamedSymbolCompletionDisabled, group: s_completionOptionGroup);
     public static readonly Option2<bool> ShowNewSnippetExperienceFeatureFlag = new("dotnet_show_new_snippet_experience_feature_flag", CompletionOptions.Default.ShowNewSnippetExperienceFeatureFlag, group: s_completionOptionGroup);
-    public static readonly PerLanguageOption2<bool> HideAdvancedMembers = new("dotnet_hide_advanced_members_in_completion", CompletionOptions.Default.HideAdvancedMembers, group: s_completionOptionGroup);
     public static readonly PerLanguageOption2<bool> TriggerOnTyping = new("dotnet_trigger_completion_on_typing", CompletionOptions.Default.TriggerOnTyping, group: s_completionOptionGroup);
     public static readonly PerLanguageOption2<bool> TriggerOnTypingLetters = new("dotnet_trigger_completion_on_typing_letters", CompletionOptions.Default.TriggerOnTypingLetters, group: s_completionOptionGroup);
     public static readonly PerLanguageOption2<bool?> TriggerOnDeletion = new("dotnet_trigger_completion_on_deletion", CompletionOptions.Default.TriggerOnDeletion, group: s_completionOptionGroup);

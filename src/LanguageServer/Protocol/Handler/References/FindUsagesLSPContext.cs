@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // Each reference should be associated with a definition. If this somehow isn't the
                     // case, we bail out early.
                     if (!_definitionToId.TryGetValue(reference.Definition, out var definitionId))
-                        return;
+                        continue;
 
                     var documentSpan = reference.SourceSpan;
                     var document = documentSpan.Document;
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                     // If this is reference to the same physical location we've already reported, just
                     // filter this out.  it will clutter the UI to show the same places.
                     if (!_referenceLocations.Add((document.FilePath, reference.SourceSpan.SourceSpan)))
-                        return;
+                        continue;
 
                     // If the definition hasn't been reported yet, add it to our list of references to report.
                     if (_definitionsWithoutReference.TryGetValue(definitionId, out var definition))
