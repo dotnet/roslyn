@@ -875,4 +875,34 @@ public sealed class CSharpForSnippetProviderTests : AbstractCSharpSnippetProvide
             }
             """);
     }
+
+    [Theory]
+    [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineForSnippetForTypeItselfTest(string integerType)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            class C
+            {
+                void M()
+                {
+                    {{integerType}}.$$
+                }
+            }
+            """);
+    }
+
+    [Theory]
+    [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineForSnippetForTypeItselfTest_Parenthesized(string integerType)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            class C
+            {
+                void M()
+                {
+                    ({{integerType}}).$$
+                }
+            }
+            """);
+    }
 }

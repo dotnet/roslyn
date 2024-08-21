@@ -224,17 +224,10 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
     }
 
     [Theory]
-    [InlineData("List<int>")]
-    [InlineData("int[]")]
-    [InlineData("IEnumerable<int>")]
-    [InlineData("ArrayList")]
-    [InlineData("IEnumerable")]
+    [MemberData(nameof(CommonSnippetTestData.CommonEnumerableTypes), MemberType = typeof(CommonSnippetTestData))]
     public async Task InsertInlineForEachSnippetForCorrectTypeTest(string collectionType)
     {
         await VerifySnippetAsync($$"""
-            using System.Collections;
-            using System.Collections.Generic;
-
             class C
             {
                 void M({{collectionType}} enumerable)
@@ -243,9 +236,6 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
                 }
             }
             """, $$"""
-            using System.Collections;
-            using System.Collections.Generic;
-            
             class C
             {
                 void M({{collectionType}} enumerable)
@@ -709,5 +699,35 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             }
             """,
             referenceAssemblies: ReferenceAssemblies.Net.Net70);
+    }
+
+    [Theory]
+    [MemberData(nameof(CommonSnippetTestData.CommonEnumerableTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineForEachSnippetForTypeItselfTest(string collectionType)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            class C
+            {
+                void M()
+                {
+                    {{collectionType}}.$$
+                }
+            }
+            """);
+    }
+
+    [Theory]
+    [MemberData(nameof(CommonSnippetTestData.CommonEnumerableTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineForEachSnippetForTypeItselfTest_Parenthesized(string collectionType)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            class C
+            {
+                void M()
+                {
+                    ({{collectionType}}).$$
+                }
+            }
+            """);
     }
 }
