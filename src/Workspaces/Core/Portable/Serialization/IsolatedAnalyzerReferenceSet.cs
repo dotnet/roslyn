@@ -30,7 +30,7 @@ internal sealed class IsolatedAssemblyReferenceSet
     /// <summary>
     /// Dedicated ALC that all analyzer references will load their <see cref="System.Reflection.Assembly"/>s within.
     /// </summary>
-    private readonly AssemblyLoadContext _assemblyLoadContext;
+    private readonly AnalyzerAssemblyLoader shadowCopyLoader;
 
     public ImmutableArray<AnalyzerReference> AnalyzerReferences => _analyzerReferences.CastArray<AnalyzerReference>();
 
@@ -48,12 +48,8 @@ internal sealed class IsolatedAssemblyReferenceSet
         Contract.ThrowIfTrue(serializedReferences.Any(r => r is AnalyzerFileReference), $"Should not have gotten an {nameof(AnalyzerFileReference)}");
         Contract.ThrowIfTrue(serializedReferences.Any(r => r is IsolatedAnalyzerReference), $"Should not have gotten an {nameof(IsolatedAnalyzerReference)}");
 
-        // Make a unique ALC for this set of references.
-        _assemblyLoadContext = new AssemblyLoadContext(
-            name: Guid.NewGuid().ToString("N").ToLowerInvariant(), isCollectible: true);
-
-        // Now make a loader that uses that ALC that will ensure these references are properly isolated.
-        var shadowCopyLoader = provider.GetShadowCopyLoader(_assemblyLoadContext);
+        // Now make a fresh loader that uses that ALC that will ensure these references are properly isolated.
+        var shadowCopyLoader = provider.GetShadowCopyLoader(getSharedLoader: false);
 
         var builder = new FixedSizeArrayBuilder<IsolatedAnalyzerReference>(serializedReferences.Length);
         foreach (var analyzerReference in serializedReferences)

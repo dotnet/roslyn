@@ -11,6 +11,10 @@ using System.Linq;
 using System.Reflection;
 using Roslyn.Utilities;
 
+#if NET
+using System.Runtime.Loader;
+#endif
+
 namespace Microsoft.CodeAnalysis
 {
     internal interface IAnalyzerAssemblyLoaderInternal : IAnalyzerAssemblyLoader
@@ -27,6 +31,13 @@ namespace Microsoft.CodeAnalysis
         /// loader.
         /// </summary>
         string? GetOriginalDependencyLocation(AssemblyName assembly);
+
+#if NET
+        /// <summary>
+        /// Unloads all loaded <see cref="AssemblyLoadContext"/>s.
+        /// </summary>
+        void UnloadAll();
+#endif
     }
 
     /// <summary>

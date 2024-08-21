@@ -164,7 +164,7 @@ internal sealed partial class ProjectSystemProject
         // important to ensure that analyzer dependencies are correctly loaded.  Note: if we want to support reloading
         // of analyzer references *within* this workspace (and not just in the OOP roslyn server), this would need to
         // change to use a dedicate ALC and an IsolatedAssemblyReferenceSet.
-        _analyzerAssemblyLoader = provider.GetDefaultShadowCopyLoader();
+        _analyzerAssemblyLoader = provider.GetSharedShadowCopyLoader();
 
         _sourceFiles = new BatchingDocumentCollection(
             this,

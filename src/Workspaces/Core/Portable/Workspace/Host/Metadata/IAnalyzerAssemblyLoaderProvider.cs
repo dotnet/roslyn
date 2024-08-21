@@ -14,26 +14,27 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 {
 #if NET
     /// <summary>
-    /// In .Net core, gives back a fresh shadow copying loader that will load all <see cref="AnalyzerReference"/> in the
-    /// requested <paramref name="loadContext"/> (or a default one if <see langword="null"/> is passed in).
+    /// In .Net core, gives back a fresh shadow copying loader that will load all <see cref="AnalyzerReference"/> ina
+    /// fresh <see cref="AssemblyLoadContext"/> (or a default/shared one if <paramref name="getSharedLoader"/> is <see
+    /// langword="true"/>).
     /// </summary>
-    IAnalyzerAssemblyLoader GetShadowCopyLoader(AssemblyLoadContext? loadContext);
+    IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader(bool getSharedLoader);
 #else
     /// <summary>
     /// In .Net Framework, returns a single shadow copy loader which will be used to load all <see
     /// cref="AnalyzerReference"/>s.  On .Net framework there are no assembly load contexts, so no isolation or
     /// reloading of references is possible.
     /// </summary>
-    IAnalyzerAssemblyLoader GetShadowCopyLoader();
+    IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader();
 #endif
 }
 
 internal static class IAnalyzerAssemblyLoaderProviderExtensions
 {
-    public static IAnalyzerAssemblyLoader GetDefaultShadowCopyLoader(this IAnalyzerAssemblyLoaderProvider provider)
+    public static IAnalyzerAssemblyLoaderInternal GetSharedShadowCopyLoader(this IAnalyzerAssemblyLoaderProvider provider)
     {
 #if NET
-        return provider.GetShadowCopyLoader(loadContext: null);
+        return provider.GetShadowCopyLoader(getSharedLoader: true);
 #else
         return provider.GetShadowCopyLoader();
 #endif

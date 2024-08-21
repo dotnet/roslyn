@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal void UnloadAll()
+        public void UnloadAll()
         {
             List<DirectoryLoadContext> contexts;
             lock (_guard)
