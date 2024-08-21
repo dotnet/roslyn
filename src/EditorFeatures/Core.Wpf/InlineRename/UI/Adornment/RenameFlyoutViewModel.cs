@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         private void SessionOnCommitStateChange(object sender, bool commitStarts)
         {
             // When commit in progress, we will use background indicator to show the progress.
-            // Rename flyout would hide the tooltip so we need to hide it.
+            // Rename flyout would hide the tooltip so we need to collapse it.
             Visibility = commitStarts ? Visibility.Collapsed : Visibility.Visible;
         }
 

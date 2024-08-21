@@ -154,6 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 if (_commitNotStart != value)
                 {
                     _commitNotStart = value;
+                    // Disable/Enable these checkbox in UI based on if commit is in-progress or not
                     NotifyPropertyChanged();
                     NotifyPropertyChanged(nameof(IsRenameOverloadsEditable));
                     NotifyPropertyChanged(nameof(AllowFileRename));
