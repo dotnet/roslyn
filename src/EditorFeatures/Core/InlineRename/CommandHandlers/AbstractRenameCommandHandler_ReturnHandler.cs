@@ -21,7 +21,7 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
         if (_renameService.ActiveSession != null)
         {
             // Prevent Editor's typing responsiveness auto canceling the rename operation.
-            // InlineRenameSession will call IBackgroundWorkIndicator to sets up our own IUIThreadOperationContext
+            // InlineRenameSession will call IUIThreadOperationExecutor to sets up our own IUIThreadOperationContext
             context.OperationContext.TakeOwnership();
             _ = CommitAndSetFocusAsync(_renameService.ActiveSession, args.TextView).ReportNonFatalErrorAsync();
             return true;

@@ -841,8 +841,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         catch (OperationCanceledException)
         {
             await DismissUIAndRollbackEditsAndEndRenameSessionAsync(
-                RenameLogMessage.UserActionOutcome.Canceled | RenameLogMessage.UserActionOutcome.Committed,
-                previewChanges).ConfigureAwait(false);
+                RenameLogMessage.UserActionOutcome.Canceled | RenameLogMessage.UserActionOutcome.Committed, previewChanges).ConfigureAwait(false);
             return false;
         }
 
@@ -852,14 +851,11 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private async Task CommitCoreAsync(IUIThreadOperationContext operationContext, bool previewChanges)
     {
         CommitStateChange?.Invoke(this, true);
-        // Create a cancellationToken will be cancelled by either:
-        // 1. Cancel() is called.
-        // 2. IUIThreadOperationContext get cancelled.
-        var linkedCancellationToken = operationContext.UserCancellationToken;
+        var cancellationToken = operationContext.UserCancellationToken;
         var eventName = previewChanges ? FunctionId.Rename_CommitCoreWithPreview : FunctionId.Rename_CommitCore;
-        using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), linkedCancellationToken))
+        using (Logger.LogBlock(eventName, KeyValueLogMessage.Create(LogType.UserAction), cancellationToken))
         {
-            var info = await _conflictResolutionTask.JoinAsync(linkedCancellationToken).ConfigureAwait(true);
+            var info = await _conflictResolutionTask.JoinAsync(cancellationToken).ConfigureAwait(true);
             var newSolution = info.NewSolution;
 
             if (previewChanges)
@@ -867,7 +863,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 var previewService = Workspace.Services.GetService<IPreviewDialogService>();
 
                 // The preview service needs to be called from the UI thread, since it's doing COM calls underneath.
-                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(linkedCancellationToken);
+                await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                 newSolution = previewService.PreviewChanges(
                     string.Format(EditorFeaturesResources.Preview_Changes_0, EditorFeaturesResources.Rename),
                     "vs.csharp.refactoring.rename",
@@ -892,10 +888,10 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
                 RenameLogMessage.UserActionOutcome.Committed, previewChanges,
                 async () =>
                 {
-                    var error = await TryApplyRenameAsync(newSolution, linkedCancellationToken).ConfigureAwait(false);
+                    var error = await TryApplyRenameAsync(newSolution, cancellationToken).ConfigureAwait(false);
                     if (error is not null)
                     {
-                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(linkedCancellationToken);
+                        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
                         var notificationService = Workspace.Services.GetService<INotificationService>();
                         notificationService.SendNotification(
                             error.Value.message, EditorFeaturesResources.Rename_Symbol, error.Value.severity);

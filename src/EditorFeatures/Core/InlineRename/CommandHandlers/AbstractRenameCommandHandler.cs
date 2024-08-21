@@ -65,6 +65,7 @@ internal abstract partial class AbstractRenameCommandHandler
             return;
         }
 
+        // If commit in progress, don't do anything, as we don't want user change the text view
         if (_renameService.ActiveSession.IsCommitInProgress)
         {
             return;
@@ -105,7 +106,7 @@ internal abstract partial class AbstractRenameCommandHandler
         {
             var selection = args.TextView.Selection.VirtualSelectedSpans.First();
 
-            _ = _renameService.ActiveSession.CommitAsync(previewChanges: false);
+            _renameService.ActiveSession.Commit();
 
             var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
             args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
