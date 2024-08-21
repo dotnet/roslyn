@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.PooledObjects;
 
-
 #if NET
 using System.Runtime.Loader;
 #endif
@@ -76,6 +75,7 @@ internal static partial class AbstractAssetProviderExtensions
         CancellationToken cancellationToken)
     {
 #if NET
+
         var checksum = analyzerReferencesChecksum.Checksum;
 
         // First, see if these were already computed and stored.
@@ -87,6 +87,7 @@ internal static partial class AbstractAssetProviderExtensions
                 return isolatedAssemblyReferenceSet.AnalyzerReferences;
             }
         }
+
 #endif
 
         // Otherwise, fetch the raw analyzer references from the host side.
@@ -144,6 +145,5 @@ internal static partial class AbstractAssetProviderExtensions
         return builder.MoveToImmutable();
 
 #endif
-
     }
 }
