@@ -82,6 +82,7 @@
     <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Next.UnitTests" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.TestWindow.CodeLens" Key="$(UnitTestingKey)" />
     <!-- Eventually a bunch of these unit tests should move into Roslyn.Services.Implementation.UnitTests
          and this should be removed. -->
     <RestrictedInternalsVisibleTo Include="Microsoft.CodeAnalysis.LiveUnitTesting.BuildManager" Partner="UnitTesting" Key="$(UnitTestingKey)" />
