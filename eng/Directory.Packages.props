@@ -260,7 +260,6 @@
     <PackageVersion Include="Microsoft.DiaSymReader.Converter.Xml" Version="1.1.0-beta2-22302-02" />
     <PackageVersion Include="Microsoft.Metadata.Visualizer" Version="1.0.0-beta3.21075.2" />
     <PackageVersion Include="Microsoft.ILVerification" Version="8.0.0-rtm.23523.3" />
-    <PackageVersion Include="Microsoft.NET.Build.Extensions" Version="2.2.101" />
     <PackageVersion Include="Microsoft.NETCore.Platforms" Version="5.0.0" />
     <PackageVersion Include="Microsoft.VisualStudio.Cache" Version="17.3.26-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.Measurement" Version="17.9.36343-preview.3" />
