@@ -9,6 +9,8 @@ internal class FSharp : IProduct
     public string Name => "F#";
 
     public string RepoHttpBaseUrl => "https://github.com/dotnet/fsharp";
+    public string InternalRepoBaseUrl => "";
+
     public string RepoSshBaseUrl => "git@github.com:dotnet/fsharp.git";
     public string GitUserName => "";
     public string GitEmail => "";

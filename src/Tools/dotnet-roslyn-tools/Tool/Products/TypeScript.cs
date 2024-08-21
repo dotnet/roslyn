@@ -9,6 +9,7 @@ internal class TypeScript : IProduct
     public string Name => "TypeScript";
 
     public string RepoHttpBaseUrl => "https://devdiv.visualstudio.com/DevDiv/_git/TypeScript-VS";
+    public string InternalRepoBaseUrl => "";
     public string RepoSshBaseUrl => "devdiv@vs-ssh.visualstudio.com:v3/devdiv/DevDiv/TypeScript-VS";
     public string GitUserName => "";
     public string GitEmail => "";

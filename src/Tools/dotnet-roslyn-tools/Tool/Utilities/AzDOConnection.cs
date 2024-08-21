@@ -69,34 +69,15 @@ internal sealed class AzDOConnection : IDisposable
         }
     }
 
-    public async Task TryRunPipelineAsync(string branchName, string pipelineName, string sha, int prNumber, ILogger logger)
+    public async Task TryRunPipelineAsync(string pipelineName, Dictionary<string, RepositoryResourceParameters> repositoryParams, RunPipelineParameters runPipelineParams, ILogger logger)
     {
         try
         {
             var buildDefinition = (await BuildClient.GetDefinitionsAsync(BuildProjectName, name: pipelineName)).Single();
-            var repositoryParams = new Dictionary<string, RepositoryResourceParameters>
-            {
-                {
-                    "self", new RepositoryResourceParameters
-                    {
-                        RefName = $"refs/heads/{branchName}",
-                        Version = sha
-                    }
-                }
-            };
 
-            var runPipelineParameters = new RunPipelineParameters
-            {
-                Resources = new RunResourcesParameters
-                {
-                   
-                },
-                TemplateParameters = new Dictionary<string, string> { { "prNumber", prNumber.ToString() }, { "sha", sha } }
-            };
-
-            var repositoryField = runPipelineParameters.Resources.GetType().GetField("m_repositories", BindingFlags.NonPublic | BindingFlags.Instance);
-            repositoryField?.SetValue(runPipelineParameters.Resources, repositoryParams);
-            var run = await PipelinesHttpClient.RunPipelineAsync(runPipelineParameters, BuildProjectName, buildDefinition.Id);
+            var repositoryField = runPipelineParams.Resources.GetType().GetField("m_repositories", BindingFlags.NonPublic | BindingFlags.Instance);
+            repositoryField?.SetValue(runPipelineParams.Resources, repositoryParams);
+            var run = await PipelinesHttpClient.RunPipelineAsync(runPipelineParams, BuildProjectName, buildDefinition.Id);
             logger.LogInformation($"Pipeline running at: {((ReferenceLink)run.Links.Links["web"]).Href}");
         }
         catch (Exception ex)

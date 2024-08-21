@@ -11,14 +11,18 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.RoslynTools.Utilities;
+using Microsoft.RoslynTools.VS;
 
 namespace Microsoft.RoslynTools.Commands;
 
 internal static class DartTestCommand
 {
+    private static readonly string[] s_allProductNames = VSBranchInfo.AllProducts.Select(p => p.Name.ToLower()).Concat(new[] { "all" }).ToArray();
+
     private static readonly DartTestCommandDefaultHandler s_dartTestCommandHandler = new();
     private static readonly Option<int> prNumber = new(["--prNumber", "-pr"], "PR number") { IsRequired = true };
     private static readonly Option<string> sha = new(["--sha", "-s"], "Relevant SHA") { IsRequired = false };
+    private static readonly Option<string> productOption = new Option<string>(new[] { "--product", "-p" }, () => "roslyn", "Which product to get info for").FromAmong(s_allProductNames);
 
     public static Symbol GetCommand()
     {
@@ -28,6 +32,7 @@ It works by cloning the PR from the dotnet/roslyn repo into the internal mirror 
         {
             prNumber,
             sha,
+            productOption,
             CommonOptions.GitHubTokenOption,
             CommonOptions.DevDivAzDOTokenOption,
             CommonOptions.DncEngAzDOTokenOption,
@@ -44,9 +49,9 @@ It works by cloning the PR from the dotnet/roslyn repo into the internal mirror 
             var logger = context.SetupLogging();
             var settings = context.ParseResult.LoadSettings(logger);
 
-            if (string.IsNullOrEmpty(settings.GitHubToken) ||
+            if (string.IsNullOrEmpty(settings.GitHubToken) /*||
                 string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) ||
-                string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken))
+                string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken)*/)
             {
                 logger.LogError("Missing authentication token.");
                 return -1;
@@ -60,9 +65,12 @@ It works by cloning the PR from the dotnet/roslyn repo into the internal mirror 
                 logger.LogInformation("Using most recent SHA");
             }
 
+            var product = context.ParseResult.GetValueForOption(productOption)!;
+
             using var remoteConnections = new RemoteConnections(settings);
 
             return await DartTest.DartTest.RunDartPipeline(
+                product,
                 remoteConnections,
                 logger,
                 pr,

@@ -13,9 +13,12 @@ using System.Text;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using LibGit2Sharp;
+using Microsoft.Azure.Pipelines.WebApi;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
+using Microsoft.RoslynTools.VS;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 using static System.Net.WebRequestMethods;
 
@@ -24,6 +27,7 @@ namespace Microsoft.RoslynTools.DartTest;
 internal static class DartTest
 {
     public static async Task<int> RunDartPipeline(
+        string productName,
         RemoteConnections remoteConnections,
         ILogger logger,
         int prNumber,
@@ -31,23 +35,54 @@ internal static class DartTest
     {
         var cancellationToken = CancellationToken.None;
         var azureBranchName = $"dart-test/{prNumber}";
+        var product = VSBranchInfo.AllProducts.Single(p => p.Name.Equals(productName, StringComparison.OrdinalIgnoreCase));
+
         if (sha is null)
         {
-            sha = await GetLatestShaFromPullRequest(remoteConnections.GitHubClient, prNumber, logger, cancellationToken).ConfigureAwait(false);
-            if (sha is null)
+            if (product.Name.Equals("roslyn", StringComparison.OrdinalIgnoreCase))
             {
-                logger.LogError("Could not find a SHA for the given PR number.");
+                sha = await GetLatestShaFromPullRequest(product, remoteConnections.GitHubClient, prNumber, logger, cancellationToken).ConfigureAwait(false);
+                if (sha is null)
+                {
+                    logger.LogError("Could not find a SHA for the given PR number.");
+                    return -1;
+                }
+            }
+            else
+            {
+                logger.LogError("A SHA is required for the given product.");
                 return -1;
             }
         }
+        
+        var directory = await PushPRToInternal(product, prNumber, azureBranchName, logger, sha, cancellationToken).ConfigureAwait(false);
+        var repositoryParams = new Dictionary<string, RepositoryResourceParameters>
+            {
+                {
+                    "self", new RepositoryResourceParameters
+                    {
+                        RefName = $"refs/heads/{azureBranchName}",
+                        Version = sha
+                    }
+                }
+            };
 
-        var directory = await ClonePullRequest(prNumber, azureBranchName, logger, sha, cancellationToken).ConfigureAwait(false);
-        await remoteConnections.DevDivConnection.TryRunPipelineAsync(azureBranchName, "Roslyn Integration CI DartLab", sha, prNumber, logger).ConfigureAwait(false);
+        var runPipelineParameters = new RunPipelineParameters
+        {
+            Resources = new RunResourcesParameters
+            {
+
+            },
+            TemplateParameters = new Dictionary<string, string> { { "prNumber", prNumber.ToString() }, { "sha", sha } }
+        };
+
+        var pipelineName = product.Name.Equals("roslyn", StringComparison.OrdinalIgnoreCase) ? "Roslyn Integration CI DartLab" : "";
+        await remoteConnections.DevDivConnection.TryRunPipelineAsync(pipelineName, repositoryParams, runPipelineParameters, logger).ConfigureAwait(false);
         CleanupDirectory(directory, logger);
         return 0;
     }
 
-    private static async Task<string?> GetLatestShaFromPullRequest(HttpClient gitHubClient, int prNumber, ILogger logger, CancellationToken cancellationToken)
+    private static async Task<string?> GetLatestShaFromPullRequest(IProduct product, HttpClient gitHubClient, int prNumber, ILogger logger, CancellationToken cancellationToken)
     {
         try
         {
@@ -73,7 +108,7 @@ internal static class DartTest
     }
 
 
-    private static async Task<string?> ClonePullRequest(int prNumber, string azureBranchName, ILogger logger, string sha, CancellationToken cancellationToken)
+    private static async Task<string?> PushPRToInternal(IProduct product, int prNumber, string azureBranchName, ILogger logger, string sha, CancellationToken cancellationToken)
     {
         string? targetDirectory = null;
 
@@ -89,26 +124,26 @@ internal static class DartTest
 
             Directory.CreateDirectory(targetDirectory);
 
-            var initCommand = $"git init";
-            await RunCommand(initCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false); ;
+            var initCommand = $"init";
+            await RunGitCommand(initCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false); ;
 
-            var addGithubRemoteCommand = $"git remote add roslyn https://github.com/dotnet/roslyn.git";
-            await RunCommand(addGithubRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+            var addGithubRemoteCommand = $"remote add {product.Name.ToLower()} {product.RepoHttpBaseUrl}.git";
+            await RunGitCommand(addGithubRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
-            var addInternalRemoteCommand = $"git remote add internal https://dnceng.visualstudio.com/internal/_git/dotnet-roslyn";
-            await RunCommand(addInternalRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+            var addInternalRemoteCommand = $"remote add internal {product.InternalRepoBaseUrl}";
+            await RunGitCommand(addInternalRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
-            var fetchCommand = $"git fetch roslyn pull/{prNumber}/head";
-            await RunCommand(fetchCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+            var fetchCommand = $"fetch {product.Name.ToLower()} pull/{prNumber}/head";
+            await RunGitCommand(fetchCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
-            var checkoutCommand = $"git checkout {sha}";
-            await RunCommand(checkoutCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+            var checkoutCommand = $"checkout {sha}";
+            await RunGitCommand(checkoutCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
-            var checkoutNewBranchCommand = $"git checkout -b {azureBranchName}";
-            await RunCommand(checkoutNewBranchCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+            var checkoutNewBranchCommand = $"checkout -b {azureBranchName}";
+            await RunGitCommand(checkoutNewBranchCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
-            var pushCommand = $"git push internal {azureBranchName}";
-            await RunCommand(pushCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+            var pushCommand = $"push internal {azureBranchName}";
+            await RunGitCommand(pushCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -118,14 +153,14 @@ internal static class DartTest
         return targetDirectory;
     }
 
-    private static async Task RunCommand(string command, ILogger logger, string workingDirectory, CancellationToken cancellationToken)
+    private static async Task RunGitCommand(string command, ILogger logger, string workingDirectory, CancellationToken cancellationToken)
     {
         try
         {
             var processStartInfo = new ProcessStartInfo
             {
-                FileName = "cmd.exe",
-                Arguments = $"/c {command}",
+                FileName = "git",
+                Arguments = $"{command}",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
