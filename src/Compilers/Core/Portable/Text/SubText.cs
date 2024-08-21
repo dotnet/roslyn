@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Text
         }
 
         /// <summary>
-        /// Delegates to the SubText's UnderlyingText to determine line information.
+        /// Delegates to the SubText's <see cref="UnderlyingText"/> to determine line information.
         /// </summary>
         private sealed class SubTextLineInfo : TextLineCollection
         {
@@ -116,27 +116,24 @@ namespace Microsoft.CodeAnalysis.Text
                 _startLineNumberInUnderlyingText = startLineInUnderlyingText.LineNumber;
                 _lineCount = (endLineInUnderlyingText.LineNumber - _startLineNumberInUnderlyingText) + 1;
 
-                if (_subText.UnderlyingSpan.Length > 0)
+                var underlyingSpanStart = _subText.UnderlyingSpan.Start;
+                if (underlyingSpanStart == startLineInUnderlyingText.End + 1 &&
+                    underlyingSpanStart == startLineInUnderlyingText.EndIncludingLineBreak - 1)
                 {
-                    var underlyingSpanStart = _subText.UnderlyingSpan.Start;
-                    if (underlyingSpanStart == startLineInUnderlyingText.End + 1 &&
-                        underlyingSpanStart == startLineInUnderlyingText.EndIncludingLineBreak - 1)
-                    {
-                        Debug.Assert(_subText.UnderlyingText[underlyingSpanStart - 1] == '\r' && _subText.UnderlyingText[underlyingSpanStart] == '\n');
-                        _startsWithinSplitCRLF = true;
-                    }
+                    Debug.Assert(_subText.UnderlyingText[underlyingSpanStart - 1] == '\r' && _subText.UnderlyingText[underlyingSpanStart] == '\n');
+                    _startsWithinSplitCRLF = true;
+                }
 
-                    var underlyingSpanEnd = _subText.UnderlyingSpan.End;
-                    if (underlyingSpanEnd == endLineInUnderlyingText.End + 1 &&
-                        underlyingSpanEnd == endLineInUnderlyingText.EndIncludingLineBreak - 1)
-                    {
-                        Debug.Assert(_subText.UnderlyingText[underlyingSpanEnd - 1] == '\r' && _subText.UnderlyingText[underlyingSpanEnd] == '\n');
-                        _endsWithinSplitCRLF = true;
+                var underlyingSpanEnd = _subText.UnderlyingSpan.End;
+                if (underlyingSpanEnd == endLineInUnderlyingText.End + 1 &&
+                    underlyingSpanEnd == endLineInUnderlyingText.EndIncludingLineBreak - 1)
+                {
+                    Debug.Assert(_subText.UnderlyingText[underlyingSpanEnd - 1] == '\r' && _subText.UnderlyingText[underlyingSpanEnd] == '\n');
+                    _endsWithinSplitCRLF = true;
 
-                        // If this subtext ends in the middle of a CR/LF, then this object should view that CR as a separate line
-                        // whereas the UnderlyingText would not.
-                        _lineCount += 1;
-                    }
+                    // If this subtext ends in the middle of a CR/LF, then this object should view that CR as a separate line
+                    // whereas the UnderlyingText would not.
+                    _lineCount += 1;
                 }
             }
 
