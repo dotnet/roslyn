@@ -77,6 +77,9 @@ internal static partial class AbstractAssetProviderExtensions
         IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider,
         CancellationToken cancellationToken)
     {
+        if (analyzerReferencesChecksum.Children.Length == 0)
+            return [];
+
 #if NET
 
         var checksum = analyzerReferencesChecksum.Checksum;
