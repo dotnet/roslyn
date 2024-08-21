@@ -25,22 +25,22 @@ internal sealed class VSCodeAnalyzerLoaderProvider(
     private readonly ExtensionAssemblyManager _extensionAssemblyManager = extensionAssemblyManager;
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
 
-    protected override IAnalyzerAssemblyLoader CreateShadowCopyLoader(
-        AssemblyLoadContext? loadContext)
+    protected override IAnalyzerAssemblyLoaderInternal CreateShadowCopyLoader()
     {
-        var baseLoader = base.CreateShadowCopyLoader(loadContext);
+        var baseLoader = base.CreateShadowCopyLoader();
         return new VSCodeExtensionAssemblyAnalyzerLoader(baseLoader, _extensionAssemblyManager, _loggerFactory.CreateLogger<VSCodeExtensionAssemblyAnalyzerLoader>());
     }
 
     /// <summary>
     /// Analyzer loader that will re-use already loaded assemblies from the extension load context.
     /// </summary>
-    private class VSCodeExtensionAssemblyAnalyzerLoader(IAnalyzerAssemblyLoader defaultLoader, ExtensionAssemblyManager extensionAssemblyManager, ILogger logger) : IAnalyzerAssemblyLoader
+    private sealed class VSCodeExtensionAssemblyAnalyzerLoader(
+        IAnalyzerAssemblyLoaderInternal defaultLoader,
+        ExtensionAssemblyManager extensionAssemblyManager,
+        ILogger logger) : IAnalyzerAssemblyLoaderInternal
     {
         public void AddDependencyLocation(string fullPath)
-        {
-            defaultLoader.AddDependencyLocation(fullPath);
-        }
+            => defaultLoader.AddDependencyLocation(fullPath);
 
         public Assembly LoadFromPath(string fullPath)
         {
@@ -53,5 +53,14 @@ internal sealed class VSCodeAnalyzerLoaderProvider(
 
             return defaultLoader.LoadFromPath(fullPath);
         }
+
+        public bool IsHostAssembly(Assembly assembly)
+            => defaultLoader.IsHostAssembly(assembly);
+
+        public string? GetOriginalDependencyLocation(AssemblyName assembly)
+            => defaultLoader.GetOriginalDependencyLocation(assembly);
+
+        public void UnloadAll()
+            => defaultLoader.UnloadAll();
     }
 }
