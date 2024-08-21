@@ -602,7 +602,6 @@ namespace Microsoft.CodeAnalysis
 
         System_Collections_Generic_List_T__ctor,
         System_Collections_Generic_List_T__ctorInt32,
-        System_Collections_Generic_List_T__ctorIEnumerable,
         System_Collections_Generic_List_T__Add,
         System_Collections_Generic_List_T__Count,
         System_Collections_Generic_List_T__Contains,

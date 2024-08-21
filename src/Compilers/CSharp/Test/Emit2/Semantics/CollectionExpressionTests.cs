@@ -34868,41 +34868,6 @@ partial class Program
 
             verifier.VerifyIL("C.M", """
                 {
-                  // Code size        7 (0x7)
-                  .maxstack  1
-                  IL_0000:  ldarg.0
-                  IL_0001:  newobj     "System.Collections.Generic.List<int>..ctor(System.Collections.Generic.IEnumerable<int>)"
-                  IL_0006:  ret
-                }
-                """);
-        }
-
-        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/71217")]
-        public void List_SingleSpread_IEnumerable_MissingToListAndEnumerableListConstructor()
-        {
-            var source = """
-                using System.Collections.Generic;
-
-                class C
-                {
-                    static void Main()
-                    {
-                        M([1, 2, 3]).Report();
-                    }
-
-                    static List<int> M(IEnumerable<int> e) => [..e];
-                }
-                """;
-
-            var comp = CreateCompilation([source, s_collectionExtensions], options: TestOptions.ReleaseExe);
-            comp.MakeMemberMissing(WellKnownMember.System_Linq_Enumerable__ToList);
-            comp.MakeMemberMissing(WellKnownMember.System_Collections_Generic_List_T__ctorIEnumerable);
-
-            var verifier = CompileAndVerify(comp, expectedOutput: "[1, 2, 3],", verify: Verification.Skipped);
-            verifier.VerifyDiagnostics();
-
-            verifier.VerifyIL("C.M", """
-                {
                   // Code size       13 (0xd)
                   .maxstack  3
                   IL_0000:  newobj     "System.Collections.Generic.List<int>..ctor()"

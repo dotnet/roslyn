@@ -4172,17 +4172,6 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
-                // System_Collections_Generic_List_T__ctorIEnumerable
-                (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.System_Collections_Generic_List_T,                                                      // DeclaringTypeId
-                 0,                                                                                                         // Arity
-                    1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void, // Return Type
-                    (byte)SignatureTypeCode.GenericTypeInstance,
-                        (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Collections_Generic_IEnumerable_T,
-                        1,
-                        (byte)SignatureTypeCode.GenericTypeParameter, 0,
-
                 // System_Collections_Generic_List_T__Add
                 (byte)MemberFlags.Method,                                                           // Flags
                 (byte)WellKnownType.System_Collections_Generic_List_T,                                                 // DeclaringTypeId
@@ -4878,7 +4867,6 @@ namespace Microsoft.CodeAnalysis
                 "RemoveAt",                                 // System_Collections_IList__RemoveAt,
                 ".ctor",                                    // System_Collections_Generic_List_T__ctor,
                 ".ctor",                                    // System_Collections_Generic_List_T__ctorInt32,
-                ".ctor",                                    // System_Collections_Generic_List_T__ctorIEnumerable,
                 "Add",                                      // System_Collections_Generic_List_T__Add
                 "Count",                                    // System_Collections_Generic_List_T__Count,
                 "Contains",                                 // System_Collections_Generic_List_T__Contains,

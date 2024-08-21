@@ -155,8 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        // If we have something like `List<int> l = [.. someEnumerable]` try rewrite it using
-        // `Enumerable.ToList` or `new List(IEnumerable)` members if possible
+        // If we have something like `List<int> l = [.. someEnumerable]`
+        // try rewrite it using `Enumerable.ToList` member if possible
         private bool TryRewriteSingleElementSpreadToList(BoundCollectionExpression node, TypeWithAnnotations listElementType, [NotNullWhen(true)] out BoundExpression? result)
         {
             result = null;
@@ -196,12 +196,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var toListOfElementType = toListGeneric.Construct([listElementType]);
                 result = _factory.Call(receiver: null, toListOfElementType, singleSpreadExpression);
-                return true;
-            }
-            else if (TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Collections_Generic_List_T__ctorIEnumerable, out MethodSymbol? listCtorEnumerableGeneric, isOptional: true))
-            {
-                var listCtorEnumerableOfElementType = listCtorEnumerableGeneric.AsMember((NamedTypeSymbol)node.Type);
-                result = new BoundObjectCreationExpression(node.Syntax, listCtorEnumerableOfElementType, singleSpreadExpression);
                 return true;
             }
 
