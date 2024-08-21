@@ -50,5 +50,6 @@ internal interface IInlineRenameSession
     /// <summary>
     /// Dismisses the rename session, completing the rename operation across all files.
     /// </summary>
+    /// <remarks>The implementation would only be async when InlineRenameSessionOptionsStorage.RenameAsynchronously is set to true</remarks>
     Task CommitAsync(bool previewChanges);
 }

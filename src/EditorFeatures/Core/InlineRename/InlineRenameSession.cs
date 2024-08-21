@@ -777,7 +777,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             // 2. Either commit never starts in this session
             // or the prev commit operation ends (like user don't like the preview result and click cancel button)
             _commitTask = CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator);
-
         }
 
         return await _commitTask.ConfigureAwait(false);
