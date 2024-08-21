@@ -449,7 +449,7 @@ public class SolutionServiceTests
         // move to new solution backward
         var solutionInfo2 = await assetProvider.CreateSolutionInfoAsync(
             await solution1.CompilationState.GetChecksumAsync(CancellationToken.None),
-            workspace.GetService<IAnalyzerAssemblyLoaderProvider>(), CancellationToken.None);
+            remoteWorkspace.Services.GetService<IAnalyzerAssemblyLoaderProvider>(), CancellationToken.None);
         var solution2 = remoteWorkspace.GetTestAccessor().CreateSolutionFromInfo(solutionInfo2);
 
         // move to new solution forward
