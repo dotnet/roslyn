@@ -16,9 +16,10 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Serialization;
 
 /// <summary>
-/// A set of <see cref="IsolatedAnalyzerReference"/>s and their associated <see cref="AssemblyLoadContext"/> (ALC).  As
-/// long as something is keeping this set alive, the ALC will be kept alive.  Once this set is dropped, the ALC will be
-/// explicitly <see cref="AssemblyLoadContext.Unload"/>'ed in its finalizer.
+/// A set of <see cref="IsolatedAnalyzerReference"/>s and their associated shadow copy loader (which has its own <see
+/// cref="AssemblyLoadContext"/>).  As long as something is keeping this set alive, the ALC will be kept alive.  Once
+/// this set is dropped, the loader will be explicitly <see cref="IAnalyzerAssemblyLoaderInternal.UnloadAll"/>'ed in its
+/// finalizer.
 /// </summary>
 internal sealed class IsolatedAssemblyReferenceSet
 {
@@ -28,9 +29,10 @@ internal sealed class IsolatedAssemblyReferenceSet
     private readonly ImmutableArray<IsolatedAnalyzerReference> _analyzerReferences;
 
     /// <summary>
-    /// Dedicated ALC that all analyzer references will load their <see cref="System.Reflection.Assembly"/>s within.
+    /// Dedicated loader with its own dedicated ALC that all analyzer references will load their <see
+    /// cref="System.Reflection.Assembly"/>s within.
     /// </summary>
-    private readonly AnalyzerAssemblyLoader shadowCopyLoader;
+    private readonly IAnalyzerAssemblyLoaderInternal _shadowCopyLoader;
 
     public ImmutableArray<AnalyzerReference> AnalyzerReferences => _analyzerReferences.CastArray<AnalyzerReference>();
 
@@ -49,7 +51,7 @@ internal sealed class IsolatedAssemblyReferenceSet
         Contract.ThrowIfTrue(serializedReferences.Any(r => r is IsolatedAnalyzerReference), $"Should not have gotten an {nameof(IsolatedAnalyzerReference)}");
 
         // Now make a fresh loader that uses that ALC that will ensure these references are properly isolated.
-        var shadowCopyLoader = provider.GetShadowCopyLoader(getSharedLoader: false);
+        _shadowCopyLoader = provider.GetShadowCopyLoader(getSharedLoader: false);
 
         var builder = new FixedSizeArrayBuilder<IsolatedAnalyzerReference>(serializedReferences.Length);
         foreach (var analyzerReference in serializedReferences)
@@ -57,7 +59,7 @@ internal sealed class IsolatedAssemblyReferenceSet
             // Unwrap serialized analyzer references to get their file path and make a real AnalyzerFileReference
             // that now uses this isolated shadow copy loader.
             var underlyingAnalyzerReference = analyzerReference is SerializerService.SerializedAnalyzerReference
-                ? new AnalyzerFileReference(analyzerReference.FullPath!, shadowCopyLoader)
+                ? new AnalyzerFileReference(analyzerReference.FullPath!, _shadowCopyLoader)
                 : analyzerReference;
 
             // Create a special wrapped analyzer reference here.  It will ensure that any DiagnosticAnalyzers and
@@ -70,11 +72,11 @@ internal sealed class IsolatedAssemblyReferenceSet
     }
 
     /// <summary>
-    /// When the last reference this to this reference set finally goes away, it is safe to unload our ALC.
+    /// When the last reference this to this reference set finally goes away, it is safe to unload our loader+ALC.
     /// </summary>
     ~IsolatedAssemblyReferenceSet()
     {
-        _assemblyLoadContext.Unload();
+        _shadowCopyLoader.UnloadAll();
     }
 }
 
