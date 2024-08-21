@@ -45,6 +45,7 @@ public class TypeParameterCreationTests : CompilingTestBase
 
         var symbolInfo = model.GetSymbolInfo(objectCreationNode);
         Assert.True(symbolInfo.IsEmpty);
+        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
 
         var typeNode = objectCreationNode.Type;
 
@@ -53,7 +54,8 @@ public class TypeParameterCreationTests : CompilingTestBase
         Assert.Null(typeInfo.ConvertedType);
 
         symbolInfo = model.GetSymbolInfo(typeNode);
-        Assert.Equal("T", symbolInfo.Symbol?.ToTestDisplayString());
+        Assert.Equal("T", symbolInfo.Symbol.ToTestDisplayString());
+        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
     }
 
     [Theory]
@@ -90,6 +92,7 @@ public class TypeParameterCreationTests : CompilingTestBase
 
         var symbolInfo = model.GetSymbolInfo(objectCreationNode);
         Assert.True(symbolInfo.IsEmpty);
+        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
     }
 
     [Theory]
@@ -128,6 +131,7 @@ public class TypeParameterCreationTests : CompilingTestBase
 
         var symbolInfo = model.GetSymbolInfo(objectCreationNode);
         Assert.True(symbolInfo.IsEmpty);
+        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
 
         var typeNode = objectCreationNode.Type;
 
@@ -179,6 +183,7 @@ public class TypeParameterCreationTests : CompilingTestBase
 
         var symbolInfo = model.GetSymbolInfo(objectCreationNode);
         Assert.True(symbolInfo.IsEmpty);
+        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
 
         var typeNode = objectCreationNode.Type;
 
@@ -229,6 +234,7 @@ public class TypeParameterCreationTests : CompilingTestBase
 
         var symbolInfo = model.GetSymbolInfo(objectCreationNode);
         Assert.True(symbolInfo.IsEmpty);
+        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
     }
 
     [Theory]
@@ -268,5 +274,6 @@ public class TypeParameterCreationTests : CompilingTestBase
 
         var symbolInfo = model.GetSymbolInfo(objectCreationNode);
         Assert.True(symbolInfo.IsEmpty);
+        Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
     }
 }
