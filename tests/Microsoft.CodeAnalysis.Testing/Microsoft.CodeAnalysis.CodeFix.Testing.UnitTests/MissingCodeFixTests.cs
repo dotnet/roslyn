@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(
                 """
                 Context: Iterative code fix application
-                Expected '0' iterations but found '1' iterations.
+                No code fixes were expected, but a fix was offered that made no changes to the code.
                 """.ReplaceLineEndings(),
                 exception.Message);
 
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Testing
             Assert.Equal(
                 """
                 Context: Iterative code fix application
-                Expected '0' iterations but found '1' iterations.
+                No code fixes were expected, but a fix was offered that made no changes to the code.
                 """.ReplaceLineEndings(),
                 exception.Message);
         }
