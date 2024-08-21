@@ -45,8 +45,8 @@ internal sealed class IsolatedAssemblyReferenceSet
         // We can *firmly* state though that we should never get an AnalyzerFileReference or IsolatedAnalyzerReference
         // as that would mean we were not properly getting the real analyzer references produced by the serialized
         // system.
-        Contract.ThrowIfTrue(serializedReferences.Any(r => r is AnalyzerFileReference));
-        Contract.ThrowIfTrue(serializedReferences.Any(r => r is IsolatedAnalyzerReference));
+        Contract.ThrowIfTrue(serializedReferences.Any(r => r is AnalyzerFileReference), $"Should not have gotten an {nameof(AnalyzerFileReference)}");
+        Contract.ThrowIfTrue(serializedReferences.Any(r => r is IsolatedAnalyzerReference), $"Should not have gotten an {nameof(IsolatedAnalyzerReference)}");
 
         // Make a unique ALC for this set of references.
         _assemblyLoadContext = new AssemblyLoadContext(
