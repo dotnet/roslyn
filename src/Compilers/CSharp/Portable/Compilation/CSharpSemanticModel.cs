@@ -3369,13 +3369,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (expr.Syntax.Kind() is SyntaxKind.ObjectCreationExpression or SyntaxKind.ImplicitObjectCreationExpression)
                         {
-                            if (expr.Type is { IsStatic: true } or { TypeKind: TypeKind.Interface or TypeKind.TypeParameter })
-                            {
-                                return symbols;
-                            }
-
                             if (resultKind == LookupResultKind.NotCreatable)
                             {
+                                if (expr.Type is { IsStatic: true } or { TypeKind: TypeKind.Interface or TypeKind.TypeParameter })
+                                {
+                                    return symbols;
+                                }
+
                                 return OneOrMany.Create(expr.Symbols);
                             }
                             else if (expr.Type.IsDelegateType())
