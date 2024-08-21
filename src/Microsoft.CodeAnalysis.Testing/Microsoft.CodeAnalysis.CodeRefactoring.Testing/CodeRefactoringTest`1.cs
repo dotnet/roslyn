@@ -302,7 +302,11 @@ namespace Microsoft.CodeAnalysis.Testing
 
             try
             {
-                if (expectedNumberOfIterations >= 0)
+                if (expectedNumberOfIterations == 0 && numberOfIterations <= 0)
+                {
+                    verifier.Equal(expectedNumberOfIterations, expectedNumberOfIterations - numberOfIterations, "No code fixes were expected, but a fix was offered that made no changes to the code.");
+                }
+                else if (expectedNumberOfIterations >= 0)
                 {
                     verifier.Equal(expectedNumberOfIterations, expectedNumberOfIterations - numberOfIterations, $"Expected '{expectedNumberOfIterations}' iterations but found '{expectedNumberOfIterations - numberOfIterations}' iterations.");
                 }
