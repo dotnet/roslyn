@@ -33,13 +33,13 @@ internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<I
     /// Uses semantic information of renamed symbol to produce a map containing contextual information for use in Copilot rename feature
     /// </summary>
     /// <returns>Map where key indicates the kind of semantic information, and value is an array of relevant code snippets.</returns>
-    public override async Task<ImmutableDictionary<string, ImmutableArray<string>>> GetRenameContextAsync(
+    public override async Task<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>> GetRenameContextAsync(
         IInlineRenameInfo inlineRenameInfo, IInlineRenameLocationSet inlineRenameLocationSet, CancellationToken cancellationToken)
     {
         using var _1 = PooledHashSet<TextSpan>.GetInstance(out var seen);
-        using var _2 = ArrayBuilder<string>.GetInstance(out var definitions);
-        using var _3 = ArrayBuilder<string>.GetInstance(out var references);
-        using var _4 = ArrayBuilder<string>.GetInstance(out var docComments);
+        using var _2 = ArrayBuilder<(string filePath, string content)>.GetInstance(out var definitions);
+        using var _3 = ArrayBuilder<(string filePath, string content)>.GetInstance(out var references);
+        using var _4 = ArrayBuilder<(string filePath, string content)>.GetInstance(out var docComments);
 
         foreach (var renameDefinition in inlineRenameInfo.DefinitionLocations.Take(MaxDefinitionCount))
         {
@@ -59,7 +59,11 @@ internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<I
                 var docComment = symbol?.GetDocumentationCommentXml(expandIncludes: true, cancellationToken: cancellationToken);
                 if (!string.IsNullOrWhiteSpace(docComment))
                 {
-                    docComments.Add(docComment!);
+                    var filePath = renameDefinition.Document.FilePath;
+                    if (filePath != null)
+                    {
+                        docComments.Add((filePath, docComment));
+                    }
                 }
             }
 
@@ -79,7 +83,7 @@ internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<I
             AddSpanOfInterest(documentText, renameLocation.TextSpan, containingStatementOrDeclarationSpan, references);
         }
 
-        var contextBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<string>>();
+        var contextBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<(string filePath, string content)>>();
         if (!definitions.IsEmpty)
         {
             contextBuilder.Add("definition", definitions.ToImmutable());
@@ -95,7 +99,7 @@ internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<I
 
         return contextBuilder.ToImmutableDictionary();
 
-        void AddSpanOfInterest(SourceText documentText, TextSpan fallbackSpan, TextSpan? surroundingSpanOfInterest, ArrayBuilder<string> resultBuilder)
+        void AddSpanOfInterest(SourceText documentText, TextSpan fallbackSpan, TextSpan? surroundingSpanOfInterest, ArrayBuilder<(string filePath, string content)> resultBuilder)
         {
             int startPosition, endPosition, startLine = 0, endLine = 0, lineCount = 0;
             if (surroundingSpanOfInterest is not null)
@@ -149,10 +153,13 @@ internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<I
             var length = endPosition - startPosition;
 
             surroundingSpanOfInterest = new TextSpan(startPosition, length);
-
             if (seen.Add(surroundingSpanOfInterest.Value))
             {
-                resultBuilder.Add(documentText.GetSubText(surroundingSpanOfInterest.Value).ToString());
+                var filePath = documentText.GetDocumentWithFrozenPartialSemantics(cancellationToken)?.FilePath;
+                if (filePath != null)
+                {
+                    resultBuilder.Add((filePath, documentText.GetSubText(surroundingSpanOfInterest.Value).ToString()));
+                }
             }
         }
     }

@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.EditorFeatures.Lightup;
 internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, IDisposable
 {
     internal const string WrappedTypeName = "Microsoft.VisualStudio.Text.Editor.SmartRename.ISmartRenameSession";
+    internal const string WrappedRenameContextTypeName = "Microsoft.VisualStudio.Text.Editor.SmartRename.RenameContext";
     private static readonly Type s_wrappedType;
+    private static readonly Type s_wrappedRenameContextType;
 
     private static readonly Func<object, TimeSpan> s_automaticFetchDelayAccessor;
     private static readonly Func<object, bool> s_isAvailableAccessor;
@@ -30,7 +32,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     private static readonly Func<object, IReadOnlyList<string>> s_suggestedNamesAccessor;
 
     private static readonly Func<object, CancellationToken, Task<IReadOnlyList<string>>> s_getSuggestionsAsync;
-    private static readonly Func<object, ImmutableDictionary<string, string[]>, CancellationToken, Task<IReadOnlyList<string>>> s_getSuggestionsAsync_WithContext;
+    private static readonly Func<object, ImmutableArray<object>, CancellationToken, Task<IReadOnlyList<string>>>? s_getSuggestionsAsync_WithContext;
     private static readonly Action<object> s_onCancel;
     private static readonly Action<object, string> s_onSuccess;
 
@@ -39,7 +41,7 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     static ISmartRenameSessionWrapper()
     {
         s_wrappedType = typeof(AggregateFocusInterceptor).Assembly.GetType(WrappedTypeName, throwOnError: false, ignoreCase: false);
-
+        s_wrappedRenameContextType = typeof(AggregateFocusInterceptor).Assembly.GetType(WrappedRenameContextTypeName, throwOnError: false, ignoreCase: false);
         s_automaticFetchDelayAccessor = LightupHelpers.CreatePropertyAccessor<object, TimeSpan>(s_wrappedType, nameof(AutomaticFetchDelay), TimeSpan.Zero);
         s_isAvailableAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(IsAvailable), false);
         s_hasSuggestionsAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(HasSuggestions), false);
@@ -48,8 +50,20 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
         s_statusMessageVisibilityAccessor = LightupHelpers.CreatePropertyAccessor<object, bool>(s_wrappedType, nameof(StatusMessageVisibility), false);
         s_suggestedNamesAccessor = LightupHelpers.CreatePropertyAccessor<object, IReadOnlyList<string>>(s_wrappedType, nameof(SuggestedNames), []);
 
+        var immutableArrayType = typeof(ImmutableArray<>);
+        var immutableType = immutableArrayType.MakeGenericType(s_wrappedRenameContextType);
         s_getSuggestionsAsync = LightupHelpers.CreateFunctionAccessor<object, CancellationToken, Task<IReadOnlyList<string>>>(s_wrappedType, nameof(GetSuggestionsAsync), typeof(CancellationToken), SpecializedTasks.EmptyReadOnlyList<string>());
-        s_getSuggestionsAsync_WithContext = LightupHelpers.CreateFunctionAccessor<object, ImmutableDictionary<string, string[]>, CancellationToken, Task<IReadOnlyList<string>>>(s_wrappedType, nameof(GetSuggestionsAsync), typeof(ImmutableDictionary<string, string[]>), typeof(CancellationToken), SpecializedTasks.EmptyReadOnlyList<string>());
+        var lightHelpersType = typeof(LightupHelpers);
+        var lightHelpersMethod = lightHelpersType.GetMethod(nameof(LightupHelpers.CreateFunctionAccessor), new[] { immutableType, typeof(CancellationToken) });
+        s_getSuggestionsAsync_WithContext = lightHelpersMethod.Invoke(lightHelpersType,
+                                                                      new object[]
+                                                                      {
+                                                                          s_wrappedType,
+                                                                          nameof(GetSuggestionsAsync),
+                                                                          immutableType,
+                                                                          typeof(CancellationToken),
+                                                                          SpecializedTasks.EmptyReadOnlyList<string>()
+                                                                      }) as Func<object, ImmutableArray<object>, CancellationToken, Task<IReadOnlyList<string>>>;
         s_onCancel = LightupHelpers.CreateActionAccessor<object>(s_wrappedType, nameof(OnCancel));
         s_onSuccess = LightupHelpers.CreateActionAccessor<object, string>(s_wrappedType, nameof(OnSuccess), typeof(string));
     }
@@ -96,8 +110,18 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
     public Task<IReadOnlyList<string>> GetSuggestionsAsync(CancellationToken cancellationToken)
         => s_getSuggestionsAsync(_instance, cancellationToken);
 
-    public Task<IReadOnlyList<string>> GetSuggestionsAsync(ImmutableDictionary<string, string[]> context, CancellationToken cancellationToken)
-        => s_getSuggestionsAsync_WithContext(_instance, context, cancellationToken);
+    public Task<IReadOnlyList<string>> GetSuggestionsAsync(ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>> context, CancellationToken cancellationToken)
+    {
+        var renameContexts = new List<object>();
+        foreach (var (key, value) in context)
+        {
+            foreach (var (filePath, content) in value)
+            {
+                renameContexts.Add(Activator.CreateInstance(s_wrappedRenameContextType, key, content, filePath));
+            }
+        }
+        return s_getSuggestionsAsync_WithContext(_instance, ImmutableArray.CreateRange<object>(renameContexts), cancellationToken);
+    }
 
     public void OnCancel()
         => s_onCancel(_instance);
