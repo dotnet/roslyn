@@ -52,13 +52,13 @@ internal sealed partial class ProjectSystemProject
     private readonly List<ProjectReference> _projectReferencesAddedInBatch = [];
     private readonly List<ProjectReference> _projectReferencesRemovedInBatch = [];
 
-    private readonly Dictionary<string, AnalyzerReference> _analyzerPathsToAnalyzers = [];
-    private readonly List<AnalyzerReference> _analyzersAddedInBatch = [];
+    private readonly Dictionary<string, AnalyzerFileReference> _analyzerPathsToAnalyzers = [];
+    private readonly List<AnalyzerFileReference> _analyzersAddedInBatch = [];
 
     /// <summary>
     /// The list of <see cref="AnalyzerReference"/>s that will be removed in this batch.
     /// </summary>
-    private readonly List<AnalyzerReference> _analyzersRemovedInBatch = [];
+    private readonly List<AnalyzerFileReference> _analyzersRemovedInBatch = [];
 
     private readonly List<Func<SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState>> _projectPropertyModificationsInBatch = [];
 
@@ -656,12 +656,18 @@ internal sealed partial class ProjectSystemProject
                         newSolution: solutionChanges.Solution.RemoveProjectReference(Id, projectReference));
                 }
 
-                // Analyzer reference adding...
-                solutionChanges.UpdateSolutionForProjectAction(Id, solutionChanges.Solution.AddAnalyzerReferences(Id, _analyzersAddedInBatch));
-
                 // Analyzer reference removing...
                 foreach (var analyzerReference in _analyzersRemovedInBatch)
+                {
+                    projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferenceRemoved(analyzerReference);
                     solutionChanges.UpdateSolutionForProjectAction(Id, solutionChanges.Solution.RemoveAnalyzerReference(Id, analyzerReference));
+                }
+
+                // Analyzer reference adding...
+                foreach (var analyzerReference in _analyzersAddedInBatch)
+                    projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferenceAdded(analyzerReference);
+
+                solutionChanges.UpdateSolutionForProjectAction(Id, solutionChanges.Solution.AddAnalyzerReferences(Id, projectUpdateState.AddedAnalyzerReferences));
 
                 // Other property modifications...
                 foreach (var propertyModification in _projectPropertyModificationsInBatch)
