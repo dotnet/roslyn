@@ -65,6 +65,11 @@ parameters:
   type: boolean
   default: true
 
+# Whether this is a special one-off build for inserting into VS for a validation insertion PR (that will never be merged).
+- name: ValidationBuild
+  type: boolean
+  default: false
+
 - name: EnableAPIScan
   type: boolean
   default: false
@@ -191,6 +196,7 @@ jobs:
       parameters:
         EnableOptProf: ${{ parameters.EnableOptProf }}
         IsOptProf: ${{ parameters.IsOptProf }}
+        ValidationBuild: ${{ parameters.ValidationBuild }}
 
   - template: expand-template.yml
 
