@@ -12189,9 +12189,40 @@ static class Stat { }
             Assert.Equal(ConversionKind.ImplicitReference, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
-            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal("Stat", semanticInfo.CandidateSymbols.First().Name);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void StaticClassWithinNew_ImplicitCreation()
+        {
+            string sourceCode = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Stat s = /*<bind>*/new()/*</bind>*/;
+    }
+}
+
+static class Stat { }
+";
+            var semanticInfo = GetSemanticInfoForTest<ImplicitObjectCreationExpressionSyntax>(sourceCode);
+
+            Assert.Equal("Stat", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("Stat", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -12259,9 +12290,42 @@ interface X { }
             Assert.Equal(ConversionKind.ImplicitReference, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
-            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
-            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
-            Assert.Equal("X", semanticInfo.CandidateSymbols.First().Name);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Fact]
+        public void InterfaceWithNew_ImplicitCreation()
+        {
+            string sourceCode = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        X x = /*<bind>*/new()/*</bind>*/;
+    }
+}
+
+interface X { }
+
+";
+            var semanticInfo = GetSemanticInfoForTest<ImplicitObjectCreationExpressionSyntax>(sourceCode);
+
+            Assert.Equal("X", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Interface, semanticInfo.Type.TypeKind);
+            Assert.Equal("X", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Interface, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
             Assert.Equal(0, semanticInfo.MethodGroup.Length);
 
@@ -12301,28 +12365,68 @@ class Program<T>
             Assert.False(semanticInfo.IsCompileTimeConstant);
         }
 
-        [Fact]
-        public void TypeParameterWithNew2()
+        [Theory]
+        [InlineData("", (byte)ConversionKind.Boxing)]
+        [InlineData("where T : new()", (byte)ConversionKind.Boxing)]
+        [InlineData("where T : class, new()", (byte)ConversionKind.ImplicitReference)]
+        [InlineData("where T : struct", (byte)ConversionKind.Boxing)]
+        public void TypeParameterWithNew2(string constraintClause, byte conversionKind)
         {
-            string sourceCode = @"
-using System;
+            string sourceCode = $$"""
+                using System;
 
-class Program<T>
-{
-    static void f()
-    {
-        object o = /*<bind>*/new T()/*</bind>*/;
-    }
-}
+                class Program<T> {{constraintClause}}
+                {
+                    static void f()
+                    {
+                        object o = /*<bind>*/new T()/*</bind>*/;
+                    }
+                }
+                """;
 
-";
             var semanticInfo = GetSemanticInfoForTest<ObjectCreationExpressionSyntax>(sourceCode);
 
             Assert.Equal("T", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.TypeParameter, semanticInfo.Type.TypeKind);
             Assert.Equal("System.Object", semanticInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
-            Assert.Equal(ConversionKind.Boxing, semanticInfo.ImplicitConversion.Kind);
+            Assert.Equal((ConversionKind)conversionKind, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
+            Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
+
+            Assert.Equal(0, semanticInfo.MethodGroup.Length);
+
+            Assert.False(semanticInfo.IsCompileTimeConstant);
+        }
+
+        [Theory]
+        [InlineData("", (byte)ConversionKind.NoConversion)]
+        [InlineData("where T : new()", (byte)ConversionKind.ObjectCreation)]
+        [InlineData("where T : class, new()", (byte)ConversionKind.ObjectCreation)]
+        [InlineData("where T : struct", (byte)ConversionKind.ObjectCreation)]
+        public void TypeParameterWithNew_ImplicitCreation(string constraintClause, byte conversionKind)
+        {
+            string sourceCode = $$"""
+                using System;
+
+                class Program<T> {{constraintClause}}
+                {
+                    static void f()
+                    {
+                        T t = /*<bind>*/new()/*</bind>*/;
+                    }
+                }
+                """;
+
+            var semanticInfo = GetSemanticInfoForTest<ImplicitObjectCreationExpressionSyntax>(sourceCode);
+
+            Assert.Equal("T", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.TypeParameter, semanticInfo.Type.TypeKind);
+            Assert.Equal("T", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.TypeParameter, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal((ConversionKind)conversionKind, semanticInfo.ImplicitConversion.Kind);
 
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
@@ -12430,6 +12534,40 @@ abstract class X { }
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
             Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal("X..ctor()", semanticInfo.CandidateSymbols.First().ToTestDisplayString());
+
+            Assert.Equal(0, semanticInfo.MemberGroup.Length);
+        }
+
+        [Fact]
+        public void AbstractClassWithNew_ImplicitCreation()
+        {
+            string sourceCode = @"
+using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        X x = /*<bind>*/new()/*</bind>*/;
+    }
+}
+
+abstract class X { }
+
+";
+            var semanticInfo = GetSemanticInfoForTest<ImplicitObjectCreationExpressionSyntax>(sourceCode);
+
+            Assert.Equal("X", semanticInfo.Type.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
+            Assert.Equal("X", semanticInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind);
+            Assert.Equal(ConversionKind.NoConversion, semanticInfo.ImplicitConversion.Kind);
+
+            Assert.Null(semanticInfo.Symbol);
+            Assert.Equal(CandidateReason.NotCreatable, semanticInfo.CandidateReason);
+            Assert.Equal(1, semanticInfo.CandidateSymbols.Length);
+            Assert.Equal("X..ctor()", semanticInfo.CandidateSymbols.First().ToTestDisplayString());
 
             Assert.Equal(0, semanticInfo.MemberGroup.Length);
         }
