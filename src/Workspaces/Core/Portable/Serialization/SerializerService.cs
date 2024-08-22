@@ -20,7 +20,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
-#if NETCOREAPP
+#if NET
 [SupportedOSPlatform("windows")]
 #endif
 internal partial class SerializerService : ISerializerService
