@@ -8,12 +8,18 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.VisualStudio.Search.Data;
+using Microsoft.VisualStudio.Search.UI;
 using Microsoft.VisualStudio.Threading;
 
 namespace Microsoft.CodeAnalysis.NavigateTo;
 
 internal sealed partial class RoslynSearchItemsSourceProvider
 {
+    /// <summary>
+    /// Replace with <see cref="PredefinedUserFilterNames"/> when this name is publicly published.
+    /// </summary>
+    private const string IncludeGeneratedItems = nameof(IncludeGeneratedItems);
+
     /// <summary>
     /// Roslyn implementation of <see cref="ISearchItemsSource"/>.  This is the type actually responsible for
     /// calling into the underlying <see cref="NavigateToSearcher"/> and marshalling the results over to the ui.
@@ -89,6 +95,15 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 _ => NavigateToSearchScope.Solution,
             };
 
+            var documentSupport = NavigateToDocumentSupport.AllDocuments;
+            if (searchQuery.FiltersStates.TryGetValue(IncludeGeneratedItems, out var includeGeneratedItemsFilterValue) &&
+                bool.TryParse(includeGeneratedItemsFilterValue, out var includeGeneratedItems) &&
+                !includeGeneratedItems)
+            {
+                // use has opted out of generated docs.  filter down to regular documents instead.
+                documentSupport = NavigateToDocumentSupport.RegularDocuments;
+            }
+
             // Create a nav-to callback that will take results and translate them to aiosp results for the
             // callback passed to us.
 
@@ -101,7 +116,7 @@ internal sealed partial class RoslynSearchItemsSourceProvider
                 kinds,
                 provider._threadingContext.DisposalToken);
 
-            await searcher.SearchAsync(searchScope, cancellationToken).ConfigureAwait(false);
+            await searcher.SearchAsync(searchScope, documentSupport, cancellationToken).ConfigureAwait(false);
         }
     }
 }

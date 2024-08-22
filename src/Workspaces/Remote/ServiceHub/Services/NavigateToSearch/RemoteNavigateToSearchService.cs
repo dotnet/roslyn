@@ -68,6 +68,7 @@ namespace Microsoft.CodeAnalysis.Remote
             ImmutableArray<DocumentId> priorityDocumentIds,
             string searchPattern,
             ImmutableArray<string> kinds,
+            bool includeGeneratedCode,
             RemoteServiceCallbackId callbackId,
             CancellationToken cancellationToken)
         {
@@ -79,7 +80,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 var priorityDocuments = priorityDocumentIds.SelectAsArray(d => solution.GetRequiredDocument(d));
 
                 await AbstractNavigateToSearchService.SearchProjectsInCurrentProcessAsync(
-                    projects, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), onItemsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
+                    projects, priorityDocuments, searchPattern, kinds.ToImmutableHashSet(), includeGeneratedCode,
+                    onItemsFound, onProjectCompleted, cancellationToken).ConfigureAwait(false);
             }, cancellationToken);
         }
 

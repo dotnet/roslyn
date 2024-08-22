@@ -38,8 +38,9 @@ internal sealed partial class SyntaxTreeIndex
     private static readonly ConditionalWeakTable<ProjectState, StringTable> s_projectStringTable = new();
 
     private static SyntaxTreeIndex CreateIndex(
-        ProjectState project, SyntaxNode root, Checksum checksum, CancellationToken _)
+        ProjectState project, SyntaxTree tree, Checksum checksum, CancellationToken cancellationToken)
     {
+        var root = tree.GetRoot(cancellationToken);
         var syntaxFacts = project.LanguageServices.GetRequiredService<ISyntaxFactsService>();
         var ignoreCase = !syntaxFacts.IsCaseSensitive;
         var isCaseSensitive = !ignoreCase;

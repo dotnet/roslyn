@@ -20,6 +20,7 @@ internal sealed partial class TopLevelSyntaxTreeIndex
 
     public override void WriteTo(ObjectWriter writer)
     {
+        writer.WriteBoolean(IsGeneratedCode);
         _declarationInfo.WriteTo(writer);
         _extensionMethodInfo.WriteTo(writer);
     }
@@ -27,6 +28,7 @@ internal sealed partial class TopLevelSyntaxTreeIndex
     private static TopLevelSyntaxTreeIndex? ReadIndex(
         StringTable stringTable, ObjectReader reader, Checksum? checksum)
     {
+        var isGeneratedCode = reader.ReadBoolean();
         var declarationInfo = DeclarationInfo.TryReadFrom(stringTable, reader);
         var extensionMethodInfo = ExtensionMethodInfo.TryReadFrom(reader);
 
@@ -35,6 +37,7 @@ internal sealed partial class TopLevelSyntaxTreeIndex
 
         return new TopLevelSyntaxTreeIndex(
             checksum,
+            isGeneratedCode,
             declarationInfo.Value,
             extensionMethodInfo.Value);
     }
