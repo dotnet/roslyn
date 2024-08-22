@@ -38,9 +38,10 @@ internal sealed partial class ProjectSystemProject
     /// <summary>
     /// A semaphore taken for all mutation of any mutable field in this type.
     /// </summary>
-    /// <remarks>This is, for now, intentionally pessimistic. There are no doubt ways that we could allow more to run in parallel,
-    /// but the current tradeoff is for simplicity of code and "obvious correctness" than something that is subtle, fast, and wrong.</remarks>
-    private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+    /// <remarks>This is, for now, intentionally pessimistic. There are no doubt ways that we could allow more to run in
+    /// parallel, but the current tradeoff is for simplicity of code and "obvious correctness" than something that is
+    /// subtle, fast, and wrong.</remarks>
+    private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
     /// <summary>
     /// The number of active batch scopes. If this is zero, we are not batching, non-zero means we are batching.
@@ -52,13 +53,13 @@ internal sealed partial class ProjectSystemProject
     private readonly List<ProjectReference> _projectReferencesAddedInBatch = [];
     private readonly List<ProjectReference> _projectReferencesRemovedInBatch = [];
 
-    private readonly Dictionary<string, AnalyzerReference> _analyzerPathsToAnalyzers = [];
-    private readonly List<AnalyzerReference> _analyzersAddedInBatch = [];
+    private readonly Dictionary<string, AnalyzerFileReference> _analyzerPathsToAnalyzers = [];
+    private readonly List<AnalyzerFileReference> _analyzersAddedInBatch = [];
 
     /// <summary>
     /// The list of <see cref="AnalyzerReference"/>s that will be removed in this batch.
     /// </summary>
-    private readonly List<AnalyzerReference> _analyzersRemovedInBatch = [];
+    private readonly List<AnalyzerFileReference> _analyzersRemovedInBatch = [];
 
     private readonly List<Func<SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState>> _projectPropertyModificationsInBatch = [];
 
