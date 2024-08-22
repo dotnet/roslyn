@@ -47,8 +47,8 @@ internal sealed class IsolatedAssemblyReferenceSet
         // We can *firmly* state though that we should never get an AnalyzerFileReference or IsolatedAnalyzerReference
         // as that would mean we were not properly getting the real analyzer references produced by the serialized
         // system.
-        Contract.ThrowIfTrue(serializedReferences.Any(r => r is AnalyzerFileReference), $"Should not have gotten an {nameof(AnalyzerFileReference)}");
-        Contract.ThrowIfTrue(serializedReferences.Any(r => r is IsolatedAnalyzerReference), $"Should not have gotten an {nameof(IsolatedAnalyzerReference)}");
+        Contract.ThrowIfTrue(serializedReferences.Any(static r => r is AnalyzerFileReference), $"Should not have gotten an {nameof(AnalyzerFileReference)}");
+        Contract.ThrowIfTrue(serializedReferences.Any(static r => r is IsolatedAnalyzerReference), $"Should not have gotten an {nameof(IsolatedAnalyzerReference)}");
 
         // Now make a fresh loader that uses that ALC that will ensure these references are properly isolated.
         _shadowCopyLoader = provider.GetShadowCopyLoader(getSharedLoader: false);
