@@ -11,12 +11,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.InheritanceMarg
 
 /// <summary>
 /// The View Model would be used when there are multiple targets with same name in the group.
-/// It contains an addtional image moniker represents the source language in the UI.
+/// It contains an additional image moniker represents the source language in the UI.
 /// </summary>
 internal class DisambiguousTargetMenuItemViewModel : TargetMenuItemViewModel
 {
     /// <summary>
-    /// Icon represets the source language of this target.
+    /// Icon represents the source language of this target.
     /// </summary>
     public ImageMoniker LanguageMoniker { get; }
 
@@ -25,18 +25,21 @@ internal class DisambiguousTargetMenuItemViewModel : TargetMenuItemViewModel
         string displayContent,
         ImageMoniker imageMoniker,
         DetachedDefinitionItem definitionItem,
-        ImageMoniker languageMoniker) : base(displayContent, imageMoniker, definitionItem)
+        ImageMoniker languageMoniker,
+        double scaleFactor) : base(displayContent, imageMoniker, definitionItem, scaleFactor)
     {
         LanguageMoniker = languageMoniker;
     }
 
     public static DisambiguousTargetMenuItemViewModel CreateWithSourceLanguageGlyph(
-        InheritanceTargetItem target)
+        InheritanceTargetItem target,
+        double scaleFactor)
     {
         return new(
             target.DisplayName,
             target.Glyph.GetImageMoniker(),
             target.DefinitionItem,
-            target.LanguageGlyph.GetImageMoniker());
+            target.LanguageGlyph.GetImageMoniker(),
+            scaleFactor);
     }
 }

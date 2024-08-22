@@ -95,7 +95,7 @@ internal static class InheritanceMarginHelpers
         throw ExceptionUtilities.UnexpectedValue(inheritanceRelationship);
     }
 
-    public static ImmutableArray<MenuItemViewModel> CreateModelsForMarginItem(InheritanceMarginItem item)
+    public static ImmutableArray<MenuItemViewModel> CreateModelsForMarginItem(InheritanceMarginItem item, double scaleFactor)
     {
         var nameToTargets = s_pool.Allocate();
         try
@@ -109,7 +109,7 @@ internal static class InheritanceMarginHelpers
 
             return item.TargetItems
                 .GroupBy(t => t.RelationToMember)
-                .SelectMany(g => CreateMenuItemsWithHeader(item, g.Key, g, nameToTargets))
+                .SelectMany(g => CreateMenuItemsWithHeader(item, g.Key, g, nameToTargets, scaleFactor))
                 .ToImmutableArray();
         }
         finally
@@ -131,7 +131,7 @@ internal static class InheritanceMarginHelpers
     ///                     HeaderViewModel
     ///                     Target5ViewModel
     /// </summary>
-    public static ImmutableArray<MenuItemViewModel> CreateMenuItemViewModelsForMultipleMembers(ImmutableArray<InheritanceMarginItem> members)
+    public static ImmutableArray<MenuItemViewModel> CreateMenuItemViewModelsForMultipleMembers(ImmutableArray<InheritanceMarginItem> members, double scaleFactor)
     {
         Contract.ThrowIfTrue(members.Length <= 1);
         // For multiple members, check if all the targets have the same inheritance relationship.
@@ -140,14 +140,16 @@ internal static class InheritanceMarginHelpers
         return members.SelectAsArray(m => new MemberMenuItemViewModel(
             m.DisplayTexts.JoinText(),
             m.Glyph.GetImageMoniker(),
-            CreateModelsForMarginItem(m))).CastArray<MenuItemViewModel>();
+            CreateModelsForMarginItem(m, scaleFactor),
+            scaleFactor)).CastArray<MenuItemViewModel>();
     }
 
     public static ImmutableArray<MenuItemViewModel> CreateMenuItemsWithHeader(
         InheritanceMarginItem item,
         InheritanceRelationship relationship,
         IEnumerable<InheritanceTargetItem> targets,
-        MultiDictionary<string, InheritanceTargetItem> nameToTargets)
+        MultiDictionary<string, InheritanceTargetItem> nameToTargets,
+        double scaleFactor)
     {
         using var _ = ArrayBuilder<MenuItemViewModel>.GetInstance(out var builder);
         var displayContent = relationship switch
@@ -165,7 +167,7 @@ internal static class InheritanceMarginHelpers
             _ => throw ExceptionUtilities.UnexpectedValue(relationship)
         };
 
-        builder.Add(new HeaderMenuItemViewModel(displayContent, GetMoniker(relationship)));
+        builder.Add(new HeaderMenuItemViewModel(displayContent, GetMoniker(relationship), scaleFactor));
         foreach (var target in targets)
         {
             var targetsWithSameName = nameToTargets[target.DisplayName];
@@ -176,19 +178,19 @@ internal static class InheritanceMarginHelpers
                 var distinctLanguageCount = targetsWithSameName.Select(t => t.LanguageGlyph).Distinct().Count();
                 if (distinctLanguageCount == targetsWithSameName.Count)
                 {
-                    builder.Add(DisambiguousTargetMenuItemViewModel.CreateWithSourceLanguageGlyph(target));
+                    builder.Add(DisambiguousTargetMenuItemViewModel.CreateWithSourceLanguageGlyph(target, scaleFactor));
                     continue;
                 }
 
                 if (target.ProjectName != null)
                 {
                     builder.Add(TargetMenuItemViewModel.Create(
-                        target, string.Format(ServicesVSResources._0_1, target.DisplayName, target.ProjectName)));
+                        target, string.Format(ServicesVSResources._0_1, target.DisplayName, target.ProjectName), scaleFactor));
                     continue;
                 }
             }
 
-            builder.Add(TargetMenuItemViewModel.Create(target, target.DisplayName));
+            builder.Add(TargetMenuItemViewModel.Create(target, target.DisplayName, scaleFactor));
         }
 
         return builder.ToImmutableAndClear();

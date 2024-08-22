@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Linq;
+using System.Security.Policy;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
@@ -120,7 +121,7 @@ internal class InheritanceMarginGlyph : Button
         {
             var viewModel = (InheritanceMarginGlyphViewModel)DataContext;
 
-            ContextMenu = new InheritanceMarginContextMenu(_threadingContext, _streamingFindUsagesPresenter, _operationExecutor, _workspace, _listener);
+            ContextMenu = new InheritanceMarginContextMenu(_threadingContext, _streamingFindUsagesPresenter, _operationExecutor, _workspace, _listener, _textView.ZoomLevel / 100);
             ContextMenu.DataContext = viewModel;
             ContextMenu.ItemsSource = viewModel.MenuItemViewModels;
             ContextMenu.Opened += ContextMenu_OnOpen;

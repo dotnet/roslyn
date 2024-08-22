@@ -125,7 +125,7 @@ internal class InheritanceMarginGlyphViewModel
             var member = tag.MembersOnLine[0];
             var automationName = member.TopLevelDisplayText;
 
-            var menuItemViewModels = members.SelectManyAsArray(m => InheritanceMarginHelpers.CreateModelsForMarginItem(m));
+            var menuItemViewModels = members.SelectManyAsArray(m => InheritanceMarginHelpers.CreateModelsForMarginItem(m, scaleFactor));
             return new InheritanceMarginGlyphViewModel(tag, classificationTypeMap, classificationFormatMap, automationName!, scaleFactor, menuItemViewModels);
         }
         else if (members.Length == 1)
@@ -133,14 +133,14 @@ internal class InheritanceMarginGlyphViewModel
             var member = tag.MembersOnLine[0];
 
             var automationName = string.Format(ServicesVSResources._0_is_inherited, member.DisplayTexts.JoinText());
-            var menuItemViewModels = InheritanceMarginHelpers.CreateModelsForMarginItem(member);
+            var menuItemViewModels = InheritanceMarginHelpers.CreateModelsForMarginItem(member, scaleFactor);
             return new InheritanceMarginGlyphViewModel(tag, classificationTypeMap, classificationFormatMap, automationName, scaleFactor, menuItemViewModels);
         }
         else
         {
             // Same automation name can't be set for control for accessibility purpose. So add the line number info.
             var automationName = string.Format(ServicesVSResources.Multiple_members_are_inherited_on_line_0, tag.LineNumber);
-            var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForMultipleMembers(tag.MembersOnLine);
+            var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForMultipleMembers(tag.MembersOnLine, scaleFactor);
             return new InheritanceMarginGlyphViewModel(tag, classificationTypeMap, classificationFormatMap, automationName, scaleFactor, menuItemViewModels);
         }
     }

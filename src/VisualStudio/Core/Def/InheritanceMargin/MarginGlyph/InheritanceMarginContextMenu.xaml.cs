@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Media;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -25,20 +26,31 @@ internal partial class InheritanceMarginContextMenu : ContextMenu
     private readonly IUIThreadOperationExecutor _operationExecutor;
     private readonly Workspace _workspace;
     private readonly IAsynchronousOperationListener _listener;
+    private readonly double _scaleFactor;
 
     public InheritanceMarginContextMenu(
         IThreadingContext threadingContext,
         IStreamingFindUsagesPresenter streamingFindUsagesPresenter,
         IUIThreadOperationExecutor operationExecutor,
         Workspace workspace,
-        IAsynchronousOperationListener listener)
+        IAsynchronousOperationListener listener,
+        double scaleFactor)
     {
         _threadingContext = threadingContext;
         _streamingFindUsagesPresenter = streamingFindUsagesPresenter;
         _workspace = workspace;
         _operationExecutor = operationExecutor;
         _listener = listener;
+        _scaleFactor = scaleFactor;
         InitializeComponent();
+        SetZoom(_scaleFactor);
+    }
+
+    private void SetZoom(double scaleFactor)
+    {
+        var zoomTransform = new ScaleTransform(scaleFactor, scaleFactor);
+        zoomTransform.Freeze();
+        LayoutTransform = zoomTransform;
     }
 
     private void TargetMenuItem_OnClick(object sender, RoutedEventArgs e)

@@ -23,14 +23,16 @@ internal class TargetMenuItemViewModel : MenuItemViewModel
     internal TargetMenuItemViewModel(
         string displayContent,
         ImageMoniker imageMoniker,
-        DetachedDefinitionItem definitionItem) : base(displayContent, imageMoniker)
+        DetachedDefinitionItem definitionItem,
+        double scaleFactor = 1) : base(displayContent, imageMoniker, scaleFactor)
     {
         DefinitionItem = definitionItem;
     }
 
-    public static TargetMenuItemViewModel Create(InheritanceTargetItem target, string displayContent)
+    public static TargetMenuItemViewModel Create(InheritanceTargetItem target, string displayContent, double scaleFactor)
         => new(
             displayContent,
             target.Glyph.GetImageMoniker(),
-            target.DefinitionItem);
+            target.DefinitionItem,
+            scaleFactor);
 }
