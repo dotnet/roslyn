@@ -429,6 +429,23 @@ internal sealed class PdbSourceDocumentMetadataAsSourceFileProvider(
         _sourceLinkEnabledProjects.Clear();
         _implementationAssemblyLookupService.Clear();
     }
+
+    internal TestAccessor GetTestAccessor()
+    {
+        return new TestAccessor(this);
+    }
+
+    internal readonly struct TestAccessor
+    {
+        private readonly PdbSourceDocumentMetadataAsSourceFileProvider _instance;
+
+        internal TestAccessor(PdbSourceDocumentMetadataAsSourceFileProvider instance)
+        {
+            _instance = instance;
+        }
+
+        public ImmutableDictionary<string, SourceDocumentInfo> Documents => _instance._fileToDocumentInfoMap.ToImmutableDictionary();
+    }
 }
 
 internal sealed record SourceDocument(string FilePath, SourceHashAlgorithm ChecksumAlgorithm, ImmutableArray<byte> Checksum, byte[]? EmbeddedTextBytes, string? SourceLinkUrl);
