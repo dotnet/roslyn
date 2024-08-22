@@ -34,6 +34,11 @@ namespace Microsoft.CodeAnalysis
             _externalResolvers = externalResolvers;
         }
 
+        private partial void DisposeWorker()
+        {
+            EnsureResolvedUnhooked();
+        }
+
         public bool IsHostAssembly(Assembly assembly)
         {
             CheckIfDisposed();
@@ -93,7 +98,7 @@ namespace Microsoft.CodeAnalysis
 
         internal bool EnsureResolvedUnhooked()
         {
-            CheckIfDisposed();
+            // Called from Dispose. We don't want to throw if we're disposed.
 
             lock (_guard)
             {

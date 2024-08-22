@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis
             DisposeWorker();
         }
 
-        partial void DisposeWorker();
+        private partial void DisposeWorker();
 
         internal bool IsAnalyzerDependencyPath(string fullPath)
         {

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        partial void DisposeWorker()
+        private partial void DisposeWorker()
         {
             var contexts = ArrayBuilder<DirectoryLoadContext>.GetInstance();
             lock (_guard)
