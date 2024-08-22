@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
@@ -58,6 +59,8 @@ namespace Microsoft.CodeAnalysis
 
         public bool IsHostAssembly(Assembly assembly)
         {
+            CheckIfDisposed();
+
             var alc = AssemblyLoadContext.GetLoadContext(assembly);
             return alc == _compilerLoadContext || alc == AssemblyLoadContext.Default;
         }
@@ -84,13 +87,15 @@ namespace Microsoft.CodeAnalysis
 
         internal DirectoryLoadContext[] GetDirectoryLoadContextsSnapshot()
         {
+            CheckIfDisposed();
+
             lock (_guard)
             {
                 return _loadContextByDirectory.Values.OrderBy(v => v.Directory).ToArray();
             }
         }
 
-        public void UnloadAll()
+        partial void DisposeWorker()
         {
             var contexts = ArrayBuilder<DirectoryLoadContext>.GetInstance();
             lock (_guard)
@@ -102,7 +107,23 @@ namespace Microsoft.CodeAnalysis
             }
 
             foreach (var context in contexts)
+            {
+#if WORKSPACE
+                try
+                {
+                    // In the IDE layer defer to our NFW handler to ensure we can report any bugs here, without crashing
+                    // the process.
+                    context.Unload();
+                }
+                catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
+                {
+                }
+#else
+                // In the compiler layer, just directly unload the ALC.  This is only called from tests, and we're fine
+                // with any exceptions bubbling up to fail the test.
                 context.Unload();
+#endif
+            }
 
             contexts.Free();
         }

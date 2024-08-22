@@ -59,7 +59,7 @@ internal sealed class VSCodeAnalyzerLoaderProvider(
             return defaultLoader.LoadFromPath(fullPath);
         }
 
-        public void UnloadAll()
-            => defaultLoader.UnloadAll();
+        public void Dispose()
+            => defaultLoader.Dispose();
     }
 }

@@ -36,6 +36,8 @@ namespace Microsoft.CodeAnalysis
 
         public bool IsHostAssembly(Assembly assembly)
         {
+            CheckIfDisposed();
+
             // When an assembly is loaded from the GAC then the load result would be the same if 
             // this ran on command line compiler. So there is no consistency issue here, this 
             // is just runtime rules expressing themselves.
@@ -74,6 +76,8 @@ namespace Microsoft.CodeAnalysis
 
         internal bool EnsureResolvedHooked()
         {
+            CheckIfDisposed();
+
             lock (_guard)
             {
                 if (!_hookedAssemblyResolve)
@@ -89,6 +93,8 @@ namespace Microsoft.CodeAnalysis
 
         internal bool EnsureResolvedUnhooked()
         {
+            CheckIfDisposed();
+
             lock (_guard)
             {
                 if (_hookedAssemblyResolve)
