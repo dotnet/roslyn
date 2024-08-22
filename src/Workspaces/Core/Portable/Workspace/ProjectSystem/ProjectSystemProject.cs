@@ -38,9 +38,10 @@ internal sealed partial class ProjectSystemProject
     /// <summary>
     /// A semaphore taken for all mutation of any mutable field in this type.
     /// </summary>
-    /// <remarks>This is, for now, intentionally pessimistic. There are no doubt ways that we could allow more to run in parallel,
-    /// but the current tradeoff is for simplicity of code and "obvious correctness" than something that is subtle, fast, and wrong.</remarks>
-    private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+    /// <remarks>This is, for now, intentionally pessimistic. There are no doubt ways that we could allow more to run in
+    /// parallel, but the current tradeoff is for simplicity of code and "obvious correctness" than something that is
+    /// subtle, fast, and wrong.</remarks>
+    private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
     /// <summary>
     /// The number of active batch scopes. If this is zero, we are not batching, non-zero means we are batching.
@@ -657,17 +658,20 @@ internal sealed partial class ProjectSystemProject
                 }
 
                 // Analyzer reference removing...
-                foreach (var analyzerReference in _analyzersRemovedInBatch)
                 {
-                    projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferenceRemoved(analyzerReference);
-                    solutionChanges.UpdateSolutionForProjectAction(Id, solutionChanges.Solution.RemoveAnalyzerReference(Id, analyzerReference));
+                    projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesRemoved(_analyzersRemovedInBatch);
+
+                    foreach (var analyzerReference in _analyzersRemovedInBatch)
+                        solutionChanges.UpdateSolutionForProjectAction(Id, solutionChanges.Solution.RemoveAnalyzerReference(Id, analyzerReference));
                 }
 
                 // Analyzer reference adding...
-                foreach (var analyzerReference in _analyzersAddedInBatch)
-                    projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferenceAdded(analyzerReference);
+                {
+                    projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesAdded(_analyzersAddedInBatch);
 
-                solutionChanges.UpdateSolutionForProjectAction(Id, solutionChanges.Solution.AddAnalyzerReferences(Id, projectUpdateState.AddedAnalyzerReferences));
+                    solutionChanges.UpdateSolutionForProjectAction(
+                        Id, solutionChanges.Solution.AddAnalyzerReferences(Id, projectUpdateState.AddedAnalyzerReferences));
+                }
 
                 // Other property modifications...
                 foreach (var propertyModification in _projectPropertyModificationsInBatch)
