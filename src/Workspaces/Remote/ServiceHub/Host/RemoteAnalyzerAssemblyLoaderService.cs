@@ -23,8 +23,8 @@ internal sealed class RemoteAnalyzerAssemblyLoaderService(
     : IAnalyzerAssemblyLoaderProvider
 {
     private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader =
-        new(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"), externalResolvers.ToImmutableArray());
+        new(AbstractAnalyzerAssemblyLoaderProvider.GetDefaultShadowCopyPath(), externalResolvers.ToImmutableArray());
 
-    public IAnalyzerAssemblyLoader GetShadowCopyLoader()
+    public IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader()
         => _shadowCopyLoader;
 }

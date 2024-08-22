@@ -13,6 +13,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -89,19 +90,21 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal void UnloadAll()
+        public void UnloadAll()
         {
-            List<DirectoryLoadContext> contexts;
+            var contexts = ArrayBuilder<DirectoryLoadContext>.GetInstance();
             lock (_guard)
             {
-                contexts = _loadContextByDirectory.Values.ToList();
+                foreach (var (_, context) in _loadContextByDirectory)
+                    contexts.Add(context);
+
                 _loadContextByDirectory.Clear();
             }
 
             foreach (var context in contexts)
-            {
                 context.Unload();
-            }
+
+            contexts.Free();
         }
 
         internal sealed class DirectoryLoadContext : AssemblyLoadContext
