@@ -13,6 +13,7 @@
              UsesItemContainerTemplate="True"
              MaxHeight="400"
              StaysOpen="True"
+             x:Name="InheritanceContextMenu"
              Background="{DynamicResource {x:Static vsfx:VsBrushes.CommandBarMenuBackgroundGradientKey}}"
              FontFamily="{DynamicResource {x:Static vsfx:VsFonts.EnvironmentFontFamilyKey}}"
              FontSize="{DynamicResource {x:Static vsfx:VsFonts.EnvironmentFontSizeKey}}"
@@ -21,7 +22,7 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <ContextMenu.Resources>
         <!-- The image shown in the menu item, mark this is non-shared to make sure each menu item has its own image -->
-        <imaging:CrispImage x:Key="NonSharedIcon" x:Shared="False" Moniker="{Binding ImageMoniker}"   imaging:CrispImage.ScaleFactor="{Binding ScaleFactor}"/>
+        <imaging:CrispImage x:Key="NonSharedIcon" x:Shared="False" Moniker="{Binding ImageMoniker}"  imaging:CrispImage.ScaleFactor="{Binding DataContext.ScaleFactor, ElementName=InheritanceContextMenu}"/>
         <local:MenuItemContainerTemplateSelector x:Key="TemplateSelector"/>
 
         <!-- Style used to display a single target menu item -->
@@ -112,7 +113,7 @@
                                                 SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Content="{TemplateBinding MenuItem.Icon}" />
 
                             <imaging:CrispImage Grid.Column="1" x:Name="LanguageIcon" Margin="1,1,4,1" Width="16" Height="16" VerticalAlignment="Center"
-                                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Moniker="{Binding LanguageMoniker}"   imaging:CrispImage.ScaleFactor="{Binding ScaleFactor}" />
+                                                SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}" Moniker="{Binding LanguageMoniker}" imaging:CrispImage.ScaleFactor="{Binding DataContext.ScaleFactor, ElementName=InheritanceContextMenu}" />
 
                             <ContentPresenter Grid.Column="2" ContentSource="Header" Margin="4,1,4,1"
                                               VerticalAlignment="Center" RecognizesAccessKey="True" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
@@ -234,7 +235,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="{x:Type MenuItem}">
                         <StackPanel FlowDirection="LeftToRight" Orientation="Horizontal" HorizontalAlignment="Stretch" Background="{TemplateBinding Background}" SnapsToDevicePixels="{TemplateBinding SnapsToDevicePixels}">
-                            <imaging:CrispImage Margin="4,1,4,1" Width="16" Height="16" VerticalAlignment="Center" Moniker="{Binding ImageMoniker}"   imaging:CrispImage.ScaleFactor="{Binding ScaleFactor}" />
+                            <imaging:CrispImage Margin="4,1,4,1" Width="16" Height="16" VerticalAlignment="Center" Moniker="{Binding ImageMoniker}" imaging:CrispImage.ScaleFactor="{Binding DataContext.ScaleFactor, ElementName=InheritanceContextMenu}" />
                             <TextBlock Text="{Binding DisplayContent}" VerticalAlignment="Center" Foreground="{DynamicResource {x:Static vsui:EnvironmentColors.CommandBarTextActiveBrushKey}}" Margin="4,1,4,1"/>
                         </StackPanel>
                     </ControlTemplate>

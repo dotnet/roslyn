@@ -43,12 +43,12 @@ internal partial class InheritanceMarginContextMenu : ContextMenu
         _listener = listener;
         _scaleFactor = scaleFactor;
         InitializeComponent();
-        SetZoom(_scaleFactor);
+        SetZoom();
     }
 
-    private void SetZoom(double scaleFactor)
+    private void SetZoom()
     {
-        var zoomTransform = new ScaleTransform(scaleFactor, scaleFactor);
+        var zoomTransform = new ScaleTransform(_scaleFactor, _scaleFactor);
         zoomTransform.Freeze();
         LayoutTransform = zoomTransform;
     }
