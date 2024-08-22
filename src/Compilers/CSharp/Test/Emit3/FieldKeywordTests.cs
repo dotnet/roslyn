@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,12): error CS8050: Only auto-implemented properties can have initializers.
+                // (3,12): error CS8050: Only properties with backing fields can have initializers.
                 //     object P { set { } } = field;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(3, 12),
                 // (3,28): error CS0103: The name 'field' does not exist in the current context
@@ -1053,6 +1053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var verifier = CompileAndVerify(source, expectedOutput: "(1, 2, 3, 5, 0, 9, 11)");
+            verifier.Compilation.VerifyDiagnostics();
             verifier.VerifyIL("C..cctor", """
                 {
                   // Code size       52 (0x34)
@@ -1110,6 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 5, 6, 0, 0, 9, 10, 11, 12)"));
+            verifier.Compilation.VerifyDiagnostics();
             verifier.VerifyIL("C..ctor", """
                 {
                   // Code size      111 (0x6f)
@@ -1178,19 +1180,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (3,23): error CS8050: Only auto-implemented properties can have initializers.
+                // (3,23): error CS8050: Only properties with backing fields can have initializers.
                 //     public static int P1 { get => 0; } = 1;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 23),
-                // (4,23): error CS8050: Only auto-implemented properties can have initializers.
+                // (4,23): error CS8050: Only properties with backing fields can have initializers.
                 //     public static int P2 { get => 0; set { } } = 2;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(4, 23),
-                // (5,16): error CS8050: Only auto-implemented properties can have initializers.
+                // (5,16): error CS8050: Only properties with backing fields can have initializers.
                 //     public int P3 { get => 0; } = 3;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(5, 16),
-                // (6,16): error CS8050: Only auto-implemented properties can have initializers.
+                // (6,16): error CS8050: Only properties with backing fields can have initializers.
                 //     public int P4 { get => 0; set { } } = 4;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P4").WithLocation(6, 16),
-                // (7,16): error CS8050: Only auto-implemented properties can have initializers.
+                // (7,16): error CS8050: Only properties with backing fields can have initializers.
                 //     public int P5 { get => 0; init { } } = 5;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P5").WithLocation(7, 16));
         }
@@ -1231,6 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var verifier = CompileAndVerify(source, expectedOutput: "(1, 2, 3, 0, 0, 9, 0)");
+            verifier.Compilation.VerifyDiagnostics();
             verifier.VerifyIL("C..cctor", """
                 {
                   // Code size       52 (0x34)
@@ -1305,6 +1308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 0, 0, 0, 0, 9, 10, 0, 0)"));
+            verifier.Compilation.VerifyDiagnostics();
             verifier.VerifyIL("C..ctor", """
                 {
                   // Code size      111 (0x6f)

@@ -3997,14 +3997,14 @@ record struct Pos2(int X)
                 // (2,15): error CS0171: Field 'Pos.x' must be fully assigned before control is returned to the caller. Consider updating to language version '11.0' to auto-default the field.
                 // record struct Pos(int X)
                 Diagnostic(ErrorCode.ERR_UnassignedThisUnsupportedVersion, "Pos").WithArguments("Pos.x", "11.0").WithLocation(2, 15),
-                // (5,16): error CS8050: Only auto-implemented properties can have initializers.
+                // (5,16): error CS8050: Only properties with backing fields can have initializers.
                 //     public int X { get { return x; } set { x = value; } } = X;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "X").WithLocation(5, 16)
                 );
 
             comp = CreateCompilation(source, parseOptions: TestOptions.Regular11);
             comp.VerifyEmitDiagnostics(
-                // (5,16): error CS8050: Only auto-implemented properties can have initializers.
+                // (5,16): error CS8050: Only properties with backing fields can have initializers.
                 //     public int X { get { return x; } set { x = value; } } = X;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "X").WithLocation(5, 16)
                 );

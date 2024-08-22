@@ -12160,8 +12160,8 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
-        <source>Only auto-implemented properties can have initializers.</source>
-        <target state="translated">Somente propriedades implementadas automaticamente podem ter inicializadores.</target>
+        <source>Only properties with backing fields can have initializers.</source>
+        <target state="needs-review-translation">Somente propriedades implementadas automaticamente podem ter inicializadores.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">

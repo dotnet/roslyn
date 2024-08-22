@@ -12160,8 +12160,8 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
-        <source>Only auto-implemented properties can have initializers.</source>
-        <target state="translated">Jenom automaticky implementované vlastnosti můžou mít inicializátory.</target>
+        <source>Only properties with backing fields can have initializers.</source>
+        <target state="needs-review-translation">Jenom automaticky implementované vlastnosti můžou mít inicializátory.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AutoPropertyMustHaveGetAccessor">
