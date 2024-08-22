@@ -181,7 +181,6 @@ internal abstract partial class AbstractCodeCleanUpFixer : ICodeCleanUpFixer
     {
         using (var scope = context.OperationContext.AddScope(allowCancellation: true, EditorFeaturesResources.Waiting_for_background_work_to_finish))
         {
-
             var workspaceStatusService = workspace.Services.GetService<IWorkspaceStatusService>();
             if (workspaceStatusService != null)
                 await workspaceStatusService.WaitUntilFullyLoadedAsync(context.OperationContext.UserCancellationToken).ConfigureAwait(true);
