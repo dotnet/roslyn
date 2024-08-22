@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var compilerContextCount = compilerContext.Assemblies.Count();
 
             using var tempRoot = new TempRoot();
-            AnalyzerAssemblyLoader loader = kind switch
+            using AnalyzerAssemblyLoader loader = kind switch
             {
                 AnalyzerTestKind.LoadDirect => new DefaultAnalyzerAssemblyLoader(compilerContext, AnalyzerLoadOption.LoadFromDisk, externalResolvers.ToImmutableArray()),
                 AnalyzerTestKind.LoadStream => new DefaultAnalyzerAssemblyLoader(compilerContext, AnalyzerLoadOption.LoadFromStream, externalResolvers.ToImmutableArray()),
@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
             finally
             {
-                loader.UnloadAll();
                 testOutputHelper.WriteLine($"Test fixture root: {fixture.TempDirectory}");
 
                 foreach (var context in loader.GetDirectoryLoadContextsSnapshot())

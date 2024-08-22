@@ -5,7 +5,6 @@
 using System.Collections.Immutable;
 using System.Composition;
 using System.Reflection;
-using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Services;
@@ -39,8 +38,17 @@ internal sealed class VSCodeAnalyzerLoaderProvider(
         ExtensionAssemblyManager extensionAssemblyManager,
         ILogger logger) : IAnalyzerAssemblyLoaderInternal
     {
+        public void Dispose()
+            => defaultLoader.Dispose();
+
         public void AddDependencyLocation(string fullPath)
             => defaultLoader.AddDependencyLocation(fullPath);
+
+        public string? GetOriginalDependencyLocation(AssemblyName assembly)
+            => defaultLoader.GetOriginalDependencyLocation(assembly);
+
+        public bool IsHostAssembly(Assembly assembly)
+            => defaultLoader.IsHostAssembly(assembly);
 
         public Assembly LoadFromPath(string fullPath)
         {
@@ -53,14 +61,5 @@ internal sealed class VSCodeAnalyzerLoaderProvider(
 
             return defaultLoader.LoadFromPath(fullPath);
         }
-
-        public bool IsHostAssembly(Assembly assembly)
-            => defaultLoader.IsHostAssembly(assembly);
-
-        public string? GetOriginalDependencyLocation(AssemblyName assembly)
-            => defaultLoader.GetOriginalDependencyLocation(assembly);
-
-        public void UnloadAll()
-            => defaultLoader.UnloadAll();
     }
 }

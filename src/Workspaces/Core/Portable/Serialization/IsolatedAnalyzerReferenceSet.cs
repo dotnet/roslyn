@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Runtime.Loader;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
@@ -18,8 +17,7 @@ namespace Microsoft.CodeAnalysis.Serialization;
 /// <summary>
 /// A set of <see cref="IsolatedAnalyzerReference"/>s and their associated shadow copy loader (which has its own <see
 /// cref="AssemblyLoadContext"/>).  As long as something is keeping this set alive, the ALC will be kept alive.  Once
-/// this set is dropped, the loader will be explicitly <see cref="IAnalyzerAssemblyLoaderInternal.UnloadAll"/>'ed in its
-/// finalizer.
+/// this set is dropped, the loader will be explicitly <see cref="IDisposable.Dispose"/>'d in its finalizer.
 /// </summary>
 internal sealed class IsolatedAssemblyReferenceSet
 {
@@ -76,7 +74,7 @@ internal sealed class IsolatedAssemblyReferenceSet
     /// </summary>
     ~IsolatedAssemblyReferenceSet()
     {
-        _shadowCopyLoader.UnloadAll();
+        _shadowCopyLoader.Dispose();
     }
 }
 
