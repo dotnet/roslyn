@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.TestGenerators;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Remote;
 using Xunit;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionUtilities;
@@ -924,4 +925,52 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         Assert.NotEqual(checksum1, checksum3);
         Assert.NotEqual(checksum2, checksum3);
     }
+
+#if NET
+
+    private static RemoteWorkspace CreateRemoteWorkspace()
+        => new(FeaturesTestCompositions.RemoteHost.GetHostServices());
+
+    [Fact]
+    public async Task UpdatingAnalyzerReferenceReloadsGenerators()
+    {
+        using var workspace = CreateWorkspace(testHost: TestHost.OutOfProcess);
+        using var remoteWorkspace = CreateRemoteWorkspace();
+
+        var analyzerReference1 = new TestGeneratorReference(
+            new SingleFileTestGenerator("// Hello, World 1"));
+        var analyzerReference2 = new TestGeneratorReference(
+            new SingleFileTestGenerator("// Hello, World 2"));
+
+        var project0 = AddEmptyProject(workspace.CurrentSolution);
+        var checksum0 = await project0.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
+
+        var project1 = project0.AddAnalyzerReference(analyzerReference1);
+        var checksum1 = await project1.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
+
+        Assert.NotEqual(project0, project1);
+        Assert.NotEqual(checksum0, checksum1);
+
+        var project2 = project1.RemoveAnalyzerReference(analyzerReference1);
+        var checksum2 = await project2.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
+
+        Assert.NotEqual(project0, project2);
+        Assert.NotEqual(project1, project2);
+
+        // Should still have the same checksum that we started with, even though we have different project instances.
+        Assert.Equal(checksum0, checksum2);
+        Assert.NotEqual(checksum1, checksum2);
+
+        var project3 = project2.AddAnalyzerReference(analyzerReference2);
+        var checksum3 = await project3.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
+
+        Assert.NotEqual(project0, project3);
+        Assert.NotEqual(project1, project3);
+        Assert.NotEqual(project2, project3);
+        Assert.NotEqual(checksum0, checksum3);
+        Assert.NotEqual(checksum1, checksum3);
+        Assert.NotEqual(checksum2, checksum3);
+    }
+
+#endif
 }

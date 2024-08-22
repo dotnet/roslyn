@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
@@ -18,6 +19,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         public static Workspace CreateWorkspaceWithPartialSemantics(TestHost testHost = TestHost.InProcess)
             => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(testHost: testHost);
+
+        private static RemoteWorkspace CreateRemoteWorkspace()
+            => new(FeaturesTestCompositions.RemoteHost.GetHostServices());
 
 #nullable disable
 
