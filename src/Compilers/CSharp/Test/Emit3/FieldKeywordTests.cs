@@ -1053,7 +1053,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var verifier = CompileAndVerify(source, expectedOutput: "(1, 2, 3, 5, 0, 9, 11)");
-            verifier.Compilation.VerifyDiagnostics();
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("C..cctor", """
                 {
                   // Code size       52 (0x34)
@@ -1111,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 5, 6, 0, 0, 9, 10, 11, 12)"));
-            verifier.Compilation.VerifyDiagnostics();
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("C..ctor", """
                 {
                   // Code size      111 (0x6f)
@@ -1233,7 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var verifier = CompileAndVerify(source, expectedOutput: "(1, 2, 3, 0, 0, 9, 0)");
-            verifier.Compilation.VerifyDiagnostics();
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("C..cctor", """
                 {
                   // Code size       52 (0x34)
@@ -1308,7 +1308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
                 """;
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 0, 0, 0, 0, 9, 10, 0, 0)"));
-            verifier.Compilation.VerifyDiagnostics();
+            verifier.VerifyDiagnostics();
             verifier.VerifyIL("C..ctor", """
                 {
                   // Code size      111 (0x6f)
