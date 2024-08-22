@@ -730,4 +730,52 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
             }
             """);
     }
+
+    [Theory]
+    [InlineData("ArrayList")]
+    [InlineData("IEnumerable")]
+    [InlineData("MyCollection")]
+    public async Task InsertInlineForEachSnippetForVariableNamedLikeTypeTest(string typeAndVariableName)
+    {
+        await VerifySnippetAsync($$"""
+            using System.Collections;
+            using System.Collections.Generic;
+
+            class C
+            {
+                void M()
+                {
+                    {{typeAndVariableName}} {{typeAndVariableName}} = default;
+                    {{typeAndVariableName}}.$$
+                }
+            }
+
+            class MyCollection : IEnumerable<int>
+            {
+                public IEnumerator<int> GetEnumerator() => null;
+                IEnumerator IEnumerable.GetEnumerator() = null;
+            }
+            """, $$"""
+            using System.Collections;
+            using System.Collections.Generic;
+            
+            class C
+            {
+                void M()
+                {
+                    {{typeAndVariableName}} {{typeAndVariableName}} = default;
+                    foreach (var {|0:item|} in {{typeAndVariableName}})
+                    {
+                        $$
+                    }
+                }
+            }
+            
+            class MyCollection : IEnumerable<int>
+            {
+                public IEnumerator<int> GetEnumerator() => null;
+                IEnumerator IEnumerable.GetEnumerator() = null;
+            }
+            """);
+    }
 }

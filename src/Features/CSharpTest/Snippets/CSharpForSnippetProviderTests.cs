@@ -905,4 +905,41 @@ public sealed class CSharpForSnippetProviderTests : AbstractCSharpSnippetProvide
             }
             """);
     }
+
+    [Fact]
+    public async Task InsertInlineForSnippetForVariableNamedLikeTypeTest()
+    {
+        await VerifySnippetAsync("""
+            class C
+            {
+                void M()
+                {
+                    MyType MyType = default;
+                    MyType.$$
+                }
+            }
+
+            class MyType
+            {
+                public int Length => 0;
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    MyType MyType = default;
+                    for (int {|0:i|} = 0; {|0:i|} < MyType.Length; {|0:i|}++)
+                    {
+                        $$
+                    }
+                }
+            }
+
+            class MyType
+            {
+                public int Length => 0;
+            }
+            """);
+    }
 }
