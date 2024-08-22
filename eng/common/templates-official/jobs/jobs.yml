@@ -12,7 +12,7 @@ parameters:
   enableSourceBuild: false
 
   # Optional: Parameters for source-build template.
-  #           See /eng/common/templates/jobs/source-build.yml for options
+  #           See /eng/common/templates-official/jobs/source-build.yml for options
   sourceBuildParameters: []
 
   graphFileGeneration:
@@ -54,7 +54,7 @@ jobs:
       name: ${{ job.job }}
 
 - ${{ if eq(parameters.enableSourceBuild, true) }}:
-  - template: /eng/common/templates/jobs/source-build.yml
+  - template: /eng/common/templates-official/jobs/source-build.yml
     parameters:
       allCompletedJobId: Source_Build_Complete
       ${{ each parameter in parameters.sourceBuildParameters }}:
@@ -85,12 +85,15 @@ jobs:
         pool:
           # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
           ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-            name: VSEngSS-MicroBuild2022-1ES
+            name: AzurePipelines-EO
+            image: 1ESPT-Windows2022
             demands: Cmd
+            os: windows
           # If it's not devdiv, it's dnceng
           ${{ else }}:
-            name: NetCore1ESPool-Publishing-Internal
-            demands: ImageOverride -equals windows.vs2019.amd64
+            name: NetCore1ESPool-Svc-Internal
+            image: 1es-windows-2022
+            os: windows
 
         runAsPublic: ${{ parameters.runAsPublic }}
         publishUsingPipelines: ${{ parameters.enablePublishUsingPipelines }}

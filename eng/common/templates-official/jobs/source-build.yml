@@ -8,7 +8,7 @@ parameters:
   # server job. By default, not included. Recommended name if used: 'Source_Build_Complete'.
   allCompletedJobId: ''
 
-  # See /eng/common/templates/job/source-build.yml
+  # See /eng/common/templates-official/job/source-build.yml
   jobNamePrefix: 'Source_Build'
 
   # This is the default platform provided by Arcade, intended for use by a managed-only repo.
@@ -40,14 +40,14 @@ jobs:
       - ${{ parameters.jobNamePrefix }}_${{ parameters.defaultManagedPlatform.name }}
 
 - ${{ each platform in parameters.platforms }}:
-  - template: /eng/common/templates/job/source-build.yml
+  - template: /eng/common/templates-official/job/source-build.yml
     parameters:
       jobNamePrefix: ${{ parameters.jobNamePrefix }}
       platform: ${{ platform }}
       enableInternalSources: ${{ parameters.enableInternalSources }}
 
 - ${{ if eq(length(parameters.platforms), 0) }}:
-  - template: /eng/common/templates/job/source-build.yml
+  - template: /eng/common/templates-official/job/source-build.yml
     parameters:
       jobNamePrefix: ${{ parameters.jobNamePrefix }}
       platform: ${{ parameters.defaultManagedPlatform }}

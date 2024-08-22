@@ -56,7 +56,8 @@ jobs:
         demands: ImageOverride -equals Build.Ubuntu.1804.Amd64.Open
       ${{ if eq(variables['System.TeamProject'], 'internal') }}:
         name: NetCore1ESPool-Svc-Internal
-        demands: ImageOverride -equals Build.Ubuntu.1804.Amd64
+        image: 1es-mariner-2
+        os: linux
   ${{ if ne(parameters.platform.pool, '') }}:
     pool: ${{ parameters.platform.pool }}
 
@@ -65,7 +66,7 @@ jobs:
 
   steps:
   - ${{ if eq(parameters.enableInternalSources, true) }}:
-    - template: /eng/common/templates/steps/enable-internal-runtimes.yml
-  - template: /eng/common/templates/steps/source-build.yml
+    - template: /eng/common/templates-official/steps/enable-internal-runtimes.yml
+  - template: /eng/common/templates-official/steps/source-build.yml
     parameters:
       platform: ${{ parameters.platform }}

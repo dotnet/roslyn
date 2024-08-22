@@ -85,14 +85,16 @@ jobs:
       inputs:
         targetType: inline
         script: |
-          Add-Content -Path "$(Build.StagingDirectory)/ReleaseConfigs.txt" -Value $(BARBuildId)
-          Add-Content -Path "$(Build.StagingDirectory)/ReleaseConfigs.txt" -Value "$(DefaultChannels)"
-          Add-Content -Path "$(Build.StagingDirectory)/ReleaseConfigs.txt" -Value $(IsStableBuild)
+          New-Item -Path "$(Build.StagingDirectory)/ReleaseConfigs" -ItemType Directory -Force
+          $filePath = "$(Build.StagingDirectory)/ReleaseConfigs/ReleaseConfigs.txt"
+          Add-Content -Path $filePath -Value $(BARBuildId)
+          Add-Content -Path $filePath -Value "$(DefaultChannels)"
+          Add-Content -Path $filePath -Value $(IsStableBuild)
 
-    - task: PublishBuildArtifacts@1
+    - task: 1ES.PublishBuildArtifacts@1
       displayName: Publish ReleaseConfigs Artifact
       inputs:
-        PathtoPublish: '$(Build.StagingDirectory)/ReleaseConfigs.txt'
+        PathtoPublish: '$(Build.StagingDirectory)/ReleaseConfigs'
         PublishLocation: Container
         ArtifactName: ReleaseConfigs
 
@@ -112,7 +114,7 @@ jobs:
            Write-Host "##vso[task.setvariable variable=SymbolExclusionFile]false"
           }
 
-    - task: PublishBuildArtifacts@1
+    - task: 1ES.PublishBuildArtifacts@1
       displayName: Publish SymbolPublishingExclusionsFile Artifact
       condition: eq(variables['SymbolExclusionFile'], 'true')
       inputs:
@@ -121,6 +123,6 @@ jobs:
         ArtifactName: ReleaseConfigs
         
     - ${{ if eq(parameters.enablePublishBuildArtifacts, 'true') }}:
-      - template: /eng/common/templates/steps/publish-logs.yml
+      - template: /eng/common/templates-official/steps/publish-logs.yml
         parameters:
           JobLabel: 'Publish_Artifacts_Logs'

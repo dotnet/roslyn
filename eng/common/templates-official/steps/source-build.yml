@@ -7,7 +7,7 @@ parameters:
   # artifact for all subsequent jobs to use, to reduce dependence on a strong network connection to
   # GitHub. Using this steps template leaves room for that infra to be included.
 
-  # Defines the platform on which to run the steps. See 'eng/common/templates/job/source-build.yml'
+  # Defines the platform on which to run the steps. See 'eng/common/templates-official/job/source-build.yml'
   # for details. The entire object is described in the 'job' template for simplicity, even though
   # the usage of the properties on this object is split between the 'job' and 'steps' templates.
   platform: {}
@@ -99,7 +99,7 @@ steps:
   continueOnError: true
   condition: succeededOrFailed()
 
-- task: PublishPipelineArtifact@1
+- task: 1ES.PublishPipelineArtifact@1
   displayName: Publish BuildLogs
   inputs:
     targetPath: '$(Build.StagingDirectory)/BuildLogs'
