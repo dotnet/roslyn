@@ -655,6 +655,7 @@ internal sealed partial class ProjectSystemProject
                 }
 
                 // Analyzer reference removing...
+                if (_analyzersRemovedInBatch.Count > 0)
                 {
                     projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesRemoved(_analyzersRemovedInBatch);
 
@@ -663,11 +664,12 @@ internal sealed partial class ProjectSystemProject
                 }
 
                 // Analyzer reference adding...
+                if (_analyzersAddedInBatch.Count > 0)
                 {
                     projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesAdded(_analyzersAddedInBatch);
 
                     solutionChanges.UpdateSolutionForProjectAction(
-                        Id, solutionChanges.Solution.AddAnalyzerReferences(Id, projectUpdateState.AddedAnalyzerReferences));
+                        Id, solutionChanges.Solution.AddAnalyzerReferences(Id, _analyzersAddedInBatch));
                 }
 
                 // Other property modifications...
