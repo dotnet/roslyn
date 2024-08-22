@@ -1038,25 +1038,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static int P1 { get; } = 1;
                     public static int P2 { get => field; } = 2;
                     public static int P3 { get => field; set; } = 3;
-                    public static int P5 { get => field; set { } } = 5;
-                    public static int P7 { get => 0; set; } = 7;
-                    public static int P9 { get; set; } = 9;
-                    public static int PB { get; set { } } = 11;
-                    public static int PD { set { field = value; } } = 13;
+                    public static int P5 { get => 0; set; } = 5;
+                    public static int P6 { get; set; } = 6;
                 }
                 class Program
                 {
                     static void Main()
                     {
-                        Console.WriteLine((C.P1, C.P2, C.P3, C.P5, C.P7, C.P9, C.PB));
+                        Console.WriteLine((C.P1, C.P2, C.P3, C.P5, C.P6));
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: "(1, 2, 3, 5, 0, 9, 11)");
+            var verifier = CompileAndVerify(source, expectedOutput: "(1, 2, 3, 0, 6)");
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C..cctor", """
                 {
-                  // Code size       52 (0x34)
+                  // Code size       31 (0x1f)
                   .maxstack  1
                   IL_0000:  ldc.i4.1
                   IL_0001:  stsfld     "int C.<P1>k__BackingField"
@@ -1066,55 +1063,42 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_000d:  stsfld     "int C.<P3>k__BackingField"
                   IL_0012:  ldc.i4.5
                   IL_0013:  stsfld     "int C.<P5>k__BackingField"
-                  IL_0018:  ldc.i4.7
-                  IL_0019:  stsfld     "int C.<P7>k__BackingField"
-                  IL_001e:  ldc.i4.s   9
-                  IL_0020:  stsfld     "int C.<P9>k__BackingField"
-                  IL_0025:  ldc.i4.s   11
-                  IL_0027:  stsfld     "int C.<PB>k__BackingField"
-                  IL_002c:  ldc.i4.s   13
-                  IL_002e:  stsfld     "int C.<PD>k__BackingField"
-                  IL_0033:  ret
+                  IL_0018:  ldc.i4.6
+                  IL_0019:  stsfld     "int C.<P6>k__BackingField"
+                  IL_001e:  ret
                 }
                 """);
         }
 
-        [Fact]
-        public void Initializer_02()
+        [Theory]
+        [CombinatorialData]
+        public void Initializer_02(bool useInit)
         {
-            string source = """
+            string setter = useInit ? "init" : "set";
+            string source = $$"""
                 using System;
                 class C
                 {
                     public int P1 { get; } = 1;
                     public int P2 { get => field; } = 2;
-                    public int P3 { get => field; set; } = 3;
-                    public int P4 { get => field; init; } = 4;
-                    public int P5 { get => field; set { } } = 5;
-                    public int P6 { get => field; init { } } = 6;
-                    public int P7 { get => 0; set; } = 7;
-                    public int P8 { get => 0; init; } = 8;
-                    public int P9 { get; set; } = 9;
-                    public int PA { get; init; } = 10;
-                    public int PB { get; set { } } = 11;
-                    public int PC { get; init { } } = 12;
-                    public int PD { set { field = value; } } = 13;
-                    public int PE { init { field = value; } } = 14;
+                    public int P3 { get => field; {{setter}}; } = 3;
+                    public int P5 { get => 0; {{setter}}; } = 5;
+                    public int P6 { get; {{setter}}; } = 6;
                 }
                 class Program
                 {
                     static void Main()
                     {
                         var c = new C();
-                        Console.WriteLine((c.P1, c.P2, c.P3, c.P4, c.P5, c.P6, c.P7, c.P8, c.P9, c.PA, c.PB, c.PC));
+                        Console.WriteLine((c.P1, c.P2, c.P3, c.P5, c.P6));
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 5, 6, 0, 0, 9, 10, 11, 12)"));
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(1, 2, 3, 0, 6)"));
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C..ctor", """
                 {
-                  // Code size      111 (0x6f)
+                  // Code size       42 (0x2a)
                   .maxstack  2
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.i4.1
@@ -1126,41 +1110,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_000f:  ldc.i4.3
                   IL_0010:  stfld      "int C.<P3>k__BackingField"
                   IL_0015:  ldarg.0
-                  IL_0016:  ldc.i4.4
-                  IL_0017:  stfld      "int C.<P4>k__BackingField"
+                  IL_0016:  ldc.i4.5
+                  IL_0017:  stfld      "int C.<P5>k__BackingField"
                   IL_001c:  ldarg.0
-                  IL_001d:  ldc.i4.5
-                  IL_001e:  stfld      "int C.<P5>k__BackingField"
+                  IL_001d:  ldc.i4.6
+                  IL_001e:  stfld      "int C.<P6>k__BackingField"
                   IL_0023:  ldarg.0
-                  IL_0024:  ldc.i4.6
-                  IL_0025:  stfld      "int C.<P6>k__BackingField"
-                  IL_002a:  ldarg.0
-                  IL_002b:  ldc.i4.7
-                  IL_002c:  stfld      "int C.<P7>k__BackingField"
-                  IL_0031:  ldarg.0
-                  IL_0032:  ldc.i4.8
-                  IL_0033:  stfld      "int C.<P8>k__BackingField"
-                  IL_0038:  ldarg.0
-                  IL_0039:  ldc.i4.s   9
-                  IL_003b:  stfld      "int C.<P9>k__BackingField"
-                  IL_0040:  ldarg.0
-                  IL_0041:  ldc.i4.s   10
-                  IL_0043:  stfld      "int C.<PA>k__BackingField"
-                  IL_0048:  ldarg.0
-                  IL_0049:  ldc.i4.s   11
-                  IL_004b:  stfld      "int C.<PB>k__BackingField"
-                  IL_0050:  ldarg.0
-                  IL_0051:  ldc.i4.s   12
-                  IL_0053:  stfld      "int C.<PC>k__BackingField"
-                  IL_0058:  ldarg.0
-                  IL_0059:  ldc.i4.s   13
-                  IL_005b:  stfld      "int C.<PD>k__BackingField"
-                  IL_0060:  ldarg.0
-                  IL_0061:  ldc.i4.s   14
-                  IL_0063:  stfld      "int C.<PE>k__BackingField"
-                  IL_0068:  ldarg.0
-                  IL_0069:  call       "object..ctor()"
-                  IL_006e:  ret
+                  IL_0024:  call       "object..ctor()"
+                  IL_0029:  ret
                 }
                 """);
         }
@@ -1171,30 +1128,72 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = """
                 class C
                 {
-                    public static int P1 { get => 0; } = 1;
-                    public static int P2 { get => 0; set { } } = 2;
-                    public int P3 { get => 0; } = 3;
-                    public int P4 { get => 0; set { } } = 4;
-                    public int P5 { get => 0; init { } } = 5;
+                    public static int P4 { get => field; set { } } = 4;
+                    public static int P7 { get; set { } } = 7;
+                    public static int P8 { set { field = value; } } = 8;
+                    public static int P9 { get { return field; } set { field = value; } } = 9;
+                    public static int PA { get => 0; } = 10;
+                    public static int PB { get => 0; set { } } = 11;
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // (3,23): error CS8050: Only properties with backing fields can have initializers.
-                //     public static int P1 { get => 0; } = 1;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(3, 23),
+                //     public static int P4 { get => field; set { } } = 4;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P4").WithLocation(3, 23),
                 // (4,23): error CS8050: Only properties with backing fields can have initializers.
-                //     public static int P2 { get => 0; set { } } = 2;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P2").WithLocation(4, 23),
+                //     public static int P7 { get; set { } } = 7;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P7").WithLocation(4, 23),
+                // (5,23): error CS8050: Only properties with backing fields can have initializers.
+                //     public static int P8 { set { field = value; } } = 8;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P8").WithLocation(5, 23),
+                // (6,23): error CS8050: Only properties with backing fields can have initializers.
+                //     public static int P9 { get { return field; } set { field = value; } } = 9;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P9").WithLocation(6, 23),
+                // (7,23): error CS8050: Only properties with backing fields can have initializers.
+                //     public static int PA { get => 0; } = 10;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PA").WithLocation(7, 23),
+                // (8,23): error CS8050: Only properties with backing fields can have initializers.
+                //     public static int PB { get => 0; set { } } = 11;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PB").WithLocation(8, 23));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Initializer_04(bool useInit)
+        {
+            string setter = useInit ? "init" : "set";
+            string source = $$"""
+                class C
+                {
+                    public int P4 { get => field; {{setter}} { } } = 4;
+                    public int P7 { get; {{setter}} { } } = 7;
+                    public int P8 { {{setter}} { field = value; } } = 8;
+                    public int P9 { get { return field; } {{setter}} { field = value; } } = 9;
+                    public int PA { get => 0; } = 10;
+                    public int PB { get => 0; {{setter}} { } } = 11;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (3,16): error CS8050: Only properties with backing fields can have initializers.
+                //     public int P4 { get => field; set { } } = 4;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P4").WithLocation(3, 16),
+                // (4,16): error CS8050: Only properties with backing fields can have initializers.
+                //     public int P7 { get; set { } } = 7;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P7").WithLocation(4, 16),
                 // (5,16): error CS8050: Only properties with backing fields can have initializers.
-                //     public int P3 { get => 0; } = 3;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(5, 16),
+                //     public int P8 { set { field = value; } } = 8;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P8").WithLocation(5, 16),
                 // (6,16): error CS8050: Only properties with backing fields can have initializers.
-                //     public int P4 { get => 0; set { } } = 4;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P4").WithLocation(6, 16),
+                //     public int P9 { get { return field; } set { field = value; } } = 9;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P9").WithLocation(6, 16),
                 // (7,16): error CS8050: Only properties with backing fields can have initializers.
-                //     public int P5 { get => 0; init { } } = 5;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P5").WithLocation(7, 16));
+                //     public int PA { get => 0; } = 10;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PA").WithLocation(7, 16),
+                // (8,16): error CS8050: Only properties with backing fields can have initializers.
+                //     public int PB { get => 0; set { } } = 11;
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PB").WithLocation(8, 16));
         }
 
         [Fact]
@@ -1207,36 +1206,38 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static int P1 { get; }
                     public static int P2 { get => field; }
                     public static int P3 { get => field; set; }
-                    public static int P5 { get => field; set { } }
-                    public static int P7 { get => 0; set; }
-                    public static int P9 { get; set; }
-                    public static int PB { get; set { } }
-                    public static int PD { set { field = value; } }
+                    public static int P4 { get => field; set { } }
+                    public static int P5 { get => 0; set; }
+                    public static int P6 { get; set; }
+                    public static int P7 { get; set { } }
+                    public static int P8 { set { field = value; } }
+                    public static int P9 { get { return field; } set { field = value; } }
                     static C()
                     {
                         P1 = 1;
                         P2 = 2;
                         P3 = 3;
+                        P4 = 4;
                         P5 = 5;
+                        P6 = 6;
                         P7 = 7;
+                        P8 = 8;
                         P9 = 9;
-                        PB = 11;
-                        PD = 13;
                     }
                 }
                 class Program
                 {
                     static void Main()
                     {
-                        Console.WriteLine((C.P1, C.P2, C.P3, C.P5, C.P7, C.P9, C.PB));
+                        Console.WriteLine((C.P1, C.P2, C.P3, C.P4, C.P5, C.P6, C.P7, C.P9));
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: "(1, 2, 3, 0, 0, 9, 0)");
+            var verifier = CompileAndVerify(source, expectedOutput: "(1, 2, 3, 0, 0, 6, 0, 9)");
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C..cctor", """
                 {
-                  // Code size       52 (0x34)
+                  // Code size       56 (0x38)
                   .maxstack  1
                   IL_0000:  ldc.i4.1
                   IL_0001:  stsfld     "int C.<P1>k__BackingField"
@@ -1244,42 +1245,41 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0007:  stsfld     "int C.<P2>k__BackingField"
                   IL_000c:  ldc.i4.3
                   IL_000d:  call       "void C.P3.set"
-                  IL_0012:  ldc.i4.5
-                  IL_0013:  call       "void C.P5.set"
-                  IL_0018:  ldc.i4.7
-                  IL_0019:  call       "void C.P7.set"
-                  IL_001e:  ldc.i4.s   9
-                  IL_0020:  call       "void C.P9.set"
-                  IL_0025:  ldc.i4.s   11
-                  IL_0027:  call       "void C.PB.set"
-                  IL_002c:  ldc.i4.s   13
-                  IL_002e:  call       "void C.PD.set"
-                  IL_0033:  ret
+                  IL_0012:  ldc.i4.4
+                  IL_0013:  call       "void C.P4.set"
+                  IL_0018:  ldc.i4.5
+                  IL_0019:  call       "void C.P5.set"
+                  IL_001e:  ldc.i4.6
+                  IL_001f:  call       "void C.P6.set"
+                  IL_0024:  ldc.i4.7
+                  IL_0025:  call       "void C.P7.set"
+                  IL_002a:  ldc.i4.8
+                  IL_002b:  call       "void C.P8.set"
+                  IL_0030:  ldc.i4.s   9
+                  IL_0032:  call       "void C.P9.set"
+                  IL_0037:  ret
                 }
                 """);
         }
 
-        [Fact]
-        public void ConstructorAssignment_02()
+        [Theory]
+        [CombinatorialData]
+        public void ConstructorAssignment_02(bool useInit)
         {
-            string source = """
+            string setter = useInit ? "init" : "set";
+            string source = $$"""
                 using System;
                 class C
                 {
                     public int P1 { get; }
                     public int P2 { get => field; }
-                    public int P3 { get => field; set; }
-                    public int P4 { get => field; init; }
-                    public int P5 { get => field; set { } }
-                    public int P6 { get => field; init { } }
-                    public int P7 { get => 0; set; }
-                    public int P8 { get => 0; init; }
-                    public int P9 { get; set; }
-                    public int PA { get; init; }
-                    public int PB { get; set { } }
-                    public int PC { get; init { } }
-                    public int PD { set { field = value; } }
-                    public int PE { init { field = value; } }
+                    public int P3 { get => field; {{setter}}; }
+                    public int P4 { get => field; {{setter}} { } }
+                    public int P5 { get => 0; {{setter}}; }
+                    public int P6 { get; {{setter}}; }
+                    public int P7 { get; {{setter}} { } }
+                    public int P8 { {{setter}} { field = value; } }
+                    public int P9 { get { return field; } {{setter}} { field = value; } }
                     public C()
                     {
                         P1 = 1;
@@ -1291,11 +1291,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         P7 = 7;
                         P8 = 8;
                         P9 = 9;
-                        PA = 10;
-                        PB = 11;
-                        PC = 12;
-                        PD = 13;
-                        PE = 14;
                     }
                 }
                 class Program
@@ -1303,15 +1298,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static void Main()
                     {
                         var c = new C();
-                        Console.WriteLine((c.P1, c.P2, c.P3, c.P4, c.P5, c.P6, c.P7, c.P8, c.P9, c.PA, c.PB, c.PC));
+                        Console.WriteLine((c.P1, c.P2, c.P3, c.P4, c.P5, c.P6, c.P7, c.P9));
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 0, 0, 0, 0, 9, 10, 0, 0)"));
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(1, 2, 3, 0, 0, 6, 0, 9)"));
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C..ctor", """
+            verifier.VerifyIL("C..ctor", $$"""
                 {
-                  // Code size      111 (0x6f)
+                  // Code size       71 (0x47)
                   .maxstack  2
                   IL_0000:  ldarg.0
                   IL_0001:  call       "object..ctor()"
@@ -1323,41 +1318,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_000f:  stfld      "int C.<P2>k__BackingField"
                   IL_0014:  ldarg.0
                   IL_0015:  ldc.i4.3
-                  IL_0016:  call       "void C.P3.set"
+                  IL_0016:  call       "void C.P3.{{setter}}"
                   IL_001b:  ldarg.0
                   IL_001c:  ldc.i4.4
-                  IL_001d:  call       "void C.P4.init"
+                  IL_001d:  call       "void C.P4.{{setter}}"
                   IL_0022:  ldarg.0
                   IL_0023:  ldc.i4.5
-                  IL_0024:  call       "void C.P5.set"
+                  IL_0024:  call       "void C.P5.{{setter}}"
                   IL_0029:  ldarg.0
                   IL_002a:  ldc.i4.6
-                  IL_002b:  call       "void C.P6.init"
+                  IL_002b:  call       "void C.P6.{{setter}}"
                   IL_0030:  ldarg.0
                   IL_0031:  ldc.i4.7
-                  IL_0032:  call       "void C.P7.set"
+                  IL_0032:  call       "void C.P7.{{setter}}"
                   IL_0037:  ldarg.0
                   IL_0038:  ldc.i4.8
-                  IL_0039:  call       "void C.P8.init"
+                  IL_0039:  call       "void C.P8.{{setter}}"
                   IL_003e:  ldarg.0
                   IL_003f:  ldc.i4.s   9
-                  IL_0041:  call       "void C.P9.set"
-                  IL_0046:  ldarg.0
-                  IL_0047:  ldc.i4.s   10
-                  IL_0049:  call       "void C.PA.init"
-                  IL_004e:  ldarg.0
-                  IL_004f:  ldc.i4.s   11
-                  IL_0051:  call       "void C.PB.set"
-                  IL_0056:  ldarg.0
-                  IL_0057:  ldc.i4.s   12
-                  IL_0059:  call       "void C.PC.init"
-                  IL_005e:  ldarg.0
-                  IL_005f:  ldc.i4.s   13
-                  IL_0061:  call       "void C.PD.set"
-                  IL_0066:  ldarg.0
-                  IL_0067:  ldc.i4.s   14
-                  IL_0069:  call       "void C.PE.init"
-                  IL_006e:  ret
+                  IL_0041:  call       "void C.P9.{{setter}}"
+                  IL_0046:  ret
                 }
                 """);
         }

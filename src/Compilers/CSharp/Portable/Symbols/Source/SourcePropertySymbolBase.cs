@@ -302,7 +302,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, Location);
             }
-            else if (!IsAutoPropertyOrUsesFieldKeyword)
+            else if (!IsAutoPropertyOrUsesFieldKeyword ||
+                ((_propertyFlags & Flags.HasAutoPropertySet) == 0) && SetMethod is { })
             {
                 diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, Location);
             }
@@ -798,7 +799,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else if (!hasGetAccessor && IsAutoProperty)
                     {
                         // The only forms of auto-property that are disallowed are { set; } and { init; }.
-                        // Other forms of auto- or explicitly-implemented accessors are allowed
+                        // Other forms of auto- or manually-implemented accessors are allowed
                         // including equivalent field cases such as { set { field = value; } }.
                         diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, _setMethod!.GetFirstLocation());
                     }
