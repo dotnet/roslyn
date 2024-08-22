@@ -12160,7 +12160,7 @@ Aby usunąć ostrzeżenie, możesz zamiast tego użyć opcji /reference (ustaw w
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
-        <source>Only properties with backing fields can have initializers.</source>
+        <source>Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.</source>
         <target state="needs-review-translation">Tylko właściwości zaimplementowane automatycznie mogą mieć inicjatory.</target>
         <note />
       </trans-unit>

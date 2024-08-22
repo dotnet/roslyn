@@ -12160,7 +12160,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
-        <source>Only properties with backing fields can have initializers.</source>
+        <source>Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.</source>
         <target state="needs-review-translation">只有自动实现的属性才能具有初始值设定项。</target>
         <note />
       </trans-unit>

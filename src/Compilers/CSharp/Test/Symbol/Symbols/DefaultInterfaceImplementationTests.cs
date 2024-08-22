@@ -3217,7 +3217,7 @@ public interface I1
                     // (4,34): error CS1014: A get or set accessor expected
                     //     static abstract int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 34),
-                    // (4,25): error CS8050: Only properties with backing fields can have initializers.
+                    // (4,25): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                     //     static abstract int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(4, 25),
                     // (4,25): error CS0548: 'I1.P1': property or indexer must have at least one accessor
@@ -3251,7 +3251,7 @@ public interface I1
                     // (4,33): error CS1014: A get or set accessor expected
                     //     static virtual int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_GetOrSetExpected, "remove").WithLocation(4, 33),
-                    // (4,24): error CS8050: Only properties with backing fields can have initializers.
+                    // (4,24): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                     //     static virtual int P1 {add; remove;} = 0;
                     Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(4, 24),
                     // (4,24): error CS0548: 'I1.P1': property or indexer must have at least one accessor
@@ -3309,7 +3309,7 @@ public interface I1
                                                      targetFramework: TargetFramework.Net60);
                 Assert.True(compilation1.Assembly.RuntimeSupportsDefaultInterfaceImplementation);
                 compilation1.VerifyEmitDiagnostics(
-                    // (4,25): error CS8050: Only properties with backing fields can have initializers.
+                    // (4,25): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                     //     static abstract int P1 {get; set;} = 0;
                     Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(4, 25)
                     );
@@ -56844,7 +56844,7 @@ class Test1 : I2
 }
 ";
             ValidatePropertyReAbstraction_014(source1, isStatic: true,
-                // (9,28): error CS8050: Only properties with backing fields can have initializers.
+                // (9,28): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     static abstract int I1.P1 { get; set; } = 0;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(9, 28),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -56902,7 +56902,7 @@ class Test1 : I2
 }
 ";
             ValidatePropertyReAbstraction_014(source1, isStatic: true,
-                // (9,28): error CS8050: Only properties with backing fields can have initializers.
+                // (9,28): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     static abstract int I1.P1 { get; } = 0;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(9, 28),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'
@@ -56960,7 +56960,7 @@ class Test1 : I2
 }
 ";
             ValidatePropertyReAbstraction_014(source1, isStatic: true,
-                // (9,28): error CS8050: Only properties with backing fields can have initializers.
+                // (9,28): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     static abstract int I1.P1 { set; } = 0;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P1").WithLocation(9, 28),
                 // (12,15): error CS0535: 'Test1' does not implement interface member 'I1.P1'

@@ -16859,13 +16859,13 @@ namespace N1
     protected int P { get { throw null; } set {  } } = 1;
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,9): error CS8050: Only properties with backing fields can have initializers.
+                // (5,9): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     int I { get { throw null; } set {  } } = 1;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithLocation(5, 9),
-                // (6,16): error CS8050: Only properties with backing fields can have initializers.
+                // (6,16): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     static int S { get { throw null; } set {  } } = 1;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "S").WithLocation(6, 16),
-                // (7,19): error CS8050: Only properties with backing fields can have initializers.
+                // (7,19): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     protected int P { get { throw null; } set {  } } = 1;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(7, 19)
             );

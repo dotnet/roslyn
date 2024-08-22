@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,12): error CS8050: Only properties with backing fields can have initializers.
+                // (3,12): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     object P { set { } } = field;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(3, 12),
                 // (3,28): error CS0103: The name 'field' does not exist in the current context
@@ -1138,22 +1138,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (3,23): error CS8050: Only properties with backing fields can have initializers.
+                // (3,23): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public static int P4 { get => field; set { } } = 4;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P4").WithLocation(3, 23),
-                // (4,23): error CS8050: Only properties with backing fields can have initializers.
+                // (4,23): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public static int P7 { get; set { } } = 7;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P7").WithLocation(4, 23),
-                // (5,23): error CS8050: Only properties with backing fields can have initializers.
+                // (5,23): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public static int P8 { set { field = value; } } = 8;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P8").WithLocation(5, 23),
-                // (6,23): error CS8050: Only properties with backing fields can have initializers.
+                // (6,23): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public static int P9 { get { return field; } set { field = value; } } = 9;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P9").WithLocation(6, 23),
-                // (7,23): error CS8050: Only properties with backing fields can have initializers.
+                // (7,23): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public static int PA { get => 0; } = 10;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PA").WithLocation(7, 23),
-                // (8,23): error CS8050: Only properties with backing fields can have initializers.
+                // (8,23): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public static int PB { get => 0; set { } } = 11;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PB").WithLocation(8, 23));
         }
@@ -1176,22 +1176,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (3,16): error CS8050: Only properties with backing fields can have initializers.
+                // (3,16): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public int P4 { get => field; set { } } = 4;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P4").WithLocation(3, 16),
-                // (4,16): error CS8050: Only properties with backing fields can have initializers.
+                // (4,16): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public int P7 { get; set { } } = 7;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P7").WithLocation(4, 16),
-                // (5,16): error CS8050: Only properties with backing fields can have initializers.
+                // (5,16): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public int P8 { set { field = value; } } = 8;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P8").WithLocation(5, 16),
-                // (6,16): error CS8050: Only properties with backing fields can have initializers.
+                // (6,16): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public int P9 { get { return field; } set { field = value; } } = 9;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P9").WithLocation(6, 16),
-                // (7,16): error CS8050: Only properties with backing fields can have initializers.
+                // (7,16): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public int PA { get => 0; } = 10;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PA").WithLocation(7, 16),
-                // (8,16): error CS8050: Only properties with backing fields can have initializers.
+                // (8,16): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public int PB { get => 0; set { } } = 11;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PB").WithLocation(8, 16));
         }

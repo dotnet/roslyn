@@ -2631,7 +2631,7 @@ class C
                 // (5,19): error CS0548: 'C.P': property or indexer must have at least one accessor
                 //     public string P { }
                 Diagnostic(ErrorCode.ERR_PropertyWithNoAccessors, "P").WithArguments("C.P").WithLocation(5, 19),
-                // (7,19): error CS8050: Only properties with backing fields can have initializers.
+                // (7,19): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public string P3 { } = string.Empty;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P3").WithLocation(7, 19),
                 // (7,19): error CS0548: 'C.P3': property or indexer must have at least one accessor
