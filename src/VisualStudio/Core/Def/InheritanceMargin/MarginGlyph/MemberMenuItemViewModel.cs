@@ -30,8 +30,7 @@ internal class MemberMenuItemViewModel : MenuItemViewModel
     public MemberMenuItemViewModel(
         string displayContent,
         ImageMoniker imageMoniker,
-        ImmutableArray<MenuItemViewModel> targets,
-        double scaleFactor) : base(displayContent, imageMoniker, scaleFactor)
+        ImmutableArray<MenuItemViewModel> targets) : base(displayContent, imageMoniker)
     {
         Targets = targets;
     }

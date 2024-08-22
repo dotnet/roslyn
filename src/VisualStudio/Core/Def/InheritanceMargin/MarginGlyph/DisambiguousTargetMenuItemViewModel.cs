@@ -25,21 +25,18 @@ internal class DisambiguousTargetMenuItemViewModel : TargetMenuItemViewModel
         string displayContent,
         ImageMoniker imageMoniker,
         DetachedDefinitionItem definitionItem,
-        ImageMoniker languageMoniker,
-        double scaleFactor) : base(displayContent, imageMoniker, definitionItem, scaleFactor)
+        ImageMoniker languageMoniker) : base(displayContent, imageMoniker, definitionItem)
     {
         LanguageMoniker = languageMoniker;
     }
 
     public static DisambiguousTargetMenuItemViewModel CreateWithSourceLanguageGlyph(
-        InheritanceTargetItem target,
-        double scaleFactor)
+        InheritanceTargetItem target)
     {
         return new(
             target.DisplayName,
             target.Glyph.GetImageMoniker(),
             target.DefinitionItem,
-            target.LanguageGlyph.GetImageMoniker(),
-            scaleFactor);
+            target.LanguageGlyph.GetImageMoniker());
     }
 }

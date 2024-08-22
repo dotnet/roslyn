@@ -125,7 +125,7 @@ internal class InheritanceMarginGlyphViewModel
             var member = tag.MembersOnLine[0];
             var automationName = member.TopLevelDisplayText;
 
-            var menuItemViewModels = members.SelectManyAsArray(m => InheritanceMarginHelpers.CreateModelsForMarginItem(m, scaleFactor));
+            var menuItemViewModels = members.SelectManyAsArray(m => InheritanceMarginHelpers.CreateModelsForMarginItem(m));
             return new InheritanceMarginGlyphViewModel(tag, classificationTypeMap, classificationFormatMap, automationName!, scaleFactor, menuItemViewModels);
         }
         else if (members.Length == 1)
@@ -133,7 +133,7 @@ internal class InheritanceMarginGlyphViewModel
             var member = tag.MembersOnLine[0];
 
             var automationName = string.Format(ServicesVSResources._0_is_inherited, member.DisplayTexts.JoinText());
-            var menuItemViewModels = InheritanceMarginHelpers.CreateModelsForMarginItem(member, scaleFactor);
+            var menuItemViewModels = InheritanceMarginHelpers.CreateModelsForMarginItem(member);
             return new InheritanceMarginGlyphViewModel(tag, classificationTypeMap, classificationFormatMap, automationName, scaleFactor, menuItemViewModels);
         }
         else
