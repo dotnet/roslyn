@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Differencing;
 using Microsoft.CodeAnalysis.EditAndContinue;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -2855,12 +2856,15 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap,
         SyntaxNode oldActiveStatement,
         DeclarationBody oldBody,
+        SemanticModel oldModel,
         SyntaxNode newActiveStatement,
         DeclarationBody newBody,
-        bool isNonLeaf)
+        SemanticModel newModel,
+        bool isNonLeaf,
+        CancellationToken cancellationToken)
     {
         ReportRudeEditsForSwitchWhenClauses(diagnostics, oldActiveStatement, newActiveStatement);
-        ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, reverseMap, oldActiveStatement, oldBody.EncompassingAncestor, newActiveStatement, newBody.EncompassingAncestor);
+        ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, reverseMap, oldActiveStatement, oldBody.EncompassingAncestor, oldModel, newActiveStatement, newBody.EncompassingAncestor, newModel, cancellationToken);
         ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isNonLeaf);
     }
 
@@ -2986,8 +2990,11 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap,
         SyntaxNode oldActiveStatement,
         SyntaxNode oldEncompassingAncestor,
+        SemanticModel oldModel,
         SyntaxNode newActiveStatement,
-        SyntaxNode newEncompassingAncestor)
+        SyntaxNode newEncompassingAncestor,
+        SemanticModel newModel,
+        CancellationToken cancellationToken)
     {
         // Rude Edits for fixed/using/lock/foreach statements that are added/updated around an active statement.
         // Although such changes are technically possible, they might lead to confusion since 
@@ -3001,47 +3008,68 @@ internal sealed class CSharpEditAndContinueAnalyzer(Action<SyntaxNode>? testFaul
         ReportUnmatchedStatements<LockStatementSyntax>(
             diagnostics,
             reverseMap,
-            n => n.IsKind(SyntaxKind.LockStatement),
             oldActiveStatement,
             oldEncompassingAncestor,
+            oldModel,
             newActiveStatement,
             newEncompassingAncestor,
+            newModel,
+            nodeSelector: static n => n.IsKind(SyntaxKind.LockStatement),
+            getTypedNodes: static n => OneOrMany.OneOrNone<SyntaxNode>(n.Expression),
             areEquivalent: AreEquivalentActiveStatements,
-            areSimilar: null);
+            areSimilar: null,
+            cancellationToken: cancellationToken);
 
         ReportUnmatchedStatements<FixedStatementSyntax>(
             diagnostics,
             reverseMap,
-            n => n.IsKind(SyntaxKind.FixedStatement),
             oldActiveStatement,
             oldEncompassingAncestor,
+            oldModel,
             newActiveStatement,
             newEncompassingAncestor,
+            newModel,
+            nodeSelector: static n => n.IsKind(SyntaxKind.FixedStatement),
+            getTypedNodes: static n => GetTypedNodes(n.Declaration),
             areEquivalent: AreEquivalentActiveStatements,
-            areSimilar: (n1, n2) => DeclareSameIdentifiers(n1.Declaration.Variables, n2.Declaration.Variables));
+            areSimilar: static (n1, n2) => DeclareSameIdentifiers(n1.Declaration.Variables, n2.Declaration.Variables),
+            cancellationToken: cancellationToken);
 
         // Using statements with declaration do not introduce compiler generated temporary.
         ReportUnmatchedStatements<UsingStatementSyntax>(
             diagnostics,
             reverseMap,
-            n => n is UsingStatementSyntax usingStatement && usingStatement.Declaration is null,
             oldActiveStatement,
             oldEncompassingAncestor,
+            oldModel,
             newActiveStatement,
             newEncompassingAncestor,
+            newModel,
+            nodeSelector: static n => n is UsingStatementSyntax { Declaration: null } usingStatement,
+            getTypedNodes: static n => OneOrMany.Create<SyntaxNode>(n.Expression!),
             areEquivalent: AreEquivalentActiveStatements,
-            areSimilar: null);
+            areSimilar: null,
+            cancellationToken: cancellationToken);
 
         ReportUnmatchedStatements<CommonForEachStatementSyntax>(
             diagnostics,
             reverseMap,
-            n => n.Kind() is SyntaxKind.ForEachStatement or SyntaxKind.ForEachVariableStatement,
             oldActiveStatement,
             oldEncompassingAncestor,
+            oldModel,
             newActiveStatement,
             newEncompassingAncestor,
+            newModel,
+            nodeSelector: static n => n.Kind() is SyntaxKind.ForEachStatement or SyntaxKind.ForEachVariableStatement,
+            getTypedNodes: static n => OneOrMany.OneOrNone<SyntaxNode>(n.Expression),
             areEquivalent: AreEquivalentActiveStatements,
-            areSimilar: AreSimilarActiveStatements);
+            areSimilar: AreSimilarActiveStatements,
+            cancellationToken: cancellationToken);
+
+        static OneOrMany<SyntaxNode> GetTypedNodes(VariableDeclarationSyntax declaration)
+            => (declaration.Variables is [{ Initializer: { } initializer }])
+                ? OneOrMany.Create<SyntaxNode>(initializer.Value)
+                : OneOrMany.Create(declaration.Variables.Select(static v => (SyntaxNode?)v.Initializer?.Value).WhereNotNull().ToImmutableArray());
     }
 
     private static bool DeclareSameIdentifiers(SeparatedSyntaxList<VariableDeclaratorSyntax> oldVariables, SeparatedSyntaxList<VariableDeclaratorSyntax> newVariables)

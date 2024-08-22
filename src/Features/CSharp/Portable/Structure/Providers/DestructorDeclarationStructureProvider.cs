@@ -4,7 +4,7 @@
 
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Shared.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
@@ -14,11 +14,11 @@ internal class DestructorDeclarationStructureProvider : AbstractSyntaxNodeStruct
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,
         DestructorDeclarationSyntax destructorDeclaration,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         BlockStructureOptions options,
         CancellationToken cancellationToken)
     {
-        CSharpStructureHelpers.CollectCommentBlockSpans(destructorDeclaration, ref spans, options);
+        CSharpStructureHelpers.CollectCommentBlockSpans(destructorDeclaration, spans, options);
 
         // fault tolerance
         if (destructorDeclaration.Body == null ||

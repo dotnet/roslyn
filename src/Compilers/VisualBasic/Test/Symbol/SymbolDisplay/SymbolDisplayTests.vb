@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -4976,7 +4977,7 @@ Class C
     Private f As (Integer, String)
 End Class
                     </file>
-                </compilation>, references:={TestMetadata.Net40.SystemCore})
+                </compilation>, references:={Net40.References.SystemCore})
 
             Dim format = New SymbolDisplayFormat(memberOptions:=SymbolDisplayMemberOptions.IncludeType, miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.CollapseTupleTypes)
 
@@ -6053,7 +6054,7 @@ end class"
             expectedText As String,
             ParamArray kinds As SymbolDisplayPartKind())
 
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(text, references:={TestMetadata.Net40.SystemCore})
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(text, references:={Net40.References.SystemCore})
 
             ' symbol:
             Dim symbol = findSymbol(comp.GlobalNamespace)

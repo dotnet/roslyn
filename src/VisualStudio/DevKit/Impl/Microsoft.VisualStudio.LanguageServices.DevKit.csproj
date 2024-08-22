@@ -17,6 +17,7 @@
     <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\Contracts\ContractWrappers.cs" Link="EditAndContinue\ContractWrappers.cs" />
     <Compile Include="..\..\..\EditorFeatures\Core\EditAndContinue\Contracts\ManagedHotReloadServiceBridge.cs" Link="EditAndContinue\ManagedHotReloadServiceBridge.cs" />
     <Compile Include="..\..\..\VisualStudio\Core\Def\Telemetry\Shared\*.cs" LinkBase="Logging" />
+    <Compile Include="..\..\..\VisualStudio\Core\Def\PdbSourceDocument\AbstractSourceLinkService.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -54,8 +55,11 @@
     <Content Include="$(TargetPath)" Pack="true" PackagePath="content" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
-  <!-- Used by LanguageServer.UnitTests project to be able to copy all the content to its own directory -->
-  <Target Name="GetPackInputs" DependsOnTargets="Build" Returns="@(_Content)">
+  <!--
+    Used by LanguageServer.UnitTests project to be able to copy all the content to its own directory.
+    Only needs to run as part of a real build, so skip it in design time builds to prevent issues.
+  -->
+  <Target Name="GetPackInputs" DependsOnTargets="Build" Returns="@(_Content)" Condition="'$(DesignTimeBuild)' != 'true'">
     <ItemGroup>
       <_Content Include="@(Content)" Condition="'%(Content.Pack)'=='true'"/>
     </ItemGroup>

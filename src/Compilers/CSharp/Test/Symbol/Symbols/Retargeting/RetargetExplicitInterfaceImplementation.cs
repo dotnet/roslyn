@@ -48,7 +48,7 @@ public class C : Interface1
                 },
                 new[]
                     {
-                        Net451.mscorlib,
+                        NetFramework.mscorlib,
                         TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                     });
 
@@ -113,7 +113,7 @@ public  class D : C
                 },
                 new MetadataReference[]
                 {
-                        Net451.mscorlib,
+                        NetFramework.mscorlib,
                         TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                         new CSharpCompilationReference(comp1)
                 });
@@ -343,7 +343,7 @@ public class C3 : Interface2<Class1>
                 },
                 new[]
                     {
-                        Net451.mscorlib,
+                        NetFramework.mscorlib,
                         TestReferences.SymbolsTests.V1.MTTestLib1.dll,
                     });
 
@@ -377,7 +377,7 @@ public  class D3 : C3
                 },
                 new MetadataReference[]
                 {
-                        Net451.mscorlib,
+                        NetFramework.mscorlib,
                         TestReferences.SymbolsTests.V2.MTTestLib1.dll,
                         new CSharpCompilationReference(comp1)
                 });

@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing a set of changes to a single text document.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#textDocumentEdit">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class TextDocumentEdit
     {
@@ -27,12 +28,14 @@ namespace Roslyn.LanguageServer.Protocol
         /// <summary>
         /// Gets or sets the array of edits to be applied to the document.
         /// </summary>
+        /// <para>
+        /// Use of <see cref="AnnotatedTextEdit"/> is guarded by the capability <see cref="WorkspaceEditSetting.ChangeAnnotationSupport"/>.
+        /// </para>
+        /// <remarks>
+        /// Since LSP 3.16
+        /// </remarks>
         [JsonPropertyName("edits")]
         [JsonRequired]
-        public TextEdit[] Edits
-        {
-            get;
-            set;
-        }
+        public SumType<TextEdit, AnnotatedTextEdit>[] Edits { get; set; }
     }
 }

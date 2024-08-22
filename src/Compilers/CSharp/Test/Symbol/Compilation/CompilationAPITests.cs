@@ -355,7 +355,7 @@ namespace A.B {
             listSyntaxTree.Add(t1);
 
             // System.dll
-            listRef.Add(Net451.System.WithEmbedInteropTypes(true));
+            listRef.Add(NetFramework.System.WithEmbedInteropTypes(true));
             var ops = TestOptions.ReleaseExe;
             // Create Compilation with Option is not null
             var comp = CSharpCompilation.Create("Compilation", listSyntaxTree, listRef, ops);
@@ -488,8 +488,8 @@ namespace A.B {
             var opt = TestOptions.DebugExe;
             // Create Compilation takes two args
             var comp = CSharpCompilation.Create("Compilation", options: TestOptions.DebugExe);
-            var ref1 = Net451.mscorlib;
-            var ref2 = Net451.System;
+            var ref1 = NetFramework.mscorlib;
+            var ref2 = NetFramework.System;
             var ref3 = new TestMetadataReference(fullPath: @"c:\xml.bms");
             var ref4 = new TestMetadataReference(fullPath: @"c:\aaa.dll");
             // Add a new empty item
@@ -587,21 +587,21 @@ namespace A.B {
             var rd4 = t4.GetRoot().GetDirectives().Cast<ReferenceDirectiveTriviaSyntax>().ToArray();
             Assert.Equal(1, rd4.Length);
 
-            var c = CreateCompilationWithMscorlib45(new[] { t1, t2 }, options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
+            var c = CreateCompilationWithMscorlib461(new[] { t1, t2 }, options: TestOptions.ReleaseDll.WithMetadataReferenceResolver(
                 new TestMetadataReferenceResolver(files: new Dictionary<string, PortableExecutableReference>()
                 {
-                    { @"a.dll", Net451.MicrosoftCSharp },
-                    { @"b.dll", Net451.MicrosoftVisualBasic },
+                    { @"a.dll", NetFramework.MicrosoftCSharp },
+                    { @"b.dll", NetFramework.MicrosoftVisualBasic },
                 })));
 
             c.VerifyDiagnostics();
 
             // same containing script file name and directive string
-            Assert.Same(Net451.MicrosoftCSharp, c.GetDirectiveReference(rd1[0]));
-            Assert.Same(Net451.MicrosoftCSharp, c.GetDirectiveReference(rd1[1]));
-            Assert.Same(Net451.MicrosoftCSharp, c.GetDirectiveReference(rd2[0]));
-            Assert.Same(Net451.MicrosoftVisualBasic, c.GetDirectiveReference(rd2[1]));
-            Assert.Same(Net451.MicrosoftCSharp, c.GetDirectiveReference(rd3[0]));
+            Assert.Same(NetFramework.MicrosoftCSharp, c.GetDirectiveReference(rd1[0]));
+            Assert.Same(NetFramework.MicrosoftCSharp, c.GetDirectiveReference(rd1[1]));
+            Assert.Same(NetFramework.MicrosoftCSharp, c.GetDirectiveReference(rd2[0]));
+            Assert.Same(NetFramework.MicrosoftVisualBasic, c.GetDirectiveReference(rd2[1]));
+            Assert.Same(NetFramework.MicrosoftCSharp, c.GetDirectiveReference(rd3[0]));
 
             // different script name or directive string:
             Assert.Null(c.GetDirectiveReference(rd4[0]));
@@ -963,7 +963,7 @@ class D
 
             // Create compilation with args is disordered
             CSharpCompilation comp1 = CSharpCompilation.Create(assemblyName: "Compilation", syntaxTrees: null, options: TestOptions.ReleaseDll, references: null);
-            var ref1 = Net451.mscorlib;
+            var ref1 = NetFramework.mscorlib;
             var listRef = new List<MetadataReference>();
             listRef.Add(ref1);
             listRef.Add(ref1);
@@ -1183,8 +1183,8 @@ var a = new C2();
 
             var compRef = vbComp.ToMetadataReference(embedInteropTypes: true);
 
-            var ref1 = Net451.mscorlib;
-            var ref2 = Net451.System;
+            var ref1 = NetFramework.mscorlib;
+            var ref2 = NetFramework.System;
 
             // Add CompilationReference
             comp = CSharpCompilation.Create(
@@ -1408,10 +1408,10 @@ var a = new C2();
         [Fact, WorkItem(537574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537574")]
         public void NegReference2()
         {
-            var ref1 = Net451.mscorlib;
-            var ref2 = Net451.System;
-            var ref3 = Net451.SystemData;
-            var ref4 = Net451.SystemXml;
+            var ref1 = NetFramework.mscorlib;
+            var ref2 = NetFramework.System;
+            var ref3 = NetFramework.SystemData;
+            var ref4 = NetFramework.SystemXml;
             var comp = CSharpCompilation.Create("Compilation");
 
             comp = comp.AddReferences(ref1, ref1);
@@ -1449,7 +1449,7 @@ var a = new C2();
         [Fact, WorkItem(537567, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537567")]
         public void NegReference4()
         {
-            var ref1 = Net451.mscorlib;
+            var ref1 = NetFramework.mscorlib;
             var comp = CSharpCompilation.Create("Compilation");
 
             Assert.Throws<ArgumentException>(
@@ -1470,8 +1470,8 @@ var a = new C2();
         [Fact, WorkItem(537566, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537566")]
         public void NegReference5()
         {
-            var ref1 = Net451.mscorlib;
-            var ref2 = Net451.SystemXml;
+            var ref1 = NetFramework.mscorlib;
+            var ref2 = NetFramework.SystemXml;
             var comp = CSharpCompilation.Create("Compilation");
             Assert.Throws<ArgumentException>(
             delegate
@@ -1484,7 +1484,7 @@ var a = new C2();
             Assert.Throws<ArgumentException>(
             delegate
             {
-                comp.ReplaceReference(newReference: Net451.System, oldReference: ref2);
+                comp.ReplaceReference(newReference: NetFramework.System, oldReference: ref2);
             });
             Assert.Equal(0, comp.SyntaxTrees.Length);
             Assert.Throws<ArgumentException>(() => comp.ReplaceSyntaxTree(newTree: SyntaxFactory.ParseSyntaxTree("Using System;"), oldTree: t1));
@@ -1766,7 +1766,7 @@ class A
         public void GetEntryPoint_Script()
         {
             var source = @"System.Console.WriteLine(1);";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics();
 
             var scriptMethod = compilation.GetMember<MethodSymbol>("Script.<Main>");
@@ -1787,7 +1787,7 @@ class A
     static void Main() { }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics(
                 // (4,17): warning CS7022: The entry point of the program is global script code; ignoring 'A.Main()' entry point.
                 //     static void Main() { }
@@ -1892,7 +1892,7 @@ class B
         [Fact, WorkItem(750437, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/750437")]
         public void ConflictingAliases()
         {
-            var alias = Net451.System.WithAliases(new[] { "alias" });
+            var alias = NetFramework.System.WithAliases(new[] { "alias" });
 
             var text =
 @"extern alias alias;
@@ -2248,8 +2248,8 @@ class C { }", options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CS
         {
             var references = new MetadataReference[]
             {
-                Net451.mscorlib,
-                Net451.System,
+                NetFramework.mscorlib,
+                NetFramework.System,
                 TestReferences.NetFx.silverlight_v5_0_5_0.System
             };
 
@@ -2259,8 +2259,8 @@ class C { }", options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CS
                 options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
             compilation.VerifyDiagnostics(
-                // error CS1703: Multiple assemblies with equivalent identity have been imported: 'System.dll' and 'System.v5.0.5.0_silverlight.dll'. Remove one of the duplicate references.
-                Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments("System.dll (net451)", "System.v5.0.5.0_silverlight.dll"));
+                // error CS1703: Multiple assemblies with equivalent identity have been imported: 'System (net461)' and 'System.v5.0.5.0_silverlight.dll'. Remove one of the duplicate references.
+                Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments("System (net461)", "System.v5.0.5.0_silverlight.dll").WithLocation(1, 1));
 
             var appConfig = new MemoryStream(Encoding.UTF8.GetBytes(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
@@ -2291,7 +2291,7 @@ using System.Runtime.Versioning;
 public class C { public static FrameworkName Goo() { return null; }}";
             var libComp = CreateEmptyCompilation(
                 libSource,
-                references: new[] { MscorlibRef, Net451.System },
+                references: new[] { MscorlibRef, NetFramework.System },
                 options: TestOptions.ReleaseDll);
 
             libComp.VerifyDiagnostics();
@@ -2301,8 +2301,8 @@ public class C { public static FrameworkName Goo() { return null; }}";
 
             var references = new[]
             {
-                Net451.mscorlib,
-                Net451.System,
+                NetFramework.mscorlib,
+                NetFramework.System,
                 TestReferences.NetFx.silverlight_v5_0_5_0.System,
                 mdRef
             };
@@ -2316,11 +2316,11 @@ public class C { public static FrameworkName Goo() { return null; }}";
                 options: TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
 
             c1.VerifyDiagnostics(
-                // error CS1703: Multiple assemblies with equivalent identity have been imported: 'System.dll' and 'System.v5.0.5.0_silverlight.dll'. Remove one of the duplicate references.
-                Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments("System.dll (net451)", "System.v5.0.5.0_silverlight.dll"),
-                // error CS7069: Reference to type 'System.Runtime.Versioning.FrameworkName' claims it is defined in 'System', but it could not be found
-                Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "C.Goo").WithArguments(
-                    "System.Runtime.Versioning.FrameworkName", "System"));
+                // error CS1703: Multiple assemblies with equivalent identity have been imported: 'System (net461)' and 'System.v5.0.5.0_silverlight.dll'. Remove one of the duplicate references.
+                Diagnostic(ErrorCode.ERR_DuplicateImport).WithArguments("System (net461)", "System.v5.0.5.0_silverlight.dll").WithLocation(1, 1),
+                // (1,52): error CS7069: Reference to type 'FrameworkName' claims it is defined in 'System', but it could not be found
+                // class A { public static void Main(string[] args) { C.Goo(); } }
+                Diagnostic(ErrorCode.ERR_MissingTypeInAssembly, "C.Goo").WithArguments("System.Runtime.Versioning.FrameworkName", "System").WithLocation(1, 52));
 
             var appConfig = new MemoryStream(Encoding.UTF8.GetBytes(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
@@ -2348,7 +2348,7 @@ public class C { public static FrameworkName Goo() { return null; }}";
         public void GetMetadataReferenceAPITest()
         {
             var comp = CSharpCompilation.Create("Compilation");
-            var metadata = Net451.mscorlib;
+            var metadata = NetFramework.mscorlib;
             comp = comp.AddReferences(metadata);
             var assemblySmb = comp.GetReferencedAssemblySymbol(metadata);
             var reference = comp.GetMetadataReference(assemblySmb);
@@ -3385,7 +3385,7 @@ System.Action a = () => { return; };
             script.VerifyDiagnostics();
             Assert.True(script.HasSubmissionResult());
 
-            var compilation = CreateCompilationWithMscorlib45(@"
+            var compilation = CreateCompilationWithMscorlib461(@"
 void M1()
 {
     return;

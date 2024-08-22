@@ -5,7 +5,7 @@
     <MicrosoftCodeAnalysisNetAnalyzersVersion>8.0.0-preview.23468.1</MicrosoftCodeAnalysisNetAnalyzersVersion>
     <MicrosoftCodeAnalysisTestingVersion>1.1.3-beta1.24319.1</MicrosoftCodeAnalysisTestingVersion>
     <MicrosoftVisualStudioExtensibilityTestingVersion>0.1.187-beta</MicrosoftVisualStudioExtensibilityTestingVersion>
-    <_BasicReferenceAssembliesVersion>1.7.2</_BasicReferenceAssembliesVersion>
+    <_BasicReferenceAssembliesVersion>1.7.4</_BasicReferenceAssembliesVersion>
     <!-- CodeStyleAnalyzerVersion should we updated together with version of dotnet-format in dotnet-tools.json -->
     <CodeStyleAnalyzerVersion>4.8.0-3.final</CodeStyleAnalyzerVersion>
     <VisualStudioEditorPackagesVersion>17.10.191</VisualStudioEditorPackagesVersion>
@@ -121,7 +121,7 @@
     <!--
       VS Debugger
     -->
-    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.11.0-beta.24274.2" />
+    <PackageVersion Include="Microsoft.VisualStudio.Debugger.Contracts" Version="17.12.0-beta.24403.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Engine-implementation" Version="17.8.1072001-preview" />
     <PackageVersion Include="Microsoft.VisualStudio.Debugger.Metadata-implementation" Version="17.8.1072001-preview" />
 
@@ -182,10 +182,7 @@
     <PackageVersion Include="Microsoft.Internal.Performance.CodeMarkers.DesignTime" Version="15.8.27812-alpha" />
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net472" Version="1.0.3" />
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net461" Version="1.0.3" />
-    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net451" Version="1.0.3" />
     <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net45" Version="1.0.3" />
-    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net40" Version="1.0.3" />
-    <PackageVersion Include="Microsoft.NETFramework.ReferenceAssemblies.net20" Version="1.0.3" />
     <PackageVersion Include="System.Buffers" Version="4.5.1" />
     <PackageVersion Include="System.CommandLine" Version="$(SystemCommandLineVersion)" />
     <PackageVersion Include="System.Configuration.ConfigurationManager" Version="$(SystemConfigurationConfigurationManagerVersion)" />
@@ -228,11 +225,14 @@
     <PackageVersion Include="System.Threading.Channels" Version="7.0.0" />
 
     <!--
-      System.Net.Http and System.Private.Uri are used to eliminate our reference to old packages with vulnerability.
-      They are introduced by other component. Tracked issues:https://github.com/xunit/xunit/issues/2778 and https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1886496
+      Packages that are pinned to avoid component governance alerts.
+      Tracked issues:
+        https://github.com/xunit/xunit/issues/2778 
+        https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1886496
     -->
     <PackageVersion Include="System.Net.Http" Version="4.3.4" />
     <PackageVersion Include="System.Private.Uri" Version="4.3.2" />
+    <PackageVersion Include="Microsoft.IO.Redist" Version="6.0.1" />
 
     <PackageVersion Include="SQLitePCLRaw.core" Version="$(SqliteVersion)" />
     <PackageVersion Include="SQLitePCLRaw.bundle_green" Version="$(SqliteVersion)" />
@@ -261,9 +261,7 @@
     <PackageVersion Include="Microsoft.DiaSymReader.Converter.Xml" Version="1.1.0-beta2-22302-02" />
     <PackageVersion Include="Microsoft.Metadata.Visualizer" Version="1.0.0-beta3.21075.2" />
     <PackageVersion Include="Microsoft.ILVerification" Version="8.0.0-rtm.23523.3" />
-    <PackageVersion Include="Microsoft.NET.Build.Extensions" Version="2.2.101" />
     <PackageVersion Include="Microsoft.NETCore.Platforms" Version="5.0.0" />
-    <PackageVersion Include="jnm2.ReferenceAssemblies.net35" Version="1.0.1" />
     <PackageVersion Include="Microsoft.VisualStudio.Cache" Version="17.3.26-alpha" />
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.Measurement" Version="17.9.36343-preview.3" />
     <PackageVersion Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider" Version="17.8.36726" />
@@ -300,6 +298,8 @@
     <PackageVersion Include="runtime.osx-x64.Microsoft.NETCore.ILAsm" Version="$(ILAsmPackageVersion)" />
     <PackageVersion Include="Basic.CompilerLog.Util" Version="0.6.1" />
     <PackageVersion Include="Basic.Reference.Assemblies.NetStandard20" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net20" Version="$(_BasicReferenceAssembliesVersion)" />
+    <PackageVersion Include="Basic.Reference.Assemblies.Net40" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net50" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net60" Version="$(_BasicReferenceAssembliesVersion)" />
     <PackageVersion Include="Basic.Reference.Assemblies.Net70" Version="$(_BasicReferenceAssembliesVersion)" />

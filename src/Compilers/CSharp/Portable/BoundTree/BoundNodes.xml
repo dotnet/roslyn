@@ -662,6 +662,15 @@
   </Node>
 
   <!--
+    Represents an array access that comes from the RHS of an unused ref (non-readonly) assignment.
+    Needed so we can emit with correct side effects (runtime element type check).
+  -->
+  <Node Name="BoundRefArrayAccess" Base="BoundExpression">
+    <Field Name="Type" Type="TypeSymbol?" Override="true" Null="always"/>
+    <Field Name="ArrayAccess" Type="BoundArrayAccess" Null="disallow"/>
+  </Node>
+
+  <!--
   Represents an operation that is special in both IL and Expression trees -
   getting length of a one-dimensional 0-based array (vector)
   

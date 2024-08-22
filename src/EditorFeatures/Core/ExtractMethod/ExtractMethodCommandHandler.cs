@@ -88,7 +88,7 @@ internal sealed class ExtractMethodCommandHandler : ICommandHandler<ExtractMetho
         // wait indicator for Extract Method
         if (_renameService.ActiveSession != null)
         {
-            _threadingContext.JoinableTaskFactory.Run(() => _renameService.ActiveSession.CommitAsync(previewChanges: false, CancellationToken.None));
+            _threadingContext.JoinableTaskFactory.Run(() => _renameService.ActiveSession.CommitAsync(previewChanges: false));
         }
 
         if (!args.SubjectBuffer.SupportsRefactorings())

@@ -73,7 +73,7 @@ class C
 
     unsafe IntPtr M2(IntPtr p) => p;
 }";
-            var comp2 = CreateCompilationWithMscorlib45(text2,
+            var comp2 = CreateCompilationWithMscorlib461(text2,
                 references: new[] { ref1 },
                 options: TestOptions.UnsafeDebugDll);
             comp2.VerifyDiagnostics(
