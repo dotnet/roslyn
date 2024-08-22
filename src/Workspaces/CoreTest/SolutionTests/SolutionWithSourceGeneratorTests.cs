@@ -27,6 +27,7 @@ using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using System.IO;
 using System.Reflection;
+using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
@@ -934,87 +935,56 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
 
 #if NET
 
-    private static RemoteWorkspace CreateRemoteWorkspace()
-        => new(FeaturesTestCompositions.RemoteHost.GetHostServices());
-
-    private static IAsynchronousOperationWaiter GetWorkspaceWaiter(Workspace workspace)
-    {
-        var operations = ((MefWorkspaceServices)workspace.Services).HostExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
-        return operations.GetWaiter(FeatureAttribute.Workspace);
-    }
-
     [Fact]
     public async Task UpdatingAnalyzerReferenceReloadsGenerators()
     {
         using var workspace = CreateWorkspace(testHost: TestHost.OutOfProcess);
-        using var remoteWorkspace = CreateRemoteWorkspace();
-
-        //var analyzerReference1 = new TestGeneratorReference(
-        //    new SingleFileTestGenerator("// Hello, World 1"));
-        //var analyzerReference2 = new TestGeneratorReference(
-        //    new SingleFileTestGenerator("// Hello, World 2"));
-
-        //var project0 = AddEmptyProject(workspace.CurrentSolution);
-        //var checksum0 = await project0.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
-
-        //var project1 = project0.AddAnalyzerReference(analyzerReference1);
-        //var checksum1 = await project1.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
-
-        //Assert.NotEqual(project0, project1);
-        //Assert.NotEqual(checksum0, checksum1);
-
-        //var project2 = project1.RemoveAnalyzerReference(analyzerReference1);
-        //var checksum2 = await project2.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
-
-        //Assert.NotEqual(project0, project2);
-        //Assert.NotEqual(project1, project2);
-
-        //// Should still have the same checksum that we started with, even though we have different project instances.
-        //Assert.Equal(checksum0, checksum2);
-        //Assert.NotEqual(checksum1, checksum2);
-
-        //var project3 = project2.AddAnalyzerReference(analyzerReference2);
-        //var checksum3 = await project3.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
-
-        //Assert.NotEqual(project0, project3);
-        //Assert.NotEqual(project1, project3);
-        //Assert.NotEqual(project2, project3);
-        //Assert.NotEqual(checksum0, checksum3);
-        //Assert.NotEqual(checksum1, checksum3);
-        //Assert.NotEqual(checksum2, checksum3);
-
         var solution = workspace.CurrentSolution;
 
         var project1 = solution.AddProject("P1", "P1", LanguageNames.CSharp);
 
-        solution = project1.Solution;
-
         using var tempRoot = new TempRoot();
         var tempDirectory = tempRoot.CreateDirectory();
 
-        using (var stream1 = Assembly.GetExecutingAssembly().GetManifestResourceStream(@"Resources\Microsoft.CodeAnalysis.TestAnalyzerReference.dll.old"))
-        using (var destination = File.OpenWrite(Path.Combine(tempDirectory.Path, "Microsoft.CodeAnalysis.TestAnalyzerReference.dll")))
+        var analyzerPath = Path.Combine(tempDirectory.Path, "Microsoft.CodeAnalysis.TestAnalyzerReference.dll");
+
+        using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(@"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.old"))
+        using (var destination = File.OpenWrite(analyzerPath))
         {
-            stream1!.CopyTo(destination);
+            stream!.CopyTo(destination);
         }
 
-        var map = new Dictionary<Checksum, object>();
-        var assetProvider = new AssetProvider(
-            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(),
-            new SimpleAssetSource(workspace.Services.GetRequiredService<ISerializerService>(), map),
-            remoteWorkspace.Services.GetRequiredService<ISerializerService>());
+        var analyzerAssemblyLoaderProvider = workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+        project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, analyzerAssemblyLoaderProvider.GetSharedShadowCopyLoader())]);
 
-        // Do the initial full sync
-        await solution.AppendAssetMapAsync(map, CancellationToken.None);
-        var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
-        var fullSyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: true, CancellationToken.None);
-        Assert.Equal(1, fullSyncedSolution.Projects.Count());
+        var generatedDocuments1 = await project1.GetSourceGeneratedDocumentsAsync();
+        var helloWorldDoc1 = generatedDocuments1.Single(d => d.Name == "HelloWorld.cs");
 
-        // Update the source generator versions for all projects for the local workspace.
-        workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
-        await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
-        solution = workspace.CurrentSolution;
+        var contents1 = await helloWorldDoc1.GetTextAsync();
+        Assert.True(contents1.ToString().Contains("Hello, World 1!"));
 
+        // Now, overwrite the analyzer reference with a new version that generates different contents
+
+        using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(@"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.new"))
+        using (var destination = File.OpenWrite(analyzerPath))
+        {
+            stream!.CopyTo(destination);
+        }
+
+        // Make a new analyzer reference to that location (note: with the same shared shadow copier).  on the host side,
+        // this will simply instantiate a new reference.  But this will cause all the machinery to run syncing this new
+        // reference to the oop side, which will load the analyzer reference in a dedicated ALC.
+        project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, analyzerAssemblyLoaderProvider.GetSharedShadowCopyLoader())]);
+
+        var generatedDocuments2 = await project1.GetSourceGeneratedDocumentsAsync();
+        var helloWorldDoc2 = generatedDocuments2.Single(d => d.Name == "HelloWorld.cs");
+
+        var contents = await helloWorldDoc2.GetTextAsync();
+
+        // Note that the contents are now different than what we saw before.  This is with an analyzer at the same path,
+        // with the same assembly name and type name for the generator.  Because there is a dedicated ALC, this reloads
+        // fine.
+        Assert.True(contents.ToString().Contains("Hello, World 2!"));
     }
 
 #endif
