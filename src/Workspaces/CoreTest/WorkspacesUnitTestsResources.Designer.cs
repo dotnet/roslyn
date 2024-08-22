@@ -22,14 +22,14 @@ namespace Microsoft.CodeAnalysis.UnitTests {
     [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "17.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    internal class Microsoft_CodeAnalysis_Workspaces_UnitTests_Resources {
+    internal class WorkspacesUnitTestsResources {
         
         private static global::System.Resources.ResourceManager resourceMan;
         
         private static global::System.Globalization.CultureInfo resourceCulture;
         
         [global::System.Diagnostics.CodeAnalysis.SuppressMessageAttribute("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-        internal Microsoft_CodeAnalysis_Workspaces_UnitTests_Resources() {
+        internal WorkspacesUnitTestsResources() {
         }
         
         /// <summary>
@@ -39,8 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests {
         internal static global::System.Resources.ResourceManager ResourceManager {
             get {
                 if (object.ReferenceEquals(resourceMan, null)) {
-                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.UnitTests.Microsoft.CodeAnalysis.Workspaces.UnitTests.Reso" +
-                            "urces", typeof(Microsoft_CodeAnalysis_Workspaces_UnitTests_Resources).Assembly);
+                    global::System.Resources.ResourceManager temp = new global::System.Resources.ResourceManager("Microsoft.CodeAnalysis.UnitTests.WorkspacesUnitTestsResources", typeof(WorkspacesUnitTestsResources).Assembly);
                     resourceMan = temp;
                 }
                 return resourceMan;

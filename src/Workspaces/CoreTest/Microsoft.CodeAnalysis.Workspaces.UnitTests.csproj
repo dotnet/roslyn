@@ -21,16 +21,16 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Update="Microsoft.CodeAnalysis.Workspaces.UnitTests.Resources.Designer.cs">
+    <Compile Update="WorkspacesUnitTestsResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
-      <DependentUpon>Microsoft.CodeAnalysis.Workspaces.UnitTests.Resources.resx</DependentUpon>
+      <DependentUpon>WorkspacesUnitTestsResources.resx</DependentUpon>
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Update="Microsoft.CodeAnalysis.Workspaces.UnitTests.Resources.resx">
+    <EmbeddedResource Update="WorkspacesUnitTestsResources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>Microsoft.CodeAnalysis.Workspaces.UnitTests.Resources.Designer.cs</LastGenOutput>
+      <LastGenOutput>WorkspacesUnitTestsResources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
   </ItemGroup>
 </Project>
