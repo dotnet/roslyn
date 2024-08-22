@@ -77,7 +77,7 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
         var settingManager = await _settingsManagerTask.ConfigureAwait(false);
         // The bool setting is persisted as 0=None, 1=True, 2=False, so it needs to be retrieved as an int.
         return settingManager.TryGetValue($"{CopilotOptionNamePrefix}.{optionName}", out int isEnabled) == GetValueResult.Success
-            && isEnabled == 1;
+            && isEnabled != 2;
     }
 
     public Task<bool> IsCodeAnalysisOptionEnabledAsync()
