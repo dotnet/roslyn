@@ -4,7 +4,6 @@
 
 using System;
 using System.ComponentModel.Composition;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -29,6 +28,6 @@ internal sealed class SourceGeneratedFileItemSourceProvider(
 
     protected override IAttachedCollectionSource? CreateCollectionSource(SourceGeneratorItem item, string relationshipName)
         => relationshipName == KnownRelationships.Contains
-            ? new SourceGeneratedFileItemSource(item, workspace, _asyncListener, threadingContext)
+            ? new SourceGeneratedFileItemSource(item, threadingContext, workspace, _asyncListener)
             : null;
 }

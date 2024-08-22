@@ -6,18 +6,20 @@ namespace Roslyn.LanguageServer.Protocol
 {
     /// <summary>
     /// Enum values for inlay hint kinds.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#inlayHintKind">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
     internal enum InlayHintKind
     {
         /// <summary>
-        /// Type.
+        /// An inlay hint that for a type annotation
         /// </summary>
         Type = 1,
 
         /// <summary>
-        /// Parameter.
+        /// An inlay hint that is for a parameter
         /// </summary>
         Parameter = 2,
     }

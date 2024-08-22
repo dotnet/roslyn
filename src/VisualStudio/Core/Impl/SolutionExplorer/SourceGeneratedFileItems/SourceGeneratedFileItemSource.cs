@@ -10,7 +10,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.Internal.VisualStudio.PlatformUI;
@@ -19,16 +18,21 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer;
 
-internal sealed class SourceGeneratedFileItemSource(SourceGeneratorItem parentGeneratorItem, Workspace workspace, IAsynchronousOperationListener asyncListener, IThreadingContext threadingContext) : Shell.IAttachedCollectionSource, ISupportExpansionEvents
+internal sealed class SourceGeneratedFileItemSource(
+    SourceGeneratorItem parentGeneratorItem,
+    IThreadingContext threadingContext,
+    Workspace workspace,
+    IAsynchronousOperationListener asyncListener)
+    : Shell.IAttachedCollectionSource, ISupportExpansionEvents
 {
     private readonly SourceGeneratorItem _parentGeneratorItem = parentGeneratorItem;
+    private readonly IThreadingContext _threadingContext = threadingContext;
     private readonly Workspace _workspace = workspace;
     private readonly IAsynchronousOperationListener _asyncListener = asyncListener;
-    private readonly IThreadingContext _threadingContext = threadingContext;
 
     /// <summary>
-    /// The returned collection of items. Can only be mutated on the UI thread, as other parts of WPF are subscribed to the change
-    /// events and expect that.
+    /// The returned collection of items. Can only be mutated on the UI thread, as other parts of WPF are subscribed to
+    /// the change events and expect that.
     /// </summary>
     private readonly BulkObservableCollectionWithInit<BaseItem> _items = [];
 

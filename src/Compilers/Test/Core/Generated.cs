@@ -69,18 +69,5 @@ namespace Roslyn.Test.Utilities
             public static PortableExecutableReference PortableLib { get; } = AssemblyMetadata.CreateFromImage(ResourcesSystemThreadingTasksExtensions.PortableLib).GetReference(display: "System.Threading.Tasks.Extensions.dll (systemthreadingtasksextensions)", filePath: "PortableLib.dll");
             public static PortableExecutableReference NetStandard20Lib { get; } = AssemblyMetadata.CreateFromImage(ResourcesSystemThreadingTasksExtensions.NetStandard20Lib).GetReference(display: "System.Threading.Tasks.Extensions.dll (systemthreadingtasksextensions)", filePath: "NetStandard20Lib.dll");
         }
-        public static class ResourcesBuildExtensions
-        {
-            private static byte[] _NetStandardToNet461;
-            public static byte[] NetStandardToNet461 => ResourceLoader.GetOrCreateResource(ref _NetStandardToNet461, "netstandardtonet461.buildextensions.netstandard.dll");
-            public static ReferenceInfo[] All => new[]
-            {
-                new ReferenceInfo("NetStandardToNet461.dll", NetStandardToNet461),
-            };
-        }
-        public static class BuildExtensions
-        {
-            public static PortableExecutableReference NetStandardToNet461 { get; } = AssemblyMetadata.CreateFromImage(ResourcesBuildExtensions.NetStandardToNet461).GetReference(display: "netstandard.dll (buildextensions)", filePath: "NetStandardToNet461.dll");
-        }
     }
 }
