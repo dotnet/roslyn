@@ -25,6 +25,8 @@ using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Host.Mef;
+using System.IO;
+using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
@@ -988,7 +990,13 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         solution = project1.Solution;
 
         using var tempRoot = new TempRoot();
+        var tempDirectory = tempRoot.CreateDirectory();
 
+        using (var stream1 = Assembly.GetExecutingAssembly().GetManifestResourceStream(@"Resources\Microsoft.CodeAnalysis.TestAnalyzerReference.dll.old"))
+        using (var destination = File.OpenWrite(Path.Combine(tempDirectory.Path, "Microsoft.CodeAnalysis.TestAnalyzerReference.dll")))
+        {
+            stream1!.CopyTo(destination);
+        }
 
         var map = new Dictionary<Checksum, object>();
         var assetProvider = new AssetProvider(

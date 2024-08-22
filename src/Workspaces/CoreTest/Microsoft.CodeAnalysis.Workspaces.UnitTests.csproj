@@ -7,8 +7,8 @@
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <None Include="Resources\Microsoft.CodeAnalysis.TestAnalyzerReference.dll.new" />
-    <None Include="Resources\Microsoft.CodeAnalysis.TestAnalyzerReference.dll.old" />
+    <EmbeddedResource Include="Resources\Microsoft.CodeAnalysis.TestAnalyzerReference.dll.new" />
+    <EmbeddedResource Include="Resources\Microsoft.CodeAnalysis.TestAnalyzerReference.dll.old" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
@@ -19,18 +19,5 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Update="WorkspacesUnitTestsResources.Designer.cs">
-      <DesignTime>True</DesignTime>
-      <AutoGen>True</AutoGen>
-      <DependentUpon>WorkspacesUnitTestsResources.resx</DependentUpon>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Update="WorkspacesUnitTestsResources.resx">
-      <Generator>ResXFileCodeGenerator</Generator>
-      <LastGenOutput>WorkspacesUnitTestsResources.Designer.cs</LastGenOutput>
-    </EmbeddedResource>
   </ItemGroup>
 </Project>
