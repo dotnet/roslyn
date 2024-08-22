@@ -12,6 +12,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using DiffPlex;
@@ -34,6 +35,7 @@ namespace Microsoft.CodeAnalysis.Testing
         where TVerifier : IVerifier, new()
     {
         private static readonly ConditionalWeakTable<Diagnostic, object> NonLocalDiagnostics = new ConditionalWeakTable<Diagnostic, object>();
+        private static readonly Regex EncodedIndicesSyntax = new Regex(@"^\s*\[\s*((?<Index>[0-9]+)\s*(,\s*(?<Index>[0-9]+)\s*)*)?\]\s*$", RegexOptions.ExplicitCapture | RegexOptions.Compiled);
 
         /// <summary>
         /// Gets the default verifier for the test.
@@ -558,6 +560,23 @@ namespace Microsoft.CodeAnalysis.Testing
                 else
                 {
                     VerifyDiagnosticLocation(analyzers, actual.diagnostic, expected, actual.diagnostic.Location, expected.Spans[0], verifier);
+                    int[] unnecessaryIndices = { };
+                    if (actual.diagnostic.Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var encodedUnnecessaryLocations))
+                    {
+                        verifier.True(actual.diagnostic.Descriptor.CustomTags.Contains(WellKnownDiagnosticTags.Unnecessary), "Diagnostic reported extended unnecessary locations, but the descriptor is not marked as unnecessary code.");
+                        var match = EncodedIndicesSyntax.Match(encodedUnnecessaryLocations);
+                        verifier.True(match.Success, $"Expected encoded unnecessary locations to be a valid JSON array of non-negative integers: {encodedUnnecessaryLocations}");
+                        unnecessaryIndices = match.Groups["Index"].Captures.OfType<Capture>().Select(capture => int.Parse(capture.Value)).ToArray();
+                        verifier.NotEmpty(nameof(unnecessaryIndices), unnecessaryIndices);
+                        foreach (var index in unnecessaryIndices)
+                        {
+                            if (index < 0 || index >= actual.diagnostic.AdditionalLocations.Count)
+                            {
+                                verifier.Fail($"All unnecessary indices in the diagnostic must be valid indices in AdditionalLocations [0-{actual.diagnostic.AdditionalLocations.Count}): {encodedUnnecessaryLocations}");
+                            }
+                        }
+                    }
+
                     if (!expected.Options.HasFlag(DiagnosticOptions.IgnoreAdditionalLocations))
                     {
                         var additionalLocations = actual.diagnostic.AdditionalLocations.ToArray();
@@ -565,9 +584,19 @@ namespace Microsoft.CodeAnalysis.Testing
                         message = FormatVerifierMessage(analyzers, actual.diagnostic, expected, $"Expected {expected.Spans.Length - 1} additional locations but got {additionalLocations.Length} for Diagnostic:");
                         verifier.Equal(expected.Spans.Length - 1, additionalLocations.Length, message);
 
-                        for (var j = 0; j < additionalLocations.Length; ++j)
+                        for (var j = 0; j < additionalLocations.Length; j++)
                         {
                             VerifyDiagnosticLocation(analyzers, actual.diagnostic, expected, additionalLocations[j], expected.Spans[j + 1], verifier);
+                            var isActualUnnecessary = unnecessaryIndices.Contains(j);
+                            var isExpectedUnnecessary = expected.Spans[j + 1].Options.HasFlag(DiagnosticLocationOptions.UnnecessaryCode);
+                            if (isExpectedUnnecessary)
+                            {
+                                verifier.True(isActualUnnecessary, $"Expected diagnostic additional location index \"{j}\" to be marked unnecessary, but was not.");
+                            }
+                            else
+                            {
+                                verifier.False(isActualUnnecessary, $"Expected diagnostic additional location index \"{j}\" to not be marked unnecessary, but was instead marked unnecessary.");
+                            }
                         }
                     }
                 }
@@ -855,10 +884,23 @@ namespace Microsoft.CodeAnalysis.Testing
                 }
                 else
                 {
-                    AppendLocation(diagnostics[i].Location);
-                    foreach (var additionalLocation in diagnostics[i].AdditionalLocations)
+                    // The unnecessary code designator is ignored for the primary diagnostic location.
+                    AppendLocation(diagnostics[i].Location, isUnnecessary: false);
+
+                    int[] unnecessaryIndices = { };
+                    if (diagnostics[i].Properties.TryGetValue(WellKnownDiagnosticTags.Unnecessary, out var encodedUnnecessaryLocations))
                     {
-                        AppendLocation(additionalLocation);
+                        var match = EncodedIndicesSyntax.Match(encodedUnnecessaryLocations);
+                        if (match.Success)
+                        {
+                            unnecessaryIndices = match.Groups["Index"].Captures.OfType<Capture>().Select(capture => int.Parse(capture.Value)).ToArray();
+                        }
+                    }
+
+                    for (var j = 0; j < diagnostics[i].AdditionalLocations.Count; j++)
+                    {
+                        var additionalLocation = diagnostics[i].AdditionalLocations[j];
+                        AppendLocation(additionalLocation, isUnnecessary: unnecessaryIndices.Contains(j));
                     }
                 }
 
@@ -881,13 +923,16 @@ namespace Microsoft.CodeAnalysis.Testing
             return builder.ToString();
 
             // Local functions
-            void AppendLocation(Location location)
+            void AppendLocation(Location location, bool isUnnecessary)
             {
                 var lineSpan = location.GetLineSpan();
                 var pathString = location.IsInSource && lineSpan.Path == defaultFilePath ? string.Empty : $"\"{lineSpan.Path}\", ";
                 var linePosition = lineSpan.StartLinePosition;
                 var endLinePosition = lineSpan.EndLinePosition;
-                builder.Append($".WithSpan({pathString}{linePosition.Line + 1}, {linePosition.Character + 1}, {endLinePosition.Line + 1}, {endLinePosition.Character + 1})");
+                var unnecessaryArgument = isUnnecessary
+                    ? $", {nameof(DiagnosticLocationOptions)}.{nameof(DiagnosticLocationOptions.UnnecessaryCode)}"
+                    : string.Empty;
+                builder.Append($".WithSpan({pathString}{linePosition.Line + 1}, {linePosition.Character + 1}, {endLinePosition.Line + 1}, {endLinePosition.Character + 1}{unnecessaryArgument})");
             }
         }
 
