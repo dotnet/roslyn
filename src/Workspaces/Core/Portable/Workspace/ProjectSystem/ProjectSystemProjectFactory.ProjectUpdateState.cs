@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Diagnostics;
 
@@ -123,8 +124,14 @@ internal sealed partial class ProjectSystemProjectFactory
         public ProjectUpdateState WithIncrementalAnalyzerReferenceRemoved(AnalyzerFileReference reference)
             => this with { RemovedAnalyzerReferences = RemovedAnalyzerReferences.Add(reference) };
 
+        public ProjectUpdateState WithIncrementalAnalyzerReferencesRemoved(List<AnalyzerFileReference> references)
+            => this with { RemovedAnalyzerReferences = RemovedAnalyzerReferences.AddRange(references) };
+
         public ProjectUpdateState WithIncrementalAnalyzerReferenceAdded(AnalyzerFileReference reference)
             => this with { AddedAnalyzerReferences = AddedAnalyzerReferences.Add(reference) };
+
+        public ProjectUpdateState WithIncrementalAnalyzerReferencesAdded(List<AnalyzerFileReference> references)
+            => this with { AddedAnalyzerReferences = AddedAnalyzerReferences.AddRange(references) };
 
         /// <summary>
         /// Returns a new instance with any incremental state that should not be saved between updates cleared.

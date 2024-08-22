@@ -654,12 +654,21 @@ internal sealed partial class ProjectSystemProject
                         newSolution: solutionChanges.Solution.RemoveProjectReference(Id, projectReference));
                 }
 
-                // Analyzer reference adding...
-                solutionChanges.UpdateSolutionForProjectAction(Id, solutionChanges.Solution.AddAnalyzerReferences(Id, _analyzersAddedInBatch));
-
                 // Analyzer reference removing...
-                foreach (var analyzerReference in _analyzersRemovedInBatch)
-                    solutionChanges.UpdateSolutionForProjectAction(Id, solutionChanges.Solution.RemoveAnalyzerReference(Id, analyzerReference));
+                {
+                    projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesRemoved(_analyzersRemovedInBatch);
+
+                    foreach (var analyzerReference in _analyzersRemovedInBatch)
+                        solutionChanges.UpdateSolutionForProjectAction(Id, solutionChanges.Solution.RemoveAnalyzerReference(Id, analyzerReference));
+                }
+
+                // Analyzer reference adding...
+                {
+                    projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesAdded(_analyzersAddedInBatch);
+
+                    solutionChanges.UpdateSolutionForProjectAction(
+                        Id, solutionChanges.Solution.AddAnalyzerReferences(Id, projectUpdateState.AddedAnalyzerReferences));
+                }
 
                 // Other property modifications...
                 foreach (var propertyModification in _projectPropertyModificationsInBatch)
