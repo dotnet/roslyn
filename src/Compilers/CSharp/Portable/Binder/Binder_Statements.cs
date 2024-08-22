@@ -1765,7 +1765,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var propertyIsStatic = propertySymbol.IsStatic;
 
             return (object)sourceProperty != null &&
-                    sourceProperty.HasSynthesizedBackingField &&
+                    sourceProperty.IsAutoPropertyOrUsesFieldKeyword &&
                     TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
                     IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
                     (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);

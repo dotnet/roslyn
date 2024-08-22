@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, Location);
             }
-            else if (!HasSynthesizedBackingField)
+            else if (!IsAutoPropertyOrUsesFieldKeyword)
             {
                 diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, Location);
             }
@@ -650,6 +650,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal bool IsAutoPropertyOrUsesFieldKeyword
+            => IsAutoProperty || UsesFieldKeyword;
+
         private bool UsesFieldKeyword
             => (_propertyFlags & Flags.UsesFieldKeyword) != 0;
 
@@ -661,9 +664,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected bool AccessorsHaveImplementation
             => (_propertyFlags & Flags.AccessorsHaveImplementation) != 0;
-
-        internal bool HasSynthesizedBackingField
-            => IsAutoProperty || UsesFieldKeyword;
 
         /// <summary>
         /// Backing field for an automatically implemented property, or
@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_RefReturningPropertiesCannotBeRequired, Location);
             }
 
-            if (HasSynthesizedBackingField)
+            if (IsAutoPropertyOrUsesFieldKeyword)
             {
                 if (!IsStatic && ((_propertyFlags & Flags.HasAutoPropertySet) != 0) && SetMethod is { IsInitOnly: false })
                 {
@@ -1104,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         AttributeLocation IAttributeTargetSymbol.DefaultAttributeLocation => AttributeLocation.Property;
 
         AttributeLocation IAttributeTargetSymbol.AllowedAttributeLocations
-            => HasSynthesizedBackingField
+            => IsAutoPropertyOrUsesFieldKeyword
                 ? AttributeLocation.Property | AttributeLocation.Field
                 : AttributeLocation.Property;
 
@@ -1669,7 +1669,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_FieldCantBeRefAny, TypeLocation, type);
             }
-            else if (this.HasSynthesizedBackingField && type.IsRefLikeOrAllowsRefLikeType() && (this.IsStatic || !this.ContainingType.IsRefLikeType))
+            else if (this.IsAutoPropertyOrUsesFieldKeyword && type.IsRefLikeOrAllowsRefLikeType() && (this.IsStatic || !this.ContainingType.IsRefLikeType))
             {
                 diagnostics.Add(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, TypeLocation, type);
             }
