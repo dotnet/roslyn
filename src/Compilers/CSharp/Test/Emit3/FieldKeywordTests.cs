@@ -1977,7 +1977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [InlineData(false, false)]
         [InlineData(false, true)]
         [InlineData(true, false)]
-        public void SetOnly(bool useStatic, bool useInit)
+        public void AutoPropertyMustHaveGetAccessor(bool useStatic, bool useInit)
         {
             string modifier = useStatic ? "static" : "      ";
             string setter = useInit ? "init" : "set";
