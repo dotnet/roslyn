@@ -26,7 +26,6 @@ internal partial class InheritanceMarginContextMenu : ContextMenu
     private readonly IUIThreadOperationExecutor _operationExecutor;
     private readonly Workspace _workspace;
     private readonly IAsynchronousOperationListener _listener;
-    private readonly double _scaleFactor;
 
     public InheritanceMarginContextMenu(
         IThreadingContext threadingContext,
@@ -41,16 +40,9 @@ internal partial class InheritanceMarginContextMenu : ContextMenu
         _workspace = workspace;
         _operationExecutor = operationExecutor;
         _listener = listener;
-        _scaleFactor = scaleFactor;
         InitializeComponent();
-        SetZoom();
-    }
-
-    private void SetZoom()
-    {
-        var zoomTransform = new ScaleTransform(_scaleFactor, _scaleFactor);
-        zoomTransform.Freeze();
-        LayoutTransform = zoomTransform;
+        LayoutTransform = new ScaleTransform(scaleFactor, scaleFactor);
+        LayoutTransform.Freeze();
     }
 
     private void TargetMenuItem_OnClick(object sender, RoutedEventArgs e)
