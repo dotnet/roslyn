@@ -131,7 +131,7 @@ internal static class InheritanceMarginHelpers
     ///                     HeaderViewModel
     ///                     Target5ViewModel
     /// </summary>
-    public static ImmutableArray<MenuItemViewModel> CreateMenuItemViewModelsForMultipleMembers(ImmutableArray<InheritanceMarginItem> members, double scaleFactor)
+    public static ImmutableArray<MenuItemViewModel> CreateMenuItemViewModelsForMultipleMembers(ImmutableArray<InheritanceMarginItem> members)
     {
         Contract.ThrowIfTrue(members.Length <= 1);
         // For multiple members, check if all the targets have the same inheritance relationship.

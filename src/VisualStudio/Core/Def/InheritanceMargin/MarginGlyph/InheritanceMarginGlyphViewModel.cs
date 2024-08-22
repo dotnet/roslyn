@@ -140,7 +140,7 @@ internal class InheritanceMarginGlyphViewModel
         {
             // Same automation name can't be set for control for accessibility purpose. So add the line number info.
             var automationName = string.Format(ServicesVSResources.Multiple_members_are_inherited_on_line_0, tag.LineNumber);
-            var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForMultipleMembers(tag.MembersOnLine, scaleFactor);
+            var menuItemViewModels = InheritanceMarginHelpers.CreateMenuItemViewModelsForMultipleMembers(tag.MembersOnLine);
             return new InheritanceMarginGlyphViewModel(tag, classificationTypeMap, classificationFormatMap, automationName, scaleFactor, menuItemViewModels);
         }
     }
