@@ -2462,6 +2462,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                     """);
             }
+            var comp = (CSharpCompilation)verifier.Compilation;
+            var actualMembers = comp.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<FieldSymbol>().ToTestDisplayStrings();
+            var expectedMembers = new[]
+            {
+                "System.Object C.<P1>k__BackingField",
+                "System.Object C.<P2>k__BackingField",
+                "System.Object C.<P3>k__BackingField",
+                "System.Object C.<P4>k__BackingField",
+                "System.Object C.<P5>k__BackingField",
+            };
+            AssertEx.Equal(expectedMembers, actualMembers);
         }
 
         [Fact]
