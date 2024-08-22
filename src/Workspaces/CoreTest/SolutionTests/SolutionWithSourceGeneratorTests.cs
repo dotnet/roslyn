@@ -938,6 +938,11 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     [Fact]
     public async Task UpdatingAnalyzerReferenceReloadsGenerators()
     {
+        // We have two versions of the same source generator attached to this project as a resource.  Each creates a
+        // 'HelloWorld' class, just with a different string it emits inside.
+        const string AnalyzerResourceV1 = @"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v1";
+        const string AnalyzerResourceV2 = @"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v2";
+
         using var workspace = CreateWorkspace(testHost: TestHost.OutOfProcess);
         var solution = workspace.CurrentSolution;
 
@@ -948,43 +953,47 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
 
         var analyzerPath = Path.Combine(tempDirectory.Path, "Microsoft.CodeAnalysis.TestAnalyzerReference.dll");
 
-        using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(@"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.old"))
-        using (var destination = File.OpenWrite(analyzerPath))
-        {
-            stream!.CopyTo(destination);
-        }
-
         var analyzerAssemblyLoaderProvider = workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-        project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, analyzerAssemblyLoaderProvider.GetSharedShadowCopyLoader())]);
 
-        var generatedDocuments1 = await project1.GetSourceGeneratedDocumentsAsync();
-        var helloWorldDoc1 = generatedDocuments1.Single(d => d.Name == "HelloWorld.cs");
+        // Add and test the v1 generator first.
+        {
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(AnalyzerResourceV1))
+            using (var destination = File.OpenWrite(analyzerPath))
+            {
+                stream!.CopyTo(destination);
+            }
 
-        var contents1 = await helloWorldDoc1.GetTextAsync();
-        Assert.True(contents1.ToString().Contains("Hello, World 1!"));
+            project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, analyzerAssemblyLoaderProvider.GetSharedShadowCopyLoader())]);
+
+            var generatedDocuments = await project1.GetSourceGeneratedDocumentsAsync();
+            var helloWorldDoc = generatedDocuments.Single(d => d.Name == "HelloWorld.cs");
+
+            var contents = await helloWorldDoc.GetTextAsync();
+            Assert.True(contents.ToString().Contains("Hello, World 1!"));
+        }
 
         // Now, overwrite the analyzer reference with a new version that generates different contents
-
-        using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(@"Microsoft.CodeAnalysis.UnitTests.Resources.Microsoft.CodeAnalysis.TestAnalyzerReference.dll.new"))
-        using (var destination = File.OpenWrite(analyzerPath))
         {
-            stream!.CopyTo(destination);
+            using (var stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(AnalyzerResourceV2))
+            using (var destination = File.OpenWrite(analyzerPath))
+            {
+                stream!.CopyTo(destination);
+            }
+
+            // Make a new analyzer reference to that location (note: with the same shared shadow copier).  on the host side,
+            // this will simply instantiate a new reference.  But this will cause all the machinery to run syncing this new
+            // reference to the oop side, which will load the analyzer reference in a dedicated ALC.
+            project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, analyzerAssemblyLoaderProvider.GetSharedShadowCopyLoader())]);
+
+            var generatedDocuments = await project1.GetSourceGeneratedDocumentsAsync();
+            var helloWorldDoc = generatedDocuments.Single(d => d.Name == "HelloWorld.cs");
+
+            // Note that the contents are now different than what we saw before.  This is with an analyzer at the same path,
+            // with the same assembly name and type name for the generator.  Because there is a dedicated ALC, this reloads
+            // fine.
+            var contents = await helloWorldDoc.GetTextAsync();
+            Assert.True(contents.ToString().Contains("Hello, World 2!"));
         }
-
-        // Make a new analyzer reference to that location (note: with the same shared shadow copier).  on the host side,
-        // this will simply instantiate a new reference.  But this will cause all the machinery to run syncing this new
-        // reference to the oop side, which will load the analyzer reference in a dedicated ALC.
-        project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, analyzerAssemblyLoaderProvider.GetSharedShadowCopyLoader())]);
-
-        var generatedDocuments2 = await project1.GetSourceGeneratedDocumentsAsync();
-        var helloWorldDoc2 = generatedDocuments2.Single(d => d.Name == "HelloWorld.cs");
-
-        var contents = await helloWorldDoc2.GetTextAsync();
-
-        // Note that the contents are now different than what we saw before.  This is with an analyzer at the same path,
-        // with the same assembly name and type name for the generator.  Because there is a dedicated ALC, this reloads
-        // fine.
-        Assert.True(contents.ToString().Contains("Hello, World 2!"));
     }
 
 #endif

@@ -7,8 +7,8 @@
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Microsoft.CodeAnalysis.TestAnalyzerReference.dll.new" />
-    <EmbeddedResource Include="Resources\Microsoft.CodeAnalysis.TestAnalyzerReference.dll.old" />
+    <EmbeddedResource Include="Resources\Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v1" />
+    <EmbeddedResource Include="Resources\Microsoft.CodeAnalysis.TestAnalyzerReference.dll.v2" />
   </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
