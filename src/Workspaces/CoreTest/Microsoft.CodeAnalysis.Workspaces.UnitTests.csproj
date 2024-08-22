@@ -6,6 +6,10 @@
     <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <None Include="Resources\Microsoft.CodeAnalysis.TestAnalyzerReference.dll.new" />
+    <None Include="Resources\Microsoft.CodeAnalysis.TestAnalyzerReference.dll.old" />
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\CSharp\Portable\Microsoft.CodeAnalysis.CSharp.Workspaces.csproj" />
     <ProjectReference Include="..\VisualBasic\Portable\Microsoft.CodeAnalysis.VisualBasic.Workspaces.vbproj" />
@@ -15,5 +19,18 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="Microsoft.CodeAnalysis.Workspaces.UnitTests.Resources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Microsoft.CodeAnalysis.Workspaces.UnitTests.Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Update="Microsoft.CodeAnalysis.Workspaces.UnitTests.Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Microsoft.CodeAnalysis.Workspaces.UnitTests.Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
   </ItemGroup>
 </Project>

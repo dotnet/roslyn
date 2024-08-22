@@ -20,9 +20,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public static Workspace CreateWorkspaceWithPartialSemantics(TestHost testHost = TestHost.InProcess)
             => WorkspaceTestUtilities.CreateWorkspaceWithPartialSemantics(testHost: testHost);
 
-        private static RemoteWorkspace CreateRemoteWorkspace()
-            => new(FeaturesTestCompositions.RemoteHost.GetHostServices());
-
 #nullable disable
 
         public static void TestProperty<T, TValue>(T instance, Func<T, TValue, T> factory, Func<T, TValue> getter, TValue validNonDefaultValue, bool defaultThrows = false)

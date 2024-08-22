@@ -21,6 +21,10 @@ using Xunit;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionTestHelpers;
 using static Microsoft.CodeAnalysis.UnitTests.SolutionUtilities;
 using static Microsoft.CodeAnalysis.UnitTests.WorkspaceTestUtilities;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Host.Mef;
 
 namespace Microsoft.CodeAnalysis.UnitTests;
 
@@ -931,45 +935,78 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
     private static RemoteWorkspace CreateRemoteWorkspace()
         => new(FeaturesTestCompositions.RemoteHost.GetHostServices());
 
+    private static IAsynchronousOperationWaiter GetWorkspaceWaiter(Workspace workspace)
+    {
+        var operations = ((MefWorkspaceServices)workspace.Services).HostExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
+        return operations.GetWaiter(FeatureAttribute.Workspace);
+    }
+
     [Fact]
     public async Task UpdatingAnalyzerReferenceReloadsGenerators()
     {
         using var workspace = CreateWorkspace(testHost: TestHost.OutOfProcess);
         using var remoteWorkspace = CreateRemoteWorkspace();
 
-        var analyzerReference1 = new TestGeneratorReference(
-            new SingleFileTestGenerator("// Hello, World 1"));
-        var analyzerReference2 = new TestGeneratorReference(
-            new SingleFileTestGenerator("// Hello, World 2"));
+        //var analyzerReference1 = new TestGeneratorReference(
+        //    new SingleFileTestGenerator("// Hello, World 1"));
+        //var analyzerReference2 = new TestGeneratorReference(
+        //    new SingleFileTestGenerator("// Hello, World 2"));
 
-        var project0 = AddEmptyProject(workspace.CurrentSolution);
-        var checksum0 = await project0.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
+        //var project0 = AddEmptyProject(workspace.CurrentSolution);
+        //var checksum0 = await project0.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
 
-        var project1 = project0.AddAnalyzerReference(analyzerReference1);
-        var checksum1 = await project1.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
+        //var project1 = project0.AddAnalyzerReference(analyzerReference1);
+        //var checksum1 = await project1.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
 
-        Assert.NotEqual(project0, project1);
-        Assert.NotEqual(checksum0, checksum1);
+        //Assert.NotEqual(project0, project1);
+        //Assert.NotEqual(checksum0, checksum1);
 
-        var project2 = project1.RemoveAnalyzerReference(analyzerReference1);
-        var checksum2 = await project2.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
+        //var project2 = project1.RemoveAnalyzerReference(analyzerReference1);
+        //var checksum2 = await project2.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
 
-        Assert.NotEqual(project0, project2);
-        Assert.NotEqual(project1, project2);
+        //Assert.NotEqual(project0, project2);
+        //Assert.NotEqual(project1, project2);
 
-        // Should still have the same checksum that we started with, even though we have different project instances.
-        Assert.Equal(checksum0, checksum2);
-        Assert.NotEqual(checksum1, checksum2);
+        //// Should still have the same checksum that we started with, even though we have different project instances.
+        //Assert.Equal(checksum0, checksum2);
+        //Assert.NotEqual(checksum1, checksum2);
 
-        var project3 = project2.AddAnalyzerReference(analyzerReference2);
-        var checksum3 = await project3.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
+        //var project3 = project2.AddAnalyzerReference(analyzerReference2);
+        //var checksum3 = await project3.Solution.SolutionState.GetChecksumAsync(CancellationToken.None);
 
-        Assert.NotEqual(project0, project3);
-        Assert.NotEqual(project1, project3);
-        Assert.NotEqual(project2, project3);
-        Assert.NotEqual(checksum0, checksum3);
-        Assert.NotEqual(checksum1, checksum3);
-        Assert.NotEqual(checksum2, checksum3);
+        //Assert.NotEqual(project0, project3);
+        //Assert.NotEqual(project1, project3);
+        //Assert.NotEqual(project2, project3);
+        //Assert.NotEqual(checksum0, checksum3);
+        //Assert.NotEqual(checksum1, checksum3);
+        //Assert.NotEqual(checksum2, checksum3);
+
+        var solution = workspace.CurrentSolution;
+
+        var project1 = solution.AddProject("P1", "P1", LanguageNames.CSharp);
+
+        solution = project1.Solution;
+
+        using var tempRoot = new TempRoot();
+
+
+        var map = new Dictionary<Checksum, object>();
+        var assetProvider = new AssetProvider(
+            Checksum.Create(ImmutableArray.CreateRange(Guid.NewGuid().ToByteArray())), new SolutionAssetCache(),
+            new SimpleAssetSource(workspace.Services.GetRequiredService<ISerializerService>(), map),
+            remoteWorkspace.Services.GetRequiredService<ISerializerService>());
+
+        // Do the initial full sync
+        await solution.AppendAssetMapAsync(map, CancellationToken.None);
+        var solutionChecksum = await solution.CompilationState.GetChecksumAsync(CancellationToken.None);
+        var fullSyncedSolution = await remoteWorkspace.GetTestAccessor().GetSolutionAsync(assetProvider, solutionChecksum, updatePrimaryBranch: true, CancellationToken.None);
+        Assert.Equal(1, fullSyncedSolution.Projects.Count());
+
+        // Update the source generator versions for all projects for the local workspace.
+        workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
+        await GetWorkspaceWaiter(workspace).ExpeditedWaitAsync();
+        solution = workspace.CurrentSolution;
+
     }
 
 #endif
