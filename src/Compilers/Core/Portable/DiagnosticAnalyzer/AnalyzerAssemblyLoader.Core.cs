@@ -108,21 +108,13 @@ namespace Microsoft.CodeAnalysis
 
             foreach (var context in contexts)
             {
-#if WORKSPACE
                 try
                 {
-                    // In the IDE layer defer to our NFW handler to ensure we can report any bugs here, without crashing
-                    // the process.
                     context.Unload();
                 }
                 catch (Exception ex) when (FatalError.ReportAndCatch(ex, ErrorSeverity.Critical))
                 {
                 }
-#else
-                // In the compiler layer, just directly unload the ALC.  This is only called from tests, and we're fine
-                // with any exceptions bubbling up to fail the test.
-                context.Unload();
-#endif
             }
 
             contexts.Free();
