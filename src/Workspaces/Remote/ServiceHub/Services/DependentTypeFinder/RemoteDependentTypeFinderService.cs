@@ -11,43 +11,42 @@ using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed class RemoteDependentTypeFinderService : BrokeredServiceBase, IRemoteDependentTypeFinderService
 {
-    internal sealed class RemoteDependentTypeFinderService : BrokeredServiceBase, IRemoteDependentTypeFinderService
+    internal sealed class Factory : FactoryBase<IRemoteDependentTypeFinderService>
     {
-        internal sealed class Factory : FactoryBase<IRemoteDependentTypeFinderService>
+        protected override IRemoteDependentTypeFinderService CreateService(in ServiceConstructionArguments arguments)
+            => new RemoteDependentTypeFinderService(arguments);
+    }
+
+    public RemoteDependentTypeFinderService(in ServiceConstructionArguments arguments)
+        : base(arguments)
+    {
+    }
+
+    public ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindTypesAsync(
+        Checksum solutionChecksum,
+        SerializableSymbolAndProjectId typeAndProjectId,
+        ImmutableArray<ProjectId> projectIdsOpt,
+        bool transitive,
+        DependentTypesKind kind,
+        CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(solutionChecksum, async solution =>
         {
-            protected override IRemoteDependentTypeFinderService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteDependentTypeFinderService(arguments);
-        }
+            var symbol = await typeAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
 
-        public RemoteDependentTypeFinderService(in ServiceConstructionArguments arguments)
-            : base(arguments)
-        {
-        }
+            if (symbol is not INamedTypeSymbol namedType)
+                return ImmutableArray<SerializableSymbolAndProjectId>.Empty;
 
-        public ValueTask<ImmutableArray<SerializableSymbolAndProjectId>> FindTypesAsync(
-            Checksum solutionChecksum,
-            SerializableSymbolAndProjectId typeAndProjectId,
-            ImmutableArray<ProjectId> projectIdsOpt,
-            bool transitive,
-            DependentTypesKind kind,
-            CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                var symbol = await typeAndProjectId.TryRehydrateAsync(solution, cancellationToken).ConfigureAwait(false);
+            var projects = projectIdsOpt.IsDefault ? null : projectIdsOpt.Select(id => solution.GetRequiredProject(id)).ToImmutableHashSet();
 
-                if (symbol is not INamedTypeSymbol namedType)
-                    return ImmutableArray<SerializableSymbolAndProjectId>.Empty;
+            var types = await DependentTypeFinder.FindTypesInCurrentProcessAsync(namedType, solution, projects, transitive, kind, cancellationToken).ConfigureAwait(false);
 
-                var projects = projectIdsOpt.IsDefault ? null : projectIdsOpt.Select(id => solution.GetRequiredProject(id)).ToImmutableHashSet();
-
-                var types = await DependentTypeFinder.FindTypesInCurrentProcessAsync(namedType, solution, projects, transitive, kind, cancellationToken).ConfigureAwait(false);
-
-                return types.SelectAsArray(
-                    t => SerializableSymbolAndProjectId.Dehydrate(solution, t, cancellationToken));
-            }, cancellationToken);
-        }
+            return types.SelectAsArray(
+                t => SerializableSymbolAndProjectId.Dehydrate(solution, t, cancellationToken));
+        }, cancellationToken);
     }
 }
