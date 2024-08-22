@@ -130,10 +130,6 @@ Add-TargetFramework "SystemThreadingTasksExtensions" '$(PkgSystem_Threading_Task
   'NetStandard20Lib#\lib\netstandard2.0\System.Threading.Tasks.Extensions.dll'
 )
 
-Add-TargetFramework "BuildExtensions" '$(PkgMicrosoft_NET_Build_Extensions)\msbuildExtensions\Microsoft\Microsoft.NET.Build.Extensions' @(
-  'NetStandardToNet461#net461\lib\netstandard.dll'
-)
-
 $targetsContent += @"
   </ItemGroup>
 </Project>

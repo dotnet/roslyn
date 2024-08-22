@@ -11,7 +11,7 @@ namespace Roslyn.LanguageServer.Protocol
     /// This should be used to point to code locations that cause or are related to
     /// a diagnostics, e.g when duplicating a symbol in a scope.
     ///
-    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#diagnosticRelatedInformation">Language Server Protocol specification</see> for additional information.
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#diagnosticRelatedInformation">Language Server Protocol specification</see> for additional information.
     /// </summary>
     internal class DiagnosticRelatedInformation
     {

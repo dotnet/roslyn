@@ -65,6 +65,7 @@ internal class SumConverter : JsonConverterFactory
 
                 if (parameterTypeInfo.IsPrimitive ||
                     parameterTypeInfo == typeof(string) ||
+                    parameterTypeInfo == typeof(Uri) ||
                     typeof(IStringEnum).IsAssignableFrom(parameterTypeInfo))
                 {
                     primitiveUnionTypeInfosSet ??= new List<UnionTypeInfo>();
@@ -249,7 +250,7 @@ internal class SumConverter<T> : JsonConverter<T>
             }
         }
 
-        throw new JsonException(LanguageServerProtocolResources.NoSumTypeMatch);
+        throw new JsonException($"No sum type match for {objectType}");
     }
 
     /// <inheritdoc/>
@@ -258,6 +259,13 @@ internal class SumConverter<T> : JsonConverter<T>
         writer = writer ?? throw new ArgumentNullException(nameof(writer));
 
         var sumValue = value.Value;
+
+        // behavior from DocumentUriConverter
+        if (sumValue is Uri)
+        {
+            writer.WriteStringValue(sumValue.ToString());
+            return;
+        }
 
         if (sumValue != null)
         {
@@ -288,6 +296,7 @@ internal class SumConverter<T> : JsonConverter<T>
                 break;
             case JsonTokenType.String:
                 isCompatible = unionTypeInfo.Type == typeof(string) ||
+                               unionTypeInfo.Type == typeof(Uri) ||
                                typeof(IStringEnum).IsAssignableFrom(unionTypeInfo.Type);
                 break;
         }

@@ -8,13 +8,18 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing the signature of something callable. This class is returned from the textDocument/signatureHelp request.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelp">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class SignatureHelp
     {
         /// <summary>
-        /// Gets or sets an array of signatures associated with the callable item.
+        /// One or more signatures.
+        /// <para>
+        /// If no signatures are available the signature help
+        /// request should return <see langword="null"/>.
+        /// </para>
         /// </summary>
         [JsonPropertyName("signatures")]
         [JsonRequired]
@@ -25,7 +30,19 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the active signature. If the value is omitted or falls outside the range of Signatures it defaults to zero.
+        /// The active signature.
+        /// <para>
+        /// </para>
+        /// If omitted or the value lies outside the range of <see cref="Signatures"/> the
+        /// value defaults to zero or is ignored if the <see cref="SignatureHelp"/> has no signatures.
+        /// <para>
+        /// Whenever possible implementors should make an active decision about
+        /// the active signature and shouldn't rely on a default value.
+        /// </para>
+        /// <para>
+        /// In a future version of the protocol this property might become
+        /// mandatory to better express this.
+        /// </para>
         /// </summary>
         [JsonPropertyName("activeSignature")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -36,7 +53,17 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets the active parameter. If the value is omitted or falls outside the range of Signatures[ActiveSignature].Parameters it defaults to zero.
+        /// The active parameter of the active signature.
+        /// <para>
+        /// If omitted or the value lies outside the range of <c>Signatures[ActiveSignature].Parameters</c>
+        /// it defaults to 0 if the active signature has parameters.
+        /// If the active signature has no parameters it is ignored.
+        /// </para>
+        /// <para>
+        /// In a future version of the protocol this property might become
+        /// mandatory to better express the active parameter if the active
+        /// signature has any parameters.
+        /// </para>
         /// </summary>
         [JsonPropertyName("activeParameter")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

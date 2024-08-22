@@ -4,10 +4,8 @@
 
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Runtime.Versioning;
 using System.Threading;
@@ -15,7 +13,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
@@ -23,17 +20,14 @@ namespace Microsoft.CodeAnalysis.Serialization;
 #if NETCOREAPP
 [SupportedOSPlatform("windows")]
 #endif
-internal partial class SerializerService : ISerializerService
+[method: Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
+internal partial class SerializerService(SolutionServices workspaceServices) : ISerializerService
 {
     [ExportWorkspaceServiceFactory(typeof(ISerializerService), layer: ServiceLayer.Default), Shared]
-    internal sealed class Factory : IWorkspaceServiceFactory
+    [method: ImportingConstructor]
+    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    internal sealed class Factory() : IWorkspaceServiceFactory
     {
-        [ImportingConstructor]
-        [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-        public Factory()
-        {
-        }
-
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
             => new SerializerService(workspaceServices.SolutionServices);
@@ -41,30 +35,17 @@ internal partial class SerializerService : ISerializerService
 
     private static readonly Func<WellKnownSynchronizationKind, string> s_logKind = k => k.ToString();
 
-    private readonly SolutionServices _workspaceServices;
+    // Serialization to temporary storage is only involved when we have a remote process.  Which is only in VS. So the
+    // type of the storage service here is well known.  However the serializer is created in other cases (e.g. to
+    // compute project state checksums). So lazily instantiate the storage service to avoid attempting to get the
+    // TemporaryStorageService when not available.
 
-    private readonly Lazy<TemporaryStorageService> _storageService;
-    private readonly ITextFactoryService _textService;
-    private readonly IDocumentationProviderService? _documentationService;
-    private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider;
+    private readonly Lazy<TemporaryStorageService> _storageService = new(() => (TemporaryStorageService)workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>());
+    private readonly ITextFactoryService _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
+    private readonly IDocumentationProviderService? _documentationService = workspaceServices.GetService<IDocumentationProviderService>();
+    private readonly IAnalyzerAssemblyLoaderProvider _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
 
-    private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService;
-
-    [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
-    private protected SerializerService(SolutionServices workspaceServices)
-    {
-        _workspaceServices = workspaceServices;
-
-        // Serialization to temporary storage is only involved when we have a remote process.  Which is only in VS. So the type of the
-        // storage service here is well known.  However the serializer is created in other cases (e.g. to compute project state checksums).
-        // So lazily instantiate the storage service to avoid attempting to get the TemporaryStorageService when not available.
-        _storageService = new Lazy<TemporaryStorageService>(() => (TemporaryStorageService)workspaceServices.GetRequiredService<ITemporaryStorageServiceInternal>());
-        _textService = workspaceServices.GetRequiredService<ITextFactoryService>();
-        _analyzerLoaderProvider = workspaceServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-        _documentationService = workspaceServices.GetService<IDocumentationProviderService>();
-
-        _lazyLanguageSerializationService = new ConcurrentDictionary<string, IOptionsSerializationService>(concurrencyLevel: 2, capacity: _workspaceServices.SupportedLanguages.Count());
-    }
+    private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService = new(concurrencyLevel: 2, capacity: workspaceServices.SupportedLanguages.Count());
 
     public Checksum CreateChecksum(object value, CancellationToken cancellationToken)
     {
@@ -73,11 +54,6 @@ internal partial class SerializerService : ISerializerService
         using (Logger.LogBlock(FunctionId.Serializer_CreateChecksum, s_logKind, kind, cancellationToken))
         {
             cancellationToken.ThrowIfCancellationRequested();
-
-            if (value is IChecksummedObject checksummedObject)
-            {
-                return checksummedObject.Checksum;
-            }
 
             switch (kind)
             {
@@ -89,10 +65,10 @@ internal partial class SerializerService : ISerializerService
                     return Checksum.Create(value, this, cancellationToken);
 
                 case WellKnownSynchronizationKind.MetadataReference:
-                    return CreateChecksum((MetadataReference)value, cancellationToken);
+                    return CreateChecksum((MetadataReference)value);
 
                 case WellKnownSynchronizationKind.AnalyzerReference:
-                    return CreateChecksum((AnalyzerReference)value, cancellationToken);
+                    return CreateChecksum((AnalyzerReference)value);
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
                     throw new InvalidOperationException("Clients can already get a checksum directly from a SerializableSourceText");
@@ -141,15 +117,15 @@ internal partial class SerializerService : ISerializerService
                     return;
 
                 case WellKnownSynchronizationKind.ProjectReference:
-                    SerializeProjectReference((ProjectReference)value, writer, cancellationToken);
+                    SerializeProjectReference((ProjectReference)value, writer);
                     return;
 
                 case WellKnownSynchronizationKind.MetadataReference:
-                    SerializeMetadataReference((MetadataReference)value, writer, cancellationToken);
+                    SerializeMetadataReference((MetadataReference)value, writer);
                     return;
 
                 case WellKnownSynchronizationKind.AnalyzerReference:
-                    SerializeAnalyzerReference((AnalyzerReference)value, writer, cancellationToken: cancellationToken);
+                    SerializeAnalyzerReference((AnalyzerReference)value, writer);
                     return;
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
@@ -274,8 +250,8 @@ internal partial class SerializerService : ISerializerService
                 WellKnownSynchronizationKind.CompilationOptions => DeserializeCompilationOptions(reader, cancellationToken),
                 WellKnownSynchronizationKind.ParseOptions => DeserializeParseOptions(reader, cancellationToken),
                 WellKnownSynchronizationKind.ProjectReference => DeserializeProjectReference(reader, cancellationToken),
-                WellKnownSynchronizationKind.MetadataReference => DeserializeMetadataReference(reader, cancellationToken),
-                WellKnownSynchronizationKind.AnalyzerReference => DeserializeAnalyzerReference(reader, cancellationToken),
+                WellKnownSynchronizationKind.MetadataReference => DeserializeMetadataReference(reader),
+                WellKnownSynchronizationKind.AnalyzerReference => DeserializeAnalyzerReference(reader),
                 WellKnownSynchronizationKind.SerializableSourceText => SerializableSourceText.Deserialize(reader, _storageService.Value, _textService, cancellationToken),
                 WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap => SourceGeneratorExecutionVersionMap.Deserialize(reader),
                 WellKnownSynchronizationKind.FallbackAnalyzerOptions => ReadFallbackAnalyzerOptions(reader),
@@ -285,7 +261,7 @@ internal partial class SerializerService : ISerializerService
     }
 
     private IOptionsSerializationService GetOptionsSerializationService(string languageName)
-        => _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetRequiredService<IOptionsSerializationService>());
+        => _lazyLanguageSerializationService.GetOrAdd(languageName, n => workspaceServices.GetLanguageServices(n).GetRequiredService<IOptionsSerializationService>());
 
     public Checksum CreateParseOptionsChecksum(ParseOptions value)
         => Checksum.Create((value, @this: this), static (tuple, writer) => tuple.@this.SerializeParseOptions(tuple.value, writer));

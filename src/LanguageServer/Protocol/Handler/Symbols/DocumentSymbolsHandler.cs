@@ -123,7 +123,9 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler
                 Detail = item.Text,
                 Kind = ProtocolConversions.GlyphToSymbolKind(item.Glyph),
                 Glyph = (int)item.Glyph,
+#pragma warning disable CS0618 // SymbolInformation.Deprecated is obsolete, use Tags
                 Deprecated = symbolItem.IsObsolete,
+#pragma warning restore CS0618
                 Range = ProtocolConversions.TextSpanToRange(spans.First(), text),
                 SelectionRange = ProtocolConversions.TextSpanToRange(navigationSpan, text),
                 Children = GetChildren(item.ChildItems, text, cancellationToken),

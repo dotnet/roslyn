@@ -26,6 +26,7 @@ internal static class DocumentSymbols
         public static readonly RazorLspSymbolInformationCreationService Instance = new();
 
         public SymbolInformation Create(string name, string? containerName, LSP.SymbolKind kind, LSP.Location location, Glyph glyph)
+#pragma warning disable CS0618 // SymbolInformation is obsolete
             => new()
             {
                 Name = name,
@@ -33,5 +34,6 @@ internal static class DocumentSymbols
                 Kind = kind,
                 Location = location,
             };
+#pragma warning restore CS0618
     }
 }
