@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Serialization;
-using Microsoft.CodeAnalysis.UnitTests.Remote;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;

@@ -19,13 +19,44 @@ using System.Runtime.Loader;
 
 namespace Microsoft.CodeAnalysis;
 
-#if NET
+#if !NET
+
+/// <summary>
+/// Basic no-op impl on .Net Framework.  We can't actually isolate anything in .Net Framework, so we just return the
+/// assembly references as is.
+/// </summary>
+internal sealed class IsolatedAnalyzerReferenceSet
+{
+    public static ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
+        bool useAsync,
+        ImmutableArray<AnalyzerReference> references,
+        SolutionServices solutionServices,
+        CancellationToken cancellationToken)
+    {
+        return ValueTaskFactory.FromResult(references);
+    }
+
+    /// <summary>
+    /// Given a checksum for a set of analyzer references, fetches the existing ALC-isolated set of them if already
+    /// present in this process.  Otherwise, this fetches the raw serialized analyzer references from the host side,
+    /// then creates and caches an isolated set on the OOP side to hold onto them, passing out that isolated set of
+    /// references to be used by the caller (normally to be stored in a solution snapshot).
+    /// </summary>
+    public static async ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
+        bool useAsync,
+        ChecksumCollection analyzerChecksums,
+        SolutionServices solutionServices,
+        Func<Task<ImmutableArray<AnalyzerReference>>> getReferencesAsync,
+        CancellationToken cancellationToken)
+    {
+        return await getReferencesAsync().ConfigureAwait(false);
+    }
+
 /// <summary>
 /// A set of <see cref="IsolatedAnalyzerReference"/>s and their associated shadow copy loader (which has its own <see
 /// cref="AssemblyLoadContext"/>).  As long as something is keeping this set alive, the ALC will be kept alive.  Once
 /// this set is dropped, the loader will be explicitly <see cref="IDisposable.Dispose"/>'d in its finalizer.
 /// </summary>
-#endif
 internal sealed class IsolatedAnalyzerReferenceSet
 {
 #if NET
