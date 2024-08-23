@@ -690,9 +690,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);
             var recovered = serializer.Deserialize(asset.Kind, reader, CancellationToken.None);
-            var checksum = recovered is SerializableSourceText text
-                ? text.ContentChecksum
-                : testSerializer.CreateChecksum(recovered, CancellationToken.None);
+            var checksum = recovered is SerializableSourceText text ? text.ContentChecksum : testSerializer.CreateChecksum(recovered, CancellationToken.None);
 
             var assetFromStorage = new SolutionAsset(checksum, recovered);
 
