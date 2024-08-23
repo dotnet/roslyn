@@ -83,6 +83,16 @@ internal abstract class AbstractInlineStatementSnippetProvider<TStatementSyntax>
             syntaxFacts.IsExpressionStatement(parentNode?.Parent))
         {
             var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(parentNode)!;
+            var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+
+            // Forbid a case when we are dotting of a type, e.g. `string.$$`.
+            // Inline statement snippets are not valid in this context
+            if (symbolInfo.Symbol is ITypeSymbol)
+            {
+                expressionInfo = null;
+                return false;
+            }
+
             var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
             expressionInfo = new(expression, typeInfo);
             return true;
