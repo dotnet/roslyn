@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -3051,12 +3052,17 @@ class C { }
                 });
         }
 
+#pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.         
+
         [Theory]
         [CombinatorialData]
         [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation)]
         [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.PostInit)]
         [InlineData(IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.PostInit)]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Host)]
+        [InlineData(IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.Host)]
         [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.PostInit)]
+        [InlineData(IncrementalGeneratorOutputKind.Source | IncrementalGeneratorOutputKind.Implementation | IncrementalGeneratorOutputKind.PostInit | IncrementalGeneratorOutputKind.Host)]
         public void Generator_Output_Kinds_Can_Be_Disabled(IncrementalGeneratorOutputKind disabledOutput)
         {
             var source = @"
@@ -3072,6 +3078,7 @@ class C { }
                 ctx.RegisterPostInitializationOutput((context) => context.AddSource("PostInit", ""));
                 ctx.RegisterSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("Source", ""));
                 ctx.RegisterImplementationSourceOutput(ctx.CompilationProvider, (context, ct) => context.AddSource("Implementation", ""));
+                ctx.RegisterHostOutput(ctx.CompilationOptionsProvider, (context, ct) => context.AddOutput("Host", ""));
             });
 
             GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { generator.AsSourceGenerator() }, driverOptions: new GeneratorDriverOptions(disabledOutput), parseOptions: parseOptions);
@@ -3085,21 +3092,37 @@ class C { }
             // NOTE: adding new output types will cause this test to fail. Update above as needed.
             foreach (IncrementalGeneratorOutputKind kind in Enum.GetValues(typeof(IncrementalGeneratorOutputKind)))
             {
-                if (kind == IncrementalGeneratorOutputKind.None || kind == IncrementalGeneratorOutputKind.Host)
+                if (kind == IncrementalGeneratorOutputKind.None)
                     continue;
 
                 if (disabledOutput.HasFlag((IncrementalGeneratorOutputKind)kind))
                 {
-                    Assert.DoesNotContain(result.Results[0].GeneratedSources, isTextForKind);
+                    if (kind == IncrementalGeneratorOutputKind.Host)
+                    {
+                        Assert.DoesNotContain(result.Results[0].HostOutputs, o => o.Key == "Host");
+                    }
+                    else
+                    {
+                        Assert.DoesNotContain(result.Results[0].GeneratedSources, isTextForKind);
+                    }
                 }
                 else
                 {
-                    Assert.Contains(result.Results[0].GeneratedSources, isTextForKind);
+                    if (kind == IncrementalGeneratorOutputKind.Host)
+                    {
+                        Assert.Contains(result.Results[0].HostOutputs, o => o.Key == "Host");
+                    }
+                    else
+                    {
+                        Assert.Contains(result.Results[0].GeneratedSources, isTextForKind);
+                    }
                 }
 
                 bool isTextForKind(GeneratedSourceResult s) => s.HintName == Enum.GetName(typeof(IncrementalGeneratorOutputKind), kind) + ".cs";
             }
         }
+
+#pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
         [Fact]
         public void IncrementalGeneratorInputSourcesHaveNames()

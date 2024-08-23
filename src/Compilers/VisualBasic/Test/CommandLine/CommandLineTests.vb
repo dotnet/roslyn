@@ -10666,10 +10666,12 @@ End Class")
             Dim hostOutputRan As Boolean = False
             Dim sourceOutputRan As Boolean = False
             Dim generator = New PipelineCallbackGenerator(Sub(ctx)
+#Disable Warning RSEXPERIMENTAL004
                                                               ctx.RegisterHostOutput(ctx.CompilationProvider, Sub(hostCtx, value)
                                                                                                                   hostOutputRan = True
                                                                                                                   hostCtx.AddOutput("output", "value")
                                                                                                               End Sub)
+#Enable Warning RSEXPERIMENTAL004
                                                               ctx.RegisterSourceOutput(ctx.CompilationProvider, Sub(spc, po)
                                                                                                                     sourceOutputRan = True
                                                                                                                     spc.AddSource("output.vb", "'value")
