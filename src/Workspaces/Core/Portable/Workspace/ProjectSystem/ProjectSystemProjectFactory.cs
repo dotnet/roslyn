@@ -830,16 +830,21 @@ internal sealed partial class ProjectSystemProjectFactory
     private void StartRefreshingAnalyzerReferenceForFile(object? sender, string fullFilePath)
         => StartRefreshingReferencesForFile(
             fullFilePath,
-            getReferences: static project => project.AnalyzerReferences.OfType<AnalyzerFileReference>(),
-            getFilePath: static reference => reference.FullPath,
+            getReferences: static project => project.AnalyzerReferences,
+            getFilePath: static reference => reference.FullPath!,
             createNewReference: static (@this, reference) => new AnalyzerFileReference(
-                reference.FullPath,
+                reference.FullPath!,
                 // Note: We use the shared shadow copy loader here as a placeholder.  It isn't actually used though as
                 // we end up making an isolated set of references below in the 'update' callback.
                 @this.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>().SharedShadowCopyLoader),
             update: static (solution, projectId, projectUpdateState, oldReference, newReference) =>
             {
-                var (newSolution, newProjectUpdateState) = ProjectSystemProject.UpdateProjectAnalyzerReferences(solution, projectId, projectUpdateState, [oldReference], [newReference]);
+                Contract.ThrowIfTrue(oldReference.FullPath != newReference.FullPath);
+
+                // Note: we're passing in the same path for the analyzers to remove/add.  That's exactly the intent
+                // here.  We're updating an existing analyzer in place.  So we want 
+                var (newSolution, newProjectUpdateState) = ProjectSystemProject.UpdateProjectAnalyzerReferences(
+                    solution, projectId, projectUpdateState, [oldReference.FullPath], [newReference.FullPath]);
                 return (newSolution, newProjectUpdateState);
             });
 
