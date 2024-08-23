@@ -56,9 +56,10 @@ internal sealed class LanguageServerWorkspaceFactory
         var references = new List<AnalyzerFileReference>();
         var loaderProvider = Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
 
-        // Load all analyzers into the default load context.  In the future, if we want to support reloading of analyzer
-        // references, we should instead load these into a dedicated ALC (using an IsolatedAnalyzerReferenceSet) here.
-        var analyzerLoader = loaderProvider.SharedShadowCopyLoader;
+        // Load all analyzers into a fresh shadow copied load context.  In the future, if we want to support reloading
+        // of solution-level analyzer references, we should just need to listen for changes to those analyzer paths and
+        // then call back into this method to update hte solution accordingly.
+        var analyzerLoader = loaderProvider.CreateNewShadowCopyLoader();
 
         foreach (var analyzerPath in analyzerPaths)
         {
