@@ -46,7 +46,7 @@ internal sealed class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAna
         => compilation.LanguageVersion() >= LanguageVersion.CSharp6;
 
     protected override bool SupportsFieldExpression(Compilation compilation)
-        => compilation.LanguageVersion() >= LanguageVersion.CSharp13;
+        => compilation.LanguageVersion() >= LanguageVersion.Preview;
 
     protected override ExpressionSyntax? GetFieldInitializer(VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
         => variable.Initializer?.Value;
