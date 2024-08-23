@@ -20,6 +20,7 @@ internal class FSharp : IProduct
     public string? PackageName => null;
     public string? PackagePropsFileName => null;
     public string? ArtifactsFolderName => null;
+    public string? DartLabPipelineName => null;
     public string[] ArtifactsSubFolderNames => Array.Empty<string>();
 
 

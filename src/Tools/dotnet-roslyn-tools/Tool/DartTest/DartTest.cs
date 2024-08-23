@@ -40,14 +40,11 @@ internal static class DartTest
         // If the user doesn't pass the SHA, retrieve the most recent from the PR.
         if (sha is null)
         {
-            if (product.Name.Equals("roslyn", StringComparison.OrdinalIgnoreCase))
+            sha = await GetLatestShaFromPullRequest(product, remoteConnections.GitHubClient, prNumber, logger, cancellationToken).ConfigureAwait(false);
+            if (sha is null)
             {
-                sha = await GetLatestShaFromPullRequest(product, remoteConnections.GitHubClient, prNumber, logger, cancellationToken).ConfigureAwait(false);
-                if (sha is null)
-                {
-                    logger.LogError("Could not find a SHA for the given PR number.");
-                    return -1;
-                }
+                logger.LogError("Could not find a SHA for the given PR number.");
+                return -1;
             }
             else
             {
@@ -77,21 +74,9 @@ internal static class DartTest
             TemplateParameters = new Dictionary<string, string> { { "prNumber", prNumber.ToString() }, { "sha", sha } }
         };
 
-        var pipelineName = GetPipelineName();
-        await remoteConnections.DevDivConnection.TryRunPipelineAsync(pipelineName, repositoryParams, runPipelineParameters, logger).ConfigureAwait(false);
+        await remoteConnections.DevDivConnection.TryRunPipelineAsync(product.DartLabPipelineName, repositoryParams, runPipelineParameters, logger).ConfigureAwait(false);
         CleanupDirectory(directory, logger);
         return 0;
-
-        string GetPipelineName()
-        {
-            switch (product.Name.ToLower())
-            {
-                case "roslyn":
-                    return "Roslyn Integration CI DartLab";
-                default:
-                    return "";
-            }
-        }
     }
 
     private static async Task<string?> GetLatestShaFromPullRequest(IProduct product, HttpClient gitHubClient, int prNumber, ILogger logger, CancellationToken cancellationToken)

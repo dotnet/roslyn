@@ -19,6 +19,7 @@ internal class Roslyn : IProduct
     public string ComponentName => "Microsoft.CodeAnalysis.LanguageServices";
     public string? PackageName => "VS.ExternalAPIs.Roslyn";
     public string? PackagePropsFileName => "src/ConfigData/Packages/roslyn.props";
+    public string? DartLabPipelineName => "Roslyn Integration CI DartLab";
     public string? ArtifactsFolderName => "PackageArtifacts";
     public string[] ArtifactsSubFolderNames => new[] { "PackageArtifacts/PreRelease", "PackageArtifacts/Release" };
 

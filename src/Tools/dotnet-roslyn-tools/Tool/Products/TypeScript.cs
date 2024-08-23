@@ -17,6 +17,7 @@ internal class TypeScript : IProduct
     public string ComponentJsonFileName => @".corext\Configs\components.json";
     public string ComponentName => "TypeScript_Tools";
     public string? PackageName => "VS.ExternalAPIs.TypeScript.SourceMapReader.dev15";
+    public string? DartLabPipelineName => null;
     public string? ArtifactsFolderName => null;
     public string[] ArtifactsSubFolderNames => Array.Empty<string>();
 

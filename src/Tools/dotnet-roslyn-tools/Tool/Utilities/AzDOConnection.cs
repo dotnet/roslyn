@@ -69,7 +69,7 @@ internal sealed class AzDOConnection : IDisposable
         }
     }
 
-    public async Task TryRunPipelineAsync(string pipelineName, Dictionary<string, RepositoryResourceParameters> repositoryParams, RunPipelineParameters runPipelineParams, ILogger logger)
+    public async Task TryRunPipelineAsync(string? pipelineName, Dictionary<string, RepositoryResourceParameters> repositoryParams, RunPipelineParameters runPipelineParams, ILogger logger)
     {
         try
         {

@@ -20,6 +20,7 @@ internal interface IProduct
     string ComponentName { get; }
     string? PackageName { get; }
     string? PackagePropsFileName { get; }
+    string? DartLabPipelineName { get; }
     string? ArtifactsFolderName { get; }
     string[] ArtifactsSubFolderNames { get; }
 
