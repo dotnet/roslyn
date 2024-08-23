@@ -5,11 +5,15 @@
 #if NET
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Runtime.Loader;
+using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
@@ -22,9 +26,23 @@ namespace Microsoft.CodeAnalysis.Serialization;
 internal sealed class IsolatedAssemblyReferenceSet
 {
     /// <summary>
+    /// Gate around <see cref="s_checksumToReferenceSet"/> to ensure it is only accessed and updated atomically.
+    /// </summary>
+    private static readonly SemaphoreSlim s_isolatedReferenceSetGate = new(initialCount: 1);
+
+    /// <summary>
+    /// Mapping from checksum for a particular set of assembly references, to the dedicated ALC and actual assembly
+    /// references corresponding to it.  As long as it is alive, we will try to reuse what is in memory.  But once it is
+    /// dropped from memory, we'll clean things up and produce a new one.
+    /// </summary>
+    private static readonly Dictionary<Checksum, WeakReference<IsolatedAssemblyReferenceSet>> s_checksumToReferenceSet = [];
+
+    private static int s_sweepCount = 0;
+
+    /// <summary>
     /// Final set of <see cref="AnalyzerReference"/> instances that will be passed through the workspace down to the compiler.
     /// </summary>
-    private readonly ImmutableArray<IsolatedAnalyzerReference> _analyzerReferences;
+    public ImmutableArray<AnalyzerReference> AnalyzerReferences { get; };
 
     /// <summary>
     /// Dedicated loader with its own dedicated ALC that all analyzer references will load their <see
@@ -32,33 +50,36 @@ internal sealed class IsolatedAssemblyReferenceSet
     /// </summary>
     private readonly IAnalyzerAssemblyLoaderInternal _shadowCopyLoader;
 
-    public ImmutableArray<AnalyzerReference> AnalyzerReferences => _analyzerReferences.CastArray<AnalyzerReference>();
-
-    public IsolatedAssemblyReferenceSet(
-        ImmutableArray<AnalyzerReference> serializedReferences,
+    private IsolatedAssemblyReferenceSet(
+        ImmutableArray<AnalyzerReference> initialReferences,
         IAnalyzerAssemblyLoaderProvider provider)
     {
-        // We should really only be handed SerializedAnalyzerReference here (as that's the mainline case for a host
-        // communicating references to the OOP side).  However, we may also get special test-specific analyzer
-        // references.  So we can't assert we *only* have that type.
-        //
-        // We can *firmly* state though that we should never get an AnalyzerFileReference or IsolatedAnalyzerReference
-        // as that would mean we were not properly getting the real analyzer references produced by the serialized
-        // system.
-        Contract.ThrowIfTrue(serializedReferences.Any(static r => r is AnalyzerFileReference), $"Should not have gotten an {nameof(AnalyzerFileReference)}");
-        Contract.ThrowIfTrue(serializedReferences.Any(static r => r is IsolatedAnalyzerReference), $"Should not have gotten an {nameof(IsolatedAnalyzerReference)}");
-
         // Now make a fresh loader that uses that ALC that will ensure these references are properly isolated.
         _shadowCopyLoader = provider.CreateNewShadowCopyLoader();
 
-        var builder = new FixedSizeArrayBuilder<IsolatedAnalyzerReference>(serializedReferences.Length);
-        foreach (var analyzerReference in serializedReferences)
+        var builder = new FixedSizeArrayBuilder<AnalyzerReference>(initialReferences.Length);
+        foreach (var initialReference in initialReferences)
         {
+            // If we already have an analyzer reference isolated to another ALC.  Fish out its underlying reference so
+            // we can rewrap it for the new ALC we're creating.  We don't want to continually wrap layers of isolated
+            // objects.
+            var analyzerReference = initialReference is IsolatedAnalyzerReference isolatedReference
+                ? isolatedReference.UnderlyingAnalyzerReference
+                : initialReference;
+
             // Unwrap serialized analyzer references to get their file path and make a real AnalyzerFileReference
             // that now uses this isolated shadow copy loader.
-            var underlyingAnalyzerReference = analyzerReference is SerializerService.SerializedAnalyzerReference
-                ? new AnalyzerFileReference(analyzerReference.FullPath!, _shadowCopyLoader)
-                : analyzerReference;
+            var underlyingAnalyzerReference = initialReference
+                switch
+            {
+                // If we have an existing file reference, make a new one with a different loader/ALC
+                AnalyzerFileReference analyzerFileReference => new AnalyzerFileReference(analyzerFileReference.FullPath, _shadowCopyLoader),
+
+                // If we're on the oop side, and we got a 
+                SerializerService.SerializedAnalyzerReference serializedAnalyzerReference => new AnalyzerFileReference(serializedAnalyzerReference.FullPath, _shadowCopyLoader),
+                IsolatedAnalyzerReference isolatedAnalyzerReference => new AnalyzerFileReference(isolatedAnalyzerReference.FullPath, _shadowCopyLoader),
+                _ => analyzerReference,
+            };
 
             // Create a special wrapped analyzer reference here.  It will ensure that any DiagnosticAnalyzers and
             // ISourceGenerators handed out will keep this IsolatedAssemblyReferenceSet alive.
@@ -75,6 +96,74 @@ internal sealed class IsolatedAssemblyReferenceSet
     ~IsolatedAssemblyReferenceSet()
     {
         _shadowCopyLoader.Dispose();
+    }
+
+    private static void GarbageCollectReleaseReferences_NoLock()
+    {
+        Contract.ThrowIfTrue(s_isolatedReferenceSetGate.CurrentCount != 0);
+
+        // When we've done some reasonable number of mutations to the dictionary, we'll do a sweep to see if there are
+        // entries we can remove.
+        if (++s_sweepCount % 128 == 0)
+            return;
+
+        using var _ = ArrayBuilder<Checksum>.GetInstance(out var checksumsToRemove);
+
+        foreach (var (checksum, weakReference) in s_checksumToReferenceSet)
+        {
+            if (!weakReference.TryGetTarget(out var referenceSet) ||
+                referenceSet is null)
+            {
+                checksumsToRemove.Add(checksum);
+            }
+        }
+
+        foreach (var checksum in checksumsToRemove)
+            s_checksumToReferenceSet.Remove(checksum);
+    }
+
+    /// <summary>
+    /// Given a checksum for a set of analyzer references, fetches the existing ALC-isolated set of them if already
+    /// present in this process.  Otherwise, this fetches the raw serialized analyzer references from the host side,
+    /// then creates and caches an isolated set on the OOP side to hold onto them, passing out that isolated set of
+    /// references to be used by the caller (normally to be stored in a solution snapshot).
+    /// </summary>
+    public static async ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
+        ImmutableArray<AnalyzerReference> references,
+        ISerializerService serializerService,
+        IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider,
+        CancellationToken cancellationToken)
+    {
+        if (references.Length == 0)
+            return [];
+
+        var analyzerChecksums = ChecksumCache.GetOrCreateChecksumCollection(references, serializerService, cancellationToken);
+        var checksum = analyzerChecksums.Checksum;
+
+        // First, see if these were already computed and stored.
+        using (await s_isolatedReferenceSetGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        {
+            if (s_checksumToReferenceSet.TryGetValue(checksum, out var weakIsolatedReferenceSet) &&
+                weakIsolatedReferenceSet.TryGetTarget(out var isolatedAssemblyReferenceSet))
+            {
+                return isolatedAssemblyReferenceSet.AnalyzerReferences;
+            }
+
+            isolatedAssemblyReferenceSet = new IsolatedAssemblyReferenceSet(references, assemblyLoaderProvider);
+
+            if (weakIsolatedReferenceSet is null)
+            {
+                weakIsolatedReferenceSet = new(null!);
+                s_checksumToReferenceSet[checksum] = weakIsolatedReferenceSet;
+            }
+
+            weakIsolatedReferenceSet.SetTarget(isolatedAssemblyReferenceSet);
+
+            // Do some cleaning up of old dictionary entries that are no longer in use.
+            GarbageCollectReleaseReferences_NoLock();
+
+            return isolatedAssemblyReferenceSet.AnalyzerReferences;
+        }
     }
 }
 

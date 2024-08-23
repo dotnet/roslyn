@@ -739,12 +739,14 @@ internal sealed partial class ProjectSystemProject
             // necessarily the exact same ones given to the solution itself.
             projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesRemoved(analyzersRemovedInBatch);
             projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesAdded(analyzersAddedInBatch);
-#if NET
 
+#if NET
+            // In .Net core we want to do things differently.  Here, we want to 
 #else
             // In .Net framework, we cannot isolate these analyzer references into their own ALC.  The best we can do is
             // just give all the references to the project as is and hope they load properly.
-            solutionChanges.UpdateSolutionForProjectAction(projectId, solutionChanges.Solution.WithProjectAnalyzerReferences(projectId, finalReferences));
+            solutionChanges.UpdateSolutionForProjectAction(
+                projectId, solutionChanges.Solution.WithProjectAnalyzerReferences(projectId, finalReferences));
 #endif
 
 #if false

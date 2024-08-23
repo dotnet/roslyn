@@ -24,43 +24,6 @@ internal static partial class AbstractAssetProviderExtensions
 {
 #if NET
 
-    /// <summary>
-    /// Gate around <see cref="s_checksumToReferenceSet"/> to ensure it is only accessed and updated atomically.
-    /// </summary>
-    private static readonly SemaphoreSlim s_isolatedReferenceSetGate = new(initialCount: 1);
-
-    /// <summary>
-    /// Mapping from checksum for a particular set of assembly references, to the dedicated ALC and actual assembly
-    /// references corresponding to it.  As long as it is alive, we will try to reuse what is in memory.  But once it is
-    /// dropped from memory, we'll clean things up and produce a new one.
-    /// </summary>
-    private static readonly Dictionary<Checksum, WeakReference<IsolatedAssemblyReferenceSet>> s_checksumToReferenceSet = [];
-
-    private static int s_sweepCount = 0;
-
-    private static void GarbageCollectReleaseReferences_NoLock()
-    {
-        Contract.ThrowIfTrue(s_isolatedReferenceSetGate.CurrentCount != 0);
-
-        // When we've done some reasonable number of mutations to the dictionary, we'll do a sweep to see if there are
-        // entries we can remove.
-        if (++s_sweepCount % 128 == 0)
-            return;
-
-        using var _ = ArrayBuilder<Checksum>.GetInstance(out var checksumsToRemove);
-
-        foreach (var (checksum, weakReference) in s_checksumToReferenceSet)
-        {
-            if (!weakReference.TryGetTarget(out var referenceSet) ||
-                referenceSet is null)
-            {
-                checksumsToRemove.Add(checksum);
-            }
-        }
-
-        foreach (var checksum in checksumsToRemove)
-            s_checksumToReferenceSet.Remove(checksum);
-    }
 
 #endif
 
