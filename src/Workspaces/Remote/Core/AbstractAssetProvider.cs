@@ -52,8 +52,10 @@ internal abstract class AbstractAssetProvider
             (@this: this, projectsTasks, assemblyLoaderProvider, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
-        var isolatedAnalyzerReferences = await this.CreateIsolatedAnalyzerReferencesAsync(
-            AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, assemblyLoaderProvider, cancellationToken).ConfigureAwait(false);
+        var analyzerReference = await this.GetAssetsArrayAsync<AnalyzerReference>(
+            AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+        var isolatedAnalyzerReferences = await IsolatedAssemblyReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
+            analyzerReference, this.seri, assemblyLoaderProvider, cancellationToken).ConfigureAwait(false);
 
         var fallbackAnalyzerOptions = await GetAssetAsync<ImmutableDictionary<string, StructuredAnalyzerConfigOptions>>(AssetPathKind.SolutionFallbackAnalyzerOptions, solutionChecksums.FallbackAnalyzerOptions, cancellationToken).ConfigureAwait(false);
 

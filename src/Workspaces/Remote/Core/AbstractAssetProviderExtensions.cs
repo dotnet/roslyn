@@ -48,17 +48,7 @@ internal static partial class AbstractAssetProviderExtensions
     /// Returns an array of assets, corresponding to all the checksums found in the given <paramref name="checksums"/>.
     /// The assets will be returned in the order corresponding to their checksum in <paramref name="checksums"/>.
     /// </summary>
-    /// <remarks>Do not call this when <typeparamref name="T"/> is <see cref="AnalyzerReference"/>. In order to properly
-    /// rehydrate analyzer references safely, an <see cref="IAnalyzerAssemblyLoaderProvider"/> must be provided to
-    /// properly load the references. Use <see cref="CreateIsolatedAnalyzerReferencesAsync"/> for that case.</remarks>
-    public static Task<ImmutableArray<T>> GetAssetsArrayAsync<T>(
-        this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, CancellationToken cancellationToken) where T : class
-    {
-        Contract.ThrowIfTrue(typeof(T) == typeof(AssemblyReference), $"Call {nameof(CreateIsolatedAnalyzerReferencesAsync)} instead");
-        return GetAssetsArrayInternalAsync<T>(assetProvider, assetPath, checksums, cancellationToken);
-    }
-
-    private static async Task<ImmutableArray<T>> GetAssetsArrayInternalAsync<T>(
+    public static async Task<ImmutableArray<T>> GetAssetsArrayAsync<T>(
         this AbstractAssetProvider assetProvider, AssetPath assetPath, ChecksumCollection checksums, CancellationToken cancellationToken) where T : class
     {
         // Note: nothing stops 'checksums' from having multiple identical checksums in it.  First, collapse this down to

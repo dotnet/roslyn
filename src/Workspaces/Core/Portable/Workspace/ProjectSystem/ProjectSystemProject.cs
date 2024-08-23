@@ -17,6 +17,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.ProjectSystem;
+using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
@@ -728,7 +729,7 @@ internal sealed partial class ProjectSystemProject
             if (analyzersRemovedInBatch.Count == 0 && analyzersAddedInBatch.Count == 0)
                 return projectUpdateState;
 
-            var finalReferences = solutionChanges.Solution.AnalyzerReferences
+            var totalReferenceList = solutionChanges.Solution.AnalyzerReferences
                 .Except(analyzersRemovedInBatch)
                 .Concat(analyzersAddedInBatch)
                 .ToImmutableArray();
@@ -740,33 +741,19 @@ internal sealed partial class ProjectSystemProject
             projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesRemoved(analyzersRemovedInBatch);
             projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesAdded(analyzersAddedInBatch);
 
-#if NET
-            // In .Net core we want to do things differently.  Here, we want to 
-#else
-            // In .Net framework, we cannot isolate these analyzer references into their own ALC.  The best we can do is
-            // just give all the references to the project as is and hope they load properly.
+            // Attempt to isolate these analyzer references into their own ALC so that we can still load
+            // analyzers/generators from them if they changed on disk.
+            var serializerService = solutionChanges.Solution.Services.GetRequiredService<ISerializerService>();
+            var assemblyLoaderProvider = solutionChanges.Solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+            var isolatedReferences = IsolatedAssemblyReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
+                useAsync: false,
+                totalReferenceList,
+                serializerService,
+                assemblyLoaderProvider,
+                CancellationToken.None).VerifyCompleted();
+
             solutionChanges.UpdateSolutionForProjectAction(
-                projectId, solutionChanges.Solution.WithProjectAnalyzerReferences(projectId, finalReferences));
-#endif
-
-#if false
-
-                // Analyzer reference removing...
-                if (_analyzersRemovedInBatch.Count > 0)
-                {
-
-                    foreach (var analyzerReference in _analyzersRemovedInBatch)
-                        solutionChanges.UpdateSolutionForProjectAction(Id, solutionChanges.Solution.RemoveAnalyzerReference(Id, analyzerReference));
-                }
-
-                // Analyzer reference adding...
-                if (_analyzersAddedInBatch.Count > 0)
-                {
-
-                    solutionChanges.UpdateSolutionForProjectAction(
-                        Id, solutionChanges.Solution.AddAnalyzerReferences(Id, _analyzersAddedInBatch));
-                }
-#endif
+                projectId, solutionChanges.Solution.WithProjectAnalyzerReferences(projectId, isolatedReferences));
 
             return projectUpdateState;
         }

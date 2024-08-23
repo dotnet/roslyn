@@ -2,12 +2,9 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-#if NET
-
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -17,13 +14,18 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
+#if NET
+using System.Runtime.Loader;
+
 /// <summary>
 /// A set of <see cref="IsolatedAnalyzerReference"/>s and their associated shadow copy loader (which has its own <see
 /// cref="AssemblyLoadContext"/>).  As long as something is keeping this set alive, the ALC will be kept alive.  Once
 /// this set is dropped, the loader will be explicitly <see cref="IDisposable.Dispose"/>'d in its finalizer.
 /// </summary>
+#endif
 internal sealed class IsolatedAssemblyReferenceSet
 {
+#if NET
     /// <summary>
     /// Gate around <see cref="s_checksumToReferenceSet"/> to ensure it is only accessed and updated atomically.
     /// </summary>
@@ -110,13 +112,18 @@ internal sealed class IsolatedAssemblyReferenceSet
             s_checksumToReferenceSet.Remove(checksum);
     }
 
+#endif
+
     /// <summary>
     /// Given a checksum for a set of analyzer references, fetches the existing ALC-isolated set of them if already
     /// present in this process.  Otherwise, this fetches the raw serialized analyzer references from the host side,
     /// then creates and caches an isolated set on the OOP side to hold onto them, passing out that isolated set of
     /// references to be used by the caller (normally to be stored in a solution snapshot).
     /// </summary>
+#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public static async ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
+#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
+        bool useAsync,
         ImmutableArray<AnalyzerReference> references,
         ISerializerService serializerService,
         IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider,
@@ -125,11 +132,18 @@ internal sealed class IsolatedAssemblyReferenceSet
         if (references.Length == 0)
             return [];
 
+#if !NET
+        // Can't actually isolate anything if we're in Net Framework. Just return the original references.
+        return references;
+#else
+
         var analyzerChecksums = ChecksumCache.GetOrCreateChecksumCollection(references, serializerService, cancellationToken);
         var checksum = analyzerChecksums.Checksum;
 
         // First, see if these were already computed and stored.
-        using (await s_isolatedReferenceSetGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
+        using (useAsync
+            ? await s_isolatedReferenceSetGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false)
+            : s_isolatedReferenceSetGate.DisposableWait(cancellationToken))
         {
             if (s_checksumToReferenceSet.TryGetValue(checksum, out var weakIsolatedReferenceSet) &&
                 weakIsolatedReferenceSet.TryGetTarget(out var isolatedAssemblyReferenceSet))
@@ -152,7 +166,7 @@ internal sealed class IsolatedAssemblyReferenceSet
 
             return isolatedAssemblyReferenceSet.AnalyzerReferences;
         }
-    }
-}
 
 #endif
+    }
+}
