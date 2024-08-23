@@ -3085,7 +3085,7 @@ class C { }
             // NOTE: adding new output types will cause this test to fail. Update above as needed.
             foreach (IncrementalGeneratorOutputKind kind in Enum.GetValues(typeof(IncrementalGeneratorOutputKind)))
             {
-                if (kind == IncrementalGeneratorOutputKind.None)
+                if (kind == IncrementalGeneratorOutputKind.None || kind == IncrementalGeneratorOutputKind.Host)
                     continue;
 
                 if (disabledOutput.HasFlag((IncrementalGeneratorOutputKind)kind))
@@ -4553,6 +4553,43 @@ class C { }
                 (r) => { var result = Assert.Single(r.HostOutputs); Assert.Equal("gen2", result.Key); Assert.Equal("value2", result.Value); }
             );
         }
+
+        [Fact]
+        public void GeneratorDriver_Makes_HostOutputs_MultipleGenerators_SameName()
+        {
+            var generator1 = new PipelineCallbackGenerator((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { hostCtx.AddOutput("gen", "value1"); }); });
+            var generator2 = new PipelineCallbackGenerator2((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { hostCtx.AddOutput("gen", "value2"); }); });
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator1.AsSourceGenerator(), generator2.AsSourceGenerator()], parseOptions: parseOptions);
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+
+            Assert.Collection(runResult.Results,
+                (r) => { var result = Assert.Single(r.HostOutputs); Assert.Equal("gen", result.Key); Assert.Equal("value1", result.Value); },
+                (r) => { var result = Assert.Single(r.HostOutputs); Assert.Equal("gen", result.Key); Assert.Equal("value2", result.Value); }
+            );
+        }
+
+        [Fact]
+        public void GeneratorDriver_HostOutputs_Throws()
+        {
+            var generator = new PipelineCallbackGenerator((ctx) => { ctx.RegisterHostOutput(ctx.CompilationProvider, (hostCtx, c) => { throw new InvalidOperationException("failed"); }); });
+
+            var parseOptions = CSharpParseOptions.Default;
+            var compilation = CreateCompilation("class Compilation1{}", parseOptions: parseOptions);
+            GeneratorDriver driver = CSharpGeneratorDriver.Create([generator.AsSourceGenerator()], parseOptions: parseOptions);
+
+            driver = driver.RunGenerators(compilation);
+            var runResult = driver.GetRunResult();
+            var result = Assert.Single(runResult.Results);
+
+            Assert.Empty(result.HostOutputs);
+            var exception = Assert.IsType<InvalidOperationException>(result.Exception);
+            Assert.Equal("failed", exception.Message);
+        }
+
 
 #pragma warning restore RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
     }
