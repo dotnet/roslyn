@@ -588,7 +588,7 @@ internal sealed partial class ProjectSystemProject
                     Id, solutionChanges, _projectReferencesRemovedInBatch, _projectReferencesAddedInBatch);
 
                 projectUpdateState = UpdateAnalyzerReferences(
-                    Id, solutionChanges, projectUpdateState, _analyzersRemovedInBatch, _analyzersAddedInBatch);
+                    projectBeforeMutations, solutionChanges, projectUpdateState, _analyzersRemovedInBatch, _analyzersAddedInBatch);
 
                 // Other property modifications...
                 foreach (var propertyModification in _projectPropertyModificationsInBatch)
@@ -718,7 +718,7 @@ internal sealed partial class ProjectSystemProject
         }
 
         static ProjectUpdateState UpdateAnalyzerReferences(
-            ProjectId projectId,
+            Project projectBeforeMutation,
             SolutionChangeAccumulator solutionChanges,
             ProjectUpdateState projectUpdateState,
             List<string> analyzersRemovedInBatch,
@@ -726,6 +726,8 @@ internal sealed partial class ProjectSystemProject
         {
             if (analyzersRemovedInBatch.Count == 0 && analyzersAddedInBatch.Count == 0)
                 return projectUpdateState;
+
+            var projectId = projectBeforeMutation.Id;
 
             // Use shared helper to figure out the new forked state.
             var (newSolution, newProjectUpdateState) = UpdateProjectAnalyzerReferences(
@@ -1018,19 +1020,18 @@ internal sealed partial class ProjectSystemProject
 
             foreach (var mappedFullPath in mappedPaths)
             {
-                // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid removing
-                // it once we apply the batch
+                // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid
+                // removing it once we apply the batch
                 var analyzerPendingRemoval = _analyzersRemovedInBatch.FirstOrDefault(fullPath => fullPath == mappedFullPath);
+                _projectAnalyzerPaths.Add(mappedFullPath);
+
                 if (analyzerPendingRemoval != null)
                 {
                     _analyzersRemovedInBatch.Remove(analyzerPendingRemoval);
-                    _projectAnalyzerPaths.Add(mappedFullPath);
                 }
                 else
                 {
-                    // Nope, we actually need to make a new one.
                     _analyzersAddedInBatch.Add(mappedFullPath);
-                    _projectAnalyzerPaths.Add(mappedFullPath);
                 }
             }
         }

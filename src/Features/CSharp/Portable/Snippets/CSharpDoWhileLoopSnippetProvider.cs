@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 [ExportSnippetProvider(nameof(ISnippetProvider), LanguageNames.CSharp), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class CSharpDoWhileLoopStatementProvider()
+internal sealed class CSharpDoWhileLoopSnippetProvider()
     : AbstractConditionalBlockSnippetProvider<DoStatementSyntax, ExpressionSyntax>
 {
     public override string Identifier => CSharpSnippetIdentifiers.Do;

@@ -877,4 +877,71 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
             }
             """);
     }
+
+    [Theory]
+    [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineReversedForSnippetForTypeItselfTest(string integerType)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            class C
+            {
+                void M()
+                {
+                    {{integerType}}.$$
+                }
+            }
+            """);
+    }
+
+    [Theory]
+    [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineReversedForSnippetForTypeItselfTest_Parenthesized(string integerType)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            class C
+            {
+                void M()
+                {
+                    ({{integerType}}).$$
+                }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task InsertInlineReversedForSnippetForVariableNamedLikeTypeTest()
+    {
+        await VerifySnippetAsync("""
+            class C
+            {
+                void M()
+                {
+                    MyType MyType = default;
+                    MyType.$$
+                }
+            }
+
+            class MyType
+            {
+                public int Length => 0;
+            }
+            """, """
+            class C
+            {
+                void M()
+                {
+                    MyType MyType = default;
+                    for (int {|0:i|} = MyType.Length - 1; {|0:i|} >= 0; {|0:i|}--)
+                    {
+                        $$
+                    }
+                }
+            }
+
+            class MyType
+            {
+                public int Length => 0;
+            }
+            """);
+    }
 }
