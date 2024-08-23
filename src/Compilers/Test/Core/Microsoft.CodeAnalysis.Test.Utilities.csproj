@@ -106,7 +106,7 @@
 
     <!-- Needed to find the Unsafe.dll binary to lay out at runtime for the compiler when testing analyzers. -->
     <PackageReference Include="System.Runtime.CompilerServices.Unsafe" />
-
+    <PackageReference Include="Microsoft.CSharp" />
     <PackageReference Include="Basic.Reference.Assemblies.NetStandard20" />
     <PackageReference Include="Basic.Reference.Assemblies.Net20" />
     <PackageReference Include="Basic.Reference.Assemblies.Net70" />
