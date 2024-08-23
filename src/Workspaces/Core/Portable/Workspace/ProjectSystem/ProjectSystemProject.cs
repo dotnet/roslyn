@@ -581,92 +581,14 @@ internal sealed partial class ProjectSystemProject
 
                 documentFileNamesAdded = documentFileNamesAddedBuilder.ToImmutable();
 
-                // Metadata reference removing. Do this before adding in case this removes a project reference that
-                // we are also going to add in the same batch. This could happen if case is changing, or we're targeting
-                // a different output path (say bin vs. obj vs. ref).
-                foreach (var (path, properties) in _metadataReferencesRemovedInBatch)
-                {
-                    projectUpdateState = TryRemoveConvertedProjectReference_NoLock(Id, path, properties, projectUpdateState, out var projectReference);
+                projectUpdateState = UpdateMetadataReferences(
+                    projectId: Id, solutionChanges, projectUpdateState, _metadataReferencesRemovedInBatch, _metadataReferencesAddedInBatch);
 
-                    if (projectReference != null)
-                    {
-                        solutionChanges.UpdateSolutionForProjectAction(
-                            Id,
-                            solutionChanges.Solution.RemoveProjectReference(Id, projectReference));
-                    }
-                    else
-                    {
-                        // TODO: find a cleaner way to fetch this
-                        var metadataReference = _projectSystemProjectFactory.Workspace.CurrentSolution.GetRequiredProject(Id).MetadataReferences
-                            .Cast<PortableExecutableReference>()
-                            .Single(m => m.FilePath == path && m.Properties == properties);
+                UpdateProjectReferences(
+                    projectId: Id, solutionChanges, _projectReferencesRemovedInBatch, _projectReferencesAddedInBatch);
 
-                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(metadataReference);
-
-                        solutionChanges.UpdateSolutionForProjectAction(
-                            Id,
-                            newSolution: solutionChanges.Solution.RemoveMetadataReference(Id, metadataReference));
-                    }
-                }
-
-                // Metadata reference adding...
-                if (_metadataReferencesAddedInBatch.Count > 0)
-                {
-                    var projectReferencesCreated = new List<ProjectReference>();
-
-                    foreach (var (path, properties) in _metadataReferencesAddedInBatch)
-                    {
-                        projectUpdateState = TryCreateConvertedProjectReference_NoLock(
-                            Id, path, properties, projectUpdateState, solutionChanges.Solution, out var projectReference);
-
-                        if (projectReference != null)
-                        {
-                            projectReferencesCreated.Add(projectReference);
-                        }
-                        else
-                        {
-                            var metadataReference = CreateMetadataReference_NoLock(path, properties, _projectSystemProjectFactory.SolutionServices);
-                            projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceAdded(metadataReference);
-                        }
-                    }
-
-                    solutionChanges.UpdateSolutionForProjectAction(
-                        Id,
-                        solutionChanges.Solution
-                            .AddProjectReferences(Id, projectReferencesCreated)
-                            .AddMetadataReferences(Id, projectUpdateState.AddedMetadataReferences));
-                }
-
-                // Project reference adding...
-                solutionChanges.UpdateSolutionForProjectAction(
-                    Id,
-                    newSolution: solutionChanges.Solution.AddProjectReferences(Id, _projectReferencesAddedInBatch));
-
-                // Project reference removing...
-                foreach (var projectReference in _projectReferencesRemovedInBatch)
-                {
-                    solutionChanges.UpdateSolutionForProjectAction(
-                        Id,
-                        newSolution: solutionChanges.Solution.RemoveProjectReference(Id, projectReference));
-                }
-
-                projectUpdateState = UpdateAnalyzerReferences(solutionChanges, projectUpdateState, _analyzersRemovedInBatch, _analyzersAddedInBatch);
-
-                // Analyzer reference removing...
-                if (_analyzersRemovedInBatch.Count > 0)
-                {
-
-                    foreach (var analyzerReference in _analyzersRemovedInBatch)
-                        solutionChanges.UpdateSolutionForProjectAction(Id, solutionChanges.Solution.RemoveAnalyzerReference(Id, analyzerReference));
-                }
-
-                // Analyzer reference adding...
-                if (_analyzersAddedInBatch.Count > 0)
-                {
-
-                    solutionChanges.UpdateSolutionForProjectAction(
-                        Id, solutionChanges.Solution.AddAnalyzerReferences(Id, _analyzersAddedInBatch));
-                }
+                projectUpdateState = UpdateAnalyzerReferences(
+                    projectId: Id, solutionChanges, projectUpdateState, _analyzersRemovedInBatch, _analyzersAddedInBatch);
 
                 // Other property modifications...
                 foreach (var propertyModification in _projectPropertyModificationsInBatch)
@@ -712,27 +634,135 @@ internal sealed partial class ProjectSystemProject
                 _projectSystemProjectFactory.Workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
         }
 
+        static ProjectUpdateState UpdateMetadataReferences(
+            ProjectId projectId,
+            SolutionChangeAccumulator solutionChanges,
+            ProjectUpdateState projectUpdateState,
+            List<(string path, MetadataReferenceProperties properties)> metadataReferencesRemovedInBatch,
+            List<(string path, MetadataReferenceProperties properties)> metadataReferencesAddedInBatch)
+        {
+            // Metadata reference removing. Do this before adding in case this removes a project reference that we are
+            // also going to add in the same batch. This could happen if case is changing, or we're targeting a
+            // different output path (say bin vs. obj vs. ref).
+            foreach (var (path, properties) in metadataReferencesRemovedInBatch)
+            {
+                projectUpdateState = TryRemoveConvertedProjectReference_NoLock(
+                    projectId, path, properties, projectUpdateState, out var projectReference);
+
+                if (projectReference != null)
+                {
+                    solutionChanges.UpdateSolutionForProjectAction(
+                        projectId, solutionChanges.Solution.RemoveProjectReference(projectId, projectReference));
+                }
+                else
+                {
+                    // TODO: find a cleaner way to fetch this
+                    var metadataReference = _projectSystemProjectFactory.Workspace.CurrentSolution.GetRequiredProject(projectId).MetadataReferences
+                        .Cast<PortableExecutableReference>()
+                        .Single(m => m.FilePath == path && m.Properties == properties);
+
+                    projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(metadataReference);
+
+                    solutionChanges.UpdateSolutionForProjectAction(
+                        projectId, solutionChanges.Solution.RemoveMetadataReference(projectId, metadataReference));
+                }
+            }
+
+            // Metadata reference adding...
+            if (metadataReferencesAddedInBatch.Count > 0)
+            {
+                var projectReferencesCreated = new List<ProjectReference>();
+
+                foreach (var (path, properties) in metadataReferencesAddedInBatch)
+                {
+                    projectUpdateState = TryCreateConvertedProjectReference_NoLock(
+                        projectId, path, properties, projectUpdateState, solutionChanges.Solution, out var projectReference);
+
+                    if (projectReference != null)
+                    {
+                        projectReferencesCreated.Add(projectReference);
+                    }
+                    else
+                    {
+                        var metadataReference = CreateMetadataReference_NoLock(path, properties, solutionChanges.Solution.Services);
+                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceAdded(metadataReference);
+                    }
+                }
+
+                solutionChanges.UpdateSolutionForProjectAction(
+                    projectId,
+                    solutionChanges.Solution
+                        .AddProjectReferences(projectId, projectReferencesCreated)
+                        .AddMetadataReferences(projectId, projectUpdateState.AddedMetadataReferences));
+            }
+
+            return projectUpdateState;
+        }
+
+        static void UpdateProjectReferences(
+            ProjectId projectId,
+            SolutionChangeAccumulator solutionChanges,
+            List<ProjectReference> projectReferencesRemovedInBatch,
+            List<ProjectReference> projectReferencesAddedInBatch)
+        {
+            // Project reference adding...
+            solutionChanges.UpdateSolutionForProjectAction(
+                projectId, newSolution: solutionChanges.Solution.AddProjectReferences(projectId, projectReferencesAddedInBatch));
+
+            // Project reference removing...
+            foreach (var projectReference in projectReferencesRemovedInBatch)
+            {
+                solutionChanges.UpdateSolutionForProjectAction(
+                    projectId, solutionChanges.Solution.RemoveProjectReference(projectId, projectReference));
+            }
+        }
+
         static ProjectUpdateState UpdateAnalyzerReferences(
+            ProjectId projectId,
             SolutionChangeAccumulator solutionChanges,
             ProjectUpdateState projectUpdateState,
             List<AnalyzerFileReference> analyzersRemovedInBatch,
             List<AnalyzerFileReference> analyzersAddedInBatch)
         {
             if (analyzersRemovedInBatch.Count == 0 && analyzersAddedInBatch.Count == 0)
-                return;
+                return projectUpdateState;
 
             var finalReferences = solutionChanges.Solution.AnalyzerReferences
                 .Except(analyzersRemovedInBatch)
                 .Concat(analyzersAddedInBatch)
                 .ToImmutableArray();
 
-            // We are only updating this state object 
+            // We are only updating this state object so that we can ensure we unregister any file watchers for
+            // analyzers that are removed, and register new watches for analyzers that are added.  Note that those file
+            // watchers are based on file path only.  So it's ok if the analyzer references added here are not
+            // necessarily the exact same ones given to the solution itself.
             projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesRemoved(analyzersRemovedInBatch);
             projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesAdded(analyzersAddedInBatch);
 #if NET
 
 #else
-            
+            // In .Net framework, we cannot isolate these analyzer references into their own ALC.  The best we can do is
+            // just give all the references to the project as is and hope they load properly.
+            solutionChanges.UpdateSolutionForProjectAction(projectId, solutionChanges.Solution.WithAnalyzerReferences(projectId, finalReferences));
+#endif
+
+#if false
+
+                // Analyzer reference removing...
+                if (_analyzersRemovedInBatch.Count > 0)
+                {
+
+                    foreach (var analyzerReference in _analyzersRemovedInBatch)
+                        solutionChanges.UpdateSolutionForProjectAction(Id, solutionChanges.Solution.RemoveAnalyzerReference(Id, analyzerReference));
+                }
+
+                // Analyzer reference adding...
+                if (_analyzersAddedInBatch.Count > 0)
+                {
+
+                    solutionChanges.UpdateSolutionForProjectAction(
+                        Id, solutionChanges.Solution.AddAnalyzerReferences(Id, _analyzersAddedInBatch));
+                }
 #endif
 
             return projectUpdateState;
