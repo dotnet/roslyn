@@ -10,19 +10,22 @@ using System.ComponentModel;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InlineRename;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 {
     internal class RenameDashboardViewModel : INotifyPropertyChanged, IDisposable
     {
+        private readonly IThreadingContext _threadingContext;
         private RenameDashboardSeverity _severity = RenameDashboardSeverity.None;
         private int _resolvableConflictCount;
         private int _unresolvableConflictCount;
         private bool _isReplacementTextValid;
         private bool _commitNotStart;
 
-        public RenameDashboardViewModel(InlineRenameSession session)
+        public RenameDashboardViewModel(InlineRenameSession session, IThreadingContext threadingContext)
         {
             Session = session;
             SearchText = EditorFeaturesResources.Searching;
@@ -35,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             // Set the flag to true by default if we're showing the option.
             _isReplacementTextValid = true;
             _commitNotStart = true;
+            _threadingContext = threadingContext;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -148,9 +152,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public bool CommitNotStart
         {
-            get => _commitNotStart;
+            get
+            {
+                _threadingContext.ThrowIfNotOnUIThread();
+                return _commitNotStart;
+            }
             set
             {
+                _threadingContext.ThrowIfNotOnUIThread();
                 if (_commitNotStart != value)
                 {
                     _commitNotStart = value;

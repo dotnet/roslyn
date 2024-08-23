@@ -337,6 +337,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             try
             {
+                // ConfigureAwait(true) because later need to set focus on UI element.
                 await _model.Session.CommitAsync(previewChanges: false).ConfigureAwait(true);
                 _textView.VisualElement.Focus();
             }
