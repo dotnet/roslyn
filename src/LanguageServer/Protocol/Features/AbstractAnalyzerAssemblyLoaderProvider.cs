@@ -14,21 +14,22 @@ namespace Microsoft.CodeAnalysis.Host;
 /// </summary>
 internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemblyLoaderProvider
 {
-    private readonly Lazy<IAnalyzerAssemblyLoader> _shadowCopyLoader;
+    private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
 
     public AbstractAnalyzerAssemblyLoaderProvider(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
     {
         // We use a lazy here in case creating the loader requires MEF imports in the derived constructor.
-        _shadowCopyLoader = new Lazy<IAnalyzerAssemblyLoader>(() => CreateShadowCopyLoader(externalResolvers));
+        _shadowCopyLoader = new(() => CreateShadowCopyLoader(externalResolvers));
     }
 
-    public IAnalyzerAssemblyLoader GetShadowCopyLoader()
+    public IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader()
         => _shadowCopyLoader.Value;
 
-    protected virtual IAnalyzerAssemblyLoader CreateShadowCopyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
-    {
-        return DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
-            Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"),
+    protected virtual IAnalyzerAssemblyLoaderInternal CreateShadowCopyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+        => DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
+            GetDefaultShadowCopyPath(),
             externalResolvers: externalResolvers);
-    }
+
+    public static string GetDefaultShadowCopyPath()
+        => Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader");
 }
