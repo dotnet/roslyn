@@ -1038,22 +1038,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public static int P1 { get; } = 1;
                     public static int P2 { get => field; } = 2;
                     public static int P3 { get => field; set; } = 3;
+                    public static int P4 { get => field; set { } } = 4;
                     public static int P5 { get => 0; set; } = 5;
                     public static int P6 { get; set; } = 6;
+                    public static int P7 { get; set { } } = 7;
+                    public static int P8 { set { field = value; } } = 8;
+                    public static int P9 { get { return field; } set { field = value; } } = 9;
                 }
                 class Program
                 {
                     static void Main()
                     {
-                        Console.WriteLine((C.P1, C.P2, C.P3, C.P5, C.P6));
+                        Console.WriteLine((C.P1, C.P2, C.P3, C.P4, C.P5, C.P6, C.P7, C.P9));
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: "(1, 2, 3, 0, 6)");
+            var verifier = CompileAndVerify(source, expectedOutput: "(1, 2, 3, 4, 0, 6, 7, 9)");
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C..cctor", """
                 {
-                  // Code size       31 (0x1f)
+                  // Code size       56 (0x38)
                   .maxstack  1
                   IL_0000:  ldc.i4.1
                   IL_0001:  stsfld     "int C.<P1>k__BackingField"
@@ -1061,11 +1065,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0007:  stsfld     "int C.<P2>k__BackingField"
                   IL_000c:  ldc.i4.3
                   IL_000d:  stsfld     "int C.<P3>k__BackingField"
-                  IL_0012:  ldc.i4.5
-                  IL_0013:  stsfld     "int C.<P5>k__BackingField"
-                  IL_0018:  ldc.i4.6
-                  IL_0019:  stsfld     "int C.<P6>k__BackingField"
-                  IL_001e:  ret
+                  IL_0012:  ldc.i4.4
+                  IL_0013:  stsfld     "int C.<P4>k__BackingField"
+                  IL_0018:  ldc.i4.5
+                  IL_0019:  stsfld     "int C.<P5>k__BackingField"
+                  IL_001e:  ldc.i4.6
+                  IL_001f:  stsfld     "int C.<P6>k__BackingField"
+                  IL_0024:  ldc.i4.7
+                  IL_0025:  stsfld     "int C.<P7>k__BackingField"
+                  IL_002a:  ldc.i4.8
+                  IL_002b:  stsfld     "int C.<P8>k__BackingField"
+                  IL_0030:  ldc.i4.s   9
+                  IL_0032:  stsfld     "int C.<P9>k__BackingField"
+                  IL_0037:  ret
                 }
                 """);
         }
@@ -1082,23 +1094,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     public int P1 { get; } = 1;
                     public int P2 { get => field; } = 2;
                     public int P3 { get => field; {{setter}}; } = 3;
+                    public int P4 { get => field; {{setter}} { } } = 4;
                     public int P5 { get => 0; {{setter}}; } = 5;
                     public int P6 { get; {{setter}}; } = 6;
+                    public int P7 { get; {{setter}} { } } = 7;
+                    public int P8 { {{setter}} { field = value; } } = 8;
+                    public int P9 { get { return field; } {{setter}} { field = value; } } = 9;
                 }
                 class Program
                 {
                     static void Main()
                     {
                         var c = new C();
-                        Console.WriteLine((c.P1, c.P2, c.P3, c.P5, c.P6));
+                        Console.WriteLine((c.P1, c.P2, c.P3, c.P4, c.P5, c.P6, c.P7, c.P9));
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(1, 2, 3, 0, 6)"));
+            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 0, 6, 7, 9)"));
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C..ctor", """
                 {
-                  // Code size       42 (0x2a)
+                  // Code size       71 (0x47)
                   .maxstack  2
                   IL_0000:  ldarg.0
                   IL_0001:  ldc.i4.1
@@ -1110,14 +1126,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_000f:  ldc.i4.3
                   IL_0010:  stfld      "int C.<P3>k__BackingField"
                   IL_0015:  ldarg.0
-                  IL_0016:  ldc.i4.5
-                  IL_0017:  stfld      "int C.<P5>k__BackingField"
+                  IL_0016:  ldc.i4.4
+                  IL_0017:  stfld      "int C.<P4>k__BackingField"
                   IL_001c:  ldarg.0
-                  IL_001d:  ldc.i4.6
-                  IL_001e:  stfld      "int C.<P6>k__BackingField"
+                  IL_001d:  ldc.i4.5
+                  IL_001e:  stfld      "int C.<P5>k__BackingField"
                   IL_0023:  ldarg.0
-                  IL_0024:  call       "object..ctor()"
-                  IL_0029:  ret
+                  IL_0024:  ldc.i4.6
+                  IL_0025:  stfld      "int C.<P6>k__BackingField"
+                  IL_002a:  ldarg.0
+                  IL_002b:  ldc.i4.7
+                  IL_002c:  stfld      "int C.<P7>k__BackingField"
+                  IL_0031:  ldarg.0
+                  IL_0032:  ldc.i4.8
+                  IL_0033:  stfld      "int C.<P8>k__BackingField"
+                  IL_0038:  ldarg.0
+                  IL_0039:  ldc.i4.s   9
+                  IL_003b:  stfld      "int C.<P9>k__BackingField"
+                  IL_0040:  ldarg.0
+                  IL_0041:  call       "object..ctor()"
+                  IL_0046:  ret
                 }
                 """);
         }
@@ -1128,10 +1156,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = """
                 class C
                 {
-                    public static int P4 { get => field; set { } } = 4;
-                    public static int P7 { get; set { } } = 7;
-                    public static int P8 { set { field = value; } } = 8;
-                    public static int P9 { get { return field; } set { field = value; } } = 9;
                     public static int PA { get => 0; } = 10;
                     public static int PB { get => 0; set { } } = 11;
                 }
@@ -1139,23 +1163,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // (3,23): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
-                //     public static int P4 { get => field; set { } } = 4;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P4").WithLocation(3, 23),
-                // (4,23): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
-                //     public static int P7 { get; set { } } = 7;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P7").WithLocation(4, 23),
-                // (5,23): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
-                //     public static int P8 { set { field = value; } } = 8;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P8").WithLocation(5, 23),
-                // (6,23): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
-                //     public static int P9 { get { return field; } set { field = value; } } = 9;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P9").WithLocation(6, 23),
-                // (7,23): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public static int PA { get => 0; } = 10;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PA").WithLocation(7, 23),
-                // (8,23): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PA").WithLocation(3, 23),
+                // (4,23): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public static int PB { get => 0; set { } } = 11;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PB").WithLocation(8, 23));
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PB").WithLocation(4, 23));
         }
 
         [Theory]
@@ -1166,10 +1178,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             string source = $$"""
                 class C
                 {
-                    public int P4 { get => field; {{setter}} { } } = 4;
-                    public int P7 { get; {{setter}} { } } = 7;
-                    public int P8 { {{setter}} { field = value; } } = 8;
-                    public int P9 { get { return field; } {{setter}} { field = value; } } = 9;
                     public int PA { get => 0; } = 10;
                     public int PB { get => 0; {{setter}} { } } = 11;
                 }
@@ -1177,23 +1185,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
                 // (3,16): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
-                //     public int P4 { get => field; set { } } = 4;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P4").WithLocation(3, 16),
-                // (4,16): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
-                //     public int P7 { get; set { } } = 7;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P7").WithLocation(4, 16),
-                // (5,16): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
-                //     public int P8 { set { field = value; } } = 8;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P8").WithLocation(5, 16),
-                // (6,16): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
-                //     public int P9 { get { return field; } set { field = value; } } = 9;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P9").WithLocation(6, 16),
-                // (7,16): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public int PA { get => 0; } = 10;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PA").WithLocation(7, 16),
-                // (8,16): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PA").WithLocation(3, 16),
+                // (4,16): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
                 //     public int PB { get => 0; set { } } = 11;
-                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PB").WithLocation(8, 16));
+                Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PB").WithLocation(4, 16));
         }
 
         [Fact]

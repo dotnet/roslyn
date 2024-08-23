@@ -302,8 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, Location);
             }
-            else if (!IsAutoPropertyOrUsesFieldKeyword ||
-                ((_propertyFlags & Flags.HasAutoPropertySet) == 0) && SetMethod is { })
+            else if (!IsAutoPropertyOrUsesFieldKeyword)
             {
                 diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, Location);
             }
