@@ -52,13 +52,20 @@ internal sealed partial class ProjectSystemProject
     private readonly List<ProjectReference> _projectReferencesAddedInBatch = [];
     private readonly List<ProjectReference> _projectReferencesRemovedInBatch = [];
 
-    private readonly Dictionary<string, AnalyzerFileReference> _analyzerPathsToAnalyzers = [];
-    private readonly List<AnalyzerFileReference> _analyzersAddedInBatch = [];
+    /// <summary>
+    /// The set of actual analyzer reference paths that the project knows about.
+    /// </summary>
+    private readonly HashSet<string> _projectAnalyzerPaths = [];
 
     /// <summary>
-    /// The list of <see cref="AnalyzerReference"/>s that will be removed in this batch.
+    /// Paths to analyzers we want to add when the current batch completes.
     /// </summary>
-    private readonly List<AnalyzerFileReference> _analyzersRemovedInBatch = [];
+    private readonly List<string> _analyzersAddedInBatch = [];
+
+    /// <summary>
+    /// Paths to analzyers we want to remove when the current batch completes.
+    /// </summary>
+    private readonly List<string> _analyzersRemovedInBatch = [];
 
     private readonly List<Func<SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState>> _projectPropertyModificationsInBatch = [];
 
@@ -713,8 +720,8 @@ internal sealed partial class ProjectSystemProject
             ProjectId projectId,
             SolutionChangeAccumulator solutionChanges,
             ProjectUpdateState projectUpdateState,
-            List<AnalyzerFileReference> analyzersRemovedInBatch,
-            List<AnalyzerFileReference> analyzersAddedInBatch)
+            List<string> analyzersRemovedInBatch,
+            List<string> analyzersAddedInBatch)
         {
             if (analyzersRemovedInBatch.Count == 0 && analyzersAddedInBatch.Count == 0)
                 return projectUpdateState;
@@ -733,8 +740,8 @@ internal sealed partial class ProjectSystemProject
         Solution solution,
         ProjectId projectId,
         ProjectUpdateState projectUpdateState,
-        List<AnalyzerFileReference> analyzersRemoved,
-        List<AnalyzerFileReference> analyzersAdded)
+        List<string> analyzersRemoved,
+        List<string> analyzersAdded)
     {
         Contract.ThrowIfTrue(analyzersRemoved.Count == 0 && analyzersAdded.Count == 0, "Should only be called when there is work to do");
 
@@ -979,35 +986,25 @@ internal sealed partial class ProjectSystemProject
             // check all mapped paths first, so that all analyzers are either added or not
             foreach (var mappedFullPath in mappedPaths)
             {
-                if (_analyzerPathsToAnalyzers.ContainsKey(mappedFullPath))
+                if (_projectAnalyzerPaths.Contains(mappedFullPath))
                     throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
             }
-
-            // NOTE: At this point in the process we simply add an AnalyzerFileReference using the shared shadow copy
-            // loader.  This provider isn't actually used in any fashion, except to keep track of things up till the
-            // point the batch scope completes.  At that point, we'll call UpdateAnalyzerReferences, which then will
-            // actually look at all the assembly references, and create a dedicated ALC (if that's possible) for all of
-            // them to load into.
-            var assemblyLoaderProvider = _projectSystemProjectFactory.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-            var sharedShadowCopyLoader = assemblyLoaderProvider.SharedShadowCopyLoader;
 
             foreach (var mappedFullPath in mappedPaths)
             {
                 // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid removing
                 // it once we apply the batch
-                var analyzerPendingRemoval = _analyzersRemovedInBatch.FirstOrDefault(a => a.FullPath == mappedFullPath);
+                var analyzerPendingRemoval = _analyzersRemovedInBatch.FirstOrDefault(fullPath => fullPath == mappedFullPath);
                 if (analyzerPendingRemoval != null)
                 {
                     _analyzersRemovedInBatch.Remove(analyzerPendingRemoval);
-                    _analyzerPathsToAnalyzers.Add(mappedFullPath, analyzerPendingRemoval);
+                    _projectAnalyzerPaths.Add(mappedFullPath);
                 }
                 else
                 {
                     // Nope, we actually need to make a new one.
-                    var analyzerReference = new AnalyzerFileReference(mappedFullPath, sharedShadowCopyLoader);
-
-                    _analyzersAddedInBatch.Add(analyzerReference);
-                    _analyzerPathsToAnalyzers.Add(mappedFullPath, analyzerReference);
+                    _analyzersAddedInBatch.Add(mappedFullPath);
+                    _projectAnalyzerPaths.Add(mappedFullPath);
                 }
             }
         }
@@ -1027,20 +1024,18 @@ internal sealed partial class ProjectSystemProject
             // check all mapped paths first, so that all analyzers are either removed or not
             foreach (var mappedFullPath in mappedPaths)
             {
-                if (!_analyzerPathsToAnalyzers.ContainsKey(mappedFullPath))
+                if (!_projectAnalyzerPaths.Contains(mappedFullPath))
                     throw new ArgumentException($"'{fullPath}' is not an analyzer of this project.", nameof(fullPath));
             }
 
             foreach (var mappedFullPath in mappedPaths)
             {
-                var analyzerReference = _analyzerPathsToAnalyzers[mappedFullPath];
-
-                _analyzerPathsToAnalyzers.Remove(mappedFullPath);
+                _projectAnalyzerPaths.Remove(mappedFullPath);
 
                 // This analyzer may be one we've just added in the same batch; in that case, just don't add it in
                 // the first place.
-                if (!_analyzersAddedInBatch.Remove(analyzerReference))
-                    _analyzersRemovedInBatch.Add(analyzerReference);
+                if (!_analyzersAddedInBatch.Remove(mappedFullPath))
+                    _analyzersRemovedInBatch.Add(mappedFullPath);
             }
         }
     }
