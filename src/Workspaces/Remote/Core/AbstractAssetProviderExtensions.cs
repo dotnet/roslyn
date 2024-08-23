@@ -5,18 +5,15 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Remote;
 
-internal static partial class AbstractAssetProviderExtensions
+internal static class AbstractAssetProviderExtensions
 {
     public static Task GetAssetsAsync<TAsset>(
         this AbstractAssetProvider assetProvider, AssetPath assetPath, HashSet<Checksum> checksums, CancellationToken cancellationToken)
