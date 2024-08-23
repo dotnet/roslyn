@@ -34,6 +34,15 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     private readonly Dictionary<string, (IWatchedFile Token, int RefCount)> _referenceFileWatchingTokens = [];
 
     /// <summary>
+    /// Stores the caller for a previous disposal of a reference produced by this class, to track down a double-dispose
+    /// issue.
+    /// </summary>
+    /// <remarks>
+    /// This can be removed once https://devdiv.visualstudio.com/DevDiv/_workitems/edit/1843611 is fixed.
+    /// </remarks>
+    private readonly ConditionalWeakTable<TReference, string> _previousDisposalLocations = new();
+
+    /// <summary>
     /// <see cref="CancellationTokenSource"/>s for in-flight refreshing of metadata references. When we see a file
     /// change, we wait a bit before trying to actually update the workspace. We need cancellation tokens for those so
     /// we can cancel them either when a flurry of events come in (so we only do the delay after the last modification),
@@ -123,15 +132,16 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     /// 0, the file watcher will be stopped. This is *not* safe to attempt to call multiple times for the same project
     /// and reference (e.g. in applying workspace updates)
     /// </summary>
-    public void StopWatchingReference(string fullFilePath, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = 0)
+    public void StopWatchingReference(TReference reference, string fullFilePath, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = 0)
     {
         lock (_gate)
         {
             var disposalLocation = callerFilePath + ", line " + callerLineNumber;
             if (!_referenceFileWatchingTokens.TryGetValue(fullFilePath, out var watchedFileReference))
             {
-                // We're Attempting to stop watching a file that we never started watching. This is a bug.
-                throw new ArgumentException("Attempting to stop watching a file that we never started watching. This is a bug.");
+                // We're attempting to stop watching a file that we never started watching. This is a bug.
+                var existingDisposalStackTrace = _previousDisposalLocations.TryGetValue(reference, out var previousDisposalLocation);
+                throw new ArgumentException("The reference was already disposed at " + previousDisposalLocation);
             }
 
             var newRefCount = watchedFileReference.RefCount - 1;
@@ -141,6 +151,9 @@ internal sealed class FileWatchedReferenceFactory<TReference>
                 // No one else is watching this file, so stop watching it and remove from our map.
                 watchedFileReference.Token.Dispose();
                 _referenceFileWatchingTokens.Remove(fullFilePath);
+
+                _previousDisposalLocations.Remove(reference);
+                _previousDisposalLocations.Add(reference, disposalLocation);
             }
             else
             {
