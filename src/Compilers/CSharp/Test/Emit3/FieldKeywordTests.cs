@@ -1028,12 +1028,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """));
         }
 
-        [Fact]
-        public void Initializer_01()
+        [Theory]
+        [CombinatorialData]
+        public void Initializer_01A([CombinatorialValues("class", "struct", "ref struct", "interface")] string typeKind)
         {
-            string source = """
+            string source = $$"""
                 using System;
-                class C
+                {{typeKind}} C
                 {
                     public static int P1 { get; } = 1;
                     public static int P2 { get => field; } = 2;
@@ -1053,7 +1054,69 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: "(1, 2, 3, 4, 0, 6, 7, 9)");
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 0, 6, 7, 9)"));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C..cctor", """
+                {
+                  // Code size       56 (0x38)
+                  .maxstack  1
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  stsfld     "int C.<P1>k__BackingField"
+                  IL_0006:  ldc.i4.2
+                  IL_0007:  stsfld     "int C.<P2>k__BackingField"
+                  IL_000c:  ldc.i4.3
+                  IL_000d:  stsfld     "int C.<P3>k__BackingField"
+                  IL_0012:  ldc.i4.4
+                  IL_0013:  stsfld     "int C.<P4>k__BackingField"
+                  IL_0018:  ldc.i4.5
+                  IL_0019:  stsfld     "int C.<P5>k__BackingField"
+                  IL_001e:  ldc.i4.6
+                  IL_001f:  stsfld     "int C.<P6>k__BackingField"
+                  IL_0024:  ldc.i4.7
+                  IL_0025:  stsfld     "int C.<P7>k__BackingField"
+                  IL_002a:  ldc.i4.8
+                  IL_002b:  stsfld     "int C.<P8>k__BackingField"
+                  IL_0030:  ldc.i4.s   9
+                  IL_0032:  stsfld     "int C.<P9>k__BackingField"
+                  IL_0037:  ret
+                }
+                """);
+        }
+
+        [Fact]
+        public void Initializer_01B()
+        {
+            string source = """
+                using System;
+                interface C
+                {
+                    public static int P1 { get; } = 1;
+                    public static int P2 { get => field; } = 2;
+                    public static int P3 { get => field; set; } = 3;
+                    public static int P4 { get => field; set { } } = 4;
+                    public static int P5 { get => 0; set; } = 5;
+                    public static int P6 { get; set; } = 6;
+                    public static int P7 { get; set { } } = 7;
+                    public static int P8 { set { field = value; } } = 8;
+                    public static int P9 { get { return field; } set { field = value; } } = 9;
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        Console.WriteLine((C.P1, C.P2, C.P3, C.P4, C.P5, C.P6, C.P7, C.P9));
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 0, 6, 7, 9)"));
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C..cctor", """
                 {
@@ -1084,7 +1147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void Initializer_02(bool useInit)
+        public void Initializer_02A(bool useInit)
         {
             string setter = useInit ? "init" : "set";
             string source = $$"""
@@ -1110,7 +1173,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 0, 6, 7, 9)"));
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 0, 6, 7, 9)"));
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C..ctor", """
                 {
@@ -1148,6 +1215,178 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                   IL_0046:  ret
                 }
                 """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Initializer_02B(bool useRefStruct, bool useInit)
+        {
+            string setter = useInit ? "init" : "set";
+            string typeKind = useRefStruct ? "ref struct" : "struct";
+            string source = $$"""
+                using System;
+                {{typeKind}} C
+                {
+                    public int P1 { get; } = 1;
+                    public int P2 { get => field; } = 2;
+                    public int P3 { get => field; {{setter}}; } = 3;
+                    public int P4 { get => field; {{setter}} { } } = 4;
+                    public int P5 { get => 0; {{setter}}; } = 5;
+                    public int P6 { get; {{setter}}; } = 6;
+                    public int P7 { get; {{setter}} { } } = 7;
+                    public int P8 { {{setter}} { field = value; } } = 8;
+                    public int P9 { get { return field; } {{setter}} { field = value; } } = 9;
+                    public C() { }
+                }
+                class Program
+                {
+                    static void Main()
+                    {
+                        var c = new C();
+                        Console.WriteLine((c.P1, c.P2, c.P3, c.P4, c.P5, c.P6, c.P7, c.P9));
+                    }
+                }
+                """;
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("(1, 2, 3, 4, 0, 6, 7, 9)"));
+            verifier.VerifyDiagnostics();
+            verifier.VerifyIL("C..ctor", """
+                {
+                  // Code size       65 (0x41)
+                  .maxstack  2
+                  IL_0000:  ldarg.0
+                  IL_0001:  ldc.i4.1
+                  IL_0002:  stfld      "int C.<P1>k__BackingField"
+                  IL_0007:  ldarg.0
+                  IL_0008:  ldc.i4.2
+                  IL_0009:  stfld      "int C.<P2>k__BackingField"
+                  IL_000e:  ldarg.0
+                  IL_000f:  ldc.i4.3
+                  IL_0010:  stfld      "int C.<P3>k__BackingField"
+                  IL_0015:  ldarg.0
+                  IL_0016:  ldc.i4.4
+                  IL_0017:  stfld      "int C.<P4>k__BackingField"
+                  IL_001c:  ldarg.0
+                  IL_001d:  ldc.i4.5
+                  IL_001e:  stfld      "int C.<P5>k__BackingField"
+                  IL_0023:  ldarg.0
+                  IL_0024:  ldc.i4.6
+                  IL_0025:  stfld      "int C.<P6>k__BackingField"
+                  IL_002a:  ldarg.0
+                  IL_002b:  ldc.i4.7
+                  IL_002c:  stfld      "int C.<P7>k__BackingField"
+                  IL_0031:  ldarg.0
+                  IL_0032:  ldc.i4.8
+                  IL_0033:  stfld      "int C.<P8>k__BackingField"
+                  IL_0038:  ldarg.0
+                  IL_0039:  ldc.i4.s   9
+                  IL_003b:  stfld      "int C.<P9>k__BackingField"
+                  IL_0040:  ret
+                }
+                """);
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Initializer_02C(bool useInit)
+        {
+            string setter = useInit ? "init" : "set";
+            string source = $$"""
+                using System;
+                interface C
+                {
+                    public int P1 { get; } = 1;
+                    public int P2 { get => field; } = 2;
+                    public int P3 { get => field; {{setter}}; } = 3;
+                    public int P4 { get => field; {{setter}} { } } = 4;
+                    public int P5 { get => 0; {{setter}}; } = 5;
+                    public int P6 { get; {{setter}}; } = 6;
+                    public int P7 { get; {{setter}} { } } = 7;
+                    public int P8 { {{setter}} { field = value; } } = 8;
+                    public int P9 { get { return field; } {{setter}} { field = value; } } = 9;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (4,16): error CS8053: Instance properties in interfaces cannot have initializers.
+                //     public int P1 { get; } = 1;
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P1").WithLocation(4, 16),
+                // (5,16): error CS8053: Instance properties in interfaces cannot have initializers.
+                //     public int P2 { get => field; } = 2;
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P2").WithLocation(5, 16),
+                // (6,16): error CS8053: Instance properties in interfaces cannot have initializers.
+                //     public int P3 { get => field; set; } = 3;
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P3").WithLocation(6, 16),
+                // (6,35): error CS0501: 'C.P3.set' must declare a body because it is not marked abstract, extern, or partial
+                //     public int P3 { get => field; set; } = 3;
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, setter).WithArguments($"C.P3.{setter}").WithLocation(6, 35),
+                // (7,16): error CS8053: Instance properties in interfaces cannot have initializers.
+                //     public int P4 { get => field; set { } } = 4;
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P4").WithLocation(7, 16),
+                // (8,16): error CS8053: Instance properties in interfaces cannot have initializers.
+                //     public int P5 { get => 0; set; } = 5;
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P5").WithLocation(8, 16),
+                // (8,31): error CS0501: 'C.P5.set' must declare a body because it is not marked abstract, extern, or partial
+                //     public int P5 { get => 0; set; } = 5;
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, setter).WithArguments($"C.P5.{setter}").WithLocation(8, 31),
+                // (9,16): error CS8053: Instance properties in interfaces cannot have initializers.
+                //     public int P6 { get; set; } = 6;
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P6").WithLocation(9, 16),
+                // (10,16): error CS8053: Instance properties in interfaces cannot have initializers.
+                //     public int P7 { get; set { } } = 7;
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P7").WithLocation(10, 16),
+                // (10,21): error CS0501: 'C.P7.get' must declare a body because it is not marked abstract, extern, or partial
+                //     public int P7 { get; set { } } = 7;
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "get").WithArguments("C.P7.get").WithLocation(10, 21),
+                // (11,16): error CS8053: Instance properties in interfaces cannot have initializers.
+                //     public int P8 { set { field = value; } } = 8;
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P8").WithLocation(11, 16),
+                // (12,16): error CS8053: Instance properties in interfaces cannot have initializers.
+                //     public int P9 { get { return field; } set { field = value; } } = 9;
+                Diagnostic(ErrorCode.ERR_InstancePropertyInitializerInInterface, "P9").WithLocation(12, 16));
+        }
+
+        [Theory]
+        [CombinatorialData]
+        public void Initializer_02D(bool useRefStruct, bool useInit)
+        {
+            string setter = useInit ? "init" : "set";
+            string typeKind = useRefStruct ? "ref struct" : "    struct";
+            string source = $$"""
+                {{typeKind}} S1
+                {
+                    public int P1 { get; } = 1;
+                }
+                {{typeKind}} S2
+                {
+                    public int P2 { get => field; } = 2;
+                }
+                {{typeKind}} S3
+                {
+                    public int P3 { get => field; {{setter}}; } = 3;
+                }
+                {{typeKind}} S6
+                {
+                    public int P6 { get; {{setter}}; } = 6;
+                }
+                """;
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
+            comp.VerifyEmitDiagnostics(
+                // (1,12): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                //     struct S1
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S1").WithLocation(1, 12),
+                // (5,12): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                //     struct S2
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S2").WithLocation(5, 12),
+                // (9,12): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                //     struct S3
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S3").WithLocation(9, 12),
+                // (13,12): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
+                //     struct S6
+                Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S6").WithLocation(13, 12));
         }
 
         [Fact]
@@ -1192,12 +1431,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PB").WithLocation(4, 16));
         }
 
-        [Fact]
-        public void ConstructorAssignment_01()
+        [Theory]
+        [CombinatorialData]
+        public void ConstructorAssignment_01([CombinatorialValues("class", "struct", "ref struct", "interface")] string typeKind)
         {
-            string source = """
+            string source = $$"""
                 using System;
-                class C
+                {{typeKind}} C
                 {
                     public static int P1 { get; }
                     public static int P2 { get => field; }
@@ -1229,7 +1469,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     }
                 }
                 """;
-            var verifier = CompileAndVerify(source, expectedOutput: "(1, 2, 3, 0, 0, 6, 0, 9)");
+            var verifier = CompileAndVerify(
+                source,
+                targetFramework: TargetFramework.Net80,
+                verify: Verification.Skipped,
+                expectedOutput: IncludeExpectedOutput("(1, 2, 3, 0, 0, 6, 0, 9)"));
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("C..cctor", """
                 {
@@ -1260,12 +1504,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void ConstructorAssignment_02(bool useInit)
+        public void ConstructorAssignment_02([CombinatorialValues("class", "struct", "ref struct")] string typeKind, bool useInit)
         {
             string setter = useInit ? "init" : "set";
             string source = $$"""
                 using System;
-                class C
+                {{typeKind}} C
                 {
                     public int P1 { get; }
                     public int P2 { get => field; }
@@ -1300,42 +1544,82 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var verifier = CompileAndVerify(source, targetFramework: TargetFramework.Net80, verify: Verification.Skipped, expectedOutput: IncludeExpectedOutput("(1, 2, 3, 0, 0, 6, 0, 9)"));
             verifier.VerifyDiagnostics();
-            verifier.VerifyIL("C..ctor", $$"""
-                {
-                  // Code size       71 (0x47)
-                  .maxstack  2
-                  IL_0000:  ldarg.0
-                  IL_0001:  call       "object..ctor()"
-                  IL_0006:  ldarg.0
-                  IL_0007:  ldc.i4.1
-                  IL_0008:  stfld      "int C.<P1>k__BackingField"
-                  IL_000d:  ldarg.0
-                  IL_000e:  ldc.i4.2
-                  IL_000f:  stfld      "int C.<P2>k__BackingField"
-                  IL_0014:  ldarg.0
-                  IL_0015:  ldc.i4.3
-                  IL_0016:  call       "void C.P3.{{setter}}"
-                  IL_001b:  ldarg.0
-                  IL_001c:  ldc.i4.4
-                  IL_001d:  call       "void C.P4.{{setter}}"
-                  IL_0022:  ldarg.0
-                  IL_0023:  ldc.i4.5
-                  IL_0024:  call       "void C.P5.{{setter}}"
-                  IL_0029:  ldarg.0
-                  IL_002a:  ldc.i4.6
-                  IL_002b:  call       "void C.P6.{{setter}}"
-                  IL_0030:  ldarg.0
-                  IL_0031:  ldc.i4.7
-                  IL_0032:  call       "void C.P7.{{setter}}"
-                  IL_0037:  ldarg.0
-                  IL_0038:  ldc.i4.8
-                  IL_0039:  call       "void C.P8.{{setter}}"
-                  IL_003e:  ldarg.0
-                  IL_003f:  ldc.i4.s   9
-                  IL_0041:  call       "void C.P9.{{setter}}"
-                  IL_0046:  ret
-                }
-                """);
+            if (typeKind == "class")
+            {
+                verifier.VerifyIL("C..ctor", $$"""
+                    {
+                      // Code size       71 (0x47)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  call       "object..ctor()"
+                      IL_0006:  ldarg.0
+                      IL_0007:  ldc.i4.1
+                      IL_0008:  stfld      "int C.<P1>k__BackingField"
+                      IL_000d:  ldarg.0
+                      IL_000e:  ldc.i4.2
+                      IL_000f:  stfld      "int C.<P2>k__BackingField"
+                      IL_0014:  ldarg.0
+                      IL_0015:  ldc.i4.3
+                      IL_0016:  call       "void C.P3.{{setter}}"
+                      IL_001b:  ldarg.0
+                      IL_001c:  ldc.i4.4
+                      IL_001d:  call       "void C.P4.{{setter}}"
+                      IL_0022:  ldarg.0
+                      IL_0023:  ldc.i4.5
+                      IL_0024:  call       "void C.P5.{{setter}}"
+                      IL_0029:  ldarg.0
+                      IL_002a:  ldc.i4.6
+                      IL_002b:  call       "void C.P6.{{setter}}"
+                      IL_0030:  ldarg.0
+                      IL_0031:  ldc.i4.7
+                      IL_0032:  call       "void C.P7.{{setter}}"
+                      IL_0037:  ldarg.0
+                      IL_0038:  ldc.i4.8
+                      IL_0039:  call       "void C.P8.{{setter}}"
+                      IL_003e:  ldarg.0
+                      IL_003f:  ldc.i4.s   9
+                      IL_0041:  call       "void C.P9.{{setter}}"
+                      IL_0046:  ret
+                    }
+                    """);
+            }
+            else
+            {
+                verifier.VerifyIL("C..ctor", $$"""
+                    {
+                      // Code size       65 (0x41)
+                      .maxstack  2
+                      IL_0000:  ldarg.0
+                      IL_0001:  ldc.i4.1
+                      IL_0002:  stfld      "int C.<P1>k__BackingField"
+                      IL_0007:  ldarg.0
+                      IL_0008:  ldc.i4.2
+                      IL_0009:  stfld      "int C.<P2>k__BackingField"
+                      IL_000e:  ldarg.0
+                      IL_000f:  ldc.i4.3
+                      IL_0010:  call       "void C.P3.{{setter}}"
+                      IL_0015:  ldarg.0
+                      IL_0016:  ldc.i4.4
+                      IL_0017:  call       "void C.P4.{{setter}}"
+                      IL_001c:  ldarg.0
+                      IL_001d:  ldc.i4.5
+                      IL_001e:  call       "void C.P5.{{setter}}"
+                      IL_0023:  ldarg.0
+                      IL_0024:  ldc.i4.6
+                      IL_0025:  call       "void C.P6.{{setter}}"
+                      IL_002a:  ldarg.0
+                      IL_002b:  ldc.i4.7
+                      IL_002c:  call       "void C.P7.{{setter}}"
+                      IL_0031:  ldarg.0
+                      IL_0032:  ldc.i4.8
+                      IL_0033:  call       "void C.P8.{{setter}}"
+                      IL_0038:  ldarg.0
+                      IL_0039:  ldc.i4.s   9
+                      IL_003b:  call       "void C.P9.{{setter}}"
+                      IL_0040:  ret
+                    }
+                    """);
+            }
         }
 
         [Fact]
