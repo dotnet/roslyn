@@ -870,7 +870,7 @@ internal sealed partial class ProjectSystemProjectFactory
             await ApplyBatchChangeToWorkspaceAsync((solutionChanges, projectUpdateState) =>
             {
                 // Access the current update state under the workspace lock.
-                foreach (var project in Workspace.CurrentSolution.Projects)
+                foreach (var project in solutionChanges.Solution.Projects)
                 {
                     // Loop to find each reference with the given path. It's possible that there might be multiple
                     // references of the same path; the project system could conceivably add the same reference multiple
