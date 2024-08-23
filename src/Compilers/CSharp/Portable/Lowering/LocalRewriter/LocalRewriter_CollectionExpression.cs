@@ -166,40 +166,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var iEnumerableOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
-            var iEnumerableOfElementType = iEnumerableOfTType.Construct([listElementType]);
-
-            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-
-            var singleSpreadExpression = singleSpread.Expression;
-            var conversion = _compilation.Conversions.ClassifyImplicitConversionFromExpression(singleSpreadExpression, iEnumerableOfElementType, ref discardedUseSiteInfo);
-            if (conversion.Kind is not (ConversionKind.Identity or ConversionKind.ImplicitReference))
+            if (!ShouldUseAddRangeOrToListMethod(singleSpread.Expression.Type, singleSpread.EnumeratorInfoOpt?.GetEnumeratorInfo.Method, listElementType))
             {
                 return false;
-            }
-
-            if (singleSpread.EnumeratorInfoOpt?.GetEnumeratorInfo.Method.ReturnType.IsValueType == true)
-            {
-                var iCollectionOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T);
-                var iCollectionOfElementType = iCollectionOfTType.Construct([listElementType]);
-
-                var singleSpreadType = singleSpreadExpression.Type;
-                Debug.Assert(singleSpreadType is not null);
-
-                if (!singleSpreadType.ImplementsInterface(iCollectionOfElementType, ref discardedUseSiteInfo))
-                {
-                    return false;
-                }
             }
 
             if (TryGetWellKnownTypeMember(node.Syntax, WellKnownMember.System_Linq_Enumerable__ToList, out MethodSymbol? toListGeneric, isOptional: true))
             {
                 var toListOfElementType = toListGeneric.Construct([listElementType]);
-                result = _factory.Call(receiver: null, toListOfElementType, singleSpreadExpression);
+                result = _factory.Call(receiver: null, toListOfElementType, singleSpread.Expression);
                 return true;
             }
 
             return false;
+        }
+
+        private bool ShouldUseAddRangeOrToListMethod(TypeSymbol? spreadType, MethodSymbol? getEnumeratorMethod, TypeWithAnnotations elementType)
+        {
+            Debug.Assert(spreadType is not null);
+
+            var iEnumerableOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
+            var iEnumerableOfElementType = iEnumerableOfTType.Construct([elementType]);
+
+            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+            var conversion = _compilation.Conversions.ClassifyImplicitConversionFromType(spreadType, iEnumerableOfElementType, ref discardedUseSiteInfo);
+            if (conversion.Kind is not (ConversionKind.Identity or ConversionKind.ImplicitReference))
+            {
+                return false;
+            }
+
+            if (getEnumeratorMethod?.ReturnType.IsValueType == true)
+            {
+                var iCollectionOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T);
+                var iCollectionOfElementType = iCollectionOfTType.Construct([elementType]);
+
+                if (!spreadType.ImplementsInterface(iCollectionOfElementType, ref discardedUseSiteInfo))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static bool CanOptimizeSingleSpreadAsCollectionBuilderArgument(BoundCollectionExpression node, [NotNullWhen(true)] out BoundExpression? spreadExpression)
@@ -1118,34 +1126,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (addRangeMethod is null)
                             return false;
 
-                        if (spreadElement.EnumeratorInfoOpt is { } enumeratorInfo)
+                        if (!ShouldUseAddRangeOrToListMethod(rewrittenSpreadOperand.Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method, elementType))
                         {
-                            var iCollectionOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T);
-                            var iCollectionOfElementType = iCollectionOfTType.Construct(enumeratorInfo.ElementType);
-                            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-
-                            // If collection has a struct enumerator but doesn't implement ICollection<T>
-                            // then manual `foreach` is always more efficient then using `AddRange` method
-                            if (enumeratorInfo.GetEnumeratorInfo.Method.ReturnType.IsValueType &&
-                                !enumeratorInfo.CollectionType.ImplementsInterface(iCollectionOfElementType, ref discardedUseSiteInfo))
-                            {
-                                return false;
-                            }
+                            return false;
                         }
 
-                        var type = rewrittenSpreadOperand.Type!;
-
-                        var useSiteInfo = GetNewCompoundUseSiteInfo();
-                        var conversion = _compilation.Conversions.ClassifyConversionFromType(type, addRangeMethod.Parameters[0].Type, isChecked: false, ref useSiteInfo);
-                        _diagnostics.Add(rewrittenSpreadOperand.Syntax, useSiteInfo);
-                        if (conversion.IsIdentity || (conversion.IsImplicit && conversion.IsReference))
-                        {
-                            conversion.MarkUnderlyingConversionsCheckedRecursive();
-                            sideEffects.Add(_factory.Call(listTemp, addRangeMethod, rewrittenSpreadOperand));
-                            return true;
-                        }
-
-                        return false;
+                        sideEffects.Add(_factory.Call(listTemp, addRangeMethod, rewrittenSpreadOperand));
+                        return true;
                     });
             }
 
