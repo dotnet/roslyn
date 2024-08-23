@@ -34,7 +34,6 @@ internal sealed partial class ProjectSystemProject
 
     private readonly ProjectSystemProjectFactory _projectSystemProjectFactory;
     private readonly ProjectSystemHostInfo _hostInfo;
-    private readonly IAnalyzerAssemblyLoader _analyzerAssemblyLoader;
 
     /// <summary>
     /// A semaphore taken for all mutation of any mutable field in this type.
@@ -159,14 +158,6 @@ internal sealed partial class ProjectSystemProject
         Id = id;
         Language = language;
         _displayName = displayName;
-
-        var provider = _projectSystemProjectFactory.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-
-        // NOTE: The provider will always return the same singleton, shadow copying, analyzer loader instance, which is
-        // important to ensure that analyzer dependencies are correctly loaded.  Note: if we want to support reloading
-        // of analyzer references *within* this workspace (and not just in the OOP roslyn server), this would need to
-        // change to use a dedicate ALC and an IsolatedAssemblyReferenceSet.
-        _analyzerAssemblyLoader = provider.SharedShadowCopyLoader;
 
         _sourceFiles = new BatchingDocumentCollection(
             this,
@@ -973,6 +964,15 @@ internal sealed partial class ProjectSystemProject
                     throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
             }
 
+            var assemblyLoaderProvider = _projectSystemProjectFactory.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+
+            // NOTE: At this point in the process we simply add an AnalyzerFileReference using the shared shadow copy
+            // loader.  This provider isn't actually used in any fashion, except to keep track of things up till the
+            // point the batch scope completes.  At that point, we'll call UpdateAnalyzerReferences, which then will
+            // actually look at all the assembly references, and create a dedicated ALC (if that's possible) for all of
+            // them to load into.
+            var loader = assemblyLoaderProvider.SharedShadowCopyLoader;
+
             foreach (var mappedFullPath in mappedPaths)
             {
                 // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid removing
@@ -986,7 +986,7 @@ internal sealed partial class ProjectSystemProject
                 else
                 {
                     // Nope, we actually need to make a new one.
-                    var analyzerReference = new AnalyzerFileReference(mappedFullPath, _analyzerAssemblyLoader);
+                    var analyzerReference = new AnalyzerFileReference(mappedFullPath, loader);
 
                     _analyzersAddedInBatch.Add(analyzerReference);
                     _analyzerPathsToAnalyzers.Add(mappedFullPath, analyzerReference);
