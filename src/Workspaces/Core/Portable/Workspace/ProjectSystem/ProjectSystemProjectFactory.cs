@@ -31,7 +31,7 @@ internal sealed partial class ProjectSystemProjectFactory
     /// </remarks>
     // TODO: we should be able to get rid of this gate in favor of just calling the various workspace methods that acquire the Workspace's
     // serialization lock and then allow us to update our own state under that lock.
-    private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+    private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
     /// <summary>
     /// Stores the latest state of the project system factory.
@@ -75,7 +75,12 @@ internal sealed partial class ProjectSystemProjectFactory
     public string? SolutionPath { get; set; }
     public Guid SolutionTelemetryId { get; set; }
 
-    public ProjectSystemProjectFactory(Workspace workspace, IFileChangeWatcher fileChangeWatcher, Func<bool, ImmutableArray<string>, Task> onDocumentsAddedMaybeAsync, Action<Project> onProjectRemoved)
+    public ProjectSystemProjectFactory(
+        Workspace workspace,
+        IFileChangeWatcher fileChangeWatcher,
+        Func<bool, ImmutableArray<string>, Task> onDocumentsAddedMaybeAsync,
+        Action<Project> onProjectRemoved,
+        CancellationToken cancellationToken)
     {
         Workspace = workspace;
         FileChangeWatcher = fileChangeWatcher;
@@ -85,11 +90,8 @@ internal sealed partial class ProjectSystemProjectFactory
 
         WorkspaceListener = this.SolutionServices.GetRequiredService<IWorkspaceAsynchronousOperationListenerProvider>().GetListener();
 
-        FileWatchedPortableExecutableReferenceFactory = new(fileChangeWatcher);
-        FileWatchedPortableExecutableReferenceFactory.ReferenceChanged += this.StartRefreshingMetadataReferencesForFile;
-
-        FileWatchedAnalyzerReferenceFactory = new(fileChangeWatcher);
-        FileWatchedAnalyzerReferenceFactory.ReferenceChanged += this.StartRefreshingAnalyzerReferenceForFile;
+        FileWatchedPortableExecutableReferenceFactory = new(fileChangeWatcher, WorkspaceListener, this.StartRefreshingMetadataReferencesForFileAsync, cancellationToken);
+        FileWatchedAnalyzerReferenceFactory = new(fileChangeWatcher, WorkspaceListener, this.StartRefreshingAnalyzerReferenceForFileAsync, cancellationToken);
     }
 
     public FileTextLoader CreateFileTextLoader(string fullPath)
@@ -810,8 +812,8 @@ internal sealed partial class ProjectSystemProjectFactory
         return solutionServices.GetRequiredService<IMetadataService>().GetReference(fullFilePath, properties);
     }
 
-    private void StartRefreshingMetadataReferencesForFile(object? sender, string fullFilePath)
-        => StartRefreshingReferencesForFile(
+    private Task StartRefreshingMetadataReferencesForFileAsync(string fullFilePath, CancellationToken cancellationToken)
+        => StartRefreshingReferencesForFileAsync(
             fullFilePath,
             getReferences: static project => project.MetadataReferences.OfType<PortableExecutableReference>(),
             getFilePath: static reference => reference.FilePath!,
@@ -825,10 +827,11 @@ internal sealed partial class ProjectSystemProjectFactory
                     .WithIncrementalMetadataReferenceRemoved(oldReference)
                     .WithIncrementalMetadataReferenceAdded(newReference);
                 return (newSolution, newProjectUpdateState);
-            });
+            },
+            cancellationToken);
 
-    private void StartRefreshingAnalyzerReferenceForFile(object? sender, string fullFilePath)
-        => StartRefreshingReferencesForFile(
+    private Task StartRefreshingAnalyzerReferenceForFileAsync(string fullFilePath, CancellationToken cancellationToken)
+        => StartRefreshingReferencesForFileAsync(
             fullFilePath,
             getReferences: static project => project.AnalyzerReferences.Select(r => r.FullPath!),
             getFilePath: static filePath => filePath,
@@ -844,55 +847,50 @@ internal sealed partial class ProjectSystemProjectFactory
                 var (newSolution, newProjectUpdateState) = ProjectSystemProject.UpdateProjectAnalyzerReferences(
                     solution, projectId, projectUpdateState, [oldAnalyzerFilePath], [newAnalyzerFilePath]);
                 return (newSolution, newProjectUpdateState);
-            });
+            },
+            cancellationToken);
 
     /// <summary>
     /// Core helper that handles refreshing the references we have for a particular <see
     /// cref="PortableExecutableReference"/> or <see cref="AnalyzerFileReference"/>.
     /// </summary>
-    private void StartRefreshingReferencesForFile<TReference>(
+    private async Task StartRefreshingReferencesForFileAsync<TReference>(
         string fullFilePath,
         Func<Project, IEnumerable<TReference>> getReferences,
         Func<TReference, string> getFilePath,
         Func<ProjectSystemProjectFactory, TReference, TReference> createNewReference,
-        Func<Solution, ProjectId, ProjectUpdateState, TReference, TReference, (Solution newSolution, ProjectUpdateState newProjectUpdateState)> update)
+        Func<Solution, ProjectId, ProjectUpdateState, TReference, TReference, (Solution newSolution, ProjectUpdateState newProjectUpdateState)> update,
+        CancellationToken cancellationToken)
         where TReference : class
     {
-        var asyncToken = WorkspaceListener.BeginAsyncOperation(nameof(StartRefreshingReferencesForFile));
-
-        var task = StartRefreshingReferencesForFileAsync();
-        task.CompletesAsyncOperation(asyncToken);
-
-        return;
-
-        async Task StartRefreshingReferencesForFileAsync()
+        await ApplyBatchChangeToWorkspaceAsync((solutionChanges, projectUpdateState) =>
         {
-            await ApplyBatchChangeToWorkspaceAsync((solutionChanges, projectUpdateState) =>
+            // Loop through all projects as many projects may be referencing the same analyzer/metadata reference with
+            // the given path.  We'll want to update all of them.
+            foreach (var project in solutionChanges.Solution.Projects)
             {
-                // Access the current update state under the workspace lock.
-                foreach (var project in solutionChanges.Solution.Projects)
+                // Loop to find each reference with the given path. It's possible that there might be multiple
+                // references of the same path; the project system could conceivably add the same reference multiple
+                // times but with different aliases. It's also possible we might not find the path at all: when we
+                // receive the file changed event, we aren't checking if the file is still in the workspace at that
+                // time; it's possible it might have already been removed.
+                foreach (var reference in getReferences(project))
                 {
-                    // Loop to find each reference with the given path. It's possible that there might be multiple
-                    // references of the same path; the project system could conceivably add the same reference multiple
-                    // times but with different aliases. It's also possible we might not find the path at all: when we
-                    // receive the file changed event, we aren't checking if the file is still in the workspace at that
-                    // time; it's possible it might have already been removed.
-                    foreach (var reference in getReferences(project))
-                    {
-                        if (getFilePath(reference) == fullFilePath)
-                        {
-                            var newSolution = solutionChanges.Solution;
-                            (newSolution, projectUpdateState) = update(
-                                newSolution, project.Id, projectUpdateState, reference, createNewReference(this, reference));
+                    cancellationToken.ThrowIfCancellationRequested();
 
-                            solutionChanges.UpdateSolutionForProjectAction(project.Id, newSolution);
-                        }
+                    if (getFilePath(reference) == fullFilePath)
+                    {
+                        var newSolution = solutionChanges.Solution;
+                        (newSolution, projectUpdateState) = update(
+                            newSolution, project.Id, projectUpdateState, reference, createNewReference(this, reference));
+
+                        solutionChanges.UpdateSolutionForProjectAction(project.Id, newSolution);
                     }
                 }
+            }
 
-                return projectUpdateState;
-            }, onAfterUpdateAlways: null).ConfigureAwait(false);
-        }
+            return projectUpdateState;
+        }, onAfterUpdateAlways: null).ConfigureAwait(false);
     }
 
     internal Task RaiseOnDocumentsAddedMaybeAsync(bool useAsync, ImmutableArray<string> filePaths)
