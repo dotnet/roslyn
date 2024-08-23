@@ -5,7 +5,7 @@
   <PropertyGroup>
     <Prefer32Bit>false</Prefer32Bit>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>net472;net5.0-windows7.0</TargetFrameworks>
+    <TargetFrameworks>net472;net6.0-windows7.0</TargetFrameworks>
     <RuntimeIdentifier>win10-x64</RuntimeIdentifier>
     <UseWindowsForms>true</UseWindowsForms>
 

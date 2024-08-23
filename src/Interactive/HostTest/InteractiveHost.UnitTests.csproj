@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Roslyn.InteractiveHost.UnitTests</RootNamespace>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
@@ -40,7 +40,7 @@
     </CopyPublishedOutputProjectReference>
 
     <CopyPublishedOutputProjectReference Include="..\HostProcess\InteractiveHost64.csproj">
-      <SetTargetFramework>TargetFramework=net5.0-windows7.0</SetTargetFramework>
+      <SetTargetFramework>TargetFramework=net6.0-windows7.0</SetTargetFramework>
       <OutputItemType>InteractiveHostFiles_Core</OutputItemType>
     </CopyPublishedOutputProjectReference>
   </ItemGroup>

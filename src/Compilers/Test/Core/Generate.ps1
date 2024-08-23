@@ -168,7 +168,7 @@ Add-TargetFramework "Net461" '$(PkgMicrosoft_NETFramework_ReferenceAssemblies_ne
   'Microsoft.VisualBasic.dll'
 )
 
-Add-TargetFramework "NetCoreApp" '$(PkgMicrosoft_NETCore_App_Ref)\ref\net5.0' @(
+Add-TargetFramework "NetCoreApp" '$(PkgMicrosoft_NETCore_App_Ref)\ref\net6.0' @(
   'mscorlib.dll',
   'System.dll',
   'System.Core.dll',

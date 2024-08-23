@@ -4,7 +4,7 @@
 
 #nullable enable
 
-#if !NET5_0
+#if !NET6_0
 
 namespace System.Runtime.Versioning
 {

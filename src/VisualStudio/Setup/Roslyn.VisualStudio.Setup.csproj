@@ -256,7 +256,7 @@
     <ProjectReference Include="..\..\Interactive\HostProcess\InteractiveHost64.csproj">
       <Name>InteractiveHost.Core64</Name>
 
-      <SetTargetFramework>TargetFramework=net5.0-windows7.0</SetTargetFramework>
+      <SetTargetFramework>TargetFramework=net6.0-windows7.0</SetTargetFramework>
       <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
 

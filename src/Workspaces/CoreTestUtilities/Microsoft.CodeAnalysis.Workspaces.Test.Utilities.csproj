@@ -4,7 +4,7 @@
   <PropertyGroup>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
-    <TargetFrameworks>net5.0-windows7.0;netcoreapp3.1;net472</TargetFrameworks>
+    <TargetFrameworks>net6.0-windows7.0;netcoreapp3.1;net472</TargetFrameworks>
     <UseWpf>true</UseWpf>
     <IsShipping>false</IsShipping>
     <ExcludeFromSourceBuild>true</ExcludeFromSourceBuild>

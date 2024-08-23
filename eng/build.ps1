@@ -385,7 +385,7 @@ function TestUsingRunTests() {
   $args += " --configuration $configuration"
 
   if ($testCoreClr) {
-    $args += " --tfm net5.0"
+    $args += " --tfm net6.0"
     $args += " --tfm netcoreapp3.1"
     $args += " --timeout 90"
     if ($testCompilerOnly) {

@@ -41,7 +41,7 @@
       "request": "launch",
       "preLaunchTask": "build",
       // If you have changed target frameworks, make sure to update the program path.
-      "program": "${workspaceFolder}/artifacts/bin/PrepareTests/Debug/net5.0/PrepareTests.dll",
+      "program": "${workspaceFolder}/artifacts/bin/PrepareTests/Debug/net6.0/PrepareTests.dll",
       "args": [
         "--source", "${workspaceFolder}",
         "--destination", "${workspaceFolder}/artifacts/testPayload"

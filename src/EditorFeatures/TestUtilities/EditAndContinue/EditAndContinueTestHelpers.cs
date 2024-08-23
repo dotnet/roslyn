@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
     internal abstract class EditAndContinueTestHelpers
     {
         public static readonly EditAndContinueCapabilities BaselineCapabilities = EditAndContinueCapabilities.Baseline;
-        public static readonly EditAndContinueCapabilities Net5RuntimeCapabilities = EditAndContinueCapabilities.Baseline |
+        public static readonly EditAndContinueCapabilities Net6RuntimeCapabilities = EditAndContinueCapabilities.Baseline |
                                                                                      EditAndContinueCapabilities.AddInstanceFieldToExistingType |
                                                                                      EditAndContinueCapabilities.AddStaticFieldToExistingType |
                                                                                      EditAndContinueCapabilities.AddMethodToExistingType |
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 Contract.ThrowIfNull(oldModel);
                 Contract.ThrowIfNull(newModel);
 
-                var result = Analyzer.AnalyzeDocumentAsync(oldProject, oldActiveStatements, newDocument, newActiveStatementSpans, capabilities ?? Net5RuntimeCapabilities, CancellationToken.None).Result;
+                var result = Analyzer.AnalyzeDocumentAsync(oldProject, oldActiveStatements, newDocument, newActiveStatementSpans, capabilities ?? Net6RuntimeCapabilities, CancellationToken.None).Result;
                 var oldText = oldDocument.GetTextSynchronously(default);
                 var newText = newDocument.GetTextSynchronously(default);
 

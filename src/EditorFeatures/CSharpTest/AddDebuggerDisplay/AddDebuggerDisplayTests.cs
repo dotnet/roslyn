@@ -81,7 +81,7 @@ record C
             await new VerifyCS.Test()
             {
                 LanguageVersion = LanguageVersion.CSharp9,
-                ReferenceAssemblies = ReferenceAssemblies.Net.Net50,
+                ReferenceAssemblies = ReferenceAssemblies.Net.Net60,
                 TestCode = code,
                 FixedCode = fixedCode,
             }.RunAsync();

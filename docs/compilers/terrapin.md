@@ -75,7 +75,7 @@ The artifacts manifest file will be a JSON file with the following format:
         "compiler-version": "3.8.0",
         "os": "windows",
         "os-version": "...",
-        "dotnet-runtime": "net5.0.0"
+        "dotnet-runtime": "net6.0.0"
     }
 }
 ```

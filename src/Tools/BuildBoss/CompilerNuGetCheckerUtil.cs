@@ -173,7 +173,7 @@ namespace BuildBoss
             verifyFolder("");
             textWriter.WriteLine("\tRemote Debugger net20");
             verifyFolder(@"RemoteDebugger\net20");
-            textWriter.WriteLine("\tRemote Debugger net50");
+            textWriter.WriteLine("\tRemote Debugger net60");
             verifyFolder(@"RemoteDebugger\net45");
             return allGood;
 

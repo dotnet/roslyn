@@ -60,7 +60,7 @@
       These may be overridden by projects that need to be skipped.
     -->
     <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Mono'">net46;net472</TestTargetFrameworks>
-    <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">netcoreapp3.1;net5.0</TestTargetFrameworks>
+    <TestTargetFrameworks Condition="'$(TestRuntime)' == 'Core'">netcoreapp3.1;net6.0</TestTargetFrameworks>
 
     <XUnitDesktopSettingsFile>$(MSBuildThisFileDirectory)..\config\xunit.runner.json</XUnitDesktopSettingsFile>
     <XUnitCoreSettingsFile>$(MSBuildThisFileDirectory)..\config\xunit.runner.json</XUnitCoreSettingsFile>

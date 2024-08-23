@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             var debuggingSession = new DebuggingSession(
                 solution,
                 mockDebuggerService,
-                EditAndContinueTestHelpers.Net5RuntimeCapabilities,
+                EditAndContinueTestHelpers.Net6RuntimeCapabilities,
                 mockCompilationOutputsProvider,
                 SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>(),
                 new DebuggingSessionTelemetry(),

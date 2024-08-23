@@ -74,7 +74,7 @@ function Run-IOperation($coreDir, $ioperationProject) {
   $operationsDir = Join-Path $coreDir "Operations"
   $operationsXml = Join-Path $operationsDir "OperationInterfaces.xml"
   $generationDir = Join-Path $coreDir "Generated"
-  $targetFramework = "net5.0"
+  $targetFramework = "net6.0"
 
   if (-not $test) {
     Run-Tool $ioperationProject "`"$operationsXml`" `"$generationDir`"" $targetFramework
