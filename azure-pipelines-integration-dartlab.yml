@@ -88,13 +88,14 @@ stages:
         arguments: -DropNamePrefix 'Products' -VstsDropUrlsJson '$(Pipeline.Workspace)\VisualStudioBuildUnderTest\BuildArtifacts\VstsDropUrls.json' -OutVariableName 'VisualStudio.BuildUnderTest.ProductsDropName'
     deployAndRunTestsStepList:
     - checkout: RoslynMirror
-    - pwsh: throw 'This stage should not be executed'
-    # - template: eng/pipelines/test-integration-job.yml
-    #   parameters:
-    #     configuration: $(_configuration)
-    #     oop64bit: $(_oop64bit)
-    #     lspEditor: false
-    #     skipCheckout: true
+      fetchDepth: 1
+      fetchTags: false
+    - template: eng/pipelines/test-integration-job.yml
+      parameters:
+        configuration: $(_configuration)
+        oop64bit: $(_oop64bit)
+        lspEditor: false
+        skipCheckout: true
 
 - ${{ if ne(parameters.prNumber, '') }}:
   - stage: GitHubCommentCompleted
@@ -104,6 +105,7 @@ stages:
       - job: GitHubCommentCompletedSuccessfullyJob
         condition: eq(stageDependencies.VSIntegration.result, 'Succeeded')
         steps:
+          - checkout: none
           - task: GitHubComment@0
             inputs:
               gitHubConnection: 'dotnet-comment-bot-service-connection'
@@ -113,6 +115,7 @@ stages:
       - job: GitHubCommentCompletedUnsuccessfullyJob
         condition: ne(stageDependencies.VSIntegration.result, 'Succeeded')
         steps:
+          - checkout: none
           - task: GitHubComment@0
             inputs:
               gitHubConnection: 'dotnet-comment-bot-service-connection'
