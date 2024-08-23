@@ -11,10 +11,6 @@ using System.Linq;
 using System.Reflection;
 using Roslyn.Utilities;
 
-#if NET
-using System.Runtime.Loader;
-#endif
-
 namespace Microsoft.CodeAnalysis
 {
     internal interface IAnalyzerAssemblyLoaderInternal : IAnalyzerAssemblyLoader, IDisposable
