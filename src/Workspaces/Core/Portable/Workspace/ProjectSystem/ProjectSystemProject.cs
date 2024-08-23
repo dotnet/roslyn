@@ -708,7 +708,7 @@ internal sealed partial class ProjectSystemProject
         {
             // Project reference adding...
             solutionChanges.UpdateSolutionForProjectAction(
-                projectId, newSolution: solutionChanges.Solution.AddProjectReferences(projectId, projectReferencesAddedInBatch));
+                projectId, solutionChanges.Solution.AddProjectReferences(projectId, projectReferencesAddedInBatch));
 
             // Project reference removing...
             foreach (var projectReference in projectReferencesRemovedInBatch)
@@ -725,7 +725,6 @@ internal sealed partial class ProjectSystemProject
             List<AnalyzerFileReference> analyzersRemovedInBatch,
             List<AnalyzerFileReference> analyzersAddedInBatch)
         {
-<<<<<<< HEAD
             if (analyzersRemovedInBatch.Count == 0 && analyzersAddedInBatch.Count == 0)
                 return projectUpdateState;
 
@@ -745,7 +744,7 @@ internal sealed partial class ProjectSystemProject
 #else
             // In .Net framework, we cannot isolate these analyzer references into their own ALC.  The best we can do is
             // just give all the references to the project as is and hope they load properly.
-            solutionChanges.UpdateSolutionForProjectAction(projectId, solutionChanges.Solution.WithAnalyzerReferences(projectId, finalReferences));
+            solutionChanges.UpdateSolutionForProjectAction(projectId, solutionChanges.Solution.WithProjectAnalyzerReferences(projectId, finalReferences));
 #endif
 
 #if false
@@ -766,25 +765,6 @@ internal sealed partial class ProjectSystemProject
                         Id, solutionChanges.Solution.AddAnalyzerReferences(Id, _analyzersAddedInBatch));
                 }
 #endif
-=======
-            // Analyzer reference removing...
-            if (analyzersRemovedInBatch.Count > 0)
-            {
-                projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesRemoved(analyzersRemovedInBatch);
-
-                foreach (var analyzerReference in analyzersRemovedInBatch)
-                    solutionChanges.UpdateSolutionForProjectAction(projectId, solutionChanges.Solution.RemoveAnalyzerReference(projectId, analyzerReference));
-            }
-
-            // Analyzer reference adding...
-            if (analyzersAddedInBatch.Count > 0)
-            {
-                projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesAdded(analyzersAddedInBatch);
-
-                solutionChanges.UpdateSolutionForProjectAction(
-                    projectId, solutionChanges.Solution.AddAnalyzerReferences(projectId, analyzersAddedInBatch));
-            }
->>>>>>> extractFunctions
 
             return projectUpdateState;
         }
