@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
 
         public RenameDashboardSeverity Severity => _severity;
 
-        public bool AllowFileRename => Session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid && _commitNotStart;
+        public bool AllowFileRename => Session.FileRenameInfo == InlineRenameFileRenameInfo.Allowed && _isReplacementTextValid && CommitNotStart;
         public bool ShowFileRename => Session.FileRenameInfo != InlineRenameFileRenameInfo.NotAllowed;
         public string FileRenameString => Session.FileRenameInfo switch
         {
