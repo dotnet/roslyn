@@ -32,7 +32,6 @@ using Microsoft.Metadata.Tools;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 {
@@ -1247,13 +1246,11 @@ namespace System.Diagnostics.CodeAnalysis
 
             if (RuntimeUtilities.IsCoreClrRuntime)
             {
-                allReferences = TargetFrameworkUtil.NetStandard20References;
-                allReferences = allReferences.Concat(new[] { SystemThreadingTasksExtensions.NetStandard20Lib });
+                allReferences = [.. NetStandard20.References.All, NetStandard20.ExtraReferences.SystemThreadingTasksExtensions];
             }
             else
             {
-                allReferences = TargetFrameworkUtil.Mscorlib461ExtendedReferences;
-                allReferences = allReferences.Concat(new[] { Net461.References.SystemThreadingTasks, SystemThreadingTasksExtensions.PortableLib });
+                allReferences = [.. NetStandard20.References.All, NetStandard20.ExtraReferences.SystemThreadingTasksExtensions];
             }
 
             if (references != null)
