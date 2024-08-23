@@ -22,7 +22,7 @@ using ReferenceEqualityComparer = Roslyn.Utilities.ReferenceEqualityComparer;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Remote
 {
-#if NETCOREAPP
+#if NET
     [SupportedOSPlatform("windows")]
 #endif
     [method: Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
