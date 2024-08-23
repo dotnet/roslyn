@@ -19,7 +19,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
-using Microsoft.CodeAnalysis.UnitTests.Remote;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -680,17 +679,16 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
 
         private static SolutionAsset CloneAsset(ISerializerService serializer, SolutionAsset asset)
         {
-            var testSerializer = (TestSerializerService)serializer;
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                testSerializer.Serialize(asset.Value, writer, CancellationToken.None);
+                serializer.Serialize(asset.Value, writer, CancellationToken.None);
             }
 
             stream.Position = 0;
             using var reader = ObjectReader.TryGetReader(stream);
             var recovered = serializer.Deserialize(asset.Kind, reader, CancellationToken.None);
-            var checksum = recovered is SerializableSourceText text ? text.ContentChecksum : testSerializer.CreateChecksum(recovered, CancellationToken.None);
+            var checksum = recovered is SerializableSourceText text ? text.ContentChecksum : serializer.CreateChecksum(recovered, CancellationToken.None);
 
             var assetFromStorage = new SolutionAsset(checksum, recovered);
 
