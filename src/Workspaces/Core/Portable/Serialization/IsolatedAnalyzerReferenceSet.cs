@@ -42,7 +42,7 @@ internal sealed class IsolatedAssemblyReferenceSet
     /// <summary>
     /// Final set of <see cref="AnalyzerReference"/> instances that will be passed through the workspace down to the compiler.
     /// </summary>
-    public ImmutableArray<AnalyzerReference> AnalyzerReferences { get; };
+    public ImmutableArray<AnalyzerReference> AnalyzerReferences { get; }
 
     /// <summary>
     /// Dedicated loader with its own dedicated ALC that all analyzer references will load their <see
@@ -67,22 +67,16 @@ internal sealed class IsolatedAssemblyReferenceSet
                 ? isolatedReference.UnderlyingAnalyzerReference
                 : initialReference;
 
-            // Unwrap serialized analyzer references to get their file path and make a real AnalyzerFileReference
-            // that now uses this isolated shadow copy loader.
-            var underlyingAnalyzerReference = initialReference
-                switch
-            {
-                // If we have an existing file reference, make a new one with a different loader/ALC
-                AnalyzerFileReference analyzerFileReference => new AnalyzerFileReference(analyzerFileReference.FullPath, _shadowCopyLoader),
+            // If we have an existing file reference, make a new one with a different loader/ALC.  Otherwise, it's some
+            // other analyzer reference we don't understand (like 
 
-                // If we're on the oop side, and we got a 
-                SerializerService.SerializedAnalyzerReference serializedAnalyzerReference => new AnalyzerFileReference(serializedAnalyzerReference.FullPath, _shadowCopyLoader),
-                IsolatedAnalyzerReference isolatedAnalyzerReference => new AnalyzerFileReference(isolatedAnalyzerReference.FullPath, _shadowCopyLoader),
-                _ => analyzerReference,
-            };
+            var underlyingAnalyzerReference = analyzerReference is AnalyzerFileReference analyzerFileReference
+                ? new AnalyzerFileReference(analyzerFileReference.FullPath, _shadowCopyLoader)
+                : initialReference;
 
             // Create a special wrapped analyzer reference here.  It will ensure that any DiagnosticAnalyzers and
             // ISourceGenerators handed out will keep this IsolatedAssemblyReferenceSet alive.
+
             var isolatedReference = new IsolatedAnalyzerReference(this, underlyingAnalyzerReference);
             builder.Add(isolatedReference);
         }

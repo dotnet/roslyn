@@ -8,7 +8,6 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection.Metadata;
-using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -52,7 +51,7 @@ internal partial class SerializerService
         throw ExceptionUtilities.UnexpectedValue(reference.GetType());
     }
 
-    protected virtual Checksum CreateChecksum(AnalyzerReference reference, bool forTesting)
+    protected virtual Checksum CreateChecksum(AnalyzerReference reference)
     {
 #if NET
         // If we're in the oop side and we're being asked to produce our local checksum (so we can compare it to the
@@ -77,14 +76,6 @@ internal partial class SerializerService
                 case AnalyzerImageReference analyzerImageReference:
                     Contract.ThrowIfFalse(TryGetAnalyzerImageReferenceGuid(analyzerImageReference, out var guid), "AnalyzerImageReferences are only supported during testing");
                     writer.WriteGuid(guid);
-                    break;
-
-                // It's ok to get a serializedAnalyzerReference back in test scenarios.  In those tests we are
-                // explicitly checking the checksums directly for analyzer references.  In normal product code we should
-                // not get this. 
-                case SerializedAnalyzerReference serializedAnalyzerReference when forTesting:
-                    writer.WriteString(serializedAnalyzerReference.FullPath);
-                    writer.WriteGuid(serializedAnalyzerReference.GetMvidForTestingOnly());
                     break;
 
                 default:
@@ -122,10 +113,7 @@ internal partial class SerializerService
         throw ExceptionUtilities.UnexpectedValue(type);
     }
 
-    protected virtual void WriteAnalyzerReferenceTo(
-        AnalyzerReference reference,
-        ObjectWriter writer,
-        bool forTesting)
+    protected virtual void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer)
     {
         switch (reference)
         {
@@ -133,10 +121,9 @@ internal partial class SerializerService
                 writer.WriteString(nameof(AnalyzerFileReference));
                 writer.WriteString(fileReference.FullPath);
 
-                // Note: it is intentional that we are not writing the MVID of the analyzer file reference over in
-                // non-testing scenarios (even though we mixed it into the checksum).  We don't actually need the data
-                // on the other side as it will be read out from the file itself.  So the flow is as follows when an
-                // analyzer-file-reference changes:
+                // Note: it is intentional that we are not writing the MVID of the analyzer file reference over in (even
+                // though we mixed it into the checksum).  We don't actually need the data on the other side as it will
+                // be read out from the file itself.  So the flow is as follows when an analyzer-file-reference changes:
                 //
                 // 1. Change to file happens on disk and is detected by the host, which will reload the reference within it.
                 // 2. When producing the checksum for the project, this analyzer file reference will not be found in the
@@ -153,24 +140,12 @@ internal partial class SerializerService
                 //    ShadowCopyAnalyzerAssemblyLoader.  This loader will *itself* then use the MVID of the file
                 //    reference at the requested path to shadow copy to a new location specific to that mvid, ensuring
                 //    that its data can be cleanly loaded in isolation from any prior version.
-                //
-                // During testing, we do write it over for validation purposes.
-                writer.WriteGuid(forTesting ? TryGetAnalyzerFileReferenceMvid(fileReference) : Guid.Empty);
                 break;
 
             case AnalyzerImageReference analyzerImageReference:
                 Contract.ThrowIfFalse(TryGetAnalyzerImageReferenceGuid(analyzerImageReference, out var guid), "AnalyzerImageReferences are only supported during testing");
                 writer.WriteString(nameof(AnalyzerImageReference));
                 writer.WriteGuid(guid);
-                break;
-
-            // It's ok to get a serializedAnalyzerReference back in test scenarios.  In those tests we are
-            // explicitly checking the checksums directly for analyzer references.  In normal product code we should
-            // not get this. 
-            case SerializedAnalyzerReference serializedReference when forTesting:
-                writer.WriteString(nameof(AnalyzerFileReference));
-                writer.WriteString(serializedReference.FullPath);
-                writer.WriteGuid(serializedReference.GetMvidForTestingOnly());
                 break;
 
             default:
@@ -183,10 +158,10 @@ internal partial class SerializerService
         switch (reader.ReadString())
         {
             case nameof(AnalyzerFileReference):
-                // Don't rehydrate an AnalyzerFileReference.  That will happen in
-                // AbstractAssetProvider.CreateIsolatedAnalyzerReferencesAsync when it can see the entire set of
-                // assembly references that should be included together in their own isolated ALC.
-                return new SerializedAnalyzerReference(reader.ReadRequiredString(), reader.ReadGuid());
+                // Rehydrate the analyzer file reference with the simple shared shadow copy loader.  Note: we won't
+                // actually use this instance we create.  Instead, teh caller will use create an IsolatedAssemblyReferenceSet
+                // from these to ensure that all the types can be safely loaded into their own ALC.
+                return new AnalyzerFileReference(reader.ReadRequiredString(), _analyzerLoaderProvider.SharedShadowCopyLoader);
 
             case nameof(AnalyzerImageReference):
                 var guid = reader.ReadGuid();

@@ -88,8 +88,8 @@ internal partial class SerializerService
     private MetadataReference DeserializeMetadataReference(ObjectReader reader)
         => ReadMetadataReferenceFrom(reader);
 
-    private void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer, bool forTesting)
-        => WriteAnalyzerReferenceTo(reference, writer, forTesting);
+    private void SerializeAnalyzerReference(AnalyzerReference reference, ObjectWriter writer)
+        => WriteAnalyzerReferenceTo(reference, writer);
 
     private AnalyzerReference DeserializeAnalyzerReference(ObjectReader reader)
         => ReadAnalyzerReferenceFrom(reader);

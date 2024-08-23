@@ -31,7 +31,8 @@ namespace Microsoft.CodeAnalysis.Serialization;
 /// </remarks>
 internal sealed class IsolatedAnalyzerReference(
     IsolatedAssemblyReferenceSet isolatedAssemblyReferenceSet,
-    AnalyzerFileReference underlyingAnalyzerReference) : AnalyzerReference
+    AnalyzerFileReference underlyingAnalyzerReference)
+    : AnalyzerReference
 {
     /// <summary>
     /// Conditional weak tables that ensure that as long as a particular <see cref="DiagnosticAnalyzer"/> or <see
@@ -55,7 +56,7 @@ internal sealed class IsolatedAnalyzerReference(
     public readonly AnalyzerFileReference UnderlyingAnalyzerReference = underlyingAnalyzerReference;
 
     public override string Display => UnderlyingAnalyzerReference.Display;
-    public override string FullPath => UnderlyingAnalyzerReference.FullPath;
+    public override string? FullPath => UnderlyingAnalyzerReference.FullPath;
     public override object Id => UnderlyingAnalyzerReference.Id;
 
     public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)

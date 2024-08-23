@@ -48,9 +48,6 @@ internal partial class SerializerService(SolutionServices workspaceServices) : I
     private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService = new(concurrencyLevel: 2, capacity: workspaceServices.SupportedLanguages.Count());
 
     public Checksum CreateChecksum(object value, CancellationToken cancellationToken)
-        => CreateChecksum(value, forTesting: false, cancellationToken);
-
-    private Checksum CreateChecksum(object value, bool forTesting, CancellationToken cancellationToken)
     {
         var kind = value.GetWellKnownSynchronizationKind();
 
@@ -71,7 +68,7 @@ internal partial class SerializerService(SolutionServices workspaceServices) : I
                     return CreateChecksum((MetadataReference)value);
 
                 case WellKnownSynchronizationKind.AnalyzerReference:
-                    return CreateChecksum((AnalyzerReference)value, forTesting);
+                    return CreateChecksum((AnalyzerReference)value);
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
                     throw new InvalidOperationException("Clients can already get a checksum directly from a SerializableSourceText");
@@ -85,9 +82,6 @@ internal partial class SerializerService(SolutionServices workspaceServices) : I
     }
 
     public void Serialize(object value, ObjectWriter writer, CancellationToken cancellationToken)
-        => Serialize(value, writer, forTesting: false, cancellationToken);
-
-    private void Serialize(object value, ObjectWriter writer, bool forTesting, CancellationToken cancellationToken)
     {
         var kind = value.GetWellKnownSynchronizationKind();
 
@@ -131,7 +125,7 @@ internal partial class SerializerService(SolutionServices workspaceServices) : I
                     return;
 
                 case WellKnownSynchronizationKind.AnalyzerReference:
-                    SerializeAnalyzerReference((AnalyzerReference)value, writer, forTesting);
+                    SerializeAnalyzerReference((AnalyzerReference)value, writer);
                     return;
 
                 case WellKnownSynchronizationKind.SerializableSourceText:
@@ -271,18 +265,6 @@ internal partial class SerializerService(SolutionServices workspaceServices) : I
 
     public Checksum CreateParseOptionsChecksum(ParseOptions value)
         => Checksum.Create((value, @this: this), static (tuple, writer) => tuple.@this.SerializeParseOptions(tuple.value, writer));
-
-    public TestAccessor GetTestAccessor()
-        => new(this);
-
-    public readonly partial struct TestAccessor(SerializerService serializerService)
-    {
-        public Checksum CreateChecksum(object value, bool forTesting)
-            => serializerService.CreateChecksum(value, forTesting, CancellationToken.None);
-
-        public void Serialize(object value, ObjectWriter writer, bool forTesting)
-            => serializerService.Serialize(value, writer, forTesting, CancellationToken.None);
-    }
 }
 
 // TODO: convert this to sub class rather than using enum with if statement.
