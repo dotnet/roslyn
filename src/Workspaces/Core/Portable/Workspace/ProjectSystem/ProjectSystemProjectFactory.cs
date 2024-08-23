@@ -815,7 +815,7 @@ internal sealed partial class ProjectSystemProjectFactory
             fullFilePath,
             getReferences: static project => project.MetadataReferences.OfType<PortableExecutableReference>(),
             getFilePath: static reference => reference.FilePath!,
-            createNewReference: static (solution, reference) => CreateMetadataReference_NoLock(reference.FilePath!, reference.Properties, solution.Services),
+            createNewReference: static (solutionServices, reference) => CreateMetadataReference_NoLock(reference.FilePath!, reference.Properties, solutionServices),
             update: static (solution, projectId, projectUpdateState, oldReference, newReference) =>
             {
                 var newSolution = solution
@@ -833,7 +833,7 @@ internal sealed partial class ProjectSystemProjectFactory
             fullFilePath,
             getReferences: static project => project.AnalyzerReferences.Select(r => r.FullPath!),
             getFilePath: static fullPath => fullPath,
-            createNewReference: static (@this, fullPath) => fullPath,
+            createNewReference: static (_, fullPath) => fullPath,
             update: static (solution, projectId, projectUpdateState, oldReferenceFullPath, newReferenceFullPath) =>
             {
                 // it's expected that the old and new paths are the same here.  The idea is that we changed a file on
@@ -864,7 +864,7 @@ internal sealed partial class ProjectSystemProjectFactory
         string fullFilePath,
         Func<Project, IEnumerable<TReference>> getReferences,
         Func<TReference, string> getFilePath,
-        Func<Solution, TReference, TReference> createNewReference,
+        Func<SolutionServices, TReference, TReference> createNewReference,
         Func<Solution, ProjectId, ProjectUpdateState, TReference, TReference, (Solution newSolution, ProjectUpdateState newProjectUpdateState)> update)
         where TReference : class
     {
@@ -879,7 +879,9 @@ internal sealed partial class ProjectSystemProjectFactory
         {
             await ApplyBatchChangeToWorkspaceAsync((solutionChanges, projectUpdateState) =>
             {
-                foreach (var project in solutionChanges.Solution.Projects)
+                var initialSolution = solutionChanges.Solution;
+                var solutionServices = initialSolution.Services;
+                foreach (var project in initialSolution.Projects)
                 {
                     // Loop to find each reference with the given path. It's possible that there might be multiple
                     // references of the same path; the project system could conceivably add the same reference multiple
@@ -890,7 +892,7 @@ internal sealed partial class ProjectSystemProjectFactory
                     {
                         if (getFilePath(oldReference) == fullFilePath)
                         {
-                            var newReference = createNewReference(solutionChanges.Solution, oldReference);
+                            var newReference = createNewReference(solutionServices, oldReference);
 
                             var newSolution = solutionChanges.Solution;
                             (newSolution, projectUpdateState) = update(newSolution, project.Id, projectUpdateState, oldReference, newReference);
