@@ -9,10 +9,6 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using System.Collections.Immutable;
 using System.Collections.Generic;
 
-#if NET
-using System.Runtime.Loader;
-#endif
-
 namespace Microsoft.CodeAnalysis.Host;
 
 [ExportWorkspaceServiceFactory(typeof(IAnalyzerAssemblyLoaderProvider)), Shared]
@@ -34,15 +30,15 @@ internal sealed class DefaultAnalyzerAssemblyLoaderServiceFactory(
         /// locking it.  The exception is fine, since the cleanup is just hygienic and isn't intended to be needed for
         /// correctness.  But it is annoying and does cause noise in our perf test harness.
         /// </summary>
-        public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader { get; } = DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
-            GetPath(workspaceKind), externalResolvers);
+        public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader { get; } = CreateLoader(GetPath(workspaceKind), externalResolvers);
 
         private static string GetPath(string workspaceKind)
             => Path.Combine(Path.GetTempPath(), "CodeAnalysis", "WorkspacesAnalyzerShadowCopies", workspaceKind);
 
-#if NET
         public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
+            => CreateLoader(workspaceKind, externalResolvers);
+
+        private static IAnalyzerAssemblyLoaderInternal CreateLoader(string workspaceKind, ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
             => DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(GetPath(workspaceKind), externalResolvers);
-#endif
     }
 }

@@ -10,11 +10,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using System.IO;
 
-
-#if NET
-using System.Runtime.Loader;
-#endif
-
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics;
 
 /// <summary>
@@ -40,8 +35,6 @@ internal sealed class RemoteAnalyzerAssemblyLoaderService(
         // already handles that, and this just ends up with more IO exceptions trying to cleanup locked directories.
         => new(Path.Combine(Path.GetTempPath(), "Remote", "AnalyzerAssemblyLoader"), externalResolvers.ToImmutableArray());
 
-#if NET
     public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
         => CreateLoader(externalResolvers);
-#endif
 }

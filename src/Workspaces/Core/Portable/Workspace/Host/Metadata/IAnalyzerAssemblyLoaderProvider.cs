@@ -4,21 +4,15 @@
 
 using Microsoft.CodeAnalysis.Diagnostics;
 
-#if NET
-using System.Runtime.Loader;
-#endif
-
 namespace Microsoft.CodeAnalysis.Host;
 
 internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 {
     IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader { get; }
 
-#if NET
     /// <summary>
-    /// Creates a fresh shadow copying loader that will load all <see cref="AnalyzerReference"/> in a fresh <see
-    /// cref="AssemblyLoadContext"/>.
+    /// Creates a fresh shadow copying loader that will load all <see cref="AnalyzerReference"/> in a fresh
+    /// AssemblyLoadContext (if possible)
     /// </summary>
     IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader();
-#endif
 }
