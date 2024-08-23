@@ -656,7 +656,6 @@ internal sealed partial class ProjectSystemProject
                 }
                 else
                 {
-                    // TODO: find a cleaner way to fetch this
                     var metadataReference = projectBeforeMutation.MetadataReferences
                         .OfType<PortableExecutableReference>()
                         .Single(m => m.FilePath == path && m.Properties == properties);
@@ -703,11 +702,11 @@ internal sealed partial class ProjectSystemProject
             ProjectId projectId,
             SolutionChangeAccumulator solutionChanges,
             List<ProjectReference> projectReferencesRemovedInBatch,
-            List<ProjectReference> _projectReferencesAddedInBatch)
+            List<ProjectReference> projectReferencesAddedInBatch)
         {
             // Project reference adding...
             solutionChanges.UpdateSolutionForProjectAction(
-                projectId, solutionChanges.Solution.AddProjectReferences(projectId, _projectReferencesAddedInBatch));
+                projectId, solutionChanges.Solution.AddProjectReferences(projectId, projectReferencesAddedInBatch));
 
             // Project reference removing...
             foreach (var projectReference in projectReferencesRemovedInBatch)
