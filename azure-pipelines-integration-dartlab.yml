@@ -87,8 +87,7 @@ stages:
         arguments: -DropNamePrefix 'Products' -VstsDropUrlsJson '$(Pipeline.Workspace)\VisualStudioBuildUnderTest\BuildArtifacts\VstsDropUrls.json' -OutVariableName 'VisualStudio.BuildUnderTest.ProductsDropName'
     deployAndRunTestsStepList:
     - checkout: RoslynMirror
-    - pwsh: throw 'This stage should not be executed'
-    # - template: eng/pipelines/test-integration-job.yml
+    - template: eng/pipelines/test-integration-job.yml
       parameters:
         configuration: $(_configuration)
         oop64bit: $(_oop64bit)
