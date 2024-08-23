@@ -26,11 +26,9 @@ internal partial class RemoteWorkspace
     /// <summary>
     /// Create solution for given checksum from base solution
     /// </summary>
-    private readonly struct SolutionCreator(HostServices hostServices, AssetProvider assetService, Solution baseSolution)
+    private readonly struct SolutionCreator(RemoteWorkspace workspace, AssetProvider assetService, Solution baseSolution)
     {
-#pragma warning disable IDE0052 // used only in DEBUG builds
-        private readonly HostServices _hostServices = hostServices;
-#pragma warning restore
+        private readonly RemoteWorkspace _workspace = workspace;
 
         private readonly AssetProvider _assetProvider = assetService;
         private readonly Solution _baseSolution = baseSolution;
@@ -607,7 +605,7 @@ internal partial class RemoteWorkspace
                 return;
 
             var solutionInfo = await _assetProvider.CreateSolutionInfoAsync(checksumFromRequest, cancellationToken).ConfigureAwait(false);
-            var workspace = new AdhocWorkspace(_hostServices);
+            var workspace = new AdhocWorkspace(_workspace.Services.HostServices);
             workspace.AddSolution(solutionInfo);
 
             await TestUtils.AssertChecksumsAsync(_assetProvider, checksumFromRequest, workspace.CurrentSolution, incrementalSolutionBuilt, projectConeId).ConfigureAwait(false);
