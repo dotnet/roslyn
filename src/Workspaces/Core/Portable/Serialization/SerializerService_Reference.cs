@@ -549,7 +549,7 @@ internal partial class SerializerService
             => new MissingMetadataReference(properties, FilePath, _provider);
     }
 
-    public readonly partial struct TestAccessor
+    public static class TestAccessor
     {
         public static void AddAnalyzerImageReference(AnalyzerImageReference analyzerImageReference)
         {
