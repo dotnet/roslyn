@@ -101,14 +101,14 @@ stages:
       - job: GitHubCommentCompletedJob
         steps:
           - task: GitHubComment@0
-            condition: eq(stageDependencies.DartLabStage.result, 'Succeeded')
+            condition: eq(dependencies.deployAndRunTestsStepList.result, 'Succeeded')
             inputs:
               gitHubConnection: 'dotnet-comment-bot-service-connection'
               repositoryName: '$(Build.Repository.Name)'
               id: ${{ parameters.prNumber }}
               comment: 'DartLab pipeline [run]($(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)) completed successfully for ${{ parameters.sha }}'
           - task: GitHubComment@0
-            condition: ne(stageDependencies.DartLabStage.result, 'Suceeded')
+            condition: ne(dependencies.deployAndRunTestsStepList.result, 'Suceeded')
             inputs:
               gitHubConnection: 'dotnet-comment-bot-service-connection'
               repositoryName: '$(Build.Repository.Name)'
