@@ -15,7 +15,6 @@ Microsoft.CodeAnalysis.ITypeParameterSymbol.AllowsRefLikeType.get -> bool
 Microsoft.CodeAnalysis.RuntimeCapability.ByRefLikeGenerics = 8 -> Microsoft.CodeAnalysis.RuntimeCapability
 static Microsoft.CodeAnalysis.GeneratorExtensions.AsIncrementalGenerator(this Microsoft.CodeAnalysis.ISourceGenerator! sourceGenerator) -> Microsoft.CodeAnalysis.IIncrementalGenerator!
 static Microsoft.CodeAnalysis.GeneratorExtensions.GetGeneratorType(this Microsoft.CodeAnalysis.IIncrementalGenerator! generator) -> System.Type!
-[RSEXPERIMENTAL004]Microsoft.CodeAnalysis.GeneratorRunResult.HostOutputs.get -> System.Collections.Immutable.ImmutableDictionary<string!, object!>!
 [RSEXPERIMENTAL004]Microsoft.CodeAnalysis.HostOutputProductionContext
 [RSEXPERIMENTAL004]Microsoft.CodeAnalysis.HostOutputProductionContext.AddOutput(string! name, object! value) -> void
 [RSEXPERIMENTAL004]Microsoft.CodeAnalysis.HostOutputProductionContext.CancellationToken.get -> System.Threading.CancellationToken
