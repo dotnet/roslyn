@@ -289,7 +289,7 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                     var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
                     Contract.ThrowIfTrue(missingChecksumsMemory.Length == 0);
 
-#if NETCOREAPP
+#if NET
                     Contract.ThrowIfTrue(missingChecksumsMemory.Span.Contains(Checksum.Null));
 #else
                     Contract.ThrowIfTrue(missingChecksumsMemory.Span.IndexOf(Checksum.Null) >= 0);
