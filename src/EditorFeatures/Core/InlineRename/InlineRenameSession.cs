@@ -772,10 +772,15 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
             return false;
         }
 
+        // One session should only start one commit task.
+        // Start the task if 
+        // 1. commit never starts in this session. (_commitTask is null)
+        // 2. There is no in-progress task. This would include
+        //    a. Commit operation starts before, user previews the result, and cancel the commit
+        //    b. In async commit operation while waiting the background task completed (user triggers the commit by enter key), then user's input might trigger Commit() again. Example: SaveCommandHandler.
+        //       In this case we don't want to trigger commit again.
         if (_commitTask is null || !IsCommitInProgress)
         {
-            // 2. Either commit never starts in this session
-            // or the prev commit operation ends (like user don't like the preview result and click cancel button)
             _commitTask = CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator);
         }
 
