@@ -101,17 +101,19 @@ stages:
     condition: always()
     dependsOn: VSIntegration
     jobs:
-      - job: GitHubCommentCompletedJob
+      - job: GitHubCommentCompletedSuccessfullyJob
+        condition: eq(stageDependencies.VSIntegration.result, 'Succeeded')
         steps:
           - task: GitHubComment@0
-            condition: eq(stageDependencies.VSIntegration.result, 'Succeeded')
             inputs:
               gitHubConnection: 'dotnet-comment-bot-service-connection'
               repositoryName: '$(Build.Repository.Name)'
               id: ${{ parameters.prNumber }}
               comment: 'DartLab pipeline [run]($(System.TeamFoundationCollectionUri)$(System.TeamProject)/_build/results?buildId=$(Build.BuildId)) completed successfully for ${{ parameters.sha }}'
+      - job: GitHubCommentCompletedUnsuccessfullyJob
+        condition: ne(stageDependencies.VSIntegration.result, 'Succeeded')
+        steps:
           - task: GitHubComment@0
-            condition: ne(stageDependencies.VSIntegration.result, 'Suceeded')
             inputs:
               gitHubConnection: 'dotnet-comment-bot-service-connection'
               repositoryName: '$(Build.Repository.Name)'
