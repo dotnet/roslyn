@@ -552,7 +552,8 @@ internal sealed partial class ProjectSystemProject
 
             await _projectSystemProjectFactory.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync, (solutionChanges, projectUpdateState) =>
             {
-                // Changes made inside this transformation must be idemopotent in case it is attempted multiple times.
+                // Changes made inside this transformation must be idempotent in case it is attempted multiple times.
+                var projectBeforeMutations = solutionChanges.Solution.GetRequiredProject(Id);
 
                 var documentFileNamesAddedBuilder = ImmutableArray.CreateBuilder<string>();
                 documentsToOpen = _sourceFiles.UpdateSolutionForBatch(
@@ -582,13 +583,13 @@ internal sealed partial class ProjectSystemProject
                 documentFileNamesAdded = documentFileNamesAddedBuilder.ToImmutable();
 
                 projectUpdateState = UpdateMetadataReferences(
-                    projectId: Id, solutionChanges, projectUpdateState, _metadataReferencesRemovedInBatch, _metadataReferencesAddedInBatch);
+                    projectBeforeMutations, solutionChanges, projectUpdateState, _metadataReferencesRemovedInBatch, _metadataReferencesAddedInBatch);
 
                 UpdateProjectReferences(
-                    projectId: Id, solutionChanges, _projectReferencesRemovedInBatch, _projectReferencesAddedInBatch);
+                    Id, solutionChanges, _projectReferencesRemovedInBatch, _projectReferencesAddedInBatch);
 
                 projectUpdateState = UpdateAnalyzerReferences(
-                    projectId: Id, solutionChanges, projectUpdateState, _analyzersRemovedInBatch, _analyzersAddedInBatch);
+                    Id, solutionChanges, projectUpdateState, _analyzersRemovedInBatch, _analyzersAddedInBatch);
 
                 // Other property modifications...
                 foreach (var propertyModification in _projectPropertyModificationsInBatch)
@@ -635,19 +636,20 @@ internal sealed partial class ProjectSystemProject
         }
 
         static ProjectUpdateState UpdateMetadataReferences(
-            ProjectId projectId,
+            Project projectBeforeMutation,
             SolutionChangeAccumulator solutionChanges,
             ProjectUpdateState projectUpdateState,
             List<(string path, MetadataReferenceProperties properties)> metadataReferencesRemovedInBatch,
             List<(string path, MetadataReferenceProperties properties)> metadataReferencesAddedInBatch)
         {
-            // Metadata reference removing. Do this before adding in case this removes a project reference that we are
-            // also going to add in the same batch. This could happen if case is changing, or we're targeting a
-            // different output path (say bin vs. obj vs. ref).
+            var projectId = projectBeforeMutation.Id;
+
+            // Metadata reference removing. Do this before adding in case this removes a project reference that we are also
+            // going to add in the same batch. This could happen if case is changing, or we're targeting a different output
+            // path (say bin vs. obj vs. ref).
             foreach (var (path, properties) in metadataReferencesRemovedInBatch)
             {
-                projectUpdateState = TryRemoveConvertedProjectReference_NoLock(
-                    projectId, path, properties, projectUpdateState, out var projectReference);
+                projectUpdateState = TryRemoveConvertedProjectReference_NoLock(projectId, path, properties, projectUpdateState, out var projectReference);
 
                 if (projectReference != null)
                 {
@@ -656,9 +658,8 @@ internal sealed partial class ProjectSystemProject
                 }
                 else
                 {
-                    // TODO: find a cleaner way to fetch this
-                    var metadataReference = _projectSystemProjectFactory.Workspace.CurrentSolution.GetRequiredProject(projectId).MetadataReferences
-                        .Cast<PortableExecutableReference>()
+                    var metadataReference = projectBeforeMutation.MetadataReferences
+                        .OfType<PortableExecutableReference>()
                         .Single(m => m.FilePath == path && m.Properties == properties);
 
                     projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(metadataReference);
@@ -724,6 +725,7 @@ internal sealed partial class ProjectSystemProject
             List<AnalyzerFileReference> analyzersRemovedInBatch,
             List<AnalyzerFileReference> analyzersAddedInBatch)
         {
+<<<<<<< HEAD
             if (analyzersRemovedInBatch.Count == 0 && analyzersAddedInBatch.Count == 0)
                 return projectUpdateState;
 
@@ -764,6 +766,25 @@ internal sealed partial class ProjectSystemProject
                         Id, solutionChanges.Solution.AddAnalyzerReferences(Id, _analyzersAddedInBatch));
                 }
 #endif
+=======
+            // Analyzer reference removing...
+            if (analyzersRemovedInBatch.Count > 0)
+            {
+                projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesRemoved(analyzersRemovedInBatch);
+
+                foreach (var analyzerReference in analyzersRemovedInBatch)
+                    solutionChanges.UpdateSolutionForProjectAction(projectId, solutionChanges.Solution.RemoveAnalyzerReference(projectId, analyzerReference));
+            }
+
+            // Analyzer reference adding...
+            if (analyzersAddedInBatch.Count > 0)
+            {
+                projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesAdded(analyzersAddedInBatch);
+
+                solutionChanges.UpdateSolutionForProjectAction(
+                    projectId, solutionChanges.Solution.AddAnalyzerReferences(projectId, analyzersAddedInBatch));
+            }
+>>>>>>> extractFunctions
 
             return projectUpdateState;
         }
