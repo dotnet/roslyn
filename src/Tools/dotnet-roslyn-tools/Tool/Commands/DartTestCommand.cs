@@ -49,9 +49,7 @@ It works by cloning the PR from the dotnet/roslyn repo into the internal mirror 
             var logger = context.SetupLogging();
             var settings = context.ParseResult.LoadSettings(logger);
 
-            if (string.IsNullOrEmpty(settings.GitHubToken) /*||
-                string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) ||
-                string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken)*/)
+            if (string.IsNullOrEmpty(settings.GitHubToken))
             {
                 logger.LogError("Missing authentication token.");
                 return -1;
