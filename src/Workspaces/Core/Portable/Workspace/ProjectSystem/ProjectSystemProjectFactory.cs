@@ -785,7 +785,7 @@ internal sealed partial class ProjectSystemProjectFactory
             if (projectUpdateState.ProjectsByOutputPath.TryGetValue(outputPath, out var remainingProjectsForOutputPath))
             {
                 var distinctRemainingProjects = remainingProjectsForOutputPath.Distinct();
-                if (distinctRemainingProjects.Count() == 1)
+                if (distinctRemainingProjects.Length == 1)
                 {
                     // We had more than one project outputting to the same path. Now we're back down to one
                     // so we can reference that one again
