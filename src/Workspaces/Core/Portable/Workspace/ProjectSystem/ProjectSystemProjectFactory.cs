@@ -816,12 +816,16 @@ internal sealed partial class ProjectSystemProjectFactory
             getReferences: static project => project.MetadataReferences.OfType<PortableExecutableReference>(),
             getFilePath: static reference => reference.FilePath!,
             createNewReference: static (@this, reference) => CreateMetadataReference_NoLock(reference.FilePath!, reference.Properties, @this.SolutionServices),
-            updateState: static (projectUpdateState, oldReference, newReference) => projectUpdateState
-                .WithIncrementalMetadataReferenceRemoved(oldReference)
-                .WithIncrementalMetadataReferenceAdded(newReference),
-            updateSolution: static (solution, projectId, oldReference, newReference) => solution
-                .RemoveMetadataReference(projectId, oldReference)
-                .AddMetadataReference(projectId, newReference));
+            update: static (solution, projectId, projectUpdateState, oldReference, newReference) =>
+            {
+                var newSolution = solution
+                    .RemoveMetadataReference(projectId, oldReference)
+                    .AddMetadataReference(projectId, newReference);
+                var newProjectUpdateState = projectUpdateState
+                    .WithIncrementalMetadataReferenceRemoved(oldReference)
+                    .WithIncrementalMetadataReferenceAdded(newReference);
+                return (newSolution, newProjectUpdateState);
+            });
 
     private void StartRefreshingAnalyzerReferenceForFile(object? sender, string fullFilePath)
         => StartRefreshingReferencesForFile(
@@ -830,13 +834,14 @@ internal sealed partial class ProjectSystemProjectFactory
             getFilePath: static reference => reference.FullPath,
             createNewReference: static (@this, reference) => new AnalyzerFileReference(
                 reference.FullPath,
+                // Note: We use the shared shadow copy loader here as a placeholder.  It isn't actually used though as
+                // we end up making an isolated set of references below in the 'update' callback.
                 @this.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>().SharedShadowCopyLoader),
-            updateState: static (projectUpdateState, oldReference, newReference) => projectUpdateState
-                .WithIncrementalAnalyzerReferenceRemoved(oldReference)
-                .WithIncrementalAnalyzerReferenceAdded(newReference),
-            updateSolution: static (solution, projectId, oldReference, newReference) => solution
-                .RemoveAnalyzerReference(projectId, oldReference)
-                .AddAnalyzerReference(projectId, newReference));
+            update: static (solution, projectId, projectUpdateState, oldReference, newReference) =>
+            {
+                var (newSolution, newProjectUpdateState) = ProjectSystemProject.UpdateProjectAnalyzerReferences(solution, projectId, projectUpdateState, [oldReference], [newReference]);
+                return (newSolution, newProjectUpdateState);
+            });
 
     /// <summary>
     /// Core helper that handles refreshing the references we have for a particular <see
@@ -847,8 +852,7 @@ internal sealed partial class ProjectSystemProjectFactory
         Func<Project, IEnumerable<TReference>> getReferences,
         Func<TReference, string> getFilePath,
         Func<ProjectSystemProjectFactory, TReference, TReference> createNewReference,
-        Func<ProjectUpdateState, TReference, TReference, ProjectUpdateState> updateState,
-        Func<Solution, ProjectId, TReference, TReference, Solution> updateSolution)
+        Func<Solution, ProjectId, ProjectUpdateState, TReference, TReference, (Solution newSolution, ProjectUpdateState newProjectUpdateState)> update)
         where TReference : class
     {
         var asyncToken = WorkspaceListener.BeginAsyncOperation(nameof(StartRefreshingReferencesForFile));
@@ -874,11 +878,10 @@ internal sealed partial class ProjectSystemProjectFactory
                     {
                         if (getFilePath(reference) == fullFilePath)
                         {
-                            var newReference = createNewReference(this, reference);
+                            var newSolution = solutionChanges.Solution;
+                            (newSolution, projectUpdateState) = update(
+                                newSolution, project.Id, projectUpdateState, reference, createNewReference(this, reference));
 
-                            projectUpdateState = updateState(projectUpdateState, reference, newReference);
-
-                            var newSolution = updateSolution(solutionChanges.Solution, project.Id, reference, newReference);
                             solutionChanges.UpdateSolutionForProjectAction(project.Id, newSolution);
                         }
                     }

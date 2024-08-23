@@ -17,7 +17,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.ProjectSystem;
-using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Telemetry;
@@ -720,31 +719,51 @@ internal sealed partial class ProjectSystemProject
             if (analyzersRemovedInBatch.Count == 0 && analyzersAddedInBatch.Count == 0)
                 return projectUpdateState;
 
-            var initialReferenceList = solutionChanges.Solution.AnalyzerReferences
-                .Except(analyzersRemovedInBatch)
-                .Concat(analyzersAddedInBatch)
-                .ToImmutableArray();
+            // Use shared helper to figure out the new forked state.
+            var (newSolution, newProjectUpdateState) = UpdateProjectAnalyzerReferences(
+                solutionChanges.Solution, projectId, projectUpdateState, analyzersRemovedInBatch, analyzersAddedInBatch);
 
-            // We are only updating this state object so that we can ensure we unregister any file watchers for
-            // analyzers that are removed, and register new watches for analyzers that are added.  Note that those file
-            // watchers are based on file path only.  So it's ok if the analyzer references added here are not
-            // necessarily the exact same ones given to the solution itself.
-            projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesRemoved(analyzersRemovedInBatch);
-            projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesAdded(analyzersAddedInBatch);
-
-            // Attempt to isolate these analyzer references into their own ALC so that we can still load
-            // analyzers/generators from them if they changed on disk.
-            var isolatedReferences = IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
-                useAsync: false,
-                initialReferenceList,
-                solutionChanges.Solution.Services,
-                CancellationToken.None).VerifyCompleted();
-
-            solutionChanges.UpdateSolutionForProjectAction(
-                projectId, solutionChanges.Solution.WithProjectAnalyzerReferences(projectId, isolatedReferences));
+            solutionChanges.UpdateSolutionForProjectAction(projectId, newSolution);
 
             return projectUpdateState;
         }
+    }
+
+    public static (Solution newSolution, ProjectUpdateState newProjectUpdateState) UpdateProjectAnalyzerReferences(
+        Solution solution,
+        ProjectId projectId,
+        ProjectUpdateState projectUpdateState,
+        List<AnalyzerFileReference> analyzersRemoved,
+        List<AnalyzerFileReference> analyzersAdded)
+    {
+        Contract.ThrowIfTrue(analyzersRemoved.Count == 0 && analyzersAdded.Count == 0, "Should only be called when there is work to do");
+
+        var project = solution.GetRequiredProject(projectId);
+        var initialReferenceList = project.AnalyzerReferences
+            .Except(analyzersRemoved)
+            .Concat(analyzersAdded)
+            .ToImmutableArray();
+
+        // We are only updating this state object so that we can ensure we unregister any file watchers for
+        // analyzers that are removed, and register new watches for analyzers that are added.  Note that those file
+        // watchers are based on file path only.  So it's ok if the analyzer references added here are not
+        // necessarily the exact same ones given to the solution itself.
+        var newProjectUpdateState = projectUpdateState
+            .WithIncrementalAnalyzerReferencesRemoved(analyzersRemoved)
+            .WithIncrementalAnalyzerReferencesAdded(analyzersAdded);
+
+        // Attempt to isolate these analyzer references into their own ALC so that we can still load
+        // analyzers/generators from them if they changed on disk.
+        var isolatedReferences = IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
+            useAsync: false,
+            initialReferenceList,
+            solution.Services,
+            CancellationToken.None).VerifyCompleted();
+
+        // Fork the solution's project with these new isolated analyzer references. And return the forked solution and
+        // forked projectUpdateState back to the caller to handle them.
+        var newSolution = solution.WithProjectAnalyzerReferences(project.Id, isolatedReferences);
+        return (newSolution, newProjectUpdateState);
     }
 
     #endregion
