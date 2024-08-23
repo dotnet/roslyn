@@ -24,9 +24,9 @@ internal sealed class VSCodeAnalyzerLoaderProvider(
     private readonly ExtensionAssemblyManager _extensionAssemblyManager = extensionAssemblyManager;
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
 
-    protected override IAnalyzerAssemblyLoaderInternal CreateShadowCopyLoader()
+    public override IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
     {
-        var baseLoader = base.CreateShadowCopyLoader();
+        var baseLoader = base.CreateNewShadowCopyLoader();
         return new VSCodeExtensionAssemblyAnalyzerLoader(baseLoader, _extensionAssemblyManager, _loggerFactory.CreateLogger<VSCodeExtensionAssemblyAnalyzerLoader>());
     }
 

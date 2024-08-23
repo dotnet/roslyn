@@ -138,7 +138,7 @@ internal static partial class AbstractAssetProviderExtensions
 #else
 
         // Assembly load contexts not supported here.
-        var shadowCopyLoader = assemblyLoaderProvider.GetShadowCopyLoader();
+        var shadowCopyLoader = assemblyLoaderProvider.SharedShadowCopyLoader;
         var builder = new FixedSizeArrayBuilder<AnalyzerReference>(serializedReferences.Length);
 
         foreach (var analyzerReference in serializedReferences)

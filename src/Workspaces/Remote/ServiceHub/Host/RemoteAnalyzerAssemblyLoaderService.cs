@@ -33,22 +33,13 @@ internal sealed class RemoteAnalyzerAssemblyLoaderService(
     /// <summary>
     /// Default shared instance, for all callers who do not want to provide a custom AssemblyLoadContext.
     /// </summary>
-    private readonly ShadowCopyAnalyzerAssemblyLoader _sharedShadowCopyLoader = CreateLoader(externalResolvers);
+    public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader { get; } = CreateLoader(externalResolvers);
 
     private static ShadowCopyAnalyzerAssemblyLoader CreateLoader(IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
         => new(GetPath(), externalResolvers.ToImmutableArray());
 
 #if NET
-
-    public IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader(bool getSharedLoader)
-        => getSharedLoader
-            ? _sharedShadowCopyLoader
-            : CreateLoader(externalResolvers);
-
-#else
-
-    public IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader()
-        => _sharedShadowCopyLoader;
-
+    public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
+        => CreateLoader(externalResolvers);
 #endif
 }

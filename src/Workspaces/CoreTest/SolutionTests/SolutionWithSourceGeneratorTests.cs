@@ -963,7 +963,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
                 stream!.CopyTo(destination);
             }
 
-            project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, analyzerAssemblyLoaderProvider.GetSharedShadowCopyLoader())]);
+            project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, analyzerAssemblyLoaderProvider.SharedShadowCopyLoader)]);
 
             var generatedDocuments = await project1.GetSourceGeneratedDocumentsAsync();
             var helloWorldDoc = generatedDocuments.Single(d => d.Name == "HelloWorld.cs");
@@ -983,7 +983,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
             // Make a new analyzer reference to that location (note: with the same shared shadow copier).  on the host side,
             // this will simply instantiate a new reference.  But this will cause all the machinery to run syncing this new
             // reference to the oop side, which will load the analyzer reference in a dedicated ALC.
-            project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, analyzerAssemblyLoaderProvider.GetSharedShadowCopyLoader())]);
+            project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, analyzerAssemblyLoaderProvider.SharedShadowCopyLoader)]);
 
             var generatedDocuments = await project1.GetSourceGeneratedDocumentsAsync();
             var helloWorldDoc = generatedDocuments.Single(d => d.Name == "HelloWorld.cs");

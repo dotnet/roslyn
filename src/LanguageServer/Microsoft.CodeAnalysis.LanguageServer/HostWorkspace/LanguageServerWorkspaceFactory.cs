@@ -58,7 +58,7 @@ internal sealed class LanguageServerWorkspaceFactory
 
         // Load all analyzers into the default load context.  In the future, if we want to support reloading of analyzer
         // references, we should instead load these into a dedicated ALC (using an IsolatedAnalyzerReferenceSet) here.
-        var analyzerLoader = loaderProvider.GetShadowCopyLoader(getSharedLoader: true);
+        var analyzerLoader = loaderProvider.SharedShadowCopyLoader;
 
         foreach (var analyzerPath in analyzerPaths)
         {

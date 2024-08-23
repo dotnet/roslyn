@@ -830,7 +830,7 @@ internal sealed partial class ProjectSystemProjectFactory
             getFilePath: static reference => reference.FullPath,
             createNewReference: static (@this, reference) => new AnalyzerFileReference(
                 reference.FullPath,
-                @this.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>().GetSharedShadowCopyLoader()),
+                @this.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>().SharedShadowCopyLoader),
             updateState: static (projectUpdateState, oldReference, newReference) => projectUpdateState
                 .WithIncrementalAnalyzerReferenceRemoved(oldReference)
                 .WithIncrementalAnalyzerReferenceAdded(newReference),

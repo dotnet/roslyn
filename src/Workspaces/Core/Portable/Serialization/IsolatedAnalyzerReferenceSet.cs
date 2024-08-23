@@ -49,7 +49,7 @@ internal sealed class IsolatedAssemblyReferenceSet
         Contract.ThrowIfTrue(serializedReferences.Any(static r => r is IsolatedAnalyzerReference), $"Should not have gotten an {nameof(IsolatedAnalyzerReference)}");
 
         // Now make a fresh loader that uses that ALC that will ensure these references are properly isolated.
-        _shadowCopyLoader = provider.GetShadowCopyLoader(getSharedLoader: false);
+        _shadowCopyLoader = provider.CreateNewShadowCopyLoader();
 
         var builder = new FixedSizeArrayBuilder<IsolatedAnalyzerReference>(serializedReferences.Length);
         foreach (var analyzerReference in serializedReferences)

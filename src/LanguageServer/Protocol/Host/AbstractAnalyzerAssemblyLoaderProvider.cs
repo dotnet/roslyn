@@ -24,29 +24,15 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
     public AbstractAnalyzerAssemblyLoaderProvider(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
     {
         // We use a lazy here in case creating the loader requires MEF imports in the derived constructor.
-        _sharedShadowCopyLoader = new(CreateShadowCopyLoader);
+        _sharedShadowCopyLoader = new(CreateNewShadowCopyLoader);
         _externalResolvers = externalResolvers;
     }
 
     internal static string GetPath()
         => Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader");
 
-    protected virtual IAnalyzerAssemblyLoaderInternal CreateShadowCopyLoader()
+    public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader => _sharedShadowCopyLoader.Value;
+
+    public virtual IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
         => DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(GetPath(), _externalResolvers);
-
-#if NET
-
-    public IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader(bool getSharedLoader)
-        // If no load context is provided, return the default shared instance.  Otherwise, create a fresh instance that
-        // will load within its own dedicated ALC.
-        => getSharedLoader
-            ? _sharedShadowCopyLoader.Value
-            : CreateShadowCopyLoader();
-
-#else
-
-    public IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader()
-        => _sharedShadowCopyLoader.Value;
-
-#endif
 }
