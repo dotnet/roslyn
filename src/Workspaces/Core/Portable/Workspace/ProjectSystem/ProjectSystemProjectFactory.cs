@@ -418,19 +418,19 @@ internal sealed partial class ProjectSystemProjectFactory
 
         // Remove file watchers for any references we're no longer watching.
         foreach (var reference in projectUpdateState.RemovedMetadataReferences)
-            FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference);
+            FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference, reference.FilePath!);
 
         // Add file watchers for any references we are now watching.
         foreach (var reference in projectUpdateState.AddedMetadataReferences)
-            FileWatchedPortableExecutableReferenceFactory.StartWatchingReference(reference, reference.FilePath!);
+            FileWatchedPortableExecutableReferenceFactory.StartWatchingReference(reference.FilePath!);
 
         // Remove file watchers for any references we're no longer watching.
         foreach (var reference in projectUpdateState.RemovedAnalyzerReferences)
-            FileWatchedAnalyzerReferenceFactory.StopWatchingReference(reference);
+            FileWatchedAnalyzerReferenceFactory.StopWatchingReference(reference, reference.FullPath);
 
         // Add file watchers for any references we are now watching.
         foreach (var reference in projectUpdateState.AddedAnalyzerReferences)
-            FileWatchedAnalyzerReferenceFactory.StartWatchingReference(reference, reference.FullPath);
+            FileWatchedAnalyzerReferenceFactory.StartWatchingReference(reference.FullPath);
 
         // Clear the state from the this update in preparation for the next.
         projectUpdateState = projectUpdateState.ClearIncrementalState();

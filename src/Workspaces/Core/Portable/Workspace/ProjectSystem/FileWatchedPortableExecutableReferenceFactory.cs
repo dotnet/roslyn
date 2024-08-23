@@ -31,7 +31,7 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     /// are only created once we are actually applying a batch because we don't determine until the batch is applied if
     /// the file reference will actually be a file reference or it'll be a converted project reference.
     /// </summary>
-    private readonly Dictionary<TReference, (IWatchedFile Token, int RefCount)> _referenceFileWatchingTokens = [];
+    private readonly Dictionary<string, (IWatchedFile Token, int RefCount)> _referenceFileWatchingTokens = [];
 
     /// <summary>
     /// Stores the caller for a previous disposal of a reference produced by this class, to track down a double-dispose
@@ -113,17 +113,17 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     /// watched , the reference count will be incremented. This is *not* safe to attempt to call multiple times for the
     /// same project and reference (e.g. in applying workspace updates)
     /// </summary>
-    public void StartWatchingReference(TReference reference, string fullFilePath)
+    public void StartWatchingReference(string fullFilePath)
     {
         lock (_gate)
         {
-            var (token, count) = _referenceFileWatchingTokens.GetOrAdd(reference, _ =>
+            var (token, count) = _referenceFileWatchingTokens.GetOrAdd(fullFilePath, _ =>
             {
                 var fileToken = _fileReferenceChangeContext.Value.EnqueueWatchingFile(fullFilePath);
                 return (fileToken, RefCount: 0);
             });
 
-            _referenceFileWatchingTokens[reference] = (token, RefCount: count + 1);
+            _referenceFileWatchingTokens[fullFilePath] = (token, RefCount: count + 1);
         }
     }
 
@@ -132,12 +132,12 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     /// 0, the file watcher will be stopped. This is *not* safe to attempt to call multiple times for the same project
     /// and reference (e.g. in applying workspace updates)
     /// </summary>
-    public void StopWatchingReference(TReference reference, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = 0)
+    public void StopWatchingReference(TReference reference, string fullFilePath, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = 0)
     {
         lock (_gate)
         {
             var disposalLocation = callerFilePath + ", line " + callerLineNumber;
-            if (!_referenceFileWatchingTokens.TryGetValue(reference, out var watchedFileReference))
+            if (!_referenceFileWatchingTokens.TryGetValue(fullFilePath, out var watchedFileReference))
             {
                 // We're attempting to stop watching a file that we never started watching. This is a bug.
                 var existingDisposalStackTrace = _previousDisposalLocations.TryGetValue(reference, out var previousDisposalLocation);
@@ -150,14 +150,14 @@ internal sealed class FileWatchedReferenceFactory<TReference>
             {
                 // No one else is watching this file, so stop watching it and remove from our map.
                 watchedFileReference.Token.Dispose();
-                _referenceFileWatchingTokens.Remove(reference);
+                _referenceFileWatchingTokens.Remove(fullFilePath);
 
                 _previousDisposalLocations.Remove(reference);
                 _previousDisposalLocations.Add(reference, disposalLocation);
             }
             else
             {
-                _referenceFileWatchingTokens[reference] = (watchedFileReference.Token, newRefCount);
+                _referenceFileWatchingTokens[fullFilePath] = (watchedFileReference.Token, newRefCount);
             }
 
             // Note we still potentially have an outstanding change that we haven't raised a notification for due to the
