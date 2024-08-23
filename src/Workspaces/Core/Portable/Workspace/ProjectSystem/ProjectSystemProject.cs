@@ -964,14 +964,13 @@ internal sealed partial class ProjectSystemProject
                     throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
             }
 
-            var assemblyLoaderProvider = _projectSystemProjectFactory.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-
             // NOTE: At this point in the process we simply add an AnalyzerFileReference using the shared shadow copy
             // loader.  This provider isn't actually used in any fashion, except to keep track of things up till the
             // point the batch scope completes.  At that point, we'll call UpdateAnalyzerReferences, which then will
             // actually look at all the assembly references, and create a dedicated ALC (if that's possible) for all of
             // them to load into.
-            var loader = assemblyLoaderProvider.SharedShadowCopyLoader;
+            var assemblyLoaderProvider = _projectSystemProjectFactory.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+            var sharedShadowCopyLoader = assemblyLoaderProvider.SharedShadowCopyLoader;
 
             foreach (var mappedFullPath in mappedPaths)
             {
@@ -986,7 +985,7 @@ internal sealed partial class ProjectSystemProject
                 else
                 {
                     // Nope, we actually need to make a new one.
-                    var analyzerReference = new AnalyzerFileReference(mappedFullPath, loader);
+                    var analyzerReference = new AnalyzerFileReference(mappedFullPath, sharedShadowCopyLoader);
 
                     _analyzersAddedInBatch.Add(analyzerReference);
                     _analyzerPathsToAnalyzers.Add(mappedFullPath, analyzerReference);
