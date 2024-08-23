@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
@@ -18,14 +19,18 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// <summary>
 /// This service provide a way to get roslyn objects from checksum
 /// </summary>
-internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
+internal sealed partial class AssetProvider(
+    Checksum solutionChecksum,
+    SolutionAssetCache assetCache,
+    IAssetSource assetSource,
+    SolutionServices solutionServices)
     : AbstractAssetProvider
 {
     private const int PooledChecksumArraySize = 1024;
     private static readonly ObjectPool<Checksum[]> s_checksumPool = new(() => new Checksum[PooledChecksumArraySize], 16);
 
     private readonly Checksum _solutionChecksum = solutionChecksum;
-    private readonly ISerializerService _serializerService = serializerService;
+    private readonly SolutionServices _solutionServices = solutionServices;
     private readonly SolutionAssetCache _assetCache = assetCache;
     private readonly IAssetSource _assetSource = assetSource;
 
@@ -295,8 +300,9 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                     Contract.ThrowIfTrue(missingChecksumsMemory.Span.IndexOf(Checksum.Null) >= 0);
 #endif
 
+                    var serializerService = this._solutionServices.GetRequiredService<ISerializerService>();
                     await _assetSource.GetAssetsAsync(
-                        _solutionChecksum, assetPath, missingChecksumsMemory, _serializerService,
+                        _solutionChecksum, assetPath, missingChecksumsMemory, serializerService,
                         static (
                             Checksum missingChecksum,
                             T missingAsset,

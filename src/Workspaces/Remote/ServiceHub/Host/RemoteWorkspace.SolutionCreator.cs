@@ -70,9 +70,10 @@ internal partial class RemoteWorkspace
                 {
                     // Take the new set of references we've gotten and create a dedicated set of AnalyzerReferences with
                     // their own ALC that they can cleanly load (and unload) from.
-                    var assemblyLoaderProvider = this.Workspace.Services.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-                    var isolatedAnalyzerReferences = await _assetProvider.CreateIsolatedAnalyzerReferencesAsync(
-                        AssetPathKind.SolutionAnalyzerReferences, newSolutionChecksums.AnalyzerReferences, assemblyLoaderProvider, cancellationToken).ConfigureAwait(false);
+                    var deserializedAnalyzerReferences = await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
+                        AssetPathKind.SolutionAnalyzerReferences, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
+                    var isolatedAnalyzerReferences = await IsolatedAssemblyReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
+                        useAsync: true, deserializedAnalyzerReferences, this.Workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
 
                     solution = solution.WithAnalyzerReferences(isolatedAnalyzerReferences);
                 }
@@ -281,7 +282,7 @@ internal partial class RemoteWorkspace
                     // Now make a ProjectInfo corresponding to the new project checksums.  This should be fast due
                     // to the bulk sync we just performed above.
                     var projectInfo = await _assetProvider.CreateProjectInfoAsync(
-                        newProjectChecksums, assemblyLoaderProvider, cancellationToken).ConfigureAwait(false);
+                        newProjectChecksums, solution.Services, cancellationToken).ConfigureAwait(false);
                     projectInfos.Add(projectInfo);
                 }
             }
@@ -379,15 +380,12 @@ internal partial class RemoteWorkspace
             {
                 // Take the new set of references we've gotten and create a dedicated set of AnalyzerReferences with
                 // their own ALC that they can cleanly load (and unload) from.
-                var provider = this.Workspace.Services.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-                var analyzerReferences = await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
+                var deserializedAnalyzerReferences = await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
                     assetPath: project.Id, newProjectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
-                await IsolatedAssemblyReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
-                    analyzerReferences, this.ser)
+                var isolatedAnalyzerReferences = await IsolatedAssemblyReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
+                    useAsync: true, deserializedAnalyzerReferences, this.Workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
 
-                var isolatedAnalyzerReferences = await _assetProvider.CreateIsolatedAnalyzerReferencesAsync(
-                    assetPath: project.Id, newProjectChecksums.AnalyzerReferences, provider, cancellationToken).ConfigureAwait(false);
                 project = project.WithAnalyzerReferences(isolatedAnalyzerReferences);
             }
 
@@ -622,8 +620,8 @@ internal partial class RemoteWorkspace
             if (checksumFromRequest == currentSolutionChecksum)
                 return;
 
-            var assemblyLoaderProvider = this.Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-            var solutionInfo = await _assetProvider.CreateSolutionInfoAsync(checksumFromRequest, assemblyLoaderProvider, cancellationToken).ConfigureAwait(false);
+            var solutionInfo = await _assetProvider.CreateSolutionInfoAsync(
+                checksumFromRequest, this.Workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
             var workspace = new AdhocWorkspace(this.Workspace.Services.HostServices);
             workspace.AddSolution(solutionInfo);
 

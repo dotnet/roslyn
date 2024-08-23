@@ -729,7 +729,7 @@ internal sealed partial class ProjectSystemProject
             if (analyzersRemovedInBatch.Count == 0 && analyzersAddedInBatch.Count == 0)
                 return projectUpdateState;
 
-            var totalReferenceList = solutionChanges.Solution.AnalyzerReferences
+            var initialReferenceList = solutionChanges.Solution.AnalyzerReferences
                 .Except(analyzersRemovedInBatch)
                 .Concat(analyzersAddedInBatch)
                 .ToImmutableArray();
@@ -743,13 +743,10 @@ internal sealed partial class ProjectSystemProject
 
             // Attempt to isolate these analyzer references into their own ALC so that we can still load
             // analyzers/generators from them if they changed on disk.
-            var serializerService = solutionChanges.Solution.Services.GetRequiredService<ISerializerService>();
-            var assemblyLoaderProvider = solutionChanges.Solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
             var isolatedReferences = IsolatedAssemblyReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
                 useAsync: false,
-                totalReferenceList,
-                serializerService,
-                assemblyLoaderProvider,
+                initialReferenceList,
+                solutionChanges.Solution.Services,
                 CancellationToken.None).VerifyCompleted();
 
             solutionChanges.UpdateSolutionForProjectAction(

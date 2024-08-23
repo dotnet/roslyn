@@ -34,10 +34,7 @@ internal sealed partial class RemoteWorkspace : Workspace
     }
 
     public AssetProvider CreateAssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource)
-    {
-        var serializerService = Services.GetRequiredService<ISerializerService>();
-        return new AssetProvider(solutionChecksum, assetCache, assetSource, serializerService);
-    }
+        => new(solutionChecksum, assetCache, assetSource, this.Services.SolutionServices);
 
     protected internal override bool PartialSemanticsEnabled => true;
 
@@ -217,8 +214,8 @@ internal sealed partial class RemoteWorkspace : Workspace
             return currentSolution;
 
         // If not, have to create a new, fresh, solution instance to update.
-        var assemblyLoaderProvider = this.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-        var solutionInfo = await assetProvider.CreateSolutionInfoAsync(solutionChecksum, assemblyLoaderProvider, cancellationToken).ConfigureAwait(false);
+        var solutionInfo = await assetProvider.CreateSolutionInfoAsync(
+            solutionChecksum, this.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
         return CreateSolutionFromInfo(solutionInfo);
 
         async Task<bool> IsIncrementalUpdateAsync()

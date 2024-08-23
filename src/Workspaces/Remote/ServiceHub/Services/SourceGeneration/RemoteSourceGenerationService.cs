@@ -115,7 +115,6 @@ internal sealed partial class RemoteSourceGenerationService(in BrokeredServiceBa
         // analyzer reference is added.
 
         var checksumCollection = new ChecksumCollection(analyzerReferenceChecksums);
-        var assemblyLoaderProvider = workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
         var isolatedReferences = await assetProvider.CreateIsolatedAnalyzerReferencesAsync(
             projectId,
             checksumCollection,

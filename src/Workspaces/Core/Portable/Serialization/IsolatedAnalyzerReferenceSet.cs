@@ -115,29 +115,54 @@ internal sealed class IsolatedAssemblyReferenceSet
 #endif
 
     /// <summary>
-    /// Given a checksum for a set of analyzer references, fetches the existing ALC-isolated set of them if already
-    /// present in this process.  Otherwise, this fetches the raw serialized analyzer references from the host side,
-    /// then creates and caches an isolated set on the OOP side to hold onto them, passing out that isolated set of
-    /// references to be used by the caller (normally to be stored in a solution snapshot).
+    /// Given a set of analyzer references, attempts to return a new set that is in an isolated AssemblyLoadContext so
+    /// that the analyzers and generators from it can be safely loaded side-by-side with prior versions of the same
+    /// references that may already be loaded.
     /// </summary>
-#pragma warning disable CS1998 // Async method lacks 'await' operators and will run synchronously
     public static async ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
-#pragma warning restore CS1998 // Async method lacks 'await' operators and will run synchronously
         bool useAsync,
         ImmutableArray<AnalyzerReference> references,
-        ISerializerService serializerService,
-        IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider,
+        SolutionServices solutionServices,
         CancellationToken cancellationToken)
     {
         if (references.Length == 0)
             return [];
 
+        var serializerService = solutionServices.GetRequiredService<ISerializerService>();
+        var analyzerChecksums = ChecksumCache.GetOrCreateChecksumCollection(references, serializerService, cancellationToken);
+
+        return await CreateIsolatedAnalyzerReferencesAsync(
+            useAsync,
+            analyzerChecksums,
+            solutionServices,
+            () => Task.FromResult(references),
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Given a checksum for a set of analyzer references, fetches the existing ALC-isolated set of them if already
+    /// present in this process.  Otherwise, this fetches the raw serialized analyzer references from the host side,
+    /// then creates and caches an isolated set on the OOP side to hold onto them, passing out that isolated set of
+    /// references to be used by the caller (normally to be stored in a solution snapshot).
+    /// </summary>
+    public static async ValueTask<ImmutableArray<AnalyzerReference>> CreateIsolatedAnalyzerReferencesAsync(
+        bool useAsync,
+        ChecksumCollection analyzerChecksums,
+        SolutionServices solutionServices,
+        Func<Task<ImmutableArray<AnalyzerReference>>> getReferencesAsync,
+        CancellationToken cancellationToken)
+    {
+        if (analyzerChecksums.Children.Length == 0)
+            return [];
+
 #if !NET
-        // Can't actually isolate anything if we're in Net Framework. Just return the original references.
-        return references;
+
+        // In .Net Framework, can't actually wrap in an ALC.  Just return the original references.
+        var analyzerReferences = await getReferencesAsync().ConfigureAwait(false);
+        return analyzerReferences;
+
 #else
 
-        var analyzerChecksums = ChecksumCache.GetOrCreateChecksumCollection(references, serializerService, cancellationToken);
         var checksum = analyzerChecksums.Checksum;
 
         // First, see if these were already computed and stored.
@@ -150,8 +175,24 @@ internal sealed class IsolatedAssemblyReferenceSet
             {
                 return isolatedAssemblyReferenceSet.AnalyzerReferences;
             }
+        }
 
-            isolatedAssemblyReferenceSet = new IsolatedAssemblyReferenceSet(references, assemblyLoaderProvider);
+        // Not already stored.  Fetch the actual references.
+        var analyzerReferences = await getReferencesAsync().ConfigureAwait(false);
+        var assemblyLoaderProvider = solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+
+        using (useAsync
+           ? await s_isolatedReferenceSetGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false)
+           : s_isolatedReferenceSetGate.DisposableWait(cancellationToken))
+        {
+            // Check again to see if another thread beat us.
+            if (s_checksumToReferenceSet.TryGetValue(checksum, out var weakIsolatedReferenceSet) &&
+                weakIsolatedReferenceSet.TryGetTarget(out var isolatedAssemblyReferenceSet))
+            {
+                return isolatedAssemblyReferenceSet.AnalyzerReferences;
+            }
+
+            isolatedAssemblyReferenceSet = new IsolatedAssemblyReferenceSet(analyzerReferences, assemblyLoaderProvider);
 
             if (weakIsolatedReferenceSet is null)
             {
@@ -168,5 +209,46 @@ internal sealed class IsolatedAssemblyReferenceSet
         }
 
 #endif
+
+
+//#if !NET
+//        // Can't actually isolate anything if we're in Net Framework. Just return the original references.
+//        return references;
+//#else
+
+//        var serializerService = solutionServices.GetRequiredService<ISerializerService>();
+//        var assemblyLoaderProvider = solutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+
+//        var analyzerChecksums = ChecksumCache.GetOrCreateChecksumCollection(references, serializerService, cancellationToken);
+//        var checksum = analyzerChecksums.Checksum;
+
+//        // First, see if these were already computed and stored.
+//        using (useAsync
+//            ? await s_isolatedReferenceSetGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false)
+//            : s_isolatedReferenceSetGate.DisposableWait(cancellationToken))
+//        {
+//            if (s_checksumToReferenceSet.TryGetValue(checksum, out var weakIsolatedReferenceSet) &&
+//                weakIsolatedReferenceSet.TryGetTarget(out var isolatedAssemblyReferenceSet))
+//            {
+//                return isolatedAssemblyReferenceSet.AnalyzerReferences;
+//            }
+
+//            isolatedAssemblyReferenceSet = new IsolatedAssemblyReferenceSet(references, assemblyLoaderProvider);
+
+//            if (weakIsolatedReferenceSet is null)
+//            {
+//                weakIsolatedReferenceSet = new(null!);
+//                s_checksumToReferenceSet[checksum] = weakIsolatedReferenceSet;
+//            }
+
+//            weakIsolatedReferenceSet.SetTarget(isolatedAssemblyReferenceSet);
+
+//            // Do some cleaning up of old dictionary entries that are no longer in use.
+//            GarbageCollectReleaseReferences_NoLock();
+
+//            return isolatedAssemblyReferenceSet.AnalyzerReferences;
+//        }
+
+//#endif
     }
 }

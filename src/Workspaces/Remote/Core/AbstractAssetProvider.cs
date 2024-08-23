@@ -29,7 +29,7 @@ internal abstract class AbstractAssetProvider
 
     public async Task<SolutionInfo> CreateSolutionInfoAsync(
         Checksum solutionChecksum,
-        IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider,
+        SolutionServices solutionServices,
         CancellationToken cancellationToken)
     {
         var solutionCompilationChecksums = await GetAssetAsync<SolutionCompilationStateChecksums>(AssetPathKind.SolutionCompilationStateChecksums, solutionChecksum, cancellationToken).ConfigureAwait(false);
@@ -46,16 +46,17 @@ internal abstract class AbstractAssetProvider
             solutionChecksums.Projects.Checksums,
             static (_, projectStateChecksums, args) =>
             {
-                var (@this, projectsTasks, assemblyLoaderProvider, cancellationToken) = args;
-                projectsTasks.Add(@this.CreateProjectInfoAsync(projectStateChecksums, assemblyLoaderProvider, cancellationToken));
+                var (@this, projectsTasks, solutionServices, cancellationToken) = args;
+                projectsTasks.Add(@this.CreateProjectInfoAsync(projectStateChecksums, solutionServices, cancellationToken));
             },
-            (@this: this, projectsTasks, assemblyLoaderProvider, cancellationToken),
+            (@this: this, projectsTasks, solutionServices, cancellationToken),
             cancellationToken).ConfigureAwait(false);
 
+        // Deserialize the analyzer references, then wrap them in a new isolated analyzer reference set that has its own ALC
         var analyzerReference = await this.GetAssetsArrayAsync<AnalyzerReference>(
             AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
         var isolatedAnalyzerReferences = await IsolatedAssemblyReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
-            analyzerReference, this.seri, assemblyLoaderProvider, cancellationToken).ConfigureAwait(false);
+            useAsync: true, analyzerReference, solutionServices, cancellationToken).ConfigureAwait(false);
 
         var fallbackAnalyzerOptions = await GetAssetAsync<ImmutableDictionary<string, StructuredAnalyzerConfigOptions>>(AssetPathKind.SolutionFallbackAnalyzerOptions, solutionChecksums.FallbackAnalyzerOptions, cancellationToken).ConfigureAwait(false);
 
@@ -72,7 +73,7 @@ internal abstract class AbstractAssetProvider
 
     public async Task<ProjectInfo> CreateProjectInfoAsync(
         ProjectStateChecksums projectChecksums,
-        IAnalyzerAssemblyLoaderProvider assemblyLoaderProvider,
+        SolutionServices solutionServices,
         CancellationToken cancellationToken)
     {
         await Task.Yield();
@@ -88,9 +89,7 @@ internal abstract class AbstractAssetProvider
 
         var projectReferencesTask = this.GetAssetsArrayAsync<ProjectReference>(new(AssetPathKind.ProjectProjectReferences, projectId), projectChecksums.ProjectReferences, cancellationToken);
         var metadataReferencesTask = this.GetAssetsArrayAsync<MetadataReference>(new(AssetPathKind.ProjectMetadataReferences, projectId), projectChecksums.MetadataReferences, cancellationToken);
-
-        var isolatedAnalyzerReferencesTask = this.CreateIsolatedAnalyzerReferencesAsync(
-            new(AssetPathKind.ProjectAnalyzerReferences, projectId), projectChecksums.AnalyzerReferences, assemblyLoaderProvider, cancellationToken);
+        var analyzerReferencesTask = this.GetAssetsArrayAsync<AnalyzerReference>(new(AssetPathKind.ProjectAnalyzerReferences, projectId), projectChecksums.AnalyzerReferences, cancellationToken);
 
         // Attempt to fetch all the documents for this project in bulk.  This will allow for all the data to be fetched
         // efficiently.  We can then go and create the DocumentInfos for each document in the project.
@@ -99,6 +98,13 @@ internal abstract class AbstractAssetProvider
         var documentInfosTask = CreateDocumentInfosAsync(projectChecksums.Documents);
         var additionalDocumentInfosTask = CreateDocumentInfosAsync(projectChecksums.AdditionalDocuments);
         var analyzerConfigDocumentInfosTask = CreateDocumentInfosAsync(projectChecksums.AnalyzerConfigDocuments);
+
+        // Deserialize the analyzer references, then wrap them in a new isolated analyzer reference set that has its own ALC.
+        var isolatedAnalyzerReferencesTask = IsolatedAssemblyReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
+            useAsync: true,
+            await analyzerReferencesTask.ConfigureAwait(false),
+            solutionServices,
+            cancellationToken);
 
         return ProjectInfo.Create(
             attributes,
