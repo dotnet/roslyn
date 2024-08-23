@@ -54,7 +54,7 @@ internal static class DartTest
                 return -1;
             }
         }
-        
+
         var directory = await PushPRToInternal(product, prNumber, azureBranchName, logger, sha, cancellationToken).ConfigureAwait(false);
         var repositoryParams = new Dictionary<string, RepositoryResourceParameters>
             {
@@ -76,10 +76,21 @@ internal static class DartTest
             TemplateParameters = new Dictionary<string, string> { { "prNumber", prNumber.ToString() }, { "sha", sha } }
         };
 
-        var pipelineName = product.Name.Equals("roslyn", StringComparison.OrdinalIgnoreCase) ? "Roslyn Integration CI DartLab" : "";
+        var pipelineName = GetPipelineName();
         await remoteConnections.DevDivConnection.TryRunPipelineAsync(pipelineName, repositoryParams, runPipelineParameters, logger).ConfigureAwait(false);
         CleanupDirectory(directory, logger);
         return 0;
+
+        string GetPipelineName()
+        {
+            switch (product.Name)
+            {
+                case "roslyn":
+                    return "Roslyn Integration CI DartLab";
+                default:
+                    return "";
+            }
+        }
     }
 
     private static async Task<string?> GetLatestShaFromPullRequest(IProduct product, HttpClient gitHubClient, int prNumber, ILogger logger, CancellationToken cancellationToken)
@@ -157,6 +168,7 @@ internal static class DartTest
     {
         try
         {
+            logger.LogInformation($"Running command: {command}");
             var processStartInfo = new ProcessStartInfo
             {
                 FileName = "git",
