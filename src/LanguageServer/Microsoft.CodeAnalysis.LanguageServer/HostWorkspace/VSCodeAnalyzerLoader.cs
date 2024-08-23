@@ -38,9 +38,6 @@ internal sealed class VSCodeAnalyzerLoaderProvider(
         ExtensionAssemblyManager extensionAssemblyManager,
         ILogger logger) : IAnalyzerAssemblyLoaderInternal
     {
-        public void Dispose()
-            => defaultLoader.Dispose();
-
         public void AddDependencyLocation(string fullPath)
             => defaultLoader.AddDependencyLocation(fullPath);
 
@@ -61,5 +58,8 @@ internal sealed class VSCodeAnalyzerLoaderProvider(
 
             return defaultLoader.LoadFromPath(fullPath);
         }
+
+        public void Dispose()
+            => defaultLoader.Dispose();
     }
 }
