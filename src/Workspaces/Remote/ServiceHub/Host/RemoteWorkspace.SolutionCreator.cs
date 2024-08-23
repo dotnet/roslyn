@@ -272,8 +272,6 @@ internal partial class RemoteWorkspace
             // efficiently in bulk and in parallel.
             await _assetProvider.SynchronizeProjectAssetsAsync(projectStateChecksumsToAdd, cancellationToken).ConfigureAwait(false);
 
-            var assemblyLoaderProvider = this.Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-
             using var _3 = ArrayBuilder<ProjectInfo>.GetInstance(projectStateChecksumsToAdd.Count, out var projectInfos);
             foreach (var (projectId, newProjectChecksums) in newProjectIdToStateChecksums)
             {
