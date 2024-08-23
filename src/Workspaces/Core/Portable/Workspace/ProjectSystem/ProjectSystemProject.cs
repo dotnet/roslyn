@@ -656,7 +656,6 @@ internal sealed partial class ProjectSystemProject
                 }
                 else
                 {
-                    // TODO: find a cleaner way to fetch this
                     var metadataReference = projectBeforeMutation.MetadataReferences
                         .OfType<PortableExecutableReference>()
                         .Single(m => m.FilePath == path && m.Properties == properties);
