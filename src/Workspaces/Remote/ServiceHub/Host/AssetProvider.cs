@@ -30,9 +30,9 @@ internal sealed partial class AssetProvider(
     private static readonly ObjectPool<Checksum[]> s_checksumPool = new(() => new Checksum[PooledChecksumArraySize], 16);
 
     private readonly Checksum _solutionChecksum = solutionChecksum;
-    private readonly SolutionServices _solutionServices = solutionServices;
     private readonly SolutionAssetCache _assetCache = assetCache;
     private readonly IAssetSource _assetSource = assetSource;
+    private readonly SolutionServices _solutionServices = solutionServices;
 
     public override async ValueTask<T> GetAssetAsync<T>(
         AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken)
@@ -300,7 +300,7 @@ internal sealed partial class AssetProvider(
                     Contract.ThrowIfTrue(missingChecksumsMemory.Span.IndexOf(Checksum.Null) >= 0);
 #endif
 
-                    var serializerService = this._solutionServices.GetRequiredService<ISerializerService>();
+                    var serializerService = _solutionServices.GetRequiredService<ISerializerService>();
                     await _assetSource.GetAssetsAsync(
                         _solutionChecksum, assetPath, missingChecksumsMemory, serializerService,
                         static (

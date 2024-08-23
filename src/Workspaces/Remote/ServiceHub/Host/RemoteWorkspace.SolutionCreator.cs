@@ -28,7 +28,7 @@ internal partial class RemoteWorkspace
     /// </summary>
     private readonly struct SolutionCreator(RemoteWorkspace workspace, AssetProvider assetService, Solution baseSolution)
     {
-        private readonly RemoteWorkspace Workspace = workspace;
+        private readonly RemoteWorkspace _workspace = workspace;
 
         private readonly AssetProvider _assetProvider = assetService;
         private readonly Solution _baseSolution = baseSolution;
@@ -73,7 +73,7 @@ internal partial class RemoteWorkspace
                     var deserializedAnalyzerReferences = await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
                         AssetPathKind.SolutionAnalyzerReferences, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
                     var isolatedAnalyzerReferences = await IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
-                        useAsync: true, deserializedAnalyzerReferences, this.Workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
+                        useAsync: true, deserializedAnalyzerReferences, _workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
 
                     solution = solution.WithAnalyzerReferences(isolatedAnalyzerReferences);
                 }
@@ -382,7 +382,7 @@ internal partial class RemoteWorkspace
                     assetPath: project.Id, newProjectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
                 var isolatedAnalyzerReferences = await IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
-                    useAsync: true, deserializedAnalyzerReferences, this.Workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
+                    useAsync: true, deserializedAnalyzerReferences, _workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
 
                 project = project.WithAnalyzerReferences(isolatedAnalyzerReferences);
             }
@@ -619,8 +619,8 @@ internal partial class RemoteWorkspace
                 return;
 
             var solutionInfo = await _assetProvider.CreateSolutionInfoAsync(
-                checksumFromRequest, this.Workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
-            var workspace = new AdhocWorkspace(this.Workspace.Services.HostServices);
+                checksumFromRequest, _workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
+            var workspace = new AdhocWorkspace(_workspace.Services.HostServices);
             workspace.AddSolution(solutionInfo);
 
             await TestUtils.AssertChecksumsAsync(_assetProvider, checksumFromRequest, workspace.CurrentSolution, incrementalSolutionBuilt, projectConeId).ConfigureAwait(false);
