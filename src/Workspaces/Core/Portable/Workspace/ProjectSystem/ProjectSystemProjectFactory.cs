@@ -830,21 +830,19 @@ internal sealed partial class ProjectSystemProjectFactory
     private void StartRefreshingAnalyzerReferenceForFile(object? sender, string fullFilePath)
         => StartRefreshingReferencesForFile(
             fullFilePath,
-            getReferences: static project => project.AnalyzerReferences,
-            getFilePath: static reference => reference.FullPath!,
-            createNewReference: static (@this, reference) => new AnalyzerFileReference(
-                reference.FullPath!,
-                // Note: We use the shared shadow copy loader here as a placeholder.  It isn't actually used though as
-                // we end up making an isolated set of references below in the 'update' callback.
-                @this.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>().SharedShadowCopyLoader),
-            update: static (solution, projectId, projectUpdateState, oldReference, newReference) =>
+            getReferences: static project => project.AnalyzerReferences.Select(r => r.FullPath!),
+            getFilePath: static filePath => filePath,
+            createNewReference: static (@this, filePath) => filePath,
+            update: static (solution, projectId, projectUpdateState, oldAnalyzerFilePath, newAnalyzerFilePath) =>
             {
-                Contract.ThrowIfTrue(oldReference.FullPath != newReference.FullPath);
-
                 // Note: we're passing in the same path for the analyzers to remove/add.  That's exactly the intent
-                // here.  We're updating an existing analyzer in place.  So we want 
+                // here.  We're updating an existing analyzer in place. The call to UpdateProjectAnalyzerReferences will
+                // preserve all the other analyzers (with a different path), remove the one with this path, make a new
+                // analyzer for this path, and then created an isolated ALC to load them all in.
+                Contract.ThrowIfTrue(oldAnalyzerFilePath != newAnalyzerFilePath);
+
                 var (newSolution, newProjectUpdateState) = ProjectSystemProject.UpdateProjectAnalyzerReferences(
-                    solution, projectId, projectUpdateState, [oldReference.FullPath], [newReference.FullPath]);
+                    solution, projectId, projectUpdateState, [oldAnalyzerFilePath], [newAnalyzerFilePath]);
                 return (newSolution, newProjectUpdateState);
             });
 
