@@ -28,9 +28,7 @@ internal partial class RemoteWorkspace
     /// </summary>
     private readonly struct SolutionCreator(RemoteWorkspace workspace, AssetProvider assetService, Solution baseSolution)
     {
-#pragma warning disable IDE0052 // used only in DEBUG builds
         private readonly RemoteWorkspace _workspace = workspace;
-#pragma warning restore
 
         private readonly AssetProvider _assetProvider = assetService;
         private readonly Solution _baseSolution = baseSolution;
