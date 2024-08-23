@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ProjectSystem;
 using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -745,11 +746,36 @@ internal sealed partial class ProjectSystemProject
     {
         Contract.ThrowIfTrue(analyzersRemoved.Count == 0 && analyzersAdded.Count == 0, "Should only be called when there is work to do");
 
+        // NOTE: Create the initial AnalyzerFileReferences for the analyzers we're adding with a shared shadow copy
+        // loader.  This is fine as we're just creating these to pass into CreateIsolatedAnalyzerReferencesAsync which
+        // will properly give them an isolated ALC to use instead.
+        var assemblyLoaderProvider = solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+        var sharedShadowCopyLoader = assemblyLoaderProvider.SharedShadowCopyLoader;
+
         var project = solution.GetRequiredProject(projectId);
-        var initialReferenceList = project.AnalyzerReferences
-            .Except(analyzersRemoved)
-            .Concat(analyzersAdded)
-            .ToImmutableArray();
+
+        using var _ = ArrayBuilder<AnalyzerFileReference>.GetInstance(out var initialReferenceList);
+
+        // Keep around all the project 
+        foreach (var analyzerReference in project.AnalyzerReferences)
+        {
+            // Skip any existing analyzer references we're removing.
+            if (analyzersRemoved.Contains(analyzerReference.FullPath!))
+                continue;
+
+            initialReferenceList.Add(analyzerReference switch
+            {
+                AnalyzerFileReference analyzerFileReference => analyzerFileReference,
+#if NET
+                IsolatedAnalyzerReference isolatedAnalyzerReference => isolatedAnalyzerReference.UnderlyingAnalyzerReference,
+#endif
+                _ => throw ExceptionUtilities.UnexpectedValue(analyzerReference.GetType()),
+            });
+        }
+
+        // Now, create an initial analyzer file reference for all the analyzers being added.
+        foreach (var analyzer in analyzersAdded)
+            initialReferenceList.Add(new AnalyzerFileReference(analyzer, sharedShadowCopyLoader));
 
         // We are only updating this state object so that we can ensure we unregister any file watchers for
         // analyzers that are removed, and register new watches for analyzers that are added.  Note that those file
@@ -763,7 +789,7 @@ internal sealed partial class ProjectSystemProject
         // analyzers/generators from them if they changed on disk.
         var isolatedReferences = IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
             useAsync: false,
-            initialReferenceList,
+            ImmutableArray<AnalyzerReference>.CastUp(initialReferenceList.ToImmutableAndClear()),
             solution.Services,
             CancellationToken.None).VerifyCompleted();
 
