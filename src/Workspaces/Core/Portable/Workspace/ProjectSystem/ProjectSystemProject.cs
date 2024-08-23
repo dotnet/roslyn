@@ -743,7 +743,7 @@ internal sealed partial class ProjectSystemProject
 
             // Attempt to isolate these analyzer references into their own ALC so that we can still load
             // analyzers/generators from them if they changed on disk.
-            var isolatedReferences = IsolatedAssemblyReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
+            var isolatedReferences = IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
                 useAsync: false,
                 initialReferenceList,
                 solutionChanges.Solution.Services,

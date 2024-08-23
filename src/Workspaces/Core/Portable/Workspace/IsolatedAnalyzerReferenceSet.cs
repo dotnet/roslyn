@@ -11,19 +11,22 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-
-namespace Microsoft.CodeAnalysis.Serialization;
+using Microsoft.CodeAnalysis.Serialization;
 
 #if NET
 using System.Runtime.Loader;
+#endif
 
+namespace Microsoft.CodeAnalysis;
+
+#if NET
 /// <summary>
 /// A set of <see cref="IsolatedAnalyzerReference"/>s and their associated shadow copy loader (which has its own <see
 /// cref="AssemblyLoadContext"/>).  As long as something is keeping this set alive, the ALC will be kept alive.  Once
 /// this set is dropped, the loader will be explicitly <see cref="IDisposable.Dispose"/>'d in its finalizer.
 /// </summary>
 #endif
-internal sealed class IsolatedAssemblyReferenceSet
+internal sealed class IsolatedAnalyzerReferenceSet
 {
 #if NET
     /// <summary>
@@ -36,7 +39,7 @@ internal sealed class IsolatedAssemblyReferenceSet
     /// references corresponding to it.  As long as it is alive, we will try to reuse what is in memory.  But once it is
     /// dropped from memory, we'll clean things up and produce a new one.
     /// </summary>
-    private static readonly Dictionary<Checksum, WeakReference<IsolatedAssemblyReferenceSet>> s_checksumToReferenceSet = [];
+    private static readonly Dictionary<Checksum, WeakReference<IsolatedAnalyzerReferenceSet>> s_checksumToReferenceSet = [];
 
     private static int s_sweepCount = 0;
 
@@ -51,7 +54,7 @@ internal sealed class IsolatedAssemblyReferenceSet
     /// </summary>
     private readonly IAnalyzerAssemblyLoaderInternal _shadowCopyLoader;
 
-    private IsolatedAssemblyReferenceSet(
+    private IsolatedAnalyzerReferenceSet(
         ImmutableArray<AnalyzerReference> initialReferences,
         IAnalyzerAssemblyLoaderProvider provider)
     {
@@ -83,7 +86,7 @@ internal sealed class IsolatedAssemblyReferenceSet
     /// <summary>
     /// When the last reference this to this reference set finally goes away, it is safe to unload our loader+ALC.
     /// </summary>
-    ~IsolatedAssemblyReferenceSet()
+    ~IsolatedAnalyzerReferenceSet()
     {
         _shadowCopyLoader.Dispose();
     }
@@ -192,7 +195,7 @@ internal sealed class IsolatedAssemblyReferenceSet
                 return isolatedAssemblyReferenceSet.AnalyzerReferences;
             }
 
-            isolatedAssemblyReferenceSet = new IsolatedAssemblyReferenceSet(analyzerReferences, assemblyLoaderProvider);
+            isolatedAssemblyReferenceSet = new IsolatedAnalyzerReferenceSet(analyzerReferences, assemblyLoaderProvider);
 
             if (weakIsolatedReferenceSet is null)
             {

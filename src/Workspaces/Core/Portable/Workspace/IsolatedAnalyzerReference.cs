@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System.Runtime.Loader;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Serialization;
+namespace Microsoft.CodeAnalysis;
 
 /// <summary>
 /// Wrapper around a real <see cref="AnalyzerReference"/>.  An "isolated" analyzer reference is an analyzer reference
@@ -26,29 +26,29 @@ namespace Microsoft.CodeAnalysis.Serialization;
 /// <remarks>
 /// The purpose of this type is to allow passing out a <see cref="AnalyzerReference"/> to the rest of the system that
 /// then ensures that as long as it is alive (or any <see cref="DiagnosticAnalyzer"/> or <see cref="ISourceGenerator"/>
-/// it passes out is alive), that the <see cref="IsolatedAssemblyReferenceSet"/> (and its corresponding <see
+/// it passes out is alive), that the <see cref="IsolatedAnalyzerReferenceSet"/> (and its corresponding <see
 /// cref="AssemblyLoadContext"/>) is kept alive as well.
 /// </remarks>
 internal sealed class IsolatedAnalyzerReference(
-    IsolatedAssemblyReferenceSet isolatedAssemblyReferenceSet,
+    IsolatedAnalyzerReferenceSet isolatedAnalyzerReferenceSet,
     AnalyzerFileReference underlyingAnalyzerReference)
     : AnalyzerReference
 {
     /// <summary>
     /// Conditional weak tables that ensure that as long as a particular <see cref="DiagnosticAnalyzer"/> or <see
-    /// cref="ISourceGenerator"/> is alive, that the corresponding <see cref="IsolatedAssemblyReferenceSet"/> (and its
+    /// cref="ISourceGenerator"/> is alive, that the corresponding <see cref="IsolatedAnalyzerReferenceSet"/> (and its
     /// corresponding <see cref="AssemblyLoadContext"/> is kept alive.
     /// </summary>
-    private static readonly ConditionalWeakTable<DiagnosticAnalyzer, IsolatedAssemblyReferenceSet> s_analyzerToPinnedReferenceSet = [];
+    private static readonly ConditionalWeakTable<DiagnosticAnalyzer, IsolatedAnalyzerReferenceSet> s_analyzerToPinnedReferenceSet = [];
 
     /// <inheritdoc cref="s_analyzerToPinnedReferenceSet"/>
-    private static readonly ConditionalWeakTable<ISourceGenerator, IsolatedAssemblyReferenceSet> s_generatorToPinnedReferenceSet = [];
+    private static readonly ConditionalWeakTable<ISourceGenerator, IsolatedAnalyzerReferenceSet> s_generatorToPinnedReferenceSet = [];
 
     /// <summary>
     /// We keep a strong reference here.  As long as this <see cref="IsolatedAnalyzerReference"/> is passed out and held
     /// onto (say by a Project instance), it should keep the IsolatedAssemblyReferenceSet (and its ALC) alive.
     /// </summary>
-    private readonly IsolatedAssemblyReferenceSet _isolatedAssemblyReferenceSet = isolatedAssemblyReferenceSet;
+    private readonly IsolatedAnalyzerReferenceSet _isolatedAnalyzerReferenceSet = isolatedAnalyzerReferenceSet;
 
     /// <summary>
     /// The actual real <see cref="AnalyzerReference"/> we defer our operations to.
@@ -82,7 +82,7 @@ internal sealed class IsolatedAnalyzerReference(
         => PinItems(s_generatorToPinnedReferenceSet, getItems, arg);
 
     private ImmutableArray<TItem> PinItems<TItem, TArg>(
-        ConditionalWeakTable<TItem, IsolatedAssemblyReferenceSet> table,
+        ConditionalWeakTable<TItem, IsolatedAnalyzerReferenceSet> table,
         Func<AnalyzerReference, TArg, ImmutableArray<TItem>> getItems,
         TArg arg)
         where TItem : class
@@ -96,7 +96,7 @@ internal sealed class IsolatedAnalyzerReference(
         var items = getItems(this.UnderlyingAnalyzerReference, arg);
 
         foreach (var item in items)
-            table.TryAdd(item, _isolatedAssemblyReferenceSet);
+            table.TryAdd(item, _isolatedAnalyzerReferenceSet);
 
         return items;
     }
