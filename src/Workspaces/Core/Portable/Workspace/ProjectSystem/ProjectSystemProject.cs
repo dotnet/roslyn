@@ -650,10 +650,11 @@ internal sealed partial class ProjectSystemProject
                         newSolution: solutionChanges.Solution.RemoveProjectReference(Id, projectReference));
                 }
 
+                projectUpdateState = UpdateAnalyzerReferences(solutionChanges, projectUpdateState, _analyzersRemovedInBatch, _analyzersAddedInBatch);
+
                 // Analyzer reference removing...
                 if (_analyzersRemovedInBatch.Count > 0)
                 {
-                    projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesRemoved(_analyzersRemovedInBatch);
 
                     foreach (var analyzerReference in _analyzersRemovedInBatch)
                         solutionChanges.UpdateSolutionForProjectAction(Id, solutionChanges.Solution.RemoveAnalyzerReference(Id, analyzerReference));
@@ -662,7 +663,6 @@ internal sealed partial class ProjectSystemProject
                 // Analyzer reference adding...
                 if (_analyzersAddedInBatch.Count > 0)
                 {
-                    projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesAdded(_analyzersAddedInBatch);
 
                     solutionChanges.UpdateSolutionForProjectAction(
                         Id, solutionChanges.Solution.AddAnalyzerReferences(Id, _analyzersAddedInBatch));
@@ -692,7 +692,6 @@ internal sealed partial class ProjectSystemProject
                 ClearAndZeroCapacity(_analyzersRemovedInBatch);
 
                 ClearAndZeroCapacity(_projectPropertyModificationsInBatch);
-
             }).ConfigureAwait(false);
 
             foreach (var (documentId, textContainer) in documentsToOpen)
@@ -711,6 +710,32 @@ internal sealed partial class ProjectSystemProject
             // If we added or removed analyzers, then re-run all generators to bring them up to date.
             if (hasAnalyzerChanges)
                 _projectSystemProjectFactory.Workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
+        }
+
+        static ProjectUpdateState UpdateAnalyzerReferences(
+            SolutionChangeAccumulator solutionChanges,
+            ProjectUpdateState projectUpdateState,
+            List<AnalyzerFileReference> analyzersRemovedInBatch,
+            List<AnalyzerFileReference> analyzersAddedInBatch)
+        {
+            if (analyzersRemovedInBatch.Count == 0 && analyzersAddedInBatch.Count == 0)
+                return;
+
+            var finalReferences = solutionChanges.Solution.AnalyzerReferences
+                .Except(analyzersRemovedInBatch)
+                .Concat(analyzersAddedInBatch)
+                .ToImmutableArray();
+
+            // We are only updating this state object 
+            projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesRemoved(analyzersRemovedInBatch);
+            projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesAdded(analyzersAddedInBatch);
+#if NET
+
+#else
+            
+#endif
+
+            return projectUpdateState;
         }
     }
 
