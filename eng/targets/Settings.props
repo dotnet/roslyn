@@ -41,6 +41,9 @@
 
     <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
     <Nullable>enable</Nullable>
+
+    <!-- Disable the SDK from checking whether we are building against obsolete TFMs. -->
+    <CheckEolTargetFramework>false</CheckEolTargetFramework>
   </PropertyGroup>
 
   <!-- 
