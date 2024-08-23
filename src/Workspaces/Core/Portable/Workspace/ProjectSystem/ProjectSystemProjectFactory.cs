@@ -877,7 +877,7 @@ internal sealed partial class ProjectSystemProjectFactory
         {
             var initialSolution = solutionChanges.Solution;
             var solutionServices = initialSolution.Services;
-            foreach (var project in Workspace.CurrentSolution.Projects)
+            foreach (var project in initialSolution.Projects)
             {
                 // Loop to find each reference with the given path. It's possible that there might be multiple
                 // references of the same path; the project system could conceivably add the same reference multiple
