@@ -46,6 +46,7 @@ stages:
     jobs:
       - job: GitHubCommentFirstJob
         steps:
+          - checkout: none
           - task: GitHubComment@0
             inputs:
               gitHubConnection: 'dotnet-comment-bot-service-connection'
