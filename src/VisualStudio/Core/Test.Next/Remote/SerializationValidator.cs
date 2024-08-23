@@ -71,13 +71,13 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         }
 
         public SolutionAssetStorage AssetStorage { get; }
-        public TestSerializerService Serializer { get; }
+        public ISerializerService Serializer { get; }
         public HostWorkspaceServices Services { get; }
 
         public SerializationValidator(HostWorkspaceServices services)
         {
             AssetStorage = services.GetRequiredService<ISolutionAssetStorageProvider>().AssetStorage;
-            Serializer = (TestSerializerService)services.GetRequiredService<ISerializerService>();
+            Serializer = services.GetRequiredService<ISerializerService>();
             Services = services;
         }
 
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         internal async Task<T> VerifyAssetSerializationAsync<T>(
             Checksum checksum,
             WellKnownSynchronizationKind kind,
-            Func<T, WellKnownSynchronizationKind, TestSerializerService, SolutionAsset> assetGetter)
+            Func<T, WellKnownSynchronizationKind, ISerializerService, SolutionAsset> assetGetter)
         {
             // re-create asset from object
             var syncObject = await GetRequiredAssetAsync(checksum).ConfigureAwait(false);
