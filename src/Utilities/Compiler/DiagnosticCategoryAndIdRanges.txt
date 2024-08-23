@@ -18,7 +18,7 @@ Usage: CA1801, CA1806, CA1816, CA2200-CA2209, CA2211-CA2265
 Naming: CA1700-CA1727
 Interoperability: CA1400-CA1422
 Maintainability: CA1500-CA1515
-Reliability: CA9998-CA9999, CA2000-CA2022
+Reliability: CA9998-CA9999, CA2000-CA2023
 Documentation: CA1200-CA1200
 
 # Microsoft CodeAnalysis API rules
