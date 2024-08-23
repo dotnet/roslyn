@@ -6,10 +6,6 @@ using System;
 using System.Collections.Immutable;
 using System.IO;
 
-#if NET
-using System.Runtime.Loader;
-#endif
-
 namespace Microsoft.CodeAnalysis.Host;
 
 /// <summary>
