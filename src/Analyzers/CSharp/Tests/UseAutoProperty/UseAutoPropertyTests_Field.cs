@@ -16,6 +16,26 @@ public sealed partial class UseAutoPropertyTests
     private readonly ParseOptions Preview = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview);
 
     [Fact]
+    public async Task TestNotInCSharp13()
+    {
+        await TestMissingInRegularAndScriptAsync(
+            """
+            class Class
+            {
+                [|string s|];
+
+                string P
+                {
+                    get
+                    {
+                        return s.Trim();
+                    }
+                }
+            }
+            """, new(parseOptions: CSharp13));
+    }
+
+    [Fact]
     public async Task TestFieldSimplestCase()
     {
         await TestInRegularAndScriptAsync(
@@ -44,7 +64,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: CSharp13);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -76,7 +96,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: CSharp13);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -108,7 +128,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, parseOptions: CSharp13);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -142,13 +162,13 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
     public async Task TestSetterWithMultipleStatementsAndGetterWithSingleStatement_Field()
     {
-        await TestInRegularAndScript1Async(
+        await TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -183,13 +203,13 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
     public async Task TestSetterWithMultipleStatementsAndGetterWithSingleStatement_Field2()
     {
-        await TestInRegularAndScript1Async(
+        await TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -221,13 +241,13 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
     public async Task TestSimpleFieldInExpressionBody()
     {
-        await TestInRegularAndScript1Async(
+        await TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -241,7 +261,7 @@ public sealed partial class UseAutoPropertyTests
             {
                 string P => field.Trim();
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -255,7 +275,7 @@ public sealed partial class UseAutoPropertyTests
 
                 int Total => x + y;
             }
-            """);
+            """, new(parseOptions: Preview));
     }
 
     [Fact]
@@ -277,7 +297,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """);
+            """, new(parseOptions: Preview));
     }
 
     [Fact]
@@ -310,7 +330,7 @@ public sealed partial class UseAutoPropertyTests
                     set;
                 }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -332,7 +352,7 @@ public sealed partial class UseAutoPropertyTests
 
                 int X => field + y;
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -354,7 +374,7 @@ public sealed partial class UseAutoPropertyTests
 
                 int X => field + y;
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -375,7 +395,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """, new TestParameters(parseOptions: Preview));
+            """, new(parseOptions: Preview));
     }
 
     [Fact]
@@ -397,7 +417,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """);
+            """, new(parseOptions: Preview));
     }
 
     [Fact]
@@ -419,7 +439,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """);
+            """, new(parseOptions: Preview));
     }
 
     [Fact]
@@ -445,7 +465,7 @@ public sealed partial class UseAutoPropertyTests
                         throw new ArgumentNullException(nameof(s));
                 }
             }
-            """);
+            """, new(parseOptions: Preview));
     }
 
     [Fact]
@@ -471,7 +491,7 @@ public sealed partial class UseAutoPropertyTests
                         throw new ArgumentNullException(nameof(this.s));
                 }
             }
-            """);
+            """, new(parseOptions: Preview));
     }
 
     [Fact]
@@ -485,7 +505,7 @@ public sealed partial class UseAutoPropertyTests
 
                 string P => s;
             }
-            """);
+            """, new(parseOptions: CSharp13));
     }
 
     [Fact]
@@ -513,7 +533,7 @@ public sealed partial class UseAutoPropertyTests
                 {
                 }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -536,7 +556,7 @@ public sealed partial class UseAutoPropertyTests
                 {
                 }
             }
-            """);
+            """, new(parseOptions: Preview));
     }
 
     [Fact]
@@ -570,7 +590,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -595,7 +615,7 @@ public sealed partial class UseAutoPropertyTests
                     ref string s1 = ref s;
                 }
             }
-            """);
+            """, new(parseOptions: Preview));
     }
 
     [Fact]
@@ -635,7 +655,7 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -663,7 +683,7 @@ public sealed partial class UseAutoPropertyTests
                     int* p = &s;
                 }
             }
-            """);
+            """, new(parseOptions: Preview));
     }
 
     [Fact]
@@ -694,7 +714,7 @@ public sealed partial class UseAutoPropertyTests
                     set;
                 }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -718,7 +738,7 @@ public sealed partial class UseAutoPropertyTests
             {
                 public List<int> List => field ??= new();
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -741,7 +761,7 @@ public sealed partial class UseAutoPropertyTests
             
                 void Set(ref int a, int b) { }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -783,7 +803,7 @@ public sealed partial class UseAutoPropertyTests
                 void Set(ref int a, int b) { }
                 void OnPropChanged() { }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -804,7 +824,7 @@ public sealed partial class UseAutoPropertyTests
                 [field: Something]
                 public int Prop { get; set; }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -825,7 +845,7 @@ public sealed partial class UseAutoPropertyTests
                 [field: Something]
                 public string Prop => field.Trim();
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -849,7 +869,7 @@ public sealed partial class UseAutoPropertyTests
                 [PropAttribute]
                 public string Prop => field.Trim();
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -875,7 +895,7 @@ public sealed partial class UseAutoPropertyTests
                 [PropAttribute]
                 public string Prop => field.Trim();
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -901,7 +921,7 @@ public sealed partial class UseAutoPropertyTests
                 [PropAttribute][PropAttribute2]
                 public string Prop => field.Trim();
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -925,7 +945,7 @@ public sealed partial class UseAutoPropertyTests
                 [field: Something]
                 public string Prop => field.Trim();
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -950,7 +970,7 @@ public sealed partial class UseAutoPropertyTests
                 [field: Something]
                 public string Prop => field.Trim();
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -984,13 +1004,13 @@ public sealed partial class UseAutoPropertyTests
                     }
                 }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
     public async Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere1()
     {
-        await TestInRegularAndScript1Async(
+        await TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1014,13 +1034,13 @@ public sealed partial class UseAutoPropertyTests
                     P = "";
                 }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
     public async Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere2()
     {
-        await TestInRegularAndScript1Async(
+        await TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1044,13 +1064,13 @@ public sealed partial class UseAutoPropertyTests
                     P = "";
                 }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
     public async Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere3()
     {
-        await TestInRegularAndScript1Async(
+        await TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1080,13 +1100,13 @@ public sealed partial class UseAutoPropertyTests
                     P = "";
                 }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
     public async Task TestSimpleFieldInExpressionBody_FieldWrittenElsewhere4()
     {
-        await TestInRegularAndScript1Async(
+        await TestInRegularAndScriptAsync(
             """
             class Class
             {
@@ -1124,7 +1144,7 @@ public sealed partial class UseAutoPropertyTests
                     P = "";
                 }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -1143,7 +1163,7 @@ public sealed partial class UseAutoPropertyTests
                     Console.WriteLine(i);
                 }
             }
-            """);
+            """, new(parseOptions: Preview));
     }
 
     [Fact]
@@ -1162,7 +1182,7 @@ public sealed partial class UseAutoPropertyTests
                     Console.WriteLine(this.i);
                 }
             }
-            """);
+            """, new(parseOptions: Preview));
     }
 
     [Fact]
@@ -1181,7 +1201,7 @@ public sealed partial class UseAutoPropertyTests
                     i = 1;
                 }
             }
-            """);
+            """, new(parseOptions: Preview));
     }
 
     [Fact]
@@ -1200,7 +1220,7 @@ public sealed partial class UseAutoPropertyTests
                     this.i = 1;
                 }
             }
-            """);
+            """, new(parseOptions: Preview));
     }
 
     [Fact]
@@ -1220,7 +1240,7 @@ public sealed partial class UseAutoPropertyTests
             {
                 public int I { get; set => field = value / 2; }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -1239,7 +1259,7 @@ public sealed partial class UseAutoPropertyTests
                     Console.WriteLine(this.i++);
                 }
             }
-            """);
+            """, new(parseOptions: Preview));
     }
 
     [Fact]
@@ -1258,7 +1278,7 @@ public sealed partial class UseAutoPropertyTests
                     Console.WriteLine(this.i++);
                 }
             }
-            """);
+            """, new(parseOptions: Preview));
     }
 
     [Fact]
@@ -1288,7 +1308,7 @@ public sealed partial class UseAutoPropertyTests
                     Console.WriteLine(I);
                 }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -1318,7 +1338,7 @@ public sealed partial class UseAutoPropertyTests
                     I = 1;
                 }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -1337,7 +1357,7 @@ public sealed partial class UseAutoPropertyTests
             {
                 public string Prop => $"{field:prop}";
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -1360,7 +1380,7 @@ public sealed partial class UseAutoPropertyTests
             
                 void M() { Prop = "..."; }
             }
-            """);
+            """, parseOptions: Preview);
     }
 
     [Fact]
@@ -1374,6 +1394,6 @@ public sealed partial class UseAutoPropertyTests
                 [ThisIsMyBackingField(nameof(prop))]
                 public string Prop { get => prop; set => prop = value; }
             }
-            """);
+            """, new(parseOptions: Preview));
     }
 }
