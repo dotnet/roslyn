@@ -6,9 +6,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.IO;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using System.IO;
 
 namespace Microsoft.CodeAnalysis.Remote.Diagnostics;
 
