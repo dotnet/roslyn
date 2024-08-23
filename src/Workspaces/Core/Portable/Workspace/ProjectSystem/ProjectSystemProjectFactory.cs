@@ -420,19 +420,19 @@ internal sealed partial class ProjectSystemProjectFactory
 
         // Remove file watchers for any references we're no longer watching.
         foreach (var reference in projectUpdateState.RemovedMetadataReferences)
-            FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference);
+            FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!, referenceToTrack: reference);
 
         // Add file watchers for any references we are now watching.
         foreach (var reference in projectUpdateState.AddedMetadataReferences)
-            FileWatchedPortableExecutableReferenceFactory.StartWatchingReference(reference, reference.FilePath!);
+            FileWatchedPortableExecutableReferenceFactory.StartWatchingReference(reference.FilePath!);
 
         // Remove file watchers for any references we're no longer watching.
-        foreach (var reference in projectUpdateState.RemovedAnalyzerReferences)
-            FileWatchedAnalyzerReferenceFactory.StopWatchingReference(reference);
+        foreach (var referenceFullPath in projectUpdateState.RemovedAnalyzerReferences)
+            FileWatchedAnalyzerReferenceFactory.StopWatchingReference(referenceFullPath, referenceToTrack: null);
 
         // Add file watchers for any references we are now watching.
-        foreach (var reference in projectUpdateState.AddedAnalyzerReferences)
-            FileWatchedAnalyzerReferenceFactory.StartWatchingReference(reference, reference.FullPath);
+        foreach (var referenceFullPath in projectUpdateState.AddedAnalyzerReferences)
+            FileWatchedAnalyzerReferenceFactory.StartWatchingReference(referenceFullPath);
 
         // Clear the state from the this update in preparation for the next.
         projectUpdateState = projectUpdateState.ClearIncrementalState();
@@ -817,27 +817,47 @@ internal sealed partial class ProjectSystemProjectFactory
             fullFilePath,
             getReferences: static project => project.MetadataReferences.OfType<PortableExecutableReference>(),
             getFilePath: static reference => reference.FilePath!,
-            createNewReference: static (@this, reference) => CreateMetadataReference_NoLock(reference.FilePath!, reference.Properties, @this.SolutionServices),
-            updateState: static (projectUpdateState, oldReference, newReference) => projectUpdateState
-                .WithIncrementalMetadataReferenceRemoved(oldReference)
-                .WithIncrementalMetadataReferenceAdded(newReference),
-            updateSolution: static (solution, projectId, oldReference, newReference) => solution
-                .RemoveMetadataReference(projectId, oldReference)
-                .AddMetadataReference(projectId, newReference),
+            createNewReference: static (solutionServices, reference) => CreateMetadataReference_NoLock(reference.FilePath!, reference.Properties, solutionServices),
+            update: static (solution, projectId, projectUpdateState, oldReference, newReference) =>
+            {
+                var newSolution = solution
+                    .RemoveMetadataReference(projectId, oldReference)
+                    .AddMetadataReference(projectId, newReference);
+                var newProjectUpdateState = projectUpdateState
+                    .WithIncrementalMetadataReferenceRemoved(oldReference)
+                    .WithIncrementalMetadataReferenceAdded(newReference);
+
+                return (newSolution, newProjectUpdateState);
+            },
             cancellationToken);
 
     private Task StartRefreshingAnalyzerReferenceForFileAsync(string fullFilePath, CancellationToken cancellationToken)
         => StartRefreshingReferencesForFileAsync(
             fullFilePath,
-            getReferences: static project => project.AnalyzerReferences.OfType<AnalyzerFileReference>(),
-            getFilePath: static reference => reference.FullPath,
-            createNewReference: static (@this, reference) => new AnalyzerFileReference(reference.FullPath, @this.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>().GetShadowCopyLoader()),
-            updateState: static (projectUpdateState, oldReference, newReference) => projectUpdateState
-                .WithIncrementalAnalyzerReferenceRemoved(oldReference)
-                .WithIncrementalAnalyzerReferenceAdded(newReference),
-            updateSolution: static (solution, projectId, oldReference, newReference) => solution
-                .RemoveAnalyzerReference(projectId, oldReference)
-                .AddAnalyzerReference(projectId, newReference),
+            getReferences: static project => project.AnalyzerReferences.Select(r => r.FullPath!),
+            getFilePath: static fullPath => fullPath,
+            createNewReference: static (_, fullPath) => fullPath,
+            update: static (solution, projectId, projectUpdateState, oldReferenceFullPath, newReferenceFullPath) =>
+            {
+                // it's expected that the old and new paths are the same here.  The idea is that we changed a file on
+                // disk, so of course the path will be the same.
+                Contract.ThrowIfTrue(oldReferenceFullPath != newReferenceFullPath);
+
+                var assemblyLoaderProvider = solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+
+                var project = solution.GetRequiredProject(projectId);
+                var oldAnalyzerReference = project.AnalyzerReferences.First(r => r.FullPath == oldReferenceFullPath);
+                var newAnalyzerReference = new AnalyzerFileReference(oldReferenceFullPath, assemblyLoaderProvider.GetShadowCopyLoader());
+
+                var newSolution = solution
+                    .RemoveAnalyzerReference(projectId, oldAnalyzerReference)
+                    .AddAnalyzerReference(projectId, newAnalyzerReference);
+                var newProjectUpdateState = projectUpdateState
+                    .WithIncrementalAnalyzerReferenceRemoved(oldReferenceFullPath)
+                    .WithIncrementalAnalyzerReferenceAdded(newReferenceFullPath);
+
+                return (newSolution, newProjectUpdateState);
+            },
             cancellationToken);
 
     /// <summary>
@@ -848,15 +868,15 @@ internal sealed partial class ProjectSystemProjectFactory
         string fullFilePath,
         Func<Project, IEnumerable<TReference>> getReferences,
         Func<TReference, string> getFilePath,
-        Func<ProjectSystemProjectFactory, TReference, TReference> createNewReference,
-        Func<ProjectUpdateState, TReference, TReference, ProjectUpdateState> updateState,
-        Func<Solution, ProjectId, TReference, TReference, Solution> updateSolution,
+        Func<SolutionServices, TReference, TReference> createNewReference,
+        Func<Solution, ProjectId, ProjectUpdateState, TReference, TReference, (Solution newSolution, ProjectUpdateState newProjectUpdateState)> update,
         CancellationToken cancellationToken)
         where TReference : class
     {
         await ApplyBatchChangeToWorkspaceAsync((solutionChanges, projectUpdateState) =>
         {
-            // Access the current update state under the workspace lock.
+            var initialSolution = solutionChanges.Solution;
+            var solutionServices = initialSolution.Services;
             foreach (var project in Workspace.CurrentSolution.Projects)
             {
                 // Loop to find each reference with the given path. It's possible that there might be multiple
@@ -864,17 +884,17 @@ internal sealed partial class ProjectSystemProjectFactory
                 // times but with different aliases. It's also possible we might not find the path at all: when we
                 // receive the file changed event, we aren't checking if the file is still in the workspace at that
                 // time; it's possible it might have already been removed.
-                foreach (var reference in getReferences(project))
+                foreach (var oldReference in getReferences(project))
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (getFilePath(reference) == fullFilePath)
+                    if (getFilePath(oldReference) == fullFilePath)
                     {
-                        var newReference = createNewReference(this, reference);
+                        var newReference = createNewReference(solutionServices, oldReference);
 
-                        projectUpdateState = updateState(projectUpdateState, reference, newReference);
+                        var newSolution = solutionChanges.Solution;
+                        (newSolution, projectUpdateState) = update(newSolution, project.Id, projectUpdateState, oldReference, newReference);
 
-                        var newSolution = updateSolution(solutionChanges.Solution, project.Id, reference, newReference);
                         solutionChanges.UpdateSolutionForProjectAction(project.Id, newSolution);
                     }
                 }
