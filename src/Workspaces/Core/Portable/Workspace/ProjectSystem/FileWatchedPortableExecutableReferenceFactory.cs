@@ -132,16 +132,23 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     /// 0, the file watcher will be stopped. This is *not* safe to attempt to call multiple times for the same project
     /// and reference (e.g. in applying workspace updates)
     /// </summary>
-    public void StopWatchingReference(TReference reference, string fullFilePath, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = 0)
+    public void StopWatchingReference(string fullFilePath, TReference? referenceToTrack, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = 0)
     {
         lock (_gate)
         {
             var disposalLocation = callerFilePath + ", line " + callerLineNumber;
             if (!_referenceFileWatchingTokens.TryGetValue(fullFilePath, out var watchedFileReference))
             {
-                // We're attempting to stop watching a file that we never started watching. This is a bug.
-                var existingDisposalStackTrace = _previousDisposalLocations.TryGetValue(reference, out var previousDisposalLocation);
-                throw new ArgumentException("The reference was already disposed at " + previousDisposalLocation);
+                if (referenceToTrack != null)
+                {
+                    // We're attempting to stop watching a file that we never started watching. This is a bug.
+                    var existingDisposalStackTrace = _previousDisposalLocations.TryGetValue(referenceToTrack, out var previousDisposalLocation);
+                    throw new ArgumentException("The reference was already disposed at " + previousDisposalLocation);
+                }
+                else
+                {
+                    throw new ArgumentException("Attempting to stop watching a file that we never started watching. This is a bug.");
+                }
             }
 
             var newRefCount = watchedFileReference.RefCount - 1;
@@ -152,8 +159,11 @@ internal sealed class FileWatchedReferenceFactory<TReference>
                 watchedFileReference.Token.Dispose();
                 _referenceFileWatchingTokens.Remove(fullFilePath);
 
-                _previousDisposalLocations.Remove(reference);
-                _previousDisposalLocations.Add(reference, disposalLocation);
+                if (referenceToTrack != null)
+                {
+                    _previousDisposalLocations.Remove(referenceToTrack);
+                    _previousDisposalLocations.Add(referenceToTrack, disposalLocation);
+                }
             }
             else
             {
