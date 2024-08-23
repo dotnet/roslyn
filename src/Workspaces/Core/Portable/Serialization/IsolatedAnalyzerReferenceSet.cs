@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Runtime.Loader;
 using System.Threading;
 using System.Threading.Tasks;
@@ -68,20 +67,15 @@ internal sealed class IsolatedAssemblyReferenceSet
                 : initialReference;
 
             // If we have an existing file reference, make a new one with a different loader/ALC.  Otherwise, it's some
-            // other analyzer reference we don't understand (like 
-
-            var underlyingAnalyzerReference = analyzerReference is AnalyzerFileReference analyzerFileReference
-                ? new AnalyzerFileReference(analyzerFileReference.FullPath, _shadowCopyLoader)
+            // other analyzer reference we don't understand (like an in-memory one created in tests).
+            var finalReference = analyzerReference is AnalyzerFileReference analyzerFileReference
+                ? new IsolatedAnalyzerReference(this, new AnalyzerFileReference(analyzerFileReference.FullPath, _shadowCopyLoader))
                 : initialReference;
 
-            // Create a special wrapped analyzer reference here.  It will ensure that any DiagnosticAnalyzers and
-            // ISourceGenerators handed out will keep this IsolatedAssemblyReferenceSet alive.
-
-            var isolatedReference = new IsolatedAnalyzerReference(this, underlyingAnalyzerReference);
-            builder.Add(isolatedReference);
+            builder.Add(finalReference);
         }
 
-        _analyzerReferences = builder.MoveToImmutable();
+        this.AnalyzerReferences = builder.MoveToImmutable();
     }
 
     /// <summary>
