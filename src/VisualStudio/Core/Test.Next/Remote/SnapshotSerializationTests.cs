@@ -684,8 +684,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             using var stream = SerializableBytes.CreateWritableStream();
             using (var writer = new ObjectWriter(stream, leaveOpen: true))
             {
-                testSerializer.GetTestAccessor().Serialize(
-                    asset.Value, writer, forTesting: true);
+                testSerializer.Serialize(asset.Value, writer, CancellationToken.None);
             }
 
             stream.Position = 0;
@@ -693,7 +692,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             var recovered = serializer.Deserialize(asset.Kind, reader, CancellationToken.None);
             var checksum = recovered is SerializableSourceText text
                 ? text.ContentChecksum
-                : testSerializer.GetTestAccessor().CreateChecksum(recovered, forTesting: true);
+                : testSerializer.CreateChecksum(recovered, CancellationToken.None);
 
             var assetFromStorage = new SolutionAsset(checksum, recovered);
 

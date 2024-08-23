@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
         public async Task<Solution> GetSolutionAsync(SolutionAssetStorage.Scope scope)
         {
             var solutionInfo = await new AssetProvider(this).CreateSolutionInfoAsync(
-                scope.SolutionChecksum, this.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>(), CancellationToken.None).ConfigureAwait(false);
+                scope.SolutionChecksum, this.Services.SolutionServices, CancellationToken.None).ConfigureAwait(false);
 
             var workspace = new AdhocWorkspace(Services.HostServices);
             return workspace.AddSolution(solutionInfo);
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Remote.UnitTests
             {
                 await VerifyAssetSerializationAsync<AnalyzerReference>(
                     checksum, WellKnownSynchronizationKind.AnalyzerReference,
-                    (v, k, s) => new SolutionAsset(s.GetTestAccessor().CreateChecksum(v, forTesting: true), v));
+                    (v, k, s) => new SolutionAsset(s.CreateChecksum(v, CancellationToken.None), v));
             }
 
             foreach (var (attributeChecksum, textChecksum, documentId) in projectObject.Documents)
