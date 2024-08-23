@@ -89,8 +89,6 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
             else
             {
                 writer.WriteGuid(Guid.Empty);
-
-                // During testing, write out analyzer guids when writing out serialized references so that tests can validate they have expected values.
                 base.WriteAnalyzerReferenceTo(reference, writer);
             }
         }
