@@ -96,12 +96,15 @@ stages:
       pool:
         # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
         ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-          name: VSEngSS-MicroBuild2022-1ES
+          name: AzurePipelines-EO
+          image: 1ESPT-Windows2022
           demands: Cmd
+          os: windows
         # If it's not devdiv, it's dnceng
         ${{ if ne(variables['System.TeamProject'], 'DevDiv') }}:
           name: NetCore1ESPool-Svc-Internal
-          demands: ImageOverride -equals windows.vs2019.amd64
+          image: 1es-windows-2022
+          os: windows
 
       steps:
         - template: setup-maestro-vars.yml
@@ -132,12 +135,15 @@ stages:
       pool:
         # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
         ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-          name: VSEngSS-MicroBuild2022-1ES
+          name: AzurePipelines-EO
+          image: 1ESPT-Windows2022
           demands: Cmd
+          os: windows
         # If it's not devdiv, it's dnceng
         ${{ if ne(variables['System.TeamProject'], 'DevDiv') }}:
           name: NetCore1ESPool-Svc-Internal
-          demands: ImageOverride -equals windows.vs2019.amd64
+          image: 1es-windows-2022
+          os: windows
       steps:
         - template: setup-maestro-vars.yml
           parameters:
@@ -192,12 +198,15 @@ stages:
       pool:
         # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
         ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-          name: VSEngSS-MicroBuild2022-1ES
+          name: AzurePipelines-EO
+          image: 1ESPT-Windows2022
           demands: Cmd
+          os: windows
         # If it's not devdiv, it's dnceng
         ${{ if ne(variables['System.TeamProject'], 'DevDiv') }}:
           name: NetCore1ESPool-Svc-Internal
-          demands: ImageOverride -equals windows.vs2019.amd64
+          image: 1es-windows-2022
+          os: windows
       steps:
         - template: setup-maestro-vars.yml
           parameters:
@@ -226,14 +235,6 @@ stages:
               -SourcelinkCliVersion $(SourceLinkCLIVersion)
           continueOnError: true
 
-    - template: /eng/common/templates/job/execute-sdl.yml
-      parameters:
-        enable: ${{ parameters.SDLValidationParameters.enable }}
-        additionalParameters: ${{ parameters.SDLValidationParameters.params }}
-        continueOnError: ${{ parameters.SDLValidationParameters.continueOnError }}
-        artifactNames: ${{ parameters.SDLValidationParameters.artifactNames }}
-        downloadArtifacts: ${{ parameters.SDLValidationParameters.downloadArtifacts }}
-
 - stage: publish_using_darc
   ${{ if or(eq(parameters.enableNugetValidation, 'true'), eq(parameters.enableSigningValidation, 'true'), eq(parameters.enableSourceLinkValidation, 'true'), eq(parameters.SDLValidationParameters.enable, 'true')) }}:
     dependsOn: ${{ parameters.publishDependsOn }}
@@ -249,12 +250,15 @@ stages:
     pool:
       # We don't use the collection uri here because it might vary (.visualstudio.com vs. dev.azure.com)
         ${{ if eq(variables['System.TeamProject'], 'DevDiv') }}:
-          name: VSEngSS-MicroBuild2022-1ES
+          name: AzurePipelines-EO
+          image: 1ESPT-Windows2022
           demands: Cmd
+          os: windows
         # If it's not devdiv, it's dnceng
         ${{ else }}:
-          name: NetCore1ESPool-Publishing-Internal
-          demands: ImageOverride -equals windows.vs2019.amd64
+          name: NetCore1ESPool-Svc-Internal
+          image: 1es-windows-2022
+          os: windows
     steps:
       - template: setup-maestro-vars.yml
         parameters:
@@ -268,8 +272,7 @@ stages:
           scriptType: ps
           scriptLocation: scriptPath
           scriptPath: $(Build.SourcesDirectory)/eng/common/post-build/publish-using-darc.ps1
-          arguments: >
-            -BuildId $(BARBuildId)
+          arguments: -BuildId $(BARBuildId)
             -PublishingInfraVersion ${{ parameters.publishingInfraVersion }}
             -AzdoToken '$(System.AccessToken)'
             -WaitPublishingFinish true
