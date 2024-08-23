@@ -45,24 +45,20 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     private readonly ConditionalWeakTable<TReference, string> _previousDisposalLocations = new();
 
     private readonly AsyncBatchingWorkQueue<string> _workQueue;
-    /// <summary>
-    /// <see cref="CancellationTokenSource"/>s for in-flight refreshing of metadata references. When we see a file
-    /// change, we wait a bit before trying to actually update the workspace. We need cancellation tokens for those so
-    /// we can cancel them either when a flurry of events come in (so we only do the delay after the last modification),
-    /// or when we know the project is going away entirely.
-    /// </summary>
-    private readonly Dictionary<string, CancellationTokenSource> _referenceRefreshCancellationTokenSources = [];
 
-    private ImmutableArray<Func<string, CancellationToken, Task>> _callbacks = [];
+    private readonly Func<string, CancellationToken, Task> _callback;
 
     public FileWatchedReferenceFactory(
         IFileChangeWatcher fileChangeWatcher,
         IAsynchronousOperationListener asyncListener,
+        Func<string, CancellationToken, Task> callback,
         CancellationToken cancellationToken)
     {
+        _callback = callback;
         _workQueue = new AsyncBatchingWorkQueue<string>(
             TimeSpan.FromSeconds(5),
             ProcessWorkAsync,
+            // Dedupe notifications for the same file path
             EqualityComparer<string>.Default,
             asyncListener,
             cancellationToken);
@@ -76,7 +72,6 @@ internal sealed class FileWatchedReferenceFactory<TReference>
 
         static ImmutableArray<WatchedDirectory> GetAdditionalWatchedDirectories()
         {
-
             using var _ = PooledHashSet<string>.GetInstance(out var referenceDirectories);
 
             // On each platform, there is a place that reference assemblies for the framework are installed. These are
@@ -117,9 +112,6 @@ internal sealed class FileWatchedReferenceFactory<TReference>
             return referenceDirectories.SelectAsArray(static d => new WatchedDirectory(d, ".dll"));
         }
     }
-
-    public void AddListener(Func<string, CancellationToken, Task> callback)
-        => _callbacks = _callbacks.Add(callback);
 
     /// <summary>
     /// Starts watching a particular <typeparamref name="TReference"/> for changes to the file. If this is already being
@@ -189,10 +181,7 @@ internal sealed class FileWatchedReferenceFactory<TReference>
 
     private async ValueTask ProcessWorkAsync(ImmutableSegmentedList<string> list, CancellationToken cancellationToken)
     {
-        foreach (var callback in _callbacks)
-        {
-            foreach (var filePath in list)
-                await callback(filePath, cancellationToken).ConfigureAwait(false);
-        }
+        foreach (var filePath in list)
+            await _callback(filePath, cancellationToken).ConfigureAwait(false);
     }
 }
