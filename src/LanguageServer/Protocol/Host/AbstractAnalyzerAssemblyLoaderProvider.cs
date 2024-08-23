@@ -28,11 +28,8 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
         _externalResolvers = externalResolvers;
     }
 
-    internal static string GetPath()
-        => Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader");
-
     public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader => _sharedShadowCopyLoader.Value;
 
     public virtual IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
-        => DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(GetPath(), _externalResolvers);
+        => DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(Path.Combine(Path.GetTempPath(), "Host", "AnalyzerAssemblyLoader"), _externalResolvers);
 }

@@ -8,6 +8,8 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using System.IO;
+
 
 #if NET
 using System.Runtime.Loader;
@@ -25,18 +27,18 @@ internal sealed class RemoteAnalyzerAssemblyLoaderService(
     [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
     : IAnalyzerAssemblyLoaderProvider
 {
-    private static string GetPath()
-        // Intentionally using the same path that the host uses by default.  We can load from the same shadow copy
-        // locations as they're already appropriately isolated.
-        => AbstractAnalyzerAssemblyLoaderProvider.GetPath();
-
     /// <summary>
     /// Default shared instance, for all callers who do not want to provide a custom AssemblyLoadContext.
     /// </summary>
     public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader { get; } = CreateLoader(externalResolvers);
 
     private static ShadowCopyAnalyzerAssemblyLoader CreateLoader(IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
-        => new(GetPath(), externalResolvers.ToImmutableArray());
+        // Note: we use a different path here than what is used on the host.  First, using the same path wouldn't
+        // actually provide any benefits, as the shadow copy system already always makes a unique guid-based directory
+        // under the base directory passed in.  Second, every fresh loader attempts to delete the other directories off
+        // of this base as a cleanup pass.  We don't want the host or the remote side cleaning up the other as each
+        // already handles that, and this just ends up with more IO exceptions trying to cleanup locked directories.
+        => new(Path.Combine(Path.GetTempPath(), "Remote", "AnalyzerAssemblyLoader"), externalResolvers.ToImmutableArray());
 
 #if NET
     public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
