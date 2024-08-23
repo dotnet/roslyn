@@ -55,7 +55,7 @@ internal abstract class AbstractAssetProvider
         // Deserialize the analyzer references, then wrap them in a new isolated analyzer reference set that has its own ALC
         var analyzerReference = await this.GetAssetsArrayAsync<AnalyzerReference>(
             AssetPathKind.SolutionAnalyzerReferences, solutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
-        var isolatedAnalyzerReferences = await IsolatedAssemblyReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
+        var isolatedAnalyzerReferences = await IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
             useAsync: true, analyzerReference, solutionServices, cancellationToken).ConfigureAwait(false);
 
         var fallbackAnalyzerOptions = await GetAssetAsync<ImmutableDictionary<string, StructuredAnalyzerConfigOptions>>(AssetPathKind.SolutionFallbackAnalyzerOptions, solutionChecksums.FallbackAnalyzerOptions, cancellationToken).ConfigureAwait(false);
@@ -100,7 +100,7 @@ internal abstract class AbstractAssetProvider
         var analyzerConfigDocumentInfosTask = CreateDocumentInfosAsync(projectChecksums.AnalyzerConfigDocuments);
 
         // Deserialize the analyzer references, then wrap them in a new isolated analyzer reference set that has its own ALC.
-        var isolatedAnalyzerReferencesTask = IsolatedAssemblyReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
+        var isolatedAnalyzerReferencesTask = IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
             useAsync: true,
             await analyzerReferencesTask.ConfigureAwait(false),
             solutionServices,

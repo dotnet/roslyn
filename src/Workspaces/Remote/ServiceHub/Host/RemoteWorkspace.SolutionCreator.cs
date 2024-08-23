@@ -72,7 +72,7 @@ internal partial class RemoteWorkspace
                     // their own ALC that they can cleanly load (and unload) from.
                     var deserializedAnalyzerReferences = await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
                         AssetPathKind.SolutionAnalyzerReferences, newSolutionChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
-                    var isolatedAnalyzerReferences = await IsolatedAssemblyReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
+                    var isolatedAnalyzerReferences = await IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
                         useAsync: true, deserializedAnalyzerReferences, this.Workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
 
                     solution = solution.WithAnalyzerReferences(isolatedAnalyzerReferences);
@@ -383,7 +383,7 @@ internal partial class RemoteWorkspace
                 var deserializedAnalyzerReferences = await _assetProvider.GetAssetsArrayAsync<AnalyzerReference>(
                     assetPath: project.Id, newProjectChecksums.AnalyzerReferences, cancellationToken).ConfigureAwait(false);
 
-                var isolatedAnalyzerReferences = await IsolatedAssemblyReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
+                var isolatedAnalyzerReferences = await IsolatedAnalyzerReferenceSet.CreateIsolatedAnalyzerReferencesAsync(
                     useAsync: true, deserializedAnalyzerReferences, this.Workspace.Services.SolutionServices, cancellationToken).ConfigureAwait(false);
 
                 project = project.WithAnalyzerReferences(isolatedAnalyzerReferences);

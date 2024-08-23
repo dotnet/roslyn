@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
                 ? s_wellKnownReferences[reader.ReadRequiredString()]
                 : base.ReadMetadataReferenceFrom(reader);
 
-        protected override Checksum CreateChecksum(AnalyzerReference reference, bool forTesting)
+        protected override Checksum CreateChecksum(AnalyzerReference reference)
         {
 #if NET
             // If we're in the oop side and we're being asked to produce our local checksum (so we can compare it to the
@@ -75,10 +75,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
 
             return reference is TestGeneratorReference generatorReference
                 ? generatorReference.Checksum
-                : base.CreateChecksum(reference, forTesting);
+                : base.CreateChecksum(reference);
         }
 
-        protected override void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer, bool _)
+        protected override void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer)
         {
             if (reference is TestGeneratorReference generatorReference)
             {
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
                 writer.WriteGuid(Guid.Empty);
 
                 // During testing, write out analyzer guids when writing out serialized references so that tests can validate they have expected values.
-                base.WriteAnalyzerReferenceTo(reference, writer, forTesting: true);
+                base.WriteAnalyzerReferenceTo(reference, writer);
             }
         }
 
