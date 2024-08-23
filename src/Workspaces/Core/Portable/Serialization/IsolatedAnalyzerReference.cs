@@ -9,6 +9,7 @@ using System.Collections.Immutable;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics;
 using System.Runtime.Loader;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization;
 
@@ -58,39 +59,45 @@ internal sealed class IsolatedAnalyzerReference(
     public override object Id => UnderlyingAnalyzerReference.Id;
 
     public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
-        => PinAnalyzers(UnderlyingAnalyzerReference.GetAnalyzers(language));
+        => PinAnalyzers(static (reference, language) => reference.GetAnalyzers(language), language);
 
     public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzersForAllLanguages()
-        => PinAnalyzers(UnderlyingAnalyzerReference.GetAnalyzersForAllLanguages());
+        => PinAnalyzers(static (reference, _) => reference.GetAnalyzersForAllLanguages(), default(VoidResult));
 
     [Obsolete]
     public override ImmutableArray<ISourceGenerator> GetGenerators()
-        => PinGenerators(UnderlyingAnalyzerReference.GetGenerators());
+        => PinGenerators(static (reference, _) => reference.GetGenerators(), default(VoidResult));
 
     public override ImmutableArray<ISourceGenerator> GetGenerators(string language)
-        => PinGenerators(UnderlyingAnalyzerReference.GetGenerators(language));
+        => PinGenerators(static (reference, language) => reference.GetGenerators(language), language);
 
     public override ImmutableArray<ISourceGenerator> GetGeneratorsForAllLanguages()
-        => PinGenerators(UnderlyingAnalyzerReference.GetGeneratorsForAllLanguages());
+        => PinGenerators(static (reference, _) => reference.GetGeneratorsForAllLanguages(), default(VoidResult));
 
-    private ImmutableArray<ISourceGenerator> PinGenerators(ImmutableArray<ISourceGenerator> generators)
+    private ImmutableArray<DiagnosticAnalyzer> PinAnalyzers<TArg>(Func<AnalyzerReference, TArg, ImmutableArray<DiagnosticAnalyzer>> getItems, TArg arg)
+        => PinItems(s_analyzerToPinnedReferenceSet, getItems, arg);
+
+    private ImmutableArray<ISourceGenerator> PinGenerators<TArg>(Func<AnalyzerReference, TArg, ImmutableArray<ISourceGenerator>> getItems, TArg arg)
+        => PinItems(s_generatorToPinnedReferenceSet, getItems, arg);
+
+    private ImmutableArray<TItem> PinItems<TItem, TArg>(
+        ConditionalWeakTable<TItem, IsolatedAssemblyReferenceSet> table,
+        Func<AnalyzerReference, TArg, ImmutableArray<TItem>> getItems,
+        TArg arg)
+        where TItem : class
     {
-        // Keep a reference from each generator to the IsolatedAssemblyReferenceSet.  This will ensure it (and
-        // the ALC it points at) stays alive as long as the generator instance stays alive.
-        foreach (var generator in generators)
-            s_generatorToPinnedReferenceSet.TryAdd(generator, _isolatedAssemblyReferenceSet);
+        // Note: we want to keep ourselves alive during this call so that neither we nor our reference set get GC'ed
+        // while we're computing the items.
+        GC.KeepAlive(this);
 
-        return generators;
-    }
+        // Keep a reference from each generator to the IsolatedAssemblyReferenceSet.  This will ensure it (and the ALC
+        // it points at) stays alive as long as the generator instance stays alive.
+        var items = getItems(this.UnderlyingAnalyzerReference, arg);
 
-    private ImmutableArray<DiagnosticAnalyzer> PinAnalyzers(ImmutableArray<DiagnosticAnalyzer> analyzers)
-    {
-        // Keep a reference from each analyzer to the IsolatedAssemblyReferenceSet.  This will ensure it (and
-        // the ALC it points at) stays alive as long as the generator instance stays alive.
-        foreach (var analyzer in analyzers)
-            s_analyzerToPinnedReferenceSet.TryAdd(analyzer, _isolatedAssemblyReferenceSet);
+        foreach (var item in items)
+            table.TryAdd(item, _isolatedAssemblyReferenceSet);
 
-        return analyzers;
+        return items;
     }
 
     public override bool Equals(object? obj)
