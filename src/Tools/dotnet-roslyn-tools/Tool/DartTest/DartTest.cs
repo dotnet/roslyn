@@ -37,6 +37,7 @@ internal static class DartTest
         var azureBranchName = $"dart-test/{prNumber}";
         var product = VSBranchInfo.AllProducts.Single(p => p.Name.Equals(productName, StringComparison.OrdinalIgnoreCase));
 
+        // If the user doesn't pass the SHA, retrieve the most recent from the PR.
         if (sha is null)
         {
             if (product.Name.Equals("roslyn", StringComparison.OrdinalIgnoreCase))
@@ -83,7 +84,7 @@ internal static class DartTest
 
         string GetPipelineName()
         {
-            switch (product.Name)
+            switch (product.Name.ToLower())
             {
                 case "roslyn":
                     return "Roslyn Integration CI DartLab";
@@ -97,7 +98,7 @@ internal static class DartTest
     {
         try
         {
-            var requestUri = $"/repos/dotnet/roslyn/pulls/{prNumber}";
+            var requestUri = $"/repos/dotnet/{product.Name.ToLower()}/pulls/{prNumber}";
             var response = await gitHubClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false);
 
             if (response.IsSuccessStatusCode)
