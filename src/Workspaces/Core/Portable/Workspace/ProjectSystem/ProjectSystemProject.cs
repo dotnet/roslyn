@@ -1022,8 +1022,8 @@ internal sealed partial class ProjectSystemProject
             {
                 _projectAnalyzerPaths.Remove(mappedFullPath);
 
-                // This analyzer may be one we've just added in the same batch; in that case, just don't add it in the
-                // first place.
+                // This analyzer may be one we've just added in the same batch; in that case, just don't add it in
+                // the first place.
                 if (!_analyzersAddedInBatch.Remove(mappedFullPath))
                     _analyzersRemovedInBatch.Add(mappedFullPath);
             }
