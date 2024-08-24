@@ -588,7 +588,7 @@ internal sealed partial class ProjectSystemProject
                     Id, solutionChanges, _projectReferencesRemovedInBatch, _projectReferencesAddedInBatch);
 
                 projectUpdateState = UpdateAnalyzerReferences(
-                    projectBeforeMutations, solutionChanges, projectUpdateState, _analyzersRemovedInBatch, _analyzersAddedInBatch);
+                    Id, solutionChanges, projectUpdateState, _analyzersRemovedInBatch, _analyzersAddedInBatch);
 
                 // Other property modifications...
                 foreach (var propertyModification in _projectPropertyModificationsInBatch)
@@ -718,7 +718,7 @@ internal sealed partial class ProjectSystemProject
         }
 
         static ProjectUpdateState UpdateAnalyzerReferences(
-            Project projectBeforeMutation,
+            ProjectId projectId,
             SolutionChangeAccumulator solutionChanges,
             ProjectUpdateState projectUpdateState,
             List<string> analyzersRemovedInBatch,
@@ -726,8 +726,6 @@ internal sealed partial class ProjectSystemProject
         {
             if (analyzersRemovedInBatch.Count == 0 && analyzersAddedInBatch.Count == 0)
                 return projectUpdateState;
-
-            var projectId = projectBeforeMutation.Id;
 
             // Use shared helper to figure out the new forked state.
             var (newSolution, newProjectUpdateState) = UpdateProjectAnalyzerReferences(
