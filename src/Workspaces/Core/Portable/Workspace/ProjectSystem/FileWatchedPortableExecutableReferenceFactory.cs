@@ -10,7 +10,9 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ProjectSystem;
@@ -42,31 +44,34 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     /// </remarks>
     private readonly ConditionalWeakTable<TReference, string> _previousDisposalLocations = new();
 
-    /// <summary>
-    /// <see cref="CancellationTokenSource"/>s for in-flight refreshing of metadata references. When we see a file
-    /// change, we wait a bit before trying to actually update the workspace. We need cancellation tokens for those so
-    /// we can cancel them either when a flurry of events come in (so we only do the delay after the last modification),
-    /// or when we know the project is going away entirely.
-    /// </summary>
-    private readonly Dictionary<string, CancellationTokenSource> _referenceRefreshCancellationTokenSources = [];
+    private readonly AsyncBatchingWorkQueue<string> _workQueue;
 
-    /// <summary>
-    /// Notification when a reference changes on disk.  The string value is the full file path of the changed reference.
-    /// </summary>
-    public event EventHandler<string>? ReferenceChanged;
+    private readonly Func<string, CancellationToken, Task> _callback;
 
-    public FileWatchedReferenceFactory(IFileChangeWatcher fileChangeWatcher)
+    public FileWatchedReferenceFactory(
+        IFileChangeWatcher fileChangeWatcher,
+        IAsynchronousOperationListener asyncListener,
+        Func<string, CancellationToken, Task> callback,
+        CancellationToken cancellationToken)
     {
+        _callback = callback;
+        _workQueue = new AsyncBatchingWorkQueue<string>(
+            TimeSpan.FromSeconds(5),
+            ProcessWorkAsync,
+            // Dedupe notifications for the same file path
+            EqualityComparer<string>.Default,
+            asyncListener,
+            cancellationToken);
+
         _fileReferenceChangeContext = new Lazy<IFileChangeContext>(() =>
         {
             var fileReferenceChangeContext = fileChangeWatcher.CreateContext(GetAdditionalWatchedDirectories());
-            fileReferenceChangeContext.FileChanged += FileReferenceChangeContext_FileChanged;
+            fileReferenceChangeContext.FileChanged += (s, e) => _workQueue.AddWork(e);
             return fileReferenceChangeContext;
         });
 
         static ImmutableArray<WatchedDirectory> GetAdditionalWatchedDirectories()
         {
-
             using var _ = PooledHashSet<string>.GetInstance(out var referenceDirectories);
 
             // On each platform, there is a place that reference assemblies for the framework are installed. These are
@@ -132,16 +137,23 @@ internal sealed class FileWatchedReferenceFactory<TReference>
     /// 0, the file watcher will be stopped. This is *not* safe to attempt to call multiple times for the same project
     /// and reference (e.g. in applying workspace updates)
     /// </summary>
-    public void StopWatchingReference(TReference reference, string fullFilePath, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = 0)
+    public void StopWatchingReference(string fullFilePath, TReference? referenceToTrack, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = 0)
     {
         lock (_gate)
         {
             var disposalLocation = callerFilePath + ", line " + callerLineNumber;
             if (!_referenceFileWatchingTokens.TryGetValue(fullFilePath, out var watchedFileReference))
             {
-                // We're attempting to stop watching a file that we never started watching. This is a bug.
-                var existingDisposalStackTrace = _previousDisposalLocations.TryGetValue(reference, out var previousDisposalLocation);
-                throw new ArgumentException("The reference was already disposed at " + previousDisposalLocation);
+                if (referenceToTrack != null)
+                {
+                    // We're attempting to stop watching a file that we never started watching. This is a bug.
+                    var existingDisposalStackTrace = _previousDisposalLocations.TryGetValue(referenceToTrack, out var previousDisposalLocation);
+                    throw new ArgumentException("The reference was already disposed at " + previousDisposalLocation);
+                }
+                else
+                {
+                    throw new ArgumentException("Attempting to stop watching a file that we never started watching. This is a bug.");
+                }
             }
 
             var newRefCount = watchedFileReference.RefCount - 1;
@@ -152,8 +164,11 @@ internal sealed class FileWatchedReferenceFactory<TReference>
                 watchedFileReference.Token.Dispose();
                 _referenceFileWatchingTokens.Remove(fullFilePath);
 
-                _previousDisposalLocations.Remove(reference);
-                _previousDisposalLocations.Add(reference, disposalLocation);
+                if (referenceToTrack != null)
+                {
+                    _previousDisposalLocations.Remove(referenceToTrack);
+                    _previousDisposalLocations.Add(referenceToTrack, disposalLocation);
+                }
             }
             else
             {
@@ -174,38 +189,9 @@ internal sealed class FileWatchedReferenceFactory<TReference>
         }
     }
 
-    private void FileReferenceChangeContext_FileChanged(object? sender, string fullFilePath)
+    private async ValueTask ProcessWorkAsync(ImmutableSegmentedList<string> list, CancellationToken cancellationToken)
     {
-        lock (_gate)
-        {
-            if (_referenceRefreshCancellationTokenSources.TryGetValue(fullFilePath, out var cancellationTokenSource))
-            {
-                cancellationTokenSource.Cancel();
-                _referenceRefreshCancellationTokenSources.Remove(fullFilePath);
-            }
-
-            cancellationTokenSource = new CancellationTokenSource();
-            _referenceRefreshCancellationTokenSources.Add(fullFilePath, cancellationTokenSource);
-
-            Task.Delay(TimeSpan.FromSeconds(5), cancellationTokenSource.Token).ContinueWith(_ =>
-            {
-                var needsNotification = false;
-
-                lock (_gate)
-                {
-                    // We need to re-check the cancellation token source under the lock, since it might have been cancelled and restarted
-                    // due to another event
-                    cancellationTokenSource.Token.ThrowIfCancellationRequested();
-                    needsNotification = true;
-
-                    _referenceRefreshCancellationTokenSources.Remove(fullFilePath);
-                }
-
-                if (needsNotification)
-                {
-                    ReferenceChanged?.Invoke(this, fullFilePath);
-                }
-            }, cancellationTokenSource.Token, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Default);
-        }
+        foreach (var filePath in list)
+            await _callback(filePath, cancellationToken).ConfigureAwait(false);
     }
 }

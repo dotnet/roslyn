@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.DebugConfiguration;
 using Microsoft.CodeAnalysis.ProjectSystem;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.ProjectSystem;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Composition;
@@ -25,7 +26,7 @@ internal sealed class LanguageServerWorkspaceFactory
     public LanguageServerWorkspaceFactory(
         HostServicesProvider hostServicesProvider,
         IFileChangeWatcher fileChangeWatcher,
-        [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, Host.Mef.FileExtensionsMetadata>> dynamicFileInfoProviders,
+        [ImportMany] IEnumerable<Lazy<IDynamicFileInfoProvider, FileExtensionsMetadata>> dynamicFileInfoProviders,
         ProjectTargetFrameworkManager projectTargetFrameworkManager,
         ServerConfigurationFactory serverConfigurationFactory,
         ILoggerFactory loggerFactory)
@@ -34,7 +35,9 @@ internal sealed class LanguageServerWorkspaceFactory
 
         var workspace = new LanguageServerWorkspace(hostServicesProvider.HostServices);
         Workspace = workspace;
-        ProjectSystemProjectFactory = new ProjectSystemProjectFactory(Workspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { });
+        ProjectSystemProjectFactory = new ProjectSystemProjectFactory(
+            Workspace, fileChangeWatcher, static (_, _) => Task.CompletedTask, _ => { },
+            CancellationToken.None); // TODO: do we need to introduce a shutdown cancellation token for this?
         workspace.ProjectSystemProjectFactory = ProjectSystemProjectFactory;
 
         var razorSourceGenerator = serverConfigurationFactory?.ServerConfiguration?.RazorSourceGenerator;
