@@ -930,6 +930,18 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
 
 #if NET
 
+    private sealed class DoNotLoadAssemblyLoader : IAnalyzerAssemblyLoader
+    {
+        public static readonly IAnalyzerAssemblyLoader Instance = new DoNotLoadAssemblyLoader();
+
+        public void AddDependencyLocation(string fullPath)
+        {
+        }
+
+        public Assembly LoadFromPath(string fullPath)
+            => throw new InvalidOperationException();
+    }
+
     [Fact]
     public async Task UpdatingAnalyzerReferenceReloadsGenerators()
     {
@@ -958,7 +970,8 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
                 stream!.CopyTo(destination);
             }
 
-            project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, analyzerAssemblyLoaderProvider.SharedShadowCopyLoader)]);
+            // Pass in an always throwing assembly loader so we can be sure that no loading happens on the host side.
+            project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, DoNotLoadAssemblyLoader.Instance)]);
 
             var generatedDocuments = await project1.GetSourceGeneratedDocumentsAsync();
             var helloWorldDoc = generatedDocuments.Single(d => d.Name == "HelloWorld.cs");
@@ -975,10 +988,10 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
                 stream!.CopyTo(destination);
             }
 
-            // Make a new analyzer reference to that location (note: with the same shared shadow copier).  on the host side,
-            // this will simply instantiate a new reference.  But this will cause all the machinery to run syncing this new
-            // reference to the oop side, which will load the analyzer reference in a dedicated ALC.
-            project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, analyzerAssemblyLoaderProvider.SharedShadowCopyLoader)]);
+            // Make a new analyzer reference to that location (note: with the same throwing assembly loader).  on the
+            // host side, this will simply instantiate a new reference.  But this will cause all the machinery to run
+            // syncing this new reference to the oop side, which will load the analyzer reference in a dedicated ALC.
+            project1 = project1.WithAnalyzerReferences([new AnalyzerFileReference(analyzerPath, DoNotLoadAssemblyLoader.Instance)]);
 
             var generatedDocuments = await project1.GetSourceGeneratedDocumentsAsync();
             var helloWorldDoc = generatedDocuments.Single(d => d.Name == "HelloWorld.cs");
