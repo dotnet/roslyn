@@ -93,6 +93,13 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
 
         // When we've done some reasonable number of mutations to the dictionary, we'll do a sweep to see if there are
         // entries we can remove.
+        //
+        // Note: the value 128 was chosen with absolutely no data.  It was to avoid doing linear sweeps on every change,
+        // while also still running reasonably often to clear out old entries.
+        //
+        // Note: clearing out entries isn't critical.  It's really just a KeyValuePair<Checksum, WeakRef(null)>.  So
+        // they aren't really large at all.  But it seemed nice to ensure that the dictionary doesn't grow in an
+        // unbounded fashion, even if the entries are small.
         if (++s_sweepCount % 128 == 0)
             return;
 
