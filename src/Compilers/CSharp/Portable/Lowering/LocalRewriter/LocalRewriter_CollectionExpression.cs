@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!ShouldUseAddRangeOrToListMethod(singleSpread.Expression.Type, singleSpread.EnumeratorInfoOpt?.GetEnumeratorInfo.Method, listElementType))
+            if (!ShouldUseAddRangeOrToListMethod(singleSpread.Expression.Type!, singleSpread.EnumeratorInfoOpt?.GetEnumeratorInfo.Method, listElementType))
             {
                 return false;
             }
@@ -181,10 +181,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private bool ShouldUseAddRangeOrToListMethod(TypeSymbol? spreadType, MethodSymbol? getEnumeratorMethod, TypeWithAnnotations elementType)
+        private bool ShouldUseAddRangeOrToListMethod(TypeSymbol spreadType, MethodSymbol? getEnumeratorMethod, TypeWithAnnotations elementType)
         {
-            Debug.Assert(spreadType is not null);
-
             var iEnumerableOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T);
             var iEnumerableOfElementType = iEnumerableOfTType.Construct([elementType]);
 
@@ -1126,7 +1124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (addRangeMethod is null)
                             return false;
 
-                        if (!ShouldUseAddRangeOrToListMethod(rewrittenSpreadOperand.Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method, elementType))
+                        if (!ShouldUseAddRangeOrToListMethod(rewrittenSpreadOperand.Type!, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method, elementType))
                         {
                             return false;
                         }
