@@ -732,6 +732,24 @@ public sealed class CSharpForEachSnippetProviderTests : AbstractCSharpSnippetPro
     }
 
     [Theory]
+    [MemberData(nameof(CommonSnippetTestData.CommonEnumerableTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineForEachSnippetForTypeItselfTest_BeforeContextualKeyword(string collectionType)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async void M()
+                {
+                    {{collectionType}}.$$
+                    await Task.Delay(10);
+                }
+            }
+            """);
+    }
+
+    [Theory]
     [InlineData("ArrayList")]
     [InlineData("IEnumerable")]
     [InlineData("MyCollection")]
