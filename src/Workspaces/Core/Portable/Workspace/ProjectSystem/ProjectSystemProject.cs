@@ -769,7 +769,7 @@ internal sealed partial class ProjectSystemProject
             {
                 AnalyzerFileReference analyzerFileReference => analyzerFileReference,
 #if NET
-                IsolatedAnalyzerReference isolatedAnalyzerReference => isolatedAnalyzerReference.UnderlyingAnalyzerReference,
+                IsolatedAnalyzerFileReference isolatedReference => isolatedReference.UnderlyingAnalyzerFileReference,
 #endif
                 _ => throw ExceptionUtilities.UnexpectedValue(analyzerReference.GetType()),
             });

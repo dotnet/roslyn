@@ -14,11 +14,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis;
 
 /// <summary>
-/// Wrapper around a real <see cref="AnalyzerReference"/>.  An "isolated" analyzer reference is an analyzer reference
-/// associated with an <see cref="AssemblyLoadContext"/> that is connected to a set of other "isolated" analyzer
-/// references.  This allows for loading the analyzers and generators from it in a way that is associated with that load
-/// context, keeping them separate from other analyzers and generators loaded in other load contexts, while also
-/// allowing all of those instances to be collected when no longer needed.  Being isolated means that if any of the
+/// Wrapper around a real <see cref="AnalyzerFileReference"/>.  An "isolated" analyzer reference is an analyzer
+/// reference associated with an <see cref="AssemblyLoadContext"/> that is connected to a set of other "isolated"
+/// analyzer references.  This allows for loading the analyzers and generators from it in a way that is associated with
+/// that load context, keeping them separate from other analyzers and generators loaded in other load contexts, while
+/// also allowing all of those instances to be collected when no longer needed.  Being isolated means that if any of the
 /// underlying assembly references change, that they can be loaded side by side with the prior references.  This enables
 /// functionality like live reloading of analyzers and generators when they change on disk.  Note: this is only
 /// supported on .Net Core, and not .Net Framework, as only the former has <see cref="AssemblyLoadContext"/>s.
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis;
 /// it passes out is alive), that the <see cref="IsolatedAnalyzerReferenceSet"/> (and its corresponding <see
 /// cref="AssemblyLoadContext"/>) is kept alive as well.
 /// </remarks>
-internal sealed class IsolatedAnalyzerReference(
+internal sealed class IsolatedAnalyzerFileReference(
     IsolatedAnalyzerReferenceSet isolatedAnalyzerReferenceSet,
     AnalyzerFileReference underlyingAnalyzerReference)
     : AnalyzerReference
@@ -45,19 +45,19 @@ internal sealed class IsolatedAnalyzerReference(
     private static readonly ConditionalWeakTable<ISourceGenerator, IsolatedAnalyzerReferenceSet> s_generatorToPinnedReferenceSet = [];
 
     /// <summary>
-    /// We keep a strong reference here.  As long as this <see cref="IsolatedAnalyzerReference"/> is passed out and held
-    /// onto (say by a Project instance), it should keep the IsolatedAssemblyReferenceSet (and its ALC) alive.
+    /// We keep a strong reference here.  As long as this <see cref="IsolatedAnalyzerFileReference"/> is passed out and
+    /// held onto (say by a Project instance), it should keep the IsolatedAssemblyReferenceSet (and its ALC) alive.
     /// </summary>
     private readonly IsolatedAnalyzerReferenceSet _isolatedAnalyzerReferenceSet = isolatedAnalyzerReferenceSet;
 
     /// <summary>
     /// The actual real <see cref="AnalyzerReference"/> we defer our operations to.
     /// </summary>
-    public readonly AnalyzerFileReference UnderlyingAnalyzerReference = underlyingAnalyzerReference;
+    public readonly AnalyzerFileReference UnderlyingAnalyzerFileReference = underlyingAnalyzerReference;
 
-    public override string Display => UnderlyingAnalyzerReference.Display;
-    public override string? FullPath => UnderlyingAnalyzerReference.FullPath;
-    public override object Id => UnderlyingAnalyzerReference.Id;
+    public override string Display => UnderlyingAnalyzerFileReference.Display;
+    public override string? FullPath => UnderlyingAnalyzerFileReference.FullPath;
+    public override object Id => UnderlyingAnalyzerFileReference.Id;
 
     public override ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language)
         => PinAnalyzers(static (reference, language) => reference.GetAnalyzers(language), language);
@@ -89,7 +89,7 @@ internal sealed class IsolatedAnalyzerReference(
     {
         // Keep a reference from each generator to the IsolatedAssemblyReferenceSet.  This will ensure it (and the ALC
         // it points at) stays alive as long as the generator instance stays alive.
-        var items = getItems(this.UnderlyingAnalyzerReference, arg);
+        var items = getItems(this.UnderlyingAnalyzerFileReference, arg);
 
         foreach (var item in items)
             table.TryAdd(item, _isolatedAnalyzerReferenceSet);
@@ -108,7 +108,7 @@ internal sealed class IsolatedAnalyzerReference(
         => RuntimeHelpers.GetHashCode(this);
 
     public override string ToString()
-        => $"{nameof(IsolatedAnalyzerReference)}({UnderlyingAnalyzerReference})";
+        => $"{nameof(IsolatedAnalyzerFileReference)}({UnderlyingAnalyzerFileReference})";
 }
 
 #endif

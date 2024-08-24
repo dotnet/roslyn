@@ -19,9 +19,9 @@ using System.Runtime.Loader;
 namespace Microsoft.CodeAnalysis;
 
 /// <summary>
-/// A set of <see cref="IsolatedAnalyzerReference"/>s and their associated shadow copy loader (which has its own <see
-/// cref="AssemblyLoadContext"/>).  As long as something is keeping this set alive, the ALC will be kept alive.  Once
-/// this set is dropped, the loader will be explicitly <see cref="IDisposable.Dispose"/>'d in its finalizer.
+/// A set of <see cref="IsolatedAnalyzerFileReference"/>s and their associated shadow copy loader (which has its own
+/// <see cref="AssemblyLoadContext"/>).  As long as something is keeping this set alive, the ALC will be kept alive.
+/// Once this set is dropped, the loader will be explicitly <see cref="IDisposable.Dispose"/>'d in its finalizer.
 /// </summary>
 internal sealed partial class IsolatedAnalyzerReferenceSet
 {
@@ -63,14 +63,14 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
             // If we already have an analyzer reference isolated to another ALC.  Fish out its underlying reference so
             // we can rewrap it for the new ALC we're creating.  We don't want to continually wrap layers of isolated
             // objects.
-            var analyzerReference = initialReference is IsolatedAnalyzerReference isolatedReference
-                ? isolatedReference.UnderlyingAnalyzerReference
+            var analyzerReference = initialReference is IsolatedAnalyzerFileReference isolatedReference
+                ? isolatedReference.UnderlyingAnalyzerFileReference
                 : initialReference;
 
             // If we have an existing file reference, make a new one with a different loader/ALC.  Otherwise, it's some
             // other analyzer reference we don't understand (like an in-memory one created in tests).
             var finalReference = analyzerReference is AnalyzerFileReference analyzerFileReference
-                ? new IsolatedAnalyzerReference(this, new AnalyzerFileReference(analyzerFileReference.FullPath, _shadowCopyLoader))
+                ? new IsolatedAnalyzerFileReference(this, new AnalyzerFileReference(analyzerFileReference.FullPath, _shadowCopyLoader))
                 : initialReference;
 
             builder.Add(finalReference);
