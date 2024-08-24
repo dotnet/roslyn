@@ -12160,7 +12160,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
-        <source>Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.</source>
+        <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
         <target state="needs-review-translation">Solo le proprietà implementate automaticamente possono avere inizializzatori.</target>
         <note />
       </trans-unit>

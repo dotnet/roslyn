@@ -12160,7 +12160,7 @@ Um die Warnung zu beheben, können Sie stattdessen /reference verwenden (Einbett
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerOnNonAutoProperty">
-        <source>Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.</source>
+        <source>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</source>
         <target state="needs-review-translation">Nur automatisch implementierte Eigenschaften können Initialisierer aufweisen.</target>
         <note />
       </trans-unit>

@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source);
             comp.VerifyEmitDiagnostics(
-                // (3,12): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
+                // (3,12): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     object P { set { } } = field;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(3, 12),
                 // (3,28): error CS0103: The name 'field' does not exist in the current context
@@ -1401,10 +1401,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (3,23): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
+                // (3,23): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public static int PA { get => 0; } = 10;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PA").WithLocation(3, 23),
-                // (4,23): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
+                // (4,23): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public static int PB { get => 0; set { } } = 11;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PB").WithLocation(4, 23));
         }
@@ -1423,10 +1423,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
             comp.VerifyEmitDiagnostics(
-                // (3,16): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
+                // (3,16): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public int PA { get => 0; } = 10;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PA").WithLocation(3, 16),
-                // (4,16): error CS8050: Only a property with a backing field and no setter, or a property with an auto-implemented setter, can have an initializer.
+                // (4,16): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public int PB { get => 0; set { } } = 11;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "PB").WithLocation(4, 16));
         }
