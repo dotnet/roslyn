@@ -166,7 +166,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            if (!ShouldUseAddRangeOrToListMethod(singleSpread.Expression.Type!, singleSpread.EnumeratorInfoOpt?.GetEnumeratorInfo.Method, listElementType))
+            Debug.Assert(singleSpread.Expression.Type is not null);
+
+            if (!ShouldUseAddRangeOrToListMethod(singleSpread.Expression.Type, singleSpread.EnumeratorInfoOpt?.GetEnumeratorInfo.Method, listElementType))
             {
                 return false;
             }
@@ -1121,10 +1123,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     },
                     tryOptimizeSpreadElement: (ArrayBuilder<BoundExpression> sideEffects, BoundExpression listTemp, BoundCollectionExpressionSpreadElement spreadElement, BoundExpression rewrittenSpreadOperand) =>
                     {
+                        Debug.Assert(rewrittenSpreadOperand.Type is not null);
+
                         if (addRangeMethod is null)
                             return false;
 
-                        if (!ShouldUseAddRangeOrToListMethod(rewrittenSpreadOperand.Type!, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method, elementType))
+                        if (!ShouldUseAddRangeOrToListMethod(rewrittenSpreadOperand.Type, spreadElement.EnumeratorInfoOpt?.GetEnumeratorInfo.Method, elementType))
                         {
                             return false;
                         }
