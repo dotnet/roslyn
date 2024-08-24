@@ -582,4 +582,21 @@ public sealed class CSharpDoSnippetProviderTests : AbstractCSharpSnippetProvider
             }
             """);
     }
+
+    [Fact]
+    public async Task NoInlineDoSnippetForTypeItselfTest_BeforeContextualKeyword()
+    {
+        await VerifySnippetIsAbsentAsync("""
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async void M()
+                {
+                    bool.$$
+                    await Task.Delay(10);
+                }
+            }
+            """);
+    }
 }
