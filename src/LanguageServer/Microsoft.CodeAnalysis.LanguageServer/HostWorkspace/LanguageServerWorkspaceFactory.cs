@@ -61,7 +61,7 @@ internal sealed class LanguageServerWorkspaceFactory
 
         // Load all analyzers into a fresh shadow copied load context.  In the future, if we want to support reloading
         // of solution-level analyzer references, we should just need to listen for changes to those analyzer paths and
-        // then call back into this method to update hte solution accordingly.
+        // then call back into this method to update the solution accordingly.
         var analyzerLoader = loaderProvider.CreateNewShadowCopyLoader();
 
         foreach (var analyzerPath in analyzerPaths)
