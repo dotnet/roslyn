@@ -26,7 +26,7 @@ internal abstract partial class AbstractRenameCommandHandler :
             return;
         }
 
-        HandlePossibleTypingCommand(args, nextHandler, (activeSession, span) =>
+        HandlePossibleTypingCommand(args, nextHandler, context.OperationContext, (activeSession, span) =>
         {
             var spans = new NormalizedSnapshotSpanCollection(
                 activeSession.GetBufferManager(args.SubjectBuffer)

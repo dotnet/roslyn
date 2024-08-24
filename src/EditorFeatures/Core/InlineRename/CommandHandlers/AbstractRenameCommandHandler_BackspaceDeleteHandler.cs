@@ -21,7 +21,7 @@ internal abstract partial class AbstractRenameCommandHandler : IChainedCommandHa
 
     public void ExecuteCommand(BackspaceKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
-        HandlePossibleTypingCommand(args, nextHandler, (activeSession, span) =>
+        HandlePossibleTypingCommand(args, nextHandler, context.OperationContext, (activeSession, span) =>
             {
                 var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
                 if (!args.TextView.Selection.IsEmpty || caretPoint.Value != span.Start)
@@ -33,7 +33,7 @@ internal abstract partial class AbstractRenameCommandHandler : IChainedCommandHa
 
     public void ExecuteCommand(DeleteKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
-        HandlePossibleTypingCommand(args, nextHandler, (activeSession, span) =>
+        HandlePossibleTypingCommand(args, nextHandler, context.OperationContext, (activeSession, span) =>
             {
                 var caretPoint = args.TextView.GetCaretPoint(args.SubjectBuffer);
                 if (!args.TextView.Selection.IsEmpty || caretPoint.Value != span.End)

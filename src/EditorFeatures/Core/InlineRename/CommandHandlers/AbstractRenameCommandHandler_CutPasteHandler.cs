@@ -16,7 +16,7 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public void ExecuteCommand(CutCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
-        HandlePossibleTypingCommand(args, nextHandler, (activeSession, span) =>
+        HandlePossibleTypingCommand(args, nextHandler, context.OperationContext, (activeSession, span) =>
         {
             nextHandler();
         });
@@ -27,7 +27,7 @@ internal abstract partial class AbstractRenameCommandHandler :
 
     public void ExecuteCommand(PasteCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
-        HandlePossibleTypingCommand(args, nextHandler, (activeSession, span) =>
+        HandlePossibleTypingCommand(args, nextHandler, context.OperationContext, (activeSession, span) =>
         {
             nextHandler();
         });
