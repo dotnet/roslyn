@@ -186,11 +186,15 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
 
             if (weakIsolatedReferenceSet is null)
             {
-                weakIsolatedReferenceSet = new(null!);
+                // If we don't have a weak reference yet, make it and add to the dictionary.
+                weakIsolatedReferenceSet = new(isolatedAssemblyReferenceSet);
                 s_checksumToReferenceSet[checksum] = weakIsolatedReferenceSet;
             }
-
-            weakIsolatedReferenceSet.SetTarget(isolatedAssemblyReferenceSet);
+            else
+            {
+                // Otherwise, update the empty weak reference to point at the newly created set.
+                weakIsolatedReferenceSet.SetTarget(isolatedAssemblyReferenceSet);
+            }
 
             // Do some cleaning up of old dictionary entries that are no longer in use.
             GarbageCollectReleaseReferences_NoLock();
