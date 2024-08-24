@@ -1756,62 +1756,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         [Theory]
         [CombinatorialData]
-        public void ReadOnly_01(bool useReadOnlyType, bool useReadOnlyProperty)
+        public void ReadOnly_01(bool useReadOnlyType, bool useReadOnlyProperty, bool useInit)
         {
             static string getReadOnlyModifier(bool useReadOnly) => useReadOnly ? "readonly" : "        ";
             string typeModifier = getReadOnlyModifier(useReadOnlyType);
             string propertyModifier = getReadOnlyModifier(useReadOnlyProperty);
+            string setter = useInit ? "init" : "set";
             string source = $$"""
                 {{typeModifier}} struct S
                 {
                     {{propertyModifier}} object P1 { get; }
                     {{propertyModifier}} object P2 { get => field; }
-                    {{propertyModifier}} object P3 { get => field; set; }
-                    {{propertyModifier}} object P4 { get => field; init; }
-                    {{propertyModifier}} object P5 { get => field; set { } }
-                    {{propertyModifier}} object P6 { get => field; init { } }
-                    {{propertyModifier}} object P7 { get => null; }
-                    {{propertyModifier}} object P8 { get => null; set; }
-                    {{propertyModifier}} object P9 { get => null; init; }
-                    {{propertyModifier}} object PA { get => null; set { } }
-                    {{propertyModifier}} object PB { get => null; init { } }
-                    {{propertyModifier}} object PC { get => null; set { _ = field; } }
-                    {{propertyModifier}} object PD { get => null; init { _ = field; } }
-                    {{propertyModifier}} object PE { get; set; }
-                    {{propertyModifier}} object PF { get; init; }
-                    {{propertyModifier}} object PG { get; set { } }
-                    {{propertyModifier}} object PH { get; init { } }
-                    {{propertyModifier}} object PI { set { _ = field; } }
-                    {{propertyModifier}} object PJ { init { _ = field; } }
-                    {{propertyModifier}} object PK { get { field = null; return null; } }
-                    {{propertyModifier}} object PL { get; set { field = value; } }
-                    {{propertyModifier}} object PM { get; init { field = value; } }
-                    {{propertyModifier}} object PN { set { field = value; } }
-                    {{propertyModifier}} object PO { init { field = value; } }
+                    {{propertyModifier}} object P3 { get => field; {{setter}}; }
+                    {{propertyModifier}} object P4 { get => field; {{setter}} { } }
+                    {{propertyModifier}} object P5 { get => null; }
+                    {{propertyModifier}} object P6 { get => null; {{setter}}; }
+                    {{propertyModifier}} object P7 { get => null; {{setter}} { } }
+                    {{propertyModifier}} object P8 { get => null; {{setter}} { _ = field; } }
+                    {{propertyModifier}} object P9 { get; {{setter}}; }
+                    {{propertyModifier}} object PA { get; {{setter}} { } }
+                    {{propertyModifier}} object PB { {{setter}} { _ = field; } }
+                    {{propertyModifier}} object PC { get; {{setter}} { field = value; } }
+                    {{propertyModifier}} object PD { {{setter}} { field = value; } }
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
-            if (useReadOnlyType)
+            if (useInit)
+            {
+                comp.VerifyEmitDiagnostics();
+            }
+            else if (useReadOnlyType)
             {
                 comp.VerifyEmitDiagnostics(
                     // (5,21): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
                     //              object P3 { get => field; set; }
                     Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P3").WithLocation(5, 21),
-                    // (10,21): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
-                    //              object P8 { get => null; set; }
-                    Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P8").WithLocation(10, 21),
-                    // (16,21): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
-                    //              object PE { get; set; }
-                    Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "PE").WithLocation(16, 21),
-                    // (22,32): error CS1604: Cannot assign to 'field' because it is read-only
-                    //              object PK { get { field = null; return null; } }
-                    Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(22, 32),
-                    // (23,37): error CS1604: Cannot assign to 'field' because it is read-only
-                    //              object PL { get; set { field = value; } }
-                    Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(23, 37),
-                    // (25,32): error CS1604: Cannot assign to 'field' because it is read-only
-                    //              object PN { set { field = value; } }
-                    Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(25, 32));
+                    // (8,21): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
+                    //              object P6 { get => null; set; }
+                    Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P6").WithLocation(8, 21),
+                    // (11,21): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
+                    //              object P9 { get; set; }
+                    Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P9").WithLocation(11, 21),
+                    // (14,37): error CS1604: Cannot assign to 'field' because it is read-only
+                    //              object PC { get; set { field = value; } }
+                    Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(14, 37),
+                    // (15,32): error CS1604: Cannot assign to 'field' because it is read-only
+                    //              object PD { set { field = value; } }
+                    Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(15, 32));
             }
             else if (useReadOnlyProperty)
             {
@@ -1819,21 +1810,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (5,21): error CS8659: Auto-implemented property 'S.P3' cannot be marked 'readonly' because it has a 'set' accessor.
                     //     readonly object P3 { get => field; set; }
                     Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P3").WithArguments("S.P3").WithLocation(5, 21),
-                    // (10,21): error CS8659: Auto-implemented property 'S.P8' cannot be marked 'readonly' because it has a 'set' accessor.
-                    //     readonly object P8 { get => null; set; }
-                    Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P8").WithArguments("S.P8").WithLocation(10, 21),
-                    // (16,21): error CS8659: Auto-implemented property 'S.PE' cannot be marked 'readonly' because it has a 'set' accessor.
-                    //     readonly object PE { get; set; }
-                    Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "PE").WithArguments("S.PE").WithLocation(16, 21),
-                    // (22,32): error CS1604: Cannot assign to 'field' because it is read-only
-                    //     readonly object PK { get { field = null; return null; } }
-                    Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(22, 32),
-                    // (23,37): error CS1604: Cannot assign to 'field' because it is read-only
-                    //     readonly object PL { get; set { field = value; } }
-                    Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(23, 37),
-                    // (25,32): error CS1604: Cannot assign to 'field' because it is read-only
-                    //     readonly object PN { set { field = value; } }
-                    Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(25, 32));
+                    // (8,21): error CS8659: Auto-implemented property 'S.P6' cannot be marked 'readonly' because it has a 'set' accessor.
+                    //     readonly object P6 { get => null; set; }
+                    Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P6").WithArguments("S.P6").WithLocation(8, 21),
+                    // (11,21): error CS8659: Auto-implemented property 'S.P9' cannot be marked 'readonly' because it has a 'set' accessor.
+                    //     readonly object P9 { get; set; }
+                    Diagnostic(ErrorCode.ERR_AutoPropertyWithSetterCantBeReadOnly, "P9").WithArguments("S.P9").WithLocation(11, 21),
+                    // (14,37): error CS1604: Cannot assign to 'field' because it is read-only
+                    //     readonly object PC { get; set { field = value; } }
+                    Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(14, 37),
+                    // (15,32): error CS1604: Cannot assign to 'field' because it is read-only
+                    //     readonly object PD { set { field = value; } }
+                    Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(15, 32));
             }
             else
             {
@@ -1853,14 +1841,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {{typeModifier}} struct S
                 {
                     object P3 { {{getModifier}} get => field; {{setModifier}} set; }
-                    object P5 { {{getModifier}} get => field; {{setModifier}} set { } }
-                    object P8 { {{getModifier}} get => null; {{setModifier}} set; }
-                    object PA { {{getModifier}} get => null; {{setModifier}} set { } }
-                    object PC { {{getModifier}} get => null; {{setModifier}} set { _ = field; } }
-                    object PE { {{getModifier}} get; {{setModifier}} set; }
-                    object PG { {{getModifier}} get; {{setModifier}} set { } }
-                    object PK { {{getModifier}} get { field = null; return null; } set { } }
-                    object PL { {{getModifier}} get; {{setModifier}} set { field = value; } }
+                    object P4 { {{getModifier}} get => field; {{setModifier}} set { } }
+                    object P6 { {{getModifier}} get => null; {{setModifier}} set; }
+                    object P7 { {{getModifier}} get => null; {{setModifier}} set { } }
+                    object P8 { {{getModifier}} get => null; {{setModifier}} set { _ = field; } }
+                    object P9 { {{getModifier}} get; {{setModifier}} set; }
+                    object PA { {{getModifier}} get; {{setModifier}} set { } }
+                    object PC { {{getModifier}} get; {{setModifier}} set { field = value; } }
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
@@ -1873,17 +1860,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         //     object P3 { readonly get => field;          set; }
                         Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P3").WithLocation(3, 12),
                         // (5,12): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
-                        //     object P8 { readonly get => null;          set; }
-                        Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P8").WithLocation(5, 12),
+                        //     object P6 { readonly get => null;          set; }
+                        Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P6").WithLocation(5, 12),
                         // (8,12): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
-                        //     object PE { readonly get;          set; }
-                        Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "PE").WithLocation(8, 12),
-                        // (10,32): error CS1604: Cannot assign to 'field' because it is read-only
-                        //     object PK { readonly get { field = null; return null; } set { } }
-                        Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(10, 32),
-                        // (11,46): error CS1604: Cannot assign to 'field' because it is read-only
-                        //     object PL { readonly get;          set { field = value; } }
-                        Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(11, 46));
+                        //     object P9 { readonly get;          set; }
+                        Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P9").WithLocation(8, 12),
+                        // (10,46): error CS1604: Cannot assign to 'field' because it is read-only
+                        //     object PC { readonly get;          set { field = value; } }
+                        Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(10, 46));
                 }
                 else
                 {
@@ -1895,33 +1879,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         //     object P3 {          get => field; readonly set; }
                         Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P3.set").WithLocation(3, 49),
                         // (5,12): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
-                        //     object P8 {          get => null; readonly set; }
-                        Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P8").WithLocation(5, 12),
-                        // (5,48): error CS8658: Auto-implemented 'set' accessor 'S.P8.set' cannot be marked 'readonly'.
-                        //     object P8 {          get => null; readonly set; }
-                        Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P8.set").WithLocation(5, 48),
+                        //     object P6 {          get => null; readonly set; }
+                        Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P6").WithLocation(5, 12),
+                        // (5,48): error CS8658: Auto-implemented 'set' accessor 'S.P6.set' cannot be marked 'readonly'.
+                        //     object P6 {          get => null; readonly set; }
+                        Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P6.set").WithLocation(5, 48),
                         // (8,12): error CS8341: Auto-implemented instance properties in readonly structs must be readonly.
-                        //     object PE {          get; readonly set; }
-                        Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "PE").WithLocation(8, 12),
-                        // (8,40): error CS8658: Auto-implemented 'set' accessor 'S.PE.set' cannot be marked 'readonly'.
-                        //     object PE {          get; readonly set; }
-                        Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.PE.set").WithLocation(8, 40),
-                        // (10,32): error CS1604: Cannot assign to 'field' because it is read-only
-                        //     object PK {          get { field = null; return null; } set { } }
-                        Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(10, 32),
-                        // (11,46): error CS1604: Cannot assign to 'field' because it is read-only
-                        //     object PL {          get; readonly set { field = value; } }
-                        Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(11, 46));
+                        //     object P9 {          get; readonly set; }
+                        Diagnostic(ErrorCode.ERR_AutoPropsInRoStruct, "P9").WithLocation(8, 12),
+                        // (8,40): error CS8658: Auto-implemented 'set' accessor 'S.P9.set' cannot be marked 'readonly'.
+                        //     object P9 {          get; readonly set; }
+                        Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P9.set").WithLocation(8, 40),
+                        // (10,46): error CS1604: Cannot assign to 'field' because it is read-only
+                        //     object PC {          get; readonly set { field = value; } }
+                        Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(10, 46));
                 }
             }
             else
             {
                 if (useReadOnlyOnGet)
                 {
-                    comp.VerifyEmitDiagnostics(
-                        // (10,32): error CS1604: Cannot assign to 'field' because it is read-only
-                        //     object PK { readonly get { field = null; return null; } set { } }
-                        Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(10, 32));
+                    comp.VerifyEmitDiagnostics();
                 }
                 else
                 {
@@ -1929,15 +1907,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         // (3,49): error CS8658: Auto-implemented 'set' accessor 'S.P3.set' cannot be marked 'readonly'.
                         //     object P3 {          get => field; readonly set; }
                         Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P3.set").WithLocation(3, 49),
-                        // (5,48): error CS8658: Auto-implemented 'set' accessor 'S.P8.set' cannot be marked 'readonly'.
-                        //     object P8 {          get => null; readonly set; }
-                        Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P8.set").WithLocation(5, 48),
-                        // (8,40): error CS8658: Auto-implemented 'set' accessor 'S.PE.set' cannot be marked 'readonly'.
-                        //     object PE {          get; readonly set; }
-                        Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.PE.set").WithLocation(8, 40),
-                        // (11,46): error CS1604: Cannot assign to 'field' because it is read-only
-                        //     object PL {          get; readonly set { field = value; } }
-                        Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(11, 46));
+                        // (5,48): error CS8658: Auto-implemented 'set' accessor 'S.P6.set' cannot be marked 'readonly'.
+                        //     object P6 {          get => null; readonly set; }
+                        Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P6.set").WithLocation(5, 48),
+                        // (8,40): error CS8658: Auto-implemented 'set' accessor 'S.P9.set' cannot be marked 'readonly'.
+                        //     object P9 {          get; readonly set; }
+                        Diagnostic(ErrorCode.ERR_AutoSetterCantBeReadOnly, "set").WithArguments("S.P9.set").WithLocation(8, 40),
+                        // (10,46): error CS1604: Cannot assign to 'field' because it is read-only
+                        //     object PC {          get; readonly set { field = value; } }
+                        Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(10, 46));
                 }
             }
         }
@@ -1955,10 +1933,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     static {{propertyModifier}} object P1 { get; }
                     static {{propertyModifier}} object P2 { get => field; }
                     static {{propertyModifier}} object P3 { get => field; set; }
-                    static {{propertyModifier}} object PE { get; set; }
-                    static {{propertyModifier}} object PG { get; set { } }
-                    static {{propertyModifier}} object PL { get; set { field = value; } }
-                    static {{propertyModifier}} object PN { set { field = value; } }
+                    static {{propertyModifier}} object P9 { get; set; }
+                    static {{propertyModifier}} object PA { get; set { } }
+                    static {{propertyModifier}} object PC { get; set { field = value; } }
+                    static {{propertyModifier}} object PD { set { field = value; } }
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
@@ -1974,18 +1952,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (5,28): error CS8657: Static member 'S.P3' cannot be marked 'readonly'.
                     //     static readonly object P3 { get => field; set; }
                     Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "P3").WithArguments("S.P3").WithLocation(5, 28),
-                    // (6,28): error CS8657: Static member 'S.PE' cannot be marked 'readonly'.
-                    //     static readonly object PE { get; set; }
-                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "PE").WithArguments("S.PE").WithLocation(6, 28),
-                    // (7,28): error CS8657: Static member 'S.PG' cannot be marked 'readonly'.
-                    //     static readonly object PG { get; set { } }
-                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "PG").WithArguments("S.PG").WithLocation(7, 28),
-                    // (8,28): error CS8657: Static member 'S.PL' cannot be marked 'readonly'.
-                    //     static readonly object PL { get; set { field = value; } }
-                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "PL").WithArguments("S.PL").WithLocation(8, 28),
-                    // (9,28): error CS8657: Static member 'S.PN' cannot be marked 'readonly'.
-                    //     static readonly object PN { set { field = value; } }
-                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "PN").WithArguments("S.PN").WithLocation(9, 28));
+                    // (6,28): error CS8657: Static member 'S.P9' cannot be marked 'readonly'.
+                    //     static readonly object P9 { get; set; }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "P9").WithArguments("S.P9").WithLocation(6, 28),
+                    // (7,28): error CS8657: Static member 'S.PA' cannot be marked 'readonly'.
+                    //     static readonly object PA { get; set { } }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "PA").WithArguments("S.PA").WithLocation(7, 28),
+                    // (8,28): error CS8657: Static member 'S.PC' cannot be marked 'readonly'.
+                    //     static readonly object PC { get; set { field = value; } }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "PC").WithArguments("S.PC").WithLocation(8, 28),
+                    // (9,28): error CS8657: Static member 'S.PD' cannot be marked 'readonly'.
+                    //     static readonly object PD { set { field = value; } }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "PD").WithArguments("S.PD").WithLocation(9, 28));
             }
             else
             {
@@ -2005,8 +1983,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {{typeModifier}} struct S
                 {
                     static object P3 { {{getModifier}} get => field; {{setModifier}} set; }
-                    static object PE { {{getModifier}} get; {{setModifier}} set; }
-                    static object PL { {{getModifier}} get; {{setModifier}} set { field = value; } }
+                    static object P9 { {{getModifier}} get; {{setModifier}} set; }
+                    static object PD { {{getModifier}} get; {{setModifier}} set { field = value; } }
                 }
                 """;
             var comp = CreateCompilation(source, targetFramework: TargetFramework.Net80);
@@ -2016,12 +1994,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (3,33): error CS8657: Static member 'S.P3.get' cannot be marked 'readonly'.
                     //     static object P3 { readonly get => field;          set; }
                     Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "get").WithArguments("S.P3.get").WithLocation(3, 33),
-                    // (4,33): error CS8657: Static member 'S.PE.get' cannot be marked 'readonly'.
-                    //     static object PE { readonly get;          set; }
-                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "get").WithArguments("S.PE.get").WithLocation(4, 33),
-                    // (5,33): error CS8657: Static member 'S.PL.get' cannot be marked 'readonly'.
-                    //     static object PL { readonly get;          set { field = value; } }
-                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "get").WithArguments("S.PL.get").WithLocation(5, 33));
+                    // (4,33): error CS8657: Static member 'S.P9.get' cannot be marked 'readonly'.
+                    //     static object P9 { readonly get;          set; }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "get").WithArguments("S.P9.get").WithLocation(4, 33),
+                    // (5,33): error CS8657: Static member 'S.PD.get' cannot be marked 'readonly'.
+                    //     static object PD { readonly get;          set { field = value; } }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "get").WithArguments("S.PD.get").WithLocation(5, 33));
             }
             else
             {
@@ -2029,13 +2007,67 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     // (3,56): error CS8657: Static member 'S.P3.set' cannot be marked 'readonly'.
                     //     static object P3 {          get => field; readonly set; }
                     Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "set").WithArguments("S.P3.set").WithLocation(3, 56),
-                    // (4,47): error CS8657: Static member 'S.PE.set' cannot be marked 'readonly'.
-                    //     static object PE {          get; readonly set; }
-                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "set").WithArguments("S.PE.set").WithLocation(4, 47),
-                    // (5,47): error CS8657: Static member 'S.PL.set' cannot be marked 'readonly'.
-                    //     static object PL {          get; readonly set { field = value; } }
-                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "set").WithArguments("S.PL.set").WithLocation(5, 47));
+                    // (4,47): error CS8657: Static member 'S.P9.set' cannot be marked 'readonly'.
+                    //     static object P9 {          get; readonly set; }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "set").WithArguments("S.P9.set").WithLocation(4, 47),
+                    // (5,47): error CS8657: Static member 'S.PD.set' cannot be marked 'readonly'.
+                    //     static object PD {          get; readonly set { field = value; } }
+                    Diagnostic(ErrorCode.ERR_StaticMemberCantBeReadOnly, "set").WithArguments("S.PD.set").WithLocation(5, 47));
             }
+        }
+
+        [Fact]
+        public void ReadOnly_05()
+        {
+            string source = """
+                struct S0
+                {
+                    object P0 { get { field = null; return null; } }
+                }
+                struct S1
+                {
+                    object P1 { readonly get { field = null; return null; } }
+                }
+                struct S2
+                {
+                    readonly object P2 { get { field = null; return null; } }
+                }
+                readonly struct S3
+                {
+                    object P3 { get { field = null; return null; } }
+                }
+                readonly struct S4
+                {
+                    object P4 { readonly get { field = null; return null; } }
+                }
+                readonly struct S5
+                {
+                    readonly object P5 { get { field = null; return null; } }
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (7,12): error CS8664: 'S1.P1': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                //     object P1 { readonly get { field = null; return null; } }
+                Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P1").WithArguments("S1.P1").WithLocation(7, 12),
+                // (7,32): error CS1604: Cannot assign to 'field' because it is read-only
+                //     object P1 { readonly get { field = null; return null; } }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(7, 32),
+                // (11,32): error CS1604: Cannot assign to 'field' because it is read-only
+                //     readonly object P2 { get { field = null; return null; } }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(11, 32),
+                // (15,23): error CS1604: Cannot assign to 'field' because it is read-only
+                //     object P3 { get { field = null; return null; } }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(15, 23),
+                // (19,12): error CS8664: 'S4.P4': 'readonly' can only be used on accessors if the property or indexer has both a get and a set accessor
+                //     object P4 { readonly get { field = null; return null; } }
+                Diagnostic(ErrorCode.ERR_ReadOnlyModMissingAccessor, "P4").WithArguments("S4.P4").WithLocation(19, 12),
+                // (19,32): error CS1604: Cannot assign to 'field' because it is read-only
+                //     object P4 { readonly get { field = null; return null; } }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(19, 32),
+                // (23,32): error CS1604: Cannot assign to 'field' because it is read-only
+                //     readonly object P5 { get { field = null; return null; } }
+                Diagnostic(ErrorCode.ERR_AssgReadonlyLocal, "field").WithArguments("field").WithLocation(23, 32));
         }
 
         [Theory]
