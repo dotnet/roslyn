@@ -1019,17 +1019,10 @@ internal sealed partial class ProjectSystemProject
             {
                 // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid
                 // removing it once we apply the batch
-                var analyzerPendingRemoval = _analyzersRemovedInBatch.FirstOrDefault(fullPath => fullPath == mappedFullPath);
                 _projectAnalyzerPaths.Add(mappedFullPath);
 
-                if (analyzerPendingRemoval != null)
-                {
-                    _analyzersRemovedInBatch.Remove(analyzerPendingRemoval);
-                }
-                else
-                {
+                if (!_analyzersRemovedInBatch.Remove(mappedFullPath))
                     _analyzersAddedInBatch.Add(mappedFullPath);
-                }
             }
         }
     }
