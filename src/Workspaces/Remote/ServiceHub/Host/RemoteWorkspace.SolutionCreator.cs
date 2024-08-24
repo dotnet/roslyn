@@ -387,7 +387,7 @@ internal partial class RemoteWorkspace
                 project = project.WithAnalyzerReferences(isolatedAnalyzerReferences);
             }
 
-            // changed analyzer references
+            // changed documents
             if (oldProjectChecksums.Documents.Checksum != newProjectChecksums.Documents.Checksum)
             {
                 project = await UpdateDocumentsAsync<DocumentState>(
