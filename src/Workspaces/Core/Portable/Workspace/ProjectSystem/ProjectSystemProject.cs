@@ -1283,7 +1283,8 @@ internal sealed partial class ProjectSystemProject
 
         _documentFileChangeContext.Dispose();
 
-        IReadOnlyList<MetadataReference>? remainingMetadataReferences = null;
+        IReadOnlyList<MetadataReference>? originalMetadataReferences = null;
+        IReadOnlyList<AnalyzerReference>? originalAnalyzerReferences = null;
 
         _projectSystemProjectFactory.ApplyChangeToWorkspace(w =>
         {
@@ -1291,7 +1292,11 @@ internal sealed partial class ProjectSystemProject
             // as another project being removed at the same time could result in project to project
             // references being converted to metadata references (or vice versa) and we might either
             // miss stopping a file watcher or might end up double-stopping a file watcher.
-            remainingMetadataReferences = w.CurrentSolution.GetRequiredProject(Id).MetadataReferences;
+            var project = w.CurrentSolution.GetRequiredProject(Id);
+
+            originalMetadataReferences = project.MetadataReferences;
+            originalAnalyzerReferences = project.AnalyzerReferences;
+
             _projectSystemProjectFactory.RemoveProjectFromTrackingMaps_NoLock(Id);
 
             // If this is our last project, clear the entire solution.
@@ -1305,10 +1310,14 @@ internal sealed partial class ProjectSystemProject
             }
         });
 
-        Contract.ThrowIfNull(remainingMetadataReferences);
+        Contract.ThrowIfNull(originalMetadataReferences);
+        Contract.ThrowIfNull(originalAnalyzerReferences);
 
-        foreach (var reference in remainingMetadataReferences.OfType<PortableExecutableReference>())
+        foreach (var reference in originalMetadataReferences.OfType<PortableExecutableReference>())
             _projectSystemProjectFactory.FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!, referenceToTrack: reference);
+
+        foreach (var reference in originalAnalyzerReferences)
+            _projectSystemProjectFactory.FileWatchedAnalyzerReferenceFactory.StopWatchingReference(reference.FullPath!, referenceToTrack: reference);
     }
 
     public void ReorderSourceFiles(ImmutableArray<string> filePaths)

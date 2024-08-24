@@ -44,7 +44,7 @@ internal sealed partial class ProjectSystemProjectFactory
     public IFileChangeWatcher FileChangeWatcher { get; }
 
     public FileWatchedReferenceFactory<PortableExecutableReference> FileWatchedPortableExecutableReferenceFactory { get; }
-    public FileWatchedReferenceFactory<AnalyzerFileReference> FileWatchedAnalyzerReferenceFactory { get; }
+    public FileWatchedReferenceFactory<AnalyzerReference> FileWatchedAnalyzerReferenceFactory { get; }
 
     public SolutionServices SolutionServices => this.Workspace.Services.SolutionServices;
 
