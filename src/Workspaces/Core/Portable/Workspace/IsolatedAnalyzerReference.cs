@@ -87,16 +87,16 @@ internal sealed class IsolatedAnalyzerReference(
         TArg arg)
         where TItem : class
     {
-        // Note: we want to keep ourselves alive during this call so that neither we nor our reference set get GC'ed
-        // while we're computing the items.
-        GC.KeepAlive(this);
-
         // Keep a reference from each generator to the IsolatedAssemblyReferenceSet.  This will ensure it (and the ALC
         // it points at) stays alive as long as the generator instance stays alive.
         var items = getItems(this.UnderlyingAnalyzerReference, arg);
 
         foreach (var item in items)
             table.TryAdd(item, _isolatedAnalyzerReferenceSet);
+
+        // Note: we want to keep ourselves alive during this call so that neither we nor our reference set get GC'ed
+        // while we're computing the items.
+        GC.KeepAlive(this);
 
         return items;
     }
