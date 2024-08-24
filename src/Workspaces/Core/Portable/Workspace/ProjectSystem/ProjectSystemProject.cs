@@ -758,21 +758,20 @@ internal sealed partial class ProjectSystemProject
 
         using var _ = ArrayBuilder<AnalyzerFileReference>.GetInstance(out var initialReferenceList);
 
-        // Keep around all the project 
+        // Keep around all the project's analyzers that were not removed.
         foreach (var analyzerReference in project.AnalyzerReferences)
         {
             // Skip any existing analyzer references we're removing.
             if (analyzersRemoved.Contains(analyzerReference.FullPath!))
                 continue;
 
-            initialReferenceList.Add(analyzerReference switch
-            {
-                AnalyzerFileReference analyzerFileReference => analyzerFileReference,
 #if NET
-                IsolatedAnalyzerFileReference isolatedReference => isolatedReference.UnderlyingAnalyzerFileReference,
+            // In .Net Core, we must have IsolatedAnalyzerFileReferences for all analyzers.
+            initialReferenceList.Add(((IsolatedAnalyzerFileReference)analyzerReference).UnderlyingAnalyzerFileReference);
+#else
+            // In .Net Core, we must have AnalyzerFileReferences for all analyzers.
+            initialReferenceList.Add((AnalyzerFileReference)analyzerReference);
 #endif
-                _ => throw ExceptionUtilities.UnexpectedValue(analyzerReference.GetType()),
-            });
         }
 
         // Now, create an initial analyzer file reference for all the analyzers being added.
@@ -801,7 +800,7 @@ internal sealed partial class ProjectSystemProject
         return (newSolution, newProjectUpdateState);
     }
 
-    #endregion
+#endregion
 
     #region Source File Addition/Removal
 
