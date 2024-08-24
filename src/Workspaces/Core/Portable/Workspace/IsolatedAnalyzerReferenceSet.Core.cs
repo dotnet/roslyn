@@ -150,6 +150,11 @@ internal sealed partial class IsolatedAnalyzerReferenceSet
 
         var checksum = analyzerChecksums.Checksum;
 
+        // Note: this method will end up fetching or creating an IsolatedAssemblyReferenceSet for this checksum.  
+        // We'll then return the AnalyzerReferences from within it.  These AnalyzerReferences (which will normally all
+        // be IsolatedAnalyzerFileReferences) will themselves root the IsolatedAssemblyReferenceSet, as will all the
+        // DiagnosticAnalyzers and ISourceGenerators returned down the line from the IsolatedAnalyzerFileReferences.
+
         // First, see if these were already computed and stored.
         using (useAsync
             ? await s_isolatedReferenceSetGate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false)
