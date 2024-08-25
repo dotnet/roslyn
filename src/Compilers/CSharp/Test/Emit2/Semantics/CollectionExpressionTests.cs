@@ -35457,31 +35457,31 @@ partial class Program
                 using System.Collections;
                 using System.Collections.Generic;
 
-                class MyCollection(List<int> list) : ICollection<int>
+                class MyCollection<T>(List<T> list) : ICollection<T>
                 {
                     public int Count => list.Count;
 
                     public bool IsReadOnly => false;
 
-                    public void Add(int item) => list.Add(item);
+                    public void Add(T item) => list.Add(item);
 
                     public void Clear() => list.Clear();
 
-                    public bool Contains(int item) => list.Contains(item);
+                    public bool Contains(T item) => list.Contains(item);
 
-                    public void CopyTo(int[] array, int arrayIndex) => list.CopyTo(array, arrayIndex);
+                    public void CopyTo(T[] array, int arrayIndex) => list.CopyTo(array, arrayIndex);
 
-                    public bool Remove(int item) => list.Remove(item);
+                    public bool Remove(T item) => list.Remove(item);
 
                     public Enumerator GetEnumerator() => new(list.GetEnumerator());
 
-                    IEnumerator<int> IEnumerable<int>.GetEnumerator() => GetEnumerator();
+                    IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
                     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-                    public struct Enumerator(List<int>.Enumerator enumerator) : IEnumerator<int>
+                    public struct Enumerator(List<T>.Enumerator enumerator) : IEnumerator<T>
                     {
-                        public int Current => enumerator.Current;
+                        public T Current => enumerator.Current;
 
                         object IEnumerator.Current => Current;
 
@@ -35497,23 +35497,78 @@ partial class Program
                 {
                     static void Main()
                     {
-                        M(new([1, 2, 3])).Report();
+                        M1(new([1, 2, 3])).Report();
+                        M2(new([1, 2, 3])).Report();
+                        M3(new([1, 2, 3])).Report();
                     }
 
-                    static List<int> M(MyCollection c) => [..c];
+                    static List<int> M1(MyCollection<int> c) => [..c];
+
+                    #nullable enable
+                    static List<object> M2(MyCollection<object> c) => [..c];
+                    static List<object?> M3(MyCollection<object> c) => [..c];
                 }
                 """;
 
-            var verifier = CompileAndVerify([source, s_collectionExtensions], expectedOutput: "[1, 2, 3],", verify: Verification.Skipped);
+            var verifier = CompileAndVerify([source, s_collectionExtensions], expectedOutput: "[1, 2, 3], [1, 2, 3], [1, 2, 3], ", verify: Verification.Skipped);
             verifier.VerifyDiagnostics();
 
-            verifier.VerifyIL("C.M", """
+            verifier.VerifyIL("C.M1", """
                 {
                   // Code size        7 (0x7)
                   .maxstack  1
                   IL_0000:  ldarg.0
                   IL_0001:  call       "System.Collections.Generic.List<int> System.Linq.Enumerable.ToList<int>(System.Collections.Generic.IEnumerable<int>)"
                   IL_0006:  ret
+                }
+                """);
+            verifier.VerifyIL("C.M2", """
+                {
+                  // Code size        7 (0x7)
+                  .maxstack  1
+                  IL_0000:  ldarg.0
+                  IL_0001:  call       "System.Collections.Generic.List<object> System.Linq.Enumerable.ToList<object>(System.Collections.Generic.IEnumerable<object>)"
+                  IL_0006:  ret
+                }
+                """);
+            // This should be the same as M2. See https://github.com/dotnet/roslyn/issues/74894
+            verifier.VerifyIL("C.M3", """
+                {
+                  // Code size       63 (0x3f)
+                  .maxstack  2
+                  .locals init (System.Collections.Generic.List<object> V_0,
+                                MyCollection<object>.Enumerator V_1,
+                                object V_2)
+                  IL_0000:  ldarg.0
+                  IL_0001:  dup
+                  IL_0002:  callvirt   "int MyCollection<object>.Count.get"
+                  IL_0007:  newobj     "System.Collections.Generic.List<object>..ctor(int)"
+                  IL_000c:  stloc.0
+                  IL_000d:  callvirt   "MyCollection<object>.Enumerator MyCollection<object>.GetEnumerator()"
+                  IL_0012:  stloc.1
+                  .try
+                  {
+                    IL_0013:  br.s       IL_0024
+                    IL_0015:  ldloca.s   V_1
+                    IL_0017:  call       "object MyCollection<object>.Enumerator.Current.get"
+                    IL_001c:  stloc.2
+                    IL_001d:  ldloc.0
+                    IL_001e:  ldloc.2
+                    IL_001f:  callvirt   "void System.Collections.Generic.List<object>.Add(object)"
+                    IL_0024:  ldloca.s   V_1
+                    IL_0026:  call       "bool MyCollection<object>.Enumerator.MoveNext()"
+                    IL_002b:  brtrue.s   IL_0015
+                    IL_002d:  leave.s    IL_003d
+                  }
+                  finally
+                  {
+                    IL_002f:  ldloca.s   V_1
+                    IL_0031:  constrained. "MyCollection<object>.Enumerator"
+                    IL_0037:  callvirt   "void System.IDisposable.Dispose()"
+                    IL_003c:  endfinally
+                  }
+                  IL_003d:  ldloc.0
+                  IL_003e:  ret
                 }
                 """);
         }
