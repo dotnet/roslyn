@@ -16,35 +16,53 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
     IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader();
 }
 
-/// <summary>
-/// Abstract implementation of an analyzer assembly loader that can be used by VS/VSCode to provide a <see
-/// cref="IAnalyzerAssemblyLoader"/> with an appropriate path.
-/// </summary>
-internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemblyLoaderProvider
+internal abstract class AbstractAnalyzerAssemblyLoaderProviderFactory(
+    IEnumerable<IAnalyzerAssemblyResolver> externalResolvers) : IWorkspaceServiceFactory
 {
-    private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
+    private readonly ImmutableArray<IAnalyzerAssemblyResolver> _externalResolvers = externalResolvers.ToImmutableArray();
 
-    public AbstractAnalyzerAssemblyLoaderProvider(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+        => new DefaultAnalyzerAssemblyLoaderProvider(this, workspaceServices.Workspace.Kind ?? "Default", _externalResolvers);
+
+    protected virtual IAnalyzerAssemblyLoaderInternal WrapLoader(IAnalyzerAssemblyLoaderInternal loader)
+        => loader;
+
+    /// <summary>
+    /// Abstract implementation of an analyzer assembly loader that can be used by VS/VSCode to provide a <see
+    /// cref="IAnalyzerAssemblyLoader"/> with an appropriate path.
+    /// </summary>
+    private sealed class DefaultAnalyzerAssemblyLoaderProvider : IAnalyzerAssemblyLoaderProvider
     {
-        // We use a lazy here in case creating the loader requires MEF imports in the derived constructor.
-        _shadowCopyLoader = new(() => CreateShadowCopyLoader(externalResolvers));
+        private readonly AbstractAnalyzerAssemblyLoaderProviderFactory _factory;
+        private readonly string _workspaceKind;
+        private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
+
+        public DefaultAnalyzerAssemblyLoaderProvider(
+            AbstractAnalyzerAssemblyLoaderProviderFactory factory,
+            string workspaceKind,
+            ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+        {
+            _factory = factory;
+            _workspaceKind = workspaceKind;
+            // We use a lazy here in case creating the loader requires MEF imports in the derived constructor.
+            _shadowCopyLoader = new(() => CreateShadowCopyLoader(externalResolvers));
+        }
+
+        public IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader()
+            => _shadowCopyLoader.Value;
+
+        private IAnalyzerAssemblyLoaderInternal CreateShadowCopyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+            => _factory.WrapLoader(DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(GetDefaultShadowCopyPath(), externalResolvers));
+
+        private string GetDefaultShadowCopyPath()
+            => Path.Combine(Path.GetTempPath(), "Roslyn", _workspaceKind, "AnalyzerAssemblyLoader");
     }
-
-    public IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader()
-        => _shadowCopyLoader.Value;
-
-    protected virtual IAnalyzerAssemblyLoaderInternal CreateShadowCopyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
-        => DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
-            GetDefaultShadowCopyPath(),
-            externalResolvers: externalResolvers);
-
-    public static string GetDefaultShadowCopyPath()
-        => Path.Combine(Path.GetTempPath(), "Roslyn", "AnalyzerAssemblyLoader");
 }
 
-[ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider)), Shared]
+
+[ExportWorkspaceServiceFactory(typeof(IAnalyzerAssemblyLoaderProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultAnalyzerAssemblyLoaderService(
     [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
-    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers.ToImmutableArray());
+    : AbstractAnalyzerAssemblyLoaderProviderFactory(externalResolvers);
