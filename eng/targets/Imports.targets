@@ -392,5 +392,8 @@
     </ItemGroup>
   </Target>
 
+  <!-- Workaround for an issue where nested targets (e.g. GetCopyToPublishDirectoryItems in the SDK) call _SplitProjectReferencesByFileExistence without calling implict prerequisite AssignProjectConfiguration -->
+  <Target Name="Workaround_SplitProjectReferencesByFileExistence" BeforeTargets="_SplitProjectReferencesByFileExistence" DependsOnTargets="AssignProjectConfiguration" />
+
   <Import Project="DoNotGenerateSatelliteAssemblies_Workaround.targets" Condition="'$(GenerateSatelliteAssemblies)' == 'false'" />
 </Project>

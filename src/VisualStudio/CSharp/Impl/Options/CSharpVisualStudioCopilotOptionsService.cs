@@ -42,7 +42,7 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
     private const string CopilotOptionNamePrefix = "Microsoft.VisualStudio.Conversations";
     private const string CopilotCodeAnalysisOptionName = "EnableCSharpCodeAnalysis";
     private const string CopilotRefineOptionName = "EnableCSharpRefineQuickActionSuggestion";
-    private const string CopilotOnTheFlyDocsOptionName = "EnableCSharpOnTheFlyDocs";
+    private const string CopilotOnTheFlyDocsOptionName = "EnableOnTheFlyDocs";
 
     private static readonly UIContext s_copilotHasLoadedUIContext = UIContext.FromUIContextGuid(new Guid(CopilotHasLoadedGuid));
     private static readonly UIContext s_gitHubAccountStatusDeterminedContext = UIContext.FromUIContextGuid(new Guid(GitHubAccountStatusDetermined));
@@ -77,7 +77,7 @@ internal sealed class CSharpVisualStudioCopilotOptionsService : ICopilotOptionsS
         var settingManager = await _settingsManagerTask.ConfigureAwait(false);
         // The bool setting is persisted as 0=None, 1=True, 2=False, so it needs to be retrieved as an int.
         return settingManager.TryGetValue($"{CopilotOptionNamePrefix}.{optionName}", out int isEnabled) == GetValueResult.Success
-            && isEnabled == 1;
+            && isEnabled != 2;
     }
 
     public Task<bool> IsCodeAnalysisOptionEnabledAsync()

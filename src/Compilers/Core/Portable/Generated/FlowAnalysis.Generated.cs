@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.FlowAnalysis
         /// </summary>
         CaptureId Id { get; }
         /// <summary>
-        /// True if this reference to the capture initializes the capture. Used when the capture is being initialized by being passed as an <code>out</code> parameter.
+        /// True if this reference to the capture initializes the capture. Used when the capture is being initialized by being passed as an <see langword="out" /> parameter.
         /// </summary>
         bool IsInitialization { get; }
     }

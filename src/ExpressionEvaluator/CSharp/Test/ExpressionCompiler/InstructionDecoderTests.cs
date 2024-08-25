@@ -442,7 +442,7 @@ class C
 
         private MethodSymbol GetConstructedMethod(string source, string methodName, string[] serializedTypeArgumentNames, CSharpInstructionDecoder instructionDecoder)
         {
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugDll, assemblyName: nameof(InstructionDecoderTests));
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.DebugDll, assemblyName: nameof(InstructionDecoderTests));
             var runtime = CreateRuntimeInstance(compilation);
             var moduleInstances = runtime.Modules;
             var blocks = moduleInstances.SelectAsArray(m => m.MetadataBlock);

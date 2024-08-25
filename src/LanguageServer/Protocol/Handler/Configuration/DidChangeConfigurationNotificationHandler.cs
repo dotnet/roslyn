@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.Configuration
             RoslynDebug.Assert(configurationsFromClient.Length == SupportedOptions.Sum(option => option is IPerLanguageValuedOption ? 2 : 1));
 
             // LSP ensures the order of result from client should match the order we sent from server.
-            var optionsToUpdate = new ArrayBuilder<KeyValuePair<OptionKey2, object?>>();
+            using var _ = ArrayBuilder<KeyValuePair<OptionKey2, object?>>.GetInstance(out var optionsToUpdate);
 
             for (var i = 0; i < configurationsFromClient.Length; i++)
             {

@@ -898,8 +898,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 resultTypes.Add(armType);
                 Join(ref endState, ref this.State);
 
-                // Build placeholders for inference in order to preserve annotations.
-                placeholderBuilder.Add(CreatePlaceholderIfNecessary(expression, armType.ToTypeWithAnnotations(compilation)));
+                if (!IsTargetTypedExpression(expression))
+                {
+                    // Build placeholders for inference in order to preserve annotations.
+                    placeholderBuilder.Add(CreatePlaceholderIfNecessary(expression, armType.ToTypeWithAnnotations(compilation)));
+                }
             }
 
             SetState(endState);

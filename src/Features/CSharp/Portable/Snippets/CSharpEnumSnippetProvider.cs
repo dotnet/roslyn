@@ -37,6 +37,8 @@ internal sealed class CSharpEnumSnippetProvider() : AbstractCSharpTypeSnippetPro
 
     protected override ISet<SyntaxKind> ValidModifiers => s_validModifiers;
 
+    protected override bool CanBePartial => false;
+
     protected override async Task<EnumDeclarationSyntax> GenerateTypeDeclarationAsync(Document document, int position, CancellationToken cancellationToken)
     {
         var generator = SyntaxGenerator.GetGenerator(document);

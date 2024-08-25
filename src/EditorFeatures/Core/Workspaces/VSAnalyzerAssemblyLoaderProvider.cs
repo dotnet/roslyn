@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -11,11 +12,8 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Workspaces;
 
 [ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider), [WorkspaceKind.Host]), Shared]
-internal class VSAnalyzerAssemblyLoaderProvider : AbstractAnalyzerAssemblyLoaderProvider
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public VSAnalyzerAssemblyLoaderProvider([ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers) : base(externalResolvers)
-    {
-    }
-}
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class VSAnalyzerAssemblyLoaderProvider(
+    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
+    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers.ToImmutableArray());

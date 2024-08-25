@@ -38,9 +38,10 @@ internal sealed partial class ProjectSystemProject
     /// <summary>
     /// A semaphore taken for all mutation of any mutable field in this type.
     /// </summary>
-    /// <remarks>This is, for now, intentionally pessimistic. There are no doubt ways that we could allow more to run in parallel,
-    /// but the current tradeoff is for simplicity of code and "obvious correctness" than something that is subtle, fast, and wrong.</remarks>
-    private readonly SemaphoreSlim _gate = new SemaphoreSlim(initialCount: 1);
+    /// <remarks>This is, for now, intentionally pessimistic. There are no doubt ways that we could allow more to run in
+    /// parallel, but the current tradeoff is for simplicity of code and "obvious correctness" than something that is
+    /// subtle, fast, and wrong.</remarks>
+    private readonly SemaphoreSlim _gate = new(initialCount: 1);
 
     /// <summary>
     /// The number of active batch scopes. If this is zero, we are not batching, non-zero means we are batching.
@@ -52,14 +53,20 @@ internal sealed partial class ProjectSystemProject
     private readonly List<ProjectReference> _projectReferencesAddedInBatch = [];
     private readonly List<ProjectReference> _projectReferencesRemovedInBatch = [];
 
-    private readonly Dictionary<string, ProjectAnalyzerReference> _analyzerPathsToAnalyzers = [];
-    private readonly List<ProjectAnalyzerReference> _analyzersAddedInBatch = [];
+    /// <summary>
+    /// The set of actual analyzer reference paths that the project knows about.
+    /// </summary>
+    private readonly HashSet<string> _projectAnalyzerPaths = [];
 
     /// <summary>
-    /// The list of <see cref="ProjectAnalyzerReference"/> that will be removed in this batch. They have not yet
-    /// been disposed, and will be disposed once the batch is applied.
+    /// Paths to analyzers we want to add when the current batch completes.
     /// </summary>
-    private readonly List<ProjectAnalyzerReference> _analyzersRemovedInBatch = [];
+    private readonly List<string> _analyzersAddedInBatch = [];
+
+    /// <summary>
+    /// Paths to analzyers we want to remove when the current batch completes.
+    /// </summary>
+    private readonly List<string> _analyzersRemovedInBatch = [];
 
     private readonly List<Func<SolutionChangeAccumulator, ProjectUpdateState, ProjectUpdateState>> _projectPropertyModificationsInBatch = [];
 
@@ -150,8 +157,7 @@ internal sealed partial class ProjectSystemProject
         string assemblyName,
         CompilationOptions? compilationOptions,
         string? filePath,
-        ParseOptions? parseOptions,
-        string? compilationOutputAssemblyFilePath)
+        ParseOptions? parseOptions)
     {
         _projectSystemProjectFactory = projectSystemProjectFactory;
         _hostInfo = hostInfo;
@@ -160,11 +166,10 @@ internal sealed partial class ProjectSystemProject
         Language = language;
         _displayName = displayName;
 
-        var provider = _projectSystemProjectFactory.Workspace.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-        // Shadow copy analyzer files coming from packages to avoid locking the files in NuGet cache.
-        // NOTE: The provider will always return the same singleton analyzer loader instance, which is important to
-        // ensure that shadow copied analyzer dependencies are correctly loaded.
-        _analyzerAssemblyLoader = provider.GetLoader(shadowCopy: true);
+        var provider = _projectSystemProjectFactory.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+        // NOTE: The provider will always return the same singleton, shadow copying, analyzer loader instance, which is
+        // important to ensure that analyzer dependencies are correctly loaded.
+        _analyzerAssemblyLoader = provider.GetShadowCopyLoader();
 
         _sourceFiles = new BatchingDocumentCollection(
             this,
@@ -199,24 +204,19 @@ internal sealed partial class ProjectSystemProject
         _compilationOptions = compilationOptions;
         _filePath = filePath;
         _parseOptions = parseOptions;
-        _compilationOutputAssemblyFilePath = compilationOutputAssemblyFilePath;
 
         var watchedDirectories = GetWatchedDirectories(language, filePath);
         _documentFileChangeContext = _projectSystemProjectFactory.FileChangeWatcher.CreateContext(watchedDirectories);
         _documentFileChangeContext.FileChanged += DocumentFileChangeContext_FileChanged;
 
-        static WatchedDirectory[] GetWatchedDirectories(string? language, string? filePath)
+        static ImmutableArray<WatchedDirectory> GetWatchedDirectories(string? language, string? filePath)
         {
             if (filePath is null)
-            {
                 return [];
-            }
 
             var rootPath = Path.GetDirectoryName(filePath);
             if (rootPath is null)
-            {
                 return [];
-            }
 
             return language switch
             {
@@ -246,6 +246,8 @@ internal sealed partial class ProjectSystemProject
         Func<SolutionChangeAccumulator, ProjectUpdateState, T, ProjectUpdateState> updateSolution,
         bool logThrowAwayTelemetry = false)
     {
+        using var _ = CreateBatchScope();
+
         using (_gate.DisposableWait())
         {
             // If nothing is changing, we can skip entirely
@@ -260,11 +262,11 @@ internal sealed partial class ProjectSystemProject
 
             if (logThrowAwayTelemetry)
             {
-                var telemetryService = _projectSystemProjectFactory.Workspace.Services.GetService<IWorkspaceTelemetryService>();
+                var telemetryService = _projectSystemProjectFactory.SolutionServices.GetService<IWorkspaceTelemetryService>();
 
                 if (telemetryService?.HasActiveSession == true)
                 {
-                    var workspaceStatusService = _projectSystemProjectFactory.Workspace.Services.GetRequiredService<IWorkspaceStatusService>();
+                    var workspaceStatusService = _projectSystemProjectFactory.SolutionServices.GetRequiredService<IWorkspaceStatusService>();
 
                     // We only log telemetry during solution open
 
@@ -283,17 +285,8 @@ internal sealed partial class ProjectSystemProject
                 }
             }
 
-            if (_activeBatchScopes > 0)
-            {
-                _projectPropertyModificationsInBatch.Add(
-                    (solutionChanges, projectUpdateState) => updateSolution(solutionChanges, projectUpdateState, oldValue));
-            }
-            else
-            {
-                _projectSystemProjectFactory.ApplyBatchChangeToWorkspace(
-                    (solutionChanges, projectUpdateState) => updateSolution(solutionChanges, projectUpdateState, oldValue),
-                    onAfterUpdateAlways: null);
-            }
+            _projectPropertyModificationsInBatch.Add(
+                (solutionChanges, projectUpdateState) => updateSolution(solutionChanges, projectUpdateState, oldValue));
         }
     }
 
@@ -383,9 +376,9 @@ internal sealed partial class ProjectSystemProject
     {
         get => _compilationOutputAssemblyFilePath;
         set => ChangeProjectOutputPath(
-                   ref _compilationOutputAssemblyFilePath,
-                   value,
-                   s => s.WithProjectCompilationOutputInfo(Id, s.GetRequiredProject(Id).CompilationOutputInfo.WithAssemblyPath(value)));
+            ref _compilationOutputAssemblyFilePath,
+            value,
+            s => s.WithProjectCompilationOutputInfo(Id, s.GetRequiredProject(Id).CompilationOutputInfo.WithAssemblyPath(value)));
     }
 
     public string? OutputFilePath
@@ -563,7 +556,8 @@ internal sealed partial class ProjectSystemProject
 
             await _projectSystemProjectFactory.ApplyBatchChangeToWorkspaceMaybeAsync(useAsync, (solutionChanges, projectUpdateState) =>
             {
-                // Changes made inside this transformation must be idemopotent in case it is attempted multiple times.
+                // Changes made inside this transformation must be idempotent in case it is attempted multiple times.
+                var projectBeforeMutations = solutionChanges.Solution.GetRequiredProject(Id);
 
                 var documentFileNamesAddedBuilder = ImmutableArray.CreateBuilder<string>();
                 documentsToOpen = _sourceFiles.UpdateSolutionForBatch(
@@ -592,91 +586,18 @@ internal sealed partial class ProjectSystemProject
 
                 documentFileNamesAdded = documentFileNamesAddedBuilder.ToImmutable();
 
-                // Metadata reference removing. Do this before adding in case this removes a project reference that
-                // we are also going to add in the same batch. This could happen if case is changing, or we're targeting
-                // a different output path (say bin vs. obj vs. ref).
-                foreach (var (path, properties) in _metadataReferencesRemovedInBatch)
-                {
-                    projectUpdateState = TryRemoveConvertedProjectReference_NoLock(Id, path, properties, projectUpdateState, out var projectReference);
+                projectUpdateState = UpdateMetadataReferences(
+                    projectBeforeMutations, solutionChanges, projectUpdateState, _metadataReferencesRemovedInBatch, _metadataReferencesAddedInBatch);
 
-                    if (projectReference != null)
-                    {
-                        solutionChanges.UpdateSolutionForProjectAction(
-                            Id,
-                            solutionChanges.Solution.RemoveProjectReference(Id, projectReference));
-                    }
-                    else
-                    {
-                        // TODO: find a cleaner way to fetch this
-                        var metadataReference = _projectSystemProjectFactory.Workspace.CurrentSolution.GetRequiredProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
-                                                                                .Single(m => m.FilePath == path && m.Properties == properties);
+                UpdateProjectReferences(
+                    Id, solutionChanges, _projectReferencesRemovedInBatch, _projectReferencesAddedInBatch);
 
-                        projectUpdateState = projectUpdateState.WithIncrementalReferenceRemoved(metadataReference);
-
-                        solutionChanges.UpdateSolutionForProjectAction(
-                            Id,
-                            newSolution: solutionChanges.Solution.RemoveMetadataReference(Id, metadataReference));
-                    }
-                }
-
-                // Metadata reference adding...
-                if (_metadataReferencesAddedInBatch.Count > 0)
-                {
-                    var projectReferencesCreated = new List<ProjectReference>();
-
-                    foreach (var (path, properties) in _metadataReferencesAddedInBatch)
-                    {
-                        projectUpdateState = TryCreateConvertedProjectReference_NoLock(
-                            Id, path, properties, projectUpdateState, solutionChanges.Solution, out var projectReference);
-
-                        if (projectReference != null)
-                        {
-                            projectReferencesCreated.Add(projectReference);
-                        }
-                        else
-                        {
-                            var metadataReference = CreateReference_NoLock(path, properties, _projectSystemProjectFactory.SolutionServices);
-                            projectUpdateState = projectUpdateState.WithIncrementalReferenceAdded(metadataReference);
-                        }
-                    }
-
-                    solutionChanges.UpdateSolutionForProjectAction(
-                        Id,
-                        solutionChanges.Solution.AddProjectReferences(Id, projectReferencesCreated)
-                                                .AddMetadataReferences(Id, projectUpdateState.AddedReferences));
-                }
-
-                // Project reference adding...
-                solutionChanges.UpdateSolutionForProjectAction(
-                    Id,
-                    newSolution: solutionChanges.Solution.AddProjectReferences(Id, _projectReferencesAddedInBatch));
-
-                // Project reference removing...
-                foreach (var projectReference in _projectReferencesRemovedInBatch)
-                {
-                    solutionChanges.UpdateSolutionForProjectAction(
-                        Id,
-                        newSolution: solutionChanges.Solution.RemoveProjectReference(Id, projectReference));
-                }
-
-                // Analyzer reference adding...
-                solutionChanges.UpdateSolutionForProjectAction(
-                    Id,
-                    newSolution: solutionChanges.Solution.AddAnalyzerReferences(Id, _analyzersAddedInBatch.Select(a => a.GetReference())));
-
-                // Analyzer reference removing...
-                foreach (var analyzerReference in _analyzersRemovedInBatch)
-                {
-                    solutionChanges.UpdateSolutionForProjectAction(
-                        Id,
-                        newSolution: solutionChanges.Solution.RemoveAnalyzerReference(Id, analyzerReference.GetReference()));
-                }
+                projectUpdateState = UpdateAnalyzerReferences(
+                    projectBeforeMutations, solutionChanges, projectUpdateState, _analyzersRemovedInBatch, _analyzersAddedInBatch);
 
                 // Other property modifications...
                 foreach (var propertyModification in _projectPropertyModificationsInBatch)
-                {
                     projectUpdateState = propertyModification(solutionChanges, projectUpdateState);
-                }
 
                 return projectUpdateState;
             },
@@ -695,15 +616,7 @@ internal sealed partial class ProjectSystemProject
                 ClearAndZeroCapacity(_projectReferencesAddedInBatch);
                 ClearAndZeroCapacity(_projectReferencesRemovedInBatch);
                 ClearAndZeroCapacity(_analyzersAddedInBatch);
-                if (_analyzersRemovedInBatch.Count > 0)
-                {
-                    // Dispose of any analyzers that were removed now that we've applied the changes.
-                    foreach (var analyzer in _analyzersRemovedInBatch)
-                    {
-                        analyzer.Dispose();
-                    }
-                    ClearAndZeroCapacity(_analyzersRemovedInBatch);
-                }
+                ClearAndZeroCapacity(_analyzersRemovedInBatch);
 
                 ClearAndZeroCapacity(_projectPropertyModificationsInBatch);
 
@@ -725,6 +638,129 @@ internal sealed partial class ProjectSystemProject
             // If we added or removed analyzers, then re-run all generators to bring them up to date.
             if (hasAnalyzerChanges)
                 _projectSystemProjectFactory.Workspace.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: true);
+        }
+
+        static ProjectUpdateState UpdateMetadataReferences(
+            Project projectBeforeMutation,
+            SolutionChangeAccumulator solutionChanges,
+            ProjectUpdateState projectUpdateState,
+            List<(string path, MetadataReferenceProperties properties)> metadataReferencesRemovedInBatch,
+            List<(string path, MetadataReferenceProperties properties)> metadataReferencesAddedInBatch)
+        {
+            var projectId = projectBeforeMutation.Id;
+
+            // Metadata reference removing. Do this before adding in case this removes a project reference that we are also
+            // going to add in the same batch. This could happen if case is changing, or we're targeting a different output
+            // path (say bin vs. obj vs. ref).
+            foreach (var (path, properties) in metadataReferencesRemovedInBatch)
+            {
+                projectUpdateState = TryRemoveConvertedProjectReference_NoLock(projectId, path, properties, projectUpdateState, out var projectReference);
+
+                if (projectReference != null)
+                {
+                    solutionChanges.UpdateSolutionForProjectAction(
+                        projectId, solutionChanges.Solution.RemoveProjectReference(projectId, projectReference));
+                }
+                else
+                {
+                    var metadataReference = projectBeforeMutation.MetadataReferences
+                        .OfType<PortableExecutableReference>()
+                        .Single(m => m.FilePath == path && m.Properties == properties);
+
+                    projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceRemoved(metadataReference);
+
+                    solutionChanges.UpdateSolutionForProjectAction(
+                        projectId, solutionChanges.Solution.RemoveMetadataReference(projectId, metadataReference));
+                }
+            }
+
+            // Metadata reference adding...
+            if (metadataReferencesAddedInBatch.Count > 0)
+            {
+                var projectReferencesCreated = new List<ProjectReference>();
+
+                foreach (var (path, properties) in metadataReferencesAddedInBatch)
+                {
+                    projectUpdateState = TryCreateConvertedProjectReference_NoLock(
+                        projectId, path, properties, projectUpdateState, solutionChanges.Solution, out var projectReference);
+
+                    if (projectReference != null)
+                    {
+                        projectReferencesCreated.Add(projectReference);
+                    }
+                    else
+                    {
+                        var metadataReference = CreateMetadataReference_NoLock(path, properties, solutionChanges.Solution.Services);
+                        projectUpdateState = projectUpdateState.WithIncrementalMetadataReferenceAdded(metadataReference);
+                    }
+                }
+
+                solutionChanges.UpdateSolutionForProjectAction(
+                    projectId,
+                    solutionChanges.Solution
+                        .AddProjectReferences(projectId, projectReferencesCreated)
+                        .AddMetadataReferences(projectId, projectUpdateState.AddedMetadataReferences));
+            }
+
+            return projectUpdateState;
+        }
+
+        static void UpdateProjectReferences(
+            ProjectId projectId,
+            SolutionChangeAccumulator solutionChanges,
+            List<ProjectReference> projectReferencesRemovedInBatch,
+            List<ProjectReference> projectReferencesAddedInBatch)
+        {
+            // Project reference adding...
+            solutionChanges.UpdateSolutionForProjectAction(
+                projectId, solutionChanges.Solution.AddProjectReferences(projectId, projectReferencesAddedInBatch));
+
+            // Project reference removing...
+            foreach (var projectReference in projectReferencesRemovedInBatch)
+            {
+                solutionChanges.UpdateSolutionForProjectAction(
+                    projectId, solutionChanges.Solution.RemoveProjectReference(projectId, projectReference));
+            }
+        }
+
+        static ProjectUpdateState UpdateAnalyzerReferences(
+            Project projectBeforeMutation,
+            SolutionChangeAccumulator solutionChanges,
+            ProjectUpdateState projectUpdateState,
+            List<string> analyzersRemovedInBatch,
+            List<string> analyzersAddedInBatch)
+        {
+            var projectId = projectBeforeMutation.Id;
+
+            // Analyzer reference removing...
+            if (analyzersRemovedInBatch.Count > 0)
+            {
+                projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesRemoved(analyzersRemovedInBatch);
+
+                foreach (var analyzerReferenceFullPath in analyzersRemovedInBatch)
+                {
+                    solutionChanges.UpdateSolutionForProjectAction(
+                        projectId,
+                        solutionChanges.Solution.RemoveAnalyzerReference(
+                            projectId, projectBeforeMutation.AnalyzerReferences.First(a => a.FullPath == analyzerReferenceFullPath)));
+                }
+            }
+
+            // Analyzer reference adding...
+            if (analyzersAddedInBatch.Count > 0)
+            {
+                projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesAdded(analyzersAddedInBatch);
+
+                var loaderProvider = solutionChanges.Solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
+                var shadowCopyLoader = loaderProvider.GetShadowCopyLoader();
+
+                solutionChanges.UpdateSolutionForProjectAction(
+                    projectId,
+                    solutionChanges.Solution.AddAnalyzerReferences(projectId,
+                        analyzersAddedInBatch.Select(fullPath => new AnalyzerFileReference(fullPath, shadowCopyLoader))));
+            }
+
+            return projectUpdateState;
         }
     }
 
@@ -934,47 +970,31 @@ internal sealed partial class ProjectSystemProject
 
         var mappedPaths = GetMappedAnalyzerPaths(fullPath);
 
+        using var _ = CreateBatchScope();
+
         using (_gate.DisposableWait())
         {
             // check all mapped paths first, so that all analyzers are either added or not
             foreach (var mappedFullPath in mappedPaths)
             {
-                if (_analyzerPathsToAnalyzers.ContainsKey(mappedFullPath))
-                {
+                if (_projectAnalyzerPaths.Contains(mappedFullPath))
                     throw new ArgumentException($"'{fullPath}' has already been added to this project.", nameof(fullPath));
-                }
             }
 
             foreach (var mappedFullPath in mappedPaths)
             {
-                // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid removing
-                // it once we apply the batch
-                var analyzerPendingRemoval = _analyzersRemovedInBatch.FirstOrDefault(a => a.FullPath == mappedFullPath);
+                // Are we adding one we just recently removed? If so, we can just keep using that one, and avoid
+                // removing it once we apply the batch
+                var analyzerPendingRemoval = _analyzersRemovedInBatch.FirstOrDefault(fullPath => fullPath == mappedFullPath);
+                _projectAnalyzerPaths.Add(mappedFullPath);
+
                 if (analyzerPendingRemoval != null)
                 {
                     _analyzersRemovedInBatch.Remove(analyzerPendingRemoval);
-                    _analyzerPathsToAnalyzers.Add(mappedFullPath, analyzerPendingRemoval);
                 }
                 else
                 {
-                    // Nope, we actually need to make a new one.
-                    var visualStudioAnalyzer = new ProjectAnalyzerReference(
-                        mappedFullPath,
-                        _analyzerAssemblyLoader,
-                        _hostInfo.DiagnosticSource,
-                        Id,
-                        Language);
-
-                    _analyzerPathsToAnalyzers.Add(mappedFullPath, visualStudioAnalyzer);
-
-                    if (_activeBatchScopes > 0)
-                    {
-                        _analyzersAddedInBatch.Add(visualStudioAnalyzer);
-                    }
-                    else
-                    {
-                        _projectSystemProjectFactory.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceAdded(Id, visualStudioAnalyzer.GetReference()));
-                    }
+                    _analyzersAddedInBatch.Add(mappedFullPath);
                 }
             }
         }
@@ -983,49 +1003,29 @@ internal sealed partial class ProjectSystemProject
     public void RemoveAnalyzerReference(string fullPath)
     {
         if (string.IsNullOrEmpty(fullPath))
-        {
             throw new ArgumentException("message", nameof(fullPath));
-        }
 
         var mappedPaths = GetMappedAnalyzerPaths(fullPath);
+
+        using var _ = CreateBatchScope();
 
         using (_gate.DisposableWait())
         {
             // check all mapped paths first, so that all analyzers are either removed or not
             foreach (var mappedFullPath in mappedPaths)
             {
-                if (!_analyzerPathsToAnalyzers.ContainsKey(mappedFullPath))
-                {
+                if (!_projectAnalyzerPaths.Contains(mappedFullPath))
                     throw new ArgumentException($"'{fullPath}' is not an analyzer of this project.", nameof(fullPath));
-                }
             }
 
             foreach (var mappedFullPath in mappedPaths)
             {
-                var visualStudioAnalyzer = _analyzerPathsToAnalyzers[mappedFullPath];
+                _projectAnalyzerPaths.Remove(mappedFullPath);
 
-                _analyzerPathsToAnalyzers.Remove(mappedFullPath);
-
-                if (_activeBatchScopes > 0)
-                {
-                    // This analyzer may be one we've just added in the same batch; in that case, just don't add
-                    // it in the first place.
-                    if (_analyzersAddedInBatch.Remove(visualStudioAnalyzer))
-                    {
-                        // Nothing is holding onto this analyzer now, so get rid of it
-                        visualStudioAnalyzer.Dispose();
-                    }
-                    else
-                    {
-                        _analyzersRemovedInBatch.Add(visualStudioAnalyzer);
-                    }
-                }
-                else
-                {
-                    _projectSystemProjectFactory.ApplyChangeToWorkspace(w => w.OnAnalyzerReferenceRemoved(Id, visualStudioAnalyzer.GetReference()));
-
-                    visualStudioAnalyzer.Dispose();
-                }
+                // This analyzer may be one we've just added in the same batch; in that case, just don't add it in
+                // the first place.
+                if (!_analyzersAddedInBatch.Remove(mappedFullPath))
+                    _analyzersRemovedInBatch.Add(mappedFullPath);
             }
         }
     }
@@ -1087,46 +1087,19 @@ internal sealed partial class ProjectSystemProject
     public void AddMetadataReference(string fullPath, MetadataReferenceProperties properties)
     {
         if (string.IsNullOrEmpty(fullPath))
-        {
             throw new ArgumentException($"{nameof(fullPath)} isn't a valid path.", nameof(fullPath));
-        }
+
+        using var _ = CreateBatchScope();
 
         using (_gate.DisposableWait())
         {
             if (ContainsMetadataReference_NoLock(fullPath, properties))
-            {
                 throw new InvalidOperationException("The metadata reference has already been added to the project.");
-            }
 
             _allMetadataReferences.MultiAdd(fullPath, properties, s_defaultMetadataReferenceProperties);
 
-            if (_activeBatchScopes > 0)
-            {
-                if (!_metadataReferencesRemovedInBatch.Remove((fullPath, properties)))
-                {
-                    _metadataReferencesAddedInBatch.Add((fullPath, properties));
-                }
-            }
-            else
-            {
-                _projectSystemProjectFactory.ApplyChangeToWorkspaceWithProjectUpdateState((w, projectUpdateState) =>
-                {
-                    projectUpdateState = ProjectSystemProjectFactory.TryCreateConvertedProjectReference_NoLock(Id, fullPath, properties, projectUpdateState, w.CurrentSolution, out var projectReference);
-
-                    if (projectReference != null)
-                    {
-                        w.OnProjectReferenceAdded(Id, projectReference);
-                    }
-                    else
-                    {
-                        var metadataReference = CreateReference_NoLock(fullPath, properties, _projectSystemProjectFactory.SolutionServices);
-                        projectUpdateState = projectUpdateState.WithIncrementalReferenceAdded(metadataReference);
-                        w.OnMetadataReferenceAdded(Id, metadataReference);
-                    }
-
-                    return projectUpdateState;
-                });
-            }
+            if (!_metadataReferencesRemovedInBatch.Remove((fullPath, properties)))
+                _metadataReferencesAddedInBatch.Add((fullPath, properties));
         }
     }
 
@@ -1160,49 +1133,19 @@ internal sealed partial class ProjectSystemProject
     public void RemoveMetadataReference(string fullPath, MetadataReferenceProperties properties)
     {
         if (string.IsNullOrEmpty(fullPath))
-        {
             throw new ArgumentException($"{nameof(fullPath)} isn't a valid path.", nameof(fullPath));
-        }
+
+        using var _ = CreateBatchScope();
 
         using (_gate.DisposableWait())
         {
             if (!ContainsMetadataReference_NoLock(fullPath, properties))
-            {
                 throw new InvalidOperationException("The metadata reference does not exist in this project.");
-            }
 
             _allMetadataReferences.MultiRemove(fullPath, properties);
 
-            if (_activeBatchScopes > 0)
-            {
-                if (!_metadataReferencesAddedInBatch.Remove((fullPath, properties)))
-                {
-                    _metadataReferencesRemovedInBatch.Add((fullPath, properties));
-                }
-            }
-            else
-            {
-                _projectSystemProjectFactory.ApplyChangeToWorkspaceWithProjectUpdateState((w, projectUpdateState) =>
-                {
-                    projectUpdateState = TryRemoveConvertedProjectReference_NoLock(Id, fullPath, properties, projectUpdateState, out var projectReference);
-
-                    // If this was converted to a project reference, we have now recorded the removal -- let's remove it here too
-                    if (projectReference != null)
-                    {
-                        w.OnProjectReferenceRemoved(Id, projectReference);
-                    }
-                    else
-                    {
-                        // TODO: find a cleaner way to fetch this
-                        var metadataReference = w.CurrentSolution.GetRequiredProject(Id).MetadataReferences.Cast<PortableExecutableReference>()
-                                                                                        .Single(m => m.FilePath == fullPath && m.Properties == properties);
-                        projectUpdateState = projectUpdateState.WithIncrementalReferenceRemoved(metadataReference);
-                        w.OnMetadataReferenceRemoved(Id, metadataReference);
-                    }
-
-                    return projectUpdateState;
-                });
-            }
+            if (!_metadataReferencesAddedInBatch.Remove((fullPath, properties)))
+                _metadataReferencesRemovedInBatch.Add((fullPath, properties));
         }
     }
 
@@ -1213,37 +1156,24 @@ internal sealed partial class ProjectSystemProject
     public void AddProjectReference(ProjectReference projectReference)
     {
         if (projectReference == null)
-        {
             throw new ArgumentNullException(nameof(projectReference));
-        }
+
+        using var _ = CreateBatchScope();
 
         using (_gate.DisposableWait())
         {
             if (ContainsProjectReference_NoLock(projectReference))
-            {
                 throw new ArgumentException("The project reference has already been added to the project.");
-            }
 
-            if (_activeBatchScopes > 0)
-            {
-                if (!_projectReferencesRemovedInBatch.Remove(projectReference))
-                {
-                    _projectReferencesAddedInBatch.Add(projectReference);
-                }
-            }
-            else
-            {
-                _projectSystemProjectFactory.ApplyChangeToWorkspace(w => w.OnProjectReferenceAdded(Id, projectReference));
-            }
+            if (!_projectReferencesRemovedInBatch.Remove(projectReference))
+                _projectReferencesAddedInBatch.Add(projectReference);
         }
     }
 
     public bool ContainsProjectReference(ProjectReference projectReference)
     {
         if (projectReference == null)
-        {
             throw new ArgumentNullException(nameof(projectReference));
-        }
 
         using (_gate.DisposableWait())
         {
@@ -1256,14 +1186,10 @@ internal sealed partial class ProjectSystemProject
         Debug.Assert(_gate.CurrentCount == 0);
 
         if (_projectReferencesRemovedInBatch.Contains(projectReference))
-        {
             return false;
-        }
 
         if (_projectReferencesAddedInBatch.Contains(projectReference))
-        {
             return true;
-        }
 
         return _projectSystemProjectFactory.Workspace.CurrentSolution.GetRequiredProject(Id).AllProjectReferences.Contains(projectReference);
     }
@@ -1292,28 +1218,17 @@ internal sealed partial class ProjectSystemProject
     public void RemoveProjectReference(ProjectReference projectReference)
     {
         if (projectReference == null)
-        {
             throw new ArgumentNullException(nameof(projectReference));
-        }
+
+        using var _ = CreateBatchScope();
 
         using (_gate.DisposableWait())
         {
             if (!ContainsProjectReference_NoLock(projectReference))
-            {
                 throw new ArgumentException("The project does not contain that project reference.");
-            }
 
-            if (_activeBatchScopes > 0)
-            {
-                if (!_projectReferencesAddedInBatch.Remove(projectReference))
-                {
-                    _projectReferencesRemovedInBatch.Add(projectReference);
-                }
-            }
-            else
-            {
-                _projectSystemProjectFactory.ApplyChangeToWorkspace(w => w.OnProjectReferenceRemoved(Id, projectReference));
-            }
+            if (!_projectReferencesAddedInBatch.Remove(projectReference))
+                _projectReferencesRemovedInBatch.Add(projectReference);
         }
     }
 
@@ -1365,16 +1280,8 @@ internal sealed partial class ProjectSystemProject
 
         Contract.ThrowIfNull(remainingMetadataReferences);
 
-        foreach (PortableExecutableReference reference in remainingMetadataReferences)
-        {
-            _projectSystemProjectFactory.FileWatchedReferenceFactory.StopWatchingReference(reference);
-        }
-
-        // Dispose of any analyzers that might still be around to remove their load diagnostics
-        foreach (var visualStudioAnalyzer in _analyzerPathsToAnalyzers.Values.Concat(_analyzersRemovedInBatch))
-        {
-            visualStudioAnalyzer.Dispose();
-        }
+        foreach (var reference in remainingMetadataReferences.OfType<PortableExecutableReference>())
+            _projectSystemProjectFactory.FileWatchedPortableExecutableReferenceFactory.StopWatchingReference(reference.FilePath!, referenceToTrack: reference);
     }
 
     public void ReorderSourceFiles(ImmutableArray<string> filePaths)

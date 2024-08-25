@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -673,7 +674,7 @@ End Namespace
         <WorkItem(537199, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537199")>
         <Fact>
         Public Sub UseTypeInNetModule()
-            Dim mscorlibRef = TestMetadata.Net40.mscorlib
+            Dim mscorlibRef = Net40.References.mscorlib
             Dim module1Ref = TestReferences.SymbolsTests.netModule.netModule1
             Dim text = <literal>
 Class Test

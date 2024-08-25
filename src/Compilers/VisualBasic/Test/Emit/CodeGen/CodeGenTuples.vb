@@ -6331,7 +6331,7 @@ Module Extensions
 End Module
     </file>
 </compilation>,
-                references:={ValueTupleRef, Net451.SystemRuntime, Net451.SystemCore},
+                references:={ValueTupleRef, NetFramework.SystemRuntime, NetFramework.SystemCore},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
             comp.AssertTheseDiagnostics(<errors>
@@ -6449,7 +6449,7 @@ End Module
             ' When VB 15 shipped, no tuple element would be found/inferred, so the extension method was called.
             ' The VB 15.3 compiler disallows that, even when LanguageVersion is 15.
             Dim comp15 = CreateCompilationWithMscorlib45AndVBRuntime(source,
-                references:={ValueTupleRef, Net451.SystemRuntime, Net451.SystemCore},
+                references:={ValueTupleRef, NetFramework.SystemRuntime, NetFramework.SystemCore},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             comp15.AssertTheseDiagnostics(<errors>
 BC37289: Tuple element name 'M' is inferred. Please use language version 15.3 or greater to access an element by its inferred name.
@@ -6458,7 +6458,7 @@ BC37289: Tuple element name 'M' is inferred. Please use language version 15.3 or
                                           </errors>)
 
             Dim verifier15_3 = CompileAndVerify(source,
-                allReferences:={ValueTupleRef, Net451.mscorlib, Net451.SystemCore, Net451.SystemRuntime, Net451.MicrosoftVisualBasic},
+                allReferences:={ValueTupleRef, NetFramework.mscorlib, NetFramework.SystemCore, NetFramework.SystemRuntime, NetFramework.MicrosoftVisualBasic},
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3),
                 expectedOutput:="lambda")
             verifier15_3.VerifyDiagnostics()
