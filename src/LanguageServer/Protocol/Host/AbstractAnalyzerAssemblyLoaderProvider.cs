@@ -27,5 +27,5 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
     public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader => _sharedShadowCopyLoader.Value;
 
     public virtual IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
-        => DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(Path.Combine(Path.GetTempPath(), "Host", "AnalyzerAssemblyLoader"), _externalResolvers);
+        => DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(Path.Combine(Path.GetTempPath(), "Roslyn", "AnalyzerAssemblyLoader"), _externalResolvers);
 }
