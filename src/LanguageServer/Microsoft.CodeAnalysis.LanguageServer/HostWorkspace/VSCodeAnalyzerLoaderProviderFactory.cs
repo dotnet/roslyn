@@ -2,7 +2,6 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System.Collections.Immutable;
 using System.Composition;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
@@ -12,23 +11,17 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider), [WorkspaceKind.Host]), Shared]
+[ExportWorkspaceServiceFactory(typeof(IAnalyzerAssemblyLoaderProvider), [WorkspaceKind.Host]), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class VSCodeAnalyzerLoaderProvider(
+internal sealed class VSCodeAnalyzerLoaderProviderFactory(
     ExtensionAssemblyManager extensionAssemblyManager,
     ILoggerFactory loggerFactory,
     [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
-    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers.ToImmutableArray())
+    : AbstractAnalyzerAssemblyLoaderProviderFactory(externalResolvers)
 {
-    private readonly ExtensionAssemblyManager _extensionAssemblyManager = extensionAssemblyManager;
-    private readonly ILoggerFactory _loggerFactory = loggerFactory;
-
-    public override IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
-    {
-        var baseLoader = base.CreateNewShadowCopyLoader();
-        return new VSCodeExtensionAssemblyAnalyzerLoader(baseLoader, _extensionAssemblyManager, _loggerFactory.CreateLogger<VSCodeExtensionAssemblyAnalyzerLoader>());
-    }
+    protected override IAnalyzerAssemblyLoaderInternal WrapLoader(IAnalyzerAssemblyLoaderInternal baseLoader)
+        => new VSCodeExtensionAssemblyAnalyzerLoader(baseLoader, extensionAssemblyManager, loggerFactory.CreateLogger<VSCodeExtensionAssemblyAnalyzerLoader>());
 
     /// <summary>
     /// Analyzer loader that will re-use already loaded assemblies from the extension load context.
