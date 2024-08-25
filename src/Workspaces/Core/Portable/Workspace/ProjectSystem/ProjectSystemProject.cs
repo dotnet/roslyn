@@ -798,7 +798,7 @@ internal sealed partial class ProjectSystemProject
         return (newSolution, newProjectUpdateState);
     }
 
-#endregion
+    #endregion
 
     #region Source File Addition/Removal
 
