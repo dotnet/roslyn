@@ -879,31 +879,67 @@ public sealed class CSharpReversedForSnippetProviderTests : AbstractCSharpSnippe
     }
 
     [Theory]
+    [InlineData("MyType")]
     [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoInlineReversedForSnippetForTypeItselfTest(string integerType)
+    public async Task NoInlineReversedForSnippetForTypeItselfTest(string validTypes)
     {
         await VerifySnippetIsAbsentAsync($$"""
             class C
             {
                 void M()
                 {
-                    {{integerType}}.$$
+                    {{validTypes}}.$$
                 }
+            }
+
+            class MyType
+            {
+                public int Count => 0;
             }
             """);
     }
 
     [Theory]
+    [InlineData("MyType")]
     [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoInlineReversedForSnippetForTypeItselfTest_Parenthesized(string integerType)
+    public async Task NoInlineReversedForSnippetForTypeItselfTest_Parenthesized(string validTypes)
     {
         await VerifySnippetIsAbsentAsync($$"""
             class C
             {
                 void M()
                 {
-                    ({{integerType}}).$$
+                    ({{validTypes}}).$$
                 }
+            }
+
+            class MyType
+            {
+                public int Count => 0;
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("MyType")]
+    [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineReversedForSnippetForTypeItselfTest_BeforeContextualKeyword(string validTypes)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async void M()
+                {
+                    {{validTypes}}.$$
+                    await Task.Delay(10);
+                }
+            }
+
+            class MyType
+            {
+                public int Count => 0;
             }
             """);
     }

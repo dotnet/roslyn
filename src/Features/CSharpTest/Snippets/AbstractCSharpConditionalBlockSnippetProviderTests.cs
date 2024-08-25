@@ -566,4 +566,21 @@ public abstract class AbstractCSharpConditionalBlockSnippetProviderTests : Abstr
             }
             """);
     }
+
+    [Fact]
+    public async Task NoInlineSnippetForTypeItselfTest_BeforeContextualKeyword()
+    {
+        await VerifySnippetIsAbsentAsync("""
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async void M()
+                {
+                    bool.$$
+                    await Task.Delay(10);
+                }
+            }
+            """);
+    }
 }

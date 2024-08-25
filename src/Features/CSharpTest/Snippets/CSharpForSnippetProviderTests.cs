@@ -877,31 +877,67 @@ public sealed class CSharpForSnippetProviderTests : AbstractCSharpSnippetProvide
     }
 
     [Theory]
+    [InlineData("MyType")]
     [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoInlineForSnippetForTypeItselfTest(string integerType)
+    public async Task NoInlineForSnippetForTypeItselfTest(string validTypes)
     {
         await VerifySnippetIsAbsentAsync($$"""
             class C
             {
                 void M()
                 {
-                    {{integerType}}.$$
+                    {{validTypes}}.$$
                 }
+            }
+
+            class MyType
+            {
+                public int Count => 0;
             }
             """);
     }
 
     [Theory]
+    [InlineData("MyType")]
     [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
-    public async Task NoInlineForSnippetForTypeItselfTest_Parenthesized(string integerType)
+    public async Task NoInlineForSnippetForTypeItselfTest_Parenthesized(string validTypes)
     {
         await VerifySnippetIsAbsentAsync($$"""
             class C
             {
                 void M()
                 {
-                    ({{integerType}}).$$
+                    ({{validTypes}}).$$
                 }
+            }
+
+            class MyType
+            {
+                public int Count => 0;
+            }
+            """);
+    }
+
+    [Theory]
+    [InlineData("MyType")]
+    [MemberData(nameof(CommonSnippetTestData.IntegerTypes), MemberType = typeof(CommonSnippetTestData))]
+    public async Task NoInlineForSnippetForTypeItselfTest_BeforeContextualKeyword(string validTypes)
+    {
+        await VerifySnippetIsAbsentAsync($$"""
+            using System.Threading.Tasks;
+
+            class C
+            {
+                async void M()
+                {
+                    {{validTypes}}.$$
+                    await Task.Delay(10);
+                }
+            }
+
+            class MyType
+            {
+                public int Count => 0;
             }
             """);
     }
