@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Host;
 
 internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 {
-    IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader();
+    IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader { get; }
 }
 
 /// <summary>
@@ -47,7 +47,7 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProviderFactory(
             _shadowCopyLoader = new(CreateShadowCopyLoader);
         }
 
-        public IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader()
+        public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader
             => _shadowCopyLoader.Value;
 
         private IAnalyzerAssemblyLoaderInternal CreateShadowCopyLoader()
