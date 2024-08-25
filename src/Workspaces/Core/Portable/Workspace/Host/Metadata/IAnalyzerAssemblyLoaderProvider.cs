@@ -58,16 +58,13 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProviderFactory(
             _workspaceKind = workspaceKind;
 
             // We use a lazy here in case creating the loader requires MEF imports in the derived constructor.
-            _shadowCopyLoader = new(CreateShadowCopyLoader);
+            _shadowCopyLoader = new(CreateNewShadowCopyLoader);
         }
 
         public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader
             => _shadowCopyLoader.Value;
 
         public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
-            => CreateShadowCopyLoader();
-
-        private IAnalyzerAssemblyLoaderInternal CreateShadowCopyLoader()
             => _factory.WrapLoader(DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
                     Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader", _workspaceKind),
                     _factory._externalResolvers));
