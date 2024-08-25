@@ -83,14 +83,10 @@ internal partial class CSharpUseCollectionExpressionForBuilderCodeFixProvider()
         foreach (var (statement, _) in analysisResult.Matches)
             subEditor.RemoveNode(statement);
 
-        // Add the leading trivia from the declaration of the builder to the invocation where we convert the builder to a collection.
-        // We take 3 statements because the preceding statements of the dummyObjectCreation object will be of the form: ImmutableArray<int> i =
-        const int maximumPotentialStatements = 3;
-        var dummyObjectCreationDeclaration = dummyObjectCreation.Ancestors().Take(maximumPotentialStatements);
-
-        if (dummyObjectCreationDeclaration.LastOrDefault() is VariableDeclarationSyntax variableDeclaration)
+        // Preserve the leading trivia from the declaration of the builder
+        if (dummyObjectCreation.Parent is EqualsValueClauseSyntax { Parent: VariableDeclaratorSyntax { Parent: VariableDeclarationSyntax dummyObjectCreationDeclaration } })
         {
-            var type = variableDeclaration.Type;
+            var type = dummyObjectCreationDeclaration.Type;
             subEditor.ReplaceNode(type, type.WithPrependedNonIndentationTriviaFrom(analysisResult.LocalDeclarationStatement));
         }
 
