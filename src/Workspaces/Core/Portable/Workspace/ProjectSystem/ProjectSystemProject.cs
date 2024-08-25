@@ -733,7 +733,7 @@ internal sealed partial class ProjectSystemProject
 
             solutionChanges.UpdateSolutionForProjectAction(projectId, newSolution);
 
-            return projectUpdateState;
+            return newProjectUpdateState;
         }
     }
 
