@@ -55,7 +55,7 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProviderFactory(
             => _factory.WrapLoader(DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(GetDefaultShadowCopyPath(), externalResolvers));
 
         private string GetDefaultShadowCopyPath()
-            => Path.Combine(Path.GetTempPath(), "Roslyn", "AnalyzerAssemblyLoader", _workspaceKind);
+            => Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader", _workspaceKind);
     }
 }
 
