@@ -752,7 +752,7 @@ internal sealed partial class ProjectSystemProject
                 projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesAdded(analyzersAddedInBatch);
 
                 var loaderProvider = solutionChanges.Solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-                var shadowCopyLoader = loaderProvider.GetShadowCopyLoader();
+                var shadowCopyLoader = loaderProvider.SharedShadowCopyLoader;
 
                 solutionChanges.UpdateSolutionForProjectAction(
                     projectId,
