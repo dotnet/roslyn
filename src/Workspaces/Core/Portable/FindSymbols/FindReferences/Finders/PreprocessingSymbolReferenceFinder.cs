@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -16,49 +17,46 @@ internal sealed class PreprocessingSymbolReferenceFinder : AbstractReferenceFind
     protected override bool CanFind(IPreprocessingSymbol symbol)
         => true;
 
-    protected sealed override async ValueTask<ImmutableArray<FinderLocation>> FindReferencesInDocumentAsync(
+    protected override async Task DetermineDocumentsToSearchAsync<TData>(
         IPreprocessingSymbol symbol,
-        FindReferencesDocumentState state,
+        HashSet<string>? globalAliases,
+        Project project,
+        IImmutableSet<Document>? documents,
+        Action<Document, TData> processResult,
+        TData processResultData,
         FindReferencesSearchOptions options,
         CancellationToken cancellationToken)
     {
-        var tokens = await FindMatchingIdentifierTokensAsync(state, symbol.Name, cancellationToken).ConfigureAwait(false);
+        await FindDocumentsWithPredicateAsync(project, documents, DetermineDocument, processResult, processResultData, cancellationToken).ConfigureAwait(false);
 
-        using var _ = ArrayBuilder<FinderLocation>.GetInstance(out var locations);
+        bool DetermineDocument(SyntaxTreeIndex syntaxTreeIndex)
+        {
+            return syntaxTreeIndex.ContainsDirective && syntaxTreeIndex.ProbablyContainsIdentifier(symbol.Name);
+        }
+    }
+
+    protected override void FindReferencesInDocument<TData>(
+        IPreprocessingSymbol symbol,
+        FindReferencesDocumentState state,
+        Action<FinderLocation, TData> processResult,
+        TData processResultData,
+        FindReferencesSearchOptions options,
+        CancellationToken cancellationToken)
+    {
+        var tokens = FindMatchingIdentifierTokens(state, symbol.Name, cancellationToken);
+
         foreach (var token in tokens)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var targetSymbol = state.SemanticModel.GetPreprocessingSymbolInfo(token.GetRequiredParent()).Symbol;
-            var matched = await SymbolFinder.OriginalSymbolsMatchAsync(state.Solution, symbol, targetSymbol, cancellationToken).ConfigureAwait(false);
+            var matched = SymbolFinder.OriginalSymbolsMatch(state.Solution, symbol, targetSymbol);
 
             if (matched)
-                locations.Add(CreateFinderLocation(state, token, CandidateReason.None, cancellationToken));
+            {
+                var location = CreateFinderLocation(state, token, CandidateReason.None, cancellationToken);
+                processResult(location, processResultData);
+            }
         }
-
-        return locations.ToImmutable();
-    }
-
-    protected override async Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(
-        IPreprocessingSymbol symbol,
-        HashSet<string>? globalAliases,
-        Project project,
-        IImmutableSet<Document>? documents,
-        FindReferencesSearchOptions options,
-        CancellationToken cancellationToken)
-    {
-        using var _ = ArrayBuilder<Document>.GetInstance(out var resultDocuments);
-
-        var projectDocuments = (IEnumerable<Document>?)documents
-            ?? await project.GetAllRegularAndSourceGeneratedDocumentsAsync(cancellationToken).ConfigureAwait(false);
-
-        foreach (var document in projectDocuments)
-        {
-            var syntaxTreeIndex = await document.GetSyntaxTreeIndexAsync(cancellationToken).ConfigureAwait(false);
-            if (syntaxTreeIndex.ContainsDirective && syntaxTreeIndex.ProbablyContainsIdentifier(symbol.Name))
-                resultDocuments.Add(document);
-        }
-
-        return resultDocuments.ToImmutable();
     }
 }

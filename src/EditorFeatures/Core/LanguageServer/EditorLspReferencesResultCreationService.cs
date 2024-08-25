@@ -40,16 +40,13 @@ internal sealed class EditorLspReferencesResultCreationService() : ILspReference
             DefinitionId = definitionId,
             DefinitionText = definitionText,    // Only definitions should have a non-null DefinitionText
             DefinitionIcon = new ImageElement(imageId.ToLSPImageId()),
+            Location = location,
             DisplayPath = location?.Uri.LocalPath,
             Id = id,
             Kind = symbolUsageInfo.HasValue ? ProtocolConversions.SymbolUsageInfoToReferenceKinds(symbolUsageInfo.Value) : [],
             ResolutionStatus = VSInternalResolutionStatusKind.ConfirmedAsReference,
             Text = text,
         };
-
-        // There are certain items that may not have locations, such as namespace definitions.
-        if (location != null)
-            result.Location = location;
 
         if (documentSpan != null)
         {

@@ -203,7 +203,7 @@ class A
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
             var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
-            Assert.NotNull(results[0].Location.Uri);
+            Assert.NotNull(results[0].Location!.Uri);
             AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 1);
         }
 
@@ -274,27 +274,29 @@ class C
         public async Task TestFindAllReferencesAsync_PreprocessingSymbol(bool mutatingLspWorkspace)
         {
             var markup =
-@"#define {|reference:PREPROCESSING_SYMBOL|}
-#define MORE_PREPROCESSING_SYMBOL
+                """
+                #define {|reference:PREPROCESSING_SYMBOL|}
+                #define MORE_PREPROCESSING_SYMBOL
 
-#if {|reference:PREPROCESSING_SYMBOL|}
-namespace SimpleNamespace;
-#elif true && (!false || {|caret:|}{|reference:PREPROCESSING_SYMBOL|})
-namespace AnotherNamespace;
-#elif MORE_PREPROCESSING_SYMBOL
-namespace MoreSimpleNamespace;
-#else
-namespace ComplexNamespace;
-#endif
+                #if {|reference:PREPROCESSING_SYMBOL|}
+                namespace SimpleNamespace;
+                #elif true && (!false || {|caret:|}{|reference:PREPROCESSING_SYMBOL|})
+                namespace AnotherNamespace;
+                #elif MORE_PREPROCESSING_SYMBOL
+                namespace MoreSimpleNamespace;
+                #else
+                namespace ComplexNamespace;
+                #endif
 
-// PREPROCESSING_SYMBOL
-class PREPROCESSING_SYMBOL
-{
-}
-";
+                // PREPROCESSING_SYMBOL
+                class PREPROCESSING_SYMBOL
+                {
+                }
+
+                """;
             await using var testLspServer = await CreateTestLspServerAsync(markup, mutatingLspWorkspace, CapabilitiesWithVSExtensions);
 
-            var results = await RunFindAllReferencesAsync<LSP.VSInternalReferenceItem>(testLspServer, testLspServer.GetLocations("caret").First());
+            var results = await RunFindAllReferencesAsync(testLspServer, testLspServer.GetLocations("caret").First());
 
             // Do not assert the glyph
             AssertHighlightCount(results, expectedDefinitionCount: 0, expectedWrittenReferenceCount: 0, expectedReferenceCount: 3);
