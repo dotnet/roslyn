@@ -26,7 +26,7 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProviderFactory(
     private readonly ImmutableArray<IAnalyzerAssemblyResolver> _externalResolvers = externalResolvers.ToImmutableArray();
 
     public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new DefaultAnalyzerAssemblyLoaderProvider(this, workspaceServices.Workspace.Kind ?? "Default", _externalResolvers);
+        => new DefaultAnalyzerAssemblyLoaderProvider(this, workspaceServices.Workspace.Kind ?? "Default");
 
     protected virtual IAnalyzerAssemblyLoaderInternal WrapLoader(IAnalyzerAssemblyLoaderInternal loader)
         => loader;
@@ -39,26 +39,24 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProviderFactory(
 
         public DefaultAnalyzerAssemblyLoaderProvider(
             AbstractAnalyzerAssemblyLoaderProviderFactory factory,
-            string workspaceKind,
-            ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+            string workspaceKind)
         {
             _factory = factory;
             _workspaceKind = workspaceKind;
             // We use a lazy here in case creating the loader requires MEF imports in the derived constructor.
-            _shadowCopyLoader = new(() => CreateShadowCopyLoader(externalResolvers));
+            _shadowCopyLoader = new(CreateShadowCopyLoader);
         }
 
         public IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader()
             => _shadowCopyLoader.Value;
 
-        private IAnalyzerAssemblyLoaderInternal CreateShadowCopyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
-            => _factory.WrapLoader(DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(GetDefaultShadowCopyPath(), externalResolvers));
+        private IAnalyzerAssemblyLoaderInternal CreateShadowCopyLoader()
+            => _factory.WrapLoader(DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(GetDefaultShadowCopyPath(), _factory._externalResolvers));
 
         private string GetDefaultShadowCopyPath()
             => Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader", _workspaceKind);
     }
 }
-
 
 [ExportWorkspaceServiceFactory(typeof(IAnalyzerAssemblyLoaderProvider)), Shared]
 [method: ImportingConstructor]
