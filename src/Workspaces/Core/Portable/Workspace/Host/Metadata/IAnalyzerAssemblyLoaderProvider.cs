@@ -16,6 +16,10 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
     IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader();
 }
 
+/// <summary>
+/// Abstract implementation of an analyzer assembly loader that can be used by VS/VSCode to provide a <see
+/// cref="IAnalyzerAssemblyLoader"/> with an appropriate path.
+/// </summary>
 internal abstract class AbstractAnalyzerAssemblyLoaderProviderFactory(
     IEnumerable<IAnalyzerAssemblyResolver> externalResolvers) : IWorkspaceServiceFactory
 {
@@ -27,10 +31,6 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProviderFactory(
     protected virtual IAnalyzerAssemblyLoaderInternal WrapLoader(IAnalyzerAssemblyLoaderInternal loader)
         => loader;
 
-    /// <summary>
-    /// Abstract implementation of an analyzer assembly loader that can be used by VS/VSCode to provide a <see
-    /// cref="IAnalyzerAssemblyLoader"/> with an appropriate path.
-    /// </summary>
     private sealed class DefaultAnalyzerAssemblyLoaderProvider : IAnalyzerAssemblyLoaderProvider
     {
         private readonly AbstractAnalyzerAssemblyLoaderProviderFactory _factory;
