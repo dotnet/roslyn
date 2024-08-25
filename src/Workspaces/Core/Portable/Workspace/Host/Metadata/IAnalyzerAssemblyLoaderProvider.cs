@@ -58,7 +58,7 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProviderFactory(
             _workspaceKind = workspaceKind;
 
             // We use a lazy here in case creating the loader requires MEF imports in the derived constructor.
-            _shadowCopyLoader = new(() => CreateShadowCopyLoader());
+            _shadowCopyLoader = new(CreateShadowCopyLoader);
         }
 
         public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader
