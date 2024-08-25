@@ -16,6 +16,7 @@ internal static class FeatureAttribute
     public const string CodeDefinitionWindow = nameof(CodeDefinitionWindow);
     public const string CodeLens = nameof(CodeLens);
     public const string CodeModel = nameof(CodeModel);
+    public const string ColorScheme = nameof(ColorScheme);
     public const string CompletionSet = nameof(CompletionSet);
     public const string CopilotSuggestions = nameof(CopilotSuggestions);
     public const string DesignerAttributes = nameof(DesignerAttributes);
@@ -48,6 +49,7 @@ internal static class FeatureAttribute
     public const string NavigableSymbols = nameof(NavigableSymbols);
     public const string NavigateTo = nameof(NavigateTo);
     public const string NavigationBar = nameof(NavigationBar);
+    public const string OnTheFlyDocs = nameof(OnTheFlyDocs);
     public const string Outlining = nameof(Outlining);
     public const string OrganizeDocument = nameof(OrganizeDocument);
     public const string PackageInstaller = nameof(PackageInstaller);
@@ -65,6 +67,7 @@ internal static class FeatureAttribute
     public const string SolutionCrawlerUnitTesting = nameof(SolutionCrawlerUnitTesting);
     public const string SourceGenerators = nameof(SourceGenerators);
     public const string StringIndentation = nameof(StringIndentation);
+    public const string Tagger = nameof(Tagger);
     public const string TaskList = nameof(TaskList);
     public const string Telemetry = nameof(Telemetry);
     public const string ValueTracking = nameof(ValueTracking);

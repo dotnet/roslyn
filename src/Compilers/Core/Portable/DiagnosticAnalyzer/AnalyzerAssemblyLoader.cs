@@ -13,13 +13,20 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal interface IAnalyzerAssemblyLoaderInternal : IAnalyzerAssemblyLoader
+    internal interface IAnalyzerAssemblyLoaderInternal : IAnalyzerAssemblyLoader, IDisposable
     {
         /// <summary>
         /// Is this an <see cref="Assembly"/> that the loader considers to be part of the hosting 
         /// process. Either part of the compiler itself or the process hosting the compiler.
         /// </summary>
         bool IsHostAssembly(Assembly assembly);
+
+        /// <summary>
+        /// For a given <see cref="AssemblyName"/> return the location it was originally added 
+        /// from. This will return null for any value that was not directly added through the 
+        /// loader.
+        /// </summary>
+        string? GetOriginalDependencyLocation(AssemblyName assembly);
     }
 
     /// <summary>
@@ -62,6 +69,19 @@ namespace Microsoft.CodeAnalysis
         private readonly Dictionary<string, ImmutableHashSet<string>> _knownAssemblyPathsBySimpleName = new(StringComparer.OrdinalIgnoreCase);
 
         /// <summary>
+        /// A collection of <see cref="IAnalyzerAssemblyResolver"/>s that can be used to override the assembly resolution process.
+        /// </summary>
+        /// <remarks>
+        /// When multiple resolvers are present they are consulted in-order, with the first resolver to return a non-null
+        /// <see cref="Assembly"/> winning.</remarks>
+        private readonly ImmutableArray<IAnalyzerAssemblyResolver> _externalResolvers;
+
+        /// <summary>
+        /// Whether or not we're disposed.  Once disposed, all functionality on this type should throw.
+        /// </summary>
+        private bool _isDisposed;
+
+        /// <summary>
         /// The implementation needs to load an <see cref="Assembly"/> with the specified <see cref="AssemblyName"/>. The
         /// <paramref name="assemblyOriginalPath"/> parameter is the original path. It may be different than
         /// <see cref="AssemblyName.CodeBase"/> as that is empty on .NET Core.
@@ -78,8 +98,31 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         private partial bool IsMatch(AssemblyName requestedName, AssemblyName candidateName);
 
+        private void CheckIfDisposed()
+        {
+#if NET
+            ObjectDisposedException.ThrowIf(_isDisposed, this);
+#else
+            if (_isDisposed)
+                throw new ObjectDisposedException(this.GetType().FullName);
+#endif
+        }
+
+        public void Dispose()
+        {
+            if (_isDisposed)
+                return;
+
+            _isDisposed = true;
+            DisposeWorker();
+        }
+
+        private partial void DisposeWorker();
+
         internal bool IsAnalyzerDependencyPath(string fullPath)
         {
+            CheckIfDisposed();
+
             lock (_guard)
             {
                 return _analyzerAssemblyInfoMap.ContainsKey(fullPath);
@@ -88,6 +131,8 @@ namespace Microsoft.CodeAnalysis
 
         public void AddDependencyLocation(string fullPath)
         {
+            CheckIfDisposed();
+
             CompilerPathUtilities.RequireAbsolutePath(fullPath, nameof(fullPath));
             string simpleName = PathUtilities.GetFileName(fullPath, includeExtension: false);
 
@@ -112,6 +157,8 @@ namespace Microsoft.CodeAnalysis
 
         public Assembly LoadFromPath(string originalAnalyzerPath)
         {
+            CheckIfDisposed();
+
             CompilerPathUtilities.RequireAbsolutePath(originalAnalyzerPath, nameof(originalAnalyzerPath));
 
             (AssemblyName? assemblyName, _) = GetAssemblyInfoForPath(originalAnalyzerPath);
@@ -143,6 +190,8 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         protected (AssemblyName? AssemblyName, string RealAssemblyPath) GetAssemblyInfoForPath(string originalAnalyzerPath)
         {
+            CheckIfDisposed();
+
             lock (_guard)
             {
                 if (!_analyzerAssemblyInfoMap.TryGetValue(originalAnalyzerPath, out var tuple))
@@ -190,6 +239,8 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal string? GetRealSatelliteLoadPath(string originalAnalyzerPath, CultureInfo cultureInfo)
         {
+            CheckIfDisposed();
+
             string? realSatelliteAssemblyPath = null;
 
             lock (_guard)
@@ -235,11 +286,19 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        public string? GetOriginalDependencyLocation(AssemblyName assemblyName)
+        {
+            CheckIfDisposed();
+
+            return GetBestPath(assemblyName).BestOriginalPath;
+        }
         /// <summary>
         /// Return the best (original, real) path information for loading an assembly with the specified <see cref="AssemblyName"/>.
         /// </summary>
         protected (string? BestOriginalPath, string? BestRealPath) GetBestPath(AssemblyName requestedName)
         {
+            CheckIfDisposed();
+
             if (requestedName.Name is null)
             {
                 return (null, null);
@@ -309,6 +368,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal string GetRealAnalyzerLoadPath(string originalFullPath)
         {
+            CheckIfDisposed();
+
             lock (_guard)
             {
                 if (!_analyzerAssemblyInfoMap.TryGetValue(originalFullPath, out var tuple))
@@ -322,6 +383,8 @@ namespace Microsoft.CodeAnalysis
 
         internal (string OriginalAssemblyPath, string RealAssemblyPath)[] GetPathMapSnapshot()
         {
+            CheckIfDisposed();
+
             lock (_guard)
             {
                 return _analyzerAssemblyInfoMap
@@ -329,6 +392,36 @@ namespace Microsoft.CodeAnalysis
                     .OrderBy(x => x.Key)
                     .ToArray();
             }
+        }
+
+        /// <summary>
+        /// Iterates the <see cref="_externalResolvers"/> if any, to see if any of them can resolve
+        /// the given <see cref="AssemblyName"/> to an <see cref="Assembly"/>.
+        /// </summary>
+        /// <param name="assemblyName">The name of the assembly to resolve</param>
+        /// <returns>An <see langword="assembly"/> if one of the resolvers is successful, or <see langword="null"/></returns>
+        internal Assembly? ResolveAssemblyExternally(AssemblyName assemblyName)
+        {
+            CheckIfDisposed();
+
+            if (!_externalResolvers.IsDefaultOrEmpty)
+            {
+                foreach (var resolver in _externalResolvers)
+                {
+                    try
+                    {
+                        if (resolver.ResolveAssembly(assemblyName) is { } resolvedAssembly)
+                        {
+                            return resolvedAssembly;
+                        }
+                    }
+                    catch
+                    {
+                        // Ignore if the external resolver throws
+                    }
+                }
+            }
+            return null;
         }
     }
 }

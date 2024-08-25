@@ -12,7 +12,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -138,12 +137,11 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
 
         private ImmutableArray<SymbolReference> DeDupeAndSortReferences(ImmutableArray<SymbolReference> allReferences)
         {
-            return allReferences
+            return [.. allReferences
                 .Distinct()
                 .Where(NotNull)
                 .Where(NotGlobalNamespace)
-                .OrderBy((r1, r2) => r1.CompareTo(_document, r2))
-                .ToImmutableArray();
+                .OrderBy((r1, r2) => r1.CompareTo(_document, r2))];
         }
 
         private static void CalculateContext(
@@ -153,7 +151,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             // Has to be a simple identifier or generic name.
             syntaxFacts.GetNameAndArityOfSimpleName(nameNode, out name, out arity);
 
-            inAttributeContext = syntaxFacts.IsAttributeName(nameNode);
+            inAttributeContext = syntaxFacts.IsNameOfAttribute(nameNode);
             hasIncompleteParentMember = nameNode?.Parent?.RawKind == syntaxFacts.SyntaxKinds.IncompleteMember;
             looksGeneric = syntaxFacts.LooksGeneric(nameNode);
         }
@@ -203,7 +201,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
             // editor browsable rules.
             var accessibleTypeSymbols = typeSymbols.WhereAsArray(
                 s => ArityAccessibilityAndAttributeContextAreCorrect(s.Symbol, arity, inAttributeContext, hasIncompleteParentMember, looksGeneric) &&
-                     s.Symbol.IsEditorBrowsable(_options.HideAdvancedMembers, _semanticModel.Compilation, editorBrowserInfo));
+                     s.Symbol.IsEditorBrowsable(_options.MemberDisplayOptions.HideAdvancedMembers, _semanticModel.Compilation, editorBrowserInfo));
 
             // These types may be contained within namespaces, or they may be nested 
             // inside generic types.  Record these namespaces/types if it would be 
@@ -602,7 +600,7 @@ internal abstract partial class AbstractAddImportFeatureService<TSimpleNameSynta
                     references.Add(scope.CreateReference(mappedResult));
             }
 
-            return references.ToImmutable();
+            return references.ToImmutableAndClear();
         }
 
         private static ImmutableArray<SymbolResult<T>> OfType<T>(ImmutableArray<SymbolResult<ISymbol>> symbols) where T : ISymbol

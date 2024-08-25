@@ -68,6 +68,19 @@
         "group": "build"
     },
     {
+        "label": "build Roslyn.sln",
+        "command": "dotnet",
+        "type": "shell",
+        "args": [
+          "build",
+          "-p:RunAnalyzersDuringBuild=false",
+          "-p:GenerateFullPaths=true",
+          "Roslyn.sln"
+        ],
+        "problemMatcher": "$msCompile",
+        "group": "build"
+    },
+    {
         "label": "build current project",
         "type": "shell",
         "command": "dotnet",
@@ -123,6 +136,30 @@
         },
         "problemMatcher": "$msCompile",
         "group": "build"
+    },
+    {
+      "label": "build language server",
+      "command": "dotnet",
+      "type": "shell",
+      "args": [
+        "build",
+        "-c",
+        "Debug",
+        "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Microsoft.CodeAnalysis.LanguageServer.csproj"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "build"
+    },
+    {
+      "label": "launch vscode with language server",
+      "command": "${execPath}",
+      "type": "process",
+      "options": {
+        "env": {
+          "DOTNET_ROSLYN_SERVER_PATH": "${workspaceRoot}/artifacts/bin/Microsoft.CodeAnalysis.LanguageServer/Debug/net8.0/Microsoft.CodeAnalysis.LanguageServer.dll"
+        }
+      },
+      "dependsOn": [ "build language server" ]
     }
   ]
 }

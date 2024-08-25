@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.PullMemberUp;
 
 namespace Microsoft.CodeAnalysis.ExtractClass;
 

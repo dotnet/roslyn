@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -2486,12 +2487,21 @@ class MyClass
 ";
             CreateCompilation(text).
                 VerifyDiagnostics(
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "a").WithArguments("a"),
-                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "a").WithArguments("a"),
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x"),
-                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value"),
-                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "value").WithArguments("value")
-                );
+                    // (7,14): error CS0136: A local or parameter named 'a' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //         long a; // 0136
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "a").WithArguments("a").WithLocation(7, 14),
+                    // (7,14): warning CS0168: The variable 'a' is declared but never used
+                    //         long a; // 0136
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "a").WithArguments("a").WithLocation(7, 14),
+                    // (12,14): error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //         long x = 1; // 0136
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x").WithArguments("x").WithLocation(12, 14),
+                    // (20,17): error CS0136: A local or parameter named 'value' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                    //             int value; // 0136
+                    Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "value").WithArguments("value").WithLocation(20, 17),
+                    // (20,17): warning CS0168: The variable 'value' is declared but never used
+                    //             int value; // 0136
+                    Diagnostic(ErrorCode.WRN_UnreferencedVar, "value").WithArguments("value").WithLocation(20, 17));
         }
 
         [Fact]
@@ -13947,7 +13957,7 @@ using System.Runtime.CompilerServices;
         }
 
         [Fact]
-        public void CS0750ERR_PartialMethodInvalidModifier()
+        public void CS0750ERR_PartialMemberCannotBeAbstract()
         {
             var text = @"
 
@@ -14004,9 +14014,9 @@ public partial class C : Base
                 // (23,26): error CS8796: Partial method 'C.PartE()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     virtual partial void PartE();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartE").WithArguments("C.PartE()").WithLocation(23, 26),
-                // (24,27): error CS0750: A partial method cannot have the 'abstract' modifier
+                // (24,27): error CS0750: A partial member cannot have the 'abstract' modifier
                 //     abstract partial void PartF();
-                Diagnostic(ErrorCode.ERR_PartialMethodInvalidModifier, "PartF").WithLocation(24, 27),
+                Diagnostic(ErrorCode.ERR_PartialMemberCannotBeAbstract, "PartF").WithLocation(24, 27),
                 // (25,27): error CS8796: Partial method 'C.PartG()' must have accessibility modifiers because it has a 'virtual', 'override', 'sealed', 'new', or 'extern' modifier.
                 //     override partial void PartG();
                 Diagnostic(ErrorCode.ERR_PartialMethodWithExtendedModMustHaveAccessMods, "PartG").WithArguments("C.PartG()").WithLocation(25, 27),
@@ -14031,7 +14041,7 @@ public partial class C : Base
         }
 
         [Fact]
-        public void CS0751ERR_PartialMethodOnlyInPartialClass()
+        public void CS0751ERR_PartialMemberOnlyInPartialClass()
         {
             var text = @"
 
@@ -14045,7 +14055,7 @@ public class C
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodOnlyInPartialClass, Line = 5, Column = 18 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMemberOnlyInPartialClass, Line = 5, Column = 18 });
         }
 
         [Fact]
@@ -14084,22 +14094,22 @@ partial class C
 ";
             var comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
-                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method or property return type.
                 //     partial int f;
                 Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(4, 5),
-                // (5,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                // (5,20): error CS9249: Partial property 'C.P' must have a definition part.
                 //     partial object P { get { return null; } }
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(5, 5),
-                // (6,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'record', 'struct', 'interface', or a method return type.
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "P").WithArguments("C.P").WithLocation(5, 20),
+                // (6,17): error CS9249: Partial property 'C.this[int]' must have a definition part.
                 //     partial int this[int index]
-                Diagnostic(ErrorCode.ERR_PartialMisplaced, "partial").WithLocation(6, 5),
+                Diagnostic(ErrorCode.ERR_PartialPropertyMissingDefinition, "this").WithArguments("C.this[int]").WithLocation(6, 17),
                 // (4,17): warning CS0169: The field 'C.f' is never used
                 //     partial int f;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "f").WithArguments("C.f").WithLocation(4, 17));
         }
 
         [Fact]
-        public void CS0754ERR_PartialMethodNotExplicit()
+        public void CS0754ERR_PartialMemberNotExplicit()
         {
             var text = @"
 public interface IF
@@ -14116,7 +14126,7 @@ public partial class C : IF
 }
 ";
             var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
-                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodNotExplicit, Line = 8, Column = 21 });
+                new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMemberNotExplicit, Line = 8, Column = 21 });
         }
 
         [Fact]
@@ -14184,7 +14194,7 @@ public partial class C
         }
 
         [Fact]
-        public void CS0758ERR_PartialMethodParamsDifference()
+        public void CS0758ERR_PartialMemberParamsDifference()
         {
             var text =
 @"partial class C
@@ -14196,9 +14206,9 @@ public partial class C
 }";
             CreateCompilation(text).VerifyDiagnostics(
                 // (4,18): error CS0758: Both partial method declarations must use a parameter array or neither may use a parameter array
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "M1").WithLocation(4, 18),
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "M1").WithLocation(4, 18),
                 // (5,18): error CS0758: Both partial method declarations must use a parameter array or neither may use a parameter array
-                Diagnostic(ErrorCode.ERR_PartialMethodParamsDifference, "M2").WithLocation(5, 18));
+                Diagnostic(ErrorCode.ERR_PartialMemberParamsDifference, "M2").WithLocation(5, 18));
         }
 
         [Fact]
@@ -14418,14 +14428,14 @@ namespace N
     partial void M2();
 }";
             CreateCompilation(text).VerifyDiagnostics(
-                // (4,18): error CS07: Both partial method declarations must be static or neither may be static
-                Diagnostic(ErrorCode.ERR_PartialMethodStaticDifference, "M1").WithLocation(4, 18),
-                // (5,25): error CS07: Both partial method declarations must be static or neither may be static
-                Diagnostic(ErrorCode.ERR_PartialMethodStaticDifference, "M2").WithLocation(5, 25));
+                // (4,18): error CS07: Both partial member declarations must be static or neither may be static
+                Diagnostic(ErrorCode.ERR_PartialMemberStaticDifference, "M1").WithLocation(4, 18),
+                // (5,25): error CS07: Both partial member declarations must be static or neither may be static
+                Diagnostic(ErrorCode.ERR_PartialMemberStaticDifference, "M2").WithLocation(5, 25));
         }
 
         [Fact]
-        public void CS0764ERR_PartialMethodUnsafeDifference()
+        public void CS0764ERR_PartialMemberUnsafeDifference()
         {
             var text =
 @"partial class C
@@ -14436,10 +14446,10 @@ namespace N
     partial void M2();
 }";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (4,18): error CS0764: Both partial method declarations must be unsafe or neither may be unsafe
-                Diagnostic(ErrorCode.ERR_PartialMethodUnsafeDifference, "M1").WithLocation(4, 18),
-                // (5,25): error CS0764: Both partial method declarations must be unsafe or neither may be unsafe
-                Diagnostic(ErrorCode.ERR_PartialMethodUnsafeDifference, "M2").WithLocation(5, 25));
+                // (4,18): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+                Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "M1").WithLocation(4, 18),
+                // (5,25): error CS0764: Both partial member declarations must be unsafe or neither may be unsafe
+                Diagnostic(ErrorCode.ERR_PartialMemberUnsafeDifference, "M2").WithLocation(5, 25));
         }
 
         [Fact]
@@ -14924,7 +14934,7 @@ class B
 {
     public static void M4(this object o) { }
 }";
-            var compilation = CreateEmptyCompilation(source, new[] { TestMetadata.Net40.mscorlib });
+            var compilation = CreateEmptyCompilation(source, new[] { Net40.References.mscorlib });
             compilation.VerifyDiagnostics(
                 // (3,27): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 27),
@@ -16823,7 +16833,7 @@ namespace N1
                 Diagnostic(ErrorCode.ERR_NamespaceNotAllowedInScript, "namespace").WithLocation(2, 1)
             };
 
-            CreateCompilationWithMscorlib45(new[] { Parse(text, options: TestOptions.Script) }).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilationWithMscorlib461(new[] { Parse(text, options: TestOptions.Script) }).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -20428,7 +20438,7 @@ class C
 @"internal abstract void M();
 internal abstract object P { get; }
 internal abstract event System.EventHandler E;";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract type 'Script'
                 // internal abstract void M();

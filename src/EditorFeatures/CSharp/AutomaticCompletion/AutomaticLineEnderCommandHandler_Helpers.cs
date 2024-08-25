@@ -11,12 +11,14 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.AutomaticCompletion;
+
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 internal partial class AutomaticLineEnderCommandHandler
 {
@@ -153,7 +155,7 @@ internal partial class AutomaticLineEnderCommandHandler
                       oldNode: embeddedStatementOwner,
                       newNode: AddBlockToEmbeddedStatementOwner(embeddedStatementOwner, formattingOptions),
                       anchorNode: embeddedStatementOwner,
-                      nodesToInsert: ImmutableArray<StatementSyntax>.Empty.Add(statement),
+                      nodesToInsert: [statement],
                       formattingOptions,
                       cancellationToken),
             DoStatementSyntax doStatementNode => AddBraceToDoStatement(services, root, doStatementNode, formattingOptions, statement, cancellationToken),
@@ -193,7 +195,7 @@ internal partial class AutomaticLineEnderCommandHandler
                 oldNode: doStatementNode,
                 newNode: AddBlockToEmbeddedStatementOwner(doStatementNode, formattingOptions),
                 anchorNode: doStatementNode,
-                nodesToInsert: ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                nodesToInsert: [innerStatement],
                 formattingOptions,
                 cancellationToken);
         }
@@ -249,7 +251,7 @@ internal partial class AutomaticLineEnderCommandHandler
                 ifStatementNode,
                 AddBlockToEmbeddedStatementOwner(ifStatementNode, formattingOptions),
                 ifStatementNode,
-                ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                [innerStatement],
                 formattingOptions,
                 cancellationToken);
         }
@@ -317,7 +319,7 @@ internal partial class AutomaticLineEnderCommandHandler
                 elseClauseNode,
                 WithBraces(elseClauseNode, formattingOptions),
                 elseClauseNode.Parent!,
-                ImmutableArray<StatementSyntax>.Empty.Add(innerStatement),
+                [innerStatement],
                 formattingOptions,
                 cancellationToken);
         }
@@ -390,11 +392,11 @@ internal partial class AutomaticLineEnderCommandHandler
             // =>
             // var l = new Bar() {}; // I am some comments
             var replacementContainerNode = objectCreationNodeContainer.ReplaceSyntax(
-                nodes: SpecializedCollections.SingletonCollection(baseObjectCreationExpressionNode),
+                nodes: [baseObjectCreationExpressionNode],
                 (_, _) => objectCreationNodeWithCorrectInitializer.WithoutTrailingTrivia(),
-                tokens: SpecializedCollections.SingletonCollection(nextToken),
+                tokens: [nextToken],
                 computeReplacementToken: (_, _) =>
-                    SyntaxFactory.Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(objectCreationNodeWithCorrectInitializer.GetTrailingTrivia()),
+                    SemicolonToken.WithTrailingTrivia(objectCreationNodeWithCorrectInitializer.GetTrailingTrivia()),
                 trivia: [],
                 computeReplacementTrivia: (_, syntaxTrivia) => syntaxTrivia);
             return (replacementContainerNode, objectCreationNodeContainer);
@@ -427,15 +429,15 @@ internal partial class AutomaticLineEnderCommandHandler
                 // There is only 'new' keyword in the object creation expression. Treat it as an ImplicitObjectCreationExpression.
                 // This could happen because when only type 'new', parser would think it is an ObjectCreationExpression.
                 var newKeywordToken = baseObjectCreationExpressionNode.NewKeyword;
-                var newArgumentList = SyntaxFactory.ArgumentList().WithTrailingTrivia(newKeywordToken.TrailingTrivia);
-                return SyntaxFactory.ImplicitObjectCreationExpression(newKeywordToken.WithoutTrailingTrivia(), newArgumentList, baseObjectCreationExpressionNode.Initializer);
+                var newArgumentList = ArgumentList().WithTrailingTrivia(newKeywordToken.TrailingTrivia);
+                return ImplicitObjectCreationExpression(newKeywordToken.WithoutTrailingTrivia(), newArgumentList, baseObjectCreationExpressionNode.Initializer);
             }
             else
             {
                 // Make sure the trailing trivia is passed to the argument list
                 // like var l = new List\r\n =>
                 // var l = new List()\r\r
-                var newArgumentList = SyntaxFactory.ArgumentList().WithTrailingTrivia(typeNode.GetTrailingTrivia());
+                var newArgumentList = ArgumentList().WithTrailingTrivia(typeNode.GetTrailingTrivia());
                 var newTypeNode = typeNode.WithoutTrivia();
                 return objectCreationExpressionNode.WithType(newTypeNode).WithArgumentList(newArgumentList);
             }
@@ -444,8 +446,8 @@ internal partial class AutomaticLineEnderCommandHandler
         if (baseObjectCreationExpressionNode is ImplicitObjectCreationExpressionSyntax implicitObjectCreationExpressionNode)
         {
             var newKeywordToken = implicitObjectCreationExpressionNode.NewKeyword;
-            var newArgumentList = SyntaxFactory.ArgumentList().WithTrailingTrivia(newKeywordToken.TrailingTrivia);
-            return SyntaxFactory.ImplicitObjectCreationExpression(newKeywordToken.WithoutTrailingTrivia(), newArgumentList, baseObjectCreationExpressionNode.Initializer);
+            var newArgumentList = ArgumentList().WithTrailingTrivia(newKeywordToken.TrailingTrivia);
+            return ImplicitObjectCreationExpression(newKeywordToken.WithoutTrailingTrivia(), newArgumentList, baseObjectCreationExpressionNode.Initializer);
         }
 
         RoslynDebug.Assert(false, $"New derived type of {nameof(BaseObjectCreationExpressionSyntax)} is added");
@@ -834,24 +836,24 @@ internal partial class AutomaticLineEnderCommandHandler
     #region AddBrace
 
     private static AccessorListSyntax GetAccessorListNode(SyntaxFormattingOptions formattingOptions)
-        => SyntaxFactory.AccessorList().WithOpenBraceToken(GetOpenBrace(formattingOptions)).WithCloseBraceToken(GetCloseBrace(formattingOptions));
+        => AccessorList().WithOpenBraceToken(GetOpenBrace(formattingOptions)).WithCloseBraceToken(GetCloseBrace(formattingOptions));
 
     private static InitializerExpressionSyntax GetInitializerExpressionNode(SyntaxFormattingOptions formattingOptions)
-        => SyntaxFactory.InitializerExpression(SyntaxKind.ObjectInitializerExpression)
+        => InitializerExpression(SyntaxKind.ObjectInitializerExpression)
             .WithOpenBraceToken(GetOpenBrace(formattingOptions));
 
     private static BlockSyntax GetBlockNode(SyntaxFormattingOptions formattingOptions)
-        => SyntaxFactory.Block().WithOpenBraceToken(GetOpenBrace(formattingOptions)).WithCloseBraceToken(GetCloseBrace(formattingOptions));
+        => Block().WithOpenBraceToken(GetOpenBrace(formattingOptions)).WithCloseBraceToken(GetCloseBrace(formattingOptions));
 
     private static SyntaxToken GetOpenBrace(SyntaxFormattingOptions formattingOptions)
-        => SyntaxFactory.Token(
+        => Token(
                 leading: SyntaxTriviaList.Empty,
                 kind: SyntaxKind.OpenBraceToken,
                 trailing: [GetNewLineTrivia(formattingOptions)])
             .WithAdditionalAnnotations(s_openBracePositionAnnotation);
 
     private static SyntaxToken GetCloseBrace(SyntaxFormattingOptions formattingOptions)
-        => SyntaxFactory.Token(
+        => Token(
             leading: SyntaxTriviaList.Empty,
             kind: SyntaxKind.CloseBraceToken,
             trailing: [GetNewLineTrivia(formattingOptions)]);
@@ -859,7 +861,7 @@ internal partial class AutomaticLineEnderCommandHandler
     private static SyntaxTrivia GetNewLineTrivia(SyntaxFormattingOptions formattingOptions)
     {
         var newLineString = formattingOptions.NewLine;
-        return SyntaxFactory.EndOfLine(newLineString);
+        return EndOfLine(newLineString);
     }
 
     /// <summary>
@@ -885,7 +887,7 @@ internal partial class AutomaticLineEnderCommandHandler
         BaseTypeDeclarationSyntax baseTypeDeclarationNode,
         SyntaxFormattingOptions formattingOptions)
         => baseTypeDeclarationNode.WithOpenBraceToken(GetOpenBrace(formattingOptions))
-            .WithCloseBraceToken(SyntaxFactory.Token(SyntaxKind.CloseBraceToken));
+            .WithCloseBraceToken(CloseBraceToken);
 
     /// <summary>
     /// Add an empty initializer to <param name="objectCreationExpressionNode"/>.
@@ -903,7 +905,7 @@ internal partial class AutomaticLineEnderCommandHandler
         SyntaxFormattingOptions formattingOptions)
         => baseMethodDeclarationNode.WithBody(GetBlockNode(formattingOptions))
             // When the method declaration with no body is parsed, it has an invisible trailing semicolon. Make sure it is removed.
-            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None));
+            .WithSemicolonToken(Token(SyntaxKind.None));
 
     /// <summary>
     /// Add an empty block to <param name="localFunctionStatementNode"/>.
@@ -913,7 +915,7 @@ internal partial class AutomaticLineEnderCommandHandler
         SyntaxFormattingOptions formattingOptions)
         => localFunctionStatementNode.WithBody(GetBlockNode(formattingOptions))
             // When the local method declaration with no body is parsed, it has an invisible trailing semicolon. Make sure it is removed.
-            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None));
+            .WithSemicolonToken(Token(SyntaxKind.None));
 
     /// <summary>
     /// Add an empty block to <param name="accessorDeclarationNode"/>.
@@ -923,7 +925,7 @@ internal partial class AutomaticLineEnderCommandHandler
         SyntaxFormattingOptions formattingOptions)
         => accessorDeclarationNode.WithBody(GetBlockNode(formattingOptions))
             // When the accessor with no body is parsed, it has an invisible trailing semicolon. Make sure it is removed.
-            .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None));
+            .WithSemicolonToken(Token(SyntaxKind.None));
 
     /// <summary>
     /// Add a block with <param name="extraNodeInsertedBetweenBraces"/> to <param name="embeddedStatementOwner"/>
@@ -1001,25 +1003,25 @@ internal partial class AutomaticLineEnderCommandHandler
     /// </summary>
     private static FieldDeclarationSyntax ConvertPropertyDeclarationToFieldDeclaration(
         PropertyDeclarationSyntax propertyDeclarationNode)
-        => SyntaxFactory.FieldDeclaration(
+        => FieldDeclaration(
             propertyDeclarationNode.AttributeLists,
             propertyDeclarationNode.Modifiers,
-            SyntaxFactory.VariableDeclaration(
+            VariableDeclaration(
                 propertyDeclarationNode.Type,
-                [SyntaxFactory.VariableDeclarator(propertyDeclarationNode.Identifier)]),
-            SyntaxFactory.Token(SyntaxKind.SemicolonToken));
+                [VariableDeclarator(propertyDeclarationNode.Identifier)]),
+            SemicolonToken);
 
     /// <summary>
     /// Convert <param name="eventDeclarationNode"/> to EventFieldDeclaration.
     /// </summary>
     private static EventFieldDeclarationSyntax ConvertEventDeclarationToEventFieldDeclaration(
         EventDeclarationSyntax eventDeclarationNode)
-        => SyntaxFactory.EventFieldDeclaration(
+        => EventFieldDeclaration(
             eventDeclarationNode.AttributeLists,
             eventDeclarationNode.Modifiers,
-            SyntaxFactory.VariableDeclaration(
+            VariableDeclaration(
                 eventDeclarationNode.Type,
-                [SyntaxFactory.VariableDeclarator(eventDeclarationNode.Identifier)]));
+                [VariableDeclarator(eventDeclarationNode.Identifier)]));
 
     /// <summary>
     /// Remove the body of <param name="accessorDeclarationNode"/>.
@@ -1027,7 +1029,7 @@ internal partial class AutomaticLineEnderCommandHandler
     private static AccessorDeclarationSyntax RemoveBodyForAccessorDeclarationNode(AccessorDeclarationSyntax accessorDeclarationNode)
         => accessorDeclarationNode
             .WithBody(null).WithoutTrailingTrivia().WithSemicolonToken(
-                SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.SemicolonToken, SyntaxTriviaList.Empty));
+                Token(SyntaxTriviaList.Empty, SyntaxKind.SemicolonToken, SyntaxTriviaList.Empty));
 
     #endregion
 }

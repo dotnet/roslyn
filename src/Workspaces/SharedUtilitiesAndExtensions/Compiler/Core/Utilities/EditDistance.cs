@@ -178,7 +178,7 @@ internal readonly struct EditDistance(string text) : IDisposable
         // First:
         // Determine the common prefix/suffix portions of the strings.  We don't even need to 
         // consider them as they won't add anything to the edit cost.
-        while (source.Length > 0 && source[source.Length - 1] == target[target.Length - 1])
+        while (source.Length > 0 && source[^1] == target[^1])
         {
             source = source[..^1];
             target = target[..^1];

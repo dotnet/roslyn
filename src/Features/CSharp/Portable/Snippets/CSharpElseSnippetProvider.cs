@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Snippets.SnippetProviders;
@@ -25,7 +24,7 @@ internal sealed class CSharpElseSnippetProvider() : AbstractElseSnippetProvider<
 
     public override string Description => FeaturesResources.else_statement;
 
-    protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
+    protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
         var syntaxContext = context.SyntaxContext;
         var token = syntaxContext.TargetToken;
@@ -52,7 +51,7 @@ internal sealed class CSharpElseSnippetProvider() : AbstractElseSnippetProvider<
             }
         }
 
-        return isAfterIfStatement && base.IsValidSnippetLocation(in context, cancellationToken);
+        return isAfterIfStatement && base.IsValidSnippetLocationCore(context, cancellationToken);
     }
 
     protected override Task<TextChange> GenerateSnippetTextChangeAsync(Document document, int position, CancellationToken cancellationToken)

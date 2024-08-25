@@ -14,6 +14,29 @@ namespace Microsoft.CodeAnalysis;
 internal partial class DocumentState
 {
     /// <summary>
+    /// <see cref="ITreeAndVersionSource"/> when we're linked to another file (a 'sibling') and will attempt to reuse
+    /// that sibling's tree as our own. Note: we won't know if we can actually use the contents of that sibling file
+    /// until we actually go and realize it, as it may contains constructs (like pp-directives) that prevent use.  In
+    /// that case, we'll fall back to a normal incremental parse between our original <paramref
+    /// name="originalTreeSource"/> and the latest <em>text</em> contents of our sibling's file.
+    /// </summary>
+    private sealed class LinkedFileReuseTreeAndVersionSource(
+        ITreeAndVersionSource originalTreeSource,
+        AsyncLazy<TreeAndVersion> lazyComputation) : ITreeAndVersionSource
+    {
+        public readonly ITreeAndVersionSource OriginalTreeSource = originalTreeSource;
+
+        public Task<TreeAndVersion> GetValueAsync(CancellationToken cancellationToken)
+            => lazyComputation.GetValueAsync(cancellationToken);
+
+        public TreeAndVersion GetValue(CancellationToken cancellationToken)
+            => lazyComputation.GetValue(cancellationToken);
+
+        public bool TryGetValue([NotNullWhen(true)] out TreeAndVersion? value)
+            => lazyComputation.TryGetValue(out value);
+    }
+
+    /// <summary>
     /// Returns a new instance of this document state that points to <paramref name="siblingTextSource"/> as the
     /// text contents of the document, and which will produce a syntax tree that reuses from <paramref
     /// name="siblingTextSource"/> if possible, or which will incrementally parse the current tree to bring it up to
@@ -21,67 +44,69 @@ internal partial class DocumentState
     /// </summary>
     public DocumentState UpdateTextAndTreeContents(
         ITextAndVersionSource siblingTextSource,
-        AsyncLazy<TreeAndVersion>? siblingTreeSource,
+        ITreeAndVersionSource? siblingTreeSource,
         bool forceEvenIfTreesWouldDiffer)
     {
         if (!SupportsSyntaxTree)
         {
             return new DocumentState(
                 LanguageServices,
-                Services,
+                DocumentServiceProvider,
                 Attributes,
-                _options,
                 siblingTextSource,
                 LoadTextOptions,
+                ParseOptions,
                 treeSource: null);
         }
 
         Contract.ThrowIfNull(siblingTreeSource);
 
+        // We don't want to point at a long chain of transformations as our sibling files change, deferring to each next
+        // link of the chain to potentially do the work (or potentially failing out). So, if we're about to do this,
+        // instead return our original tree-source so that in the case we are unable to use the sibling file's root, we
+        // can do a single step incremental parse between our original tree and the final sibling text.
+        //
+        // We only need to look one deep here as we'll pull that tree source forward to our level.  If another link is
+        // later added to us, it will do the same thing.
+        var originalTreeSource = this.TreeSource;
+        if (originalTreeSource is LinkedFileReuseTreeAndVersionSource linkedFileTreeAndVersionSource)
+            originalTreeSource = linkedFileTreeAndVersionSource.OriginalTreeSource;
+
         // Always pass along the sibling text.  We will always be in sync with that.
 
-        // if a sibling tree source is provided, then we'll want to attempt to use the tree it creates, to share as
-        // much memory as possible with linked files.  However, we can't point at that source directly.  If we did,
-        // we'd produce the *exact* same tree-reference as another file.  That would be bad as it would break the
-        // invariant that each document gets a unique SyntaxTree.  So, instead, we produce a ValueSource that defers
-        // to the provided source, gets the tree from it, and then wraps its root in a new tree for us.
+        // Defer to static helper to make sure we don't accidentally capture anything else we don't want off of 'this'
+        // (like "this.TreeSource").
+        return UpdateTextAndTreeContentsWorker(
+            this.Attributes, this.LanguageServices, this.DocumentServiceProvider, this.LoadTextOptions, this.ParseOptions,
+            originalTreeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer);
+    }
 
-        // copy data from this entity, and pass to static helper, so we don't keep this green node alive.
+    private static DocumentState UpdateTextAndTreeContentsWorker(
+        DocumentInfo.DocumentAttributes attributes,
+        LanguageServices languageServices,
+        IDocumentServiceProvider services,
+        LoadTextOptions loadTextOptions,
+        ParseOptions parseOptions,
+        ITreeAndVersionSource originalTreeSource,
+        ITextAndVersionSource siblingTextSource,
+        ITreeAndVersionSource siblingTreeSource,
+        bool forceEvenIfTreesWouldDiffer)
+    {
+        // if a sibling tree source is provided, then we'll want to attempt to use the tree it creates, to share as much
+        // memory as possible with linked files.  However, we can't point at that source directly.  If we did, we'd
+        // produce the *exact* same tree-reference as another file.  That would be bad as it would break the invariant
+        // that each document gets a unique SyntaxTree.  So, instead, we produce a tree-source that defers to the
+        // provided source, gets the tree from it, and then wraps its root in a new tree for us.
 
-        var filePath = this.Attributes.SyntaxTreeFilePath;
-        var languageServices = this.LanguageServices;
-        var loadTextOptions = this.LoadTextOptions;
-        var parseOptions = this.ParseOptions;
-        var textAndVersionSource = this.TextAndVersionSource;
-        var treeSource = this.TreeSource;
+        var lazyComputation = AsyncLazy.Create(
+            static (arg, cancellationToken) => TryReuseSiblingTreeAsync(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
+            static (arg, cancellationToken) => TryReuseSiblingTree(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.originalTreeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
+            arg: (filePath: attributes.SyntaxTreeFilePath, languageServices, loadTextOptions, parseOptions, originalTreeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer));
 
-        var newTreeSource = GetReuseTreeSource(
-            filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer);
+        var newTreeSource = new LinkedFileReuseTreeAndVersionSource(originalTreeSource, lazyComputation);
 
         return new DocumentState(
-            languageServices,
-            Services,
-            Attributes,
-            _options,
-            siblingTextSource,
-            LoadTextOptions,
-            newTreeSource);
-
-        static AsyncLazy<TreeAndVersion> GetReuseTreeSource(
-            string filePath,
-            LanguageServices languageServices,
-            LoadTextOptions loadTextOptions,
-            ParseOptions parseOptions,
-            AsyncLazy<TreeAndVersion> treeSource,
-            ITextAndVersionSource siblingTextSource,
-            AsyncLazy<TreeAndVersion> siblingTreeSource,
-            bool forceEvenIfTreesWouldDiffer)
-        {
-            return AsyncLazy.Create(
-                static (arg, cancellationToken) => TryReuseSiblingTreeAsync(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.treeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
-                static (arg, cancellationToken) => TryReuseSiblingTree(arg.filePath, arg.languageServices, arg.loadTextOptions, arg.parseOptions, arg.treeSource, arg.siblingTextSource, arg.siblingTreeSource, arg.forceEvenIfTreesWouldDiffer, cancellationToken),
-                arg: (filePath, languageServices, loadTextOptions, parseOptions, treeSource, siblingTextSource, siblingTreeSource, forceEvenIfTreesWouldDiffer));
-        }
+            languageServices, services, attributes, siblingTextSource, loadTextOptions, parseOptions, newTreeSource);
 
         static bool TryReuseSiblingRoot(
             string filePath,
@@ -108,9 +133,13 @@ internal partial class DocumentState
             // with our own data (*except* for the new root).  However, we think it's safe as the encoding really is
             // a property of the file, and that should stay the same even if linked into multiple projects.
 
+            // Attempt to obtain, and subsequently reuse, the SourceText from the sibling tree.
+            siblingTree.TryGetText(out var lazyText);
+
             var newTree = treeFactory.CreateSyntaxTree(
                 filePath,
                 parseOptions,
+                lazyText,
                 siblingTree.Encoding,
                 loadTextOptions.ChecksumAlgorithm,
                 siblingRoot);
@@ -186,9 +215,9 @@ internal partial class DocumentState
             LanguageServices languageServices,
             LoadTextOptions loadTextOptions,
             ParseOptions parseOptions,
-            AsyncLazy<TreeAndVersion> treeSource,
+            ITreeAndVersionSource treeSource,
             ITextAndVersionSource siblingTextSource,
-            AsyncLazy<TreeAndVersion> siblingTreeSource,
+            ITreeAndVersionSource siblingTreeSource,
             bool forceEvenIfTreesWouldDiffer,
             CancellationToken cancellationToken)
         {
@@ -209,9 +238,9 @@ internal partial class DocumentState
             LanguageServices languageServices,
             LoadTextOptions loadTextOptions,
             ParseOptions parseOptions,
-            AsyncLazy<TreeAndVersion> treeSource,
+            ITreeAndVersionSource treeSource,
             ITextAndVersionSource siblingTextSource,
-            AsyncLazy<TreeAndVersion> siblingTreeSource,
+            ITreeAndVersionSource siblingTreeSource,
             bool forceEvenIfTreesWouldDiffer,
             CancellationToken cancellationToken)
         {

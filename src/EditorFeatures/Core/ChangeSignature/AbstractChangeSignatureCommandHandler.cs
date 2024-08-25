@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Diagnostics.CodeAnalysis;
-using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -24,12 +23,10 @@ internal abstract class AbstractChangeSignatureCommandHandler : ICommandHandler<
     ICommandHandler<RemoveParametersCommandArgs>
 {
     private readonly IThreadingContext _threadingContext;
-    private readonly IGlobalOptionService _globalOptions;
 
-    protected AbstractChangeSignatureCommandHandler(IThreadingContext threadingContext, IGlobalOptionService globalOptions)
+    protected AbstractChangeSignatureCommandHandler(IThreadingContext threadingContext)
     {
         _threadingContext = threadingContext;
-        _globalOptions = globalOptions;
     }
 
     public string DisplayName => EditorFeaturesResources.Change_Signature;
@@ -88,7 +85,6 @@ internal abstract class AbstractChangeSignatureCommandHandler : ICommandHandler<
                 document,
                 caretPoint.Value.Position,
                 restrictToDeclarations: false,
-                _globalOptions.CreateProvider(),
                 cancellationToken).WaitAndGetResult(context.OperationContext.UserCancellationToken);
 
             // UI thread bound operation to show the change signature dialog.

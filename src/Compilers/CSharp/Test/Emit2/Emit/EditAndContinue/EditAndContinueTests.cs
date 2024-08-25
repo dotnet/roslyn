@@ -291,7 +291,7 @@ class A : System.Attribute
             var source0 = @"public class C { public static void F() { System.Console.WriteLine(1); } }";
             var source1 = @"public class C { public static void F() { System.Console.WriteLine(2); } }";
 
-            var compilation0 = CreateCompilationWithMscorlib45(source0, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(source0, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1);
 
             var f0 = compilation0.GetMember<MethodSymbol>("C.F");
@@ -1036,14 +1036,29 @@ class Bad : Bad
                             Row(10, TableIndex.CustomAttribute, EditAndContinueOperation.Default),// add new row
                         ]);
 
-                        g.VerifyCustomAttributes(
-                        [
-                            new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),
-                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),
-                            new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)),
-                            new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)),
-                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),
-                        ]);
+                        // https://github.com/dotnet/roslyn/issues/73513
+                        if (RuntimeUtilities.IsCoreClr9OrHigherRuntime)
+                        {
+                            g.VerifyCustomAttributes(
+                            [
+                                new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),
+                                new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)),
+                                new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)),
+                                new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),
+                                new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),
+                            ]);
+                        }
+                        else
+                        {
+                            g.VerifyCustomAttributes(
+                            [
+                                new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),
+                                new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),
+                                new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)),
+                                new CustomAttributeRow(Handle(8, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)),
+                                new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),
+                            ]);
+                        }
                     })
                 .Verify();
         }
@@ -1422,15 +1437,32 @@ class Bad : Bad
                             Handle(9, TableIndex.CustomAttribute),
                         ]);
 
-                        g.VerifyCustomAttributes(
-                        [
-                            new CustomAttributeRow(Handle(9, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)), // F [A1] -> [A2]
-                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // F [A2] delete
-                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),// G [A3] -> [A4]
-                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),// H [A6] -> [A7]
-                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // H [A5] delete
-                            new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),// G [A3] add with RowId 9
-                        ]);
+                        // https://github.com/dotnet/roslyn/issues/73513
+                        if (RuntimeUtilities.IsCoreClr9OrHigherRuntime)
+                        {
+                            g.VerifyCustomAttributes(
+                            [
+                                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // F [A2] delete
+                                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // H [A5] delete
+                                new CustomAttributeRow(Handle(9, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)), // F [A1] -> [A2]
+                                new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),// G [A3] -> [A4]
+                                new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),// G [A3] add with RowId 9
+                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),// H [A6] -> [A7]
+                            ]);
+                        }
+                        else
+                        {
+                            g.VerifyCustomAttributes(
+                            [
+                                new CustomAttributeRow(Handle(9, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)), // F [A1] -> [A2]
+                                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // F [A2] delete
+                                new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)),// G [A3] -> [A4]
+                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)),// H [A6] -> [A7]
+                                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)), // H [A5] delete
+                                new CustomAttributeRow(Handle(10, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)),// G [A3] add with RowId 9
+                            ]);
+
+                        }
                     })
                 .AddGeneration(
                     source: common + """
@@ -1472,15 +1504,32 @@ class Bad : Bad
                             Handle(11, TableIndex.CustomAttribute),
                         ]);
 
-                        g.VerifyCustomAttributes(
-                        [
-                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A4] delete
-                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)), // H [A5]
-                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)), // H [A6]
-                            new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A3] delete
-                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)), // H [A7] add with RowId 10
-                            new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(8, TableIndex.MethodDef)), // H [A8] add with RowId 11
-                        ]);
+                        // https://github.com/dotnet/roslyn/issues/73513
+                        if (RuntimeUtilities.IsCoreClr9OrHigherRuntime)
+                        {
+                            g.VerifyCustomAttributes(
+                            [
+                                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A4] delete
+                                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A3] delete
+                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)), // H [A5]
+                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)), // H [A6]
+                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)), // H [A7] add with RowId 10
+                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(8, TableIndex.MethodDef)), // H [A8] add with RowId 11
+                            ]);
+                        }
+                        else
+                        {
+                            g.VerifyCustomAttributes(
+                            [
+                                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A4] delete
+                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(5, TableIndex.MethodDef)), // H [A5]
+                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(6, TableIndex.MethodDef)), // H [A6]
+                                new CustomAttributeRow(Handle(0, TableIndex.MethodDef), Handle(0, TableIndex.MemberRef)),  // G [A3] delete
+                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(7, TableIndex.MethodDef)), // H [A7] add with RowId 10
+                                new CustomAttributeRow(Handle(11, TableIndex.MethodDef), Handle(8, TableIndex.MethodDef)), // H [A8] add with RowId 11
+                            ]);
+
+                        }
                     })
                 .AddGeneration(
                     source: common + """
@@ -1648,11 +1697,23 @@ class Bad : Bad
                             Handle(5, TableIndex.CustomAttribute),
                         ]);
 
-                        g.VerifyCustomAttributes(
-                        [
-                            new CustomAttributeRow(Handle(6, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)), // F: [A1] -> [A3]
-                            new CustomAttributeRow(Handle(5, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)), // G: [A2] -> [A4]
-                        ]);
+                        // https://github.com/dotnet/roslyn/issues/73513
+                        if (RuntimeUtilities.IsCoreClr9OrHigherRuntime)
+                        {
+                            g.VerifyCustomAttributes(
+                            [
+                                new CustomAttributeRow(Handle(5, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)), // G: [A2] -> [A4]
+                                new CustomAttributeRow(Handle(6, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)), // F: [A1] -> [A3]
+                            ]);
+                        }
+                        else
+                        {
+                            g.VerifyCustomAttributes(
+                            [
+                                new CustomAttributeRow(Handle(6, TableIndex.MethodDef), Handle(4, TableIndex.MethodDef)), // F: [A1] -> [A3]
+                                new CustomAttributeRow(Handle(5, TableIndex.MethodDef), Handle(3, TableIndex.MethodDef)), // G: [A2] -> [A4]
+                            ]);
+                        }
                     })
                 .Verify();
         }
@@ -2506,56 +2567,52 @@ class C
         [Fact]
         public void PartialMethod()
         {
-            var source =
-@"partial class C
-{
-    static partial void M1();
-    static partial void M2();
-    static partial void M3();
-    static partial void M1() { }
-    static partial void M2() { }
-}";
-            var compilation0 = CreateCompilation(source, parseOptions: TestOptions.Regular.WithNoRefSafetyRulesAttribute(), options: TestOptions.DebugDll);
-            var compilation1 = compilation0.WithSource(source);
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll)
+               .AddBaseline(
+                   source: """
+                   partial class C
+                   {
+                       static partial void M1();
+                       static partial void M2();
+                       static partial void M3();
+                       static partial void M1() { }
+                       static partial void M2() { }
+                   }
+                   """,
+                   validator: v =>
+                   {
+                       v.VerifyMethodDefNames("M1", "M2", ".ctor");
+                   })
+                .AddGeneration(
+                    source: """
+                    partial class C
+                    {
+                        static partial void M1();
+                        static partial void M2();
+                        static partial void M3();
+                        static partial void M1() { }
+                        static partial void M2() { }
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.M2").PartialImplementationPart),
+                    ],
+                    validator: v =>
+                    {
+                        v.VerifyMethodDefNames("M2");
 
-            var bytes0 = compilation0.EmitToArray();
-            using var md0 = ModuleMetadata.CreateFromImage(bytes0);
-            var reader0 = md0.MetadataReader;
+                        v.VerifyEncLogDefinitions(
+                        [
+                            Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        ]);
 
-            CheckNames(reader0, reader0.GetMethodDefNames(), "M1", "M2", ".ctor");
-
-            var method0 = compilation0.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
-            var method1 = compilation1.GetMember<MethodSymbol>("C.M2").PartialImplementationPart;
-
-            var generation0 = CreateInitialBaseline(compilation0,
-                md0,
-                EmptyLocalsProvider);
-
-            var diff1 = compilation1.EmitDifference(
-                generation0,
-                ImmutableArray.Create(SemanticEdit.Create(SemanticEditKind.Update, method0, method1)));
-
-            var methods = diff1.TestData.GetMethodsByName();
-            Assert.Equal(1, methods.Count);
-            Assert.True(methods.ContainsKey("C.M2()"));
-
-            using var md1 = diff1.GetMetadata();
-            var reader1 = md1.Reader;
-            var readers = new[] { reader0, reader1 };
-
-            EncValidation.VerifyModuleMvid(1, reader0, reader1);
-
-            CheckNames(readers, reader1.GetMethodDefNames(), "M2");
-
-            CheckEncLog(reader1,
-                Row(2, TableIndex.AssemblyRef, EditAndContinueOperation.Default),
-                Row(6, TableIndex.TypeRef, EditAndContinueOperation.Default),
-                Row(2, TableIndex.MethodDef, EditAndContinueOperation.Default));
-
-            CheckEncMap(reader1,
-                Handle(6, TableIndex.TypeRef),
-                Handle(2, TableIndex.MethodDef),
-                Handle(2, TableIndex.AssemblyRef));
+                        v.VerifyEncMapDefinitions(
+                        [
+                            Handle(2, TableIndex.MethodDef)
+                        ]);
+                    })
+                .Verify();
         }
 
         [WorkItem(60804, "https://github.com/dotnet/roslyn/issues/60804")]
@@ -2647,6 +2704,100 @@ partial class C
                             """);
                     })
 
+                .Verify();
+        }
+
+        [Fact]
+        public void PartialProperty()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll)
+               .AddBaseline(
+                   source: """
+                   partial class C
+                   {
+                       partial int P { get; }
+                       partial int P => 1;
+                   }
+                   """,
+                   validator: v =>
+                   {
+                       v.VerifyMethodDefNames("get_P", ".ctor");
+                   })
+                .AddGeneration(
+                    source: """
+                    partial class C
+                    {
+                        [System.Obsolete]partial int P { get; }
+                        partial int P => 1;
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember<IPropertySymbol>("C.P").PartialImplementationPart),
+                    ],
+                    validator: v =>
+                    {
+                        v.VerifyMethodDefNames();
+
+                        v.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.Property, EditAndContinueOperation.Default),
+                            Row(4, TableIndex.CustomAttribute, EditAndContinueOperation.Default),
+                            Row(2, TableIndex.MethodSemantics, EditAndContinueOperation.Default)
+                        ]);
+
+                        v.VerifyEncMapDefinitions(
+                        [
+                            Handle(4, TableIndex.CustomAttribute),
+                            Handle(1, TableIndex.Property),
+                            Handle(2, TableIndex.MethodSemantics)
+                        ]);
+                    })
+                .Verify();
+        }
+
+        [Fact]
+        public void PartialProperty_Accessor()
+        {
+            using var _ = new EditAndContinueTest(options: TestOptions.DebugDll)
+               .AddBaseline(
+                   source: """
+                   partial class C
+                   {
+                       partial int P { get; }
+                       partial int P => 1;
+                   }
+                   """,
+                   validator: v =>
+                   {
+                       v.VerifyMethodDefNames("get_P", ".ctor");
+                   })
+                .AddGeneration(
+                    source: """
+                    partial class C
+                    {
+                        partial int P { get; }
+                        partial int P => 2;
+                    }
+                    """,
+                    edits:
+                    [
+                        Edit(SemanticEditKind.Update, c => c.GetMember<IMethodSymbol>("C.get_P").PartialImplementationPart),
+                    ],
+                    validator: v =>
+                    {
+                        v.VerifyMethodDefNames("get_P");
+
+                        v.VerifyEncLogDefinitions(
+                        [
+                            Row(1, TableIndex.MethodDef, EditAndContinueOperation.Default)
+                        ]);
+
+                        v.VerifyEncMapDefinitions(
+                        [
+                            Handle(1, TableIndex.MethodDef)
+                        ]);
+                    })
                 .Verify();
         }
 
@@ -3024,15 +3175,23 @@ delegate void D([A]int x);
                         g.VerifyTypeDefNames("E", "C", "D");
                         g.VerifyMethodDefNames();
 
-                        g.VerifyCustomAttributes(
-                        [
-                            new CustomAttributeRow(Handle(14, TableIndex.TypeDef), Handle(1, TableIndex.MethodDef)), // E
-                            new CustomAttributeRow(Handle(15, TableIndex.TypeDef), Handle(3, TableIndex.MethodDef)), // C
-                            new CustomAttributeRow(Handle(16, TableIndex.TypeDef), Handle(6, TableIndex.MethodDef)), // D
-                            new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(2, TableIndex.MethodDef)),    // E.A
-                            new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(4, TableIndex.MethodDef)),    // _x
-                            new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(5, TableIndex.MethodDef))  // X
-                        ]);
+                        // https://github.com/dotnet/roslyn/issues/73513
+                        if (RuntimeUtilities.IsCoreClr9OrHigherRuntime)
+                        {
+                            g.VerifyCustomAttributes(
+                            [
+                                new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(5, TableIndex.MethodDef)), // X
+                                new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(2, TableIndex.MethodDef)),    // E.A
+                                new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(4, TableIndex.MethodDef)),    // _x
+                                new CustomAttributeRow(Handle(14, TableIndex.TypeDef), Handle(1, TableIndex.MethodDef)), // E
+                                new CustomAttributeRow(Handle(15, TableIndex.TypeDef), Handle(3, TableIndex.MethodDef)), // C
+                                new CustomAttributeRow(Handle(16, TableIndex.TypeDef), Handle(6, TableIndex.MethodDef)), // D
+                            ]);
+                        }
+                        else
+                        {
+
+                        }
 
                         g.VerifyEncLogDefinitions(
                         [
@@ -3105,15 +3264,31 @@ delegate void D([A]int x);
                         g.VerifyTypeDefNames("E", "C", "D");
                         g.VerifyMethodDefNames();
 
-                        g.VerifyCustomAttributes(
-                        [
-                            new CustomAttributeRow(Handle(14, TableIndex.TypeDef), Handle(7, TableIndex.MethodDef)), // E
-                            new CustomAttributeRow(Handle(15, TableIndex.TypeDef), Handle(9, TableIndex.MethodDef)), // C
-                            new CustomAttributeRow(Handle(16, TableIndex.TypeDef), Handle(12, TableIndex.MethodDef)),// D
-                            new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(8, TableIndex.MethodDef)),    // E.A
-                            new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(10, TableIndex.MethodDef)),   // _x
-                            new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(11, TableIndex.MethodDef)) // X
-                        ]);
+                        // https://github.com/dotnet/roslyn/issues/73513
+                        if (RuntimeUtilities.IsCoreClr9OrHigherRuntime)
+                        {
+                            g.VerifyCustomAttributes(
+                            [
+                                new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(11, TableIndex.MethodDef)),// X
+                                new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(8, TableIndex.MethodDef)),    // E.A
+                                new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(10, TableIndex.MethodDef)),   // _x
+                                new CustomAttributeRow(Handle(14, TableIndex.TypeDef), Handle(7, TableIndex.MethodDef)), // E
+                                new CustomAttributeRow(Handle(15, TableIndex.TypeDef), Handle(9, TableIndex.MethodDef)), // C
+                                new CustomAttributeRow(Handle(16, TableIndex.TypeDef), Handle(12, TableIndex.MethodDef)),// D
+                            ]);
+                        }
+                        else
+                        {
+                            g.VerifyCustomAttributes(
+                            [
+                                new CustomAttributeRow(Handle(14, TableIndex.TypeDef), Handle(7, TableIndex.MethodDef)), // E
+                                new CustomAttributeRow(Handle(15, TableIndex.TypeDef), Handle(9, TableIndex.MethodDef)), // C
+                                new CustomAttributeRow(Handle(16, TableIndex.TypeDef), Handle(12, TableIndex.MethodDef)),// D
+                                new CustomAttributeRow(Handle(2, TableIndex.Field), Handle(8, TableIndex.MethodDef)),    // E.A
+                                new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(10, TableIndex.MethodDef)),   // _x
+                                new CustomAttributeRow(Handle(1, TableIndex.Property), Handle(11, TableIndex.MethodDef)),// X
+                            ]);
+                        }
 
                         g.VerifyEncLogDefinitions(new[]
                         {
@@ -6964,16 +7139,33 @@ delegate void D();
                 Handle(6, TableIndex.MethodSemantics),
                 Handle(2, TableIndex.GenericParam));
 
-            CheckAttributes(reader1,
-                new CustomAttributeRow(Handle(1, TableIndex.GenericParam), Handle(1, TableIndex.MethodDef)),
-                new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(1, TableIndex.MethodDef)),
-                new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(11, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(12, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(12, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)),
-                new CustomAttributeRow(Handle(14, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(15, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)),
-                new CustomAttributeRow(Handle(2, TableIndex.Event), Handle(1, TableIndex.MethodDef)),
-                new CustomAttributeRow(Handle(2, TableIndex.Property), Handle(2, TableIndex.MethodDef)));
+            // https://github.com/dotnet/roslyn/issues/73513
+            if (RuntimeUtilities.IsCoreClr9OrHigherRuntime)
+            {
+                CheckAttributes(reader1,
+                    new CustomAttributeRow(Handle(1, TableIndex.GenericParam), Handle(1, TableIndex.MethodDef)),
+                    new CustomAttributeRow(Handle(2, TableIndex.Property), Handle(2, TableIndex.MethodDef)),
+                    new CustomAttributeRow(Handle(2, TableIndex.Event), Handle(1, TableIndex.MethodDef)),
+                    new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(1, TableIndex.MethodDef)),
+                    new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(11, TableIndex.MemberRef)),
+                    new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(12, TableIndex.MemberRef)),
+                    new CustomAttributeRow(Handle(12, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)),
+                    new CustomAttributeRow(Handle(14, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)),
+                    new CustomAttributeRow(Handle(15, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)));
+            }
+            else
+            {
+                CheckAttributes(reader1,
+                    new CustomAttributeRow(Handle(1, TableIndex.GenericParam), Handle(1, TableIndex.MethodDef)),
+                    new CustomAttributeRow(Handle(3, TableIndex.Field), Handle(1, TableIndex.MethodDef)),
+                    new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(11, TableIndex.MemberRef)),
+                    new CustomAttributeRow(Handle(4, TableIndex.Field), Handle(12, TableIndex.MemberRef)),
+                    new CustomAttributeRow(Handle(12, TableIndex.MethodDef), Handle(2, TableIndex.MethodDef)),
+                    new CustomAttributeRow(Handle(14, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)),
+                    new CustomAttributeRow(Handle(15, TableIndex.MethodDef), Handle(11, TableIndex.MemberRef)),
+                    new CustomAttributeRow(Handle(2, TableIndex.Event), Handle(1, TableIndex.MethodDef)),
+                    new CustomAttributeRow(Handle(2, TableIndex.Property), Handle(2, TableIndex.MethodDef)));
+            }
         }
 
         /// <summary>
@@ -9875,7 +10067,7 @@ class C
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
 
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation0.WithSource(source2.Tree);
 
@@ -9998,7 +10190,7 @@ class C
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
 
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, new[] { SystemCoreRef }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation0.WithSource(source2.Tree);
 
@@ -10167,7 +10359,7 @@ class C
     }
 }
 ");
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
 
             var v0 = CompileAndVerify(compilation0);
@@ -10232,7 +10424,7 @@ class C
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
 
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, options: ComSafeDebugDll);
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);
 
@@ -10908,7 +11100,7 @@ class C
             var source0 = MarkedSource(template.Replace("<<VALUE>>", "0"));
             var source1 = MarkedSource(template.Replace("<<VALUE>>", "1"));
             var source2 = MarkedSource(template.Replace("<<VALUE>>", "2"));
-            var compilation0 = CreateCompilationWithMscorlib45(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
+            var compilation0 = CreateCompilationWithMscorlib461(new[] { source0.Tree }, new[] { SystemCoreRef, CSharpRef }, options: ComSafeDebugDll);
 
             var compilation1 = compilation0.WithSource(source1.Tree);
             var compilation2 = compilation1.WithSource(source2.Tree);

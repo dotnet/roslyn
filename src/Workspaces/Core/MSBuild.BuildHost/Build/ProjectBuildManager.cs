@@ -11,11 +11,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.Build.Framework;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
-namespace Microsoft.CodeAnalysis.MSBuild.Build
+namespace Microsoft.CodeAnalysis.MSBuild
 {
     internal class ProjectBuildManager
     {
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             { PropertyNames.DesignTimeBuild, bool.TrueString },
 
             // this will force CoreCompile task to execute even if all inputs and outputs are up to date
-#if NETCOREAPP
+#if NET
             { PropertyNames.NonExistentFile, "__NonExistentSubDir__\\__NonExistentFile__" },
 #else
             // Setting `BuildingInsideVisualStudio` indirectly sets NonExistentFile:
@@ -260,7 +259,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
             _batchBuildLogger?.SetProjectAndLog(projectInstance.FullPath, log);
 
-            var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, targets.ToArray());
+            var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, [.. targets]);
 
             var result = await BuildAsync(buildRequestData, cancellationToken).ConfigureAwait(false);
 

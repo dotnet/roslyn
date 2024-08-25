@@ -1679,7 +1679,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             if (name == null)
-                FilterNotReferenceable(results);
+                results.RemoveWhere(static (symbol, _, _) => !symbol.CanBeReferencedByName, arg: default(VoidResult));
 
             return results.ToImmutableAndFree();
         }
@@ -1794,24 +1794,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// symbols were reinferred. This should only be called when nullable semantic analysis is enabled.
         /// </summary>
         internal abstract Symbol RemapSymbolIfNecessaryCore(Symbol symbol);
-
-        private static void FilterNotReferenceable(ArrayBuilder<ISymbol> sealedResults)
-        {
-            var writeIndex = 0;
-            for (var i = 0; i < sealedResults.Count; i++)
-            {
-                var symbol = sealedResults[i];
-                if (symbol.CanBeReferencedByName)
-                {
-                    if (writeIndex != i)
-                        sealedResults[writeIndex] = symbol;
-
-                    writeIndex++;
-                }
-            }
-
-            sealedResults.Count = writeIndex;
-        }
 
         /// <summary>
         /// Determines if the symbol is accessible from the specified location. 
@@ -3847,9 +3829,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert((object)increment.MethodOpt == null && increment.OriginalUserDefinedOperatorsOpt.IsDefaultOrEmpty);
                 UnaryOperatorKind op = increment.OperatorKind.Operator();
-                symbols = OneOrMany.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(increment.Operand.Type.StrippedType(),
+                TypeSymbol opType = increment.Operand.Type.StrippedType();
+                symbols = OneOrMany.Create<Symbol>(new SynthesizedIntrinsicOperatorSymbol(opType,
                                                                                           OperatorFacts.UnaryOperatorNameFromOperatorKind(op, isChecked: increment.OperatorKind.IsChecked()),
-                                                                                          increment.Type.StrippedType()));
+                                                                                          opType));
                 resultKind = increment.ResultKind;
             }
         }
@@ -5237,12 +5220,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CheckSyntaxNode(node);
 
-            if (node.GetInterceptableNameSyntax() is { } nameSyntax && Compilation.TryGetInterceptor(nameSyntax.GetLocation()) is (_, MethodSymbol interceptor))
+            if (node.GetInterceptableNameSyntax() is { } nameSyntax && Compilation.TryGetInterceptor(nameSyntax) is (_, MethodSymbol interceptor))
             {
                 return interceptor.GetPublicSymbol();
             }
 
             return null;
+        }
+
+#pragma warning disable RSEXPERIMENTAL002 // Internal usage of experimental API
+        public InterceptableLocation? GetInterceptableLocation(InvocationExpressionSyntax node, CancellationToken cancellationToken)
+        {
+            CheckSyntaxNode(node);
+            if (node.GetInterceptableNameSyntax() is not { } nameSyntax)
+            {
+                return null;
+            }
+
+            return GetInterceptableLocationInternal(nameSyntax, cancellationToken);
+        }
+
+        // Factored out for ease of test authoring, especially for scenarios involving unsupported syntax.
+        internal InterceptableLocation GetInterceptableLocationInternal(SyntaxNode nameSyntax, CancellationToken cancellationToken)
+        {
+            var tree = nameSyntax.SyntaxTree;
+            var text = tree.GetText(cancellationToken);
+            var path = tree.FilePath;
+            var checksum = text.GetContentHash();
+
+            var lineSpan = nameSyntax.Location.GetLineSpan().Span.Start;
+            var lineNumberOneIndexed = lineSpan.Line + 1;
+            var characterNumberOneIndexed = lineSpan.Character + 1;
+
+            return new InterceptableLocation1(checksum, path, nameSyntax.Position, lineNumberOneIndexed, characterNumberOneIndexed);
         }
 #nullable disable
 

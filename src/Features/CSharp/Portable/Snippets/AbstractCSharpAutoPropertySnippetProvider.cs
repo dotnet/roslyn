@@ -12,7 +12,6 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Snippets;
@@ -21,15 +20,17 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Snippets;
 
+using static CSharpSyntaxTokens;
+
 internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractPropertySnippetProvider<PropertyDeclarationSyntax>
 {
-    protected virtual AccessorDeclarationSyntax? GenerateGetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
+    protected virtual AccessorDeclarationSyntax? GenerateGetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator, CancellationToken cancellationToken)
         => (AccessorDeclarationSyntax)generator.GetAccessorDeclaration();
 
-    protected virtual AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator)
+    protected virtual AccessorDeclarationSyntax? GenerateSetAccessorDeclaration(CSharpSyntaxContext syntaxContext, SyntaxGenerator generator, CancellationToken cancellationToken)
         => (AccessorDeclarationSyntax)generator.SetAccessorDeclaration();
 
-    protected override bool IsValidSnippetLocation(in SnippetContext context, CancellationToken cancellationToken)
+    protected override bool IsValidSnippetLocationCore(SnippetContext context, CancellationToken cancellationToken)
     {
         return context.SyntaxContext.SyntaxTree.IsMemberDeclarationContext(context.Position, (CSharpSyntaxContext)context.SyntaxContext,
             SyntaxKindSet.AllMemberModifiers, SyntaxKindSet.ClassInterfaceStructRecordTypeDeclarations, canBePartial: true, cancellationToken);
@@ -45,8 +46,8 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
         var syntaxContext = CSharpSyntaxContext.CreateContext(document, semanticModel, position, cancellationToken);
         var accessors = new AccessorDeclarationSyntax?[]
         {
-            GenerateGetAccessorDeclaration(syntaxContext, generator),
-            GenerateSetAccessorDeclaration(syntaxContext, generator),
+            GenerateGetAccessorDeclaration(syntaxContext, generator, cancellationToken),
+            GenerateSetAccessorDeclaration(syntaxContext, generator, cancellationToken),
         };
 
         SyntaxTokenList modifiers = default;
@@ -54,7 +55,7 @@ internal abstract class AbstractCSharpAutoPropertySnippetProvider : AbstractProp
         // If there are no preceding accessibility modifiers create default `public` one
         if (!syntaxContext.PrecedingModifiers.Any(SyntaxFacts.IsAccessibilityModifier))
         {
-            modifiers = SyntaxTokenList.Create(SyntaxFactory.Token(SyntaxKind.PublicKeyword));
+            modifiers = SyntaxTokenList.Create(PublicKeyword);
         }
 
         return SyntaxFactory.PropertyDeclaration(

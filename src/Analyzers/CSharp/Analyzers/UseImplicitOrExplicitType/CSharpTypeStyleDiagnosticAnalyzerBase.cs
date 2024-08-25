@@ -32,17 +32,6 @@ internal abstract partial class CSharpTypeStyleDiagnosticAnalyzerBase :
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
-    public override bool OpenFileOnly(SimplifierOptions? options)
-    {
-        // analyzer is only active in C# projects
-        Contract.ThrowIfNull(options);
-
-        var csOptions = (CSharpSimplifierOptions)options;
-        return !(csOptions.VarForBuiltInTypes.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
-                 csOptions.VarWhenTypeIsApparent.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error ||
-                 csOptions.VarElsewhere.Notification.Severity is ReportDiagnostic.Warn or ReportDiagnostic.Error);
-    }
-
     protected override void InitializeWorker(AnalysisContext context)
         => context.RegisterSyntaxNodeAction(
             HandleVariableDeclaration, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement, SyntaxKind.DeclarationExpression);

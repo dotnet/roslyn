@@ -7,7 +7,6 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Structure;
 
 namespace Microsoft.CodeAnalysis.CSharp.Structure;
@@ -17,11 +16,11 @@ internal class TypeDeclarationStructureProvider : AbstractSyntaxNodeStructurePro
     protected override void CollectBlockSpans(
         SyntaxToken previousToken,
         TypeDeclarationSyntax typeDeclaration,
-        ref TemporaryArray<BlockSpan> spans,
+        ArrayBuilder<BlockSpan> spans,
         BlockStructureOptions options,
         CancellationToken cancellationToken)
     {
-        CSharpStructureHelpers.CollectCommentBlockSpans(typeDeclaration, ref spans, options);
+        CSharpStructureHelpers.CollectCommentBlockSpans(typeDeclaration, spans, options);
 
         if (!typeDeclaration.OpenBraceToken.IsMissing &&
             !typeDeclaration.CloseBraceToken.IsMissing)
@@ -54,7 +53,7 @@ internal class TypeDeclarationStructureProvider : AbstractSyntaxNodeStructurePro
         if (!typeDeclaration.CloseBraceToken.IsMissing)
         {
             var leadingTrivia = typeDeclaration.CloseBraceToken.LeadingTrivia;
-            CSharpStructureHelpers.CollectCommentBlockSpans(leadingTrivia, ref spans);
+            CSharpStructureHelpers.CollectCommentBlockSpans(leadingTrivia, spans);
         }
     }
 }

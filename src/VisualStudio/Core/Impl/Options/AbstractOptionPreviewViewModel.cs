@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private readonly IContentType _contentType;
         private readonly IEditorOptionsFactoryService _editorOptions;
         private readonly ITextEditorFactoryService _textEditorFactoryService;
-        private readonly ITextBufferFactoryService _textBufferFactoryService;
+        private readonly ITextBufferCloneService _textBufferCloneService;
         private readonly IProjectionBufferFactoryService _projectionBufferFactory;
         private readonly IContentTypeRegistryService _contentTypeRegistryService;
 
@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
             _contentTypeRegistryService = _componentModel.GetService<IContentTypeRegistryService>();
-            _textBufferFactoryService = _componentModel.GetService<ITextBufferFactoryService>();
+            _textBufferCloneService = _componentModel.GetService<ITextBufferCloneService>();
             _textEditorFactoryService = _componentModel.GetService<ITextEditorFactoryService>();
             _projectionBufferFactory = _componentModel.GetService<IProjectionBufferFactoryService>();
             _editorOptions = _componentModel.GetService<IEditorOptionsFactoryService>();
@@ -71,10 +71,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public void SetOptionAndUpdatePreview<T>(T value, IOption2 option, string preview)
         {
             object actualValue;
-            if (option.DefaultValue is ICodeStyleOption codeStyleOption)
+            if (option.DefaultValue is ICodeStyleOption2 codeStyleOption)
             {
-                // The value provided is either an ICodeStyleOption OR the underlying ICodeStyleOption.Value
-                if (value is ICodeStyleOption newCodeStyleOption)
+                // The value provided is either an ICodeStyleOption2 OR the underlying ICodeStyleOption2.Value
+                if (value is ICodeStyleOption2 newCodeStyleOption)
                 {
                     actualValue = codeStyleOption.WithValue(newCodeStyleOption.Value).WithNotification(newCodeStyleOption.Notification);
                 }
@@ -137,10 +137,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             var document = project.AddDocument("document", SourceText.From(text, Encoding.UTF8));
             var fallbackFormattingOptions = OptionStore.GlobalOptions.GetSyntaxFormattingOptions(document.Project.Services);
             var formattingService = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-            var formattingOptions = formattingService.GetFormattingOptions(OptionStore, fallbackFormattingOptions);
+            var formattingOptions = formattingService.GetFormattingOptions(OptionStore);
             var formatted = Formatter.FormatAsync(document, formattingOptions, CancellationToken.None).WaitAndGetResult(CancellationToken.None);
 
-            var textBuffer = _textBufferFactoryService.CreateTextBuffer(formatted.GetTextSynchronously(CancellationToken.None).ToString(), _contentType);
+            var textBuffer = _textBufferCloneService.Clone(formatted.GetTextSynchronously(CancellationToken.None), _contentType);
 
             var container = textBuffer.AsTextContainer();
 
@@ -148,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 _editorOptions.CreateOptions(),
                 textBuffer.CurrentSnapshot,
                 separator: "",
-                exposedLineSpans: GetExposedLineSpans(textBuffer.CurrentSnapshot).ToArray());
+                exposedLineSpans: [.. GetExposedLineSpans(textBuffer.CurrentSnapshot)]);
 
             var textView = _textEditorFactoryService.CreateTextView(projection,
               _textEditorFactoryService.CreateTextViewRoleSet(PredefinedTextViewRoles.Interactive));
@@ -224,7 +224,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                 isChecked: !defaultAddForClarity));
 
             CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ParenthesesPreference>(
-                languageOption, title, preferences.ToArray(),
+                languageOption, title, [.. preferences],
                 examples, this, optionStore, ServicesVSResources.Parentheses_preferences_colon,
                 codeStylePreferences));
         }

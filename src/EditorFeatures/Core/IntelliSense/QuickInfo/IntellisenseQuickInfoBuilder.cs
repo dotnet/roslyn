@@ -4,7 +4,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,7 +12,6 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
@@ -81,8 +79,8 @@ internal static class IntellisenseQuickInfoBuilder
 
                     // Stack the first paragraph of the documentation comments with the last line of the description
                     // to avoid vertical padding between the two.
-                    var lastElement = elements[elements.Count - 1];
-                    elements[elements.Count - 1] = new ContainerElement(
+                    var lastElement = elements[^1];
+                    elements[^1] = new ContainerElement(
                         ContainerElementStyle.Stacked,
                         lastElement,
                         element);
@@ -135,6 +133,9 @@ internal static class IntellisenseQuickInfoBuilder
             }
         }
 
+        if (context is not null && quickInfoItem.OnTheFlyDocsElement is not null)
+            elements.Add(new EditorFeaturesOnTheFlyDocsElement(context.Document, quickInfoItem.OnTheFlyDocsElement));
+
         return new ContainerElement(
                             ContainerElementStyle.Stacked | ContainerElementStyle.VerticalPadding,
                             elements);
@@ -154,7 +155,6 @@ internal static class IntellisenseQuickInfoBuilder
     {
         var context = new IntellisenseQuickInfoBuilderContext(document, classificationOptions, lineFormattingOptions, threadingContext, operationExecutor, asyncListener, streamingPresenter);
         var content = await BuildInteractiveContentAsync(quickInfoItem, context, cancellationToken).ConfigureAwait(false);
-
         return new IntellisenseQuickInfoItem(trackingSpan, content);
     }
 

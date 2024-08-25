@@ -7,7 +7,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Xml;
 using System.Xml.Linq;
@@ -490,7 +489,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
                 ? attribute.Value
                 : null;
             var navigationHint = navigationTarget;
-            state.AppendParts(SpecializedCollections.SingletonEnumerable(new TaggedText(displayKind, text, style, navigationTarget, navigationHint)));
+            state.AppendParts([new TaggedText(displayKind, text, style, navigationTarget, navigationHint)]);
         }
     }
 
@@ -514,8 +513,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         }
 
         // if any of that fails fall back to just displaying the raw text
-        return SpecializedCollections.SingletonEnumerable(
-            new SymbolDisplayPart(kind, symbol: null, text: TrimCrefPrefix(crefValue)));
+        return [new SymbolDisplayPart(kind, symbol: null, text: TrimCrefPrefix(crefValue))];
     }
 
     internal static IEnumerable<SymbolDisplayPart> TypeParameterRefToSymbolDisplayParts(
@@ -535,8 +533,7 @@ internal abstract class AbstractDocumentationCommentFormattingService : IDocumen
         }
 
         // if any of that fails fall back to just displaying the raw text
-        return SpecializedCollections.SingletonEnumerable(
-            new SymbolDisplayPart(SymbolDisplayPartKind.TypeParameterName, symbol: null, text: TrimCrefPrefix(crefValue)));
+        return [new SymbolDisplayPart(SymbolDisplayPartKind.TypeParameterName, symbol: null, text: TrimCrefPrefix(crefValue))];
     }
 
     private static string TrimCrefPrefix(string value)

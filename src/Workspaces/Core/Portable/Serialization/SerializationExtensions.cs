@@ -18,8 +18,6 @@ internal static class SerializationExtensions
             SolutionCompilationStateChecksums => WellKnownSynchronizationKind.SolutionCompilationState,
             SolutionStateChecksums => WellKnownSynchronizationKind.SolutionState,
             ProjectStateChecksums => WellKnownSynchronizationKind.ProjectState,
-            DocumentStateChecksums => WellKnownSynchronizationKind.DocumentState,
-            ChecksumCollection => WellKnownSynchronizationKind.ChecksumCollection,
             SolutionInfo.SolutionAttributes => WellKnownSynchronizationKind.SolutionAttributes,
             ProjectInfo.ProjectAttributes => WellKnownSynchronizationKind.ProjectAttributes,
             DocumentInfo.DocumentAttributes => WellKnownSynchronizationKind.DocumentAttributes,
@@ -31,6 +29,7 @@ internal static class SerializationExtensions
             SerializableSourceText => WellKnownSynchronizationKind.SerializableSourceText,
             SourceGeneratedDocumentIdentity => WellKnownSynchronizationKind.SourceGeneratedDocumentIdentity,
             SourceGeneratorExecutionVersionMap => WellKnownSynchronizationKind.SourceGeneratorExecutionVersionMap,
+            ImmutableDictionary<string, StructuredAnalyzerConfigOptions> => WellKnownSynchronizationKind.FallbackAnalyzerOptions,
             _ => throw ExceptionUtilities.UnexpectedValue(value),
         };
 

@@ -73,6 +73,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string JsonDetection = nameof(JsonDetection);
     public const string MakeFieldReadonly = nameof(MakeFieldReadonly);
     public const string MakeLocalFunctionStatic = nameof(MakeLocalFunctionStatic);
+    public const string MakeAnonymousFunctionStatic = nameof(MakeAnonymousFunctionStatic);
     public const string MakeMemberRequired = nameof(MakeMemberRequired);
     public const string MakeMemberStatic = nameof(MakeMemberStatic);
     public const string MakeMethodSynchronous = nameof(MakeMethodSynchronous);
@@ -173,6 +174,7 @@ internal static class PredefinedCodeFixProviderNames
     public const string UseRangeOperator = nameof(UseRangeOperator);
     public const string UseSimpleUsingStatement = nameof(UseSimpleUsingStatement);
     public const string UseSystemHashCode = nameof(UseSystemHashCode);
+    public const string UseSystemThreadingLock = nameof(UseSystemThreadingLock);
     public const string UseThrowExpression = nameof(UseThrowExpression);
     public const string UseTupleSwap = nameof(UseTupleSwap);
     public const string UseUtf8StringLiteral = nameof(UseUtf8StringLiteral);

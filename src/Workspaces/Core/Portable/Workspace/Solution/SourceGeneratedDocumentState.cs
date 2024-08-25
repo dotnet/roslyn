@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Diagnostics.Contracts;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.SourceGeneration;
 using Microsoft.CodeAnalysis.Text;
@@ -82,7 +83,7 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
             new DocumentInfo.DocumentAttributes(
                 documentIdentity.DocumentId,
                 name: documentIdentity.HintName,
-                folders: SpecializedCollections.EmptyReadOnlyList<string>(),
+                folders: [],
                 parseOptions.Kind,
                 filePath: documentIdentity.FilePath,
                 isGenerated: true,
@@ -105,10 +106,10 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         ITextAndVersionSource textSource,
         SourceText text,
         LoadTextOptions loadTextOptions,
-        AsyncLazy<TreeAndVersion> treeSource,
+        ITreeAndVersionSource treeSource,
         Lazy<Checksum> lazyContentHash,
         DateTime generationDateTime)
-        : base(languageServices, documentServiceProvider, attributes, options, textSource, loadTextOptions, treeSource)
+        : base(languageServices, documentServiceProvider, attributes, textSource, loadTextOptions, options, treeSource)
     {
         Identity = documentIdentity;
 
@@ -125,6 +126,12 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
 
     public SourceGeneratedDocumentContentIdentity GetContentIdentity()
         => new(this.GetOriginalSourceTextContentHash(), this.SourceText.Encoding?.WebName, this.SourceText.ChecksumAlgorithm);
+
+    protected override TextDocumentState UpdateAttributes(DocumentInfo.DocumentAttributes newAttributes)
+        => throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
+
+    protected override TextDocumentState UpdateDocumentServiceProvider(IDocumentServiceProvider? newProvider)
+        => throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
 
     protected override TextDocumentState UpdateText(ITextAndVersionSource newTextSource, PreservationMode mode, bool incremental)
         => throw new NotSupportedException(WorkspacesResources.The_contents_of_a_SourceGeneratedDocument_may_not_be_changed);
@@ -173,7 +180,7 @@ internal sealed class SourceGeneratedDocumentState : DocumentState
         return new(
             this.Identity,
             this.LanguageServices,
-            this.Services,
+            this.DocumentServiceProvider,
             this.Attributes,
             this.ParseOptions,
             this.TextAndVersionSource,

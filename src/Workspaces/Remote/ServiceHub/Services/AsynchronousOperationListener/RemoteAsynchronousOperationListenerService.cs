@@ -9,52 +9,51 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed class RemoteAsynchronousOperationListenerService : BrokeredServiceBase, IRemoteAsynchronousOperationListenerService
 {
-    internal sealed class RemoteAsynchronousOperationListenerService : BrokeredServiceBase, IRemoteAsynchronousOperationListenerService
+    internal sealed class Factory : FactoryBase<IRemoteAsynchronousOperationListenerService>
     {
-        internal sealed class Factory : FactoryBase<IRemoteAsynchronousOperationListenerService>
+        protected override IRemoteAsynchronousOperationListenerService CreateService(in ServiceConstructionArguments arguments)
+            => new RemoteAsynchronousOperationListenerService(in arguments);
+    }
+
+    public RemoteAsynchronousOperationListenerService(in ServiceConstructionArguments arguments)
+        : base(in arguments)
+    {
+    }
+
+    public ValueTask EnableAsync(bool enable, bool diagnostics, CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(cancellationToken =>
         {
-            protected override IRemoteAsynchronousOperationListenerService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteAsynchronousOperationListenerService(in arguments);
-        }
+            AsynchronousOperationListenerProvider.Enable(enable, diagnostics);
+            return default;
+        }, cancellationToken);
+    }
 
-        public RemoteAsynchronousOperationListenerService(in ServiceConstructionArguments arguments)
-            : base(in arguments)
+    public ValueTask<bool> IsCompletedAsync(ImmutableArray<string> featureNames, CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(cancellationToken =>
         {
-        }
+            var workspace = GetWorkspace();
+            var exportProvider = workspace.Services.SolutionServices.ExportProvider;
+            var listenerProvider = exportProvider.GetExports<AsynchronousOperationListenerProvider>().Single().Value;
 
-        public ValueTask EnableAsync(bool enable, bool diagnostics, CancellationToken cancellationToken)
+            return new ValueTask<bool>(!listenerProvider.HasPendingWaiter([.. featureNames]));
+        }, cancellationToken);
+    }
+
+    public ValueTask ExpeditedWaitAsync(ImmutableArray<string> featureNames, CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(async cancellationToken =>
         {
-            return RunServiceAsync(cancellationToken =>
-            {
-                AsynchronousOperationListenerProvider.Enable(enable, diagnostics);
-                return default;
-            }, cancellationToken);
-        }
+            var workspace = GetWorkspace();
+            var exportProvider = workspace.Services.SolutionServices.ExportProvider;
+            var listenerProvider = exportProvider.GetExports<AsynchronousOperationListenerProvider>().Single().Value;
 
-        public ValueTask<bool> IsCompletedAsync(ImmutableArray<string> featureNames, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(cancellationToken =>
-            {
-                var workspace = GetWorkspace();
-                var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-                var listenerProvider = exportProvider.GetExports<AsynchronousOperationListenerProvider>().Single().Value;
-
-                return new ValueTask<bool>(!listenerProvider.HasPendingWaiter(featureNames.ToArray()));
-            }, cancellationToken);
-        }
-
-        public ValueTask ExpeditedWaitAsync(ImmutableArray<string> featureNames, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(async cancellationToken =>
-            {
-                var workspace = GetWorkspace();
-                var exportProvider = workspace.Services.SolutionServices.ExportProvider;
-                var listenerProvider = exportProvider.GetExports<AsynchronousOperationListenerProvider>().Single().Value;
-
-                await listenerProvider.WaitAllAsync(workspace, featureNames.ToArray()).ConfigureAwait(false);
-            }, cancellationToken);
-        }
+            await listenerProvider.WaitAllAsync(workspace, [.. featureNames]).ConfigureAwait(false);
+        }, cancellationToken);
     }
 }

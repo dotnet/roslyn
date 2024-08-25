@@ -16,7 +16,6 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -70,7 +69,7 @@ internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
 
         // Find the members that can be tested.
         var members = GetCandidatePropertiesAndFields(document, semanticModel, position, type);
-        members = members.WhereAsArray(m => m.IsEditorBrowsable(context.CompletionOptions.HideAdvancedMembers, semanticModel.Compilation));
+        members = members.WhereAsArray(m => m.IsEditorBrowsable(context.CompletionOptions.MemberDisplayOptions.HideAdvancedMembers, semanticModel.Compilation));
 
         if (memberAccess is null)
         {
@@ -196,7 +195,7 @@ internal class PropertySubpatternCompletionProvider : LSPCompletionProvider
 
         return default;
 
-        bool IsExtendedPropertyPattern(MemberAccessExpressionSyntax memberAccess, [NotNullWhen(true)] out PropertyPatternClauseSyntax? propertyPatternClause)
+        static bool IsExtendedPropertyPattern(MemberAccessExpressionSyntax memberAccess, [NotNullWhen(true)] out PropertyPatternClauseSyntax? propertyPatternClause)
         {
             while (memberAccess.Parent.IsKind(SyntaxKind.SimpleMemberAccessExpression))
             {

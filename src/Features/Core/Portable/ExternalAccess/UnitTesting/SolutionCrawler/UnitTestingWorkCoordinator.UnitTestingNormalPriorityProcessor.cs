@@ -40,9 +40,6 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                 // priorities active,visible, opened files and etc
                 private Solution? _lastSolution = null;
 
-                // whether this processor is running or not
-                private Task _running;
-
                 public UnitTestingNormalPriorityProcessor(
                     IAsynchronousOperationListener listener,
                     UnitTestingIncrementalAnalyzerProcessor processor,
@@ -52,7 +49,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                     CancellationToken shutdownToken)
                     : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                 {
-                    _running = Task.CompletedTask;
+                    Running = Task.CompletedTask;
                     _workItemQueue = new UnitTestingAsyncDocumentWorkItemQueue(processor._registration.ProgressReporter);
                     _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, object?>(concurrencyLevel: 2, capacity: 20);
 
@@ -98,7 +95,8 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                 protected override Task WaitAsync(CancellationToken cancellationToken)
                     => _workItemQueue.WaitAsync(cancellationToken);
 
-                public Task Running => _running;
+                /// <summary>whether this processor is running or not</summary>
+                public Task Running { get; private set; }
                 public int WorkItemCount => _workItemQueue.WorkItemCount;
                 public bool HasAnyWork => _workItemQueue.HasAnyWork;
 
@@ -113,18 +111,12 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                     try
                     {
                         // mark it as running
-                        _running = source.Task;
+                        Running = source.Task;
 
                         await WaitForHigherPriorityOperationsAsync().ConfigureAwait(false);
 
                         // okay, there must be at least one item in the map
                         ResetStates();
-
-                        if (await TryProcessOneHigherPriorityDocumentAsync().ConfigureAwait(false))
-                        {
-                            // successfully processed a high priority document.
-                            return;
-                        }
 
                         // process one of documents remaining
                         if (!_workItemQueue.TryTakeAnyWork(
@@ -173,77 +165,6 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                 private void SetProjectProcessing(ProjectId currentProject)
                 {
                     _currentProjectProcessing = currentProject;
-                }
-
-                private IEnumerable<DocumentId> GetPrioritizedPendingDocuments()
-                {
-                    // First the active document
-                    var activeDocumentId = Processor._documentTracker.TryGetActiveDocument();
-                    if (activeDocumentId != null)
-                    {
-                        yield return activeDocumentId;
-                    }
-
-                    // Now any visible documents
-                    foreach (var visibleDocumentId in Processor._documentTracker.GetVisibleDocuments())
-                    {
-                        yield return visibleDocumentId;
-                    }
-
-                    // Any other high priority documents
-                    foreach (var (documentId, _) in _higherPriorityDocumentsNotProcessed)
-                    {
-                        yield return documentId;
-                    }
-                }
-
-                private async Task<bool> TryProcessOneHigherPriorityDocumentAsync()
-                {
-                    try
-                    {
-                        if (!Processor._documentTracker.SupportsDocumentTracking)
-                        {
-                            return false;
-                        }
-
-                        foreach (var documentId in GetPrioritizedPendingDocuments())
-                        {
-                            if (CancellationToken.IsCancellationRequested)
-                            {
-                                return true;
-                            }
-
-                            // this is a best effort algorithm with some shortcomings.
-                            //
-                            // the most obvious issue is if there is a new work item (without a solution change - but very unlikely) 
-                            // for a opened document we already processed, the work item will be treated as a regular one rather than higher priority one
-                            // (opened document)
-                            // see whether we have work item for the document
-                            if (!_workItemQueue.TryTake(documentId, out var workItem, out var documentCancellation))
-                            {
-                                RemoveHigherPriorityDocument(documentId);
-                                continue;
-                            }
-
-                            // okay now we have work to do
-                            await ProcessDocumentAsync(Analyzers, workItem, documentCancellation).ConfigureAwait(false);
-
-                            RemoveHigherPriorityDocument(documentId);
-                            return true;
-                        }
-
-                        return false;
-                    }
-                    catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e))
-                    {
-                        throw ExceptionUtilities.Unreachable();
-                    }
-                }
-
-                private void RemoveHigherPriorityDocument(DocumentId documentId)
-                {
-                    // remove opened document processed
-                    _higherPriorityDocumentsNotProcessed.TryRemove(documentId, out _);
                 }
 
                 private async Task ProcessDocumentAsync(ImmutableArray<IUnitTestingIncrementalAnalyzer> analyzers, UnitTestingWorkItem workItem, CancellationToken cancellationToken)

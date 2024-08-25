@@ -2,18 +2,11 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Editor;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
-using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 
@@ -23,7 +16,7 @@ internal abstract partial class VisualStudioWorkspaceImpl
 
     public void SubscribeToSourceGeneratorImpactingEvents()
     {
-        _foregroundObject.AssertIsForeground();
+        _threadingContext.ThrowIfNotOnUIThread();
         if (_isSubscribedToSourceGeneratorImpactingEvents)
             return;
 
@@ -68,31 +61,16 @@ internal abstract partial class VisualStudioWorkspaceImpl
         this.EnqueueUpdateSourceGeneratorVersion(projectId: null, forceRegeneration: false);
     }
 
-    [Export(typeof(ICommandHandler))]
-    [ContentType(ContentTypeNames.RoslynContentType)]
-    [ContentType(ContentTypeNames.XamlContentType)]
-    [Name(PredefinedCommandHandlerNames.SourceGeneratorSave)]
-    [method: ImportingConstructor]
-    [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    internal sealed class SaveCommandHandler() : IChainedCommandHandler<SaveCommandArgs>
+    public sealed partial class OpenFileTracker
     {
-        public string DisplayName => ServicesVSResources.Roslyn_save_command_handler;
-
-        public CommandState GetCommandState(SaveCommandArgs args, Func<CommandState> nextCommandHandler)
-            => nextCommandHandler();
-
-        public void ExecuteCommand(SaveCommandArgs args, Action nextCommandHandler, CommandExecutionContext executionContext)
+        void IOpenTextBufferEventListener.OnSaveDocument(string moniker)
         {
-            nextCommandHandler();
+            // Note: this will find docs, additional docs, and analyzer config docs.  Thats good. We do want changing
+            // any of those to cause rerunning generators in any affected project.
+            var documentIds = _workspace.CurrentSolution.GetDocumentIdsWithFilePath(moniker);
 
-            // After a save happens, enqueue a request to run generators on the projects impacted by the save.
-            foreach (var projectGroup in args.SubjectBuffer.GetRelatedDocuments().GroupBy(d => d.Project))
-            {
-                if (projectGroup.Key.Solution.Workspace is VisualStudioWorkspaceImpl visualStudioWorkspace)
-                {
-                    visualStudioWorkspace.EnqueueUpdateSourceGeneratorVersion(projectGroup.Key.Id, forceRegeneration: false);
-                }
-            }
+            foreach (var projectId in documentIds.Select(i => i.ProjectId).Distinct())
+                _workspace.EnqueueUpdateSourceGeneratorVersion(projectId, forceRegeneration: false);
         }
     }
 }

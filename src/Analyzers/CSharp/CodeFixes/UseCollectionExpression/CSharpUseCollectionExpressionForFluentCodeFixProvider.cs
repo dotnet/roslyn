@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
@@ -27,6 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCollectionExpression;
 
 using static CSharpCollectionExpressionRewriter;
 using static CSharpUseCollectionExpressionForFluentDiagnosticAnalyzer;
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseCollectionExpressionForFluent), Shared]
@@ -42,7 +44,6 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
     protected override async Task FixAsync(
         Document document,
         SyntaxEditor editor,
-        CodeActionOptionsProvider fallbackOptions,
         InvocationExpressionSyntax invocationExpression,
         ImmutableDictionary<string, string?> properties,
         CancellationToken cancellationToken)
@@ -68,7 +69,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
         var semanticDocument = await SemanticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
 
         // Get the expressions that we're going to fill the new collection expression with.
-        var arguments = await GetArgumentsAsync(document, fallbackOptions, analysisResult.Matches, cancellationToken).ConfigureAwait(false);
+        var arguments = await GetArgumentsAsync(document, analysisResult.Matches, cancellationToken).ConfigureAwait(false);
 
         var argumentListTrailingTrivia = analysisResult.ExistingInitializer is null
             ? default
@@ -89,7 +90,6 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
 
         var collectionExpression = await CreateCollectionExpressionAsync(
             newSemanticDocument.Document,
-            fallbackOptions,
             dummyObjectCreation,
             matches,
             static o => o.Initializer,
@@ -138,7 +138,6 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
 
         static async Task<SeparatedSyntaxList<ArgumentSyntax>> GetArgumentsAsync(
             Document document,
-            CodeActionOptionsProvider fallbackOptions,
             ImmutableArray<CollectionExpressionMatch<ArgumentSyntax>> matches,
             CancellationToken cancellationToken)
         {
@@ -146,12 +145,8 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
                 return default;
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-#if CODE_STYLE
-            var formattingOptions = SyntaxFormattingOptions.CommonDefaults;
-#else
             var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(
-                fallbackOptions, cancellationToken).ConfigureAwait(false);
-#endif
+                CSharpSyntaxFormatting.Instance, cancellationToken).ConfigureAwait(false);
 
             using var _ = ArrayBuilder<SyntaxNodeOrToken>.GetInstance(out var nodesAndTokens);
 
@@ -176,7 +171,7 @@ internal partial class CSharpUseCollectionExpressionForFluentCodeFixProvider()
                 }
                 else
                 {
-                    nodesAndTokens.Add(Token(SyntaxKind.CommaToken).WithoutTrivia());
+                    nodesAndTokens.Add(CommaToken.WithoutTrivia());
                     AddOriginallyFirstArgument(argument);
                 }
             }

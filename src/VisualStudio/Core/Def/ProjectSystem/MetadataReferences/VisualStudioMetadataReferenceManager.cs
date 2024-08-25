@@ -14,13 +14,14 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+
+using static TemporaryStorageService;
 
 /// <summary>
 /// Manages metadata references for VS projects. 
@@ -32,42 +33,47 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 /// </remarks>
 internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceService, IDisposable
 {
-    private static readonly Guid s_IID_IMetaDataImport = new("7DAC8207-D3AE-4c75-9B67-92801A497D44");
-
     private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new();
 
     /// <summary>
-    /// Mapping from an <see cref="AssemblyMetadata"/> we created, to the memory mapped files (mmf) corresponding to
-    /// the assembly and all the modules within it.  This is kept around to make OOP syncing more efficient.
-    /// Specifically, since we know we read the assembly into an mmf, we can just send the mmf name/offset/length to
-    /// the remote process, and it can map that same memory in directly, instead of needing the host to send the
-    /// entire contents of the assembly over the channel to the OOP process.
+    /// Mapping from an <see cref="AssemblyMetadata"/> we created, to the identifiers identifying the memory mapped
+    /// files (mmf) corresponding to that assembly and all the modules within it.  This is kept around to make OOP
+    /// syncing more efficient. Specifically, since we know we dumped the assembly into an mmf, we can just send the mmf
+    /// name/offset/length to the remote process, and it can map that same memory in directly, instead of needing the
+    /// host to send the entire contents of the assembly over the channel to the OOP process.
     /// </summary>
-    private static readonly ConditionalWeakTable<AssemblyMetadata, IReadOnlyList<TemporaryStorageService.TemporaryStreamStorage>> s_metadataToStorages = new();
+    private static readonly ConditionalWeakTable<AssemblyMetadata, IReadOnlyList<TemporaryStorageStreamHandle>> s_metadataToStorageHandles = new();
 
-    private readonly MetadataCache _metadataCache = new();
+    private readonly object _metadataCacheLock = new();
+
+    /// <summary>
+    /// Access locked with <see cref="_metadataCacheLock"/>.  Maps from file path to metadata and the last time the
+    /// metadata was written to.  We keep this around until we see the file has changed on disk, at which point we'll
+    /// compute the new metadata and update this cache, allowing the old metadata to be released.  Note: this does mean
+    /// that metadata that is no longer used, will be kept around indefinitely.
+    /// </summary>
+    private readonly Dictionary<string, (DateTime lastWriteTime, AssemblyMetadata metadata)> _metadataCache = new(StringComparer.OrdinalIgnoreCase);
+
     private readonly ImmutableArray<string> _runtimeDirectories;
     private readonly TemporaryStorageService _temporaryStorageService;
-
-    internal IVsXMLMemberIndexService XmlMemberIndexService { get; }
+    private readonly IVsXMLMemberIndexService _xmlMemberIndexService;
+    private readonly ReaderWriterLockSlim _smartOpenScopeLock = new();
 
     /// <summary>
     /// The smart open scope service. This can be null during shutdown when using the service might crash. Any
-    /// use of this field or derived types should be synchronized with <see cref="_readerWriterLock"/> to ensure
+    /// use of this field or derived types should be synchronized with <see cref="_smartOpenScopeLock"/> to ensure
     /// you don't grab the field and then use it while shutdown continues.
     /// </summary>
     private IVsSmartOpenScope? SmartOpenScopeServiceOpt { get; set; }
 
-    private readonly ReaderWriterLockSlim _readerWriterLock = new();
-
-    internal VisualStudioMetadataReferenceManager(
+    public VisualStudioMetadataReferenceManager(
         IServiceProvider serviceProvider,
         TemporaryStorageService temporaryStorageService)
     {
         _runtimeDirectories = GetRuntimeDirectories();
 
-        XmlMemberIndexService = (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
-        Assumes.Present(XmlMemberIndexService);
+        _xmlMemberIndexService = (IVsXMLMemberIndexService)serviceProvider.GetService(typeof(SVsXMLMemberIndexService));
+        Assumes.Present(_xmlMemberIndexService);
 
         SmartOpenScopeServiceOpt = (IVsSmartOpenScope)serviceProvider.GetService(typeof(SVsSmartOpenScope));
         Assumes.Present(SmartOpenScopeServiceOpt);
@@ -78,7 +84,7 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
     public void Dispose()
     {
-        using (_readerWriterLock.DisposableWrite())
+        using (_smartOpenScopeLock.DisposableWrite())
         {
             // IVsSmartOpenScope can't be used as we shutdown, and this is pretty commonly hit according to 
             // Windows Error Reporting as we try creating metadata for compilations.
@@ -86,24 +92,35 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
         }
     }
 
-    public IReadOnlyList<ITemporaryStreamStorageInternal>? GetStorages(string fullPath, DateTime snapshotTimestamp)
+    private bool TryGetMetadata(string filePath, DateTime lastWriteTime, [NotNullWhen(true)] out AssemblyMetadata? metadata)
     {
-        var key = new FileKey(fullPath, snapshotTimestamp);
-        // check existing metadata
-        if (_metadataCache.TryGetMetadata(key, out var source) &&
-            s_metadataToStorages.TryGetValue(source, out var storages))
+        lock (_metadataCacheLock)
         {
-            return storages;
+            if (_metadataCache.TryGetValue(filePath, out var tuple) &&
+                tuple.lastWriteTime == lastWriteTime)
+            {
+                metadata = tuple.metadata;
+                return true;
+            }
+        }
+
+        metadata = null;
+        return false;
+    }
+
+    public IReadOnlyList<TemporaryStorageStreamHandle>? GetStorageHandles(string fullPath, DateTime snapshotTimestamp)
+    {
+        if (TryGetMetadata(fullPath, snapshotTimestamp, out var metadata) &&
+            s_metadataToStorageHandles.TryGetValue(metadata, out var handles))
+        {
+            return handles;
         }
 
         return null;
     }
 
     public PortableExecutableReference CreateMetadataReferenceSnapshot(string filePath, MetadataReferenceProperties properties)
-        => new VisualStudioMetadataReference.Snapshot(this, properties, filePath, fileChangeTrackerOpt: null);
-
-    public void ClearCache()
-        => _metadataCache.ClearCache();
+        => new VisualStudioPortableExecutableReference(this, properties, filePath, fileChangeTracker: null);
 
     private bool VsSmartScopeCandidate(string fullPath)
         => _runtimeDirectories.Any(static (d, fullPath) => fullPath.StartsWith(d, StringComparison.OrdinalIgnoreCase), fullPath);
@@ -132,68 +149,70 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
     /// <exception cref="BadImageFormatException" />
     internal Metadata GetMetadata(string fullPath, DateTime snapshotTimestamp)
     {
-        var key = new FileKey(fullPath, snapshotTimestamp);
         // check existing metadata
-        if (_metadataCache.TryGetMetadata(key, out var metadata))
-            return metadata;
+        if (!TryGetMetadata(fullPath, snapshotTimestamp, out var metadata))
+        {
+            // wasn't in the cache.  create a new instance.
+            metadata = GetMetadataWorker(fullPath);
+            Contract.ThrowIfNull(metadata);
 
-        var newMetadata = GetMetadataWorker();
+            lock (_metadataCacheLock)
+            {
+                // Now try to create and add the metadata to the cache. If we fail to add it (because some other thread
+                // beat us to this), then Dispose the metadata we just created and will return the existing metadata
+                // instead.
+                if (TryGetMetadata(fullPath, snapshotTimestamp, out var cachedMetadata))
+                {
+                    metadata.Dispose();
+                    return cachedMetadata;
+                }
 
-        if (!_metadataCache.GetOrAddMetadata(key, newMetadata, out metadata))
-            newMetadata.Dispose();
+                // don't use "Add" since key might already exist with stale metadata
+                _metadataCache[fullPath] = (snapshotTimestamp, metadata);
+                return metadata;
+            }
+        }
 
         return metadata;
 
-        AssemblyMetadata GetMetadataWorker()
+        AssemblyMetadata GetMetadataWorker(string fullPath)
         {
-            if (VsSmartScopeCandidate(key.FullPath))
-            {
-                var newMetadata = CreateAssemblyMetadataFromMetadataImporter(key);
-                return newMetadata;
-            }
-            else
-            {
-                // use temporary storage
-                using var _ = ArrayBuilder<TemporaryStorageService.TemporaryStreamStorage>.GetInstance(out var storages);
-                var newMetadata = CreateAssemblyMetadata(key, key =>
-                {
-                    // <exception cref="IOException"/>
-                    // <exception cref="BadImageFormatException" />
-                    GetMetadataFromTemporaryStorage(key, out var storage, out var metadata);
-                    storages.Add(storage);
-                    return metadata;
-                });
+            var (metadata, handles) = VsSmartScopeCandidate(fullPath)
+                ? CreateAssemblyMetadataFromMetadataImporter(fullPath)
+                : CreateAssemblyMetadata(fullPath, fullPath => GetMetadataFromTemporaryStorage(fullPath, _temporaryStorageService));
 
-                var storagesArray = storages.ToImmutable();
+            if (handles != null)
+                s_metadataToStorageHandles.Add(metadata, handles);
 
-                s_metadataToStorages.Add(newMetadata, storagesArray);
-
-                return newMetadata;
-            }
+            return metadata;
         }
     }
 
-    private void GetMetadataFromTemporaryStorage(
-        FileKey moduleFileKey, out TemporaryStorageService.TemporaryStreamStorage storage, out ModuleMetadata metadata)
+    private static (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) GetMetadataFromTemporaryStorage(
+        string fullPath, TemporaryStorageService temporaryStorageService)
     {
-        GetStorageInfoFromTemporaryStorage(moduleFileKey, out storage, out var stream);
+        GetStorageInfoFromTemporaryStorage(fullPath, temporaryStorageService, out var storageHandle, out var stream);
 
         unsafe
         {
-            // For an unmanaged memory stream, ModuleMetadata can take ownership directly.
-            metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
+            // For an unmanaged memory stream, ModuleMetadata can take ownership directly. Passing in stream.Dispose
+            // here will also ensure that as long as this metdata is alive, we'll keep the memory-mapped-file it points
+            // to alive.
+            var metadata = ModuleMetadata.CreateFromMetadata((IntPtr)stream.PositionPointer, (int)stream.Length, stream.Dispose);
+            return (metadata, storageHandle);
         }
 
-        return;
-
-        void GetStorageInfoFromTemporaryStorage(
-            FileKey moduleFileKey, out TemporaryStorageService.TemporaryStreamStorage storage, out UnmanagedMemoryStream stream)
+        static void GetStorageInfoFromTemporaryStorage(
+            string fullPath, TemporaryStorageService temporaryStorageService, out TemporaryStorageStreamHandle storageHandle, out UnmanagedMemoryStream stream)
         {
             int size;
+
+            // Create a temp stream in memory to copy the metadata bytes into.
             using (var copyStream = SerializableBytes.CreateWritableStream())
             {
-                // open a file and let it go as soon as possible
-                using (var fileStream = FileUtilities.OpenRead(moduleFileKey.FullPath))
+                // Open a file on disk, find the metadata section, copy those bytes into the temp stream, and release
+                // the file immediately after.
+                using (var fileStream = FileUtilities.OpenRead(fullPath))
                 {
                     var headers = new PEHeaders(fileStream);
 
@@ -210,15 +229,17 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
                     StreamCopy(fileStream, copyStream, offset, size);
                 }
 
-                // copy over the data to temp storage and let pooled stream go
-                storage = _temporaryStorageService.CreateTemporaryStreamStorage();
-
+                // Now, copy over the metadata bytes into a memory mapped file.  This will keep it fixed in a single
+                // location, so we can create a metadata value wrapping that.  This will also let us share the memory
+                // for that metadata value with our OOP process.
                 copyStream.Position = 0;
-                storage.WriteStream(copyStream);
+                storageHandle = temporaryStorageService.WriteToTemporaryStorage(copyStream);
             }
 
-            // get stream that owns the underlying unmanaged memory.
-            stream = storage.ReadStream(CancellationToken.None);
+            // Now, read the data from the memory-mapped-file back into a stream that we load into the metadata value.
+            // The ITemporaryStorageStreamHandle should have given us an UnmanagedMemoryStream
+            // since this only runs on Windows for VS.
+            stream = (UnmanagedMemoryStream)storageHandle.ReadFromTemporaryStorage();
 
             // stream size must be same as what metadata reader said the size should be.
             Contract.ThrowIfFalse(stream.Length == size);
@@ -244,22 +265,21 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
     /// <exception cref="IOException"/>
     /// <exception cref="BadImageFormatException" />
-    private AssemblyMetadata CreateAssemblyMetadataFromMetadataImporter(FileKey fileKey)
+    private (AssemblyMetadata assemblyMetadata, IReadOnlyList<TemporaryStorageStreamHandle>? handles) CreateAssemblyMetadataFromMetadataImporter(string fullPath)
     {
-        return CreateAssemblyMetadata(fileKey, fileKey =>
+        return CreateAssemblyMetadata(fullPath, fullPath =>
         {
-            var metadata = TryCreateModuleMetadataFromMetadataImporter(fileKey);
+            var metadata = TryCreateModuleMetadataFromMetadataImporter(fullPath);
+            if (metadata != null)
+                return (metadata, storageHandle: null);
 
             // getting metadata didn't work out through importer. fallback to shadow copy one
-            if (metadata == null)
-                GetMetadataFromTemporaryStorage(fileKey, out _, out metadata);
-
-            return metadata;
+            return GetMetadataFromTemporaryStorage(fullPath, _temporaryStorageService);
         });
 
-        ModuleMetadata? TryCreateModuleMetadataFromMetadataImporter(FileKey moduleFileKey)
+        ModuleMetadata? TryCreateModuleMetadataFromMetadataImporter(string fullPath)
         {
-            if (!TryGetFileMappingFromMetadataImporter(moduleFileKey, out var info, out var pImage, out var length))
+            if (!TryGetFileMappingFromMetadataImporter(fullPath, out var info, out var pImage, out var length))
             {
                 return null;
             }
@@ -272,16 +292,12 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
             return metadata;
         }
 
-        bool TryGetFileMappingFromMetadataImporter(FileKey fileKey, [NotNullWhen(true)] out IMetaDataInfo? info, out IntPtr pImage, out long length)
+        bool TryGetFileMappingFromMetadataImporter(string fullPath, [NotNullWhen(true)] out IMetaDataInfo? info, out IntPtr pImage, out long length)
         {
             // We might not be able to use COM services to get this if VS is shutting down. We'll synchronize to make sure this
             // doesn't race against 
-            using (_readerWriterLock.DisposableRead())
+            using (_smartOpenScopeLock.DisposableRead())
             {
-                // here, we don't care about timestamp since all those bits should be part of Fx. and we assume that 
-                // it won't be changed in the middle of VS running.
-                var fullPath = fileKey.FullPath;
-
                 info = null;
                 pImage = default;
                 length = default;
@@ -309,33 +325,45 @@ internal sealed partial class VisualStudioMetadataReferenceManager : IWorkspaceS
 
     /// <exception cref="IOException"/>
     /// <exception cref="BadImageFormatException" />
-    private static AssemblyMetadata CreateAssemblyMetadata(
-        FileKey fileKey,
-        Func<FileKey, ModuleMetadata> moduleMetadataFactory)
+    private static (AssemblyMetadata assemblyMetadata, IReadOnlyList<TemporaryStorageStreamHandle>? handles) CreateAssemblyMetadata(
+        string fullPath,
+        Func<string, (ModuleMetadata moduleMetadata, TemporaryStorageStreamHandle? storageHandle)> moduleMetadataFactory)
     {
-        var manifestModule = moduleMetadataFactory(fileKey);
+        var (manifestModule, manifestHandle) = moduleMetadataFactory(fullPath);
+        var moduleNames = manifestModule.GetModuleNames();
 
-        using var _ = ArrayBuilder<ModuleMetadata>.GetInstance(out var moduleBuilder);
+        var modules = new FixedSizeArrayBuilder<ModuleMetadata>(1 + moduleNames.Length);
+        var handles = new FixedSizeArrayBuilder<TemporaryStorageStreamHandle?>(1 + moduleNames.Length);
+
+        modules.Add(manifestModule);
+        handles.Add(manifestHandle);
 
         string? assemblyDir = null;
-        foreach (var moduleName in manifestModule.GetModuleNames())
+        foreach (var moduleName in moduleNames)
         {
-            if (assemblyDir is null)
-            {
-                moduleBuilder.Add(manifestModule);
-                assemblyDir = Path.GetDirectoryName(fileKey.FullPath);
-            }
+            assemblyDir ??= Path.GetDirectoryName(fullPath);
 
             // Suppression should be removed or addressed https://github.com/dotnet/roslyn/issues/41636
-            var moduleFileKey = FileKey.Create(PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!);
-            var metadata = moduleMetadataFactory(moduleFileKey);
+            var moduleFullPath = PathUtilities.CombineAbsoluteAndRelativePaths(assemblyDir, moduleName)!;
 
-            moduleBuilder.Add(metadata);
+            var (moduleMetadata, moduleHandle) = moduleMetadataFactory(moduleFullPath);
+            modules.Add(moduleMetadata);
+            handles.Add(moduleHandle);
         }
 
-        if (moduleBuilder.Count == 0)
-            moduleBuilder.Add(manifestModule);
+        var assembly = AssemblyMetadata.Create(modules.MoveToImmutable());
 
-        return AssemblyMetadata.Create(moduleBuilder.ToImmutable());
+        // If we got any null handles, then we weren't able to map this whole assembly into memory mapped files. So we
+        // can't use those to transfer over the data efficiently to the OOP process.  In that case, we don't store the
+        // handles at all.
+        var storageHandles = handles.MoveToImmutable();
+        return (assembly, storageHandles.Any(h => h is null) ? null : storageHandles);
+    }
+
+    public static class TestAccessor
+    {
+        public static (AssemblyMetadata assemblyMetadata, IReadOnlyList<TemporaryStorageStreamHandle>? handles) CreateAssemblyMetadata(
+            string fullPath, TemporaryStorageService temporaryStorageService)
+            => VisualStudioMetadataReferenceManager.CreateAssemblyMetadata(fullPath, fullPath => GetMetadataFromTemporaryStorage(fullPath, temporaryStorageService));
     }
 }

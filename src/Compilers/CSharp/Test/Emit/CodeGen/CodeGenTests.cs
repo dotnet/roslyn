@@ -530,7 +530,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib45, options: TestOptions.ReleaseDll);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib461, options: TestOptions.ReleaseDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A", @"
@@ -604,7 +604,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib45, options: TestOptions.DebugDll);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib461, options: TestOptions.DebugDll);
             var result = CompileAndVerify(compilation);
 
             result.VerifyIL("C.A",
@@ -863,7 +863,7 @@ class Clazz
     }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib45, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib461, options: TestOptions.ReleaseExe);
             var result = CompileAndVerify(compilation, expectedOutput: "Struct1 Struct2 ");
 
             result.VerifyIL("Clazz.Main", @"
@@ -7005,7 +7005,7 @@ Char
 DBNull
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source: source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            var compilation = CreateCompilationWithMscorlib461(source: source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
             var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
             //NOTE: 
@@ -15695,7 +15695,7 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyDiagnostics(
                 // (6,16): error CS0236: A field initializer cannot reference the non-static field, method, or property 'M.Test(object)'
                 //     object a = Test((dynamic)2);
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test").WithArguments("M.Test(object)").WithLocation(6, 16)
@@ -15740,7 +15740,7 @@ class M
 }
 ";
 
-            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.long.2");
+            var compilation = CompileAndVerifyWithMscorlib40(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "long.ex caught");
         }
 
         [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
@@ -15832,7 +15832,7 @@ class M : B
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyDiagnostics(
                 // (16,31): error CS0120: An object reference is required for the non-static field, method, or property 'M.Test(object)'
                 //     public M() : base((object)Test((dynamic)2))
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "Test").WithArguments("M.Test(object)").WithLocation(16, 31)
@@ -15865,7 +15865,7 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyDiagnostics(
                 // (8,31): error CS0120: An object reference is required for the non-static field, method, or property 'M.Test(object)'
                 //         Console.Write((object)Test((dynamic)2));
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "Test").WithArguments("M.Test(object)").WithLocation(8, 31)
@@ -15893,7 +15893,7 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyDiagnostics(
                 // (4,31): error CS0236: A field initializer cannot reference the non-static field, method, or property 'M.Test(object)'
                 //     static object o = (object)Test((dynamic)2);
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "Test").WithArguments("M.Test(object)").WithLocation(4, 31)
@@ -15952,7 +15952,7 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyDiagnostics(
                 // (16,29): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     static int field = (int)InstanceMethod((dynamic)2);
                 Diagnostic(ErrorCode.ERR_FieldInitRefNonstatic, "InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
@@ -16031,7 +16031,7 @@ class M
 ";
 
             // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
-            CreateCompilationWithMscorlib45AndCSharp(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461AndCSharp(source).VerifyDiagnostics(
                 // (16,29): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     static int field = (int)C.InstanceMethod((dynamic)2);
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "C.InstanceMethod").WithArguments("C.InstanceMethod(int)").WithLocation(16, 29),
@@ -16232,8 +16232,7 @@ class Program
     }
 }
 ";
-            CompileAndVerifyWithMscorlib40(source, references: new[] { SystemRef, SystemCoreRef },
-                expectedOutput: "0");
+            CompileAndVerify(source, targetFramework: TargetFramework.NetFramework, expectedOutput: "0");
         }
 
         [Fact, WorkItem(9703, "https://github.com/dotnet/roslyn/issues/9703")]

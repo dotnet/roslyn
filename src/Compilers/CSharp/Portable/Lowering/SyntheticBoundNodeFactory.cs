@@ -96,11 +96,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private Binder? _binder;
 
-        internal BoundExpression MakeInvocationExpression(
+        private BoundExpression MakeInvocationExpression(
             BinderFlags flags,
             SyntaxNode node,
             BoundExpression receiver,
             string methodName,
+            bool disallowExpandedNonArrayParams,
             ImmutableArray<BoundExpression> args,
             BindingDiagnosticBag diagnostics,
             ImmutableArray<TypeSymbol> typeArgs = default(ImmutableArray<TypeSymbol>),
@@ -119,7 +120,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics,
                 typeArgs: typeArgs.IsDefault ? default(ImmutableArray<TypeWithAnnotations>) : typeArgs.SelectAsArray(t => TypeWithAnnotations.Create(t)),
                 allowFieldsAndProperties: false,
-                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter);
+                ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter,
+                disallowExpandedNonArrayParams: disallowExpandedNonArrayParams);
         }
 
         /// <summary>
@@ -469,20 +471,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public BoundExpression AssignmentExpression(BoundExpression left, BoundExpression right, bool isRef = false)
         {
-            Debug.Assert(left.Type is { } && right.Type is { } &&
-                (left.Type.Equals(right.Type, TypeCompareKind.AllIgnoreOptions) ||
-                 StackOptimizerPass1.IsFixedBufferAssignmentToRefLocal(left, right, isRef) ||
-                 right.Type.IsErrorType() || left.Type.IsErrorType()));
-
-            return AssignmentExpression(Syntax, left, right, left.Type, isRef: isRef, wasCompilerGenerated: true);
+            return AssignmentExpression(Syntax, left, right, isRef: isRef, wasCompilerGenerated: true);
         }
 
         /// <summary>
         /// Creates a general assignment that might be instrumented.
         /// </summary>
-        public BoundExpression AssignmentExpression(SyntaxNode syntax, BoundExpression left, BoundExpression right, TypeSymbol type, bool isRef = false, bool hasErrors = false, bool wasCompilerGenerated = false)
+        public BoundExpression AssignmentExpression(SyntaxNode syntax, BoundExpression left, BoundExpression right, bool isRef = false, bool hasErrors = false, bool wasCompilerGenerated = false)
         {
-            var assignment = new BoundAssignmentOperator(syntax, left, right, isRef, type, hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
+            Debug.Assert(left.Type is { } && right.Type is { } &&
+                (left.Type.Equals(right.Type, TypeCompareKind.AllIgnoreOptions) ||
+                 StackOptimizerPass1.IsFixedBufferAssignmentToRefLocal(left, right, isRef) ||
+                 right.Type.IsErrorType() || left.Type.IsErrorType()));
+
+            var assignment = new BoundAssignmentOperator(syntax, left, right, isRef, left.Type, hasErrors) { WasCompilerGenerated = wasCompilerGenerated };
 
             return (InstrumentationState?.IsSuppressed == false && left is BoundLocal { LocalSymbol.SynthesizedKind: SynthesizedLocalKind.UserDefined } or BoundParameter) ?
                 InstrumentationState.Instrumenter.InstrumentUserDefinedLocalAssignment(assignment) :
@@ -718,6 +720,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Binary(BinaryOperatorKind.ObjectEqual, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), left, right);
         }
 
+        public BoundExpression IsNotNullReference(BoundExpression value)
+        {
+            var objectType = SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Object);
+            return ObjectNotEqual(Convert(objectType, value, allowBoxingByRefLikeTypeParametersToObject: true), Null(objectType));
+        }
+
         public BoundBinaryOperator ObjectNotEqual(BoundExpression left, BoundExpression right)
         {
             return Binary(BinaryOperatorKind.ObjectNotEqual, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean), left, right);
@@ -789,6 +797,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundObjectCreationExpression New(MethodSymbol ctor, ImmutableArray<BoundExpression> args)
             => new BoundObjectCreationExpression(Syntax, ctor, args) { WasCompilerGenerated = true };
 
+        public BoundObjectCreationExpression New(MethodSymbol constructor, ImmutableArray<BoundExpression> arguments, ImmutableArray<RefKind> argumentRefKinds)
+            => new BoundObjectCreationExpression(
+                Syntax,
+                constructor,
+                arguments,
+                argumentNamesOpt: default,
+                argumentRefKinds,
+                expanded: false,
+                argsToParamsOpt: default,
+                defaultArguments: default,
+                constantValueOpt: null,
+                initializerExpressionOpt: null,
+                constructor.ContainingType)
+            { WasCompilerGenerated = true };
+
         public BoundObjectCreationExpression New(WellKnownMember wm, ImmutableArray<BoundExpression> args)
         {
             var ctor = WellKnownMethod(wm);
@@ -810,29 +833,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public BoundExpression InstanceCall(BoundExpression receiver, string name, BoundExpression arg)
+        public BoundExpression StaticCall(TypeSymbol receiver, string name, bool disallowExpandedNonArrayParams, params BoundExpression[] args)
         {
-            return MakeInvocationExpression(BinderFlags.None, this.Syntax, receiver, name, ImmutableArray.Create(arg), this.Diagnostics);
+            return MakeInvocationExpression(BinderFlags.None, this.Syntax, this.Type(receiver), name, disallowExpandedNonArrayParams, args.ToImmutableArray(), this.Diagnostics);
         }
 
-        public BoundExpression InstanceCall(BoundExpression receiver, string name)
+        public BoundExpression StaticCall(TypeSymbol receiver, string name, bool disallowExpandedNonArrayParams, ImmutableArray<BoundExpression> args, bool ignoreNormalFormIfHasValidParamsParameter)
         {
-            return MakeInvocationExpression(BinderFlags.None, this.Syntax, receiver, name, ImmutableArray<BoundExpression>.Empty, this.Diagnostics);
+            return MakeInvocationExpression(
+                BinderFlags.None, this.Syntax, this.Type(receiver), name, disallowExpandedNonArrayParams, args, this.Diagnostics, ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter);
         }
 
-        public BoundExpression StaticCall(TypeSymbol receiver, string name, params BoundExpression[] args)
+        public BoundExpression StaticCall(BinderFlags flags, TypeSymbol receiver, string name, bool disallowExpandedNonArrayParams, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] args)
         {
-            return MakeInvocationExpression(BinderFlags.None, this.Syntax, this.Type(receiver), name, args.ToImmutableArray(), this.Diagnostics);
-        }
-
-        public BoundExpression StaticCall(TypeSymbol receiver, string name, ImmutableArray<BoundExpression> args, bool ignoreNormalFormIfHasValidParamsParameter)
-        {
-            return MakeInvocationExpression(BinderFlags.None, this.Syntax, this.Type(receiver), name, args, this.Diagnostics, ignoreNormalFormIfHasValidParamsParameter: ignoreNormalFormIfHasValidParamsParameter);
-        }
-
-        public BoundExpression StaticCall(BinderFlags flags, TypeSymbol receiver, string name, ImmutableArray<TypeSymbol> typeArgs, params BoundExpression[] args)
-        {
-            return MakeInvocationExpression(flags, this.Syntax, this.Type(receiver), name, args.ToImmutableArray(), this.Diagnostics, typeArgs);
+            return MakeInvocationExpression(flags, this.Syntax, this.Type(receiver), name, disallowExpandedNonArrayParams, args.ToImmutableArray(), this.Diagnostics, typeArgs);
         }
 
         public BoundExpression StaticCall(TypeSymbol receiver, MethodSymbol method, params BoundExpression[] args)
@@ -1501,8 +1515,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CodeAnalysis.WellKnownMember.System_Reflection_FieldInfo__GetFieldFromHandle2);
         }
 
-        public BoundExpression Convert(TypeSymbol type, BoundExpression arg)
+        public BoundExpression Convert(TypeSymbol type, BoundExpression arg, bool allowBoxingByRefLikeTypeParametersToObject = false)
         {
+            Debug.Assert(!allowBoxingByRefLikeTypeParametersToObject || type.IsObjectType());
+
             if (TypeSymbol.Equals(type, arg.Type, TypeCompareKind.ConsiderEverything2))
             {
                 return arg;
@@ -1515,6 +1531,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     CompoundUseSiteInfo<AssemblySymbol>.Discarded;
 #endif 
             Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(arg, type, isChecked: false, ref useSiteInfo);
+
+            if (allowBoxingByRefLikeTypeParametersToObject && !c.Exists &&
+                arg.Type is TypeParameterSymbol { AllowsRefLikeType: true } && type.IsObjectType())
+            {
+                c = Conversion.Boxing;
+            }
+
             Debug.Assert(c.Exists);
             // The use-site diagnostics should be reported earlier, and we shouldn't get to lowering if they're errors.
             Debug.Assert(!useSiteInfo.HasErrors);

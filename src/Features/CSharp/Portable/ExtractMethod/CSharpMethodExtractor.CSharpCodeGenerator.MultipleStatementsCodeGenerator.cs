@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeGeneration;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
@@ -60,7 +59,7 @@ internal partial class CSharpMethodExtractor
                     }
                 }
 
-                return list.ToImmutable();
+                return list.ToImmutableAndClear();
             }
 
             private static IEnumerable<StatementSyntax> GetStatementsFromContainer(SyntaxNode node)

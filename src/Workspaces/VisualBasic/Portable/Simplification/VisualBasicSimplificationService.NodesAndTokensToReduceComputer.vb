@@ -9,10 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
-
     Partial Friend Class VisualBasicSimplificationService
-        Inherits AbstractSimplificationService(Of ExpressionSyntax, ExecutableStatementSyntax, CrefReferenceSyntax)
-
         Private Class NodesAndTokensToReduceComputer
             Inherits VisualBasicSyntaxRewriter
 
@@ -98,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Me._simplifyAllDescendants = Me._simplifyAllDescendants OrElse token.HasAnnotation(Simplifier.Annotation)
 
                 If Me._simplifyAllDescendants AndAlso Not Me._insideSpeculatedNode AndAlso token.Kind <> SyntaxKind.None Then
-                    Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(token, simplifyAllDescendants:=True, originalNodeOrToken:=token))
+                    Me._nodesAndTokensToReduce.Add(New NodeOrTokenToReduce(token, SimplifyAllDescendants:=True, OriginalNodeOrToken:=token))
                 End If
 
                 If token.ContainsAnnotations OrElse savedSimplifyAllDescendants Then

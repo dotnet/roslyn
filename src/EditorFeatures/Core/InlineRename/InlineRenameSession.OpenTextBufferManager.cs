@@ -12,7 +12,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -186,7 +185,7 @@ internal partial class InlineRenameSession
                 foreach (var span in spans)
                 {
                     var document = _baseDocuments.First();
-                    var renameableSpan = _session._renameInfo.GetReferenceEditSpan(
+                    var renameableSpan = _session.RenameInfo.GetReferenceEditSpan(
                         new InlineRenameLocation(document, span), GetTriggerText(document, span), CancellationToken.None);
                     var trackingSpan = new RenameTrackingSpan(
                             _subjectBuffer.CurrentSnapshot.CreateTrackingSpan(renameableSpan.ToSpan(), SpanTrackingMode.EdgeInclusive, TrackingFidelityMode.Forward),
@@ -454,7 +453,7 @@ internal partial class InlineRenameSession
                     // Show merge conflicts comments as unresolvable conflicts, and do not
                     // show any other rename-related spans that overlap a merge conflict comment.
                     mergeResult.MergeConflictCommentSpans.TryGetValue(document.Id, out var mergeConflictComments);
-                    mergeConflictComments ??= [];
+                    mergeConflictComments = mergeConflictComments.NullToEmpty();
 
                     foreach (var conflict in mergeConflictComments)
                     {
@@ -471,7 +470,7 @@ internal partial class InlineRenameSession
 
                         if (_referenceSpanToLinkedRenameSpanMap.ContainsKey(replacement.OriginalSpan) && kind != RenameSpanKind.Complexified)
                         {
-                            var linkedRenameSpan = _session._renameInfo.GetConflictEditSpan(
+                            var linkedRenameSpan = _session.RenameInfo.GetConflictEditSpan(
                                  new InlineRenameLocation(newDocument, replacement.NewSpan), GetTriggerText(newDocument, replacement.NewSpan),
                                  GetWithoutAttributeSuffix(_session.ReplacementText,
                                     document.GetLanguageService<LanguageService.ISyntaxFactsService>().IsCaseSensitive), cancellationToken);

@@ -2764,6 +2764,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // The partial definition part may include optional parameters whose default values we want to simulate assigning at the beginning of the method
+            // https://github.com/dotnet/roslyn/issues/73772: is this actually used/meaningful?
             methodSymbol = methodSymbol.PartialDefinitionPart ?? methodSymbol;
 
             var methodParameters = methodSymbol.Parameters;
@@ -3701,7 +3702,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Record the final state
                 NullableFlowState resultState = getResultState(node, collectionKind);
-                var resultTypeWithState = TypeWithState.Create(node.Type, resultState);
+                var resultTypeWithState = TypeWithState.Create(strippedTargetCollectionType, resultState);
                 SetAnalyzedNullability(node, resultTypeWithState);
                 return resultTypeWithState;
             }
@@ -4569,7 +4570,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This is done using <see cref="TargetTypedAnalysisCompletion"/>. All registered completions must be processed
         /// (ie. analyzed via some conversion) before the nullable analysis completes.
         /// </summary>
-        private static bool IsTargetTypedExpression(BoundExpression node)
+        internal static bool IsTargetTypedExpression(BoundExpression node)
         {
             return node is BoundConditionalOperator { WasTargetTyped: true } or
                            BoundConvertedSwitchExpression { WasTargetTyped: true } or
@@ -5812,9 +5813,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             TypeSymbol? resultType;
             bool wasTargetTyped = node is BoundConditionalOperator { WasTargetTyped: true };
-            if (node.HasErrors || wasTargetTyped)
+            if (wasTargetTyped)
             {
                 resultType = null;
+            }
+            else if (IsTargetTypedExpression(consequence))
+            {
+                resultType = alternativeRValue.Type;
+            }
+            else if (IsTargetTypedExpression(alternative))
+            {
+                resultType = consequenceRValue.Type;
             }
             else
             {
@@ -5840,6 +5849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (resultType is null)
             {
+                Debug.Assert(!wasTargetTyped);
                 if (!wasTargetTyped)
                 {
                     // This can happen when we're inferring the return type of a lambda or visiting a node without diagnostics like
@@ -6054,7 +6064,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitResult? extensionReceiverResult = null;
                 while (true)
                 {
-                    ReinferMethodAndVisitArguments(node, receiverType, firstArgumentResult: extensionReceiverResult);
+                    reinferMethodAndVisitArguments(node, receiverType, firstArgumentResult: extensionReceiverResult);
 
                     receiver = node;
                     if (!calls.TryPop(out node!))
@@ -6090,7 +6100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 TypeWithState receiverType = visitAndCheckReceiver(node);
-                ReinferMethodAndVisitArguments(node, receiverType);
+                reinferMethodAndVisitArguments(node, receiverType);
             }
 
             return null;
@@ -6129,35 +6139,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return receiverType;
             }
-        }
 
-        private void ReinferMethodAndVisitArguments(BoundCall node, TypeWithState receiverType, VisitResult? firstArgumentResult = null)
-        {
-            var method = node.Method;
-            ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
-            if (!receiverType.HasNullType)
+            void reinferMethodAndVisitArguments(BoundCall node, TypeWithState receiverType, VisitResult? firstArgumentResult = null)
             {
-                // Update method based on inferred receiver type.
-                method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
+                var method = node.Method;
+                ImmutableArray<RefKind> refKindsOpt = node.ArgumentRefKindsOpt;
+                if (!receiverType.HasNullType)
+                {
+                    // Update method based on inferred receiver type.
+                    method = (MethodSymbol)AsMemberOfType(receiverType.Type, method);
+                }
+
+                ImmutableArray<VisitResult> results;
+                bool returnNotNull;
+                (method, results, returnNotNull) = VisitArguments(node, node.Arguments, refKindsOpt, method!.Parameters, node.ArgsToParamsOpt, node.DefaultArguments,
+                    node.Expanded, node.InvokedAsExtensionMethod, method, firstArgumentResult: firstArgumentResult);
+
+                ApplyMemberPostConditions(node.ReceiverOpt, method);
+
+                LearnFromEqualsMethod(method, node, receiverType, results);
+
+                var returnState = GetReturnTypeWithState(method);
+                if (returnNotNull)
+                {
+                    returnState = returnState.WithNotNullState();
+                }
+
+                SetResult(node, returnState, method.ReturnTypeWithAnnotations);
+                SetUpdatedSymbol(node, node.Method, method);
             }
-
-            ImmutableArray<VisitResult> results;
-            bool returnNotNull;
-            (method, results, returnNotNull) = VisitArguments(node, node.Arguments, refKindsOpt, method!.Parameters, node.ArgsToParamsOpt, node.DefaultArguments,
-                node.Expanded, node.InvokedAsExtensionMethod, method, firstArgumentResult: firstArgumentResult);
-
-            ApplyMemberPostConditions(node.ReceiverOpt, method);
-
-            LearnFromEqualsMethod(method, node, receiverType, results);
-
-            var returnState = GetReturnTypeWithState(method);
-            if (returnNotNull)
-            {
-                returnState = returnState.WithNotNullState();
-            }
-
-            SetResult(node, returnState, method.ReturnTypeWithAnnotations);
-            SetUpdatedSymbol(node, node.Method, method);
         }
 
         private void LearnFromEqualsMethod(MethodSymbol method, BoundCall node, TypeWithState receiverType, ImmutableArray<VisitResult> results)
@@ -6718,24 +6728,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (ParameterSymbol? parameter, TypeWithAnnotations parameterType, FlowAnalysisAnnotations parameterAnnotations, bool isExpandedParamsArgument) =
                             GetCorrespondingParameter(i, parametersOpt, argsToParamsOpt, expanded, ref paramsIterationType);
 
-                        if (// This is known to happen for certain error scenarios, because
-                            // the parameter matching logic above is not as flexible as the one we use in `Binder.BuildArgumentsForErrorRecovery`
-                            // so we may end up with a pending conversion completion for an argument apparently without a corresponding parameter.
-                            parameter is null ||
-                            // In error recovery with named arguments, target-typing cannot work as we can get a different parameter type
-                            // from our GetCorrespondingParameter logic than Binder.BuildArgumentsForErrorRecovery does.
-                            node is BoundCall { HasErrors: true, ArgumentNamesOpt.IsDefaultOrEmpty: false, ArgsToParamsOpt.IsDefault: true })
+                        // This is known to happen for certain error scenarios, because
+                        // the parameter matching logic above is not as flexible as the one we use in `Binder.BuildArgumentsForErrorRecovery`
+                        // so we may end up with a pending conversion completion for an argument apparently without a corresponding parameter.
+                        if (parameter is null)
                         {
-                            if (IsTargetTypedExpression(argumentNoConversion) && _targetTypedAnalysisCompletionOpt?.TryGetValue(argumentNoConversion, out var completion) is true)
+                            if (tryShortCircuitTargetTypedExpression(argument, argumentNoConversion))
                             {
-                                // We've done something wrong if we have a target-typed expression and registered an analysis continuation for it
-                                // (we won't be able to complete that continuation)
-                                // We flush the completion with a plausible/dummy type and remove it.
-                                completion(TypeWithAnnotations.Create(argument.Type));
-                                TargetTypedAnalysisCompletion.Remove(argumentNoConversion);
-
-                                Debug.Assert(parameter is not null || method is ErrorMethodSymbol);
+                                Debug.Assert(method is ErrorMethodSymbol);
                             }
+                            continue;
+                        }
+
+                        // In error recovery with named arguments, target-typing cannot work as we can get a different parameter type
+                        // from our GetCorrespondingParameter logic than Binder.BuildArgumentsForErrorRecovery does.
+                        if (node is BoundCall { HasErrors: true, ArgumentNamesOpt.IsDefaultOrEmpty: false, ArgsToParamsOpt.IsDefault: true } &&
+                            tryShortCircuitTargetTypedExpression(argument, argumentNoConversion))
+                        {
                             continue;
                         }
 
@@ -6924,6 +6933,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
                 }
+            }
+
+            bool tryShortCircuitTargetTypedExpression(BoundExpression argument, BoundExpression argumentNoConversion)
+            {
+                if (IsTargetTypedExpression(argumentNoConversion) && _targetTypedAnalysisCompletionOpt?.TryGetValue(argumentNoConversion, out var completion) is true)
+                {
+                    // We've done something wrong if we have a target-typed expression and registered an analysis continuation for it
+                    // (we won't be able to complete that continuation)
+                    // We flush the completion with a plausible/dummy type and remove it.
+                    completion(TypeWithAnnotations.Create(argument.Type));
+                    TargetTypedAnalysisCompletion.Remove(argumentNoConversion);
+                    return true;
+                }
+
+                return false;
             }
         }
 
@@ -7168,7 +7192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case RefKind.In:
                     {
                         // Note: for lambda arguments, they will be converted in the context/state we saved for that argument
-                        if (conversion is { Kind: ConversionKind.ImplicitUserDefined })
+                        if (conversion is { IsValid: true, Kind: ConversionKind.ImplicitUserDefined })
                         {
                             var argumentResultType = resultType.Type;
                             conversion = GenerateConversion(_conversions, argumentNoConversion, argumentResultType, parameterType.Type, fromExplicitCast: false, extensionMethodThisArgument: false, isChecked: conversionOpt?.Checked ?? false);
@@ -9289,14 +9313,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (conversionOpt != null && conversionOpt != convertedNode)
             {
                 Debug.Assert(conversionOpt.ConversionGroupOpt == conversionGroup);
-                visitResult = withType(visitResult, conversionOpt.Type);
+
+                // https://github.com/dotnet/roslyn/issues/35046
+                // SetAnalyzedNullability will drop the type if the visitResult.RValueType.Type differs from conversionOpt.Type.
+                // (It will use the top-level nullability from visitResult, though.)
+                //
+                // Here, the visitResult represents the result of visiting the operand.
+                // Ideally, we would use the visitResult to reinfer the types of the containing conversions, and store those results here.
                 SetAnalyzedNullability(conversionOpt, visitResult);
+
                 conversionOpt = conversionOpt.Operand as BoundConversion;
             }
-
-            static VisitResult withType(VisitResult visitResult, TypeSymbol newType) =>
-                new VisitResult(TypeWithState.Create(newType, visitResult.RValueType.State),
-                                TypeWithAnnotations.Create(newType, visitResult.LValueType.NullableAnnotation));
         }
 
         /// <summary>
@@ -10707,7 +10734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // This is case 4. We need to look for the IEnumerable<T> that this reinferred expression implements,
                     // so that we pick up any nested type substitutions that could have occurred.
                     var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
-                    targetTypeWithAnnotations = TypeWithAnnotations.Create(ForEachLoopBinder.GetIEnumerableOfT(resultType, isAsync, compilation, ref discardedUseSiteInfo, out bool foundMultiple));
+                    targetTypeWithAnnotations = TypeWithAnnotations.Create(ForEachLoopBinder.GetIEnumerableOfT(resultType, isAsync, compilation, ref discardedUseSiteInfo, out bool foundMultiple, needSupportForRefStructInterfaces: out _));
                     Debug.Assert(!foundMultiple);
                     Debug.Assert(targetTypeWithAnnotations.HasType);
                 }
@@ -11266,8 +11293,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // https://github.com/dotnet/roslyn/issues/33344: this fails to produce an updated tuple type for a default expression
-            // (should produce nullable element types for those elements that are of reference types)
             SetResultType(node, TypeWithState.ForType(type));
             return result;
         }

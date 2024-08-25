@@ -24,6 +24,7 @@ using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -37,9 +38,9 @@ internal abstract class AbstractChangeNamespaceService : IChangeNamespaceService
 {
     public abstract Task<bool> CanChangeNamespaceAsync(Document document, SyntaxNode container, CancellationToken cancellationToken);
 
-    public abstract Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+    public abstract Task<Solution> ChangeNamespaceAsync(Document document, SyntaxNode container, string targetNamespace, CancellationToken cancellationToken);
 
-    public abstract Task<Solution?> TryChangeTopLevelNamespacesAsync(Document document, string targetNamespace, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+    public abstract Task<Solution?> TryChangeTopLevelNamespacesAsync(Document document, string targetNamespace, CancellationToken cancellationToken);
 
     /// <summary>
     /// Try to get a new node to replace given node, which is a reference to a top-level type declared inside the 
@@ -113,7 +114,6 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
     public override async Task<Solution?> TryChangeTopLevelNamespacesAsync(
         Document document,
         string targetNamespace,
-        CodeCleanupOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
@@ -155,7 +155,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             Debug.Assert(namespaces.Length == originalNamespaceDeclarations.Length);
 
             var namespaceToRename = namespaces[i];
-            solution = await ChangeNamespaceAsync(document, namespaceToRename, targetNamespace, fallbackOptions, cancellationToken).ConfigureAwait(false);
+            solution = await ChangeNamespaceAsync(document, namespaceToRename, targetNamespace, cancellationToken).ConfigureAwait(false);
             document = solution.GetRequiredDocument(document.Id);
         }
 
@@ -176,7 +176,6 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         Document document,
         SyntaxNode container,
         string targetNamespace,
-        CodeCleanupOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         // Make sure given namespace name is valid, "" means global namespace.
@@ -225,7 +224,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         foreach (var documentId in documentIds)
         {
             var (newSolution, refDocumentIds) =
-                await ChangeNamespaceInSingleDocumentAsync(solutionAfterNamespaceChange, documentId, declaredNamespace, targetNamespace, fallbackOptions, cancellationToken)
+                await ChangeNamespaceInSingleDocumentAsync(solutionAfterNamespaceChange, documentId, declaredNamespace, targetNamespace, cancellationToken)
                     .ConfigureAwait(false);
             solutionAfterNamespaceChange = newSolution;
             referenceDocuments.AddRange(refDocumentIds);
@@ -254,14 +253,12 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             solutionAfterFirstMerge,
             documentIds,
             GetAllNamespaceImportsForDeclaringDocument(declaredNamespace, targetNamespace),
-            fallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
         solutionAfterImportsRemoved = await RemoveUnnecessaryImportsAsync(
             solutionAfterImportsRemoved,
-            referenceDocuments.ToImmutableArray(),
+            [.. referenceDocuments],
             [declaredNamespace, targetNamespace],
-            fallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
         return await MergeDiffAsync(solutionAfterFirstMerge, solutionAfterImportsRemoved, cancellationToken).ConfigureAwait(false);
@@ -403,11 +400,11 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
     private static ImmutableArray<SyntaxNode> CreateImports(Document document, ImmutableArray<string> names, bool withFormatterAnnotation)
     {
         var generator = SyntaxGenerator.GetGenerator(document);
-        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(names.Length, out var builder);
+        var builder = new FixedSizeArrayBuilder<SyntaxNode>(names.Length);
         for (var i = 0; i < names.Length; ++i)
             builder.Add(CreateImport(generator, names[i], withFormatterAnnotation));
 
-        return builder.ToImmutableAndClear();
+        return builder.MoveToImmutable();
     }
 
     private static SyntaxNode CreateImport(SyntaxGenerator syntaxGenerator, string name, bool withFormatterAnnotation)
@@ -431,7 +428,6 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         DocumentId id,
         string oldNamespace,
         string newNamespace,
-        CodeCleanupOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var document = solution.GetRequiredDocument(id);
@@ -468,7 +464,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             }
         }
 
-        var documentWithNewNamespace = await FixDeclarationDocumentAsync(document, refLocationsInCurrentDocument, oldNamespace, newNamespace, fallbackOptions, cancellationToken)
+        var documentWithNewNamespace = await FixDeclarationDocumentAsync(document, refLocationsInCurrentDocument, oldNamespace, newNamespace, cancellationToken)
             .ConfigureAwait(false);
         var solutionWithChangedNamespace = documentWithNewNamespace.Project.Solution;
 
@@ -487,30 +483,23 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         var refLocationGroups = refLocationsInSolution.GroupBy(loc => loc.Document.Id);
 
-        var fixedDocuments = await Task.WhenAll(
-            refLocationGroups.Select(refInOneDocument =>
-                FixReferencingDocumentAsync(
+        var fixedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+            source: refLocationGroups,
+            produceItems: static async (refInOneDocument, callback, args, cancellationToken) =>
+            {
+                var (solutionWithChangedNamespace, newNamespace) = args;
+                var result = await FixReferencingDocumentAsync(
                     solutionWithChangedNamespace.GetRequiredDocument(refInOneDocument.Key),
                     refInOneDocument,
                     newNamespace,
-                    fallbackOptions,
-                    cancellationToken))).ConfigureAwait(false);
+                    cancellationToken).ConfigureAwait(false);
+                callback((result.Id, await result.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
+            },
+            args: (solutionWithChangedNamespace, newNamespace),
+            cancellationToken).ConfigureAwait(false);
 
-        var solutionWithFixedReferences = await MergeDocumentChangesAsync(solutionWithChangedNamespace, fixedDocuments, cancellationToken).ConfigureAwait(false);
-
+        var solutionWithFixedReferences = solutionWithChangedNamespace.WithDocumentSyntaxRoots(fixedDocuments);
         return (solutionWithFixedReferences, refLocationGroups.SelectAsArray(g => g.Key));
-    }
-
-    private static async Task<Solution> MergeDocumentChangesAsync(Solution originalSolution, Document[] changedDocuments, CancellationToken cancellationToken)
-    {
-        foreach (var document in changedDocuments)
-        {
-            originalSolution = originalSolution.WithDocumentSyntaxRoot(
-                document.Id,
-                await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false));
-        }
-
-        return originalSolution;
     }
 
     private readonly struct LocationForAffectedSymbol(ReferenceLocation location, bool isReferenceToExtensionMethod)
@@ -553,7 +542,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
             }
         }
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static async Task<ImmutableArray<ReferencedSymbol>> FindReferencesAsync(ISymbol symbol, Document document, CancellationToken cancellationToken)
@@ -572,7 +561,6 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         IReadOnlyList<LocationForAffectedSymbol> refLocations,
         string oldNamespace,
         string newNamespace,
-        CodeCleanupOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         Debug.Assert(newNamespace != null);
@@ -603,7 +591,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
 
         if (refLocations.Count > 0)
         {
-            (document, containersToAddImports) = await FixReferencesAsync(document, this, addImportService, refLocations, newNamespaceParts, fallbackOptions, cancellationToken)
+            (document, containersToAddImports) = await FixReferencesAsync(document, this, addImportService, refLocations, newNamespaceParts, cancellationToken)
                 .ConfigureAwait(false);
         }
         else
@@ -621,7 +609,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         // references to the type inside it's new namespace
         var namesToImport = GetAllNamespaceImportsForDeclaringDocument(oldNamespace, newNamespace);
 
-        var documentOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var documentOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var documentWithAddedImports = await AddImportsInContainersAsync(
             document,
@@ -649,7 +637,6 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         Document document,
         IEnumerable<LocationForAffectedSymbol> refLocations,
         string newNamespace,
-        CodeCleanupOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         // 1. Fully qualify all simple references (i.e. not via an alias) with new namespace.
@@ -662,10 +649,10 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         var newNamespaceParts = GetNamespaceParts(newNamespace);
 
         var (documentWithRefFixed, containers) =
-            await FixReferencesAsync(document, changeNamespaceService, addImportService, refLocations, newNamespaceParts, fallbackOptions, cancellationToken)
+            await FixReferencesAsync(document, changeNamespaceService, addImportService, refLocations, newNamespaceParts, cancellationToken)
                 .ConfigureAwait(false);
 
-        var documentOptions = await document.GetCodeCleanupOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var documentOptions = await document.GetCodeCleanupOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var documentWithAdditionalImports = await AddImportsInContainersAsync(
             documentWithRefFixed,
@@ -696,7 +683,6 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         IAddImportsService addImportService,
         IEnumerable<LocationForAffectedSymbol> refLocations,
         ImmutableArray<string> newNamespaceParts,
-        CodeCleanupOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         var editor = await DocumentEditor.CreateAsync(document, cancellationToken).ConfigureAwait(false);
@@ -746,7 +732,7 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
                 }
             }
 
-            var addImportsOptions = await document.GetAddImportPlacementOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+            var addImportsOptions = await document.GetAddImportPlacementOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             // Use a dummy import node to figure out which container the new import will be added to.
             var container = addImportService.GetImportContainer(root, refNode, dummyImport, addImportsOptions);
@@ -770,53 +756,48 @@ internal abstract class AbstractChangeNamespaceService<TNamespaceDeclarationSynt
         Solution solution,
         ImmutableArray<DocumentId> ids,
         ImmutableArray<string> names,
-        CodeCleanupOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
-        using var _ = PooledHashSet<DocumentId>.GetInstance(out var linkedDocumentsToSkip);
-        var documentsToProcessBuilder = ArrayBuilder<Document>.GetInstance();
+        using var _1 = PooledHashSet<DocumentId>.GetInstance(out var linkedDocumentsToSkip);
+        using var _2 = ArrayBuilder<Document>.GetInstance(out var documentsToProcess);
 
         foreach (var id in ids)
         {
             if (linkedDocumentsToSkip.Contains(id))
-            {
                 continue;
-            }
 
             var document = solution.GetRequiredDocument(id);
             linkedDocumentsToSkip.AddRange(document.GetLinkedDocumentIds());
-            documentsToProcessBuilder.Add(document);
-
-            document = await RemoveUnnecessaryImportsWorkerAsync(
-                document,
-                CreateImports(document, names, withFormatterAnnotation: false),
-                cancellationToken).ConfigureAwait(false);
-            solution = document.Project.Solution;
+            documentsToProcess.Add(document);
         }
 
-        var documentsToProcess = documentsToProcessBuilder.ToImmutableAndFree();
-
-        var changeDocuments = await Task.WhenAll(documentsToProcess.Select(
-                doc => RemoveUnnecessaryImportsWorkerAsync(
+        var changedDocuments = await ProducerConsumer<(DocumentId documentId, SyntaxNode newRoot)>.RunParallelAsync(
+            source: documentsToProcess,
+            produceItems: static async (doc, callback, names, cancellationToken) =>
+            {
+                var result = await RemoveUnnecessaryImportsWorkerAsync(
                     doc,
                     CreateImports(doc, names, withFormatterAnnotation: false),
-                    cancellationToken))).ConfigureAwait(false);
+                    cancellationToken).ConfigureAwait(false);
+                callback((result.Id, await result.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false)));
+            },
+            args: names,
+            cancellationToken).ConfigureAwait(false);
 
-        return await MergeDocumentChangesAsync(solution, changeDocuments, cancellationToken).ConfigureAwait(false);
+        return solution.WithDocumentSyntaxRoots(changedDocuments);
 
-        async Task<Document> RemoveUnnecessaryImportsWorkerAsync(
+        async static Task<Document> RemoveUnnecessaryImportsWorkerAsync(
             Document doc,
             IEnumerable<SyntaxNode> importsToRemove,
             CancellationToken token)
         {
             var removeImportService = doc.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
             var syntaxFacts = doc.GetRequiredLanguageService<ISyntaxFactsService>();
-            var formattingOptions = await doc.GetSyntaxFormattingOptionsAsync(fallbackOptions, token).ConfigureAwait(false);
+            var formattingOptions = await doc.GetSyntaxFormattingOptionsAsync(token).ConfigureAwait(false);
 
             return await removeImportService.RemoveUnnecessaryImportsAsync(
                 doc,
                 import => importsToRemove.Any(importToRemove => syntaxFacts.AreEquivalent(importToRemove, import)),
-                formattingOptions,
                 token).ConfigureAwait(false);
         }
     }

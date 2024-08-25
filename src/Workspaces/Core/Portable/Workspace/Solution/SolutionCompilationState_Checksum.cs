@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -125,29 +126,28 @@ internal partial class SolutionCompilationState
                 }
 
                 ChecksumCollection? frozenSourceGeneratedDocumentIdentities = null;
-                ChecksumsAndIds<DocumentId>? frozenSourceGeneratedDocuments = null;
+                DocumentChecksumsAndIds? frozenSourceGeneratedDocumentTexts = null;
                 ImmutableArray<DateTime> frozenSourceGeneratedDocumentGenerationDateTimes = default;
 
                 if (FrozenSourceGeneratedDocumentStates != null)
                 {
                     var serializer = this.SolutionState.Services.GetRequiredService<ISerializerService>();
-                    var identityChecksums = FrozenSourceGeneratedDocumentStates
-                        .SelectAsArray(static (s, arg) => arg.serializer.CreateChecksum(s.Identity, cancellationToken: arg.cancellationToken), (serializer, cancellationToken));
+                    var identityChecksums = FrozenSourceGeneratedDocumentStates.SelectAsArray(
+                        static (s, arg) => arg.serializer.CreateChecksum(s.Identity, cancellationToken: arg.cancellationToken), (serializer, cancellationToken));
+
+                    frozenSourceGeneratedDocumentTexts = await FrozenSourceGeneratedDocumentStates.GetDocumentChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false);
                     frozenSourceGeneratedDocumentIdentities = new ChecksumCollection(identityChecksums);
-                    frozenSourceGeneratedDocuments = await FrozenSourceGeneratedDocumentStates.GetChecksumsAndIdsAsync(cancellationToken).ConfigureAwait(false);
                     frozenSourceGeneratedDocumentGenerationDateTimes = FrozenSourceGeneratedDocumentStates.SelectAsArray(d => d.GenerationDateTime);
                 }
 
-                var versionMapChecksum = ChecksumCache.GetOrCreate(
-                    this.SourceGeneratorExecutionVersionMap,
-                    static (map, @this) => GetVersionMapChecksum(@this),
-                    this);
+                // Ensure we only send the execution map over for projects in the project cone.
+                var versionMapChecksum = this.GetFilteredSourceGenerationExecutionMap(projectCone).GetChecksum();
 
                 var compilationStateChecksums = new SolutionCompilationStateChecksums(
                     solutionStateChecksum,
                     versionMapChecksum,
+                    frozenSourceGeneratedDocumentTexts,
                     frozenSourceGeneratedDocumentIdentities,
-                    frozenSourceGeneratedDocuments,
                     frozenSourceGeneratedDocumentGenerationDateTimes);
                 return (compilationStateChecksums, projectCone);
             }
@@ -156,26 +156,27 @@ internal partial class SolutionCompilationState
         {
             throw ExceptionUtilities.Unreachable();
         }
+    }
 
-        static Checksum GetVersionMapChecksum(SolutionCompilationState @this)
+    public SourceGeneratorExecutionVersionMap GetFilteredSourceGenerationExecutionMap(ProjectCone? projectCone)
+    {
+        var builder = this.SourceGeneratorExecutionVersionMap.Map.ToBuilder();
+
+        foreach (var (projectId, projectState) in this.SolutionState.ProjectStates)
         {
-            // We want the projects in sorted order so we can generate the checksum for the
-            // source-generation-execution-map consistently.
-            var sortedProjectIds = SolutionState.GetOrCreateSortedProjectIds(@this.SolutionState.ProjectIds);
-
-            using var _ = ArrayBuilder<Checksum>.GetInstance(out var checksums);
-
-            foreach (var projectId in sortedProjectIds)
+            if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
             {
-                var projectState = @this.SolutionState.GetRequiredProjectState(projectId);
-                if (!RemoteSupportedLanguages.IsSupported(projectState.Language))
-                    continue;
-
-                checksums.Add(projectId.Checksum);
-                checksums.Add(Checksum.Create(@this.SourceGeneratorExecutionVersionMap[projectId], static (v, w) => v.WriteTo(w)));
+                builder.Remove(projectId);
             }
-
-            return Checksum.Create(checksums);
+            else if (projectCone != null && !projectCone.Contains(projectId))
+            {
+                builder.Remove(projectId);
+            }
         }
+
+        if (builder.Count == this.SourceGeneratorExecutionVersionMap.Map.Count)
+            return this.SourceGeneratorExecutionVersionMap;
+
+        return new SourceGeneratorExecutionVersionMap(builder.ToImmutable());
     }
 }

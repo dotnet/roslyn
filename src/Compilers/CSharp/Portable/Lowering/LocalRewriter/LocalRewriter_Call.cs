@@ -138,18 +138,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref BoundExpression? receiverOpt,
             ref ImmutableArray<BoundExpression> arguments,
             ref ImmutableArray<RefKind> argumentRefKindsOpt,
+            ref ArrayBuilder<LocalSymbol> temps,
             bool invokedAsExtensionMethod,
             Syntax.SimpleNameSyntax? nameSyntax)
         {
-            var interceptableLocation = nameSyntax?.Location;
-            if (this._compilation.TryGetInterceptor(interceptableLocation) is not var (attributeLocation, interceptor))
+            if (this._compilation.TryGetInterceptor(nameSyntax) is not var (attributeLocation, interceptor))
             {
                 // The call was not intercepted.
                 return;
             }
 
             Debug.Assert(nameSyntax != null);
-            Debug.Assert(interceptableLocation != null);
             Debug.Assert(interceptor.IsDefinition);
             Debug.Assert(!interceptor.ContainingType.IsGenericType);
 
@@ -283,11 +282,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     || (!receiverOpt.Type.IsReferenceType && interceptor.Parameters[0].Type.IsReferenceType));
                 receiverOpt = MakeConversionNode(receiverOpt, interceptor.Parameters[0].Type, @checked: false, markAsChecked: true);
 
+                var thisRefKind = methodThisParameter.RefKind;
+                // Instance call receivers can be implicitly captured to temps in the emit layer, but not static call arguments
+                // Therefore we may need to explicitly store the receiver to temp here.
+                if (thisRefKind != RefKind.None
+                    && !Binder.HasHome(
+                        receiverOpt,
+                        thisRefKind == RefKind.Ref ? Binder.AddressKind.Writeable : Binder.AddressKind.ReadOnlyStrict,
+                        _factory.CurrentFunction,
+                        peVerifyCompatEnabled: false,
+                        stackLocalsOpt: null))
+                {
+                    var receiverTemp = _factory.StoreToTemp(receiverOpt, out var assignmentToTemp);
+                    temps.Add(receiverTemp.LocalSymbol);
+                    receiverOpt = _factory.Sequence(locals: [], sideEffects: [assignmentToTemp], receiverTemp);
+                }
+
                 arguments = arguments.Insert(0, receiverOpt);
                 receiverOpt = null;
 
                 // CodeGenerator.EmitArguments requires that we have a fully-filled-out argumentRefKindsOpt for any ref/in/out arguments.
-                var thisRefKind = methodThisParameter.RefKind;
                 if (argumentRefKindsOpt.IsDefault && thisRefKind != RefKind.None)
                 {
                     argumentRefKindsOpt = method.Parameters.SelectAsArray(static param => param.RefKind);
@@ -403,14 +417,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ref temps,
                     invokedAsExtensionMethod);
 
-                InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, invokedAsExtensionMethod, node.InterceptableNameSyntax);
+                InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt, ref temps, invokedAsExtensionMethod, node.InterceptableNameSyntax);
 
                 if (Instrument)
                 {
                     Instrumenter.InterceptCallAndAdjustArguments(ref method, ref rewrittenReceiver, ref rewrittenArguments, ref argRefKindsOpt);
                 }
 
-                var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, node.Type, temps.ToImmutableAndFree());
+                var rewrittenCall = MakeCall(node, node.Syntax, rewrittenReceiver, method, rewrittenArguments, argRefKindsOpt, node.ResultKind, temps.ToImmutableAndFree());
 
                 if (Instrument)
                 {
@@ -429,7 +443,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> rewrittenArguments,
             ImmutableArray<RefKind> argumentRefKinds,
             LookupResultKind resultKind,
-            TypeSymbol type,
             ImmutableArray<LocalSymbol> temps)
         {
             BoundExpression rewrittenBoundCall;
@@ -454,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultKind,
                     rewrittenArguments[0],
                     rewrittenArguments[1],
-                    type);
+                    method.ReturnType);
             }
             else if (node == null)
             {
@@ -472,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argsToParamsOpt: default(ImmutableArray<int>),
                     defaultArguments: default(BitVector),
                     resultKind: resultKind,
-                    type: type);
+                    type: method.ReturnType);
             }
             else
             {
@@ -489,8 +502,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     argsToParamsOpt: default(ImmutableArray<int>),
                     defaultArguments: default(BitVector),
                     node.ResultKind,
-                    node.Type);
+                    method.ReturnType);
             }
+
+            Debug.Assert(rewrittenBoundCall.Type is not null);
 
             if (!temps.IsDefaultOrEmpty)
             {
@@ -499,13 +514,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     locals: temps,
                     sideEffects: ImmutableArray<BoundExpression>.Empty,
                     value: rewrittenBoundCall,
-                    type: type);
+                    type: rewrittenBoundCall.Type);
             }
 
             return rewrittenBoundCall;
         }
 
-        private BoundExpression MakeCall(SyntaxNode syntax, BoundExpression? rewrittenReceiver, MethodSymbol method, ImmutableArray<BoundExpression> rewrittenArguments, TypeSymbol type)
+        private BoundExpression MakeCall(SyntaxNode syntax, BoundExpression? rewrittenReceiver, MethodSymbol method, ImmutableArray<BoundExpression> rewrittenArguments)
         {
             return MakeCall(
                 node: null,
@@ -515,7 +530,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenArguments: rewrittenArguments,
                 argumentRefKinds: default(ImmutableArray<RefKind>),
                 resultKind: LookupResultKind.Viable,
-                type: type,
                 temps: default);
         }
 
@@ -679,17 +693,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    refKind = rewrittenReceiver.GetRefKind();
-
-                    if (refKind == RefKind.None &&
-                        !rewrittenReceiver.Type.IsReferenceType &&
-                        Binder.HasHome(rewrittenReceiver,
-                                       Binder.AddressKind.Constrained,
-                                       _factory.CurrentFunction,
-                                       peVerifyCompatEnabled: false,
-                                       stackLocalsOpt: null))
+                    if (rewrittenReceiver.Type.IsReferenceType)
                     {
-                        refKind = RefKind.Ref;
+                        refKind = RefKind.None;
+                    }
+                    else
+                    {
+                        refKind = rewrittenReceiver.GetRefKind();
+
+                        if (refKind == RefKind.None &&
+                            Binder.HasHome(rewrittenReceiver,
+                                           Binder.AddressKind.Constrained,
+                                           _factory.CurrentFunction,
+                                           peVerifyCompatEnabled: false,
+                                           stackLocalsOpt: null))
+                        {
+                            refKind = RefKind.Ref;
+                        }
                     }
                 }
 

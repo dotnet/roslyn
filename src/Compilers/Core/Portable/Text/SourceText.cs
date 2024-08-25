@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Buffers;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.Text
             if (stream.CanSeek)
             {
                 // If the resulting string would end up on the large object heap, then use LargeEncodedText.
-                if (encoding.GetMaxCharCountOrThrowIfHuge(stream) >= LargeObjectHeapLimitInChars)
+                if (GetMaxCharCountOrThrowIfHuge(encoding, stream) >= LargeObjectHeapLimitInChars)
                 {
                     return LargeText.Decode(stream, encoding, checksumAlgorithm, throwIfBinaryDetected, canBeEmbedded);
                 }
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </remarks>
         internal static bool IsBinary(ReadOnlySpan<char> text)
         {
-#if NETCOREAPP
+#if NET
             // On .NET Core, Contains has an optimized vectorized implementation, much faster than a custom loop.
             return text.Contains("\0\0", StringComparison.Ordinal);
 #else
@@ -642,7 +642,26 @@ namespace Microsoft.CodeAnalysis.Text
                             sourceIndex: index, destination: charBuffer,
                             destinationIndex: 0, count: charsToCopy);
 
-                        hash.Append(MemoryMarshal.AsBytes(charBuffer.AsSpan(0, charsToCopy)));
+                        var charSpan = charBuffer.AsSpan(0, charsToCopy);
+
+                        // Ensure everything is always little endian, so we get the same results across all platforms.
+                        // This will be entirely elided by the jit on a little endian machine.
+                        if (!BitConverter.IsLittleEndian)
+                        {
+                            var shortSpan = MemoryMarshal.Cast<char, short>(charSpan);
+
+#if NET8_0_OR_GREATER
+                            // Defer to the platform to do the reversal.  It ships with a vectorized
+                            // implementation for this on .NET 8 and above.
+                            BinaryPrimitives.ReverseEndianness(source: shortSpan, destination: shortSpan);
+#else
+                            // Otherwise, fallback to the simple approach of reversing each pair of bytes.
+                            for (var i = 0; i < shortSpan.Length; i++)
+                                shortSpan[i] = BinaryPrimitives.ReverseEndianness(shortSpan[i]);
+#endif
+                        }
+
+                        hash.Append(MemoryMarshal.AsBytes(charSpan));
                     }
 
                     // Switch this to ImmutableCollectionsMarshal.AsImmutableArray(hash.GetHashAndReset()) when we move to S.C.I v8.
@@ -966,12 +985,12 @@ namespace Microsoft.CodeAnalysis.Text
                     int start = _lineStarts[index];
                     if (index == _lineStarts.Count - 1)
                     {
-                        return TextLine.FromSpan(_text, TextSpan.FromBounds(start, _text.Length));
+                        return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, _text.Length));
                     }
                     else
                     {
                         int end = _lineStarts[index + 1];
-                        return TextLine.FromSpan(_text, TextSpan.FromBounds(start, end));
+                        return TextLine.FromSpanUnsafe(_text, TextSpan.FromBounds(start, end));
                     }
                 }
             }
@@ -1049,7 +1068,9 @@ namespace Microsoft.CodeAnalysis.Text
                 return [0];
             }
 
-            var lineStarts = new SegmentedList<int>()
+            // Initial line capacity estimated at 64 chars / line. This value was obtained by
+            // looking at ratios in large files in the roslyn repo.
+            var lineStarts = new SegmentedList<int>(Length / 64)
             {
                 0 // there is always the first line
             };
@@ -1259,6 +1280,22 @@ namespace Microsoft.CodeAnalysis.Text
                     // do nothing
                 }
             }
+        }
+
+        /// <summary>
+        /// Get maximum char count needed to decode the entire stream.
+        /// </summary>
+        /// <exception cref="IOException">Stream is so big that max char count can't fit in <see cref="int"/>.</exception> 
+        internal static int GetMaxCharCountOrThrowIfHuge(Encoding encoding, Stream stream)
+        {
+            Debug.Assert(stream.CanSeek);
+
+            if (encoding.TryGetMaxCharCount(stream.Length, out int maxCharCount))
+            {
+                return maxCharCount;
+            }
+
+            throw new IOException(CodeAnalysisResources.StreamIsTooLong);
         }
     }
 }

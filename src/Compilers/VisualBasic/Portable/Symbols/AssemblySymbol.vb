@@ -347,6 +347,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return Me.RuntimeSupportsVirtualStaticsInInterfaces
                 Case RuntimeCapability.InlineArrayTypes
                     Return Me.RuntimeSupportsInlineArrayTypes
+                Case RuntimeCapability.ByRefLikeGenerics
+                    Return Me.RuntimeSupportsByRefLikeGenerics
             End Select
 
             Return False
@@ -406,6 +408,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsInlineArrayTypes
                 Return GetSpecialTypeMember(SpecialMember.System_Runtime_CompilerServices_InlineArrayAttribute__ctor) IsNot Nothing
+            End Get
+        End Property
+
+        Private ReadOnly Property RuntimeSupportsByRefLikeGenerics As Boolean
+            Get
+                ' Keep in sync with C#'s AssemblySymbol.RuntimeSupportsByRefLikeGenerics
+                ' CorLibrary should never be null, but that invariant Is broken in some cases for MissingAssemblySymbol.
+                ' Tracked by https://github.com/dotnet/roslyn/issues/61262
+                Return CorLibrary IsNot Nothing AndAlso
+                       RuntimeSupportsFeature(SpecialMember.System_Runtime_CompilerServices_RuntimeFeature__ByRefLikeGenerics)
             End Get
         End Property
 
@@ -752,7 +764,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property IAssemblySymbol_Modules As IEnumerable(Of IModuleSymbol) Implements IAssemblySymbol.Modules
             Get
-                Return Me.Modules
+                Return ImmutableArray(Of IModuleSymbol).CastUp(Me.Modules)
             End Get
         End Property
 

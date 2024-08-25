@@ -35,6 +35,7 @@ internal partial class SyntaxTreeIndex
             bool containsConversion,
             bool containsGlobalKeyword,
             bool containsCollectionInitializer,
+            bool containsAttribute,
             bool containsDirective)
             : this(predefinedTypes, predefinedOperators,
                    ConvertToContainingNodeFlag(
@@ -54,6 +55,7 @@ internal partial class SyntaxTreeIndex
                      containsConversion,
                      containsGlobalKeyword,
                      containsCollectionInitializer,
+                     containsAttribute,
                      containsDirective))
         {
         }
@@ -82,6 +84,7 @@ internal partial class SyntaxTreeIndex
             bool containsConversion,
             bool containsGlobalKeyword,
             bool containsCollectionInitializer,
+            bool containsAttribute,
             bool containsDirective)
         {
             var containingNodes = ContainingNodes.None;
@@ -102,6 +105,7 @@ internal partial class SyntaxTreeIndex
             containingNodes |= containsConversion ? ContainingNodes.ContainsConversion : 0;
             containingNodes |= containsGlobalKeyword ? ContainingNodes.ContainsGlobalKeyword : 0;
             containingNodes |= containsCollectionInitializer ? ContainingNodes.ContainsCollectionInitializer : 0;
+            containingNodes |= containsAttribute ? ContainingNodes.ContainsAttribute : 0;
             containingNodes |= containsDirective ? ContainingNodes.ContainsDirective : 0;
 
             return containingNodes;
@@ -161,6 +165,9 @@ internal partial class SyntaxTreeIndex
         public bool ContainsCollectionInitializer
             => (_containingNodes & ContainingNodes.ContainsCollectionInitializer) == ContainingNodes.ContainsCollectionInitializer;
 
+        public bool ContainsAttribute
+            => (_containingNodes & ContainingNodes.ContainsAttribute) == ContainingNodes.ContainsAttribute;
+
         public bool ContainsDirective
             => (_containingNodes & ContainingNodes.ContainsDirective) == ContainingNodes.ContainsDirective;
 
@@ -208,7 +215,8 @@ internal partial class SyntaxTreeIndex
             ContainsConversion = 1 << 13,
             ContainsGlobalKeyword = 1 << 14,
             ContainsCollectionInitializer = 1 << 15,
-            ContainsDirective = 1 << 16,
+            ContainsAttribute = 1 << 16,
+            ContainsDirective = 1 << 17,
         }
     }
 }

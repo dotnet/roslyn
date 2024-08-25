@@ -10,7 +10,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -22,15 +21,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess;
 
-[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.InvokeDelegateWithConditionalAccess), Shared]
-internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : SyntaxEditorBasedCodeFixProvider
-{
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public InvokeDelegateWithConditionalAccessCodeFixProvider()
-    {
-    }
+using static SyntaxFactory;
 
+[ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.InvokeDelegateWithConditionalAccess), Shared]
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed partial class InvokeDelegateWithConditionalAccessCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
+{
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [IDEDiagnosticIds.InvokeDelegateWithConditionalAccessId];
 
     // Filter out the diagnostics we created for the faded out code.  We don't want
@@ -46,7 +43,7 @@ internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : Synt
 
     protected override Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         foreach (var diagnostic in diagnostics)
         {
@@ -93,13 +90,13 @@ internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : Synt
         var (invokedExpression, invokeName) =
             invocationExpression.Expression is MemberAccessExpressionSyntax { Name: IdentifierNameSyntax { Identifier.ValueText: nameof(Action.Invoke) } } memberAccessExpression
                 ? (memberAccessExpression.Expression, memberAccessExpression.Name)
-                : (invocationExpression.Expression, SyntaxFactory.IdentifierName(nameof(Action.Invoke)));
+                : (invocationExpression.Expression, IdentifierName(nameof(Action.Invoke)));
 
         StatementSyntax newStatement = expressionStatement.WithExpression(
-            SyntaxFactory.ConditionalAccessExpression(
+            ConditionalAccessExpression(
                 invokedExpression,
-                SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberBindingExpression(invokeName), invocationExpression.ArgumentList)));
+                InvocationExpression(
+                    MemberBindingExpression(invokeName), invocationExpression.ArgumentList)));
         newStatement = newStatement.WithPrependedLeadingTrivia(ifStatement.GetLeadingTrivia());
 
         if (ifStatement.Parent.IsKind(SyntaxKind.ElseClause) &&
@@ -140,13 +137,13 @@ internal partial class InvokeDelegateWithConditionalAccessCodeFixProvider : Synt
         var invokeName =
             invocationExpression.Expression is MemberAccessExpressionSyntax { Name: IdentifierNameSyntax { Identifier.ValueText: nameof(Action.Invoke) } } memberAccessExpression
                 ? memberAccessExpression.Name
-                : SyntaxFactory.IdentifierName(nameof(Action.Invoke));
+                : IdentifierName(nameof(Action.Invoke));
 
         var newStatement = expressionStatement.WithExpression(
-            SyntaxFactory.ConditionalAccessExpression(
+            ConditionalAccessExpression(
                 localDeclarationStatement.Declaration.Variables[0].Initializer!.Value.Parenthesize(),
-                SyntaxFactory.InvocationExpression(
-                    SyntaxFactory.MemberBindingExpression(invokeName), invocationExpression.ArgumentList)));
+                InvocationExpression(
+                    MemberBindingExpression(invokeName), invocationExpression.ArgumentList)));
 
         newStatement = newStatement.WithAdditionalAnnotations(Formatter.Annotation);
         newStatement = AppendTriviaWithoutEndOfLines(newStatement, ifStatement);

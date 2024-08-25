@@ -20,29 +20,46 @@
          a RuntimeIdentifier given to us, since we really don't want to accidentally pick up platform specific binaries since we also have to run on Mono.
          -->
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <!-- We specifically reference Microsoft.Build 17.3.2, since it's the oldest version still compatible net6.0. The version targeted is only used for build time, since
+    <!-- We specifically reference Microsoft.Build 17.3.4, since it's the oldest version still compatible net6.0. The version targeted is only used for build time, since
          we use MSBuildLocator to discover the proper version at runtime. -->
-    <PackageReference Include="Microsoft.Build" VersionOverride="17.3.2" ExcludeAssets="Runtime" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.Build.Framework" VersionOverride="17.3.2" ExcludeAssets="Runtime" />
-    <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="17.3.2" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Framework" VersionOverride="17.3.4" ExcludeAssets="Runtime" />
+    <PackageReference Include="Microsoft.Build.Tasks.Core" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Build.Utilities.Core" VersionOverride="17.3.4" ExcludeAssets="Runtime" PrivateAssets="All" />
     <PackageReference Include="Microsoft.Build.Locator" PrivateAssets="All" />
-    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="System.Text.Json" VersionOverride="8.0.4" PrivateAssets="All" Condition="'$(DotnetBuildFromSource)' != 'true'"/>
     <PackageReference Include="System.CommandLine" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" />
+    <PackageReference Include="System.Collections.Immutable" />
     <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Microsoft.IO.Redist" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Condition="'$(TargetFrameworkIdentifier)' != '.NETCoreApp'" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Compilers\Core\Portable\Microsoft.CodeAnalysis.csproj" />
-    <ProjectReference Include="..\Portable\Microsoft.CodeAnalysis.Workspaces.csproj">
-      <Aliases>global,workspaces</Aliases>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\CompilerFeatureRequiredAttribute.cs" Link="Utilities\CompilerFeatureRequiredAttribute.cs" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\IsExternalInit.cs" Link="Utilities\IsExternalInit.cs" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\RequiredMemberAttribute.cs" Link="Utilities\RequiredMemberAttribute.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\*.cs" Link="InternalUtilities\%(FileName).cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs" Link="Collections\ArrayBuilderExtensions.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs" Link="Collections\ImmutableArrayExtensions.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\TemporaryArray`1.cs" Link="Collections\TemporaryArray`1.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\IOrderedReadOnlySet.cs" Link="Collections\IOrderedReadOnlySet.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathKind.cs" Link="FileSystem\PathKind.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\PathUtilities.cs" Link="FileSystem\PathUtilities.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\FileUtilities.cs" Link="FileSystem\FileUtilities.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\Symbols\LanguageNames.cs" Link="Compiler\LanguageNames.cs" />
+    <Compile Include="..\..\..\Compilers\Core\Portable\CaseInsensitiveComparison.cs" Link="Compiler\CaseInsensitiveComparison.cs" />
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Extensions\ImmutableArrayExtensions.cs" Link="SharedUtilities\ImmutableArrayExtensions.cs" />
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\IPooled.cs" Link="SharedUtilities\IPooled.cs" />
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\Extensions.cs" Link="SharedUtilities\Extensions.cs" />
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\PooledDisposer.cs" Link="SharedUtilities\PooledDisposer.cs" />
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\PooledHashSet.cs" Link="SharedUtilities\PooledHashSet.cs" />
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\PooledObject.cs" Link="SharedUtilities\PooledObject.cs" />
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\ObjectPools\SharedPools.cs" Link="SharedUtilities\SharedPools.cs" />
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\FixedSizeArrayBuilder.cs" Link="SharedUtilities\FixedSizeArrayBuilder.cs" />
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\Contract.cs" Link="SharedUtilities\Contract.cs" />
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\Contract.InterpolatedStringHandlers.cs" Link="SharedUtilities\Contract.InterpolatedStringHandlers.cs" />
+    <Compile Include="..\..\..\Workspaces\SharedUtilitiesAndExtensions\Compiler\Core\Utilities\SerializableBytes.cs" Link="SharedUtilities\SerializableBytes.cs" />
+
   </ItemGroup>
   <ItemGroup>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
@@ -75,4 +92,6 @@
       </ProjectDepsJsonFile>
     </ItemGroup>
   </Target>
+  <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
+  <Import Project="..\..\..\Dependencies\Collections\Microsoft.CodeAnalysis.Collections.projitems" Label="Shared" />
 </Project>

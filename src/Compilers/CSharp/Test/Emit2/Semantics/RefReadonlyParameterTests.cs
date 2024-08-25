@@ -176,7 +176,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 [return: RequiresLocation] ref readonly int M7() => throw null;
                 [RequiresLocation] void M8() { }
                 [RequiresLocation] public int field;
-                [RequiresLocation] int Property { get => field; set => field = value; }
+                [RequiresLocation] int Property { get => @field; set => @field = value; }
             }
             """;
 
@@ -215,7 +215,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //     [RequiresLocation] public int field;
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(12, 6),
             // 0.cs(13,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
-            //     [RequiresLocation] int Property { get => field; set => field = value; }
+            //     [RequiresLocation] int Property { get => @field; set => @field = value; }
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(13, 6));
 
         var expectedDiagnostics = new[]
@@ -251,7 +251,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //     [RequiresLocation] public int field;
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(12, 6),
             // 0.cs(13,6): error CS8335: Do not use 'System.Runtime.CompilerServices.RequiresLocationAttribute'. This is reserved for compiler usage.
-            //     [RequiresLocation] int Property { get => field; set => field = value; }
+            //     [RequiresLocation] int Property { get => @field; set => @field = value; }
             Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "RequiresLocation").WithArguments("System.Runtime.CompilerServices.RequiresLocationAttribute").WithLocation(13, 6)
         };
 
@@ -613,7 +613,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             // (1,2): error CS8358: Cannot use attribute constructor 'A.A(ref readonly int)' because it has 'in' or 'ref readonly' parameters.
             // [A(1)]
             Diagnostic(ErrorCode.ERR_AttributeCtorInParameter, "A(1)").WithArguments("A.A(ref readonly int)").WithLocation(1, 2),
-            // (1,4): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            // (1,4): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
             // [A(1)]
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "1").WithArguments("1").WithLocation(1, 4),
             // (7,2): error CS8358: Cannot use attribute constructor 'B.B(ref readonly int)' because it has 'in' or 'ref readonly' parameters.
@@ -801,10 +801,10 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             }
             """;
         CompileAndVerify(source, expectedOutput: "4445").VerifyDiagnostics(
-            // (6,20): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+            // (6,20): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
             // C.E((int p) => C.M(p));
             Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "p").WithArguments("1").WithLocation(6, 20),
-            // (7,20): warning CS9504: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
+            // (7,20): warning CS9193: Argument 1 should be a variable because it is passed to a 'ref readonly' parameter
             // C.E((int p) => C.M(5));
             Diagnostic(ErrorCode.WRN_RefReadonlyNotVariable, "5").WithArguments("1").WithLocation(7, 20));
     }
@@ -4906,7 +4906,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             modifier == ""
                 ? new[]
                 {
-                    // (6,11): warning CS9503: Argument 1 should be passed with 'ref' or 'in' keyword
+                    // (6,11): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
                     //         M(x);
                     Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "x").WithArguments("1").WithLocation(6, 11)
                 }
@@ -5704,42 +5704,45 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
                 void M2(dynamic p) => M(p);
             }
             """;
-        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "12");
+        var verifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: "exception2");
 
-        verifier.VerifyDiagnostics(
-            // (10,17): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
-            //             c.M(d);
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "d").WithArguments("1").WithLocation(10, 17),
-            // (21,29): warning CS9192: Argument 1 should be passed with 'ref' or 'in' keyword
-            //     void M2(dynamic p) => M(p);
-            Diagnostic(ErrorCode.WRN_ArgExpectedRefOrIn, "p").WithArguments("1").WithLocation(21, 29)
-            );
+        verifier.VerifyDiagnostics();
 
         verifier.VerifyIL("C.M2", """
             {
-              // Code size       74 (0x4a)
-              .maxstack  4
-              .locals init (int V_0)
-              IL_0000:  ldarg.0
-              IL_0001:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__2.<>p__0"
-              IL_0006:  brtrue.s   IL_002c
-              IL_0008:  ldc.i4.0
-              IL_0009:  ldtoken    "int"
-              IL_000e:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-              IL_0013:  ldtoken    "C"
-              IL_0018:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
-              IL_001d:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)"
-              IL_0022:  call       "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
-              IL_0027:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__2.<>p__0"
-              IL_002c:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__2.<>p__0"
-              IL_0031:  ldfld      "System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target"
-              IL_0036:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> C.<>o__2.<>p__0"
-              IL_003b:  ldarg.1
-              IL_003c:  callvirt   "int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)"
-              IL_0041:  stloc.0
-              IL_0042:  ldloca.s   V_0
-              IL_0044:  call       "void C.M(ref readonly int)"
-              IL_0049:  ret
+              // Code size       92 (0x5c)
+              .maxstack  9
+              IL_0000:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>> C.<>o__2.<>p__0"
+              IL_0005:  brtrue.s   IL_0045
+              IL_0007:  ldc.i4     0x102
+              IL_000c:  ldstr      "M"
+              IL_0011:  ldnull
+              IL_0012:  ldtoken    "C"
+              IL_0017:  call       "System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)"
+              IL_001c:  ldc.i4.2
+              IL_001d:  newarr     "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo"
+              IL_0022:  dup
+              IL_0023:  ldc.i4.0
+              IL_0024:  ldc.i4.1
+              IL_0025:  ldnull
+              IL_0026:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+              IL_002b:  stelem.ref
+              IL_002c:  dup
+              IL_002d:  ldc.i4.1
+              IL_002e:  ldc.i4.0
+              IL_002f:  ldnull
+              IL_0030:  call       "Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)"
+              IL_0035:  stelem.ref
+              IL_0036:  call       "System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)"
+              IL_003b:  call       "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)"
+              IL_0040:  stsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>> C.<>o__2.<>p__0"
+              IL_0045:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>> C.<>o__2.<>p__0"
+              IL_004a:  ldfld      "System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic> System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>>.Target"
+              IL_004f:  ldsfld     "System.Runtime.CompilerServices.CallSite<System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>> C.<>o__2.<>p__0"
+              IL_0054:  ldarg.0
+              IL_0055:  ldarg.1
+              IL_0056:  callvirt   "void System.Action<System.Runtime.CompilerServices.CallSite, C, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, C, dynamic)"
+              IL_005b:  ret
             }
             """);
     }
@@ -5972,12 +5975,15 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             C123
             """, sourceSymbolValidator: verify, symbolValidator: verify);
         verifier.VerifyDiagnostics(
-            // (22,9): warning CS9196: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
-            //         set { }
-            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("ref readonly int x", "in int x").WithLocation(22, 9),
-            // (28,19): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
-            //         _ = c[ref x];
-            Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(28, 19));
+                // (17,9): warning CS9196: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
+                //         get
+                Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "get").WithArguments("ref readonly int x", "in int x").WithLocation(17, 9),
+                // (22,9): warning CS9196: Reference kind modifier of parameter 'ref readonly int x' doesn't match the corresponding parameter 'in int x' in overridden or implemented member.
+                //         set { }
+                Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("ref readonly int x", "in int x").WithLocation(22, 9),
+                // (28,19): warning CS9191: The 'ref' modifier for argument 1 corresponding to 'in' parameter is equivalent to 'in'. Consider using 'in' instead.
+                //         _ = c[ref x];
+                Diagnostic(ErrorCode.WRN_BadArgRef, "x").WithArguments("1").WithLocation(28, 19));
 
         static void verify(ModuleSymbol m)
         {
@@ -6760,6 +6766,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             get1
             set1
             """).VerifyDiagnostics(
+            // (9,9): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            //         get
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "get").WithArguments("in int x", "ref readonly int x").WithLocation(9, 9),
             // (14,9): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
             //         set
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("in int x", "ref readonly int x").WithLocation(14, 9));
@@ -6800,6 +6809,9 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             get1
             set1
             """).VerifyDiagnostics(
+            // (9,9): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
+            //         get
+            Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "get").WithArguments("in int x", "ref readonly int x").WithLocation(9, 9),
             // (14,9): warning CS9196: Reference kind modifier of parameter 'in int x' doesn't match the corresponding parameter 'ref readonly int x' in overridden or implemented member.
             //         set
             Diagnostic(ErrorCode.WRN_OverridingDifferentRefness, "set").WithArguments("in int x", "ref readonly int x").WithLocation(14, 9));
@@ -6997,7 +7009,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(6, 17));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -7022,7 +7034,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(6, 17));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics();
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics();
     }
 
     [Theory, CombinatorialData]
@@ -7051,7 +7063,7 @@ public partial class RefReadonlyParameterTests : CSharpTestBase
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(5, 17));
 
-        CreateCompilation(source, parseOptions: TestOptions.RegularNext).VerifyDiagnostics(
+        CreateCompilation(source, parseOptions: TestOptions.Regular13).VerifyDiagnostics(
             // (5,17): error CS8917: The delegate type could not be inferred.
             //         var m = this.M;
             Diagnostic(ErrorCode.ERR_CannotInferDelegateType, "this.M").WithLocation(5, 17));

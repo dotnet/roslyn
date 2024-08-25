@@ -410,48 +410,42 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInLambdaDeclaration(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = ($$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInLambdaDeclaration2(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = (ref int a, $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInLambdaDeclaration3(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = (int a, $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInDelegateDeclaration(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = delegate ($$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInDelegateDeclaration2(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"var q = delegate (a, $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInDelegateDeclaration3(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -472,64 +466,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             await VerifyKeywordAsync(text);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestEmptyStatement(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"$$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestAfterReturn(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"return $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInFor(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"for ($$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotInFor(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"for (var $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInFor2(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"for ($$;", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInFor3(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"for ($$;;", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotAfterVar(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
 @"var $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotInUsing(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -709,8 +695,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 @"delegate $$");
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestNotAfterAnonymousDelegate(bool topLevelStatement)
         {
             await VerifyAbsenceAsync(AddInsideMethod(
@@ -789,8 +774,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInUnsafeBlock(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -853,16 +837,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInLocalArrowMethod(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @" ref int Goo() => $$", topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestInArrowLambda(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod(
@@ -909,8 +891,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
 
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRefInFor(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod("""
@@ -918,8 +899,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRefForeachVariable(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod("""
@@ -927,8 +907,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRefExpressionInAssignment(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod("""
@@ -938,8 +917,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
                 """, topLevelStatement: topLevelStatement), options: CSharp9ParseOptions);
         }
 
-        [Theory]
-        [CombinatorialData]
+        [Theory, CombinatorialData]
         public async Task TestRefExpressionAfterReturn(bool topLevelStatement)
         {
             await VerifyKeywordAsync(AddInsideMethod("""
@@ -1213,6 +1191,197 @@ class C
                         var x = delegate (scoped $$) { };
                     }
                 }
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterAllowsInTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C<T> where T : allows $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterAllowsInTypeParameterConstraint2()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C<T>
+                    where T : allows $$
+                    where U : U
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterAllowsInMethodTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C {
+                    void Goo<T>()
+                      where T : allows $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterAllowsInMethodTypeParameterConstraint2()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C {
+                    void Goo<T>()
+                      where T : allows $$
+                      where U : T
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterClassTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : class, allows $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterStructTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C<T> where T : struct, allows $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterSimpleTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C<T> where T : IGoo, allows $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestAfterConstructorTypeParameterConstraint()
+        {
+            await VerifyKeywordAsync(
+                """
+                class C<T> where T : new(), allows $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterGenericNameInTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : allows<int> $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterGenericNameInTypeParameterConstraint2()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T>
+                    where T : allows<int> $$
+                    where U : U
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterGenericNameAfterClassTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : class, allows<int> $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterGenericNameAfterStructTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : struct, allows<int> $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterGenericNameAfterSimpleTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : IGoo, allows<int> $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterGenericNameAfterConstructorTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : new(), allows<int> $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterRefInTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : allows ref $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterRefInTypeParameterConstraint2()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T>
+                    where T : allows ref $$
+                    where U : U
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterRefAfterClassTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : class, allows ref $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterRefAfterStructTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : struct, allows ref $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterRefAfterSimpleTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : IGoo, allows ref $$
+                """);
+        }
+
+        [Fact]
+        public async Task TestNotAfterRefAfterConstructorTypeParameterConstraint()
+        {
+            await VerifyAbsenceAsync(
+                """
+                class C<T> where T : new(), allows ref $$
                 """);
         }
     }

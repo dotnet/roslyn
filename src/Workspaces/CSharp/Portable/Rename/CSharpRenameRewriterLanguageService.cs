@@ -159,15 +159,12 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
 
             var isInConflictLambdaBody = false;
             var lambdas = node.GetAncestorsOrThis(n => n is SimpleLambdaExpressionSyntax or ParenthesizedLambdaExpressionSyntax);
-            if (lambdas.Count() != 0)
+            foreach (var lambda in lambdas)
             {
-                foreach (var lambda in lambdas)
+                if (_conflictLocations.Any(cf => cf.Contains(lambda.Span)))
                 {
-                    if (_conflictLocations.Any(cf => cf.Contains(lambda.Span)))
-                    {
-                        isInConflictLambdaBody = true;
-                        break;
-                    }
+                    isInConflictLambdaBody = true;
+                    break;
                 }
             }
 
@@ -298,7 +295,7 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
             RoslynDebug.Assert(_speculativeModel != null, "expanding a syntax node which cannot be speculated?");
 
             var oldSpan = originalNode.Span;
-            var expandParameter = originalNode.GetAncestorsOrThis(n => n is SimpleLambdaExpressionSyntax or ParenthesizedLambdaExpressionSyntax).Count() == 0;
+            var expandParameter = !originalNode.GetAncestorsOrThis(n => n is SimpleLambdaExpressionSyntax or ParenthesizedLambdaExpressionSyntax).Any();
 
             newNode = _simplificationService.Expand(newNode,
                                                                 _speculativeModel,
@@ -478,15 +475,15 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
                 }
                 else
                 {
-                    symbols = SpecializedCollections.SingletonEnumerable(symbolInfo.Symbol);
+                    symbols = [symbolInfo.Symbol];
                 }
 
                 var renameDeclarationLocations =
-                                                                            ConflictResolver.CreateDeclarationLocationAnnotationsAsync(
-                                                                                _solution,
-                                                                                symbols,
-                                                                                _cancellationToken)
-                                                                                    .WaitAndGetResult_CanCallOnBackground(_cancellationToken);
+                    ConflictResolver.CreateDeclarationLocationAnnotationsAsync(
+                        _solution,
+                        symbols,
+                        _cancellationToken)
+                            .WaitAndGetResult_CanCallOnBackground(_cancellationToken);
 
                 var renameAnnotation = new RenameActionAnnotation(
                                             identifierToken.Span,
@@ -810,7 +807,7 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
             if (renamedSymbol.ContainingSymbol is INamedTypeSymbol { TypeKind: not TypeKind.Enum } containingNamedType &&
                 containingNamedType.Name == renamedSymbol.Name)
             {
-                AddSymbolSourceSpans(conflicts, SpecializedCollections.SingletonEnumerable(containingNamedType), reverseMappedLocations);
+                AddSymbolSourceSpans(conflicts, [containingNamedType], reverseMappedLocations);
             }
 
             if (renamedSymbol.Kind is SymbolKind.Parameter or
@@ -927,7 +924,7 @@ internal class CSharpRenameConflictLanguageService : AbstractRenameRewriterLangu
                 }
             }
 
-            return conflicts.ToImmutable();
+            return conflicts.ToImmutableAndClear();
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {

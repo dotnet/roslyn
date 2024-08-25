@@ -4,11 +4,7 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles;
 using Microsoft.CodeAnalysis.Options;
@@ -126,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
                 if (value is NamingStylePreferences namingStylePreferences)
                 {
-                    EditorConfigFileGenerator.AppendNamingStylePreferencesToEditorConfig(namingStylePreferences, optionKey.Language!, analyzerConfig);
+                    namingStylePreferences.AppendToEditorConfig(optionKey.Language!, analyzerConfig);
                     continue;
                 }
 

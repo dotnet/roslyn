@@ -61,14 +61,20 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             TestOutputHelper = output;
         }
 
-        [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
+        [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/74157")]
         [MemberData(nameof(GetCSharpProjectTemplateNames), DisableDiscoveryEnumeration = false)]
         public async Task ValidateCSharpTemplateProjects(string templateName)
         {
+            if (templateName == "mstest-playwright")
+            {
+                // https://github.com/dotnet/test-templates/issues/412
+                return;
+            }
+
             await AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.CSharp);
         }
 
-        [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
+        [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/74827")]
         [MemberData(nameof(GetVisualBasicProjectTemplateNames), DisableDiscoveryEnumeration = false)]
         public async Task ValidateVisualBasicTemplateProjects(string templateName)
         {

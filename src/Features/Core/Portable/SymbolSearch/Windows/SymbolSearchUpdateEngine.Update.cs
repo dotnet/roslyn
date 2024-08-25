@@ -18,7 +18,6 @@ using System.Xml.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 using static System.FormattableString;
 
 namespace Microsoft.CodeAnalysis.SymbolSearch;
@@ -654,7 +653,7 @@ internal partial class SymbolSearchUpdateEngine
             using (var inStream = new MemoryStream(compressedBytes))
             using (var deflateStream = new DeflateStream(inStream, CompressionMode.Decompress))
             {
-#if NETCOREAPP
+#if NET
                 await deflateStream.CopyToAsync(outStream, cancellationToken).ConfigureAwait(false);
 #else
                 await deflateStream.CopyToAsync(outStream).ConfigureAwait(false);

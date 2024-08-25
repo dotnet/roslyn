@@ -12,6 +12,11 @@
         <target state="translated">'{0}' deyimine küme ayracı ekleyin.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Anonymous_function_can_be_made_static">
+        <source>Anonymous function can be made static</source>
+        <target state="translated">Anonim işle statik hale getirilebilir</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Blank_line_not_allowed_after_arrow_expression_clause_token">
         <source>Blank line not allowed after arrow expression clause token</source>
         <target state="translated">Ok ifadesi yan tümce belirtecinin ardından boş satıra izin verilmez</target>
@@ -90,6 +95,11 @@
       <trans-unit id="Lambda_expression_can_be_removed">
         <source>Lambda expression can be removed</source>
         <target state="translated">Lambda ifadesi kaldırılabilir</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Make_anonymous_function_static">
+        <source>Make anonymous function static</source>
+        <target state="translated">Anonim işlevi statik hale getir</target>
         <note />
       </trans-unit>
       <trans-unit id="Make_member_readonly">
@@ -226,6 +236,11 @@
         <source>Unreachable code detected</source>
         <target state="translated">Ulaşılamayan kod algılandı</target>
         <note />
+      </trans-unit>
+      <trans-unit id="Use_System_Threading_Lock">
+        <source>Use 'System.Threading.Lock'</source>
+        <target state="new">Use 'System.Threading.Lock'</target>
+        <note>{Locked="System.Threading.Lock"} "System.Threading.Lock" is the name of a .Net type and should not be localized.</note>
       </trans-unit>
       <trans-unit id="Use_Utf8_string_literal">
         <source>Use UTF-8 string literal</source>

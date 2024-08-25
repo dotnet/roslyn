@@ -5,7 +5,6 @@
 #nullable disable
 
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
@@ -16,16 +15,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Preview;
 
 internal abstract partial class ReferenceChange : AbstractChange
 {
-    private readonly ProjectId _projectId;
-    private readonly string _projectName;
-    private readonly bool _isAddedReference;
-
     protected ReferenceChange(ProjectId projectId, string projectName, bool isAddedReference, PreviewEngine engine)
         : base(engine)
     {
-        _projectId = projectId;
-        _projectName = projectName;
-        _isAddedReference = isAddedReference;
+        ProjectId = projectId;
+        ProjectName = projectName;
+        IsAddedReference = isAddedReference;
     }
 
     public static void AppendReferenceChanges(IEnumerable<ProjectChanges> projectChangesList, PreviewEngine engine, ArrayBuilder<AbstractChange> builder)
@@ -72,9 +67,9 @@ internal abstract partial class ReferenceChange : AbstractChange
         }
     }
 
-    protected ProjectId ProjectId { get { return _projectId; } }
-    internal bool IsAddedReference { get { return _isAddedReference; } }
-    protected string ProjectName { get { return _projectName; } }
+    protected ProjectId ProjectId { get; }
+    internal bool IsAddedReference { get; }
+    protected string ProjectName { get; }
 
     protected abstract string GetDisplayText();
     internal abstract Solution AddToSolution(Solution solution);

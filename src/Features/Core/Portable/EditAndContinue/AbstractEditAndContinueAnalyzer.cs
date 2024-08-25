@@ -426,9 +426,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> forwardMap,
         SyntaxNode oldActiveStatement,
         DeclarationBody oldBody,
+        SemanticModel oldModel,
         SyntaxNode newActiveStatement,
         DeclarationBody newBody,
-        bool isNonLeaf);
+        SemanticModel newModel,
+        bool isNonLeaf,
+        CancellationToken cancellationToken);
 
     internal abstract void ReportInsertedMemberSymbolRudeEdits(ArrayBuilder<RudeEditDiagnostic> diagnostics, ISymbol newSymbol, SyntaxNode newNode, bool insertingIntoExistingContainingType);
     internal abstract void ReportStateMachineSuspensionPointRudeEdits(DiagnosticContext diagnosticContext, SyntaxNode oldNode, SyntaxNode newNode);
@@ -667,8 +670,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             AnalyzeUnchangedActiveMemberBodies(diagnostics, syntacticEdits.Match, newText, oldActiveStatements, newActiveStatementSpans, newActiveStatements, newExceptionRegions, cancellationToken);
             Debug.Assert(newActiveStatements.All(a => a != null));
 
-            var hasRudeEdits = diagnostics.Count > 0;
-            if (hasRudeEdits)
+            if (!diagnostics.IsEmpty)
             {
                 LogRudeEdits(diagnostics, newText, filePath);
             }
@@ -677,19 +679,22 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 Log.Write("Capabilities required by '{0}': {1}", filePath, capabilities.GrantedCapabilities);
             }
 
+            var hasBlockingRudeEdits = diagnostics.HasBlockingRudeEdits();
+
             return new DocumentAnalysisResults(
                 newDocument.Id,
                 filePath,
                 newActiveStatements.MoveToImmutable(),
                 diagnostics.ToImmutable(),
                 syntaxError: null,
-                hasRudeEdits ? default : semanticEdits,
-                hasRudeEdits ? default : newExceptionRegions.MoveToImmutable(),
-                hasRudeEdits ? default : lineEdits.ToImmutable(),
-                hasRudeEdits ? default : capabilities.GrantedCapabilities,
+                hasBlockingRudeEdits ? default : semanticEdits,
+                hasBlockingRudeEdits ? default : newExceptionRegions.MoveToImmutable(),
+                hasBlockingRudeEdits ? default : lineEdits.ToImmutable(),
+                hasBlockingRudeEdits ? default : capabilities.GrantedCapabilities,
                 analysisStopwatch.Elapsed,
                 hasChanges: true,
-                hasSyntaxErrors: false);
+                hasSyntaxErrors: false,
+                hasBlockingRudeEdits);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -845,6 +850,9 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                         {
                             Contract.ThrowIfFalse(statementPart == -1);
                             oldBody.FindStatementAndPartner(oldStatementSpan, newBody, out newStatement, out statementPart);
+
+                            // We should find a partner statement since we are analyzing method body that has not been changed.
+                            // If this fails we should have calculated the new active statement during the analysis of the updated method body.
                             Contract.ThrowIfNull(newStatement);
                         }
 
@@ -949,11 +957,6 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
         var activeStatementIndices = oldMemberBody?.GetOverlappingActiveStatementIndices(oldActiveStatements)?.ToArray() ?? [];
 
-        if (isMemberReplaced && !activeStatementIndices.IsEmpty())
-        {
-            diagnosticContext.Report(RudeEditKind.ChangingNameOrSignatureOfActiveMember, cancellationToken);
-        }
-
         try
         {
             if (newMemberBody != null)
@@ -1047,6 +1050,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             }
 
             var activeNodesInBody = activeNodes.Where(n => n.EnclosingLambdaBody == null).ToArray();
+            var bodyHasActiveStatement = activeNodesInBody.Length != 0;
 
             var memberBodyMap = ComputeDeclarationBodyMap(oldMemberBody, newMemberBody, activeNodesInBody);
             var aggregateBodyMap = IncludeLambdaBodyMaps(memberBodyMap, activeNodes, ref lazyActiveOrMatchedLambdas);
@@ -1054,7 +1058,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             var oldStateMachineInfo = oldMemberBody?.GetStateMachineInfo() ?? StateMachineInfo.None;
             var newStateMachineInfo = newMemberBody?.GetStateMachineInfo() ?? StateMachineInfo.None;
 
-            ReportStateMachineBodyUpdateRudeEdits(diagnosticContext, memberBodyMap, oldStateMachineInfo, newStateMachineInfo, hasActiveStatement: activeNodesInBody.Length != 0, cancellationToken);
+            ReportStateMachineBodyUpdateRudeEdits(diagnosticContext, memberBodyMap, oldStateMachineInfo, newStateMachineInfo, bodyHasActiveStatement, cancellationToken);
 
             ReportMemberOrLambdaBodyUpdateRudeEdits(
                 diagnosticContext,
@@ -1086,8 +1090,23 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 capabilities,
                 diagnostics,
                 out var newBodyHasLambdas,
+                out var hasLambdaBodyUpdate,
                 out var runtimeRudeEdits,
                 cancellationToken);
+
+            // Report rude edit only if the body itself has active statement, not when only a lambda in the body has one.
+            if (isMemberReplaced && bodyHasActiveStatement)
+            {
+                diagnosticContext.Report(RudeEditKind.ChangingNameOrSignatureOfActiveMember, cancellationToken);
+            }
+
+            // Updating entry point that doesn't have an active statement will most likely have no effect, unless the update is in a lambda body.   
+            // In theory, the code could be updating the entry point while executing static constructor of module initializer,
+            // but those cases are rare.
+            if (!hasLambdaBodyUpdate && !bodyHasActiveStatement && oldMember == oldCompilation.GetEntryPoint(cancellationToken))
+            {
+                diagnosticContext.Report(RudeEditKind.UpdateMightNotHaveAnyEffect, cancellationToken);
+            }
 
             // We need to provide syntax map to the compiler if 
             // 1) The new member has a active statement
@@ -1101,7 +1120,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             //    We create syntax map even if it's not necessary: if any data member initializers are active/contain lambdas.
             //    Since initializers are usually simple the map should not be large enough to make it worth optimizing it away.
             var matchingNodes =
-                (!activeNodes.IsEmpty() ||
+                (!activeNodes.IsEmpty ||
                 newStateMachineInfo.HasSuspensionPoints ||
                 newBodyHasLambdas ||
                 IsConstructorWithMemberInitializers(newMember, cancellationToken) ||
@@ -1169,8 +1188,9 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 TextSpan newSpan;
                 if (hasMatching)
                 {
-                    Debug.Assert(newStatementSyntax != null);
-                    Debug.Assert(newBody != null);
+                    Contract.ThrowIfNull(newStatementSyntax);
+                    Contract.ThrowIfNull(newBody);
+                    Contract.ThrowIfNull(oldModel);
 
                     // The matching node doesn't produce sequence points.
                     // E.g. "const" keyword is inserted into a local variable declaration with an initializer.
@@ -1188,9 +1208,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                         enclosingBodyMap.Reverse,
                         oldStatementSyntax,
                         oldBody,
+                        oldModel,
                         newStatementSyntax,
                         newBody,
-                        isNonLeaf);
+                        newModel,
+                        isNonLeaf,
+                        cancellationToken);
                 }
                 else if (enclosingBodyMap.Forward.IsEmpty())
                 {
@@ -1759,6 +1782,15 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         }
     }
 
+    protected void AddRudeTypeUpdateAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newNode, ITypeSymbol oldType, ITypeSymbol newType)
+    {
+        diagnostics.Add(new RudeEditDiagnostic(
+            RudeEditKind.TypeUpdateAroundActiveStatement,
+            GetDiagnosticSpan(newNode, EditKind.Update),
+            newNode,
+            [GetDisplayName(newNode, EditKind.Update), oldType.ToDisplayString(), newType.ToDisplayString()]));
+    }
+
     protected void AddRudeUpdateAroundActiveStatement(ArrayBuilder<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)
     {
         diagnostics.Add(new RudeEditDiagnostic(
@@ -1789,13 +1821,17 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
     protected void ReportUnmatchedStatements<TSyntaxNode>(
         ArrayBuilder<RudeEditDiagnostic> diagnostics,
         IReadOnlyDictionary<SyntaxNode, SyntaxNode> reverseMap,
-        Func<SyntaxNode, bool> nodeSelector,
         SyntaxNode oldActiveStatement,
         SyntaxNode oldEncompassingAncestor,
+        SemanticModel oldModel,
         SyntaxNode newActiveStatement,
         SyntaxNode newEncompassingAncestor,
+        SemanticModel newModel,
+        Func<SyntaxNode, bool> nodeSelector,
+        Func<TSyntaxNode, OneOrMany<SyntaxNode>> getTypedNodes,
         Func<TSyntaxNode, TSyntaxNode, bool> areEquivalent,
-        Func<TSyntaxNode, TSyntaxNode, bool>? areSimilar)
+        Func<TSyntaxNode, TSyntaxNode, bool>? areSimilar,
+        CancellationToken cancellationToken)
         where TSyntaxNode : SyntaxNode
     {
         var newNodes = GetAncestors(newEncompassingAncestor, newActiveStatement, nodeSelector);
@@ -1809,12 +1845,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         int matchCount;
         if (oldNodes != null)
         {
-            matchCount = MatchNodes(oldNodes, newNodes, diagnostics: null, reverseMap, comparer: areEquivalent);
+            matchCount = MatchNodes(oldNodes, oldModel, newNodes, newModel, diagnostics, reverseMap, getTypedNodes, comparer: areEquivalent, exactMatch: true, cancellationToken);
 
             // Do another pass over the nodes to improve error messages.
             if (areSimilar != null && matchCount < Math.Min(oldNodes.Count, newNodes.Count))
             {
-                matchCount += MatchNodes(oldNodes, newNodes, diagnostics, reverseMap: null, comparer: areSimilar);
+                matchCount += MatchNodes(oldNodes, oldModel, newNodes, newModel, diagnostics, reverseMap: null, getTypedNodes, comparer: areSimilar, exactMatch: false, cancellationToken);
             }
         }
         else
@@ -1855,10 +1891,15 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
     private int MatchNodes<TSyntaxNode>(
         List<SyntaxNode?> oldNodes,
+        SemanticModel oldModel,
         List<SyntaxNode?> newNodes,
-        ArrayBuilder<RudeEditDiagnostic>? diagnostics,
+        SemanticModel newModel,
+        ArrayBuilder<RudeEditDiagnostic> diagnostics,
         IReadOnlyDictionary<SyntaxNode, SyntaxNode>? reverseMap,
-        Func<TSyntaxNode, TSyntaxNode, bool> comparer)
+        Func<TSyntaxNode, OneOrMany<SyntaxNode>> getTypedNodes,
+        Func<TSyntaxNode, TSyntaxNode, bool> comparer,
+        bool exactMatch,
+        CancellationToken cancellationToken)
         where TSyntaxNode : SyntaxNode
     {
         var matchCount = 0;
@@ -1902,15 +1943,44 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
             if (i >= 0)
             {
-                // we have an update or an exact match:
-                oldNodes[i] = null;
-                newNodes[newIndex] = null;
-                matchCount++;
+                // An update or an exact match.
 
-                if (diagnostics != null)
+                oldNode = oldNodes[i];
+                Contract.ThrowIfNull(oldNode);
+
+                // If the nodes don't match exactly report rude edit right away,
+                // otherwise check if the types of temp variable the node generates (if any) changed.
+
+                if (!exactMatch)
                 {
                     AddRudeUpdateAroundActiveStatement(diagnostics, newNode);
                 }
+                else
+                {
+                    var oldTypedNodes = getTypedNodes((TSyntaxNode)oldNode);
+                    var newTypedNodes = getTypedNodes((TSyntaxNode)newNode);
+
+                    // nodes are syntactically equivallent, so they should yield the same amount of types:
+                    Contract.ThrowIfFalse(oldTypedNodes.Count == newTypedNodes.Count);
+
+                    for (var t = 0; t < oldTypedNodes.Count; t++)
+                    {
+                        var oldType = oldModel.GetTypeInfo(oldTypedNodes[t], cancellationToken).Type;
+                        var newType = newModel.GetTypeInfo(newTypedNodes[t], cancellationToken).Type;
+
+                        Contract.ThrowIfNull(oldType);
+                        Contract.ThrowIfNull(newType);
+
+                        if (!TypesEquivalent(oldType, newType, exact: false))
+                        {
+                            AddRudeTypeUpdateAroundActiveStatement(diagnostics, newNode, oldType, newType);
+                        }
+                    }
+                }
+
+                oldNodes[i] = null;
+                newNodes[newIndex] = null;
+                matchCount++;
             }
         }
 
@@ -2339,6 +2409,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         => TypesEquivalent(oldParameter.ConstraintTypes, newParameter.ConstraintTypes, exact) &&
            oldParameter.HasReferenceTypeConstraint == newParameter.HasReferenceTypeConstraint &&
            oldParameter.HasValueTypeConstraint == newParameter.HasValueTypeConstraint &&
+           oldParameter.AllowsRefLikeType == newParameter.AllowsRefLikeType &&
            oldParameter.HasConstructorConstraint == newParameter.HasConstructorConstraint &&
            oldParameter.HasNotNullConstraint == newParameter.HasNotNullConstraint &&
            oldParameter.HasUnmanagedTypeConstraint == newParameter.HasUnmanagedTypeConstraint &&
@@ -2567,7 +2638,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                             {
                                 if (processedSymbols.Add(newContainingType))
                                 {
-                                    if (capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
+                                    if (capabilities.GrantNewTypeDefinition(containingType))
                                     {
                                         semanticEdits.Add(SemanticEditInfo.CreateReplace(containingTypeSymbolKey,
                                             IsPartialTypeEdit(oldContainingType, newContainingType, oldTree, newTree) ? containingTypeSymbolKey : null));
@@ -2601,7 +2672,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                     // https://github.com/dotnet/roslyn/issues/54881
                                     diagnosticContext.Report(RudeEditKind.ChangingTypeParameters, cancellationToken);
                                 }
-                                else if (!capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
+                                else if (!capabilities.GrantNewTypeDefinition(oldType))
                                 {
                                     diagnosticContext.Report(RudeEditKind.ChangingReloadableTypeNotSupportedByRuntime, cancellationToken);
                                 }
@@ -2656,9 +2727,9 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                     break;
                                 }
 
-                                // If a partial method definition is deleted (and not moved to another partial type declaration, which is handled above)
+                                // If a partial method/property/indexer definition is deleted (and not moved to another partial type declaration, which is handled above)
                                 // so must be the implementation. An edit will be issued for the implementation change.
-                                if (newSymbol is IMethodSymbol { IsPartialDefinition: true })
+                                if (newSymbol?.IsPartialDefinition() == true)
                                 {
                                     continue;
                                 }
@@ -2806,7 +2877,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                                 // If a partial method definition is inserted (and not moved to another partial type declaration, which is handled above)
                                 // so must be the implementation. An edit will be issued for the implementation change.
-                                if (newSymbol is IMethodSymbol { IsPartialDefinition: true })
+                                if (newSymbol.IsPartialDefinition())
                                 {
                                     continue;
                                 }
@@ -2883,7 +2954,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                     // therefore inserting the <Program>$ type
                                     Contract.ThrowIfFalse(newSymbol is INamedTypeSymbol || IsGlobalMain(newSymbol));
 
-                                    if (!capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
+                                    if (!capabilities.GrantNewTypeDefinition((newSymbol as INamedTypeSymbol) ?? newSymbol.ContainingType))
                                     {
                                         diagnostics.Add(new RudeEditDiagnostic(
                                             RudeEditKind.InsertNotSupportedByRuntime,
@@ -3047,13 +3118,16 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                         var replaceMember = IsMemberOrDelegate(oldSymbol) && IsMemberOrDelegateReplaced(oldSymbol, newSymbol);
 
+                        var signatureRudeEdit = RudeEditKind.None;
                         if (replaceMember && oldSymbol.Name == newSymbol.Name)
                         {
-                            var signatureRudeEdit = GetSignatureChangeRudeEdit(oldSymbol, newSymbol, capabilities);
+                            signatureRudeEdit = GetSignatureChangeRudeEdit(oldSymbol, newSymbol, capabilities);
                             if (signatureRudeEdit != RudeEditKind.None)
                             {
                                 diagnosticContext.Report(signatureRudeEdit, cancellationToken);
-                                continue;
+
+                                // Note: Continue analysis - we need to analyze the changed body and
+                                // update any active statements to avoid contract failures.
                             }
                         }
 
@@ -3090,6 +3164,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                                     out syntaxMaps,
                                     cancellationToken);
                             }
+                        }
+
+                        // Skip further symbol update analysis if the member signature change is unsupported:
+                        if (signatureRudeEdit != RudeEditKind.None)
+                        {
+                            continue;
                         }
 
                         AnalyzeSymbolUpdate(diagnosticContext, capabilities, semanticEdits, out var hasAttributeChange, cancellationToken);
@@ -3159,7 +3239,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                     // The partial type needs to be specified in the following cases:
                     // 1) partial method is updated (in case both implementation and definition are updated)
                     // 2) partial type is updated
-                    var partialType = editKind == SemanticEditKind.Update && symbol is IMethodSymbol { PartialDefinitionPart: not null }
+                    var partialType = editKind == SemanticEditKind.Update && symbol.IsPartialImplementation()
                         ? symbolCache.GetKey(symbol.ContainingType, cancellationToken)
                         : IsPartialTypeEdit(oldSymbol, newSymbol, oldTree, newTree)
                         ? symbolKey
@@ -3205,7 +3285,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                     {
                         if (processedSymbols.Add(newContainingType))
                         {
-                            if (capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
+                            if (capabilities.GrantNewTypeDefinition(newContainingType))
                             {
                                 var oldContainingTypeKey = SymbolKey.Create(oldContainingType, cancellationToken);
                                 semanticEdits.Add(SemanticEditInfo.CreateReplace(oldContainingTypeKey,
@@ -3328,7 +3408,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                     var result = symbolKey.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken).Symbol;
 
                     // If we were looking for a definition and an implementation is returned the definition does not exist.
-                    return symbol is IMethodSymbol { PartialDefinitionPart: not null } && result is IMethodSymbol { IsPartialDefinition: true } ? null : result;
+                    return symbol.IsPartialImplementation() && result?.IsPartialDefinition() == true ? null : result;
                 }
 
                 var symbol = newSymbol ?? oldSymbol;
@@ -3599,9 +3679,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             if (symbol is null)
                 return;
 
-            Debug.Assert(symbol is not IMethodSymbol { IsPartialDefinition: true });
-
-            semanticEdits.Add(SemanticEditInfo.CreateUpdate(SymbolKey.Create(symbol, cancellationToken), syntaxMaps: default, partialType: null));
+            semanticEdits.Add(SemanticEditInfo.CreateUpdate(symbol, syntaxMaps: default, cancellationToken));
         }
     }
 
@@ -3640,10 +3718,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             if (symbol is null)
                 return;
 
-            Debug.Assert(symbol is not IMethodSymbol { IsPartialDefinition: true });
-
-            var partialType = symbol is IMethodSymbol { PartialDefinitionPart: not null } ? SymbolKey.Create(symbol.ContainingType, cancellationToken) : (SymbolKey?)null;
-            semanticEdits.Add(SemanticEditInfo.CreateDelete(SymbolKey.Create(symbol, cancellationToken), deletedSymbolContainer, partialType));
+            semanticEdits.Add(SemanticEditInfo.CreateDelete(symbol, deletedSymbolContainer, cancellationToken));
         }
     }
 
@@ -3657,9 +3732,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         // 
         // When inserting a new event we need to insert the entire event, so
         // pevent and method semantics metadata tables can all be updated if/as necessary.
-
-        var partialType = newSymbol is IMethodSymbol { PartialDefinitionPart: not null } ? SymbolKey.Create(newSymbol.ContainingType, cancellationToken) : (SymbolKey?)null;
-        semanticEdits.Add(SemanticEditInfo.CreateInsert(SymbolKey.Create(newSymbol, cancellationToken), partialType));
+        semanticEdits.Add(SemanticEditInfo.CreateInsert(newSymbol, cancellationToken));
     }
 
     private static void AddMemberSignatureOrNameChangeEdits(
@@ -3717,7 +3790,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             if (symbol is null)
                 return;
 
-            semanticEdits.Add(SemanticEditInfo.CreateInsert(SymbolKey.Create(symbol, cancellationToken), partialType: null));
+            semanticEdits.Add(SemanticEditInfo.CreateInsert(symbol, cancellationToken));
         }
 
         void AddDelete(ISymbol? symbol)
@@ -3725,7 +3798,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
             if (symbol is null)
                 return;
 
-            semanticEdits.Add(SemanticEditInfo.CreateDelete(SymbolKey.Create(symbol, cancellationToken), containingSymbolKey, partialType: null));
+            semanticEdits.Add(SemanticEditInfo.CreateDelete(symbol, containingSymbolKey, cancellationToken));
         }
     }
 
@@ -3809,7 +3882,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         foreach (var (_, indices) in deletedTypes)
             indices.Free();
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static bool IsReloadable(INamedTypeSymbol type)
@@ -3889,7 +3962,7 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
         if (!oldStateMachineInfo.IsStateMachine &&
             newStateMachineInfo.IsStateMachine &&
-            !capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition))
+            !capabilities.Grant(EditAndContinueCapabilities.NewTypeDefinition | EditAndContinueCapabilities.AddExplicitInterfaceImplementation))
         {
             // Adding a state machine, either for async or iterator, will require creating a new helper class
             // so is a rude edit if the runtime doesn't support it
@@ -5396,10 +5469,12 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
         EditAndContinueCapabilitiesGrantor capabilities,
         ArrayBuilder<RudeEditDiagnostic> diagnostics,
         out bool syntaxMapRequired,
+        out bool hasLambdaBodyUpdate,
         out Func<SyntaxNode, RuntimeRudeEdit?>? runtimeRudeEdits,
         CancellationToken cancellationToken)
     {
         syntaxMapRequired = false;
+        hasLambdaBodyUpdate = false;
         runtimeRudeEdits = null;
 
         if (activeOrMatchedLambdas != null)
@@ -5443,6 +5518,8 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
 
                 if (!oldLambdaBody.IsSyntaxEquivalentTo(newLambdaBody))
                 {
+                    hasLambdaBodyUpdate = true;
+
                     ReportMemberOrLambdaBodyUpdateRudeEdits(
                         diagnosticContext,
                         oldModel.Compilation,
@@ -5684,9 +5761,11 @@ internal abstract class AbstractEditAndContinueAnalyzer : IEditAndContinueAnalyz
                 }
             }
 
-            // If the old verison of the method had any lambdas the nwe know a closure type exists and a new one isn't needed.
+            // If the old version of the method had any lambdas then we know a closure type exists and a new one isn't needed.
             // We also know that adding a local function won't create a new closure type.
             // Otherwise, we assume a new type is needed.
+            // We also assume that the closure type does not implement an interface explicitly,
+            // so we do not need AddExplicitInterfaceImplementation capability.
 
             if (!oldHasLambdas && !isLocalFunction)
             {

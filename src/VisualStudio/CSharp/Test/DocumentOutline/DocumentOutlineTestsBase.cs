@@ -2,9 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -12,7 +11,6 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.Test;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
-using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServer.Handler;
 using Microsoft.CodeAnalysis.LanguageServer.UnitTests;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,13 +20,10 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServer.Client;
 using Microsoft.VisualStudio.LanguageServices.DocumentOutline;
 using Microsoft.VisualStudio.Text;
-using Microsoft.VisualStudio.Threading;
-using Moq;
-using Newtonsoft.Json.Linq;
+using StreamJsonRpc;
 using Xunit.Abstractions;
 using static Roslyn.Test.Utilities.AbstractLanguageServerProtocolTests;
 using IAsyncDisposable = System.IAsyncDisposable;
-using LSP = Roslyn.LanguageServer.Protocol;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
 {
@@ -49,7 +44,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             private readonly IAsyncDisposable _disposable;
 
             internal DocumentOutlineTestMocks(
-                LanguageServiceBrokerCallback languageServiceBrokerCallback,
+                LanguageServiceBrokerCallback<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]> languageServiceBrokerCallback,
                 IThreadingContext threadingContext,
                 EditorTestWorkspace workspace,
                 IAsyncDisposable disposable)
@@ -61,7 +56,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
                 TextBuffer = workspace.Documents.Single().GetTextBuffer();
             }
 
-            internal LanguageServiceBrokerCallback LanguageServiceBrokerCallback { get; }
+            internal LanguageServiceBrokerCallback<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]> LanguageServiceBrokerCallback { get; }
 
             internal IThreadingContext ThreadingContext { get; }
 
@@ -84,31 +79,22 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             var workspace = EditorTestWorkspace.CreateCSharp(code, composition: s_composition);
             var threadingContext = workspace.GetService<IThreadingContext>();
 
-            var clientCapabilities = new LSP.ClientCapabilities()
-            {
-                TextDocument = new LSP.TextDocumentClientCapabilities()
-                {
-                    DocumentSymbol = new LSP.DocumentSymbolSetting()
-                    {
-                        HierarchicalDocumentSymbolSupport = true
-                    }
-                }
-            };
-
-            var testLspServer = await CreateTestLspServerAsync(workspace, new InitializationOptions { ClientCapabilities = clientCapabilities });
+            var testLspServer = await CreateTestLspServerAsync(workspace);
 
             var mocks = new DocumentOutlineTestMocks(RequestAsync, threadingContext, workspace, testLspServer);
             return mocks;
 
-            async Task<ManualInvocationResponse?> RequestAsync(ITextBuffer textBuffer, Func<JToken, bool> capabilitiesFilter, string languageServerName, string method, Func<ITextSnapshot, JToken> parameterFactory, CancellationToken cancellationToken)
+            async Task<RoslynDocumentSymbol[]?> RequestAsync(Request<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]> request, CancellationToken cancellationToken)
             {
-                var request = parameterFactory(textBuffer.CurrentSnapshot).ToObject<RoslynDocumentSymbolParams>();
-                var response = await testLspServer.ExecuteRequestAsync<RoslynDocumentSymbolParams, object[]>(method, request!, cancellationToken);
-                return new ManualInvocationResponse(string.Empty, JToken.FromObject(response!));
+                var docRequest = (DocumentRequest<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]>)request;
+                var parameters = docRequest.ParameterFactory(docRequest.TextBuffer.CurrentSnapshot);
+                var response = await testLspServer.ExecuteRequestAsync<RoslynDocumentSymbolParams, RoslynDocumentSymbol[]>(request.Method, parameters, cancellationToken);
+
+                return response;
             }
         }
 
-        private async Task<TestLspServer> CreateTestLspServerAsync(EditorTestWorkspace workspace, InitializationOptions initializationOptions)
+        private async Task<TestLspServer> CreateTestLspServerAsync(EditorTestWorkspace workspace)
         {
             var solution = workspace.CurrentSolution;
 
@@ -139,7 +125,15 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.DocumentOutline
             var workspaceWaiter = operations.GetWaiter(FeatureAttribute.Workspace);
             await workspaceWaiter.ExpeditedWaitAsync();
 
-            return await TestLspServer.CreateAsync(workspace, initializationOptions, _logger);
+            var server = await TestLspServer.CreateAsync(workspace, new InitializationOptions(), _logger);
+            return server;
+        }
+
+        [DataContract]
+        private class NewtonsoftInitializeParams
+        {
+            [DataMember(Name = "capabilities")]
+            internal object? Capabilities { get; set; }
         }
     }
 }

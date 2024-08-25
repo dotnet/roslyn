@@ -8,7 +8,6 @@ using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -21,17 +20,15 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseUtf8StringLiteral;
 
+using static SyntaxFactory;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UseUtf8StringLiteral), Shared]
-internal sealed class UseUtf8StringLiteralCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class UseUtf8StringLiteralCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     private const char QuoteCharacter = '"';
     private const string Suffix = "u8";
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public UseUtf8StringLiteralCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } =
         [IDEDiagnosticIds.UseUtf8StringLiteralDiagnosticId];
@@ -44,7 +41,7 @@ internal sealed class UseUtf8StringLiteralCodeFixProvider : SyntaxEditorBasedCod
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
-        SyntaxEditor editor, CodeActionOptionsProvider options, CancellationToken cancellationToken)
+        SyntaxEditor editor, CancellationToken cancellationToken)
     {
         var semanticModel = await document.GetRequiredSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
@@ -173,14 +170,14 @@ internal sealed class UseUtf8StringLiteralCodeFixProvider : SyntaxEditorBasedCod
                 // We don't need to worry about leading trivia here, because anything before the current
                 // argument will have been trailing trivia on the previous comma.
                 var stringLiteral = CreateUtf8String(SyntaxTriviaList.Empty, stringValue, argumentList.Arguments.Last().GetTrailingTrivia(), isConvertedToReadOnlySpan);
-                arguments.Add(SyntaxFactory.Argument(stringLiteral));
+                arguments.Add(Argument(stringLiteral));
                 break;
             }
 
             arguments.Add(argument);
         }
 
-        return argumentList.WithArguments(SyntaxFactory.SeparatedList<ArgumentSyntax>(arguments));
+        return argumentList.WithArguments(SeparatedList<ArgumentSyntax>(arguments));
     }
 
     private static ExpressionSyntax CreateUtf8String(SyntaxNode nodeToTakeTriviaFrom, string stringValue, bool isConvertedToReadOnlySpan)
@@ -190,8 +187,8 @@ internal sealed class UseUtf8StringLiteralCodeFixProvider : SyntaxEditorBasedCod
 
     private static ExpressionSyntax CreateUtf8String(SyntaxTriviaList leadingTrivia, string stringValue, SyntaxTriviaList trailingTrivia, bool isConvertedToReadOnlySpan)
     {
-        var stringLiteral = SyntaxFactory.LiteralExpression(SyntaxKind.Utf8StringLiteralExpression,
-            SyntaxFactory.Token(
+        var stringLiteral = LiteralExpression(SyntaxKind.Utf8StringLiteralExpression,
+            Token(
                 leading: leadingTrivia,
                 kind: SyntaxKind.Utf8StringLiteralToken,
                 text: QuoteCharacter + stringValue + QuoteCharacter + Suffix,
@@ -205,11 +202,11 @@ internal sealed class UseUtf8StringLiteralCodeFixProvider : SyntaxEditorBasedCod
 
         // We're replacing a byte array with a ReadOnlySpan<byte>, so if that byte array wasn't originally being
         // converted to the same, then we need to call .ToArray() to get things back to a byte array.
-        return SyntaxFactory.InvocationExpression(
-                 SyntaxFactory.MemberAccessExpression(
+        return InvocationExpression(
+                 MemberAccessExpression(
                      SyntaxKind.SimpleMemberAccessExpression,
                      stringLiteral,
-                     SyntaxFactory.IdentifierName(nameof(ReadOnlySpan<byte>.ToArray))))
+                     IdentifierName(nameof(ReadOnlySpan<byte>.ToArray))))
                .WithTrailingTrivia(trailingTrivia);
     }
 }

@@ -8,12 +8,10 @@ extern alias InteractiveHost;
 
 using System;
 using System.ComponentModel.Design;
-using System.Diagnostics;
 using System.Reflection;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
@@ -35,7 +33,6 @@ internal abstract partial class VsInteractiveWindowPackage<TVsInteractiveWindowP
     protected abstract Guid ToolWindowId { get; }
 
     private IComponentModel _componentModel;
-    private TVsInteractiveWindowProvider _interactiveWindowProvider;
 
     protected override async Task InitializeAsync(CancellationToken cancellationToken, IProgress<ServiceProgressData> progress)
     {
@@ -63,7 +60,7 @@ internal abstract partial class VsInteractiveWindowPackage<TVsInteractiveWindowP
         SetErrorHandlers(typeof(IInteractiveWindow).Assembly, fatalHandler, nonFatalHandler);
         SetErrorHandlers(typeof(IVsInteractiveWindow).Assembly, fatalHandler, nonFatalHandler);
 
-        _interactiveWindowProvider = _componentModel.DefaultExportProvider.GetExportedValue<TVsInteractiveWindowProvider>();
+        InteractiveWindowProvider = _componentModel.DefaultExportProvider.GetExportedValue<TVsInteractiveWindowProvider>();
 
         InitializeMenuCommands(menuCommandService);
     }
@@ -79,10 +76,7 @@ internal abstract partial class VsInteractiveWindowPackage<TVsInteractiveWindowP
         nonFatalHandlerSetter.Invoke(null, [nonFatalHandler]);
     }
 
-    protected TVsInteractiveWindowProvider InteractiveWindowProvider
-    {
-        get { return _interactiveWindowProvider; }
-    }
+    protected TVsInteractiveWindowProvider InteractiveWindowProvider { get; private set; }
 
     /// <summary>
     /// When a VSPackage supports multi-instance tool windows, each window uses the same rguidPersistenceSlot.
@@ -92,7 +86,7 @@ internal abstract partial class VsInteractiveWindowPackage<TVsInteractiveWindowP
     {
         if (rguidPersistenceSlot == ToolWindowId)
         {
-            _interactiveWindowProvider.Create((int)id);
+            InteractiveWindowProvider.Create((int)id);
             return VSConstants.S_OK;
         }
 

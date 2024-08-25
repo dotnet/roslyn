@@ -156,9 +156,9 @@ class C
                 // (5,29): error CS0759: No defining declaration found for implementing declaration of partial method 'C.local()'
                 //         static partial void local() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "local").WithArguments("C.local()").WithLocation(5, 29),
-                // (5,29): error CS0751: A partial method must be declared within a partial type
+                // (5,29): error CS0751: A partial member must be declared within a partial type
                 //         static partial void local() { }
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "local").WithLocation(5, 29),
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "local").WithLocation(5, 29),
                 // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1));
@@ -182,9 +182,9 @@ class C
                 // (5,22): error CS0759: No defining declaration found for implementing declaration of partial method 'C.local()'
                 //         partial void local() { }
                 Diagnostic(ErrorCode.ERR_PartialMethodMustHaveLatent, "local").WithArguments("C.local()").WithLocation(5, 22),
-                // (5,22): error CS0751: A partial method must be declared within a partial type
+                // (5,22): error CS0751: A partial member must be declared within a partial type
                 //         partial void local() { }
-                Diagnostic(ErrorCode.ERR_PartialMethodOnlyInPartialClass, "local").WithLocation(5, 22),
+                Diagnostic(ErrorCode.ERR_PartialMemberOnlyInPartialClass, "local").WithLocation(5, 22),
                 // (7,1): error CS1022: Type or namespace definition, or end-of-file expected
                 // }
                 Diagnostic(ErrorCode.ERR_EOFExpected, "}").WithLocation(7, 1));

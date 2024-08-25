@@ -13,11 +13,11 @@ using System.IO;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Basic.Reference.Assemblies;
-using static TestReferences;
-using static Roslyn.Test.Utilities.TestMetadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using System.Reflection;
 using System.Collections.Concurrent;
+using static TestReferences;
+using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Roslyn.Test.Utilities
 {
@@ -68,15 +68,12 @@ namespace Roslyn.Test.Utilities
         Mscorlib40Extended,
         Mscorlib40AndSystemCore,
         Mscorlib40AndVBRuntime,
-        Mscorlib45,
-        Mscorlib45Extended,
-        Mscorlib45AndCSharp,
-        Mscorlib45AndVBRuntime,
         Mscorlib46,
         Mscorlib46Extended,
         Mscorlib461,
         Mscorlib461Extended,
-        DesktopLatestExtended = Mscorlib461Extended,
+        Mscorlib461AndCSharp,
+        Mscorlib461AndVBRuntime,
 
         /// <summary>
         /// Minimal set of required types (<see cref="NetFx.Minimal.mincorlib"/>).
@@ -91,7 +88,8 @@ namespace Roslyn.Test.Utilities
         Net50,
         Net60,
         Net70,
-        Net80
+        Net80,
+        Net90,
     }
 
     /// <summary>
@@ -101,12 +99,12 @@ namespace Roslyn.Test.Utilities
     /// </summary>
     public static class NetCoreApp
     {
-        public static ImmutableArray<Net70.ReferenceInfo> AllReferenceInfos { get; } = ImmutableArray.CreateRange(Net70.References.All);
-        public static ImmutableArray<MetadataReference> References { get; } = ImmutableArray.CreateRange<MetadataReference>(Net70.All);
+        public static ImmutableArray<Net70.ReferenceInfo> AllReferenceInfos { get; } = ImmutableArray.CreateRange(Net70.ReferenceInfos.All);
+        public static ImmutableArray<MetadataReference> References { get; } = ImmutableArray.CreateRange<MetadataReference>(Net70.References.All);
 
-        public static PortableExecutableReference netstandard { get; } = Net70.netstandard;
-        public static PortableExecutableReference mscorlib { get; } = Net70.mscorlib;
-        public static PortableExecutableReference SystemRuntime { get; } = Net70.SystemRuntime;
+        public static PortableExecutableReference netstandard { get; } = Net70.References.netstandard;
+        public static PortableExecutableReference mscorlib { get; } = Net70.References.mscorlib;
+        public static PortableExecutableReference SystemRuntime { get; } = Net70.References.SystemRuntime;
     }
 
     /// <summary>
@@ -124,7 +122,7 @@ namespace Roslyn.Test.Utilities
         /// </remarks>
         public static ImmutableArray<MetadataReference> References { get; } =
             ImmutableArray
-                .CreateRange<MetadataReference>(Net461.All)
+                .CreateRange<MetadataReference>(Net461.References.All)
                 .Add(NetFx.ValueTuple.tuplelib);
 
         /// <summary>
@@ -136,19 +134,22 @@ namespace Roslyn.Test.Utilities
         /// </remarks>
         public static ImmutableArray<MetadataReference> Standard { get; } =
             ImmutableArray.Create<MetadataReference>(
-                Net461.mscorlib,
-                Net461.System,
-                Net461.SystemCore,
+                Net461.References.mscorlib,
+                Net461.References.System,
+                Net461.References.SystemCore,
+                Net461.References.SystemData,
                 NetFx.ValueTuple.tuplelib,
-                Net461.SystemRuntime);
+                Net461.References.SystemRuntime);
 
-        public static PortableExecutableReference mscorlib { get; } = Net461.mscorlib;
-        public static PortableExecutableReference System { get; } = Net461.System;
-        public static PortableExecutableReference SystemRuntime { get; } = Net461.SystemRuntime;
-        public static PortableExecutableReference SystemCore { get; } = Net461.SystemCore;
-        public static PortableExecutableReference SystemThreadingTasks { get; } = Net461.SystemThreadingTasks;
-        public static PortableExecutableReference MicrosoftCSharp { get; } = Net461.MicrosoftCSharp;
-        public static PortableExecutableReference MicrosoftVisualBasic { get; } = Net461.MicrosoftVisualBasic;
+        public static PortableExecutableReference mscorlib { get; } = Net461.References.mscorlib;
+        public static PortableExecutableReference System { get; } = Net461.References.System;
+        public static PortableExecutableReference SystemRuntime { get; } = Net461.References.SystemRuntime;
+        public static PortableExecutableReference SystemCore { get; } = Net461.References.SystemCore;
+        public static PortableExecutableReference SystemData { get; } = Net461.References.SystemData;
+        public static PortableExecutableReference SystemThreadingTasks { get; } = Net461.References.SystemThreadingTasks;
+        public static PortableExecutableReference SystemXml { get; } = Net461.References.SystemXml;
+        public static PortableExecutableReference MicrosoftCSharp { get; } = Net461.References.MicrosoftCSharp;
+        public static PortableExecutableReference MicrosoftVisualBasic { get; } = Net461.References.MicrosoftVisualBasic;
     }
 
     public static class TargetFrameworkUtil
@@ -168,24 +169,108 @@ namespace Roslyn.Test.Utilities
          * for a TypeLoadException are missing important information for resolving problems if/when they occur.
          * https://github.com/dotnet/roslyn/issues/25961
          */
+        public static ImmutableArray<MetadataReference> WinRTReferences =>
+        [
+            .. TestBase.WinRtRefs
+        ];
+        public static ImmutableArray<MetadataReference> MinimalReferences =>
+        [
+            TestBase.MinCorlibRef
+        ];
+        public static ImmutableArray<MetadataReference> MinimalAsyncReferences =>
+        [
+            TestBase.MinAsyncCorlibRef
+        ];
+        public static ImmutableArray<MetadataReference> Mscorlib45ExtendedReferences =>
+        [
+            NetFramework.mscorlib,
+            NetFramework.System,
+            NetFramework.SystemCore,
+            TestBase.ValueTupleRef,
+            NetFramework.SystemRuntime
+        ];
+        public static ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences =>
+        [
+            Net461.References.mscorlib,
+            Net461.References.System,
+            Net461.References.SystemCore,
+            TestBase.ValueTupleRef,
+            Net461.References.SystemRuntime
+        ];
+        /*
+         * ⚠ Dev note ⚠: TestBase properties end here.
+         */
 
-        public static ImmutableArray<MetadataReference> Mscorlib40References => ImmutableArray.Create<MetadataReference>(Net40.mscorlib);
-        public static ImmutableArray<MetadataReference> Mscorlib40ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net40.mscorlib, Net40.System, Net40.SystemCore);
-        public static ImmutableArray<MetadataReference> Mscorlib40andSystemCoreReferences => ImmutableArray.Create<MetadataReference>(Net40.mscorlib, Net40.SystemCore);
-        public static ImmutableArray<MetadataReference> Mscorlib40andVBRuntimeReferences => ImmutableArray.Create<MetadataReference>(Net40.mscorlib, Net40.System, Net40.MicrosoftVisualBasic);
-        public static ImmutableArray<MetadataReference> Mscorlib45References => ImmutableArray.Create<MetadataReference>(Net451.mscorlib);
-        public static ImmutableArray<MetadataReference> Mscorlib45ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net451.mscorlib, Net451.System, Net451.SystemCore, TestBase.ValueTupleRef, Net451.SystemRuntime);
-        public static ImmutableArray<MetadataReference> Mscorlib45AndCSharpReferences => ImmutableArray.Create<MetadataReference>(Net451.mscorlib, Net451.SystemCore, Net451.MicrosoftCSharp);
-        public static ImmutableArray<MetadataReference> Mscorlib45AndVBRuntimeReferences => ImmutableArray.Create<MetadataReference>(Net451.mscorlib, Net451.System, Net451.MicrosoftVisualBasic);
-        public static ImmutableArray<MetadataReference> Mscorlib46References => ImmutableArray.Create<MetadataReference>(Net461.mscorlib);
-        public static ImmutableArray<MetadataReference> Mscorlib46ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net461.mscorlib, Net461.System, Net461.SystemCore, TestBase.ValueTupleRef, Net461.SystemRuntime);
-        public static ImmutableArray<MetadataReference> Mscorlib461References => ImmutableArray.Create<MetadataReference>(Net461.mscorlib);
-        public static ImmutableArray<MetadataReference> Mscorlib461ExtendedReferences => ImmutableArray.Create<MetadataReference>(Net461.mscorlib, Net461.System, Net461.SystemCore, NetFx.ValueTuple.tuplelib, Net461.SystemRuntime);
-        public static ImmutableArray<MetadataReference> NetStandard20References => ImmutableArray.Create<MetadataReference>(NetStandard20.netstandard, NetStandard20.mscorlib, NetStandard20.SystemRuntime, NetStandard20.SystemCore, NetStandard20.SystemDynamicRuntime, NetStandard20.SystemLinq, NetStandard20.SystemLinqExpressions);
-        public static ImmutableArray<MetadataReference> WinRTReferences => ImmutableArray.Create(TestBase.WinRtRefs);
-        public static ImmutableArray<MetadataReference> DefaultVbReferences => ImmutableArray.Create<MetadataReference>(Net451.mscorlib, Net451.System, Net451.SystemCore, Net451.MicrosoftVisualBasic);
-        public static ImmutableArray<MetadataReference> MinimalReferences => ImmutableArray.Create(TestBase.MinCorlibRef);
-        public static ImmutableArray<MetadataReference> MinimalAsyncReferences => ImmutableArray.Create(TestBase.MinAsyncCorlibRef);
+        public static ImmutableArray<MetadataReference> Mscorlib40References { get; } =
+        [
+            Net40.References.mscorlib
+        ];
+        public static ImmutableArray<MetadataReference> Mscorlib40ExtendedReferences { get; } =
+        [
+            Net40.References.mscorlib,
+            Net40.References.System,
+            Net40.References.SystemCore
+        ];
+        public static ImmutableArray<MetadataReference> Mscorlib40andSystemCoreReferences { get; } =
+        [
+            Net40.References.mscorlib,
+            Net40.References.SystemCore
+        ];
+        public static ImmutableArray<MetadataReference> Mscorlib40andVBRuntimeReferences { get; } =
+        [
+            Net40.References.mscorlib,
+            Net40.References.System,
+            Net40.References.MicrosoftVisualBasic
+        ];
+        public static ImmutableArray<MetadataReference> Mscorlib45References { get; } =
+        [
+            NetFramework.mscorlib
+        ];
+        public static ImmutableArray<MetadataReference> Mscorlib46References { get; } =
+        [
+            Net461.References.mscorlib
+        ];
+        public static ImmutableArray<MetadataReference> Mscorlib461References { get; } =
+        [
+            Net461.References.mscorlib
+        ];
+        public static ImmutableArray<MetadataReference> Mscorlib461ExtendedReferences { get; } =
+        [
+            Net461.References.mscorlib,
+            Net461.References.System,
+            Net461.References.SystemCore,
+            NetFx.ValueTuple.tuplelib,
+            Net461.References.SystemRuntime
+        ];
+        public static ImmutableArray<MetadataReference> Mscorlib461AndCSharpReferences { get; } =
+        [
+            Net461.References.mscorlib,
+            Net461.References.SystemCore,
+            Net461.References.MicrosoftCSharp
+        ];
+        public static ImmutableArray<MetadataReference> Mscorlib461AndVBRuntimeReferences { get; } =
+        [
+            Net461.References.mscorlib,
+            Net461.References.System,
+            Net461.References.MicrosoftVisualBasic
+        ];
+        public static ImmutableArray<MetadataReference> NetStandard20References { get; } =
+        [
+            NetStandard20.References.netstandard,
+            NetStandard20.References.mscorlib,
+            NetStandard20.References.SystemRuntime,
+            NetStandard20.References.SystemCore,
+            NetStandard20.References.SystemDynamicRuntime,
+            NetStandard20.References.SystemLinq,
+            NetStandard20.References.SystemLinqExpressions
+        ];
+        public static ImmutableArray<MetadataReference> DefaultVbReferences { get; } =
+        [
+            NetFramework.mscorlib,
+            NetFramework.System,
+            NetFramework.SystemCore,
+            NetFramework.MicrosoftVisualBasic
+        ];
 
 #if DEBUG
 
@@ -206,8 +291,9 @@ namespace Roslyn.Test.Utilities
             TargetFramework.NetStandard20 => NetStandard20References,
             TargetFramework.Net50 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net50")),
             TargetFramework.Net60 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net60")),
-            TargetFramework.NetCoreApp or TargetFramework.Net70 => ImmutableArray.CreateRange<MetadataReference>(Net70.All),
+            TargetFramework.NetCoreApp or TargetFramework.Net70 => ImmutableArray.CreateRange<MetadataReference>(Net70.References.All),
             TargetFramework.Net80 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net80")),
+            TargetFramework.Net90 => ImmutableArray.CreateRange<MetadataReference>(LoadDynamicReferences("Net90")),
             TargetFramework.NetFramework => NetFramework.References,
             TargetFramework.NetLatest => NetLatest,
             TargetFramework.Standard => StandardReferences,
@@ -217,14 +303,12 @@ namespace Roslyn.Test.Utilities
             TargetFramework.Mscorlib40Extended => Mscorlib40ExtendedReferences,
             TargetFramework.Mscorlib40AndSystemCore => Mscorlib40andSystemCoreReferences,
             TargetFramework.Mscorlib40AndVBRuntime => Mscorlib40andVBRuntimeReferences,
-            TargetFramework.Mscorlib45 => Mscorlib45References,
-            TargetFramework.Mscorlib45Extended => Mscorlib45ExtendedReferences,
-            TargetFramework.Mscorlib45AndCSharp => Mscorlib45AndCSharpReferences,
-            TargetFramework.Mscorlib45AndVBRuntime => Mscorlib45AndVBRuntimeReferences,
             TargetFramework.Mscorlib46 => Mscorlib46References,
             TargetFramework.Mscorlib46Extended => Mscorlib46ExtendedReferences,
             TargetFramework.Mscorlib461 => Mscorlib46References,
             TargetFramework.Mscorlib461Extended => Mscorlib461ExtendedReferences,
+            TargetFramework.Mscorlib461AndCSharp => Mscorlib461AndCSharpReferences,
+            TargetFramework.Mscorlib461AndVBRuntime => Mscorlib461AndVBRuntimeReferences,
             TargetFramework.WinRT => WinRTReferences,
             TargetFramework.StandardAndCSharp => StandardAndCSharpReferences,
             TargetFramework.StandardAndVBRuntime => StandardAndVBRuntimeReferences,

@@ -4,7 +4,6 @@
 
 #nullable disable
 
-using System.Collections.Immutable;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.CodeCleanup.Providers;
@@ -2729,7 +2728,7 @@ End Class";
             var projectId = ProjectId.CreateNewId();
             var project = solution.AddProject(projectId, "Project", "Project.dll", language).GetProject(projectId);
 
-            return project.AddMetadataReference(TestMetadata.Net451.mscorlib)
+            return project.AddMetadataReference(NetFramework.mscorlib)
                           .AddDocument("Document", SourceText.From(code));
         }
     }

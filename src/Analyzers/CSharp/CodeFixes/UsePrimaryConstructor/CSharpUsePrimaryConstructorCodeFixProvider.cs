@@ -28,6 +28,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.UsePrimaryConstructor;
 
 using static CSharpUsePrimaryConstructorDiagnosticAnalyzer;
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.UsePrimaryConstructor), Shared]
@@ -151,7 +152,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
 
                 var finalAttributeLists = currentTypeDeclaration.AttributeLists.AddRange(
                     constructorDeclaration.AttributeLists.Select(
-                        a => a.WithTarget(AttributeTargetSpecifier(Token(SyntaxKind.MethodKeyword))).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation)));
+                        a => a.WithTarget(AttributeTargetSpecifier(MethodKeyword)).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation)));
 
                 var finalTrivia = CreateFinalTypeDeclarationLeadingTrivia(
                     currentTypeDeclaration, constructorDeclaration, constructor, properties, removedMembers);
@@ -457,7 +458,7 @@ internal partial class CSharpUsePrimaryConstructorCodeFixProvider() : CodeFixPro
                         // Use existing semicolon if we have it.  Otherwise create a fresh one and place existing
                         // trailing trivia after it.
                         expressionStatement?.SemicolonToken
-                        ?? Token(SyntaxKind.SemicolonToken).WithTrailingTrivia(propertyDeclaration.GetTrailingTrivia()));
+                        ?? SemicolonToken.WithTrailingTrivia(propertyDeclaration.GetTrailingTrivia()));
             }
             else
             {

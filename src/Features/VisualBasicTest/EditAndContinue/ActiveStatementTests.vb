@@ -2,10 +2,9 @@
 ' The .NET Foundation licenses this file to you under the MIT license.
 ' See the LICENSE file in the project root for more information.
 
+Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
-Imports Microsoft.CodeAnalysis.Contracts.EditAndContinue
-Imports Microsoft.CodeAnalysis.EditAndContinue.UnitTests
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
@@ -2403,9 +2402,9 @@ Class C
 End Class
 "
 
-            Dim src2 = "<AS:0/>
+            Dim src2 = "
 Class C
-    Dim a,b(1),c As Integer
+    Dim a,<AS:0>b(1)</AS:0>,c As Integer
 
     Sub New
     End Sub
@@ -2730,6 +2729,42 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub SyncLock_Update_TypeChange()
+            Dim src1 = "
+Class C
+    Sub F()
+        Dim a = New Object()
+        Dim b = New Object()
+
+        SyncLock a
+            SyncLock b
+                <AS:0>System.Console.Write()</AS:0>
+            End SyncLock
+        End SyncLock
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class C
+    Sub F()
+        Dim a = New Object()
+        Dim b = New C() ' type change
+
+        SyncLock a
+            SyncLock b
+                <AS:0>System.Console.Write()</AS:0>
+            End SyncLock
+        End SyncLock
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.TypeUpdateAroundActiveStatement, "SyncLock b", VBFeaturesResources.SyncLock_statement, "Object", "C"))
+        End Sub
+
+        <Fact>
         Public Sub SyncLock_Delete_Leaf()
             Dim src1 = "
 Class Test
@@ -2904,6 +2939,42 @@ End Class
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each b In e1", VBFeaturesResources.For_Each_block),
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each c In e1", VBFeaturesResources.For_Each_block),
                 Diagnostic(RudeEditKind.InsertAroundActiveStatement, "For Each a In e1", VBFeaturesResources.For_Each_block))
+        End Sub
+
+        <Fact>
+        Public Sub ForEach_Update_Leaf_TypeChange()
+            Dim src1 = "
+Class Test
+    Sub Main()
+        Dim e1 = {1}
+        Dim e2 = {1.0}
+
+        For Each a In e1
+            For Each b In e2
+                <AS:0>System.Console.Write()</AS:0>
+            Next
+        Next
+    End Sub
+End Class
+"
+            Dim src2 = "
+Class Test
+    Sub Main()
+        Dim e1 = {1}
+        Dim e2 = {1} ' type change
+
+        For Each a In e1
+            For Each b In e2
+                <AS:0>System.Console.Write()</AS:0>
+            Next
+        Next
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.TypeUpdateAroundActiveStatement, "For Each b In e2", VBFeaturesResources.For_Each_statement, "Double()", "Integer()"))
         End Sub
 
         <Fact>
@@ -3127,6 +3198,74 @@ End Class
         End Sub
 
         <Fact>
+        Public Sub Using_Update_Leaf_TypeChange()
+            Dim src1 = "
+Imports System
+
+Class Test
+    Sub Main()
+        Dim a = New D1()
+        Dim b = New D1()
+
+        Using a
+            Using b
+                <AS:0>System.Console.Write()</AS:0>
+            End Using
+        End Using
+    End sub
+End Class
+
+Class D1
+    Implements IDisposable
+
+    Sub Dispose() Implements IDisposable.Dispose
+    End Sub
+End Class
+
+Class D2
+    Implements IDisposable
+
+    Sub Dispose() Implements IDisposable.Dispose
+    End Sub
+End Class
+"
+            Dim src2 = "
+Imports System
+
+Class Test
+    Sub Main()
+        Dim a = New D1()
+        Dim b = New D2() ' type change
+
+        Using a
+            Using b
+                <AS:0>System.Console.Write()</AS:0>
+            End Using
+        End Using
+    End Sub
+End Class
+
+Class D1
+    Implements IDisposable
+
+    Sub Dispose() Implements IDisposable.Dispose
+    End Sub
+End Class
+
+Class D2
+    Implements IDisposable
+
+    Sub Dispose() Implements IDisposable.Dispose
+    End Sub
+End Class
+"
+            Dim edits = GetTopEdits(src1, src2)
+            Dim active = GetActiveStatements(src1, src2)
+            edits.VerifySemanticDiagnostics(active,
+                Diagnostic(RudeEditKind.TypeUpdateAroundActiveStatement, "Using b", VBFeaturesResources.Using_statement, "D1", "D2"))
+        End Sub
+
+        <Fact>
         Public Sub Using_Lambda1()
             Dim src1 = "
 Class Test
@@ -3225,8 +3364,11 @@ End Class
         <Fact>
         Public Sub With_Update_Leaf1()
             Dim src1 = "
-Class Test
-    Sub Main()
+Class C
+    Sub F()
+        Dim a = New Object()
+        Dim b = New Object()
+
         With a
             With b
                 <AS:0>System.Console.Write()</AS:0>
@@ -3236,13 +3378,14 @@ Class Test
 End Class
 "
             Dim src2 = "
-Class Test
-    Sub Main()
+Class C
+    Sub F()
+        Dim a = New Object()
+        Dim b = New C() ' type change
+
         With a
-            With c
-                With b
-                    <AS:0>System.Console.Write()</AS:0>
-                End With
+            With b
+                <AS:0>System.Console.Write()</AS:0>
             End With
         End With
     End Sub
@@ -3251,7 +3394,7 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
             Dim active = GetActiveStatements(src1, src2)
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.InsertAroundActiveStatement, "With c", VBFeaturesResources.With_block))
+                Diagnostic(RudeEditKind.TypeUpdateAroundActiveStatement, "With b", VBFeaturesResources.With_statement, "Object", "C"))
         End Sub
 
         <Fact>
@@ -4708,7 +4851,7 @@ End Class
         Public Sub Lambdas_ActiveStatementRemoved4()
             Dim src1 = "
 Class C
-    Shared Sub Main()
+    Shared Sub F()
         Dim f = Function(a)
             <AS:1>z(2)</AS:1>
 
@@ -4720,7 +4863,7 @@ Class C
 End Class"
             Dim src2 = "
 Class C
-    <AS:0,1>Shared Sub Main()</AS:0,1>
+    <AS:0,1>Shared Sub F()</AS:0,1>
     End Sub
 End Class
 "
@@ -4728,8 +4871,8 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Shared Sub Main()", VBFeaturesResources.Lambda),
-                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Shared Sub Main()", VBFeaturesResources.Lambda))
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Shared Sub F()", VBFeaturesResources.Lambda),
+                Diagnostic(RudeEditKind.ActiveStatementLambdaRemoved, "Shared Sub F()", VBFeaturesResources.Lambda))
         End Sub
 
         <Fact>
@@ -5137,7 +5280,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5167,7 +5310,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5284,7 +5427,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5403,7 +5546,7 @@ End Class
 
             edits.VerifySemanticDiagnostics(
                 active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5432,7 +5575,7 @@ End Class
             Dim active = GetActiveStatements(src1, src2)
 
             edits.VerifySemanticDiagnostics(active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>
@@ -5515,7 +5658,7 @@ End Class
 
             ' No rude edit since the AS is within the nested function.
             edits.VerifySemanticDiagnostics(active,
-                capabilities:=EditAndContinueCapabilities.NewTypeDefinition)
+                capabilities:=EditAndContinueCapabilities.NewTypeDefinition Or EditAndContinueCapabilities.AddExplicitInterfaceImplementation)
         End Sub
 
         <Fact>

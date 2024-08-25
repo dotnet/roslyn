@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeCleanup;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType;
 
 internal interface IMoveTypeService : ILanguageService
 {
-    Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+    Task<ImmutableArray<CodeAction>> GetRefactoringAsync(Document document, TextSpan textSpan, CancellationToken cancellationToken);
 
-    Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CodeCleanupOptionsProvider fallbackOptions, CancellationToken cancellationToken);
+    Task<Solution> GetModifiedSolutionAsync(Document document, TextSpan textSpan, MoveTypeOperationKind operationKind, CancellationToken cancellationToken);
 }

@@ -6,15 +6,12 @@ using System;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
 using System.Windows.Input;
-using System.Windows.Media;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.InlineRename.UI.SmartRename;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Classification;
 using Microsoft.VisualStudio.Text.Editor;
@@ -204,16 +201,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 case Key.Space:
                     if (Keyboard.Modifiers == ModifierKeys.Control)
                     {
-                        e.Handled = true;
-                        // If smart rename is available, trigger it.
-                        if (_viewModel.SmartRenameViewModel is not null && _viewModel.SmartRenameViewModel.GetSuggestionsCommand.CanExecute(null))
+                        // If smart rename is available, trigger or toggle it.
+                        if (_viewModel.SmartRenameViewModel is not null)
                         {
-                            // If smart rename can use automatic behavior, enable it
-                            if (!_viewModel.SmartRenameViewModel.IsUsingDropdown)
-                            {
-                                _viewModel.SmartRenameViewModel.IsSuggestionsPanelCollapsed = !_viewModel.SmartRenameViewModel.IsSuggestionsPanelCollapsed;
-                            }
-                            _viewModel.SmartRenameViewModel.GetSuggestionsCommand.Execute(null);
+                            _viewModel.SmartRenameViewModel.ToggleOrTriggerSuggestions();
+                            e.Handled = true;
                         }
                     }
                     break;

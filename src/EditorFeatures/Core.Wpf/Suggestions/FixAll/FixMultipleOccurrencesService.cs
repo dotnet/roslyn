@@ -7,14 +7,11 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
 
@@ -38,7 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Workspace workspace,
             CodeFixProvider fixProvider,
             FixAllProvider fixAllProvider,
-            CodeActionOptionsProvider optionsProvider,
             string equivalenceKey,
             string waitDialogTitle,
             string waitDialogMessage,
@@ -46,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             CancellationToken cancellationToken)
         {
             var fixMultipleState = FixAllState.Create(
-                fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey, optionsProvider);
+                fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey);
 
             return GetFixedSolution(
                 fixMultipleState, workspace, waitDialogTitle, waitDialogMessage, progress, cancellationToken);
@@ -57,7 +53,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             Workspace workspace,
             CodeFixProvider fixProvider,
             FixAllProvider fixAllProvider,
-            CodeActionOptionsProvider optionsProvider,
             string equivalenceKey,
             string waitDialogTitle,
             string waitDialogMessage,
@@ -65,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             CancellationToken cancellationToken)
         {
             var fixMultipleState = FixAllState.Create(
-                fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey, optionsProvider);
+                fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey);
 
             return GetFixedSolution(
                 fixMultipleState, workspace, waitDialogTitle, waitDialogMessage, progress, cancellationToken);

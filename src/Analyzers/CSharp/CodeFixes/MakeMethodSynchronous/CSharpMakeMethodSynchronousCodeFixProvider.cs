@@ -14,17 +14,15 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.CSharp.MakeMethodSynchronous;
 
+using static CSharpSyntaxTokens;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.MakeMethodSynchronous), Shared]
 [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddImport)]
-internal class CSharpMakeMethodSynchronousCodeFixProvider : AbstractMakeMethodSynchronousCodeFixProvider
+[method: ImportingConstructor]
+[method: SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
+internal sealed class CSharpMakeMethodSynchronousCodeFixProvider() : AbstractMakeMethodSynchronousCodeFixProvider
 {
     private const string CS1998 = nameof(CS1998); // This async method lacks 'await' operators and will run synchronously.
-
-    [ImportingConstructor]
-    [SuppressMessage("RoslynDiagnosticsReliability", "RS0033:Importing constructor should be [Obsolete]", Justification = "Used in test code: https://github.com/dotnet/roslyn/issues/42814")]
-    public CSharpMakeMethodSynchronousCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds { get; } = [CS1998];
 
@@ -63,7 +61,7 @@ internal class CSharpMakeMethodSynchronousCodeFixProvider : AbstractMakeMethodSy
         if (returnType.OriginalDefinition.Equals(knownTypes.TaskType))
         {
             // If the return type is Task, then make the new return type "void".
-            newReturnType = SyntaxFactory.PredefinedType(SyntaxFactory.Token(SyntaxKind.VoidKeyword)).WithTriviaFrom(returnTypeSyntax);
+            newReturnType = SyntaxFactory.PredefinedType(VoidKeyword).WithTriviaFrom(returnTypeSyntax);
         }
         else if (returnType.OriginalDefinition.Equals(knownTypes.TaskOfTType))
         {

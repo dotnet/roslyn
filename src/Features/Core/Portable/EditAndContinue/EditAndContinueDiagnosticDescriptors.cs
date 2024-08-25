@@ -54,8 +54,8 @@ internal static class EditAndContinueDiagnosticDescriptors
                 customTags: DiagnosticCustomTags.EditAndContinue);
         }
 
-        void AddRudeEdit(RudeEditKind kind, string resourceName)
-            => add(GetDescriptorIndex(kind), (int)kind, resourceName, s_rudeEditLocString, DiagnosticSeverity.Error);
+        void AddRudeEdit(RudeEditKind kind, string resourceName, DiagnosticSeverity severity = DiagnosticSeverity.Error)
+            => add(GetDescriptorIndex(kind), (int)kind, resourceName, s_rudeEditLocString, severity);
 
         void AddGeneralDiagnostic(EditAndContinueErrorCode code, string resourceName, DiagnosticSeverity severity = DiagnosticSeverity.Error)
             => add(GetDescriptorIndex(code), GeneralDiagnosticBaseId + (int)code, resourceName, s_encLocString, severity);
@@ -147,6 +147,8 @@ internal static class EditAndContinueDiagnosticDescriptors
         AddRudeEdit(RudeEditKind.NotCapturingPrimaryConstructorParameter, nameof(FeaturesResources.Ceasing_to_capture_primary_constructor_parameter_0_of_1_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.ChangingAttribute, nameof(FeaturesResources.Changing_attribute_0_requires_restarting_the_application));
         AddRudeEdit(RudeEditKind.ChangingNameOrSignatureOfActiveMember, nameof(FeaturesResources.Changing_name_or_signature_of_0_that_contains_an_active_statement_requires_restarting_the_application));
+        AddRudeEdit(RudeEditKind.UpdateMightNotHaveAnyEffect, nameof(FeaturesResources.Changing_0_might_not_have_any_effect_until_the_application_is_restarted), DiagnosticSeverity.Warning);
+        AddRudeEdit(RudeEditKind.TypeUpdateAroundActiveStatement, nameof(FeaturesResources.Updating_a_0_around_an_active_statement_requires_restarting_the_application));
 
         // VB specific
         AddRudeEdit(RudeEditKind.HandlesClauseUpdate, nameof(FeaturesResources.Updating_the_Handles_clause_of_0_requires_restarting_the_application));

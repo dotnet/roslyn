@@ -8,9 +8,16 @@ using System.Runtime.Serialization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SourceGeneration;
+
+[DataContract]
+internal readonly record struct SourceGeneratedDocumentInfo(
+    [property: DataMember(Order = 0)] SourceGeneratedDocumentIdentity DocumentIdentity,
+    [property: DataMember(Order = 1)] SourceGeneratedDocumentContentIdentity ContentIdentity,
+    [property: DataMember(Order = 2)] DateTime GenerationDateTime);
 
 internal interface IRemoteSourceGenerationService
 {
@@ -21,22 +28,42 @@ internal interface IRemoteSourceGenerationService
     /// compare that to the prior generated documents it has to see if it can reuse those directly, or if it needs to
     /// remove any documents no longer around, add any new documents, or change the contents of any existing documents.
     /// </summary>
-    ValueTask<ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, SourceGeneratedDocumentContentIdentity contentIdentity, DateTime generationDateTime)>> GetSourceGenerationInfoAsync(
-        Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
+    /// <param name="withFrozenSourceGeneratedDocuments">Controls if the caller wants frozen source generator documents
+    /// included in the result, or if only the most underlying generated documents (produced by the real compiler <see
+    /// cref="GeneratorDriver"/> should be included.</param>
+    ValueTask<ImmutableArray<SourceGeneratedDocumentInfo>> GetSourceGeneratedDocumentInfoAsync(
+        Checksum solutionChecksum, ProjectId projectId, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken);
 
     /// <summary>
     /// Given a particular set of generated document ids, returns the fully generated content for those documents.
     /// Should only be called by the host for documents it does not know about, or documents whose checksum contents are
     /// different than the last time the document was queried.
     /// </summary>
+    /// <param name="withFrozenSourceGeneratedDocuments">Controls if the caller wants frozen source generator documents
+    /// included in the result, or if only the most underlying generated documents (produced by the real compiler <see
+    /// cref="GeneratorDriver"/> should be included.</param>
     ValueTask<ImmutableArray<string>> GetContentsAsync(
-        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
+        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<DocumentId> documentIds, bool withFrozenSourceGeneratedDocuments, CancellationToken cancellationToken);
 
     /// <summary>
-    /// Whether or not the specified <paramref name="projectId"/> has source generators or not.
+    /// Whether or not the specified analyzer references have source generators or not.
     /// </summary>
     ValueTask<bool> HasGeneratorsAsync(
-        Checksum solutionChecksum, ProjectId projectId, CancellationToken cancellationToken);
+        Checksum solutionChecksum, ProjectId projectId, ImmutableArray<Checksum> analyzerReferenceChecksums, string language, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns the identities for all source generators found in the <see cref="AnalyzerReference"/> with <see
+    /// cref="AnalyzerFileReference.FullPath"/> equal to <paramref name="analyzerReferenceFullPath"/>.
+    /// </summary>
+    ValueTask<ImmutableArray<SourceGeneratorIdentity>> GetSourceGeneratorIdentitiesAsync(
+        Checksum solutionChecksum, ProjectId projectId, string analyzerReferenceFullPath, CancellationToken cancellationToken);
+
+    /// <summary>
+    /// Returns whether or not the the <see cref="AnalyzerReference"/> with <see cref="AnalyzerFileReference.FullPath"/>
+    /// equal to <paramref name="analyzerReferenceFullPath"/> has any analyzers or source generators.
+    /// </summary>
+    ValueTask<bool> HasAnalyzersOrSourceGeneratorsAsync(
+        Checksum solutionChecksum, ProjectId projectId, string analyzerReferenceFullPath, CancellationToken cancellationToken);
 }
 
 /// <summary>

@@ -7,11 +7,10 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel.Composition;
 using System.Linq;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageServer;
-using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics;
+using Microsoft.CodeAnalysis.LanguageServer.Handler.Diagnostics.DiagnosticSources;
 using Microsoft.CodeAnalysis.LanguageServer.Handler.SemanticTokens;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.Composition;
@@ -40,9 +39,11 @@ internal class AlwaysActivateInProcLanguageClient(
     ILspServiceLoggerFactory lspLoggerFactory,
     IThreadingContext threadingContext,
     ExportProvider exportProvider,
+    IDiagnosticSourceManager diagnosticSourceManager,
     [ImportMany] IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> buildOnlyDiagnostics) : AbstractInProcLanguageClient(lspServiceProvider, globalOptions, lspLoggerFactory, threadingContext, exportProvider)
 {
     private readonly ExperimentalCapabilitiesProvider _experimentalCapabilitiesProvider = defaultCapabilitiesProvider;
+    private readonly IDiagnosticSourceManager _diagnosticSourceManager = diagnosticSourceManager;
     private readonly IEnumerable<Lazy<ILspBuildOnlyDiagnostics, ILspBuildOnlyDiagnosticsMetadata>> _buildOnlyDiagnostics = buildOnlyDiagnostics;
 
     protected override ImmutableArray<string> SupportedLanguages => ProtocolConstants.RoslynLspLanguages;
@@ -68,28 +69,20 @@ internal class AlwaysActivateInProcLanguageClient(
         serverCapabilities.BreakableRangeProvider = true;
 
         serverCapabilities.SupportsDiagnosticRequests = true;
+
+        var diagnosticOptions = (serverCapabilities.DiagnosticOptions ??= new DiagnosticOptions());
+        diagnosticOptions.Unify().WorkspaceDiagnostics = true;
+
         serverCapabilities.DiagnosticProvider ??= new();
+
+        // VS does not distinguish between document and workspace diagnostics, so we need to merge them.
+        var diagnosticSourceNames = _diagnosticSourceManager.GetDocumentSourceProviderNames(clientCapabilities)
+            .Concat(_diagnosticSourceManager.GetWorkspaceSourceProviderNames(clientCapabilities))
+            .Distinct();
         serverCapabilities.DiagnosticProvider = serverCapabilities.DiagnosticProvider with
         {
             SupportsMultipleContextsDiagnostics = true,
-            DiagnosticKinds =
-            [
-                // Support a specialized requests dedicated to task-list items.  This way the client can ask just
-                // for these, independently of other diagnostics.  They can also throttle themselves to not ask if
-                // the task list would not be visible.
-                new(PullDiagnosticCategories.Task),
-                // Dedicated request for workspace-diagnostics only.  We will only respond to these if FSA is on.
-                new(PullDiagnosticCategories.WorkspaceDocumentsAndProject),
-                // Fine-grained diagnostics requests.  Importantly, this separates out syntactic vs semantic
-                // requests, allowing the former to quickly reach the user without blocking on the latter.  In a
-                // similar vein, compiler diagnostics are explicitly distinct from analyzer-diagnostics, allowing
-                // the former to appear as soon as possible as they are much more critical for the user and should
-                // not be delayed by a slow analyzer.
-                new(PullDiagnosticCategories.DocumentCompilerSyntax),
-                new(PullDiagnosticCategories.DocumentCompilerSemantic),
-                new(PullDiagnosticCategories.DocumentAnalyzerSyntax),
-                new(PullDiagnosticCategories.DocumentAnalyzerSemantic),
-            ],
+            DiagnosticKinds = diagnosticSourceNames.Select(n => new VSInternalDiagnosticKind(n)).ToArray(),
             BuildOnlyDiagnosticIds = _buildOnlyDiagnostics
                 .SelectMany(lazy => lazy.Metadata.BuildOnlyDiagnostics)
                 .Distinct()
@@ -117,7 +110,7 @@ internal class AlwaysActivateInProcLanguageClient(
                 Range = true,
                 Legend = new SemanticTokensLegend
                 {
-                    TokenTypes = SemanticTokensSchema.GetSchema(clientCapabilities.HasVisualStudioLspCapability()).AllTokenTypes.ToArray(),
+                    TokenTypes = [.. SemanticTokensSchema.GetSchema(clientCapabilities.HasVisualStudioLspCapability()).AllTokenTypes],
                     TokenModifiers = SemanticTokensSchema.TokenModifiers
                 }
             };

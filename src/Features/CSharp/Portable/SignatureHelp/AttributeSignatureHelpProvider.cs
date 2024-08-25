@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.DocumentationComments;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -70,7 +71,7 @@ internal partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureH
             token != expression.ArgumentList.CloseParenToken;
     }
 
-    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, SignatureHelpOptions options, CancellationToken cancellationToken)
+    protected override async Task<SignatureHelpItems?> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, MemberDisplayOptions options, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         if (!TryGetAttributeExpression(root, position, document.GetRequiredLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out var attribute))
@@ -217,17 +218,9 @@ internal partial class AttributeSignatureHelpProvider : AbstractCSharpSignatureH
         SemanticModel semanticModel,
         int position)
     {
-        var result = new List<SymbolDisplayPart>();
-
-        result.AddRange(method.ContainingType.ToMinimalDisplayParts(semanticModel, position));
-        result.Add(Punctuation(SyntaxKind.OpenParenToken));
-
-        return result;
+        return [.. method.ContainingType.ToMinimalDisplayParts(semanticModel, position), Punctuation(SyntaxKind.OpenParenToken)];
     }
 
     private static IList<SymbolDisplayPart> GetPostambleParts()
-    {
-        return SpecializedCollections.SingletonList(
-            Punctuation(SyntaxKind.CloseParenToken));
-    }
+        => [Punctuation(SyntaxKind.CloseParenToken)];
 }

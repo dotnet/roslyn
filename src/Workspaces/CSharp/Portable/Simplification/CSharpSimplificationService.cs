@@ -10,18 +10,21 @@ using System.Diagnostics;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification;
 
 [ExportLanguageService(typeof(ISimplificationService), LanguageNames.CSharp), Shared]
-internal partial class CSharpSimplificationService : AbstractSimplificationService<ExpressionSyntax, StatementSyntax, CrefSyntax>
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal partial class CSharpSimplificationService()
+    : AbstractSimplificationService<CompilationUnitSyntax, ExpressionSyntax, StatementSyntax, CrefSyntax>(s_reducers)
 {
     // 1. the cast simplifier should run earlier then everything else to minimize the type expressions
     // 2. Extension method reducer may insert parentheses.  So run it before the parentheses remover.
@@ -40,17 +43,11 @@ internal partial class CSharpSimplificationService : AbstractSimplificationServi
             new CSharpDefaultExpressionReducer(),
         ];
 
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public CSharpSimplificationService() : base(s_reducers)
-    {
-    }
-
     public override SimplifierOptions DefaultOptions
         => CSharpSimplifierOptions.Default;
 
-    public override SimplifierOptions GetSimplifierOptions(IOptionsReader options, SimplifierOptions? fallbackOptions)
-        => new CSharpSimplifierOptions(options, (CSharpSimplifierOptions?)fallbackOptions);
+    public override SimplifierOptions GetSimplifierOptions(IOptionsReader options)
+        => new CSharpSimplifierOptions(options);
 
     public override SyntaxNode Expand(SyntaxNode node, SemanticModel semanticModel, SyntaxAnnotation? annotationForReplacedAliasIdentifier, Func<SyntaxNode, bool>? expandInsideNode, bool expandParameter, CancellationToken cancellationToken)
     {
@@ -229,5 +226,27 @@ internal partial class CSharpSimplificationService : AbstractSimplificationServi
             currentTuple = grandParent;
         }
         while (true);
+    }
+
+    protected override void AddImportDeclarations(CompilationUnitSyntax root, ArrayBuilder<SyntaxNode> importDeclarations)
+    {
+        importDeclarations.AddRange(root.Usings);
+
+        foreach (var member in root.Members)
+        {
+            if (member is BaseNamespaceDeclarationSyntax baseNamespace)
+                AddImportDeclarations(baseNamespace, importDeclarations);
+        }
+
+        static void AddImportDeclarations(BaseNamespaceDeclarationSyntax baseNamespace, ArrayBuilder<SyntaxNode> importDeclarations)
+        {
+            importDeclarations.AddRange(baseNamespace.Usings);
+
+            foreach (var member in baseNamespace.Members)
+            {
+                if (member is BaseNamespaceDeclarationSyntax childNamespace)
+                    AddImportDeclarations(childNamespace, importDeclarations);
+            }
+        }
     }
 }

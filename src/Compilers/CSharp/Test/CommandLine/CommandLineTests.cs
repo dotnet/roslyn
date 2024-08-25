@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {
     public class CommandLineTests : CommandLineTestBase
     {
-#if NETCOREAPP
+#if NET
         private static readonly string s_CSharpCompilerExecutable;
         private static readonly string s_DotnetCscRun;
 #else
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 
         static CommandLineTests()
         {
-#if NETCOREAPP
+#if NET
             var cscDllPath = Path.Combine(
                 Path.GetDirectoryName(typeof(CommandLineTests).GetTypeInfo().Assembly.Location),
                 Path.Combine("dependency", "csc.dll"));
@@ -208,6 +208,63 @@ dotnet_diagnostic.cs0169.severity = none");
             Assert.Equal("", outWriter.ToString());
 
             Assert.Null(cmd.AnalyzerOptions);
+        }
+
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/72657")]
+        public void AnalyzerConfig_DoubleSlash(bool doubleSlashAnalyzerConfig, bool doubleSlashSource)
+        {
+            var dir = Temp.CreateDirectory();
+            var analyzer = new CompilationAnalyzerWithSeverity(DiagnosticSeverity.Warning, configurable: true);
+            var src = dir.CreateFile("Class1.cs").WriteAllText("""
+                public ﻿class C
+                {
+                    public void M() { }
+                }
+                """);
+
+            // The analyzer should produce a warning.
+            var output = VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, analyzers: [analyzer], expectedWarningCount: 1);
+            AssertEx.Equal("Class1.cs(1,1): warning ID1000:", output.Trim());
+
+            // But not when this editorconfig is applied.
+            var editorconfig = dir.CreateFile(".editorconfig").WriteAllText("""
+                root = true
+
+                [*.cs]
+                dotnet_analyzer_diagnostic.severity = none
+
+                generated_code = true
+                """);
+            var cmd = CreateCSharpCompiler(
+                [
+                    "/nologo",
+                    "/preferreduilang:en",
+                    "/t:library",
+                    "/analyzerconfig:" + modifyPath(editorconfig.Path, doubleSlashAnalyzerConfig),
+                    modifyPath(src.Path, doubleSlashSource),
+                ],
+                [analyzer]);
+            var outWriter = new StringWriter(CultureInfo.InvariantCulture);
+            var exitCode = cmd.Run(outWriter);
+            Assert.Equal(0, exitCode);
+            AssertEx.Equal("", outWriter.ToString());
+
+            static string modifyPath(string path, bool doubleSlash)
+            {
+                if (!doubleSlash)
+                {
+                    return path;
+                }
+
+                // Find the second-to-last slash.
+                char[] separators = ['/', '\\'];
+                var lastSlashIndex = path.LastIndexOfAny(separators);
+                lastSlashIndex = path.LastIndexOfAny(separators, lastSlashIndex - 1);
+
+                // Duplicate that slash.
+                var lastSlash = path[lastSlashIndex];
+                return path[0..lastSlashIndex] + lastSlash + path[lastSlashIndex..];
+            }
         }
 
         [Fact]
@@ -1618,7 +1675,7 @@ class C
         [InlineData("iso1")]
         [InlineData("8.1")]
         [InlineData("10.1")]
-        [InlineData("13")]
+        [InlineData("14")]
         [InlineData("1000")]
         public void LangVersion_BadVersion(string value)
         {
@@ -1674,7 +1731,7 @@ class C
             // - update all the tests that call this canary
             // - update MaxSupportedLangVersion (a relevant test should break when new version is introduced)
             // - email release management to add to the release notes (see old example: https://github.com/dotnet/core/pull/1454)
-            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "12.0", "latest", "latestmajor", "preview" },
+            AssertEx.SetEqual(new[] { "default", "1", "2", "3", "4", "5", "6", "7.0", "7.1", "7.2", "7.3", "8.0", "9.0", "10.0", "11.0", "12.0", "13.0", "latest", "latestmajor", "preview" },
                 Enum.GetValues(typeof(LanguageVersion)).Cast<LanguageVersion>().Select(v => v.ToDisplayString()));
             // For minor versions and new major versions, the format should be "x.y", such as "7.1"
         }
@@ -1709,6 +1766,7 @@ class C
                 ErrorCode.ERR_FeatureNotAvailableInVersion10,
                 ErrorCode.ERR_FeatureNotAvailableInVersion11,
                 ErrorCode.ERR_FeatureNotAvailableInVersion12,
+                ErrorCode.ERR_FeatureNotAvailableInVersion13,
             };
 
             AssertEx.SetEqual(versions, errorCodes);
@@ -1733,9 +1791,10 @@ class C
             InlineData(LanguageVersion.CSharp10, LanguageVersion.CSharp10),
             InlineData(LanguageVersion.CSharp11, LanguageVersion.CSharp11),
             InlineData(LanguageVersion.CSharp12, LanguageVersion.CSharp12),
-            InlineData(LanguageVersion.CSharp12, LanguageVersion.LatestMajor),
-            InlineData(LanguageVersion.CSharp12, LanguageVersion.Latest),
-            InlineData(LanguageVersion.CSharp12, LanguageVersion.Default),
+            InlineData(LanguageVersion.CSharp13, LanguageVersion.CSharp13),
+            InlineData(LanguageVersion.CSharp13, LanguageVersion.LatestMajor),
+            InlineData(LanguageVersion.CSharp13, LanguageVersion.Latest),
+            InlineData(LanguageVersion.CSharp13, LanguageVersion.Default),
             InlineData(LanguageVersion.Preview, LanguageVersion.Preview),
             ]
         public void LanguageVersion_MapSpecifiedToEffectiveVersion(LanguageVersion expectedMappedVersion, LanguageVersion input)
@@ -1780,6 +1839,8 @@ class C
             InlineData("11.0", true, LanguageVersion.CSharp11),
             InlineData("12", true, LanguageVersion.CSharp12),
             InlineData("12.0", true, LanguageVersion.CSharp12),
+            InlineData("13", true, LanguageVersion.CSharp13),
+            InlineData("13.0", true, LanguageVersion.CSharp13),
             InlineData("08", false, LanguageVersion.Default),
             InlineData("07.1", false, LanguageVersion.Default),
             InlineData("default", true, LanguageVersion.Default),
@@ -4280,7 +4341,7 @@ C:\*.cs(100,7): error CS0103: The name 'Goo' does not exist in the current conte
 </configuration>");
 
             var silverlight = Temp.CreateFile().WriteAllBytes(ProprietaryTestResources.silverlight_v5_0_5_0.System_v5_0_5_0_silverlight).Path;
-            var net4_0dll = Temp.CreateFile().WriteAllBytes(ResourcesNet451.System).Path;
+            var net4_0dll = Temp.CreateFile().WriteAllBytes(Net461.Resources.System).Path;
 
             // Test linking two appconfig dlls with simple src
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -6249,7 +6310,7 @@ public class CS1698_a {}
         [ConditionalFact(typeof(ClrOnly), Reason = "https://github.com/dotnet/roslyn/issues/30926")]
         public void BinaryFileErrorTest()
         {
-            var binaryPath = Temp.CreateFile().WriteAllBytes(ResourcesNet451.mscorlib).Path;
+            var binaryPath = Temp.CreateFile().WriteAllBytes(Net461.Resources.mscorlib).Path;
             var csc = CreateCSharpCompiler(null, WorkingDirectory, new[] { "/nologo", "/preferreduilang:en", binaryPath });
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
             int exitCode = csc.Run(outWriter);
@@ -11986,7 +12047,7 @@ namespace Microsoft.CodeAnalysis
             var minSystemCollectionsImmutableImage = CSharpCompilation.Create(
                 "System.Collections.Immutable",
                 new[] { SyntaxFactory.ParseSyntaxTree(minSystemCollectionsImmutableSource) },
-                new MetadataReference[] { NetStandard13.SystemRuntime },
+                new MetadataReference[] { NetStandard13.References.SystemRuntime },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoPublicKey: TestResources.TestKeys.PublicKey_b03f5f7f11d50a3a)).EmitToArray();
 
             var minSystemCollectionsImmutableRef = MetadataReference.CreateFromImage(minSystemCollectionsImmutableImage);
@@ -11996,7 +12057,7 @@ namespace Microsoft.CodeAnalysis
                 new[] { SyntaxFactory.ParseSyntaxTree(minCodeAnalysisSource) },
                 new MetadataReference[]
                 {
-                    NetStandard13.SystemRuntime,
+                    NetStandard13.References.SystemRuntime,
                     minSystemCollectionsImmutableRef
                 },
                 new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, cryptoPublicKey: TestResources.TestKeys.PublicKey_31bf3856ad364e35)).EmitToArray();
@@ -12087,7 +12148,7 @@ public class TestAnalyzer : DiagnosticAnalyzer
                     minCodeAnalysisRef,
                     minSystemCollectionsImmutableRef
                 };
-            references = references.Concat(NetStandard13.All).ToArray();
+            references = references.Concat(NetStandard13.References.All).ToArray();
 
             var analyzerImage = CSharpCompilation.Create(
                 analyzerAssemblyName,

@@ -41,7 +41,7 @@ internal sealed class VisualStudioDocumentNavigationService(
     IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
     // lazy to avoid circularities
     Lazy<SourceGeneratedFileManager> sourceGeneratedFileManager)
-    : ForegroundThreadAffinitizedObject(threadingContext), IDocumentNavigationService
+    : IDocumentNavigationService
 {
     private readonly IServiceProvider _serviceProvider = serviceProvider;
     private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService = editorAdaptersFactoryService;
@@ -205,7 +205,7 @@ internal sealed class VisualStudioDocumentNavigationService(
         }
 
         // Before attempting to open the document, check if the location maps to a different file that should be opened instead.
-        var spanMappingService = document.Services.GetService<ISpanMappingService>();
+        var spanMappingService = document.DocumentServiceProvider.GetService<ISpanMappingService>();
         if (spanMappingService != null)
         {
             var mappedSpan = await GetMappedSpanAsync(
@@ -313,7 +313,7 @@ internal sealed class VisualStudioDocumentNavigationService(
         ISpanMappingService spanMappingService, Document generatedDocument, TextSpan textSpan, CancellationToken cancellationToken)
     {
         var results = await spanMappingService.MapSpansAsync(
-            generatedDocument, SpecializedCollections.SingletonEnumerable(textSpan), cancellationToken).ConfigureAwait(false);
+            generatedDocument, [textSpan], cancellationToken).ConfigureAwait(false);
 
         if (!results.IsDefaultOrEmpty)
         {

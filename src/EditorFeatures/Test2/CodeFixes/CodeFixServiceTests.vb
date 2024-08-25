@@ -13,7 +13,6 @@ Imports Microsoft.CodeAnalysis.Copilot
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.ErrorLogger
 Imports Microsoft.CodeAnalysis.Host
@@ -77,7 +76,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim fixes = Await codefixService.GetFixesAsync(
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    CodeActionOptions.DefaultProvider,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -93,7 +91,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 fixes = Await codefixService.GetFixesAsync(
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    CodeActionOptions.DefaultProvider,
                     CancellationToken.None)
                 Assert.Equal(1, fixes.Count())
 
@@ -103,7 +100,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 fixes = Await codefixService.GetFixesAsync(
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    CodeActionOptions.DefaultProvider,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -152,7 +148,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 Dim fixes = Await codefixService.GetFixesAsync(
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    CodeActionOptions.DefaultProvider,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -168,7 +163,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
                 fixes = Await codefixService.GetFixesAsync(
                     document,
                     (Await document.GetSyntaxRootAsync()).FullSpan,
-                    CodeActionOptions.DefaultProvider,
                     CancellationToken.None)
 
                 Assert.Equal(0, fixes.Count())
@@ -300,9 +294,31 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
                 ' Make sure we don't crash
                 Dim unused = Await codefixService.GetMostSevereFixAsync(
-                    document, Text.TextSpan.FromBounds(0, 0), New DefaultCodeActionRequestPriorityProvider(), CodeActionOptions.DefaultProvider, CancellationToken.None)
+                    document, Text.TextSpan.FromBounds(0, 0), New DefaultCodeActionRequestPriorityProvider(), CancellationToken.None)
             End Using
         End Function
+
+        <ExportLanguageService(GetType(ICopilotOptionsService), NoCompilationConstants.LanguageName, ServiceLayer.Test), [Shared], PartNotDiscoverable>
+        Private Class NoCompilationCopilotOptionsService
+            Implements ICopilotOptionsService
+
+            <ImportingConstructor>
+            <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
+            Public Sub New()
+            End Sub
+
+            Public Function IsRefineOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsRefineOptionEnabledAsync
+                Return Task.FromResult(True)
+            End Function
+
+            Public Function IsCodeAnalysisOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsCodeAnalysisOptionEnabledAsync
+                Return Task.FromResult(True)
+            End Function
+
+            Public Function IsOnTheFlyDocsOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotOptionsService.IsOnTheFlyDocsOptionEnabledASync
+                Return Task.FromResult(True)
+            End Function
+        End Class
 
         <ExportLanguageService(GetType(ICopilotCodeAnalysisService), NoCompilationConstants.LanguageName, ServiceLayer.Test), [Shared], PartNotDiscoverable>
         Private Class NoCompilationCopilotCodeAnalysisService
@@ -314,14 +330,6 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
             End Sub
 
             Public Shared Property Diagnostics As ImmutableArray(Of Diagnostic) = ImmutableArray(Of Diagnostic).Empty
-
-            Public Function IsRefineOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsRefineOptionEnabledAsync
-                Return Task.FromResult(True)
-            End Function
-
-            Public Function IsCodeAnalysisOptionEnabledAsync() As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsCodeAnalysisOptionEnabledAsync
-                Return Task.FromResult(True)
-            End Function
 
             Public Function IsAvailableAsync(cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsAvailableAsync
                 Return Task.FromResult(True)
@@ -341,6 +349,14 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeFixes.UnitTests
 
             Public Function StartRefinementSessionAsync(oldDocument As Document, newDocument As Document, primaryDiagnostic As Diagnostic, cancellationToken As CancellationToken) As Task Implements ICopilotCodeAnalysisService.StartRefinementSessionAsync
                 Return Task.CompletedTask
+            End Function
+
+            Public Function GetOnTheFlyDocsAsync(symbolSignature As String, declarationCode As ImmutableArray(Of String), language As String, cancellationToken As CancellationToken) As Task(Of String) Implements ICopilotCodeAnalysisService.GetOnTheFlyDocsAsync
+                Return Task.FromResult("")
+            End Function
+
+            Public Function IsAnyExclusionAsync(cancellationToken As CancellationToken) As Task(Of Boolean) Implements ICopilotCodeAnalysisService.IsAnyExclusionAsync
+                Return Task.FromResult(False)
             End Function
         End Class
     End Class

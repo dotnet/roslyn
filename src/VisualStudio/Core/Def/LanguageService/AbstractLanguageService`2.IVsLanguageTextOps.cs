@@ -56,7 +56,7 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         var documentSyntax = ParsedDocument.CreateSynchronously(document, cancellationToken);
         var text = documentSyntax.Text;
         var root = documentSyntax.Root;
-        var formattingOptions = textBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.Services, explicitFormat: true);
+        var formattingOptions = textBuffer.GetSyntaxFormattingOptions(EditorOptionsService, document.Project.GetFallbackAnalyzerOptions(), document.Project.Services, explicitFormat: true);
 
         var ts = selections.Single();
         var start = text.Lines[ts.iStartLine].Start + ts.iStartIndex;
@@ -66,12 +66,13 @@ internal abstract partial class AbstractLanguageService<TPackage, TLanguageServi
         // Since we know we are on the UI thread, lets get the base indentation now, so that there is less
         // cleanup work to do later in Venus.
         var ruleFactory = Workspace.Services.GetService<IHostDependentFormattingRuleFactoryService>();
-        var rules = ruleFactory.CreateRule(documentSyntax, start).Concat(Formatter.GetDefaultFormattingRules(document.Project.Services));
 
         // use formatting that return text changes rather than tree rewrite which is more expensive
         var formatter = document.GetRequiredLanguageService<ISyntaxFormattingService>();
-        var originalChanges = formatter.GetFormattingResult(root, SpecializedCollections.SingletonEnumerable(adjustedSpan), formattingOptions, rules, cancellationToken)
-            .GetTextChanges(cancellationToken);
+        var originalChanges = formatter.GetFormattingResult(
+            root, [adjustedSpan], formattingOptions,
+            [ruleFactory.CreateRule(documentSyntax, start), .. Formatter.GetDefaultFormattingRules(document.Project.Services)],
+            cancellationToken).GetTextChanges(cancellationToken);
 
         var originalSpan = RoslynTextSpan.FromBounds(start, end);
         var formattedChanges = ruleFactory.FilterFormattedChanges(document.Id, originalSpan, originalChanges);

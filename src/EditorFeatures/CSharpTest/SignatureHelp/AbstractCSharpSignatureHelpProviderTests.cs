@@ -9,13 +9,12 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SignatureHelp;
+
+public abstract class AbstractCSharpSignatureHelpProviderTests : AbstractSignatureHelpProviderTests<CSharpTestWorkspaceFixture>
 {
-    public abstract class AbstractCSharpSignatureHelpProviderTests : AbstractSignatureHelpProviderTests<CSharpTestWorkspaceFixture>
+    protected override ParseOptions CreateExperimentalParseOptions()
     {
-        protected override ParseOptions CreateExperimentalParseOptions()
-        {
-            return new CSharpParseOptions().WithFeatures(new Dictionary<string, string>()); // no experimental features to enable
-        }
+        return new CSharpParseOptions().WithFeatures(new Dictionary<string, string>()); // no experimental features to enable
     }
 }

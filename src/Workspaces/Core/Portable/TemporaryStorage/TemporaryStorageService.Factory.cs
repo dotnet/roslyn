@@ -21,14 +21,18 @@ internal partial class TemporaryStorageService
         [Obsolete(MefConstruction.FactoryMethodMessage, error: true)]
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            var textFactory = workspaceServices.GetRequiredService<ITextFactoryService>();
-
-            // MemoryMapped files which are used by the TemporaryStorageService are present in .NET Framework (including Mono)
-            // and .NET Core Windows. For non-Windows .NET Core scenarios, we can return the TrivialTemporaryStorageService
-            // until https://github.com/dotnet/runtime/issues/30878 is fixed.
-            return PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono
-                ? new TemporaryStorageService(workspaceThreadingService, textFactory)
-                : TrivialTemporaryStorageService.Instance;
+            // Only use the memory mapped file version of the temporary storage service on Windows.
+            // It is only required for OOP communication (Windows only) and can cause issues on Linux containers
+            // due to a small amount of space allocated by default to store memory mapped files.
+            if (PlatformInformation.IsWindows || PlatformInformation.IsRunningOnMono)
+            {
+                var textFactory = workspaceServices.GetRequiredService<ITextFactoryService>();
+                return new TemporaryStorageService(workspaceThreadingService, textFactory);
+            }
+            else
+            {
+                return TrivialTemporaryStorageService.Instance;
+            }
         }
     }
 }

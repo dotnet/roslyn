@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -19,10 +18,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes;
 /// </summary>
 public readonly struct CodeFixContext
 {
-    private readonly TextDocument _document;
-    private readonly TextSpan _span;
-    private readonly ImmutableArray<Diagnostic> _diagnostics;
-    private readonly CancellationToken _cancellationToken;
     private readonly Action<CodeAction, ImmutableArray<Diagnostic>> _registerCodeFix;
 
     /// <summary>
@@ -51,34 +46,23 @@ public readonly struct CodeFixContext
     /// code fixes that support non-source documents by providing a non-default value for
     /// <see cref="ExportCodeFixProviderAttribute.DocumentKinds"/>
     /// </summary>
-    public TextDocument TextDocument => _document;
+    public TextDocument TextDocument { get; }
 
     /// <summary>
     /// Text span within the <see cref="Document"/> or <see cref="TextDocument"/> to fix.
     /// </summary>
-    public TextSpan Span => _span;
+    public TextSpan Span { get; }
 
     /// <summary>
     /// Diagnostics to fix.
     /// NOTE: All the diagnostics in this collection have the same <see cref="Span"/>.
     /// </summary>
-    public ImmutableArray<Diagnostic> Diagnostics => _diagnostics;
+    public ImmutableArray<Diagnostic> Diagnostics { get; }
 
     /// <summary>
     /// CancellationToken.
     /// </summary>
-    public CancellationToken CancellationToken => _cancellationToken;
-
-    /// <summary>
-    /// IDE supplied options to use for settings not specified in the corresponding editorconfig file.
-    /// These are not available in Code Style layer. Use <see cref="CodeActionOptionsProviders.GetOptionsProvider(CodeFixContext)"/> extension method 
-    /// to access these options in code shared with Code Style layer.
-    /// </summary>
-    /// <remarks>
-    /// This is a <see cref="CodeActionOptionsProvider"/> (rather than <see cref="CodeActionOptions"/> directly)
-    /// to allow code fix to update documents across multiple projects that differ in language (and hence language specific options).
-    /// </remarks>
-    internal readonly CodeActionOptionsProvider Options;
+    public CancellationToken CancellationToken { get; }
 
     /// <summary>
     /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
@@ -104,11 +88,10 @@ public readonly struct CodeFixContext
         ImmutableArray<Diagnostic> diagnostics,
         Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
         CancellationToken cancellationToken)
-        : this(document,
+        : this((TextDocument)document,
                span,
                diagnostics,
                registerCodeFix,
-               CodeActionOptions.DefaultProvider,
                cancellationToken)
     {
     }
@@ -135,83 +118,64 @@ public readonly struct CodeFixContext
         TextSpan span,
         ImmutableArray<Diagnostic> diagnostics,
         Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
-        CancellationToken cancellationToken)
-        : this(document,
-               span,
-               diagnostics,
-               registerCodeFix,
-               CodeActionOptions.DefaultProvider,
-               cancellationToken)
-    {
-    }
-
-    /// <summary>
-    /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
-    /// </summary>
-    /// <param name="document">Document to fix.</param>
-    /// <param name="diagnostic">
-    /// Diagnostic to fix.
-    /// The <see cref="Diagnostic.Id"/> of this diagnostic must be in the set of the <see cref="CodeFixProvider.FixableDiagnosticIds"/> of the associated <see cref="CodeFixProvider"/>.
-    /// </param>
-    /// <param name="registerCodeFix">Delegate to register a <see cref="CodeAction"/> fixing a subset of diagnostics.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <exception cref="ArgumentNullException">Throws this exception if any of the arguments is null.</exception>
-    [EditorBrowsable(EditorBrowsableState.Never)]
-    public CodeFixContext(
-        Document document,
-        Diagnostic diagnostic,
-        Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
-        CancellationToken cancellationToken)
-        : this(document,
-               (diagnostic ?? throw new ArgumentNullException(nameof(diagnostic))).Location.SourceSpan,
-               [diagnostic],
-               registerCodeFix,
-               CodeActionOptions.DefaultProvider,
-               cancellationToken)
-    {
-    }
-
-    /// <summary>
-    /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
-    /// </summary>
-    /// <param name="document">Text document to fix.</param>
-    /// <param name="diagnostic">
-    /// Diagnostic to fix.
-    /// The <see cref="Diagnostic.Id"/> of this diagnostic must be in the set of the <see cref="CodeFixProvider.FixableDiagnosticIds"/> of the associated <see cref="CodeFixProvider"/>.
-    /// </param>
-    /// <param name="registerCodeFix">Delegate to register a <see cref="CodeAction"/> fixing a subset of diagnostics.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <exception cref="ArgumentNullException">Throws this exception if any of the arguments is null.</exception>
-    public CodeFixContext(
-        TextDocument document,
-        Diagnostic diagnostic,
-        Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
-        CancellationToken cancellationToken)
-        : this(document,
-               (diagnostic ?? throw new ArgumentNullException(nameof(diagnostic))).Location.SourceSpan,
-               [diagnostic],
-               registerCodeFix,
-               CodeActionOptions.DefaultProvider,
-               cancellationToken)
-    {
-    }
-
-    internal CodeFixContext(
-        TextDocument document,
-        TextSpan span,
-        ImmutableArray<Diagnostic> diagnostics,
-        Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
-        CodeActionOptionsProvider options,
         CancellationToken cancellationToken)
     {
         VerifyDiagnosticsArgument(diagnostics, span);
 
-        _document = document ?? throw new ArgumentNullException(nameof(document));
-        _span = span;
-        _diagnostics = diagnostics;
+        TextDocument = document ?? throw new ArgumentNullException(nameof(document));
+        Span = span;
+        Diagnostics = diagnostics;
         _registerCodeFix = registerCodeFix ?? throw new ArgumentNullException(nameof(registerCodeFix));
-        Options = options;
-        _cancellationToken = cancellationToken;
+        CancellationToken = cancellationToken;
+    }
+
+    /// <summary>
+    /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
+    /// </summary>
+    /// <param name="document">Document to fix.</param>
+    /// <param name="diagnostic">
+    /// Diagnostic to fix.
+    /// The <see cref="Diagnostic.Id"/> of this diagnostic must be in the set of the <see cref="CodeFixProvider.FixableDiagnosticIds"/> of the associated <see cref="CodeFixProvider"/>.
+    /// </param>
+    /// <param name="registerCodeFix">Delegate to register a <see cref="CodeAction"/> fixing a subset of diagnostics.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <exception cref="ArgumentNullException">Throws this exception if any of the arguments is null.</exception>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public CodeFixContext(
+        Document document,
+        Diagnostic diagnostic,
+        Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
+        CancellationToken cancellationToken)
+        : this(document,
+               (diagnostic ?? throw new ArgumentNullException(nameof(diagnostic))).Location.SourceSpan,
+               [diagnostic],
+               registerCodeFix,
+               cancellationToken)
+    {
+    }
+
+    /// <summary>
+    /// Creates a code fix context to be passed into <see cref="CodeFixProvider.RegisterCodeFixesAsync(CodeFixContext)"/> method.
+    /// </summary>
+    /// <param name="document">Text document to fix.</param>
+    /// <param name="diagnostic">
+    /// Diagnostic to fix.
+    /// The <see cref="Diagnostic.Id"/> of this diagnostic must be in the set of the <see cref="CodeFixProvider.FixableDiagnosticIds"/> of the associated <see cref="CodeFixProvider"/>.
+    /// </param>
+    /// <param name="registerCodeFix">Delegate to register a <see cref="CodeAction"/> fixing a subset of diagnostics.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <exception cref="ArgumentNullException">Throws this exception if any of the arguments is null.</exception>
+    public CodeFixContext(
+        TextDocument document,
+        Diagnostic diagnostic,
+        Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix,
+        CancellationToken cancellationToken)
+        : this(document,
+               (diagnostic ?? throw new ArgumentNullException(nameof(diagnostic))).Location.SourceSpan,
+               [diagnostic],
+               registerCodeFix,
+               cancellationToken)
+    {
     }
 
     /// <summary>
@@ -261,7 +225,7 @@ public readonly struct CodeFixContext
             throw new ArgumentNullException(nameof(action));
         }
 
-        VerifyDiagnosticsArgument(diagnostics, _span);
+        VerifyDiagnosticsArgument(diagnostics, Span);
 
         // TODO: 
         // - Check that all diagnostics are unique (no duplicates).

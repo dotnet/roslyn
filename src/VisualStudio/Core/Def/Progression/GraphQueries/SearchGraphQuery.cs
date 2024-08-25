@@ -8,20 +8,18 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.NavigateTo;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.GraphModel;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression;
 
 internal sealed partial class SearchGraphQuery(
     string searchPattern,
-    NavigateToDocumentSupport searchScope,
-    IAsynchronousOperationListener asyncListener) : IGraphQuery
+    NavigateToDocumentSupport searchScope) : IGraphQuery
 {
     public async Task<GraphBuilder> GetGraphAsync(Solution solution, IGraphContext context, CancellationToken cancellationToken)
     {
         var graphBuilder = await GraphBuilder.CreateForInputNodesAsync(solution, context.InputNodes, cancellationToken).ConfigureAwait(false);
-        var callback = new ProgressionNavigateToSearchCallback(context, graphBuilder);
+        var callback = new ProgressionNavigateToSearchCallback(solution, context, graphBuilder);
 
         // We have a specialized host for progression vs normal nav-to.  Progression itself will tell the client if
         // the project is fully loaded or not.  But after that point, the client will be considered fully loaded and
@@ -33,7 +31,6 @@ internal sealed partial class SearchGraphQuery(
 
         var searcher = NavigateToSearcher.Create(
             solution,
-            asyncListener,
             callback,
             searchPattern,
             NavigateToUtilities.GetKindsProvided(solution),

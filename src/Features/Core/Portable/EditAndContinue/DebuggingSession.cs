@@ -183,33 +183,31 @@ internal sealed class DebuggingSession : IDisposable
         return pendingUpdate;
     }
 
-    private void EndEditSession(out ImmutableArray<DocumentId> documentsToReanalyze)
+    private void EndEditSession()
     {
-        documentsToReanalyze = EditSession.GetDocumentsWithReportedDiagnostics();
-
         var editSessionTelemetryData = EditSession.Telemetry.GetDataAndClear();
         _telemetry.LogEditSession(editSessionTelemetryData);
     }
 
-    public void EndSession(out ImmutableArray<DocumentId> documentsToReanalyze, out DebuggingSessionTelemetry.Data telemetryData)
+    public void EndSession(out DebuggingSessionTelemetry.Data telemetryData)
     {
         ThrowIfDisposed();
 
-        EndEditSession(out documentsToReanalyze);
+        EndEditSession();
         telemetryData = _telemetry.GetDataAndClear();
         _reportTelemetry(telemetryData);
 
         Dispose();
     }
 
-    public void BreakStateOrCapabilitiesChanged(bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
-        => RestartEditSession(nonRemappableRegions: null, inBreakState, out documentsToReanalyze);
+    public void BreakStateOrCapabilitiesChanged(bool? inBreakState)
+        => RestartEditSession(nonRemappableRegions: null, inBreakState);
 
-    internal void RestartEditSession(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>? nonRemappableRegions, bool? inBreakState, out ImmutableArray<DocumentId> documentsToReanalyze)
+    internal void RestartEditSession(ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>? nonRemappableRegions, bool? inBreakState)
     {
         ThrowIfDisposed();
 
-        EndEditSession(out documentsToReanalyze);
+        EndEditSession();
 
         EditSession = new EditSession(
             this,
@@ -435,7 +433,7 @@ internal sealed class DebuggingSession : IDisposable
 
         foreach (var item in items)
         {
-            builder.Add(item.Key, item.ToImmutableArray());
+            builder.Add(item.Key, [.. item]);
         }
 
         return builder.ToImmutable();
@@ -495,18 +493,15 @@ internal sealed class DebuggingSession : IDisposable
                 }
             }
 
-            if (analysis.RudeEditErrors.IsEmpty)
+            if (analysis.RudeEdits.IsEmpty)
             {
                 return [];
             }
 
-            EditSession.Telemetry.LogRudeEditDiagnostics(analysis.RudeEditErrors, project.State.Attributes.TelemetryId);
-
-            // track the document, so that we can refresh or clean diagnostics at the end of edit session:
-            EditSession.TrackDocumentWithReportedDiagnostics(document.Id);
+            EditSession.Telemetry.LogRudeEditDiagnostics(analysis.RudeEdits, project.State.Attributes.TelemetryId);
 
             var tree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            return analysis.RudeEditErrors.SelectAsArray((e, t) => e.ToDiagnostic(t), tree);
+            return analysis.RudeEdits.SelectAsArray((e, t) => e.ToDiagnostic(t), tree);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -522,6 +517,9 @@ internal sealed class DebuggingSession : IDisposable
         ThrowIfDisposed();
 
         var updateId = new UpdateId(Id, Interlocked.Increment(ref _updateOrdinal));
+
+        // Make sure the solution snapshot has all source-generated documents up-to-date.
+        solution = solution.WithUpToDateSourceGeneratorDocuments(solution.ProjectIds);
 
         var solutionUpdate = await EditSession.EmitSolutionUpdateAsync(solution, activeStatementSpanProvider, updateId, cancellationToken).ConfigureAwait(false);
 
@@ -548,7 +546,7 @@ internal sealed class DebuggingSession : IDisposable
         };
     }
 
-    public void CommitSolutionUpdate(out ImmutableArray<DocumentId> documentsToReanalyze)
+    public void CommitSolutionUpdate()
     {
         ThrowIfDisposed();
 
@@ -583,7 +581,7 @@ internal sealed class DebuggingSession : IDisposable
         _editSessionTelemetry.LogCommitted();
 
         // Restart edit session with no active statements (switching to run mode).
-        RestartEditSession(newNonRemappableRegions, inBreakState: false, out documentsToReanalyze);
+        RestartEditSession(newNonRemappableRegions, inBreakState: false);
     }
 
     public void DiscardSolutionUpdate()
@@ -739,7 +737,7 @@ internal sealed class DebuggingSession : IDisposable
             activeStatementsInChangedDocuments.FreeValues();
 
             Debug.Assert(spans.Count == documentIds.Length);
-            return spans.ToImmutable();
+            return spans.ToImmutableAndClear();
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {
@@ -816,7 +814,7 @@ internal sealed class DebuggingSession : IDisposable
                 }
             }
 
-            return adjustedMappedSpans.ToImmutable();
+            return adjustedMappedSpans.ToImmutableAndClear();
         }
         catch (Exception e) when (FatalError.ReportAndPropagateUnlessCanceled(e, cancellationToken))
         {
@@ -841,7 +839,7 @@ internal sealed class DebuggingSession : IDisposable
         {
             lock (_instance._modulesPreparedForUpdateGuard)
             {
-                return _instance._modulesPreparedForUpdate.ToImmutableHashSet();
+                return [.. _instance._modulesPreparedForUpdate];
             }
         }
 

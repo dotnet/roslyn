@@ -109,7 +109,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             if (_state.IsException)
                 AddExceptionConstructors(members);
 
-            return members.ToImmutable();
+            return members.ToImmutableAndClear();
         }
 
         private async Task AddMembersAsync(ArrayBuilder<ISymbol> members, GenerateTypeOptionsResult options = null)
@@ -219,6 +219,7 @@ internal abstract partial class AbstractGenerateTypeService<TService, TSimpleNam
             if (!(parameters.Count == 0 && options is { TypeKind: TypeKind.Struct }))
             {
                 members.AddRange(factory.CreateMemberDelegatingConstructor(
+                    factory.SyntaxGeneratorInternal,
                     _semanticDocument.SemanticModel,
                     DetermineName(), null, parameters.ToImmutable(), Accessibility.Public,
                     parameterToExistingFieldMap.ToImmutable(),

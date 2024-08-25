@@ -23,6 +23,8 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty;
 
+using static CSharpSyntaxTokens;
+
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertAutoPropertyToFullProperty), Shared]
 internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : AbstractConvertAutoPropertyToFullPropertyCodeRefactoringProvider<PropertyDeclarationSyntax, TypeDeclarationSyntax, CSharpCodeGenerationContextInfo>
 {
@@ -32,13 +34,12 @@ internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : 
     {
     }
 
-    protected override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, NamingStylePreferencesProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override async Task<string> GetFieldNameAsync(Document document, IPropertySymbol property, CancellationToken cancellationToken)
     {
         var rule = await document.GetApplicableNamingRuleAsync(
             new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
             property.IsStatic ? DeclarationModifiers.Static : DeclarationModifiers.None,
             Accessibility.Private,
-            fallbackOptions,
             cancellationToken).ConfigureAwait(false);
 
         var fieldName = rule.NamingStyle.MakeCompliant(property.Name).First();
@@ -103,9 +104,9 @@ internal class CSharpConvertAutoPropertyToFullPropertyCodeRefactoringProvider : 
     internal static SyntaxNode AddStatement(SyntaxNode accessor, SyntaxNode statement)
     {
         var blockSyntax = SyntaxFactory.Block(
-            SyntaxFactory.Token(SyntaxKind.OpenBraceToken).WithLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
+            OpenBraceToken.WithLeadingTrivia(SyntaxFactory.ElasticCarriageReturnLineFeed),
             new SyntaxList<StatementSyntax>((StatementSyntax)statement),
-            SyntaxFactory.Token(SyntaxKind.CloseBraceToken)
+            CloseBraceToken
                 .WithTrailingTrivia(((AccessorDeclarationSyntax)accessor).SemicolonToken.TrailingTrivia));
 
         return ((AccessorDeclarationSyntax)accessor).WithBody(blockSyntax);

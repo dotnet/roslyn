@@ -10,74 +10,73 @@ using Microsoft.CodeAnalysis.CSharp.KeywordHighlighting.KeywordHighlighters;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting;
+
+[Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
+public class AsyncMethodHighlighterTests : AbstractCSharpKeywordHighlighterTests
 {
-    [Trait(Traits.Feature, Traits.Features.KeywordHighlighting)]
-    public class AsyncMethodHighlighterTests : AbstractCSharpKeywordHighlighterTests
+    internal override Type GetHighlighterType()
+        => typeof(AsyncAwaitHighlighter);
+
+    [Fact]
+    public async Task TestExample1_1()
     {
-        internal override Type GetHighlighterType()
-            => typeof(AsyncAwaitHighlighter);
+        await TestAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
 
-        [Fact]
-        public async Task TestExample1_1()
-        {
-            await TestAsync(
-                """
-                using System;
-                using System.Threading.Tasks;
-
-                class AsyncExample
+            class AsyncExample
+            {
+                {|Cursor:[|async|]|} Task<int> AsyncMethod()
                 {
-                    {|Cursor:[|async|]|} Task<int> AsyncMethod()
-                    {
-                        int hours = 24;
-                        return hours;
-                    }
-
-                    async Task UseAsync()
-                    {
-                        Func<Task<int>> lambda = async () =>
-                        {
-                            return await AsyncMethod();
-                        };
-                        int result = await AsyncMethod();
-                        Task<int> resultTask = AsyncMethod();
-                        result = await resultTask;
-                        result = await lambda();
-                    }
+                    int hours = 24;
+                    return hours;
                 }
-                """);
-        }
 
-        [Fact]
-        public async Task TestExample2_1()
-        {
-            await TestAsync(
-                """
-                using System;
-                using System.Threading.Tasks;
-
-                class AsyncExample
+                async Task UseAsync()
                 {
-                    async Task<int> AsyncMethod()
+                    Func<Task<int>> lambda = async () =>
                     {
-                        int hours = 24;
-                        return hours;
-                    }
-
-                    {|Cursor:[|async|]|} Task UseAsync()
-                    {
-                        Func<Task<int>> lambda = async () =>
-                        {
-                            return await AsyncMethod();
-                        };
-                        int result = [|await|] AsyncMethod();
-                        Task<int> resultTask = AsyncMethod();
-                        result = [|await|] resultTask;
-                        result = [|await|] lambda();
-                    }
+                        return await AsyncMethod();
+                    };
+                    int result = await AsyncMethod();
+                    Task<int> resultTask = AsyncMethod();
+                    result = await resultTask;
+                    result = await lambda();
                 }
-                """);
-        }
+            }
+            """);
+    }
+
+    [Fact]
+    public async Task TestExample2_1()
+    {
+        await TestAsync(
+            """
+            using System;
+            using System.Threading.Tasks;
+
+            class AsyncExample
+            {
+                async Task<int> AsyncMethod()
+                {
+                    int hours = 24;
+                    return hours;
+                }
+
+                {|Cursor:[|async|]|} Task UseAsync()
+                {
+                    Func<Task<int>> lambda = async () =>
+                    {
+                        return await AsyncMethod();
+                    };
+                    int result = [|await|] AsyncMethod();
+                    Task<int> resultTask = AsyncMethod();
+                    result = [|await|] resultTask;
+                    result = [|await|] lambda();
+                }
+            }
+            """);
     }
 }

@@ -25,7 +25,7 @@ internal sealed class CSharpConvertToRecordRefactoringProvider() : CodeRefactori
             return;
 
         var action = await ConvertToRecordEngine.GetCodeActionAsync(
-            document, typeDeclaration, context.Options, cancellationToken).ConfigureAwait(false);
+            document, typeDeclaration, cancellationToken).ConfigureAwait(false);
         if (action != null)
             context.RegisterRefactoring(action);
     }

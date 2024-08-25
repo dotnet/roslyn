@@ -235,7 +235,7 @@ internal readonly struct DiagnosticAnalysisResult
         foreach (var data in _others)
             builder.AddRange(data);
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     public ImmutableArray<DiagnosticData> GetDocumentDiagnostics(DocumentId documentId, AnalysisKind kind)

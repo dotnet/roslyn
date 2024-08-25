@@ -15,6 +15,9 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
 {
+    using static CSharpSyntaxTokens;
+    using static SyntaxFactory;
+
     [UseExportProvider]
     public class AddAttributesTests
     {
@@ -28,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
                     "test",
                     "test.dll",
                     LanguageNames.CSharp,
-                    metadataReferences: new[] { TestMetadata.Net451.mscorlib }));
+                    metadataReferences: new[] { NetFramework.mscorlib }));
 
             return emptyProject.AddDocument("test.cs", code);
         }
@@ -38,12 +41,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGeneration
             var doc = GetDocument(initialText);
 
             var attributeList =
-                SyntaxFactory.AttributeList(
-                    [SyntaxFactory.Attribute(
-                        SyntaxFactory.IdentifierName("System.Reflection.AssemblyVersion(\"1.0.0.0\")"))])
+                AttributeList(
+                    [Attribute(
+                        IdentifierName("System.Reflection.AssemblyVersion(\"1.0.0.0\")"))])
                 .WithTarget(
-                    SyntaxFactory.AttributeTargetSpecifier(
-                        SyntaxFactory.Token(SyntaxKind.AssemblyKeyword)));
+                    AttributeTargetSpecifier(
+                        AssemblyKeyword));
 
             var syntaxRoot = await doc.GetSyntaxRootAsync();
             var editor = await DocumentEditor.CreateAsync(doc);

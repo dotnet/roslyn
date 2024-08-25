@@ -29,6 +29,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ConvertPrimaryToRegularConstructor;
 
+using static CSharpSyntaxTokens;
 using static SyntaxFactory;
 
 [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.ConvertPrimaryToRegularConstructor), Shared]
@@ -56,7 +57,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
         context.RegisterRefactoring(CodeAction.Create(
                 CSharpFeaturesResources.Convert_to_regular_constructor,
-                cancellationToken => ConvertAsync(document, typeDeclaration, typeDeclaration.ParameterList, context.Options, cancellationToken),
+                cancellationToken => ConvertAsync(document, typeDeclaration, typeDeclaration.ParameterList, cancellationToken),
                 nameof(CSharpFeaturesResources.Convert_to_regular_constructor)),
             triggerSpan);
     }
@@ -65,7 +66,6 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         Document document,
         TypeDeclarationSyntax typeDeclaration,
         ParameterListSyntax parameterList,
-        CodeActionOptionsProvider optionsProvider,
         CancellationToken cancellationToken)
     {
         var compilation = await document.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -73,14 +73,14 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
         var semanticModel = await GetSemanticModelAsync(document).ConfigureAwait(false);
 
-        var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, optionsProvider, cancellationToken).ConfigureAwait(false);
+        var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
+        var formattingOptions = await document.GetSyntaxFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         // The naming rule we need to follow if we synthesize new private fields.
         var fieldNameRule = await document.GetApplicableNamingRuleAsync(
             new SymbolSpecification.SymbolKindOrTypeKind(SymbolKind.Field),
             DeclarationModifiers.None,
             Accessibility.Private,
-            optionsProvider,
             cancellationToken).ConfigureAwait(false);
 
         // Get the named type and all its parameters for use during the rewrite.
@@ -239,7 +239,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
                 }
             }
 
-            return result.ToImmutableHashSet();
+            return [.. result];
         }
 
         void RemovePrimaryConstructorParameterList()
@@ -379,7 +379,6 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
         void FixParameterAndBaseArgumentListIndentation()
         {
             var currentRoot = mainDocumentEditor.GetChangedRoot();
-            var formattingOptions = optionsProvider.GetOptions(document.Project.Services).CleanupOptions.FormattingOptions;
             var indentationOptions = new IndentationOptions(formattingOptions);
 
             var formattedRoot = Formatter.Format(currentRoot, SyntaxAnnotation.ElasticAnnotation, solution.Services, formattingOptions, cancellationToken);
@@ -470,7 +469,7 @@ internal sealed partial class ConvertPrimaryToRegularConstructorCodeRefactoringP
 
             var constructorDeclaration = ConstructorDeclaration(
                 [.. methodTargetingAttributes.Select(a => a.WithTarget(null).WithoutTrivia().WithAdditionalAnnotations(Formatter.Annotation))],
-                [Token(SyntaxKind.PublicKeyword).WithAppendedTrailingTrivia(Space)],
+                [PublicKeyword.WithAppendedTrailingTrivia(Space)],
                 typeDeclaration.Identifier.WithoutTrivia(),
                 rewrittenParameters.WithoutTrivia(),
                 baseType?.ArgumentList is null ? null : ConstructorInitializer(SyntaxKind.BaseConstructorInitializer, baseType.ArgumentList),

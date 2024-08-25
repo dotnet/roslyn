@@ -11,18 +11,18 @@ namespace Microsoft.CodeAnalysis.Formatting;
 
 internal abstract partial class AbstractTriviaDataFactory
 {
-    protected class ModifiedWhitespace : Whitespace
+    protected sealed class ModifiedWhitespace : Whitespace
     {
         private readonly Whitespace? _original;
 
-        public ModifiedWhitespace(SyntaxFormattingOptions options, int lineBreaks, int indentation, bool elastic, string language)
-            : base(options, lineBreaks, indentation, elastic, language)
+        public ModifiedWhitespace(LineFormattingOptions options, int lineBreaks, int indentation, bool elastic)
+            : base(options, lineBreaks, indentation, elastic)
         {
             _original = null;
         }
 
-        public ModifiedWhitespace(SyntaxFormattingOptions options, Whitespace original, int lineBreaks, int indentation, bool elastic, string language)
-            : base(options, lineBreaks, indentation, elastic, language)
+        public ModifiedWhitespace(LineFormattingOptions options, Whitespace original, int lineBreaks, int indentation, bool elastic)
+            : base(options, lineBreaks, indentation, elastic)
         {
             Contract.ThrowIfNull(original);
             _original = original;
@@ -83,7 +83,7 @@ internal abstract partial class AbstractTriviaDataFactory
             CancellationToken cancellationToken,
             int tokenPairIndex = TokenPairIndexNotNeeded)
         {
-            formattingResultApplier(tokenPairIndex, context.TokenStream, new FormattedWhitespace(this.Options, this.LineBreaks, this.Spaces, this.Language));
+            formattingResultApplier(tokenPairIndex, context.TokenStream, new FormattedWhitespace(this.Options, this.LineBreaks, this.Spaces));
         }
     }
 }

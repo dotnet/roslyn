@@ -5,11 +5,9 @@
 using System;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.CodeRefactorings;
@@ -44,7 +42,7 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
             return;
         }
 
-        var result = await AddConstructorParametersFromMembersAsync(document, textSpan, context.Options, cancellationToken).ConfigureAwait(false);
+        var result = await AddConstructorParametersFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
         if (result == null)
         {
             return;
@@ -55,7 +53,7 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
     }
 
     private static async Task<AddConstructorParameterResult?> AddConstructorParametersFromMembersAsync(
-        Document document, TextSpan textSpan, CodeGenerationOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+        Document document, TextSpan textSpan, CancellationToken cancellationToken)
     {
         using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_AddConstructorParametersFromMembers, cancellationToken))
         {
@@ -67,10 +65,10 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
 
             if (info != null)
             {
-                var state = await State.GenerateAsync(info.SelectedMembers, document, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                var state = await State.GenerateAsync(info.SelectedMembers, document, cancellationToken).ConfigureAwait(false);
                 if (state?.ConstructorCandidates != null && !state.ConstructorCandidates.IsEmpty)
                 {
-                    var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, fallbackOptions, cancellationToken).ConfigureAwait(false);
+                    var contextInfo = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
                     return CreateCodeActions(document, contextInfo, state);
                 }
             }
@@ -108,7 +106,7 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
             actions.Add(result.OptionalParameterActions.Single());
         }
 
-        return actions.ToImmutable();
+        return actions.ToImmutableAndClear();
     }
 
     private static AddConstructorParameterResult CreateCodeActions(Document document, CodeGenerationContextInfo info, State state)
@@ -169,7 +167,7 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
         IntentDataProvider intentDataProvider,
         CancellationToken cancellationToken)
     {
-        var addConstructorParametersResult = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, intentDataProvider.FallbackOptions, cancellationToken).ConfigureAwait(false);
+        var addConstructorParametersResult = await AddConstructorParametersFromMembersAsync(priorDocument, priorSelection, cancellationToken).ConfigureAwait(false);
         if (addConstructorParametersResult == null)
         {
             return [];
@@ -181,7 +179,7 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
             return [];
         }
 
-        using var _ = ArrayBuilder<IntentProcessorResult>.GetInstance(out var results);
+        var results = new FixedSizeArrayBuilder<IntentProcessorResult>(actions.Length);
         foreach (var action in actions)
         {
             // Intents currently have no way to report progress.
@@ -192,6 +190,6 @@ internal partial class AddConstructorParametersFromMembersCodeRefactoringProvide
             results.Add(intent);
         }
 
-        return results.ToImmutable();
+        return results.MoveToImmutable();
     }
 }

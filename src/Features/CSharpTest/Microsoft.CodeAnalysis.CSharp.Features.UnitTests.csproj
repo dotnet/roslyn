@@ -3,7 +3,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>$(NetRoslyn);net472</TargetFrameworks>
+    <TargetFrameworks>$(NetRoslynNext);net472</TargetFrameworks>
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
@@ -31,7 +31,7 @@
 
   <Target Name="_DeploySemanticSearchRefAssemblies" AfterTargets="ResolveProjectReferences" Condition="'$(DesignTimeBuild)' != 'true'">
 
-    <MSBuild Projects="@(CopyPublishedOutputProjectReference)" Targets="PublishProjectOutputGroup" BuildInParallel="$(BuildInParallel)" Properties="%(CopyPublishedOutputProjectReference.SetTargetFramework)">
+    <MSBuild Projects="@(CopyPublishedOutputProjectReference)" Targets="PublishVsixItems" BuildInParallel="$(BuildInParallel)" Properties="%(CopyPublishedOutputProjectReference.SetTargetFramework)">
       <Output TaskParameter="TargetOutputs" ItemName="%(CopyPublishedOutputProjectReference.OutputItemType)" />
     </MSBuild>
 

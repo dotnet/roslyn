@@ -49,15 +49,15 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 mockDebuggerService,
                 mockCompilationOutputsProvider,
                 NullPdbMatchingSourceTextProvider.Instance,
-                SpecializedCollections.EmptyEnumerable<KeyValuePair<DocumentId, CommittedSolution.DocumentState>>(),
+                initialDocumentStates: [],
                 reportDiagnostics: true);
 
             if (initialState != CommittedSolution.DocumentState.None)
             {
-                EditAndContinueTestHelpers.SetDocumentsState(debuggingSession, solution, initialState);
+                EditAndContinueTestVerifier.SetDocumentsState(debuggingSession, solution, initialState);
             }
 
-            debuggingSession.RestartEditSession(nonRemappableRegions ?? ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty, inBreakState: true, out _);
+            debuggingSession.RestartEditSession(nonRemappableRegions ?? ImmutableDictionary<ManagedMethodId, ImmutableArray<NonRemappableRegion>>.Empty, inBreakState: true);
             return debuggingSession.EditSession;
         }
 

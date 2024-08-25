@@ -47,7 +47,7 @@ internal class ExtractMethodCodeRefactoringProvider : CodeRefactoringProvider
         if (cancellationToken.IsCancellationRequested)
             return;
 
-        var extractOptions = await document.GetExtractMethodGenerationOptionsAsync(context.Options, cancellationToken).ConfigureAwait(false);
+        var extractOptions = await document.GetExtractMethodGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
 
         var actions = await GetCodeActionsAsync(document, textSpan, extractOptions, cancellationToken).ConfigureAwait(false);
         context.RegisterRefactorings(actions);
@@ -66,7 +66,7 @@ internal class ExtractMethodCodeRefactoringProvider : CodeRefactoringProvider
         var localFunctionAction = await ExtractLocalFunctionAsync(document, textSpan, extractOptions, cancellationToken).ConfigureAwait(false);
         actions.AddIfNotNull(localFunctionAction);
 
-        return actions.ToImmutable();
+        return actions.ToImmutableAndClear();
     }
 
     private static async Task<CodeAction> ExtractMethodAsync(

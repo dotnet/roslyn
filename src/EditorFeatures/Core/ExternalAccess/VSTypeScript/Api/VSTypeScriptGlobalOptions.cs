@@ -16,20 +16,20 @@ namespace Microsoft.CodeAnalysis.ExternalAccess.VSTypeScript.Api;
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class VSTypeScriptGlobalOptions(IGlobalOptionService globalOptions)
 {
-    private readonly IGlobalOptionService _globalOptions = globalOptions;
-
     public bool BlockForCompletionItems
     {
-        get => _globalOptions.GetOption(CompletionViewOptionsStorage.BlockForCompletionItems, InternalLanguageNames.TypeScript);
-        set => _globalOptions.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, InternalLanguageNames.TypeScript, value);
+        get => Service.GetOption(CompletionViewOptionsStorage.BlockForCompletionItems, InternalLanguageNames.TypeScript);
+        set => Service.SetGlobalOption(CompletionViewOptionsStorage.BlockForCompletionItems, InternalLanguageNames.TypeScript, value);
     }
 
     public void SetBackgroundAnalysisScope(bool openFilesOnly)
     {
-        _globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript,
+        Service.SetGlobalOption(SolutionCrawlerOptionsStorage.BackgroundAnalysisScopeOption, InternalLanguageNames.TypeScript,
             openFilesOnly ? BackgroundAnalysisScope.OpenFiles : BackgroundAnalysisScope.FullSolution);
+        Service.SetGlobalOption(SolutionCrawlerOptionsStorage.CompilerDiagnosticsScopeOption, InternalLanguageNames.TypeScript,
+            openFilesOnly ? CompilerDiagnosticsScope.OpenFiles : CompilerDiagnosticsScope.FullSolution);
 
-        _globalOptions.SetGlobalOption(SolutionCrawlerOptionsStorage.RemoveDocumentDiagnosticsOnDocumentClose, InternalLanguageNames.TypeScript,
+        Service.SetGlobalOption(SolutionCrawlerOptionsStorage.RemoveDocumentDiagnosticsOnDocumentClose, InternalLanguageNames.TypeScript,
             openFilesOnly);
     }
 
@@ -39,5 +39,5 @@ internal sealed class VSTypeScriptGlobalOptions(IGlobalOptionService globalOptio
         => SetBackgroundAnalysisScope(openFilesOnly);
 #pragma warning restore
 
-    internal IGlobalOptionService Service => _globalOptions;
+    internal IGlobalOptionService Service { get; } = globalOptions;
 }

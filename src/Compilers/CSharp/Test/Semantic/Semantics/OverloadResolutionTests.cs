@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -513,7 +514,7 @@ public class MyTaskBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CreateCompilationWithMscorlib45(source1).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source1).VerifyDiagnostics(
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.h<T>(Func<Task<T>>)' and 'C.h<T>(Func<MyTask<T>>)'
                 //         h(async () => { await (Task)null; return 1; });
                 Diagnostic(ErrorCode.ERR_AmbigCall, "h").WithArguments("C.h<T>(System.Func<System.Threading.Tasks.Task<T>>)", "C.h<T>(System.Func<MyTask<T>>)").WithLocation(9, 9)
@@ -562,7 +563,7 @@ public class YourTaskBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            CreateCompilationWithMscorlib45(source2).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source2).VerifyDiagnostics(
                 // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.k<T>(Func<YourTask<T>>)' and 'C.k<T>(Func<MyTask<T>>)'
                 //         k(async () => { await (Task)null; return 1; });
                 Diagnostic(ErrorCode.ERR_AmbigCall, "k").WithArguments("C.k<T>(System.Func<YourTask<T>>)", "C.k<T>(System.Func<MyTask<T>>)").WithLocation(9, 9)
@@ -604,7 +605,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -684,7 +685,7 @@ namespace System.Runtime.CompilerServices
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, assemblyName: "comp");
+            var compilation = CreateCompilationWithMscorlib461(source, assemblyName: "comp");
             compilation.VerifyEmitDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -767,7 +768,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var source =
 @"";
             var reference = CompileIL(ilSource);
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            var compilation = CreateCompilationWithMscorlib461(source, references: new[] { reference });
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -797,7 +798,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics(
                 // (6,28): warning CS8500: This takes the address of, gets the size of, or declares a pointer to a managed type ('C<MyTask<int>>')
                 //     static C<MyTask<int>>* F0;
@@ -838,7 +839,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var source =
 @"";
             var reference = CompileIL(ilSource);
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            var compilation = CreateCompilationWithMscorlib461(source, references: new[] { reference });
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -871,7 +872,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.UnsafeDebugDll, parseOptions: TestOptions.Regular9);
             compilation.VerifyDiagnostics();
 
             assert("F0", "delegate*<System.Int32, System.Int32, C<MyTask<System.Int32>>>", "delegate*<System.Int32, System.Int32, C<System.Threading.Tasks.Task<System.Int32>>>");
@@ -925,7 +926,7 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             var source =
 @"";
             var reference = CompileIL(ilSource);
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            var compilation = CreateCompilationWithMscorlib461(source, references: new[] { reference });
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -962,7 +963,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyDiagnostics(
                 // (5,19): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 //     static MyTask<B> F1;
@@ -1016,7 +1017,7 @@ class C<T, U>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -1069,7 +1070,7 @@ class MyTaskMethodBuilder<V>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            var compilation = CreateCompilationWithMscorlib461(source);
             compilation.VerifyDiagnostics();
 
             var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
@@ -7296,7 +7297,7 @@ class TestCase : Test
         Console.WriteLine(xxx); // 3;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -7325,7 +7326,7 @@ class TestCase : Test
         Console.WriteLine(xxx); // 3;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(718294, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/718294")]
@@ -7362,7 +7363,7 @@ static class Extensions
     {
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(667132, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/667132")]
@@ -7392,7 +7393,7 @@ static class Program
         Console.WriteLine(g);
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -7607,10 +7608,18 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-    // (8,44): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<T>(System.Func<bool, T>)' and 'C.M<T>(System.Func<byte, T>)'
-    //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
-    Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<T>(System.Func<bool, T>)", "C.M<T>(System.Func<byte, T>)").WithLocation(8, 44)
-                );
+                // (8,34): info CS9236: Compiling requires binding the lambda expression at least 200 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
+                //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
+                Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("200").WithLocation(8, 34),
+                // (8,41): info CS9236: Compiling requires binding the lambda expression at least 1000 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
+                //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
+                Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("1000").WithLocation(8, 41),
+                // (8,44): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<T>(Func<bool, T>)' and 'C.M<T>(Func<byte, T>)'
+                //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
+                Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("C.M<T>(System.Func<bool, T>)", "C.M<T>(System.Func<byte, T>)").WithLocation(8, 44),
+                // (8,48): info CS9236: Compiling requires binding the lambda expression at least 4000 times. Consider declaring the lambda expression with explicit parameter types, or if the containing method call is generic, consider using explicit type arguments.
+                //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
+                Diagnostic(ErrorCode.INF_TooManyBoundLambdas, "=>").WithArguments("4000").WithLocation(8, 48));
         }
 
         [Fact, WorkItem(30, "https://roslyn.codeplex.com/workitem/30")]
@@ -7710,7 +7719,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source1, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"2
 2
 2
@@ -7743,7 +7752,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source1, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"2
 2
 2
@@ -7771,7 +7780,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source1, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"2
 1");
@@ -8184,7 +8193,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source1, new[] { TestMetadata.Net40.SystemCore }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source1, new[] { Net40.References.SystemCore }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -8220,7 +8229,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source1, new[] { TestMetadata.Net40.SystemCore }, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source1, new[] { Net40.References.SystemCore }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -8956,7 +8965,7 @@ namespace ClassLibraryOverloadResolution
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(source1);
+            var compilation = CreateCompilationWithMscorlib461(source1);
 
             compilation.VerifyDiagnostics(
     // (34,18): error CS0121: The call is ambiguous between the following methods or properties: 'FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)' and 'Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)'
@@ -9021,7 +9030,7 @@ public static class Class
         System.Console.WriteLine(""RemoveDetail"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithMscorlib461(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput:
 @"RemoveDetail
 RemoveDetail
@@ -11297,12 +11306,12 @@ class Program
                 // (17,9): error CS0411: The type arguments for method 'Program.M1<T>(in T, in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M1(new object(), default(RefLike));
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(in T, in T)").WithLocation(17, 9),
-                // (19,9): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                // (19,9): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Program.M1<T>(in T, in T)'
                 //         M1(rl, rl);
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M1").WithArguments("Program.RefLike").WithLocation(19, 9),
-                // (20,9): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M1").WithArguments("Program.M1<T>(in T, in T)", "T", "Program.RefLike").WithLocation(19, 9),
+                // (20,9): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Program.M1<T>(in T, in T)'
                 //         M1(in rl, in rl);
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "M1").WithArguments("Program.RefLike").WithLocation(20, 9),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "M1").WithArguments("Program.M1<T>(in T, in T)", "T", "Program.RefLike").WithLocation(20, 9),
                 // (22,9): error CS0411: The type arguments for method 'Program.M1<T>(in T, in T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         M1(in y, in x);
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "M1").WithArguments("Program.M1<T>(in T, in T)").WithLocation(22, 9),
@@ -11389,27 +11398,27 @@ class Program
                 // (16,16): error CS1503: Argument 1: cannot convert from '(<null>, int)' to 'in (int arg1, int arg2)'
                 //         Method((null, 1));
                 Diagnostic(ErrorCode.ERR_BadArgType, "(null, 1)").WithArguments("1", "(<null>, int)", "in (int arg1, int arg2)").WithLocation(16, 16),
-                // (17,31): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                // (17,31): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         Method((new object(), default(RefLike)));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "default(RefLike)").WithArguments("Program.RefLike").WithLocation(17, 31),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "default(RefLike)").WithArguments("(T1, T2)", "T2", "Program.RefLike").WithLocation(17, 31),
                 // (17,9): error CS0411: The type arguments for method 'Program.Method<T>(in (T arg1, T arg2))' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Method((new object(), default(RefLike)));
                 Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "Method").WithArguments("Program.Method<T>(in (T arg1, T arg2))").WithLocation(17, 9),
-                // (19,17): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                // (19,17): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         Method((rl, rl));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(19, 17),
-                // (19,21): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "rl").WithArguments("(T1, T2)", "T1", "Program.RefLike").WithLocation(19, 17),
+                // (19,21): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         Method((rl, rl));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(19, 21),
-                // (19,9): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "rl").WithArguments("(T1, T2)", "T2", "Program.RefLike").WithLocation(19, 21),
+                // (19,9): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T' in the generic type or method 'Program.Method<T>(in (T arg1, T arg2))'
                 //         Method((rl, rl));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "Method").WithArguments("Program.RefLike").WithLocation(19, 9),
-                // (20,20): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "Method").WithArguments("Program.Method<T>(in (T arg1, T arg2))", "T", "Program.RefLike").WithLocation(19, 9),
+                // (20,20): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T1' in the generic type or method '(T1, T2)'
                 //         Method(in (rl, rl));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(20, 20),
-                // (20,24): error CS0306: The type 'Program.RefLike' may not be used as a type argument
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "rl").WithArguments("(T1, T2)", "T1", "Program.RefLike").WithLocation(20, 20),
+                // (20,24): error CS9244: The type 'Program.RefLike' may not be a ref struct or a type parameter allowing ref structs in order to use it as parameter 'T2' in the generic type or method '(T1, T2)'
                 //         Method(in (rl, rl));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "rl").WithArguments("Program.RefLike").WithLocation(20, 24),
+                Diagnostic(ErrorCode.ERR_NotRefStructConstraintNotSatisfied, "rl").WithArguments("(T1, T2)", "T2", "Program.RefLike").WithLocation(20, 24),
                 // (20,19): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         Method(in (rl, rl));
                 Diagnostic(ErrorCode.ERR_RefReturnLvalueExpected, "(rl, rl)").WithLocation(20, 19),
@@ -11489,7 +11498,7 @@ public static class Extensions
 }
 ";
 
-            var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { TestMetadata.Net40.SystemCore }).VerifyDiagnostics();
+            var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics();
 
             var code = @"
  class D

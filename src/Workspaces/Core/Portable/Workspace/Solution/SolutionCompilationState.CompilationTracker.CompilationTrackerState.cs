@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis;
 
 internal partial class SolutionCompilationState
 {
-    private partial class CompilationTracker
+    private partial class RegularCompilationTracker
     {
         /// <summary>
-        /// The base type of all <see cref="CompilationTracker"/> states. The state of a <see
-        /// cref="CompilationTracker" /> starts at null, and then will progress through the other states until it
+        /// The base type of all <see cref="RegularCompilationTracker"/> states. The state of a <see
+        /// cref="RegularCompilationTracker" /> starts at null, and then will progress through the other states until it
         /// finally reaches <see cref="FinalCompilationTrackerState" />.
         /// </summary>
         private abstract class CompilationTrackerState
@@ -147,12 +147,9 @@ internal partial class SolutionCompilationState
             public readonly bool HasSuccessfullyLoaded;
 
             /// <summary>
-            /// Weak set of the assembly, module and dynamic symbols that this compilation tracker has created.
-            /// This can be used to determine which project an assembly symbol came from after the fact.  This is
-            /// needed as the compilation an assembly came from can be GC'ed and further requests to get that
-            /// compilation (or any of it's assemblies) may produce new assembly symbols.
+            /// Used to determine which project an assembly symbol came from after the fact.
             /// </summary>
-            public readonly UnrootedSymbolSet UnrootedSymbolSet;
+            private SingleInitNullable<RootedSymbolSet> _rootedSymbolSet;
 
             /// <summary>
             /// The final compilation, with all references and source generators run. This is distinct from <see
@@ -164,25 +161,33 @@ internal partial class SolutionCompilationState
             /// </summary>
             public readonly Compilation FinalCompilationWithGeneratedDocuments;
 
+            /// <summary>
+            /// Whether or not this final compilation state *just* generated documents which exactly correspond to the
+            /// state of the compilation.  False if the generated documents came from a point in the past, and are being
+            /// carried forward until the next time we run generators.
+            /// </summary>
+            public readonly bool GeneratedDocumentsUpToDate;
+
             public override Compilation CompilationWithoutGeneratedDocuments { get; }
 
             private FinalCompilationTrackerState(
                 CreationPolicy creationPolicy,
+                bool generatedDocumentsUpToDate,
                 Compilation finalCompilationWithGeneratedDocuments,
                 Compilation compilationWithoutGeneratedDocuments,
                 bool hasSuccessfullyLoaded,
-                CompilationTrackerGeneratorInfo generatorInfo,
-                UnrootedSymbolSet unrootedSymbolSet)
+                CompilationTrackerGeneratorInfo generatorInfo)
                 : base(creationPolicy, generatorInfo)
             {
                 Contract.ThrowIfNull(finalCompilationWithGeneratedDocuments);
+
+                this.GeneratedDocumentsUpToDate = generatedDocumentsUpToDate;
 
                 // As a policy, all partial-state projects are said to have incomplete references, since the
                 // state has no guarantees.
                 this.CompilationWithoutGeneratedDocuments = compilationWithoutGeneratedDocuments;
                 HasSuccessfullyLoaded = hasSuccessfullyLoaded;
                 FinalCompilationWithGeneratedDocuments = finalCompilationWithGeneratedDocuments;
-                UnrootedSymbolSet = unrootedSymbolSet;
 
                 if (this.GeneratorInfo.Documents.IsEmpty)
                 {
@@ -206,6 +211,7 @@ internal partial class SolutionCompilationState
             /// <param name="metadataReferenceToProjectId">Not held onto</param>
             public static FinalCompilationTrackerState Create(
                 CreationPolicy creationPolicy,
+                bool generatedDocumentsUpToDate,
                 Compilation finalCompilationWithGeneratedDocuments,
                 Compilation compilationWithoutGeneratedDocuments,
                 bool hasSuccessfullyLoaded,
@@ -216,27 +222,30 @@ internal partial class SolutionCompilationState
                 // Keep track of information about symbols from this Compilation.  This will help support other APIs
                 // the solution exposes that allows the user to map back from symbols to project information.
 
-                var unrootedSymbolSet = UnrootedSymbolSet.Create(finalCompilationWithGeneratedDocuments);
                 RecordAssemblySymbols(projectId, finalCompilationWithGeneratedDocuments, metadataReferenceToProjectId);
 
                 return new FinalCompilationTrackerState(
                     creationPolicy,
+                    generatedDocumentsUpToDate,
                     finalCompilationWithGeneratedDocuments,
                     compilationWithoutGeneratedDocuments,
                     hasSuccessfullyLoaded,
-                    generatorInfo,
-                    unrootedSymbolSet);
+                    generatorInfo);
             }
+
+            public RootedSymbolSet RootedSymbolSet => _rootedSymbolSet.Initialize(
+                static finalCompilationWithGeneratedDocuments => RootedSymbolSet.Create(finalCompilationWithGeneratedDocuments),
+                this.FinalCompilationWithGeneratedDocuments);
 
             public FinalCompilationTrackerState WithCreationPolicy(CreationPolicy creationPolicy)
                 => creationPolicy == this.CreationPolicy
                     ? this
                     : new(creationPolicy,
+                        GeneratedDocumentsUpToDate,
                         FinalCompilationWithGeneratedDocuments,
                         CompilationWithoutGeneratedDocuments,
                         HasSuccessfullyLoaded,
-                        GeneratorInfo,
-                        UnrootedSymbolSet);
+                        GeneratorInfo);
 
             private static void RecordAssemblySymbols(ProjectId projectId, Compilation compilation, Dictionary<MetadataReference, ProjectId>? metadataReferenceToProjectId)
             {

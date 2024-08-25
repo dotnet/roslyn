@@ -8,7 +8,6 @@ using System.ComponentModel.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.BrokeredServices;
-using Microsoft.CodeAnalysis.Contracts.Client;
 using Microsoft.CodeAnalysis.Contracts.EditAndContinue;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -109,7 +108,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
         try
         {
             Contract.ThrowIfNull(_debuggingSession);
-            encService.BreakStateOrCapabilitiesChanged(_debuggingSession.Value, inBreakState, out _);
+            encService.BreakStateOrCapabilitiesChanged(_debuggingSession.Value, inBreakState);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -143,7 +142,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
 
             _committedDesignTimeSolution = committedDesignTimeSolution;
 
-            encService.CommitSolutionUpdate(_debuggingSession.Value, out _);
+            encService.CommitSolutionUpdate(_debuggingSession.Value);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))
         {
@@ -186,7 +185,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
         {
             Contract.ThrowIfNull(_debuggingSession);
 
-            encService.EndDebuggingSession(_debuggingSession.Value, out _);
+            encService.EndDebuggingSession(_debuggingSession.Value);
 
             _debuggingSession = null;
             _committedDesignTimeSolution = null;
@@ -286,7 +285,7 @@ internal sealed partial class ManagedHotReloadLanguageService(
                 _pendingUpdatedDesignTimeSolution = designTimeSolution;
             }
 
-            var diagnostics = await EmitSolutionUpdateResults.GetHotReloadDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status, cancellationToken).ConfigureAwait(false);
+            var diagnostics = await EmitSolutionUpdateResults.GetAllDiagnosticsAsync(solution, diagnosticData, rudeEdits, syntaxError, moduleUpdates.Status, cancellationToken).ConfigureAwait(false);
             return new ManagedHotReloadUpdates(moduleUpdates.Updates, diagnostics);
         }
         catch (Exception e) when (FatalError.ReportAndCatchUnlessCanceled(e, cancellationToken))

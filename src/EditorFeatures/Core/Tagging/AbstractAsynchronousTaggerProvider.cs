@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Tagging;
 using Microsoft.CodeAnalysis.Text;
@@ -34,20 +35,19 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
 {
     private readonly object _uniqueKey = new();
 
+    private readonly TaggerHost _taggerHost;
+
     protected readonly IAsynchronousOperationListener AsyncListener;
-    protected readonly IThreadingContext ThreadingContext;
-    protected readonly IGlobalOptionService GlobalOptions;
-    private readonly ITextBufferVisibilityTracker? _visibilityTracker;
+    protected IThreadingContext ThreadingContext => _taggerHost.ThreadingContext;
+    protected IGlobalOptionService GlobalOptions => _taggerHost.GlobalOptions;
+
+    private ITextBufferVisibilityTracker? VisibilityTracker => _taggerHost.VisibilityTracker;
+    private TaggerMainThreadManager MainThreadManager => _taggerHost.TaggerMainThreadManager;
 
     /// <summary>
-    /// The behavior the tagger engine will have when text changes happen to the subject buffer
-    /// it is attached to.  Most taggers can simply use <see cref="TaggerTextChangeBehavior.None"/>.
-    /// However, advanced taggers that want to perform specialized behavior depending on what has
-    /// actually changed in the file can specify <see cref="TaggerTextChangeBehavior.TrackTextChanges"/>.
-    /// 
-    /// If this is specified the tagger engine will track text changes and pass them along as
-    /// <see cref="TaggerContext{TTag}.TextChangeRange"/> when calling 
-    /// <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/>.
+    /// The behavior the tagger engine will have when text changes happen to the subject buffer it is attached to.  Most
+    /// taggers can simply use <see cref="TaggerTextChangeBehavior.None"/>. However, advanced taggers that want to
+    /// perform specialized behavior depending on what has actually changed in the file can specify that here.
     /// </summary>
     protected virtual TaggerTextChangeBehavior TextChangeBehavior => TaggerTextChangeBehavior.None;
 
@@ -133,15 +133,11 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
 #endif
 
     protected AbstractAsynchronousTaggerProvider(
-        IThreadingContext threadingContext,
-        IGlobalOptionService globalOptions,
-        ITextBufferVisibilityTracker? visibilityTracker,
-        IAsynchronousOperationListener asyncListener)
+        TaggerHost taggerHost,
+        string featureName)
     {
-        ThreadingContext = threadingContext;
-        GlobalOptions = globalOptions;
-        AsyncListener = asyncListener;
-        _visibilityTracker = visibilityTracker;
+        _taggerHost = taggerHost;
+        AsyncListener = taggerHost.AsyncListenerProvider.GetListener(featureName);
 
 #if DEBUG
         StackTrace = new StackTrace().ToString();
@@ -163,7 +159,7 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     {
         if (!this.TryRetrieveTagSource(textView, subjectBuffer, out var tagSource))
         {
-            tagSource = new TagSource(textView, subjectBuffer, _visibilityTracker, this, AsyncListener);
+            tagSource = new TagSource(textView, subjectBuffer, this);
             this.StoreTagSource(textView, subjectBuffer, tagSource);
         }
 
@@ -219,10 +215,11 @@ internal abstract partial class AbstractAsynchronousTaggerProvider<TTag> where T
     /// and will asynchronously call into <see cref="ProduceTagsAsync(TaggerContext{TTag}, CancellationToken)"/> at some point in
     /// the future to produce tags for these spans.
     /// </summary>
-    protected virtual IEnumerable<SnapshotSpan> GetSpansToTag(ITextView? textView, ITextBuffer subjectBuffer)
+    protected virtual void AddSpansToTag(
+        ITextView? textView, ITextBuffer subjectBuffer, ref TemporaryArray<SnapshotSpan> result)
     {
         // For a standard tagger, the spans to tag is the span of the entire snapshot.
-        return SpecializedCollections.SingletonEnumerable(subjectBuffer.CurrentSnapshot.GetFullSpan());
+        result.Add(subjectBuffer.CurrentSnapshot.GetFullSpan());
     }
 
     /// <summary>

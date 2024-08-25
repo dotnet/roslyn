@@ -236,7 +236,7 @@ internal sealed class ActiveStatementsMap
 
         if (!hasAnyLineDirectives)
         {
-            Debug.Assert(builder.IsEmpty());
+            Debug.Assert(builder.IsEmpty);
 
             if (DocumentPathMap.TryGetValue(oldTree.FilePath, out var activeStatements))
             {
@@ -249,7 +249,7 @@ internal sealed class ActiveStatementsMap
 
         Debug.Assert(builder.IsSorted(Comparer<UnmappedActiveStatement>.Create((x, y) => x.UnmappedSpan.Start.CompareTo(y.UnmappedSpan.End))));
 
-        return builder.ToImmutable();
+        return builder.ToImmutableAndClear();
     }
 
     private static LinePositionSpan ReverseMapLinePositionSpan(LinePositionSpan unmappedSection, LinePositionSpan mappedSection, LinePositionSpan mappedSpan)

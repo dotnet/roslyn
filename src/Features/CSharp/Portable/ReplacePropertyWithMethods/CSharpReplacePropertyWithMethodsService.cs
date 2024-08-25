@@ -16,12 +16,15 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods;
+
+using static CSharpSyntaxTokens;
+using static SyntaxFactory;
 
 [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]
 internal partial class CSharpReplacePropertyWithMethodsService :
@@ -40,13 +43,12 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         IFieldSymbol propertyBackingField,
         string desiredGetMethodName,
         string desiredSetMethodName,
-        CodeGenerationOptionsProvider fallbackOptions,
         CancellationToken cancellationToken)
     {
         if (propertyDeclarationNode is not PropertyDeclarationSyntax propertyDeclaration)
             return [];
 
-        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
+        var options = (CSharpCodeGenerationOptions)await document.GetCodeGenerationOptionsAsync(cancellationToken).ConfigureAwait(false);
         var syntaxTree = await document.GetRequiredSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
         var languageVersion = syntaxTree.Options.LanguageVersion();
 
@@ -69,7 +71,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         string desiredSetMethodName,
         CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var result);
+        using var result = TemporaryArray<SyntaxNode>.Empty;
 
         if (propertyBackingField != null)
         {
@@ -97,7 +99,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
                 cancellationToken));
         }
 
-        return result.ToImmutable();
+        return result.ToImmutableAndClear();
     }
 
     private static SyntaxNode GetSetMethod(
@@ -129,7 +131,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
             if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
                 && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
             {
-                methodDeclaration = methodDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+                methodDeclaration = methodDeclaration.AddModifiers(UnsafeKeyword);
             }
 
             methodDeclaration = methodDeclaration.WithAttributeLists(setAccessorDeclaration.AttributeLists);
@@ -147,7 +149,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
             }
             else if (propertyBackingField != null)
             {
-                return methodDeclaration.WithBody(SyntaxFactory.Block(
+                return methodDeclaration.WithBody(Block(
                     (StatementSyntax)generator.ExpressionStatement(
                         generator.AssignmentStatement(
                             GetFieldReference(generator, propertyBackingField),
@@ -184,7 +186,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
             if (propertyDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword)
                 && !methodDeclaration.Modifiers.Any(SyntaxKind.UnsafeKeyword))
             {
-                methodDeclaration = methodDeclaration.AddModifiers(SyntaxFactory.Token(SyntaxKind.UnsafeKeyword));
+                methodDeclaration = methodDeclaration.AddModifiers(UnsafeKeyword);
             }
 
             if (propertyDeclaration.ExpressionBody != null)
@@ -214,7 +216,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
                 {
                     var fieldReference = GetFieldReference(generator, propertyBackingField);
                     return methodDeclaration.WithBody(
-                        SyntaxFactory.Block(
+                        Block(
                             (StatementSyntax)generator.ReturnStatement(fieldReference)));
                 }
             }
@@ -248,7 +250,7 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         var structure = trivia.GetStructure();
         var rewritten = rewriter.Visit(structure);
         Contract.ThrowIfNull(rewritten);
-        return SyntaxFactory.Trivia((StructuredTriviaSyntax)rewritten);
+        return Trivia((StructuredTriviaSyntax)rewritten);
     }
 
     private static SyntaxNode UseExpressionOrBlockBodyIfDesired(
@@ -306,17 +308,17 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         CrefParameterListSyntax parameterList;
         if (parameterType is TypeSyntax typeSyntax)
         {
-            var parameter = SyntaxFactory.CrefParameter(typeSyntax);
-            parameterList = SyntaxFactory.CrefParameterList([parameter]);
+            var parameter = CrefParameter(typeSyntax);
+            parameterList = CrefParameterList([parameter]);
         }
         else
         {
-            parameterList = SyntaxFactory.CrefParameterList();
+            parameterList = CrefParameterList();
         }
 
         // XmlCrefAttribute replaces <T> with {T}, which is required for C# documentation comments
-        var crefAttribute = SyntaxFactory.XmlCrefAttribute(
-            SyntaxFactory.NameMemberCref(SyntaxFactory.IdentifierName(identifierToken), parameterList));
+        var crefAttribute = XmlCrefAttribute(
+            NameMemberCref(IdentifierName(identifierToken), parameterList));
         return (NameMemberCrefSyntax)crefAttribute.Cref;
     }
 
@@ -345,6 +347,6 @@ internal partial class CSharpReplacePropertyWithMethodsService :
         if (operatorKind is SyntaxKind.None)
             return parent;
 
-        return SyntaxFactory.BinaryExpression(operatorKind, readExpression, parent.Right.Parenthesize());
+        return BinaryExpression(operatorKind, readExpression, parent.Right.Parenthesize());
     }
 }

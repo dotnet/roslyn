@@ -109,15 +109,31 @@ namespace RunTests
                 // We must call WaitForExit to make sure we've received all OutputDataReceived/ErrorDataReceived calls
                 // or else we'll be returning a list we're still modifying. For paranoia, we'll start a task here rather
                 // than enter right back into the Process type and start a wait which isn't guaranteed to be safe.
-                Task.Run(() =>
+                Task.Run(async () =>
                 {
-                    process.WaitForExit();
+                    int exitCode;
+                    try
+                    {
+                        exitCode = await GetExitCodeAsync(process);
+                    }
+                    catch (Exception ex)
+                    {
+                        tcs.TrySetException(ex);
+                        throw;
+                    }
+
                     var result = new ProcessResult(
                         process,
-                        process.ExitCode,
+                        exitCode,
                         new ReadOnlyCollection<string>(outputLines),
                         new ReadOnlyCollection<string>(errorLines));
                     tcs.TrySetResult(result);
+
+                    static async ValueTask<int> GetExitCodeAsync(Process process)
+                    {
+                        await process.WaitForExitAsync();
+                        return process.ExitCode;
+                    }
                 }, cancellationToken);
             };
 

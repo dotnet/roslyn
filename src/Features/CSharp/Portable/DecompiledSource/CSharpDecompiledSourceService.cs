@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -17,7 +16,6 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.DecompiledSource;
 
@@ -30,7 +28,7 @@ internal class CSharpDecompiledSourceService : IDecompiledSourceService
     {
     }
 
-    public async Task<Document?> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, MetadataReference? metadataReference, string? assemblyLocation, SyntaxFormattingOptions formattingOptions, CancellationToken cancellationToken)
+    public async Task<Document?> AddSourceToAsync(Document document, Compilation symbolCompilation, ISymbol symbol, MetadataReference? metadataReference, string? assemblyLocation, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken)
     {
         // Get the name of the type the symbol is in
         var containingOrThis = symbol.GetContainingTypeOrThis();
@@ -54,16 +52,16 @@ internal class CSharpDecompiledSourceService : IDecompiledSourceService
         return await FormatDocumentAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
     }
 
-    public static async Task<Document> FormatDocumentAsync(Document document, SyntaxFormattingOptions options, CancellationToken cancellationToken)
+    public static async Task<Document> FormatDocumentAsync(Document document, SyntaxFormattingOptions? formattingOptions, CancellationToken cancellationToken)
     {
         var node = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
         // Apply formatting rules
         var formattedDoc = await Formatter.FormatAsync(
              document,
-             SpecializedCollections.SingletonEnumerable(node.FullSpan),
-             options,
-             CSharpDecompiledSourceFormattingRule.Instance.Concat(Formatter.GetDefaultFormattingRules(document)),
+             [node.FullSpan],
+             formattingOptions,
+             [CSharpDecompiledSourceFormattingRule.Instance, .. Formatter.GetDefaultFormattingRules(document)],
              cancellationToken).ConfigureAwait(false);
 
         return formattedDoc;

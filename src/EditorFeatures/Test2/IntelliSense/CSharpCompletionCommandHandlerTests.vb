@@ -7979,8 +7979,7 @@ namespace NS
             End Using
         End Function
 
-        <WorkItem("https://github.com/dotnet/roslyn/issues/67081")>
-        <WpfTheory>
+        <WpfTheory, WorkItem("https://github.com/dotnet/roslyn/issues/67081")>
         <InlineData("System", True)>
         <InlineData("System.Collections", True)>
         <InlineData("SystemNamespace", False)>
@@ -12595,6 +12594,30 @@ $$
                 state.SendInvokeCompletionList()
                 Await state.AssertCompletionSession()
                 Await state.AssertCompletionItemsContain("System", displayTextSuffix:="")
+            End Using
+        End Function
+
+        <WpfTheory, CombinatorialData>
+        <WorkItem("https://github.com/dotnet/roslyn/pull/74484")>
+        Public Async Function ReferenceToMethodThatFollow(showCompletionInArgumentLists As Boolean) As Task
+            Using state = TestStateFactory.CreateCSharpTestState(
+                <Document>
+                class C
+                {
+                    void M()
+                    {
+                        if (true)
+                        {
+                            this.Sw$$
+
+                    private void SwitchColor() { }
+                }
+                </Document>,
+                showCompletionInArgumentLists:=showCompletionInArgumentLists, languageVersion:=LanguageVersion.CSharp12)
+
+                state.SendInvokeCompletionList()
+                Await state.AssertCompletionSession()
+                Await state.AssertCompletionItemsContain("SwitchColor", displayTextSuffix:="")
             End Using
         End Function
     End Class

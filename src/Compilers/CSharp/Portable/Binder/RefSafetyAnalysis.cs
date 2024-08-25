@@ -258,6 +258,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode? Visit(BoundNode? node)
         {
 #if DEBUG
+            TrackVisit(node);
+#endif
+            return base.Visit(node);
+        }
+
+#if DEBUG
+        protected override void BeforeVisitingSkippedBoundBinaryOperatorChildren(BoundBinaryOperator node)
+        {
+            TrackVisit(node);
+        }
+
+        protected override void BeforeVisitingSkippedBoundCallChildren(BoundCall node)
+        {
+            TrackVisit(node);
+        }
+
+        private void TrackVisit(BoundNode? node)
+        {
             if (node is BoundValuePlaceholderBase placeholder)
             {
                 Debug.Assert(ContainsPlaceholderScope(placeholder));
@@ -267,14 +285,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_visited is { } && _visited.Count <= MaxTrackVisited)
                 {
                     bool added = _visited.Add(expr);
-                    Debug.Assert(added);
+                    Debug.Assert(added, $"Expression {expr} `{expr.Syntax}` visited more than once.");
                 }
             }
-#endif
-            return base.Visit(node);
         }
 
-#if DEBUG
         private void AssertVisited(BoundExpression expr)
         {
             if (expr is BoundValuePlaceholderBase placeholder)
@@ -283,7 +298,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (_visited is { } && _visited.Count <= MaxTrackVisited)
             {
-                Debug.Assert(_visited.Contains(expr));
+                Debug.Assert(_visited.Contains(expr), $"Expected {expr} `{expr.Syntax}` to be visited.");
             }
         }
 #endif
@@ -486,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(localSymbol.RefKind == RefKind.None ||
                         refEscapeScope >= GetRefEscape(initializer, _localScopeDepth));
 
-                    if (node.DeclaredTypeOpt?.Type.IsRefLikeType == true)
+                    if (node.DeclaredTypeOpt?.Type.IsRefLikeOrAllowsRefLikeType() == true)
                     {
                         ValidateEscape(initializer, valEscapeScope, isByRef: false, _diagnostics);
                     }
@@ -563,7 +578,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             static uint getDeclarationValEscape(BoundTypeExpression typeExpression, uint valEscape)
             {
-                return typeExpression.Type.IsRefLikeType ? valEscape : CallingMethodScope;
+                // https://github.com/dotnet/roslyn/issues/73551:
+                // We do not have a test that demonstrates the statement below makes a difference
+                // for ref like types. If 'CallingMethodScope' is always returned, not a single test fails.
+                return typeExpression.Type.IsRefLikeOrAllowsRefLikeType() ? valEscape : CallingMethodScope;
             }
         }
 
@@ -588,7 +606,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return symbol is null
                     ? valEscape
-                    : symbol.GetTypeOrReturnType().IsRefLikeType() ? valEscape : CallingMethodScope;
+                    : symbol.GetTypeOrReturnType().IsRefLikeOrAllowsRefLikeType() ? valEscape : CallingMethodScope;
             }
         }
 
@@ -601,7 +619,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (member is null) return valEscape;
                 valEscape = getMemberValEscape(member.Receiver, valEscape);
-                return member.Type.IsRefLikeType ? valEscape : CallingMethodScope;
+                return member.Type.IsRefLikeOrAllowsRefLikeType() ? valEscape : CallingMethodScope;
             }
         }
 
@@ -649,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = node.Method;
                 CheckInvocationArgMixing(
                     node.Syntax,
-                    method,
+                    MethodInfo.Create(method),
                     node.ReceiverOpt,
                     node.InitialBindingReceiverIsSubjectToCloning,
                     method.Parameters,
@@ -659,13 +677,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _localScopeDepth,
                     _diagnostics);
             }
-
-#if DEBUG
-            if (_visited is { } && _visited.Count <= MaxTrackVisited)
-            {
-                _visited.Add(node);
-            }
-#endif
         }
 
         private void GetInterpolatedStringPlaceholders(
@@ -753,9 +764,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var constructor = node.Constructor;
                 if (constructor is { })
                 {
+                    var methodInfo = MethodInfo.Create(constructor);
                     CheckInvocationArgMixing(
                         node.Syntax,
-                        constructor,
+                        in methodInfo,
                         receiverOpt: null,
                         receiverIsSubjectToCloning: ThreeState.Unknown,
                         constructor.Parameters,
@@ -764,6 +776,58 @@ namespace Microsoft.CodeAnalysis.CSharp
                         node.ArgsToParamsOpt,
                         _localScopeDepth,
                         _diagnostics);
+
+                    if (node.InitializerExpressionOpt is { })
+                    {
+                        // Object initializers are different than a normal constructor in that the 
+                        // scope of the receiver is determined by evaluating the inputs to the constructor
+                        // *and* all of the initializers. Another way of thinking about this is that
+                        // every argument in an initializer that can escape to the receiver is 
+                        // effectively an argument to the constructor. That means we need to do
+                        // a second mixing pass here where we consider the receiver escaping 
+                        // back into the ref parameters of the constructor.
+                        //
+                        // At the moment this is only a hypothetical problem. Because the language 
+                        // doesn't support ref field of ref struct mixing like this could not actually
+                        // happen in practice. At the same time we want to error on this now so that 
+                        // in a future when we do have ref field to ref struct this is not a breaking 
+                        // change. Customers can respond to failures like this by putting scoped on
+                        // such parameters in the constructor.
+                        var escapeValues = ArrayBuilder<EscapeValue>.GetInstance();
+                        var escapeFrom = GetValEscape(node.InitializerExpressionOpt, _localScopeDepth);
+                        GetEscapeValues(
+                            in methodInfo,
+                            receiver: null,
+                            receiverIsSubjectToCloning: ThreeState.Unknown,
+                            constructor.Parameters,
+                            node.Arguments,
+                            node.ArgumentRefKindsOpt,
+                            node.ArgsToParamsOpt,
+                            ignoreArglistRefKinds: false,
+                            mixableArguments: null,
+                            escapeValues);
+
+                        foreach (var (parameter, argument, _, isRefEscape) in escapeValues)
+                        {
+                            if (!isRefEscape)
+                            {
+                                continue;
+                            }
+
+                            if (parameter?.Type?.IsRefLikeOrAllowsRefLikeType() != true ||
+                                !parameter.RefKind.IsWritableReference())
+                            {
+                                continue;
+                            }
+
+                            if (escapeFrom > GetValEscape(argument, _localScopeDepth))
+                            {
+                                Error(_diagnostics, ErrorCode.ERR_CallArgMixing, argument.Syntax, constructor, parameter.Name);
+                            }
+                        }
+
+                        escapeValues.Free();
+                    }
                 }
             }
         }
@@ -785,7 +849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var indexer = node.Indexer;
                 CheckInvocationArgMixing(
                     node.Syntax,
-                    indexer,
+                    MethodInfo.Create(node),
                     node.ReceiverOpt,
                     node.InitialBindingReceiverIsSubjectToCloning,
                     indexer.Parameters,
@@ -808,7 +872,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = node.FunctionPointer.Signature;
                 CheckInvocationArgMixing(
                     node.Syntax,
-                    method,
+                    MethodInfo.Create(method),
                     receiverOpt: null,
                     receiverIsSubjectToCloning: ThreeState.Unknown,
                     method.Parameters,
@@ -909,7 +973,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CheckInvocationArgMixing(
                 syntax,
-                deconstructMethod,
+                MethodInfo.Create(deconstructMethod),
                 invocation.ReceiverOpt,
                 invocation.InitialBindingReceiverIsSubjectToCloning,
                 parameters,
@@ -1000,7 +1064,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     out arguments, out refKinds);
 
                 collectionEscape = GetInvocationEscapeScope(
-                    equivalentSignatureMethod,
+                    MethodInfo.Create(equivalentSignatureMethod),
                     receiver: null,
                     receiverIsSubjectToCloning: ThreeState.Unknown,
                     equivalentSignatureMethod.Parameters,
@@ -1027,6 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 placeholders.Add((targetPlaceholder, collectionEscape));
             }
+
             if (node.AwaitOpt is { } awaitableInfo)
             {
                 GetAwaitableInstancePlaceholders(placeholders, awaitableInfo, collectionEscape);

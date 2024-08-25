@@ -5,10 +5,9 @@
 #nullable disable
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
@@ -19,8 +18,9 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Text.Outlining;
-using Microsoft.VisualStudio.Utilities;
-using Roslyn.Utilities;
+
+using ContentTypeAttribute = Microsoft.VisualStudio.Utilities.ContentTypeAttribute;
+using NameAttribute = Microsoft.VisualStudio.Utilities.NameAttribute;
 
 namespace Microsoft.CodeAnalysis.Editor;
 
@@ -103,7 +103,8 @@ internal class GoToAdjacentMemberCommandHandler(IOutliningManagerService outlini
     /// </summary>
     internal static int? GetTargetPosition(ISyntaxFactsService service, SyntaxNode root, int caretPosition, bool next)
     {
-        var members = service.GetMethodLevelMembers(root);
+        using var pooledMembers = service.GetMethodLevelMembers(root);
+        var members = pooledMembers.Object;
         if (members.Count == 0)
         {
             return null;

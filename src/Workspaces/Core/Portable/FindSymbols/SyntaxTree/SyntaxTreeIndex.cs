@@ -5,7 +5,9 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.FindSymbols;
 
@@ -14,20 +16,23 @@ internal sealed partial class SyntaxTreeIndex : AbstractSyntaxIndex<SyntaxTreeIn
     private readonly LiteralInfo _literalInfo;
     private readonly IdentifierInfo _identifierInfo;
     private readonly ContextInfo _contextInfo;
-    private readonly HashSet<(string alias, string name, int arity)>? _globalAliasInfo;
+    private readonly HashSet<(string alias, string name, int arity, bool isGlobal)>? _aliasInfo;
+    private readonly Dictionary<InterceptsLocationData, TextSpan>? _interceptsLocationInfo;
 
     private SyntaxTreeIndex(
         Checksum? checksum,
         LiteralInfo literalInfo,
         IdentifierInfo identifierInfo,
         ContextInfo contextInfo,
-        HashSet<(string alias, string name, int arity)>? globalAliasInfo)
+        HashSet<(string alias, string name, int arity, bool isGlobal)>? aliasInfo,
+        Dictionary<InterceptsLocationData, TextSpan>? interceptsLocationInfo)
         : base(checksum)
     {
         _literalInfo = literalInfo;
         _identifierInfo = identifierInfo;
         _contextInfo = contextInfo;
-        _globalAliasInfo = globalAliasInfo;
+        _aliasInfo = aliasInfo;
+        _interceptsLocationInfo = interceptsLocationInfo;
     }
 
     public static ValueTask<SyntaxTreeIndex> GetRequiredIndexAsync(Document document, CancellationToken cancellationToken)

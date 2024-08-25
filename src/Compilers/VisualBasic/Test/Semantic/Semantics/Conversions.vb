@@ -15,6 +15,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
 Imports Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.ConversionsTests.Parameters
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.TestMetadata
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -41,7 +42,7 @@ End Class
             Dim vbConversionsRef = TestReferences.SymbolsTests.VBConversions
             Dim modifiersRef = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll
 
-            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.mscorlib, vbConversionsRef, modifiersRef})
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.References.mscorlib, vbConversionsRef, modifiersRef})
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
             Dim methodDeclSymbol = DirectCast(sourceModule.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers("MethodDecl").Single(), SourceMethodSymbol)
@@ -220,7 +221,7 @@ End Class
 </file>
             Dim dummyTree = VisualBasicSyntaxTree.ParseText(dummyCode.Value)
 
-            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.mscorlib})
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.References.mscorlib})
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
             Dim methodDeclSymbol = DirectCast(sourceModule.GlobalNamespace.GetTypeMembers("C1").Single().GetMembers("MethodDecl").Single(), SourceMethodSymbol)
@@ -605,7 +606,8 @@ End Class
                     New TypeAndValue(uint64Type, CULng(18)),
                     New TypeAndValue(decimalType, CDec(-11.3)),
                     New TypeAndValue(doubleType, CDbl(&HF000000000000000UL)),
-                    New TypeAndValue(doubleType, CDbl(&H70000000000000F0L)),
+                    New TypeAndValue(doubleType, CDbl(&H8000000000000000L)),
+                    New TypeAndValue(doubleType, CDbl(&H7FFFFFFFFFFFFC00L)),
                     New TypeAndValue(typeCodeType, Int32.MinValue),
                     New TypeAndValue(typeCodeType, Int32.MaxValue),
                     New TypeAndValue(typeCodeType, CInt(-3)),
@@ -728,7 +730,10 @@ End Class
 
                                 Assert.True(gotException)
 
-                                Assert.Equal(UncheckedConvert(intermediate, numericType), resultValue.Value)
+                                ' Conditioned due to https://github.com/dotnet/roslyn/issues/74026
+                                If numericType IsNot byteType AndAlso CType(mv.Value, Double) <> CDbl(&HF000000000000000UL) Then
+                                    Assert.Equal(UncheckedConvert(intermediate, numericType), resultValue.Value)
+                                End If
                             End If
                         Else
                             Assert.NotNull(resultValue)
@@ -1070,7 +1075,7 @@ End Class
 </file>
             Dim dummyTree = VisualBasicSyntaxTree.ParseText(dummyCode.Value)
 
-            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.mscorlib},
+            Dim c1 = VisualBasicCompilation.Create("Test", syntaxTrees:={dummyTree}, references:={Net40.References.mscorlib},
                                         options:=TestOptions.ReleaseExe.WithOverflowChecks(False))
 
             Dim sourceModule = DirectCast(c1.Assembly.Modules(0), SourceModuleSymbol)
@@ -1165,7 +1170,8 @@ End Class
                     New TypeAndValue(uint64Type, CULng(18)),
                     New TypeAndValue(decimalType, CDec(-11.3)),
                     New TypeAndValue(doubleType, CDbl(&HF000000000000000UL)),
-                    New TypeAndValue(doubleType, CDbl(&H70000000000000F0L)),
+                    New TypeAndValue(doubleType, CDbl(&H8000000000000000L)),
+                    New TypeAndValue(doubleType, CDbl(&H7FFFFFFFFFFFFC00L)),
                     New TypeAndValue(typeCodeType, Int32.MinValue),
                     New TypeAndValue(typeCodeType, Int32.MaxValue),
                     New TypeAndValue(typeCodeType, CInt(-3)),
@@ -1288,7 +1294,10 @@ End Class
 
                                 Assert.True(gotException)
 
-                                Assert.Equal(UncheckedConvert(intermediate, numericType), resultValue.Value)
+                                ' Conditioned due to https://github.com/dotnet/roslyn/issues/74026
+                                If numericType IsNot byteType AndAlso CType(mv.Value, Double) <> CDbl(&HF000000000000000UL) Then
+                                    Assert.Equal(UncheckedConvert(intermediate, numericType), resultValue.Value)
+                                End If
                             End If
                         Else
                             Assert.NotNull(resultValue)
@@ -1437,7 +1446,7 @@ End Class
             Dim vbConversionsRef = TestReferences.SymbolsTests.VBConversions
             Dim modifiersRef = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll
 
-            Dim c1 = VisualBasicCompilation.Create("Test", references:={Net40.mscorlib, vbConversionsRef, modifiersRef})
+            Dim c1 = VisualBasicCompilation.Create("Test", references:={Net40.References.mscorlib, vbConversionsRef, modifiersRef})
 
             Dim asmVBConversions = c1.GetReferencedAssemblySymbol(vbConversionsRef)
             Dim asmModifiers = c1.GetReferencedAssemblySymbol(modifiersRef)
@@ -2019,7 +2028,7 @@ End Class
         <Fact()>
         Public Sub BuiltIn()
 
-            Dim c1 = VisualBasicCompilation.Create("Test", references:={Net40.mscorlib})
+            Dim c1 = VisualBasicCompilation.Create("Test", references:={Net40.References.mscorlib})
 
             Dim nullable = c1.GetSpecialType(System_Nullable_T)
 
@@ -5093,6 +5102,47 @@ End Module
   IL_0010:  ret
 }
 ]]>)
+        End Sub
+
+        <WorkItem(73032, "https://github.com/dotnet/roslyn/issues/73032")>
+        <Fact()>
+        Public Sub ConvertLargeDoubleConstantsAndLiteralsToLong()
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Module Program
+    Sub Main()
+        System.Console.WriteLine(CType(CDbl(&H8000000000000000L), Long) = ConvertToLong(CDbl(&H8000000000000000L)))
+        System.Console.WriteLine(CType(CDbl(&H8000000000000400L), Long) = ConvertToLong(CDbl(&H8000000000000400L)))
+        System.Console.WriteLine(CType(-9.0E+18, Long) = ConvertToLong(-9.0E+18))
+        System.Console.WriteLine(CType(CDbl(&H8FFFFFFFFFFFFC00L), Long) = ConvertToLong(CDbl(&H8FFFFFFFFFFFFC00L)))
+        System.Console.WriteLine(CType(CDbl(&H9000000000000000L), Long) = ConvertToLong(CDbl(&H9000000000000000L)))
+        System.Console.WriteLine(CType(CDbl(&H7000000000000000L), Long) = ConvertToLong(CDbl(&H7000000000000000L)))
+        System.Console.WriteLine(CType(CDbl(&H7000000000000400L), Long) = ConvertToLong(CDbl(&H7000000000000400L)))
+        System.Console.WriteLine(CType(9.0E+18, Long) = ConvertToLong(9.0E+18))
+        System.Console.WriteLine(CType(CDbl(&H7FFFFFFFFFFFFC00L), Long) = ConvertToLong(CDbl(&H7FFFFFFFFFFFFC00L)))
+    End Sub
+
+    Function ConvertToLong(x as Double) As Long
+        Return CType(x, Long)
+    End Function
+End Module
+    ]]></file>
+    </compilation>, options:=TestOptions.ReleaseExe.WithOverflowChecks(True))
+
+            Dim expectedOutput = <![CDATA[
+True
+True
+True
+True
+True
+True
+True
+True
+True
+]]>
+
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput).VerifyDiagnostics()
         End Sub
 
     End Class

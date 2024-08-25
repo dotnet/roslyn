@@ -3,43 +3,33 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Formatting;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddInheritdoc;
 
+using static CSharpSyntaxTokens;
+
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddInheritdoc), Shared]
-internal sealed class AddInheritdocCodeFixProvider : SyntaxEditorBasedCodeFixProvider
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class AddInheritdocCodeFixProvider() : SyntaxEditorBasedCodeFixProvider
 {
     /// <summary>
     /// CS1591: Missing XML comment for publicly visible type or member 'Type_or_Member'
     /// </summary>
     private const string CS1591 = nameof(CS1591);
-
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public AddInheritdocCodeFixProvider()
-    {
-    }
 
     public override ImmutableArray<string> FixableDiagnosticIds => [CS1591];
 
@@ -86,7 +76,7 @@ internal sealed class AddInheritdocCodeFixProvider : SyntaxEditorBasedCodeFixPro
         }
     }
 
-    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CodeActionOptionsProvider fallbackOptions, CancellationToken cancellationToken)
+    protected override async Task FixAllAsync(Document document, ImmutableArray<Diagnostic> diagnostics, SyntaxEditor editor, CancellationToken cancellationToken)
     {
         string? newLine = null;
         SourceText? sourceText = null;
@@ -100,16 +90,16 @@ internal sealed class AddInheritdocCodeFixProvider : SyntaxEditorBasedCodeFixPro
 
             if (newLine == null)
             {
-                var optionsProvider = await document.GetCodeFixOptionsAsync(fallbackOptions, cancellationToken).ConfigureAwait(false);
-                newLine = optionsProvider.GetLineFormattingOptions().NewLine;
+                var options = await document.GetLineFormattingOptionsAsync(cancellationToken).ConfigureAwait(false);
+                newLine = options.NewLine;
             }
 
             // We can safely assume, that there is no leading doc comment, because that is what CS1591 is telling us.
             // So we create a new /// <inheritdoc/> comment.
             var xmlSpaceAfterTripleSlash = Token(leading: [DocumentationCommentExterior("///")], SyntaxKind.XmlTextLiteralToken, text: " ", valueText: " ", trailing: default);
-            var lessThanToken = Token(SyntaxKind.LessThanToken).WithoutTrivia();
+            var lessThanToken = LessThanToken.WithoutTrivia();
             var inheritdocTagName = XmlName("inheritdoc").WithoutTrivia();
-            var slashGreaterThanToken = Token(SyntaxKind.SlashGreaterThanToken).WithoutTrivia();
+            var slashGreaterThanToken = SlashGreaterThanToken.WithoutTrivia();
             var xmlNewLineToken = Token(leading: default, SyntaxKind.XmlTextLiteralNewLineToken, text: newLine, valueText: newLine, trailing: default);
 
             var singleLineInheritdocComment = DocumentationCommentTrivia(
@@ -120,7 +110,7 @@ internal sealed class AddInheritdocCodeFixProvider : SyntaxEditorBasedCodeFixPro
                     XmlEmptyElement(lessThanToken, inheritdocTagName, attributes: default, slashGreaterThanToken),
                     XmlText(xmlNewLineToken),
                 ],
-                endOfComment: Token(SyntaxKind.EndOfDocumentationCommentToken).WithoutTrivia());
+                endOfComment: EndOfDocumentationCommentToken.WithoutTrivia());
 
             sourceText ??= await document.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
             var indentation = sourceText.GetLeadingWhitespaceOfLineAtPosition(node.FullSpan.Start);

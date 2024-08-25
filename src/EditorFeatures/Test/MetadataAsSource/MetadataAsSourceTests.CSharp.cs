@@ -5,45 +5,44 @@
 #nullable disable
 
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CSharp;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource
+namespace Microsoft.CodeAnalysis.Editor.UnitTests.MetadataAsSource;
+
+public partial class MetadataAsSourceTests
 {
-    public partial class MetadataAsSourceTests
+    [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+    public class CSharp : AbstractMetadataAsSourceTests
     {
-        [Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
-        public class CSharp : AbstractMetadataAsSourceTests
+        [Fact]
+        public void ExtractXMLFromDocComment()
         {
-            [Fact]
-            public void ExtractXMLFromDocComment()
-            {
-                var docCommentText = @"/// <summary>
+            var docCommentText = @"/// <summary>
 /// I am the very model of a modern major general.
 /// </summary>";
 
-                var expectedXMLFragment = @" <summary>
+            var expectedXMLFragment = @" <summary>
  I am the very model of a modern major general.
  </summary>";
 
-                var extractedXMLFragment = DocumentationCommentUtilities.ExtractXMLFragment(docCommentText, "///");
+            var extractedXMLFragment = DocumentationCommentUtilities.ExtractXMLFragment(docCommentText, "///");
 
-                Assert.Equal(expectedXMLFragment, extractedXMLFragment);
-            }
+            Assert.Equal(expectedXMLFragment, extractedXMLFragment);
+        }
 
-            [Theory, CombinatorialData]
-            [WorkItem("https://github.com/dotnet/roslyn/issues/42986")]
-            public async Task TestNativeInteger(bool signaturesOnly)
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42986")]
+        public async Task TestNativeInteger(bool signaturesOnly)
+        {
+            var metadataSource = "public class C { public nint i; public nuint i2; }";
+            var symbolName = "C";
+
+            var expected = signaturesOnly switch
             {
-                var metadataSource = "public class C { public nint i; public nuint i2; }";
-                var symbolName = "C";
-
-                var expected = signaturesOnly switch
-                {
-                    true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -54,7 +53,7 @@ public class [|C|]
 
     public C();
 }}",
-                    false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
@@ -72,25 +71,25 @@ public class [|C|]
 {string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                };
+            };
 
-                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
-            }
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
+        }
 
-            [Theory, CombinatorialData]
-            public async Task TestInitOnlyProperty(bool signaturesOnly)
-            {
-                var metadataSource = @"public class C { public int Property { get; init; } }
+        [Theory, CombinatorialData]
+        public async Task TestInitOnlyProperty(bool signaturesOnly)
+        {
+            var metadataSource = @"public class C { public int Property { get; init; } }
 namespace System.Runtime.CompilerServices
 {
     public sealed class IsExternalInit { }
 }
 ";
-                var symbolName = "C";
+            var symbolName = "C";
 
-                var expected = signaturesOnly switch
-                {
-                    true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            var expected = signaturesOnly switch
+            {
+                true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -100,7 +99,7 @@ public class [|C|]
 
     public int Property {{ get; init; }}
 }}",
-                    false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
@@ -116,20 +115,20 @@ public class [|C|]
 {string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                };
+            };
 
-                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
-            }
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
+        }
 
-            [Theory, CombinatorialData]
-            public async Task TestTupleWithNames(bool signaturesOnly)
+        [Theory, CombinatorialData]
+        public async Task TestTupleWithNames(bool signaturesOnly)
+        {
+            var metadataSource = "public class C { public (int a, int b) t; }";
+            var symbolName = "C";
+
+            var expected = signaturesOnly switch
             {
-                var metadataSource = "public class C { public (int a, int b) t; }";
-                var symbolName = "C";
-
-                var expected = signaturesOnly switch
-                {
-                    true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -142,7 +141,7 @@ public class [|C|]
 
     public C();
 }}",
-                    false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
@@ -162,19 +161,19 @@ public class [|C|]
 {string.Format(FeaturesResources.Found_single_assembly_0, "System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51")}
 {string.Format(FeaturesResources.Load_from_0, "System.ValueTuple.dll")}
 #endif",
-                };
+            };
 
-                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly);
-            }
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly);
+        }
 
-            [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26605")]
-            public async Task TestValueTuple(bool signaturesOnly)
+        [Theory, CombinatorialData, WorkItem("https://github.com/dotnet/roslyn/issues/26605")]
+        public async Task TestValueTuple(bool signaturesOnly)
+        {
+            using var context = TestContext.Create(LanguageNames.CSharp);
+
+            var expected = signaturesOnly switch
             {
-                using var context = TestContext.Create(LanguageNames.CSharp);
-
-                var expected = signaturesOnly switch
-                {
-                    true => $@"#region {FeaturesResources.Assembly} System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+                true => $@"#region {FeaturesResources.Assembly} System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
 // System.ValueTuple.dll
 #endregion
 
@@ -200,7 +199,7 @@ namespace System
         public override string ToString();
     }}
 }}",
-                    false => $@"#region {FeaturesResources.Assembly} System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
+                false => $@"#region {FeaturesResources.Assembly} System.ValueTuple, Version=4.0.1.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51
 // System.ValueTuple.dll
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
@@ -374,8 +373,8 @@ public struct [|ValueTuple|] : IEquatable<ValueTuple>, IStructuralEquatable, ISt
 {string.Format(FeaturesResources._0_items_in_cache, 6)}
 ------------------
 {string.Format(FeaturesResources.Resolve_0, "System.Runtime, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
-{string.Format(FeaturesResources.Found_single_assembly_0, "System.Runtime, Version=4.0.10.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
-{string.Format(FeaturesResources.WARN_Version_mismatch_Expected_0_Got_1, "4.0.0.0", "4.0.10.0")}
+{string.Format(FeaturesResources.Found_single_assembly_0, "System.Runtime, Version=4.0.20.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
+{string.Format(FeaturesResources.WARN_Version_mismatch_Expected_0_Got_1, "4.0.0.0", "4.0.20.0")}
 {string.Format(FeaturesResources.Load_from_0, "System.Runtime.dll")}
 ------------------
 {string.Format(FeaturesResources.Resolve_0, "System.Resources.ResourceManager, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a")}
@@ -399,20 +398,20 @@ public struct [|ValueTuple|] : IEquatable<ValueTuple>, IStructuralEquatable, ISt
 {string.Format(FeaturesResources.Resolve_0, "System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(FeaturesResources.Could_not_find_by_name_0, "System.ComponentModel.Composition, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 #endif",
-                };
+            };
 
-                await context.GenerateAndVerifySourceAsync("System.ValueTuple", expected, signaturesOnly: signaturesOnly);
-            }
+            await context.GenerateAndVerifySourceAsync("System.ValueTuple", expected, signaturesOnly: signaturesOnly);
+        }
 
-            [Theory, CombinatorialData]
-            public async Task TestExtendedPartialMethod1(bool signaturesOnly)
+        [Theory, CombinatorialData]
+        public async Task TestExtendedPartialMethod1(bool signaturesOnly)
+        {
+            var metadataSource = "public partial class C { public partial void F(); public partial void F() { } }";
+            var symbolName = "C";
+
+            var expected = signaturesOnly switch
             {
-                var metadataSource = "public partial class C { public partial void F(); public partial void F() { } }";
-                var symbolName = "C";
-
-                var expected = signaturesOnly switch
-                {
-                    true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -422,7 +421,7 @@ public class [|C|]
 
     public void F();
 }}",
-                    false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
@@ -440,21 +439,21 @@ public class [|C|]
 {string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                };
+            };
 
-                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
-            }
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
+        }
 
-            [Theory, CombinatorialData]
-            [WorkItem("https://github.com/dotnet/roslyn/issues/44566")]
-            public async Task TestRecordType(bool signaturesOnly)
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/44566")]
+        public async Task TestRecordType(bool signaturesOnly)
+        {
+            var metadataSource = "public record R;";
+            var symbolName = "R";
+
+            var expected = signaturesOnly switch
             {
-                var metadataSource = "public record R;";
-                var symbolName = "R";
-
-                var expected = signaturesOnly switch
-                {
-                    true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -491,7 +490,7 @@ public record [|R|] : IEquatable<R>
     [CompilerGenerated]
     public static bool operator !=(R? left, R? right);
 }}",
-                    false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
@@ -504,19 +503,19 @@ public record [|R|];
 {string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                };
+            };
 
-                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly);
-            }
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly);
+        }
 
-            /// <summary>
-            /// This test must be updated when we switch to a new version of the decompiler that supports checked ops.
-            /// </summary>
-            [Theory, CombinatorialData]
-            [WorkItem("https://github.com/dotnet/roslyn/issues/42986")]
-            public async Task TestCheckedOperators(bool signaturesOnly)
-            {
-                var metadataSource = @"
+        /// <summary>
+        /// This test must be updated when we switch to a new version of the decompiler that supports checked ops.
+        /// </summary>
+        [Theory, CombinatorialData]
+        [WorkItem("https://github.com/dotnet/roslyn/issues/42986")]
+        public async Task TestCheckedOperators(bool signaturesOnly)
+        {
+            var metadataSource = @"
 public class C
 {
     public static explicit operator string(C x) => throw new System.Exception();
@@ -531,11 +530,11 @@ public class C
 
     public static C operator checked +(C x, C y) => throw new System.Exception();
 }";
-                var symbolName = "C";
+            var symbolName = "C";
 
-                var expected = signaturesOnly switch
-                {
-                    true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            var expected = signaturesOnly switch
+            {
+                true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -551,7 +550,7 @@ public class [|C|]
     public static explicit operator string(C x);
     public static explicit operator checked string(C x);
 }}",
-                    false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
@@ -597,15 +596,15 @@ public class [|C|]
 {string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                };
+            };
 
-                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
-            }
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
+        }
 
-            [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60567")]
-            public async Task TestStaticInterfaceMembers()
-            {
-                var metadataSource = @"
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/60567")]
+        public async Task TestStaticInterfaceMembers()
+        {
+            var metadataSource = @"
 interface I<T> where T : I<T>
 {
     static abstract T P { get; set; }
@@ -618,9 +617,9 @@ interface I<T> where T : I<T>
     static abstract implicit operator T(string s);
     static abstract explicit operator string(T t);
 }";
-                var symbolName = "I`1.M";
+            var symbolName = "I`1.M";
 
-                var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -643,18 +642,18 @@ internal interface I<T> where T : I<T>
     static abstract explicit operator string(T t);
 }}";
 
-                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: true, metadataCommonReferences: "CommonReferencesNet6");
-            }
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: true, metadataCommonReferences: "CommonReferencesNet6");
+        }
 
-            [Theory, CombinatorialData]
-            public async Task UnsignedRightShift(bool signaturesOnly)
+        [Theory, CombinatorialData]
+        public async Task UnsignedRightShift(bool signaturesOnly)
+        {
+            var metadataSource = "public class C { public static C operator >>>(C x, int y) => x; }";
+            var symbolName = "C.op_UnsignedRightShift";
+
+            var expected = signaturesOnly switch
             {
-                var metadataSource = "public class C { public static C operator >>>(C x, int y) => x; }";
-                var symbolName = "C.op_UnsignedRightShift";
-
-                var expected = signaturesOnly switch
-                {
-                    true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -664,7 +663,7 @@ public class C
 
     public static C operator [|>>>|](C x, int y);
 }}",
-                    false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
@@ -683,41 +682,41 @@ public class C
 {string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                };
+            };
 
-                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
-            }
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, expected: expected, signaturesOnly: signaturesOnly, languageVersion: "Preview", metadataLanguageVersion: "Preview");
+        }
 
-            [Theory, CombinatorialData]
-            public async Task TestRequiredProperty(bool signaturesOnly)
-            {
-                var metadataSource = """
-                    public class C
-                    {
-                        public required int Property { get; set; }
-                        public required int Field;
-                    }
-                    namespace System.Runtime.CompilerServices
-                    {
-                        public sealed class RequiredMemberAttribute : Attribute { }
-                        public sealed class CompilerFeatureRequiredAttribute : Attribute
-                        {
-                            public CompilerFeatureRequiredAttribute(string featureName)
-                            {
-                                FeatureName = featureName;
-                            }
-                            public string FeatureName { get; }
-                            public bool IsOptional { get; set; }
-                        }
-                    }
-
-                    """;
-                var symbolName = "C";
-
-                // ICSharpDecompiler does not yet support decoding required members nicely
-                var expected = signaturesOnly switch
+        [Theory, CombinatorialData]
+        public async Task TestRequiredProperty(bool signaturesOnly)
+        {
+            var metadataSource = """
+                public class C
                 {
-                    true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                    public required int Property { get; set; }
+                    public required int Field;
+                }
+                namespace System.Runtime.CompilerServices
+                {
+                    public sealed class RequiredMemberAttribute : Attribute { }
+                    public sealed class CompilerFeatureRequiredAttribute : Attribute
+                    {
+                        public CompilerFeatureRequiredAttribute(string featureName)
+                        {
+                            FeatureName = featureName;
+                        }
+                        public string FeatureName { get; }
+                        public bool IsOptional { get; set; }
+                    }
+                }
+
+                """;
+            var symbolName = "C";
+
+            // ICSharpDecompiler does not yet support decoding required members nicely
+            var expected = signaturesOnly switch
+            {
+                true => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 #endregion
 
@@ -729,7 +728,7 @@ public class [|C|]
 
     public required int Property {{ get; set; }}
 }}",
-                    false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+                false => $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
 // {CodeAnalysisResources.InMemoryAssembly}
 // Decompiled with ICSharpCode.Decompiler {ICSharpCodeDecompilerVersion}
 #endregion
@@ -747,10 +746,9 @@ public class [|C|]
 {string.Format(FeaturesResources.Found_single_assembly_0, "mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089")}
 {string.Format(FeaturesResources.Load_from_0, "mscorlib.v4_6_1038_0.dll")}
 #endif",
-                };
+            };
 
-                await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
-            }
+            await GenerateAndVerifySourceAsync(metadataSource, symbolName, LanguageNames.CSharp, languageVersion: "Preview", metadataLanguageVersion: "Preview", expected: expected, signaturesOnly: signaturesOnly);
         }
     }
 }

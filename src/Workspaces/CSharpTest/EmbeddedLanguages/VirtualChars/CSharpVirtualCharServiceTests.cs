@@ -3,7 +3,6 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
 
             if (expression is LiteralExpressionSyntax literal)
             {
-                return SpecializedCollections.SingletonEnumerable(literal.Token);
+                return [literal.Token];
             }
             else if (expression is InterpolatedStringExpressionSyntax interpolation)
             {
@@ -165,11 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
 
         [Fact]
         public void TestEscapeInInterpolatedSimpleString_E()
-            => TestFailure("$\"\\e\"");
-
-        [Fact]
-        public void TestEscapeInInterpolatedSimpleString_E_Preview()
-            => Test("$\"\\e\"", @"['\u001B',[2,4]]", CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Preview));
+            => Test("$\"\\e\"", @"['\u001B',[2,4]]");
 
         [Fact]
         public void TestEscapeInInterpolatedVerbatimSimpleString()

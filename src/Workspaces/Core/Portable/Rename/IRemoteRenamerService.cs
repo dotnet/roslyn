@@ -11,7 +11,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeCleanup;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Rename.ConflictEngine;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -22,10 +21,6 @@ namespace Microsoft.CodeAnalysis.Rename;
 
 internal interface IRemoteRenamerService
 {
-    internal interface ICallback : IRemoteOptionsCallback<CodeCleanupOptions>
-    {
-    }
-
     /// <summary>
     /// Runs the entire rename operation OOP and returns the final result. More efficient (due to less back and
     /// forth marshaling) when the intermediary results of rename are not needed. To get the individual parts of
@@ -33,7 +28,6 @@ internal interface IRemoteRenamerService
     /// </summary>
     ValueTask<SerializableConflictResolution?> RenameSymbolAsync(
         Checksum solutionChecksum,
-        RemoteServiceCallbackId callbackId,
         SerializableSymbolAndProjectId symbolAndProjectId,
         string replacementText,
         SymbolRenameOptions options,
@@ -48,25 +42,11 @@ internal interface IRemoteRenamerService
 
     ValueTask<SerializableConflictResolution?> ResolveConflictsAsync(
         Checksum solutionChecksum,
-        RemoteServiceCallbackId callbackId,
         SerializableSymbolAndProjectId symbolAndProjectId,
         SerializableRenameLocations renameLocationSet,
         string replacementText,
         ImmutableArray<SymbolKey> nonConflictSymbolKeys,
         CancellationToken cancellationToken);
-}
-
-[ExportRemoteServiceCallbackDispatcher(typeof(IRemoteRenamerService)), Shared]
-internal sealed class RemoteRenamerServiceCallbackDispatcher : RemoteServiceCallbackDispatcher, IRemoteRenamerService.ICallback
-{
-    [ImportingConstructor]
-    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-    public RemoteRenamerServiceCallbackDispatcher()
-    {
-    }
-
-    public ValueTask<CodeCleanupOptions> GetOptionsAsync(RemoteServiceCallbackId callbackId, string language, CancellationToken cancellationToken)
-        => ((RemoteOptionsProvider<CodeCleanupOptions>)GetCallback(callbackId)).GetOptionsAsync(language, cancellationToken);
 }
 
 [DataContract]
@@ -185,11 +165,11 @@ internal sealed class SerializableRenameLocations(
     public async ValueTask<ImmutableArray<RenameLocation>> RehydrateLocationsAsync(
         Solution solution, CancellationToken cancellationToken)
     {
-        using var _ = ArrayBuilder<RenameLocation>.GetInstance(this.Locations.Length, out var locBuilder);
+        var locBuilder = new FixedSizeArrayBuilder<RenameLocation>(this.Locations.Length);
         foreach (var loc in this.Locations)
             locBuilder.Add(await loc.RehydrateAsync(solution, cancellationToken).ConfigureAwait(false));
 
-        return locBuilder.ToImmutableAndClear();
+        return locBuilder.MoveToImmutable();
     }
 }
 

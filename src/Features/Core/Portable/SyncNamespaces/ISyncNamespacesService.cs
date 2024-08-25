@@ -18,5 +18,5 @@ internal interface ISyncNamespacesService : ILanguageService
     /// and their relative folder path.
     /// </summary>
     Task<Solution> SyncNamespacesAsync(
-        ImmutableArray<Project> projects, CodeActionOptionsProvider options, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
+        ImmutableArray<Project> projects, IProgress<CodeAnalysisProgress> progressTracker, CancellationToken cancellationToken);
 }

@@ -13,6 +13,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
+using Microsoft.CodeAnalysis.Shared.Collections;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -24,7 +26,6 @@ namespace Microsoft.CodeAnalysis;
 /// </summary>
 public partial class Solution
 {
-    private readonly SolutionCompilationState _compilationState;
 
     // Values for all these are created on demand.
     private ImmutableDictionary<ProjectId, Project> _projectIdToProjectMap;
@@ -45,7 +46,7 @@ public partial class Solution
         AsyncLazy<Solution>? cachedFrozenSolution = null)
     {
         _projectIdToProjectMap = ImmutableDictionary<ProjectId, Project>.Empty;
-        _compilationState = compilationState;
+        CompilationState = compilationState;
 
         _cachedFrozenSolution = cachedFrozenSolution ??
             AsyncLazy.Create(synchronousComputeFunction: static (self, c) =>
@@ -57,20 +58,21 @@ public partial class Solution
         Workspace workspace,
         SolutionInfo.SolutionAttributes solutionAttributes,
         SolutionOptionSet options,
-        IReadOnlyList<AnalyzerReference> analyzerReferences)
+        IReadOnlyList<AnalyzerReference> analyzerReferences,
+        ImmutableDictionary<string, StructuredAnalyzerConfigOptions> fallbackAnalyzerOptions)
         : this(new SolutionCompilationState(
-                  new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences),
+                  new SolutionState(workspace.Kind, workspace.Services.SolutionServices, solutionAttributes, options, analyzerReferences, fallbackAnalyzerOptions),
                   workspace.PartialSemanticsEnabled))
     {
     }
 
     internal SolutionState SolutionState => CompilationState.SolutionState;
 
-    internal SolutionCompilationState CompilationState => _compilationState;
+    internal SolutionCompilationState CompilationState { get; }
 
     internal int WorkspaceVersion => this.SolutionState.WorkspaceVersion;
 
-    internal bool PartialSemanticsEnabled => _compilationState.PartialSemanticsEnabled;
+    internal bool PartialSemanticsEnabled => CompilationState.PartialSemanticsEnabled;
 
     /// <summary>
     /// Per solution services provided by the host environment.  Use this instead of <see
@@ -187,11 +189,19 @@ public partial class Solution
     /// necessary to resolve symbols back to the actual project/compilation that produced them for correctness.
     /// </remarks>
     internal ProjectId? GetOriginatingProjectId(ISymbol symbol)
-        => _compilationState.GetOriginatingProjectInfo(symbol)?.ProjectId;
+        => CompilationState.GetOriginatingProjectInfo(symbol)?.ProjectId;
 
     /// <inheritdoc cref="GetOriginatingProjectId"/>
     internal Project? GetOriginatingProject(ISymbol symbol)
         => GetProject(GetOriginatingProjectId(symbol));
+
+    /// <inheritdoc cref="GetOriginatingProjectId"/>
+    /// <remarks>
+    /// Returns the <see cref="Compilation"/> that produced the symbol.  In the case of a symbol that was retargetted
+    /// this will be the compilation it was retargtted into, not the original compilation that it was retargetted from.
+    /// </remarks>
+    internal Compilation? GetOriginatingCompilation(ISymbol symbol)
+        => CompilationState.GetOriginatingProjectInfo(symbol)?.Compilation;
 
     /// <summary>
     /// True if the solution contains the document in one of its projects
@@ -217,7 +227,7 @@ public partial class Solution
     /// Gets the documentId in this solution with the specified syntax tree.
     /// </summary>
     public DocumentId? GetDocumentId(SyntaxTree? syntaxTree, ProjectId? projectId)
-        => _compilationState.GetDocumentState(syntaxTree, projectId)?.Id;
+        => CompilationState.GetDocumentState(syntaxTree, projectId)?.Id;
 
     /// <summary>
     /// Gets the document in this solution with the specified document ID.
@@ -305,7 +315,7 @@ public partial class Solution
     {
         if (syntaxTree != null)
         {
-            var documentState = _compilationState.GetDocumentState(syntaxTree, projectId);
+            var documentState = CompilationState.GetDocumentState(syntaxTree, projectId);
 
             if (documentState is SourceGeneratedDocumentState)
             {
@@ -326,7 +336,7 @@ public partial class Solution
     }
 
     private Solution WithCompilationState(SolutionCompilationState compilationState)
-        => compilationState == _compilationState ? this : new Solution(compilationState);
+        => compilationState == CompilationState ? this : new Solution(compilationState);
 
     /// <summary>
     /// Creates a new solution instance that includes a project with the specified language and names.
@@ -344,17 +354,29 @@ public partial class Solution
     public Solution AddProject(ProjectId projectId, string name, string assemblyName, string language)
         => this.AddProject(ProjectInfo.Create(projectId, VersionStamp.Create(), name, assemblyName, language));
 
-    /// <summary>
-    /// Create a new solution instance that includes a project with the specified project information.
-    /// </summary>
+    /// <inheritdoc cref="SolutionCompilationState.AddProjects"/>
     public Solution AddProject(ProjectInfo projectInfo)
-        => WithCompilationState(_compilationState.AddProject(projectInfo));
+    {
+        using var _ = ArrayBuilder<ProjectInfo>.GetInstance(1, out var projectInfos);
+        projectInfos.Add(projectInfo);
+        return AddProjects(projectInfos);
+    }
 
-    /// <summary>
-    /// Create a new solution instance without the project specified.
-    /// </summary>
+    /// <inheritdoc cref="SolutionCompilationState.AddProjects"/>
+    internal Solution AddProjects(ArrayBuilder<ProjectInfo> projectInfos)
+        => WithCompilationState(CompilationState.AddProjects(projectInfos));
+
+    /// <inheritdoc cref="SolutionCompilationState.RemoveProjects"/>
     public Solution RemoveProject(ProjectId projectId)
-        => WithCompilationState(_compilationState.RemoveProject(projectId));
+    {
+        using var _ = ArrayBuilder<ProjectId>.GetInstance(1, out var projectIds);
+        projectIds.Add(projectId);
+        return RemoveProjects(projectIds);
+    }
+
+    /// <inheritdoc cref="SolutionCompilationState.RemoveProjects"/>
+    internal Solution RemoveProjects(ArrayBuilder<ProjectId> projectIds)
+        => WithCompilationState(CompilationState.RemoveProjects(projectIds));
 
     /// <summary>
     /// Creates a new solution instance with the project specified updated to have the new
@@ -369,7 +391,7 @@ public partial class Solution
             throw new ArgumentNullException(nameof(assemblyName));
         }
 
-        return WithCompilationState(_compilationState.WithProjectAssemblyName(projectId, assemblyName));
+        return WithCompilationState(CompilationState.WithProjectAssemblyName(projectId, assemblyName));
     }
 
     /// <summary>
@@ -379,7 +401,7 @@ public partial class Solution
     {
         CheckContainsProject(projectId);
 
-        return WithCompilationState(_compilationState.WithProjectOutputFilePath(projectId, outputFilePath));
+        return WithCompilationState(CompilationState.WithProjectOutputFilePath(projectId, outputFilePath));
     }
 
     /// <summary>
@@ -389,7 +411,7 @@ public partial class Solution
     {
         CheckContainsProject(projectId);
 
-        return WithCompilationState(_compilationState.WithProjectOutputRefFilePath(projectId, outputRefFilePath));
+        return WithCompilationState(CompilationState.WithProjectOutputRefFilePath(projectId, outputRefFilePath));
     }
 
     /// <summary>
@@ -399,7 +421,7 @@ public partial class Solution
     {
         CheckContainsProject(projectId);
 
-        return WithCompilationState(_compilationState.WithProjectCompilationOutputInfo(projectId, info));
+        return WithCompilationState(CompilationState.WithProjectCompilationOutputInfo(projectId, info));
     }
 
     /// <summary>
@@ -409,7 +431,7 @@ public partial class Solution
     {
         CheckContainsProject(projectId);
 
-        return WithCompilationState(_compilationState.WithProjectDefaultNamespace(projectId, defaultNamespace));
+        return WithCompilationState(CompilationState.WithProjectDefaultNamespace(projectId, defaultNamespace));
     }
 
     /// <summary>
@@ -419,7 +441,7 @@ public partial class Solution
     {
         CheckContainsProject(projectId);
 
-        return WithCompilationState(_compilationState.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm));
+        return WithCompilationState(CompilationState.WithProjectChecksumAlgorithm(projectId, checksumAlgorithm));
     }
 
     /// <summary>
@@ -434,7 +456,7 @@ public partial class Solution
             throw new ArgumentNullException(nameof(name));
         }
 
-        return WithCompilationState(_compilationState.WithProjectName(projectId, name));
+        return WithCompilationState(CompilationState.WithProjectName(projectId, name));
     }
 
     /// <summary>
@@ -444,7 +466,7 @@ public partial class Solution
     {
         CheckContainsProject(projectId);
 
-        return WithCompilationState(_compilationState.WithProjectFilePath(projectId, filePath));
+        return WithCompilationState(CompilationState.WithProjectFilePath(projectId, filePath));
     }
 
     /// <summary>
@@ -460,7 +482,7 @@ public partial class Solution
             throw new ArgumentNullException(nameof(options));
         }
 
-        return WithCompilationState(_compilationState.WithProjectCompilationOptions(projectId, options));
+        return WithCompilationState(CompilationState.WithProjectCompilationOptions(projectId, options));
     }
 
     /// <summary>
@@ -476,8 +498,14 @@ public partial class Solution
             throw new ArgumentNullException(nameof(options));
         }
 
-        return WithCompilationState(_compilationState.WithProjectParseOptions(projectId, options));
+        return WithCompilationState(CompilationState.WithProjectParseOptions(projectId, options));
     }
+
+    /// <summary>
+    /// Create a new solution instance updated to use the specified <see cref="FallbackAnalyzerOptions"/>.
+    /// </summary>
+    internal Solution WithFallbackAnalyzerOptions(ImmutableDictionary<string, StructuredAnalyzerConfigOptions> options)
+        => WithCompilationState(CompilationState.WithFallbackAnalyzerOptions(options));
 
     /// <summary>
     /// Create a new solution instance with the project specified updated to have
@@ -488,7 +516,7 @@ public partial class Solution
     {
         CheckContainsProject(projectId);
 
-        return WithCompilationState(_compilationState.WithHasAllInformation(projectId, hasAllInformation));
+        return WithCompilationState(CompilationState.WithHasAllInformation(projectId, hasAllInformation));
     }
 
     /// <summary>
@@ -500,7 +528,7 @@ public partial class Solution
     {
         CheckContainsProject(projectId);
 
-        return WithCompilationState(_compilationState.WithRunAnalyzers(projectId, runAnalyzers));
+        return WithCompilationState(CompilationState.WithRunAnalyzers(projectId, runAnalyzers));
     }
 
     /// <summary>
@@ -521,7 +549,25 @@ public partial class Solution
             throw new ArgumentNullException(nameof(documentIds));
         }
 
-        return WithCompilationState(_compilationState.WithProjectDocumentsOrder(projectId, documentIds));
+        return WithCompilationState(CompilationState.WithProjectDocumentsOrder(projectId, documentIds));
+    }
+
+    /// <summary>
+    /// Updates the solution with project information stored in <paramref name="attributes"/>.
+    /// </summary>
+    internal Solution WithProjectAttributes(ProjectInfo.ProjectAttributes attributes)
+    {
+        CheckContainsProject(attributes.Id);
+        return WithCompilationState(CompilationState.WithProjectAttributes(attributes));
+    }
+
+    /// <summary>
+    /// Updates the solution with project information stored in <paramref name="info"/>.
+    /// </summary>
+    internal Solution WithProjectInfo(ProjectInfo info)
+    {
+        CheckContainsProject(info.Id);
+        return WithCompilationState(CompilationState.WithProjectInfo(info));
     }
 
     /// <summary>
@@ -535,8 +581,7 @@ public partial class Solution
     public Solution AddProjectReference(ProjectId projectId, ProjectReference projectReference)
     {
         return AddProjectReferences(projectId,
-            SpecializedCollections.SingletonEnumerable(
-                projectReference ?? throw new ArgumentNullException(nameof(projectReference))));
+            [projectReference ?? throw new ArgumentNullException(nameof(projectReference))]);
     }
 
     /// <summary>
@@ -569,7 +614,7 @@ public partial class Solution
         CheckCircularProjectReferences(projectId, collection);
         CheckSubmissionProjectReferences(projectId, collection, ignoreExistingReferences: false);
 
-        return WithCompilationState(_compilationState.AddProjectReferences(projectId, collection));
+        return WithCompilationState(CompilationState.AddProjectReferences(projectId, collection));
     }
 
     /// <summary>
@@ -590,7 +635,7 @@ public partial class Solution
         if (!oldProject.ProjectReferences.Contains(projectReference))
             throw new ArgumentException(WorkspacesResources.Project_does_not_contain_specified_reference, nameof(projectReference));
 
-        return WithCompilationState(_compilationState.RemoveProjectReference(projectId, projectReference));
+        return WithCompilationState(CompilationState.RemoveProjectReference(projectId, projectReference));
     }
 
     /// <summary>
@@ -613,7 +658,7 @@ public partial class Solution
         CheckCircularProjectReferences(projectId, collection);
         CheckSubmissionProjectReferences(projectId, collection, ignoreExistingReferences: true);
 
-        return WithCompilationState(_compilationState.WithProjectReferences(projectId, collection));
+        return WithCompilationState(CompilationState.WithProjectReferences(projectId, collection));
     }
 
     /// <summary>
@@ -627,8 +672,7 @@ public partial class Solution
     public Solution AddMetadataReference(ProjectId projectId, MetadataReference metadataReference)
     {
         return AddMetadataReferences(projectId,
-            SpecializedCollections.SingletonEnumerable(
-                metadataReference ?? throw new ArgumentNullException(nameof(metadataReference))));
+            [metadataReference ?? throw new ArgumentNullException(nameof(metadataReference))]);
     }
 
     /// <summary>
@@ -656,7 +700,7 @@ public partial class Solution
             }
         }
 
-        return WithCompilationState(_compilationState.AddMetadataReferences(projectId, collection));
+        return WithCompilationState(CompilationState.AddMetadataReferences(projectId, collection));
     }
 
     /// <summary>
@@ -678,7 +722,7 @@ public partial class Solution
         if (!oldProject.MetadataReferences.Contains(metadataReference))
             throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
 
-        return WithCompilationState(_compilationState.RemoveMetadataReference(projectId, metadataReference));
+        return WithCompilationState(CompilationState.RemoveMetadataReference(projectId, metadataReference));
     }
 
     /// <summary>
@@ -695,7 +739,7 @@ public partial class Solution
 
         var collection = PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(metadataReferences, nameof(metadataReferences));
 
-        return WithCompilationState(_compilationState.WithProjectMetadataReferences(projectId, collection));
+        return WithCompilationState(CompilationState.WithProjectMetadataReferences(projectId, collection));
     }
 
     /// <summary>
@@ -708,8 +752,7 @@ public partial class Solution
     public Solution AddAnalyzerReference(ProjectId projectId, AnalyzerReference analyzerReference)
     {
         return AddAnalyzerReferences(projectId,
-            SpecializedCollections.SingletonEnumerable(
-                analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))));
+            [analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))]);
     }
 
     /// <summary>
@@ -742,7 +785,7 @@ public partial class Solution
             }
         }
 
-        return WithCompilationState(_compilationState.AddAnalyzerReferences(this.SolutionState.AddAnalyzerReferences(projectId, collection), collection));
+        return WithCompilationState(CompilationState.AddAnalyzerReferences(this.SolutionState.AddAnalyzerReferences(projectId, collection), collection));
     }
 
     /// <summary>
@@ -764,7 +807,7 @@ public partial class Solution
         if (!oldProject.AnalyzerReferences.Contains(analyzerReference))
             throw new InvalidOperationException(WorkspacesResources.Project_does_not_contain_specified_reference);
 
-        return WithCompilationState(_compilationState.RemoveAnalyzerReference(projectId, analyzerReference));
+        return WithCompilationState(CompilationState.RemoveAnalyzerReference(projectId, analyzerReference));
     }
 
     /// <summary>
@@ -781,7 +824,7 @@ public partial class Solution
 
         var collection = PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences));
 
-        return WithCompilationState(_compilationState.WithProjectAnalyzerReferences(projectId, collection));
+        return WithCompilationState(CompilationState.WithProjectAnalyzerReferences(projectId, collection));
     }
 
     /// <summary>
@@ -791,8 +834,7 @@ public partial class Solution
     public Solution AddAnalyzerReference(AnalyzerReference analyzerReference)
     {
         return AddAnalyzerReferences(
-            SpecializedCollections.SingletonEnumerable(
-                analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))));
+            [analyzerReference ?? throw new ArgumentNullException(nameof(analyzerReference))]);
     }
 
     /// <summary>
@@ -816,7 +858,7 @@ public partial class Solution
             }
         }
 
-        return WithCompilationState(_compilationState.AddAnalyzerReferences(collection));
+        return WithCompilationState(CompilationState.AddAnalyzerReferences(collection));
     }
 
     /// <summary>
@@ -833,7 +875,7 @@ public partial class Solution
         if (!this.SolutionState.AnalyzerReferences.Contains(analyzerReference))
             throw new InvalidOperationException(WorkspacesResources.Solution_does_not_contain_specified_reference);
 
-        return WithCompilationState(_compilationState.RemoveAnalyzerReference(analyzerReference));
+        return WithCompilationState(CompilationState.RemoveAnalyzerReference(analyzerReference));
     }
 
     /// <summary>
@@ -845,7 +887,7 @@ public partial class Solution
     {
         var collection = PublicContract.ToBoxedImmutableArrayWithDistinctNonNullItems(analyzerReferences, nameof(analyzerReferences));
 
-        return WithCompilationState(_compilationState.WithAnalyzerReferences(collection));
+        return WithCompilationState(CompilationState.WithAnalyzerReferences(collection));
     }
 
     private static SourceCodeKind GetSourceCodeKind(ProjectState project)
@@ -958,7 +1000,7 @@ public partial class Solution
     /// </summary>
     /// <returns>A new <see cref="Solution"/> with the documents added.</returns>
     public Solution AddDocuments(ImmutableArray<DocumentInfo> documentInfos)
-        => WithCompilationState(_compilationState.AddDocuments(documentInfos));
+        => WithCompilationState(CompilationState.AddDocumentsToMultipleProjects<DocumentState>(documentInfos));
 
     /// <summary>
     /// Creates a new solution instance with the corresponding project updated to include a new
@@ -996,7 +1038,7 @@ public partial class Solution
         => AddAdditionalDocuments([documentInfo]);
 
     public Solution AddAdditionalDocuments(ImmutableArray<DocumentInfo> documentInfos)
-        => WithCompilationState(_compilationState.AddAdditionalDocuments(documentInfos));
+        => WithCompilationState(CompilationState.AddDocumentsToMultipleProjects<AdditionalDocumentState>(documentInfos));
 
     /// <summary>
     /// Creates a new solution instance with the corresponding project updated to include a new
@@ -1041,14 +1083,14 @@ public partial class Solution
             filePath: filePath);
     }
 
-    private ProjectState GetRequiredProjectState(ProjectId projectId)
+    internal ProjectState GetRequiredProjectState(ProjectId projectId)
         => this.SolutionState.GetProjectState(projectId) ?? throw new InvalidOperationException(string.Format(WorkspacesResources._0_is_not_part_of_the_workspace, projectId));
 
     /// <summary>
     /// Creates a new Solution instance that contains a new compiler configuration document like a .editorconfig file.
     /// </summary>
     public Solution AddAnalyzerConfigDocuments(ImmutableArray<DocumentInfo> documentInfos)
-        => WithCompilationState(_compilationState.AddAnalyzerConfigDocuments(documentInfos));
+        => WithCompilationState(CompilationState.AddDocumentsToMultipleProjects<AnalyzerConfigDocumentState>(documentInfos));
 
     /// <summary>
     /// Creates a new solution instance that no longer includes the specified document.
@@ -1069,7 +1111,7 @@ public partial class Solution
     }
 
     private Solution RemoveDocumentsImpl(ImmutableArray<DocumentId> documentIds)
-        => WithCompilationState(_compilationState.RemoveDocuments(documentIds));
+        => WithCompilationState(CompilationState.RemoveDocumentsFromMultipleProjects<DocumentState>(documentIds));
 
     /// <summary>
     /// Creates a new solution instance that no longer includes the specified additional document.
@@ -1090,7 +1132,7 @@ public partial class Solution
     }
 
     private Solution RemoveAdditionalDocumentsImpl(ImmutableArray<DocumentId> documentIds)
-        => WithCompilationState(_compilationState.RemoveAdditionalDocuments(documentIds));
+        => WithCompilationState(CompilationState.RemoveDocumentsFromMultipleProjects<AdditionalDocumentState>(documentIds));
 
     /// <summary>
     /// Creates a new solution instance that no longer includes the specified <see cref="AnalyzerConfigDocument"/>.
@@ -1111,7 +1153,7 @@ public partial class Solution
     }
 
     private Solution RemoveAnalyzerConfigDocumentsImpl(ImmutableArray<DocumentId> documentIds)
-        => WithCompilationState(_compilationState.RemoveAnalyzerConfigDocuments(documentIds));
+        => WithCompilationState(CompilationState.RemoveDocumentsFromMultipleProjects<AnalyzerConfigDocumentState>(documentIds));
 
     /// <summary>
     /// Creates a new solution instance with the document specified updated to have the new name.
@@ -1125,7 +1167,10 @@ public partial class Solution
             throw new ArgumentNullException(nameof(name));
         }
 
-        return WithCompilationState(_compilationState.WithDocumentName(documentId, name));
+        return WithCompilationState(CompilationState.WithDocumentAttributes(
+            documentId,
+            name,
+            static (attributes, value) => attributes.With(name: value)));
     }
 
     /// <summary>
@@ -1138,25 +1183,23 @@ public partial class Solution
 
         var collection = PublicContract.ToBoxedImmutableArrayWithNonNullItems(folders, nameof(folders));
 
-        return WithCompilationState(_compilationState.WithDocumentFolders(documentId, collection));
+        return WithCompilationState(CompilationState.WithDocumentAttributes(
+            documentId,
+            collection,
+            static (attributes, value) => attributes.With(folders: value)));
     }
 
     /// <summary>
     /// Creates a new solution instance with the document specified updated to have the specified file path.
     /// </summary>
-    public Solution WithDocumentFilePath(DocumentId documentId, string filePath)
+    public Solution WithDocumentFilePath(DocumentId documentId, string? filePath)
     {
         CheckContainsDocument(documentId);
 
-        // TODO (https://github.com/dotnet/roslyn/issues/37125): 
-        // We *do* support null file paths. Why can't you switch a document back to null?
-        // See DocumentState.GetSyntaxTreeFilePath
-        if (filePath == null)
-        {
-            throw new ArgumentNullException(nameof(filePath));
-        }
-
-        return WithCompilationState(_compilationState.WithDocumentFilePath(documentId, filePath));
+        return WithCompilationState(CompilationState.WithDocumentAttributes(
+            documentId,
+            filePath,
+            static (attributes, value) => attributes.With(filePath: value)));
     }
 
     /// <summary>
@@ -1164,20 +1207,22 @@ public partial class Solution
     /// specified.
     /// </summary>
     public Solution WithDocumentText(DocumentId documentId, SourceText text, PreservationMode mode = PreservationMode.PreserveValue)
+        => WithDocumentTexts([(documentId, text)], mode);
+
+    internal Solution WithDocumentTexts(ImmutableArray<(DocumentId documentId, SourceText text)> texts, PreservationMode mode = PreservationMode.PreserveValue)
     {
-        CheckContainsDocument(documentId);
-
-        if (text == null)
+        foreach (var (documentId, text) in texts)
         {
-            throw new ArgumentNullException(nameof(text));
+            CheckContainsDocument(documentId);
+
+            if (text == null)
+                throw new ArgumentNullException(nameof(text));
+
+            if (!mode.IsValid())
+                throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        if (!mode.IsValid())
-        {
-            throw new ArgumentOutOfRangeException(nameof(mode));
-        }
-
-        return WithCompilationState(_compilationState.WithDocumentText(documentId, text, mode));
+        return WithCompilationState(CompilationState.WithDocumentTexts(texts, mode));
     }
 
     /// <summary>
@@ -1198,7 +1243,7 @@ public partial class Solution
             throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        return WithCompilationState(_compilationState.WithAdditionalDocumentText(documentId, text, mode));
+        return WithCompilationState(CompilationState.WithAdditionalDocumentText(documentId, text, mode));
     }
 
     /// <summary>
@@ -1219,7 +1264,7 @@ public partial class Solution
             throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        return WithCompilationState(_compilationState.WithAnalyzerConfigDocumentText(documentId, text, mode));
+        return WithCompilationState(CompilationState.WithAnalyzerConfigDocumentText(documentId, text, mode));
     }
 
     /// <summary>
@@ -1240,7 +1285,7 @@ public partial class Solution
             throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        return WithCompilationState(_compilationState.WithDocumentText(documentId, textAndVersion, mode));
+        return WithCompilationState(CompilationState.WithDocumentText(documentId, textAndVersion, mode));
     }
 
     /// <summary>
@@ -1261,7 +1306,7 @@ public partial class Solution
             throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        return WithCompilationState(_compilationState.WithAdditionalDocumentText(documentId, textAndVersion, mode));
+        return WithCompilationState(CompilationState.WithAdditionalDocumentText(documentId, textAndVersion, mode));
     }
 
     /// <summary>
@@ -1282,7 +1327,7 @@ public partial class Solution
             throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        return WithCompilationState(_compilationState.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode));
+        return WithCompilationState(CompilationState.WithAnalyzerConfigDocumentText(documentId, textAndVersion, mode));
     }
 
     /// <summary>
@@ -1290,24 +1335,30 @@ public partial class Solution
     /// rooted by the specified syntax node.
     /// </summary>
     public Solution WithDocumentSyntaxRoot(DocumentId documentId, SyntaxNode root, PreservationMode mode = PreservationMode.PreserveValue)
+        => WithDocumentSyntaxRoots([(documentId, root)], mode);
+
+    /// <inheritdoc cref="WithDocumentSyntaxRoot"/>.
+    internal Solution WithDocumentSyntaxRoots(ImmutableArray<(DocumentId documentId, SyntaxNode root)> syntaxRoots, PreservationMode mode = PreservationMode.PreserveValue)
     {
-        CheckContainsDocument(documentId);
-
-        if (root == null)
-        {
-            throw new ArgumentNullException(nameof(root));
-        }
-
         if (!mode.IsValid())
-        {
             throw new ArgumentOutOfRangeException(nameof(mode));
+
+        foreach (var (documentId, root) in syntaxRoots)
+        {
+            CheckContainsDocument(documentId);
+
+            if (root == null)
+                throw new ArgumentNullException(nameof(root));
         }
 
-        return WithCompilationState(_compilationState.WithDocumentSyntaxRoot(documentId, root, mode));
+        return WithCompilationState(CompilationState.WithDocumentSyntaxRoots(syntaxRoots, mode));
     }
 
     internal Solution WithDocumentContentsFrom(DocumentId documentId, DocumentState documentState, bool forceEvenIfTreesWouldDiffer)
-        => WithCompilationState(_compilationState.WithDocumentContentsFrom(documentId, documentState, forceEvenIfTreesWouldDiffer));
+        => WithCompilationState(CompilationState.WithDocumentContentsFrom([(documentId, documentState)], forceEvenIfTreesWouldDiffer));
+
+    internal Solution WithDocumentContentsFrom(ImmutableArray<(DocumentId documentId, DocumentState documentState)> documentIdsAndStates, bool forceEvenIfTreesWouldDiffer)
+        => WithCompilationState(CompilationState.WithDocumentContentsFrom(documentIdsAndStates, forceEvenIfTreesWouldDiffer));
 
     /// <summary>
     /// Creates a new solution instance with the document specified updated to have the source
@@ -1329,7 +1380,7 @@ public partial class Solution
             throw new ArgumentOutOfRangeException(nameof(sourceCodeKind));
         }
 
-        return WithCompilationState(_compilationState.WithDocumentSourceCodeKind(documentId, sourceCodeKind));
+        return WithCompilationState(CompilationState.WithDocumentSourceCodeKind(documentId, sourceCodeKind));
     }
 
     /// <summary>
@@ -1350,7 +1401,7 @@ public partial class Solution
             throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        return WithCompilationState(_compilationState.UpdateDocumentTextLoader(documentId, loader, mode));
+        return WithCompilationState(CompilationState.UpdateDocumentTextLoader(documentId, loader, mode));
     }
 
     /// <summary>
@@ -1371,7 +1422,7 @@ public partial class Solution
             throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        return WithCompilationState(_compilationState.UpdateAdditionalDocumentTextLoader(documentId, loader, mode));
+        return WithCompilationState(CompilationState.UpdateAdditionalDocumentTextLoader(documentId, loader, mode));
     }
 
     /// <summary>
@@ -1392,7 +1443,7 @@ public partial class Solution
             throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        return WithCompilationState(_compilationState.UpdateAnalyzerConfigDocumentTextLoader(documentId, loader, mode));
+        return WithCompilationState(CompilationState.UpdateAnalyzerConfigDocumentTextLoader(documentId, loader, mode));
     }
 
     /// <summary>
@@ -1493,7 +1544,7 @@ public partial class Solution
         => this.SolutionState.GetFirstRelatedDocumentId(documentId, relatedProjectIdHint);
 
     internal Solution WithNewWorkspace(string? workspaceKind, int workspaceVersion, SolutionServices services)
-        => WithCompilationState(_compilationState.WithNewWorkspace(workspaceKind, workspaceVersion, services));
+        => WithCompilationState(CompilationState.WithNewWorkspace(workspaceKind, workspaceVersion, services));
 
     /// <summary>
     /// Formerly, returned a copy of the solution isolated from the original so that they do not share computed state. It now does nothing.
@@ -1526,7 +1577,7 @@ public partial class Solution
             throw new ArgumentOutOfRangeException(nameof(mode));
         }
 
-        return WithCompilationState(_compilationState.WithDocumentText(documentIds, text, mode));
+        return WithCompilationState(CompilationState.WithDocumentText(documentIds, text, mode));
     }
 
     /// <summary>
@@ -1537,7 +1588,7 @@ public partial class Solution
     internal Document WithFrozenSourceGeneratedDocument(
         SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)
     {
-        var newCompilationState = _compilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, generationDateTime, text)]);
+        var newCompilationState = CompilationState.WithFrozenSourceGeneratedDocuments([(documentIdentity, generationDateTime, text)]);
         var newSolution = WithCompilationState(newCompilationState);
 
         var newDocumentState = newCompilationState.TryGetSourceGeneratedDocumentStateForAlreadyGeneratedId(documentIdentity.DocumentId);
@@ -1548,17 +1599,18 @@ public partial class Solution
     }
 
     internal Solution WithFrozenSourceGeneratedDocuments(ImmutableArray<(SourceGeneratedDocumentIdentity documentIdentity, DateTime generationDateTime, SourceText text)> documents)
-        => WithCompilationState(_compilationState.WithFrozenSourceGeneratedDocuments(documents));
+        => WithCompilationState(CompilationState.WithFrozenSourceGeneratedDocuments(documents));
 
-    internal Solution WithSourceGeneratorExecutionVersions(SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap, CancellationToken cancellationToken)
-        => WithCompilationState(_compilationState.WithSourceGeneratorExecutionVersions(sourceGeneratorExecutionVersionMap, cancellationToken));
+    /// <inheritdoc cref="SolutionCompilationState.UpdateSpecificSourceGeneratorExecutionVersions"/>
+    internal Solution UpdateSpecificSourceGeneratorExecutionVersions(SourceGeneratorExecutionVersionMap sourceGeneratorExecutionVersionMap)
+        => WithCompilationState(CompilationState.UpdateSpecificSourceGeneratorExecutionVersions(sourceGeneratorExecutionVersionMap));
 
     /// <summary>
     /// Undoes the operation of <see cref="WithFrozenSourceGeneratedDocument"/>; any frozen source generated document is allowed
     /// to have it's real output again.
     /// </summary>
     internal Solution WithoutFrozenSourceGeneratedDocuments()
-        => WithCompilationState(_compilationState.WithoutFrozenSourceGeneratedDocuments());
+        => WithCompilationState(CompilationState.WithoutFrozenSourceGeneratedDocuments());
 
     /// <summary>
     /// Returns a new Solution which represents the same state as before, but with the cached generator driver state from the given project updated to match.
@@ -1569,7 +1621,7 @@ public partial class Solution
     /// the cached state.
     /// </remarks>
     internal Solution WithCachedSourceGeneratorState(ProjectId projectToUpdate, Project projectWithCachedGeneratorState)
-        => WithCompilationState(_compilationState.WithCachedSourceGeneratorState(projectToUpdate, projectWithCachedGeneratorState));
+        => WithCompilationState(CompilationState.WithCachedSourceGeneratorState(projectToUpdate, projectWithCachedGeneratorState));
 
     /// <summary>
     /// Gets an objects that lists the added, changed and removed projects between
@@ -1608,6 +1660,14 @@ public partial class Solution
     public IReadOnlyList<AnalyzerReference> AnalyzerReferences => this.SolutionState.AnalyzerReferences;
 
     /// <summary>
+    /// Fallback analyzer config options by language. The set of languages does not need to match the set of languages of projects included in the current solution snapshot
+    /// since these options can be updated independently of the projects contained in the solution.
+    /// Generally, the host is responsible for keeping these options up-to-date with whatever option store it maintains
+    /// and for making sure fallback options are available in the solution for all languages the host supports.
+    /// </summary>
+    internal ImmutableDictionary<string, StructuredAnalyzerConfigOptions> FallbackAnalyzerOptions => SolutionState.FallbackAnalyzerOptions;
+
+    /// <summary>
     /// Creates a new solution instance with the specified <paramref name="options"/>.
     /// </summary>
     public Solution WithOptions(OptionSet options)
@@ -1624,7 +1684,7 @@ public partial class Solution
     /// Creates a new solution instance with the specified serializable <paramref name="options"/>.
     /// </summary>
     internal Solution WithOptions(SolutionOptionSet options)
-        => WithCompilationState(_compilationState.WithOptions(options));
+        => WithCompilationState(CompilationState.WithOptions(options));
 
     private void CheckContainsProject(ProjectId projectId)
     {

@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ExternalAccess.UnitTesting.Api;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
@@ -22,8 +21,6 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
 {
     internal sealed partial class UnitTestingWorkCoordinator : IUnitTestingWorkCoordinator
     {
-        private readonly UnitTestingRegistration _registration;
-
         private readonly CountLogAggregator<WorkspaceChangeKind> _logAggregator = new();
         private readonly IAsynchronousOperationListener _listener;
         private readonly Microsoft.CodeAnalysis.SolutionCrawler.ISolutionCrawlerOptionsService? _solutionCrawlerOptionsService;
@@ -41,10 +38,10 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
              IEnumerable<Lazy<IUnitTestingIncrementalAnalyzerProvider, UnitTestingIncrementalAnalyzerProviderMetadata>> analyzerProviders,
              UnitTestingRegistration registration)
         {
-            _registration = registration;
+            Registration = registration;
 
             _listener = listener;
-            _solutionCrawlerOptionsService = _registration.Services.GetService<Microsoft.CodeAnalysis.SolutionCrawler.ISolutionCrawlerOptionsService>();
+            _solutionCrawlerOptionsService = Registration.Services.GetService<Microsoft.CodeAnalysis.SolutionCrawler.ISolutionCrawlerOptionsService>();
 
             // event and worker queues
             _shutdownToken = _shutdownNotificationSource.Token;
@@ -57,7 +54,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
             _documentAndProjectWorkerProcessor = new UnitTestingIncrementalAnalyzerProcessor(
                 listener,
                 analyzerProviders,
-                _registration,
+                Registration,
                 allFilesWorkerBackOffTimeSpan,
                 entireProjectWorkerBackOffTimeSpan,
                 _shutdownToken);
@@ -65,11 +62,11 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
             var semanticBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.SemanticChangeBackOff;
             var projectBackOffTimeSpan = UnitTestingSolutionCrawlerTimeSpan.ProjectPropagationBackOff;
 
-            _semanticChangeProcessor = new UnitTestingSemanticChangeProcessor(listener, _registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
+            _semanticChangeProcessor = new UnitTestingSemanticChangeProcessor(listener, Registration, _documentAndProjectWorkerProcessor, semanticBackOffTimeSpan, projectBackOffTimeSpan, _shutdownToken);
         }
 
-        public UnitTestingRegistration Registration => _registration;
-        public int CorrelationId => _registration.CorrelationId;
+        public UnitTestingRegistration Registration { get; }
+        public int CorrelationId => Registration.CorrelationId;
 
         public void AddAnalyzer(IUnitTestingIncrementalAnalyzer analyzer)
         {
@@ -77,7 +74,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
             _documentAndProjectWorkerProcessor.AddAnalyzer(analyzer);
 
             // and ask to re-analyze whole solution for the given analyzer
-            var scope = new UnitTestingReanalyzeScope(_registration.GetSolutionToAnalyze().Id);
+            var scope = new UnitTestingReanalyzeScope(Registration.GetSolutionToAnalyze().Id);
             Reanalyze(analyzer, scope);
         }
 
@@ -90,7 +87,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
             {
                 // log big reanalysis request from things like fix all, suppress all or option changes
                 // we are not interested in 1 file re-analysis request which can happen from like venus typing
-                var solution = _registration.GetSolutionToAnalyze();
+                var solution = Registration.GetSolutionToAnalyze();
                 UnitTestingSolutionCrawlerLogger.LogReanalyze(
                     CorrelationId, analyzer, scope.GetDocumentCount(solution), scope.GetLanguagesStringForTelemetry(solution));
             }
@@ -387,7 +384,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
 
         private async Task EnqueueWorkItemAsync(IUnitTestingIncrementalAnalyzer analyzer, UnitTestingReanalyzeScope scope)
         {
-            var solution = _registration.GetSolutionToAnalyze();
+            var solution = Registration.GetSolutionToAnalyze();
             var invocationReasons =
                 UnitTestingInvocationReasons.Reanalyze;
 
@@ -492,7 +489,7 @@ internal partial class UnitTestingSolutionCrawlerRegistrationService
 
             internal void WaitUntilCompletion(ImmutableArray<IUnitTestingIncrementalAnalyzer> workers)
             {
-                var solution = _workCoordinator._registration.GetSolutionToAnalyze();
+                var solution = _workCoordinator.Registration.GetSolutionToAnalyze();
                 var list = new List<UnitTestingWorkItem>();
 
                 foreach (var project in solution.Projects)

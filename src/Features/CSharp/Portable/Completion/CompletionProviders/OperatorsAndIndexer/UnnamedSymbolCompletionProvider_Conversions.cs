@@ -31,7 +31,7 @@ internal partial class UnnamedSymbolCompletionProvider
     /// </summary>
     private const string RehydrateName = "Rehydrate";
     private static readonly ImmutableArray<KeyValuePair<string, string>> s_conversionProperties =
-        [new KeyValuePair<string, string>(KindName, ConversionKindName)];
+        [KeyValuePairUtil.Create(KindName, ConversionKindName)];
 
     // We set conversion items' match priority to "Deprioritize" so completion selects other symbols over it when user starts typing.
     // e.g. method symbol `Should` should be selected over `(short)` when "sh" is typed.
@@ -67,8 +67,8 @@ internal partial class UnnamedSymbolCompletionProvider
         using var _ = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(out var builder);
 
         builder.AddRange(s_conversionProperties);
-        builder.Add(new KeyValuePair<string, string>(RehydrateName, RehydrateName));
-        builder.Add(new KeyValuePair<string, string>(DocumentationCommentXmlName, conversion.GetDocumentationCommentXml(cancellationToken: context.CancellationToken) ?? ""));
+        builder.Add(KeyValuePairUtil.Create(RehydrateName, RehydrateName));
+        builder.Add(KeyValuePairUtil.Create(DocumentationCommentXmlName, conversion.GetDocumentationCommentXml(cancellationToken: context.CancellationToken) ?? ""));
         var symbols = ImmutableArray.Create<ISymbol>(conversion.ContainingType, conversion.Parameters.First().Type, conversion.ReturnType);
         return (symbols, builder.ToImmutable());
     }

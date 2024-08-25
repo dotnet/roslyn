@@ -411,6 +411,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.EndOfFileToken:
                         token = SyntaxFactory.Token(leadingNode, info.Kind, trailingNode);
                         break;
+                    case SyntaxKind.RazorContentToken:
+                        token = SyntaxFactory.Token(leadingNode, info.Kind, info.Text, trailingNode);
+                        break;
                     case SyntaxKind.None:
                         token = SyntaxFactory.BadToken(leadingNode, info.Text, trailingNode);
                         break;
@@ -610,6 +613,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         !this.ScanIdentifierOrKeyword(ref info))
                     {
                         Debug.Assert(TextWindow.PeekChar() == '@');
+
+                        if (TextWindow.PeekChar(1) == ':')
+                        {
+                            // Razor HTML transition. For best consumption by razor, we want to simply pretend it's a token and
+                            // consume all the way to the end of the line.
+                            info.Kind = SyntaxKind.RazorContentToken;
+                            this.AddError(TextWindow.Position + 1, width: 1, ErrorCode.ERR_ExpectedVerbatimLiteral);
+
+                            this.ScanToEndOfLine();
+                            info.Text = TextWindow.GetText(false);
+                            break;
+                        }
+
                         this.ConsumeAtSignSequence();
                         info.Text = TextWindow.GetText(intern: true);
                         this.AddError(ErrorCode.ERR_ExpectedVerbatimLiteral);
@@ -1942,14 +1958,6 @@ LoopExit:
                             // Razor comment. We pretend that it's a multi-line comment for error recovery, but it's an error case.
                             this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_UnexpectedCharacter, '@');
                             lexMultiLineComment(ref triviaList, delimiter: '@');
-                            onlyWhitespaceOnLine = false;
-                            break;
-                        }
-                        else if (ch == ':')
-                        {
-                            // Razor HTML transition. We pretend it's a single-line comment for error recovery.
-                            this.AddError(TextWindow.Position, width: 1, ErrorCode.ERR_UnexpectedCharacter, '@');
-                            lexSingleLineComment(ref triviaList);
                             onlyWhitespaceOnLine = false;
                             break;
                         }

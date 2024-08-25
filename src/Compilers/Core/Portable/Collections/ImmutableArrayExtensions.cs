@@ -352,14 +352,14 @@ namespace Microsoft.CodeAnalysis
             if (array.IsEmpty)
                 return ImmutableArray<TResult>.Empty;
 
-            var builder = ArrayBuilder<TResult>.GetInstance(array.Length);
+            var builder = new TResult[array.Length];
 
-            foreach (var item in array)
+            for (var i = 0; i < array.Length; i++)
             {
-                builder.Add(await selector(item, cancellationToken).ConfigureAwait(false));
+                builder[i] = await selector(array[i], cancellationToken).ConfigureAwait(false);
             }
 
-            return builder.ToImmutableAndFree();
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
 
         /// <summary>
@@ -370,14 +370,14 @@ namespace Microsoft.CodeAnalysis
             if (array.IsEmpty)
                 return ImmutableArray<TResult>.Empty;
 
-            var builder = ArrayBuilder<TResult>.GetInstance(array.Length);
+            var builder = new TResult[array.Length];
 
-            foreach (var item in array)
+            for (var i = 0; i < array.Length; i++)
             {
-                builder.Add(await selector(item, arg, cancellationToken).ConfigureAwait(false));
+                builder[i] = await selector(array[i], arg, cancellationToken).ConfigureAwait(false);
             }
 
-            return builder.ToImmutableAndFree();
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
 
         public static ValueTask<ImmutableArray<TResult>> SelectManyAsArrayAsync<TItem, TArg, TResult>(this ImmutableArray<TItem> source, Func<TItem, TArg, CancellationToken, ValueTask<ImmutableArray<TResult>>> selector, TArg arg, CancellationToken cancellationToken)
@@ -432,13 +432,13 @@ namespace Microsoft.CodeAnalysis
                     return ImmutableArray.Create(map(self[0], other[0]), map(self[1], other[1]), map(self[2], other[2]), map(self[3], other[3]));
 
                 default:
-                    var builder = ArrayBuilder<TResult>.GetInstance(self.Length);
+                    var builder = new TResult[self.Length];
                     for (int i = 0; i < self.Length; i++)
                     {
-                        builder.Add(map(self[i], other[i]));
+                        builder[i] = map(self[i], other[i]);
                     }
 
-                    return builder.ToImmutableAndFree();
+                    return ImmutableCollectionsMarshal.AsImmutableArray(builder);
             }
         }
 
@@ -764,19 +764,6 @@ namespace Microsoft.CodeAnalysis
             return result;
         }
 
-        internal static bool HasAnyErrors<T>(this ImmutableArray<T> diagnostics) where T : Diagnostic
-        {
-            foreach (var diagnostic in diagnostics)
-            {
-                if (diagnostic.Severity == DiagnosticSeverity.Error)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
         // In DEBUG, swap the first and last elements of a read-only array, yielding a new read only array.
         // This helps to avoid depending on accidentally sorted arrays.
         internal static ImmutableArray<T> ConditionallyDeOrder<T>(this ImmutableArray<T> array)
@@ -828,44 +815,124 @@ namespace Microsoft.CodeAnalysis
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third)
         {
-            var builder = ArrayBuilder<T>.GetInstance(first.Length + second.Length + third.Length);
-            builder.AddRange(first);
-            builder.AddRange(second);
-            builder.AddRange(third);
-            return builder.ToImmutableAndFree();
+            var builder = new T[first.Length + second.Length + third.Length];
+            var index = 0;
+
+            foreach (var item in first)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in second)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in third)
+            {
+                builder[index++] = item;
+            }
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth)
         {
-            var builder = ArrayBuilder<T>.GetInstance(first.Length + second.Length + third.Length + fourth.Length);
-            builder.AddRange(first);
-            builder.AddRange(second);
-            builder.AddRange(third);
-            builder.AddRange(fourth);
-            return builder.ToImmutableAndFree();
+            var builder = new T[first.Length + second.Length + third.Length + fourth.Length];
+            var index = 0;
+
+            foreach (var item in first)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in second)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in third)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in fourth)
+            {
+                builder[index++] = item;
+            }
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth)
         {
-            var builder = ArrayBuilder<T>.GetInstance(first.Length + second.Length + third.Length + fourth.Length + fifth.Length);
-            builder.AddRange(first);
-            builder.AddRange(second);
-            builder.AddRange(third);
-            builder.AddRange(fourth);
-            builder.AddRange(fifth);
-            return builder.ToImmutableAndFree();
+            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length];
+            var index = 0;
+
+            foreach (var item in first)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in second)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in third)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in fourth)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in fifth)
+            {
+                builder[index++] = item;
+            }
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, ImmutableArray<T> second, ImmutableArray<T> third, ImmutableArray<T> fourth, ImmutableArray<T> fifth, ImmutableArray<T> sixth)
         {
-            var builder = ArrayBuilder<T>.GetInstance(first.Length + second.Length + third.Length + fourth.Length + fifth.Length + sixth.Length);
-            builder.AddRange(first);
-            builder.AddRange(second);
-            builder.AddRange(third);
-            builder.AddRange(fourth);
-            builder.AddRange(fifth);
-            builder.AddRange(sixth);
-            return builder.ToImmutableAndFree();
+            var builder = new T[first.Length + second.Length + third.Length + fourth.Length + fifth.Length + sixth.Length];
+            var index = 0;
+
+            foreach (var item in first)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in second)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in third)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in fourth)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in fifth)
+            {
+                builder[index++] = item;
+            }
+
+            foreach (var item in sixth)
+            {
+                builder[index++] = item;
+            }
+
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
 
         internal static ImmutableArray<T> Concat<T>(this ImmutableArray<T> first, T second)
@@ -885,15 +952,20 @@ namespace Microsoft.CodeAnalysis
                 return self.Add(items[0]);
             }
 
-            var builder = ArrayBuilder<T>.GetInstance(self.Length + items.Count);
-            builder.AddRange(self);
+            var builder = new T[self.Length + items.Count];
+            var index = 0;
+
+            foreach (var item in self)
+            {
+                builder[index++] = item;
+            }
 
             foreach (var item in items)
             {
-                builder.Add(item);
+                builder[index++] = item;
             }
 
-            return builder.ToImmutableAndFree();
+            return ImmutableCollectionsMarshal.AsImmutableArray(builder);
         }
 
         /// <summary>
@@ -1034,8 +1106,8 @@ namespace Microsoft.CodeAnalysis
             where TNamedTypeSymbol : class, TNamespaceOrTypeSymbol
             where TNamespaceSymbol : class, TNamespaceOrTypeSymbol
         {
-            foreach (var (name, value) in dictionary)
-                result.Add(name, createMembers(value));
+            foreach (var entry in dictionary)
+                result.Add(entry.Key, createMembers(entry.Value));
 
             return;
 
@@ -1076,11 +1148,11 @@ namespace Microsoft.CodeAnalysis
 
             var dictionary = new Dictionary<TKey, ImmutableArray<TNamedTypeSymbol>>(capacity, comparer);
 
-            foreach (var (name, members) in map)
+            foreach (var entry in map)
             {
-                var namedTypes = getOrCreateNamedTypes(members);
+                var namedTypes = getOrCreateNamedTypes(entry.Value);
                 if (namedTypes.Length > 0)
-                    dictionary.Add(name, namedTypes);
+                    dictionary.Add(entry.Key, namedTypes);
             }
 
             return dictionary;

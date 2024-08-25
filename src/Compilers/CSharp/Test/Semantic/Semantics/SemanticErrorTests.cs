@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -1381,7 +1382,7 @@ class C
         this.goo(); // OK
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(
+            var comp = CreateCompilationWithMscorlib461(
                 new[] { SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script) });
             comp.VerifyDiagnostics(
                 // (4,9): error CS0027: Keyword 'this' is not available in the current context
@@ -3908,7 +3909,7 @@ class C
         const int x = x + x;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,27): error CS0110: The evaluation of the constant value for 'x' involves a circular definition
                 //         const int x = x + x;
                 Diagnostic(ErrorCode.ERR_CircConstValue, "x").WithArguments("x").WithLocation(5, 27),
@@ -6807,7 +6808,7 @@ class Test
     }
 }
 ";
-            CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45).VerifyDiagnostics(
+            CreateCompilation(source, targetFramework: TargetFramework.Mscorlib461).VerifyDiagnostics(
                 // (9,9): error CS0176: Member 'Delegate.CreateDelegate(Type, object, string)' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         D.CreateDelegate(null, null, null); // CS0176
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "D.CreateDelegate").WithArguments("System.Delegate.CreateDelegate(System.Type, object, string)").WithLocation(9, 9)
@@ -7236,7 +7237,7 @@ public class C
     M(__arglist);
   }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib461);
             comp.VerifyDiagnostics(
                 // (11,7): error CS0190: The __arglist construct is valid only within a variable argument method
                 //     M(__arglist);
@@ -7269,15 +7270,15 @@ public class C
 }";
             var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
-                // (10,14): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                // (10,14): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //     f = x=>f(__arglist);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle"),
-                // (11,29): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(10, 14),
+                // (11,29): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //     f = delegate { return f(__arglist); };
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle"),
-                // (12,44): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(11, 29),
+                // (12,44): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //     var q = from x in new int[10] select f(__arglist);
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle")
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "__arglist").WithArguments("System.RuntimeArgumentHandle").WithLocation(12, 44)
                 );
         }
 
@@ -7303,13 +7304,13 @@ public class C
   {
   }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyEmitDiagnostics(
-                // (10,34): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+            CreateCompilationWithMscorlib461(source).VerifyEmitDiagnostics(
+                // (10,34): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //       RuntimeArgumentHandle h2 = h; // Bad use of h
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("System.RuntimeArgumentHandle"),
-                // (11,43): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("System.RuntimeArgumentHandle").WithLocation(10, 34),
+                // (11,43): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //       ArgIterator args1 = new ArgIterator(h); // Bad use of h
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("System.RuntimeArgumentHandle"));
+                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("System.RuntimeArgumentHandle").WithLocation(11, 43));
         }
 
         [Fact]
@@ -7321,9 +7322,9 @@ using System.Collections.Generic;
 public class C
 {
   static void N(RuntimeArgumentHandle x) {}
-  static IEnumerable<int> M(RuntimeArgumentHandle h1) // Error: hoisted to field
+  static IEnumerable<int> M(RuntimeArgumentHandle h1)
   {
-    N(h1);
+    N(h1); // Error: hoisted to field
     yield return 1;
     RuntimeArgumentHandle h2 = default(RuntimeArgumentHandle);
     yield return 2;
@@ -7339,12 +7340,12 @@ public class C
 
             CreateCompilation(source).Emit(new System.IO.MemoryStream()).Diagnostics
                 .Verify(
-                // (7,51): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
-                //   static IEnumerable<int> M(RuntimeArgumentHandle h1) // Error: hoisted to field
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h1").WithArguments("System.RuntimeArgumentHandle"),
-                // (13,7): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
+                // (9,7): error CS4007: Instance of type 'System.RuntimeArgumentHandle' cannot be preserved across 'await' or 'yield' boundary.
+                //     N(h1); // Error: hoisted to field
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "h1").WithArguments("System.RuntimeArgumentHandle").WithLocation(9, 7),
+                // (13,7): error CS4007: Instance of type 'System.RuntimeArgumentHandle' cannot be preserved across 'await' or 'yield' boundary.
                 //     N(h2); // Error: hoisted to field
-                Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h2").WithArguments("System.RuntimeArgumentHandle")
+                Diagnostic(ErrorCode.ERR_ByRefTypeAndAwait, "h2").WithArguments("System.RuntimeArgumentHandle").WithLocation(13, 7)
                 );
         }
 
@@ -9936,7 +9937,7 @@ struct S
             // Note that none of these errors except the first one are reported by the native compiler, because
             // it does not report additional errors after an error is found in a parameter of a method.
 
-            CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics(
                 // (9,36): error CS0310: 'U' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 //     internal static void E<U>(D<U> d) { } // Error: missing constraint on E<U> to satisfy constraint on D<U>
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "d").WithArguments("D<T>", "T", "U").WithLocation(9, 36),
@@ -10046,7 +10047,7 @@ static class S
 {
     internal static void E<T>(this T t) where T : new() { }
 }";
-            CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics(
                 // (15,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'V' in the generic type or method 'C<T, U>.M<V>(V)'
                 //         M(b);
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M").WithArguments("C<T, U>.M<V>(V)", "V", "B").WithLocation(15, 9),
@@ -11525,7 +11526,7 @@ public class Test
     public System.RuntimeArgumentHandle[][] y;
 }
 ";
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib45);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib461);
             comp.VerifyDiagnostics(
                 // (4,12): error CS0611: Array elements cannot be of type 'System.TypedReference'
                 //     public System.TypedReference[] x;
@@ -11550,7 +11551,7 @@ class C
         var z = new[] { new RuntimeArgumentHandle() };
     }
 }";
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib45);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib461);
             comp.VerifyDiagnostics(
                 // (6,17): error CS0611: Array elements cannot be of type 'System.ArgIterator'
                 //         var x = new[] { new ArgIterator() };
@@ -11697,7 +11698,7 @@ class C
         [Fact]
         public void CS0670ERR_FieldCantHaveVoidType_Var()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 var x = default(void); 
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (2,17): error CS1547: Keyword 'void' cannot be used in this context
@@ -11873,7 +11874,7 @@ class Code
         [Fact]
         public void CS0723ERR_VarDeclIsStaticClass_Fields()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 static class SC {} 
 
 var sc2 = new SC();
@@ -11990,7 +11991,7 @@ public class C
         }
 
         [Fact]
-        public void CS0762ERR_PartialMethodToDelegate()
+        public void CS0762ERR_PartialMethodToDelegate_01()
         {
             var text = @"
 public delegate void TestDel();
@@ -12010,6 +12011,52 @@ public delegate void TestDel();
 ";
             DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription[] { new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodToDelegate, Line = 11, Column = 38 } });
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72431")]
+        [Fact]
+        public void CS0762ERR_PartialMethodToDelegate_02()
+        {
+            var source = """
+                delegate void D();
+                partial class Program
+                {
+                    static void Main()
+                    {
+                        M1(M2<int>);
+                    }
+                    static void M1(D d) { }
+                    static partial void M2<T>();
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,12): error CS0762: Cannot create delegate from method 'Program.M2<int>()' because it is a partial method without an implementing declaration
+                //         M1(M2<int>);
+                Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "M2<int>").WithArguments("Program.M2<int>()").WithLocation(6, 12));
+        }
+
+        [WorkItem("https://github.com/dotnet/roslyn/issues/72431")]
+        [Fact]
+        public void CS0762ERR_PartialMethodToDelegate_03()
+        {
+            var source = """
+                delegate void D();
+                partial class C<T>
+                {
+                    static void M1()
+                    {
+                        M2(C<int>.M3);
+                    }
+                    static void M2(D d) { }
+                    static partial void M3();
+                }
+                """;
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics(
+                // (6,12): error CS0762: Cannot create delegate from method 'C<int>.M3()' because it is a partial method without an implementing declaration
+                //         M2(C<int>.M3);
+                Diagnostic(ErrorCode.ERR_PartialMethodToDelegate, "C<int>.M3").WithArguments("C<int>.M3()").WithLocation(6, 12));
         }
 
         [Fact]
@@ -12091,7 +12138,7 @@ class Test
         [Fact]
         public void CS0815ERR_ImplicitlyTypedVariableAssignedBadValue_Field()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 static void M() {}
 
 var m = M;       
@@ -12138,7 +12185,7 @@ class A
         [Fact]
         public void CS0818ERR_ImplicitlyTypedVariableWithNoInitializer_Fields()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 var a; // CS0818
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (1,5): error CS0818: Implicitly-typed variables must be initialized
@@ -12173,7 +12220,7 @@ class A
         [Fact]
         public void CS0819ERR_ImplicitlyTypedVariableMultipleDeclarator_Fields()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 var goo = 4, bar = 4.5;
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (2,1): error CS0819: Implicitly-typed fields cannot have multiple declarators
@@ -12205,7 +12252,7 @@ class G
         [Fact]
         public void CS0820ERR_ImplicitlyTypedVariableAssignedArrayInitializer_Fields()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 var y = { 1, 2, 3 };
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
             // (1,5): error CS0820: Cannot initialize an implicitly-typed variable with an array initializer
@@ -12270,7 +12317,7 @@ class A
         [Fact]
         public void CS0822ERR_ImplicitlyTypedVariableCannotBeConst_Fields()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 const var x = 0; // CS0822.cs
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (2,7): error CS0822: Implicitly-typed variables cannot be constant
@@ -12280,7 +12327,7 @@ const var x = 0; // CS0822.cs
         [Fact]
         public void CS0825ERR_ImplicitlyTypedVariableCannotBeUsedAsTheTypeOfAParameter_Fields()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 void goo(var arg) { }
 var goo(int arg) { return 2; }
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
@@ -12293,7 +12340,7 @@ var goo(int arg) { return 2; }
         [Fact]
         public void CS0825ERR_ImplicitlyTypedVariableCannotBeUsedAsTheTypeOfAParameter_Fields2()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 T goo<T>() { return default(T); }
 goo<var>();
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
@@ -12853,7 +12900,7 @@ namespace TestNamespace
         [Fact]
         public void CS0841ERR_VariableUsedBeforeDeclaration04()
         {
-            var systemRef = Net451.System;
+            var systemRef = NetFramework.System;
             CreateCompilationWithMscorlib40AndSystemCore(
 @"using System.Collections.Generic;
 class Base
@@ -13694,7 +13741,7 @@ static class SC
     static void M4(this S s) { }
     static void M5(this double d) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics(
                 // (24,29): error CS1113: Extension methods 'SC.M3(E)' defined on value type 'E' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "e.M3").WithArguments("SC.M3(E)", "E").WithLocation(24, 29),
                 // (26,29): error CS1113: Extension methods 'SC.M4(S)' defined on value type 'S' cannot be used to create delegates
@@ -13740,7 +13787,7 @@ static class E
     internal static void M1<T>(this T t) { }
     internal static void M2<T, U>(this T t) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics(
                 // (13,13): error CS1113: Extension methods 'E.M1<int>(int)' defined on value type 'int' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "i.M1").WithArguments("E.M1<int>(int)", "int").WithLocation(13, 13),
                 // (14,13): error CS1113: Extension methods 'E.M2<int, object>(int)' defined on value type 'int' cannot be used to create delegates
@@ -13801,7 +13848,7 @@ static class E
     internal static void M1<T>(this T t) { }
     internal static void M2<T, U>(this T t) { }
 }";
-            CreateCompilation(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
+            CreateCompilation(source, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics(
                 // (12,11): error CS1113: Extension methods 'E.M1<int>(int)' defined on value type 'int' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "i.M1").WithArguments("E.M1<int>(int)", "int").WithLocation(12, 11),
                 // (13,11): error CS1113: Extension methods 'E.M2<int, object>(int)' defined on value type 'int' cannot be used to create delegates
@@ -15272,35 +15319,48 @@ class C
 {
    IEnumerator<int> IteratorMeth() {
       int i;
-      unsafe  // CS1629
+      unsafe
       {
          int *p = &i;
          yield return *p;
       }
    }
 
-    unsafe IEnumerator<int> IteratorMeth2() {   // CS1629
+    unsafe IEnumerator<int> IteratorMeth2() {
         yield break;
     }
 }
 ";
-            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (7,7): error CS1629: Unsafe code may not appear in iterators
-                //       unsafe  // CS1629
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "unsafe"),
-                // (9,10): error CS1629: Unsafe code may not appear in iterators
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular12).VerifyDiagnostics(
+                // (7,7): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //       unsafe
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "unsafe").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(7, 7),
+                // (9,10): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //          int *p = &i;
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "int *"),
-                // (9,19): error CS1629: Unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "int *").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(9, 10),
+                // (9,19): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //          int *p = &i;
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "&i"),
-                // (10,24): error CS1629: Unsafe code may not appear in iterators
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "&i").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(9, 19),
+                // (10,24): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
                 //          yield return *p;
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "p"),
-                // (14,29): error CS1629: Unsafe code may not appear in iterators
-                //     unsafe IEnumerator<int> IteratorMeth2() {   // CS1629
-                Diagnostic(ErrorCode.ERR_IllegalInnerUnsafe, "IteratorMeth2")
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "p").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(10, 24),
+                // (14,29): error CS9202: Feature 'ref and unsafe in async and iterator methods' is not available in C# 12.0. Please use language version 13.0 or greater.
+                //     unsafe IEnumerator<int> IteratorMeth2() {
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion12, "IteratorMeth2").WithArguments("ref and unsafe in async and iterator methods", "13.0").WithLocation(14, 29)
                 );
+
+            var expectedDiagnostics = new[]
+            {
+                // (9,20): error CS9239: The '&' operator cannot be used on parameters or local variables in iterator methods.
+                //          int *p = &i;
+                Diagnostic(ErrorCode.ERR_AddressOfInIterator, "i").WithLocation(9, 20),
+                // (10,10): error CS9238: Cannot use 'yield return' in an 'unsafe' block
+                //          yield return *p;
+                Diagnostic(ErrorCode.ERR_BadYieldInUnsafe, "yield").WithLocation(10, 10)
+            };
+
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll, parseOptions: TestOptions.Regular13).VerifyDiagnostics(expectedDiagnostics);
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(expectedDiagnostics);
         }
 
         [Fact]
@@ -16231,9 +16291,9 @@ class C
             CreateCompilation(text).VerifyDiagnostics(
                 // (7,22): warning CS0642: Possible mistaken empty statement
                 Diagnostic(ErrorCode.WRN_PossibleMistakenNullStatement, ";"),
-                // (6,16): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (6,16): error CS1674: 'int': type used in a using statement must implement 'System.IDisposable'.
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "int a = 0").WithArguments("int"),
-                // (7,20): error CS1674: 'int': type used in a using statement must be implicitly convertible to 'System.IDisposable'.
+                // (7,20): error CS1674: 'int': type used in a using statement must implement 'System.IDisposable'.
                 Diagnostic(ErrorCode.ERR_NoConvToIDisp, "a").WithArguments("int"));
         }
 
@@ -16915,7 +16975,7 @@ static class S
 {
     internal static void F(this double d) { }
 }";
-            var compilation = CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore });
+            var compilation = CreateCompilationWithMscorlib40(text, references: new[] { Net40.References.SystemCore });
             // Previously ERR_BadExtensionArgTypes.
             compilation.VerifyDiagnostics(
                 // (5,9): error CS1929: 'float' does not contain a definition for 'F' and the best extension method overload 'S.F(double)' requires a receiver of type 'double'
@@ -16938,7 +16998,7 @@ static class S
 {
     internal static void E(this B b) { }
 }";
-            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore });
+            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore });
             compilation.VerifyDiagnostics(
                 // (6,9): error CS1929: 'A' does not contain a definition for 'E' and the best extension method overload 'S.E(B)' requires a receiver of type 'B'
                 //         a.E();
@@ -18390,7 +18450,10 @@ public class D : B
 }
 ";
             var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "Called").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (12,9): error CS1971: The call to method 'M' needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.
+                //         base.M(d);
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBase, "base.M(d)").WithArguments("M"));
         }
 
         [Fact]
@@ -18481,39 +18544,10 @@ public class D : B
 ";
 
             var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
-            var verifier = CompileAndVerify(comp, expectedOutput: "You passed 1").VerifyDiagnostics();
-
-            verifier.VerifyIL("D.M",
-@"
-{
-  // Code size       78 (0x4e)
-  .maxstack  4
-  .locals init (string V_0)
-  IL_0000:  nop
-  IL_0001:  ldarg.0
-  IL_0002:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> D.<>o__1.<>p__0""
-  IL_0007:  brfalse.s  IL_000b
-  IL_0009:  br.s       IL_002f
-  IL_000b:  ldc.i4.0
-  IL_000c:  ldtoken    ""int""
-  IL_0011:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0016:  ldtoken    ""D""
-  IL_001b:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
-  IL_0020:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.Convert(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, System.Type, System.Type)""
-  IL_0025:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
-  IL_002a:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> D.<>o__1.<>p__0""
-  IL_002f:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> D.<>o__1.<>p__0""
-  IL_0034:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>>.Target""
-  IL_0039:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>> D.<>o__1.<>p__0""
-  IL_003e:  ldarg.1
-  IL_003f:  callvirt   ""int System.Func<System.Runtime.CompilerServices.CallSite, dynamic, int>.Invoke(System.Runtime.CompilerServices.CallSite, dynamic)""
-  IL_0044:  call       ""string B.this[int].get""
-  IL_0049:  stloc.0
-  IL_004a:  br.s       IL_004c
-  IL_004c:  ldloc.0
-  IL_004d:  ret
-}
-");
+            comp.VerifyDiagnostics(
+                // (19,16): error CS1972: The indexer access needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.
+                //         int s = base[(dynamic)o];
+                Diagnostic(ErrorCode.ERR_NoDynamicPhantomOnBaseIndexer, "base[(dynamic)o]"));
         }
 
         [Fact]
@@ -18536,7 +18570,11 @@ static public class Extension
 }";
 
             var comp = CreateCompilation(text, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
-            CompileAndVerify(comp, expectedOutput: "Called").VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (8,9): error CS1973: 'B' has no applicable method named 'Goo' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
+                //         b.Goo(d);
+                Diagnostic(ErrorCode.ERR_BadArgTypeDynamicExtension, "b.Goo(d)").WithArguments("B", "Goo").WithLocation(8, 9)
+                );
         }
 
         [Fact]
@@ -21542,7 +21580,7 @@ namespace TestNamespace
 }
 ";
 
-            var compilation = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib45, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib461, options: TestOptions.DebugExe);
 
             var exebits = new System.IO.MemoryStream();
             var pdbbits = new System.IO.MemoryStream();
@@ -22542,7 +22580,7 @@ static class C
     }
     static void E(this object o) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (20,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'object' is null
                 //         default(object).GetHashCode();
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(object).GetHashCode").WithArguments("object").WithLocation(20, 9),
@@ -22555,7 +22593,7 @@ static class C
                 // (28,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T6' is null
                 //         default(T6).P = null;
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T6).P").WithArguments("T6").WithLocation(28, 9));
-            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Disable)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Disable)).VerifyDiagnostics(
                 );
         }
 
@@ -22649,13 +22687,13 @@ class C
     }
 }
 ";
-            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { Net40.SystemCore }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { Net40.References.SystemCore }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // Do not report the following warning:
                 // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
                 //         System.Console.WriteLine(default(string).IsNull());
                 // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
                 );
-            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { Net40.SystemCore }).VerifyDiagnostics();
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { Net40.References.SystemCore }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -22732,7 +22770,10 @@ class Myclass
 }";
 
             var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+// (9,9): warning CS1974: The dynamically dispatched call to method 'Goo' may fail at runtime because one or more applicable overloads are conditional methods.
+//         Goo(d); 
+Diagnostic(ErrorCode.WRN_DynamicDispatchToConditionalMethod, "Goo(d)").WithArguments("Goo"));
         }
 
         [Fact]
@@ -24053,7 +24094,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
     // (13,21): error CS0023: Operator '?' cannot be applied to operand of type 'int'
     //         var x = 123 ?.ToString();
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "int").WithLocation(13, 21),
@@ -24121,7 +24162,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
                 // (14,24): error CS8977: 'method group' cannot be made nullable.
                 //         var x1 = p.P1 ?.ToString;
                 Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24)
@@ -24160,7 +24201,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
     // (11,18): error CS0175: Use of keyword 'base' is not valid in this context
     //         var x6 = base?.ToString();
     Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(11, 18),
@@ -24218,7 +24259,7 @@ class Program
 }
 
 ";
-            CreateCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,24): error CS8977: 'void*' cannot be made nullable.
                 //         var p = intPtr?.ToPointer();
                 Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToPointer()").WithArguments("void*").WithLocation(9, 24)
@@ -24250,7 +24291,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp }, options: TestOptions.ReleaseDll).VerifyDiagnostics(
     // (9,44): error CS8072: An expression tree lambda may not contain a null propagating operator.
     //         Expression<Func<string>> s = () => x?.ToString();
     Diagnostic(ErrorCode.ERR_NullPropagatingOpInExpressionTree, "x?.ToString()").WithLocation(9, 44),
@@ -24291,7 +24332,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp }).VerifyDiagnostics(
     // (10,87): error CS8073: An expression tree lambda may not contain a dictionary initializer.
     //         Expression<Func<Dictionary<int, int>>> s = () => new Dictionary<int, int> () {[1] = 2};
     Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[1]").WithLocation(10, 87)
@@ -24331,7 +24372,7 @@ namespace ConsoleApplication31
 }
 
 ";
-            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp }).VerifyDiagnostics(
     // (25,72): error CS8075: An expression tree lambda may not contain an extension collection element initializer.
     //         public Expression<Func<Stack<int>>> E = () => new Stack<int> { 42 };
     Diagnostic(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, "42").WithLocation(25, 72)
@@ -24359,7 +24400,7 @@ class C
 }
 
 ";
-            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp }).VerifyDiagnostics(
     // (9,53): error CS8073: An expression tree lambda may not contain a dictionary initializer.
     //         Expression<Func<C>> e = () => new C { H = { ["Key"] = "Value" } };
     Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, @"[""Key""]").WithLocation(9, 53)
@@ -24513,7 +24554,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text,
+            CreateCompilationWithMscorlib461(text,
                 new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef },
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
                     // (8,46): error CS8026: Feature 'dictionary initializer' is not available in C# 5. Please use language version 6 or greater.
@@ -24547,7 +24588,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text,
+            CreateCompilationWithMscorlib461(text,
                 new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef },
                 parseOptions: TestOptions.Regular).VerifyDiagnostics(
     // (9,47): error CS0165: Use of unassigned local variable 'i'
@@ -24572,7 +24613,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
     // (8,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         x?.Length;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x?.Length").WithLocation(8, 9),
@@ -24618,7 +24659,7 @@ public ref struct S2
     public S1 field;
 }
 ";
-            CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (10,19): error CS8977: 'S2' cannot be made nullable.
                 //         var x = o?.F();
                 Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".F()").WithArguments("S2").WithLocation(10, 19),

@@ -64,14 +64,14 @@ internal static class MiscellaneousFileUtilities
                 name: FeaturesResources.Miscellaneous_Files,
                 assemblyName: assemblyName,
                 language: languageInformation.LanguageName,
-                compilationOutputFilePaths: default,
+                compilationOutputInfo: default,
                 checksumAlgorithm: checksumAlgorithm,
                 // Miscellaneous files projects are never fully loaded since, by definition, it won't know
                 // what the full set of information is except when the file is script code.
                 hasAllInformation: sourceCodeKind == SourceCodeKind.Script),
             compilationOptions: compilationOptions,
             parseOptions: parseOptions,
-            documents: SpecializedCollections.SingletonEnumerable(documentInfo),
+            documents: [documentInfo],
             metadataReferences: metadataReferences);
 
         return projectInfo;

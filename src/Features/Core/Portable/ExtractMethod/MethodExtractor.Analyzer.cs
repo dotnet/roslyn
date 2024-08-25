@@ -2,12 +2,10 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -440,11 +438,10 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
 
         private static ImmutableArray<VariableInfo> GetMethodParameters(Dictionary<ISymbol, VariableInfo> variableInfoMap)
         {
-            using var _ = ArrayBuilder<VariableInfo>.GetInstance(variableInfoMap.Count, out var list);
+            var list = new FixedSizeArrayBuilder<VariableInfo>(variableInfoMap.Count);
             list.AddRange(variableInfoMap.Values);
-
             list.Sort();
-            return list.ToImmutable();
+            return list.MoveToImmutable();
         }
 
         /// <param name="bestEffort">When false, variables whose data flow is not understood
@@ -592,12 +589,6 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                 return true;
             }
 
-            if (UserDefinedValueType(model.Compilation, type) && !SelectionResult.Options.DoNotPutOutOrRefOnStruct)
-            {
-                variableStyle = AlwaysReturn(variableStyle);
-                return true;
-            }
-
             // for captured variable, never try to move the decl into extracted method
             if (captured && variableStyle == VariableStyle.MoveIn)
             {
@@ -654,32 +645,6 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
             }
 
             return type.Equals(SelectionResult.GetContainingScopeType());
-        }
-
-        private static bool UserDefinedValueType(Compilation compilation, ITypeSymbol type)
-        {
-            if (!type.IsValueType || type is IPointerTypeSymbol || type.IsEnumType())
-            {
-                return false;
-            }
-
-            return type.OriginalDefinition.SpecialType == SpecialType.None && !WellKnownFrameworkValueType(compilation, type);
-        }
-
-        private static bool WellKnownFrameworkValueType(Compilation compilation, ITypeSymbol type)
-        {
-            if (!type.IsValueType)
-            {
-                return false;
-            }
-
-            var cancellationTokenType = compilation.GetTypeByMetadataName(typeof(CancellationToken).FullName!);
-            if (cancellationTokenType != null && cancellationTokenType.Equals(type))
-            {
-                return true;
-            }
-
-            return false;
         }
 
         protected virtual ITypeSymbol GetSymbolType(SemanticModel model, ISymbol symbol)
@@ -913,6 +878,7 @@ internal abstract partial class MethodExtractor<TSelectionResult, TStatementSynt
                     if (!parameter.HasConstructorConstraint &&
                         !parameter.HasReferenceTypeConstraint &&
                         !parameter.HasValueTypeConstraint &&
+                        !parameter.AllowsRefLikeType &&
                         parameter.ConstraintTypes.IsDefaultOrEmpty)
                     {
                         continue;

@@ -142,4 +142,6 @@ internal enum RudeEditKind : ushort
     NotCapturingPrimaryConstructorParameter = 115,
     ChangingAttribute = 116,
     ChangingNameOrSignatureOfActiveMember = 117,
+    UpdateMightNotHaveAnyEffect = 118,
+    TypeUpdateAroundActiveStatement = 119,
 }

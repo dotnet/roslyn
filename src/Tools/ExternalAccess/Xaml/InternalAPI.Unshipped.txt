@@ -1,5 +1,6 @@
 abstract Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestHandlerBase<TRequest, TResponse>.GetTextDocumentUri(TRequest request) -> System.Uri!
 abstract Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestHandlerFactoryBase<TRequest, TResponse>.CreateHandler(Microsoft.CodeAnalysis.ExternalAccess.Xaml.IXamlRequestHandler<TRequest, TResponse>? xamlRequestHandler, Microsoft.CodeAnalysis.ExternalAccess.Xaml.IResolveCachedDataService! resolveDataService) -> Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestHandlerBase<TRequest, TResponse>!
+const Microsoft.CodeAnalysis.ExternalAccess.Xaml.Constants.DiagnosticSourceProviderName = "XamlDiagnostics" -> string!
 const Microsoft.CodeAnalysis.ExternalAccess.Xaml.StringConstants.FactoryMethodMessage = "This factory method only provides services for the MEF export provider." -> string!
 const Microsoft.CodeAnalysis.ExternalAccess.Xaml.StringConstants.ImportingConstructorMessage = "This exported object must be obtained through the MEF export provider." -> string!
 const Microsoft.CodeAnalysis.ExternalAccess.Xaml.StringConstants.XamlFileExtension = ".xaml" -> string!
@@ -9,13 +10,15 @@ Microsoft.CodeAnalysis.ExternalAccess.Xaml.ClientCapabilityProvider.ClientCapabi
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.ClientCapabilityProvider.IsDynamicRegistrationSupported(string! methodName) -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.ClientCapabilityProvider.SupportsCompletionListData.get -> bool
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.ClientCapabilityProvider.SupportsMarkdownDocumentation.get -> bool
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.Constants
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.ConversionHelpers
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.DescriptionService
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.DescriptionService.DescriptionService(Microsoft.CodeAnalysis.Options.IGlobalOptionService! globalOptions) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.DescriptionService.GetDescriptionAsync(Microsoft.CodeAnalysis.ISymbol! symbol, Microsoft.CodeAnalysis.Project! project, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.TaggedText>!>!
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.DescriptionService.GetMarkupContent(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> tags, string! language, bool featureSupportsMarkdown) -> (string! content, bool isMarkdown)
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.ExportXamlLspServiceFactoryAttribute
-Microsoft.CodeAnalysis.ExternalAccess.Xaml.ExportXamlLspServiceFactoryAttribute.ExportXamlLspServiceFactoryAttribute(System.Type! type, Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds serverKind = Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds.Any) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.ExportXamlLspServiceFactoryAttribute.ExportXamlLspServiceFactoryAttribute(System.Type! type) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.ExportXamlLspServiceFactoryAttribute.ExportXamlLspServiceFactoryAttribute(System.Type! type, Microsoft.CodeAnalysis.LanguageServer.WellKnownLspServerKinds serverKind) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.ExportXamlStatelessLspServiceAttribute
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.ExportXamlStatelessLspServiceAttribute.ExportXamlStatelessLspServiceAttribute(System.Type! handlerType) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.IClientCapabilityProvider
@@ -37,6 +40,8 @@ Microsoft.CodeAnalysis.ExternalAccess.Xaml.ILocationService.GetSymbolLocationsAs
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.IResolveCachedDataService
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.IResolveCachedDataService.FromResolveData(object? resolveData) -> (object? data, System.Uri? uri)
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.IResolveCachedDataService.ToResolveData(object! data, System.Uri! uri) -> object!
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.IXamlDiagnosticSource
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.IXamlDiagnosticSource.GetDiagnosticsAsync(Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic!>>!
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.IXamlRequestHandler<TRequest, TResponse>
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.IXamlRequestHandler<TRequest, TResponse>.HandleRequestAsync(TRequest request, Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext context, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<TResponse>!
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.IXamlRequestHandler<TRequest, TResponse>.MutatesSolutionState.get -> bool
@@ -51,6 +56,10 @@ Microsoft.CodeAnalysis.ExternalAccess.Xaml.ResolveDataConversions
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.StringConstants
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlCommandAttribute
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlCommandAttribute.XamlCommandAttribute(string! command) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlDiagnosticSource
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlDiagnosticSource.XamlDiagnosticSource(Microsoft.CodeAnalysis.ExternalAccess.Xaml.IXamlDiagnosticSource! xamlDiagnosticSource, Microsoft.CodeAnalysis.TextDocument! document) -> void
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlDiagnosticSourceProvider
+Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlDiagnosticSourceProvider.XamlDiagnosticSourceProvider(Microsoft.CodeAnalysis.ExternalAccess.Xaml.IXamlDiagnosticSource? xamlDiagnosticSource) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlMethodAttribute
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlMethodAttribute.XamlMethodAttribute(string! method) -> void
 Microsoft.CodeAnalysis.ExternalAccess.Xaml.XamlRequestContext

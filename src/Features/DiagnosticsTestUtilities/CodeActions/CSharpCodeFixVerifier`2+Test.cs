@@ -3,21 +3,20 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Testing;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Testing.Verifiers;
-using Xunit;
-using Microsoft.CodeAnalysis.Test.Utilities;
-using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Testing;
 using Microsoft.CodeAnalysis.Text;
-using System.Collections.Generic;
-using Microsoft.CodeAnalysis.Shared.Utilities;
+using Xunit;
 
 #if !CODE_STYLE
 using Roslyn.Utilities;
@@ -29,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         where TAnalyzer : DiagnosticAnalyzer, new()
         where TCodeFix : CodeFixProvider, new()
     {
-        public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, XUnitVerifier>
+        public class Test : CSharpCodeFixTest<TAnalyzer, TCodeFix, DefaultVerifier>
         {
             private readonly SharedVerifierState _sharedState;
 
@@ -63,13 +62,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             /// <inheritdoc cref="SharedVerifierState.Options"/>
             internal OptionsCollection Options => _sharedState.Options;
 
-#if !CODE_STYLE
-            internal CodeActionOptionsProvider CodeActionOptions
-            {
-                get => _sharedState.CodeActionOptions;
-                set => _sharedState.CodeActionOptions = value;
-            }
-#endif
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
+            public new string TestCode { set => base.TestCode = value; }
+
+            [StringSyntax(PredefinedEmbeddedLanguageNames.CSharpTest)]
+            public new string FixedCode { set => base.FixedCode = value; }
+
             /// <inheritdoc cref="SharedVerifierState.EditorConfig"/>
             public string? EditorConfig
             {
@@ -103,38 +101,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 var compilationOptions = (CSharpCompilationOptions)base.CreateCompilationOptions();
                 return compilationOptions.WithSpecificDiagnosticOptions(compilationOptions.SpecificDiagnosticOptions.SetItems(CSharpVerifierHelper.NullableWarnings));
             }
-
-#if !CODE_STYLE
-            protected override AnalyzerOptions GetAnalyzerOptions(Project project)
-                => new WorkspaceAnalyzerOptions(base.GetAnalyzerOptions(project), _sharedState.GetIdeAnalyzerOptions(project));
-
-            protected override CodeFixContext CreateCodeFixContext(Document document, TextSpan span, ImmutableArray<Diagnostic> diagnostics, Action<CodeAction, ImmutableArray<Diagnostic>> registerCodeFix, CancellationToken cancellationToken)
-                => new(document, span, diagnostics, registerCodeFix, _sharedState.CodeActionOptions, cancellationToken);
-
-            protected override FixAllContext CreateFixAllContext(
-                Document? document,
-                TextSpan? diagnosticSpan,
-                Project project,
-                CodeFixProvider codeFixProvider,
-                FixAllScope scope,
-                string? codeActionEquivalenceKey,
-                IEnumerable<string> diagnosticIds,
-                DiagnosticSeverity minimumSeverity,
-                FixAllContext.DiagnosticProvider fixAllDiagnosticProvider,
-                CancellationToken cancellationToken)
-                => new(new FixAllState(
-                    fixAllProvider: NoOpFixAllProvider.Instance,
-                    diagnosticSpan,
-                    document,
-                    project,
-                    codeFixProvider,
-                    scope,
-                    codeActionEquivalenceKey,
-                    diagnosticIds,
-                    fixAllDiagnosticProvider,
-                    _sharedState.CodeActionOptions),
-                  CodeAnalysisProgress.None, cancellationToken);
-#endif
 
             protected override Diagnostic? TrySelectDiagnosticToFix(ImmutableArray<Diagnostic> fixableDiagnostics)
             {

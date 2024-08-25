@@ -33,10 +33,10 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <summary>
         /// Use to perform a callback from ServiceHub process to an arbitrary brokered service hosted in the original process (usually devenv).
         /// </summary>
-        public static async ValueTask<TResult> InvokeServiceAsync<TResult>(
+        public static async ValueTask InvokeServiceAsync(
             ServiceBrokerClient client,
             ServiceRpcDescriptor serviceDescriptor,
-            Func<RemoteCallback<T>, CancellationToken, ValueTask<TResult>> invocation,
+            Func<RemoteCallback<T>, CancellationToken, ValueTask> invocation,
             CancellationToken cancellationToken)
         {
             ServiceBrokerClient.Rental<T> rental;
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Remote
             Contract.ThrowIfNull(rental.Proxy);
             var callback = new RemoteCallback<T>(rental.Proxy);
 
-            return await invocation(callback, cancellationToken).ConfigureAwait(false);
+            await invocation(callback, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -97,9 +97,9 @@ namespace Microsoft.CodeAnalysis.Remote
         /// <param name="reader">A callback to asynchronously read data. The callback should not complete the <see
         /// cref="PipeReader"/>, but no harm will happen if it does.</param>
         /// <param name="cancellationToken">A cancellation token the operation will observe.</param>
-        public async ValueTask<TResult> InvokeAsync<TResult>(
+        public async ValueTask InvokeAsync(
             Func<T, PipeWriter, CancellationToken, ValueTask> invocation,
-            Func<PipeReader, CancellationToken, ValueTask<TResult>> reader,
+            Func<PipeReader, CancellationToken, ValueTask> reader,
             CancellationToken cancellationToken)
         {
             try
@@ -118,12 +118,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 // use fire-and-forget here and avoids us having to consider things like async-tracking-tokens for
                 // testing purposes.
                 await Task.WhenAll(writeTask, readTask).ConfigureAwait(false);
-                return await readTask.ConfigureAwait(false);
+                await readTask.ConfigureAwait(false);
             }
             catch (Exception exception) when (ReportUnexpectedException(exception, cancellationToken))
             {
                 throw new OperationCanceledIgnoringCallerTokenException(exception);
             }
+
+            return;
 
             async Task WriteAsync(T service, PipeWriter pipeWriter)
             {
@@ -170,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
             }
 
-            async Task<TResult> ReadAsync(PipeReader pipeReader)
+            async Task ReadAsync(PipeReader pipeReader)
             {
                 // NOTE: it is intentional that the try/catch pattern here does NOT match the one in WriteAsync.  There
                 // are very different semantics around each.  The writer code passes ownership to StreamJsonRPC, while
@@ -180,7 +182,8 @@ namespace Microsoft.CodeAnalysis.Remote
                 Exception? exception = null;
                 try
                 {
-                    return await reader(pipeReader, cancellationToken).ConfigureAwait(false);
+                    await reader(pipeReader, cancellationToken).ConfigureAwait(false);
+                    return;
                 }
                 catch (Exception ex) when ((exception = ex) == null)
                 {
