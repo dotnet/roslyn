@@ -21,8 +21,6 @@ internal sealed class RemoteRelatedDocumentsService(
             => new RemoteRelatedDocumentsService(arguments, callback);
     }
 
-    private readonly RemoteCallback<IRemoteRelatedDocumentsService.ICallback> _callback = callback;
-
     public ValueTask GetRelatedDocumentIdsAsync(
         Checksum solutionChecksum,
         DocumentId documentId,
@@ -37,7 +35,7 @@ internal sealed class RemoteRelatedDocumentsService(
             var service = document.GetRequiredLanguageService<IRelatedDocumentsService>();
             await foreach (var relatedDocument in service.GetRelatedDocumentIdsAsync(document, position, cancellationToken))
             {
-                await _callback.InvokeAsync((callback, cancellationToken) => callback.ReportRelatedDocumentAsync(
+                await callback.InvokeAsync((callback, cancellationToken) => callback.ReportRelatedDocumentAsync(
                     callbackId, relatedDocument, cancellationToken), cancellationToken).ConfigureAwait(false);
             }
         }, cancellationToken);
