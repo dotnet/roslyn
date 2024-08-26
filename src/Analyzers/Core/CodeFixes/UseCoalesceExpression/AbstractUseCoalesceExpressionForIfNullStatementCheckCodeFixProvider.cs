@@ -58,7 +58,12 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckCode
         SyntaxNode TryAddExplicitCast(SyntaxNode expressionToCoalesce, SyntaxNode whenTrueStatement)
         {
             // This can be either SimpleAssignmentStatement or ThrowStatement
-            // We only care about casting in the former case.
+            // We only care about casting in the former case since the two
+            // types being coalesce-d might not be the same and might result in broken
+            // code without the cast.
+            // In the latter case something like
+            // _ = myParameter ?? throw new ArgumentNullException(nameof(myParameter));
+            // will be always valid.
             if (!syntaxFacts.IsSimpleAssignmentStatement(whenTrueStatement))
                 return expressionToCoalesce;
 
