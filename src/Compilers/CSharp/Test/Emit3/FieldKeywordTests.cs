@@ -1192,5 +1192,51 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 //     R Q3 { set { _ = field; } }
                 Diagnostic(ErrorCode.ERR_FieldAutoPropCantBeByRefLike, "R").WithArguments("R").WithLocation(11, 5));
         }
+
+        [Fact]
+        public void Nullable_00()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    private string? _field;
+                    public string? Prop { get => _field; } // 1
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Nullable_01()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    public string Prop { get => field; set => field = value; } // 1
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Nullable_02()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    public string Prop => field ??= "a"; // 1
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
     }
 }

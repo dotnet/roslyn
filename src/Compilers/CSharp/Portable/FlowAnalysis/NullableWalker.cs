@@ -181,6 +181,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly bool _useConstructorExitWarnings;
 
         /// <summary>
+        /// 'true' if we are performing the 'null-resilience' analysis of getters which use the 'field' keyword.
+        /// In this case, the inferred nullable annotation of the backing field must not be used, as we are currently in the process of inferring it.
+        /// </summary>
+        private readonly bool _isGetterNullResilienceAnalysis;
+
+        /// <summary>
         /// If true, the parameter types and nullability from _delegateInvokeMethod is used for
         /// initial parameter state. If false, the signature of CurrentSymbol is used instead.
         /// </summary>
@@ -448,6 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             Symbol? symbol,
             bool useConstructorExitWarnings,
+            bool isGetterNullResilienceAnalysis,
             bool useDelegateInvokeParameterTypes,
             bool useDelegateInvokeReturnType,
             MethodSymbol? delegateInvokeMethodOpt,
@@ -469,6 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _binder = binder;
             _conversions = (Conversions)conversions.WithNullability(true);
             _useConstructorExitWarnings = useConstructorExitWarnings;
+            _isGetterNullResilienceAnalysis = isGetterNullResilienceAnalysis;
             _useDelegateInvokeParameterTypes = useDelegateInvokeParameterTypes;
             _useDelegateInvokeReturnType = useDelegateInvokeReturnType;
             _delegateInvokeMethod = delegateInvokeMethodOpt;
@@ -719,12 +727,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 TypeWithAnnotations symbolType;
-                FieldSymbol? field;
+                FieldSymbol? field; // TODO2: this could be gotten rid of, event fields are never const. Should improve clarity.
                 Symbol symbol;
                 switch (member)
                 {
                     case FieldSymbol f:
                         symbolType = f.TypeWithAnnotations;
+                        Debug.Assert(!_isGetterNullResilienceAnalysis);
+                        if (f is SynthesizedBackingFieldSymbol { InfersNullableAnnotation: true } backingField)
+                        {
+                            // TODO2: consider if this is the right pattern for using the "inferred field nullable annotation".
+                            // We have to take care to remember all the relevant places to use it, but, we have to be cautious about how we use it to avoid cycles.
+                            symbolType = TypeWithAnnotations.Create(symbolType.Type, backingField.GetInferredNullableAnnotation());
+                        }
                         field = f;
                         symbol = (Symbol?)(f.AssociatedSymbol as PropertySymbol) ?? f;
                         break;
@@ -1375,6 +1390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 conversions,
                 diagnostics,
                 useConstructorExitWarnings,
+                isGetterNullResilienceAnalysis: false,
                 useDelegateInvokeParameterTypes: false,
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
@@ -1511,6 +1527,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder.Conversions,
                 diagnostics,
                 useConstructorExitWarnings: true,
+                isGetterNullResilienceAnalysis: false,
                 useDelegateInvokeParameterTypes: false,
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
@@ -1562,6 +1579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder.Compilation,
                 symbol,
                 useConstructorExitWarnings: false,
+                isGetterNullResilienceAnalysis: false,
                 useDelegateInvokeParameterTypes: false,
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
@@ -1629,7 +1647,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder,
             BoundNode node,
             SyntaxNode syntax,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            SourcePropertyAccessorSymbol? getMethodForNullResilienceAnalysis = null)
         {
             bool requiresAnalysis = true;
             var compilation = binder.Compilation;
@@ -1645,12 +1664,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Analyze(
                 compilation,
-                symbol: null,
+                symbol: getMethodForNullResilienceAnalysis,
                 node,
                 binder,
                 binder.Conversions,
                 diagnostics,
                 useConstructorExitWarnings: false,
+                isGetterNullResilienceAnalysis: getMethodForNullResilienceAnalysis is not null,
                 useDelegateInvokeParameterTypes: false,
                 useDelegateInvokeReturnType: false,
                 delegateInvokeMethodOpt: null,
@@ -1680,6 +1700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 symbol,
                 useConstructorExitWarnings: false,
+                isGetterNullResilienceAnalysis: false,
                 useDelegateInvokeParameterTypes: useDelegateInvokeParameterTypes,
                 useDelegateInvokeReturnType: useDelegateInvokeReturnType,
                 delegateInvokeMethodOpt: delegateInvokeMethodOpt,
@@ -1710,6 +1731,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Conversions conversions,
             DiagnosticBag diagnostics,
             bool useConstructorExitWarnings,
+            bool isGetterNullResilienceAnalysis,
             bool useDelegateInvokeParameterTypes,
             bool useDelegateInvokeReturnType,
             MethodSymbol? delegateInvokeMethodOpt,
@@ -1723,9 +1745,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool requiresAnalysis = true)
         {
             Debug.Assert(diagnostics != null);
+            Debug.Assert(!isGetterNullResilienceAnalysis || symbol is SourcePropertyAccessorSymbol { MethodKind: MethodKind.PropertyGet });
+            Debug.Assert(!isGetterNullResilienceAnalysis || !useConstructorExitWarnings);
+
             var walker = new NullableWalker(compilation,
                                             symbol,
                                             useConstructorExitWarnings,
+                                            isGetterNullResilienceAnalysis,
                                             useDelegateInvokeParameterTypes,
                                             useDelegateInvokeReturnType,
                                             delegateInvokeMethodOpt,
@@ -2130,6 +2156,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     containingSlot = thisSlot;
                 }
             }
+
+            // Backing field shares a slot with the property itself
+            if (symbol is SynthesizedBackingFieldSymbol backingField)
+                symbol = backingField.AssociatedSymbol;
 
             return base.GetOrCreateSlot(symbol, containingSlot, forceSlotEvenIfEmpty, createIfMissing);
         }
@@ -2700,7 +2730,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private NullableFlowState GetDefaultState(Symbol symbol)
-            => ApplyUnconditionalAnnotations(symbol.GetTypeOrReturnType().ToTypeWithState(), GetRValueAnnotations(symbol)).State;
+        {
+            var typeWithAnnotations = symbol.GetTypeOrReturnType();
+            if (symbol is SynthesizedBackingFieldSymbol { InfersNullableAnnotation: true } backingField)
+            {
+                var nullableAnnotation = _isGetterNullResilienceAnalysis ? NullableAnnotation.Annotated : backingField.GetInferredNullableAnnotation();
+                typeWithAnnotations = TypeWithAnnotations.Create(typeWithAnnotations.Type, nullableAnnotation);
+            }
+
+            return ApplyUnconditionalAnnotations(typeWithAnnotations.ToTypeWithState(), GetRValueAnnotations(symbol)).State;
+        }
 
         private void InheritNullableStateOfTrackableType(int targetSlot, int valueSlot, int skipSlot)
         {
@@ -4594,6 +4633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var walker = new NullableWalker(binder.Compilation,
                                             symbol: null,
                                             useConstructorExitWarnings: false,
+                                            isGetterNullResilienceAnalysis: false,
                                             useDelegateInvokeParameterTypes: false,
                                             useDelegateInvokeReturnType: false,
                                             delegateInvokeMethodOpt: null,
@@ -9740,17 +9780,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!IsConditionalState);
 
             var left = node.Left;
-            switch (left)
-            {
-                // when binding initializers, we treat assignments to auto-properties or field-like events as direct assignments to the underlying field.
-                // in order to track member state based on these initializers, we need to see the assignment in terms of the associated member
-                case BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: PropertySymbol autoProperty } } fieldAccess:
-                    left = new BoundPropertyAccess(fieldAccess.Syntax, fieldAccess.ReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, autoProperty, LookupResultKind.Viable, autoProperty.Type, fieldAccess.HasErrors);
-                    break;
-                case BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: EventSymbol @event } } fieldAccess:
-                    left = new BoundEventAccess(fieldAccess.Syntax, fieldAccess.ReceiverOpt, @event, isUsableAsField: true, LookupResultKind.Viable, @event.Type, fieldAccess.HasErrors);
-                    break;
-            }
+            // TODO2: I think we want to fully undo this part, and start seeing constructor tracking of properties in terms of the associated field
+            // TODO2: we likely need to just share a slot between the backing field and the property
+            //switch (left)
+            //{
+            //    // when binding initializers, we treat assignments to auto-properties or field-like events as direct assignments to the underlying field.
+            //    // in order to track member state based on these initializers, we need to see the assignment in terms of the associated member
+
+            //    case BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: PropertySymbol autoProperty } } fieldAccess:
+            //        left = new BoundPropertyAccess(fieldAccess.Syntax, fieldAccess.ReceiverOpt, initialBindingReceiverIsSubjectToCloning: ThreeState.Unknown, autoProperty, LookupResultKind.Viable, autoProperty.Type, fieldAccess.HasErrors);
+            //        break;
+            //    case BoundFieldAccess { ExpressionSymbol: FieldSymbol { AssociatedSymbol: EventSymbol @event } } fieldAccess:
+            //        left = new BoundEventAccess(fieldAccess.Syntax, fieldAccess.ReceiverOpt, @event, isUsableAsField: true, LookupResultKind.Viable, @event.Type, fieldAccess.HasErrors);
+            //        break;
+            //}
 
             var right = node.Right;
             VisitLValue(left);
@@ -10576,7 +10619,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _ = CheckPossibleNullReceiver(receiverOpt, checkNullableValueType: !skipReceiverNullCheck);
             }
 
+            // TODO2: introduce helper for getting member type which accounts for '_isGetterNullResilienceAnalysis'?
             var type = member.GetTypeOrReturnType();
+            if (member is SynthesizedBackingFieldSymbol { InfersNullableAnnotation: true } backingField)
+            {
+                // TODO2: should we use the 'temporarily maybe null' annotation throughout the symobl model?
+                var nullableAnnotation = _isGetterNullResilienceAnalysis ? NullableAnnotation.Annotated : backingField.GetInferredNullableAnnotation();
+                type = TypeWithAnnotations.Create(type.Type, nullableAnnotation);
+            }
+
             var memberAnnotations = GetRValueAnnotations(member);
             var resultType = ApplyUnconditionalAnnotations(type.ToTypeWithState(), memberAnnotations);
 

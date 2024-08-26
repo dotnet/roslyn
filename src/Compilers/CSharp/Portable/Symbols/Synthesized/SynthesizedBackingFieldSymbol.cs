@@ -113,8 +113,70 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<CustomModifier> RefCustomModifiers => _property.RefCustomModifiers;
 
-        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
-            => _property.TypeWithAnnotations;
+        internal override TypeWithAnnotations GetFieldType(ConsList<FieldSymbol> fieldsBeingBound) => _property.TypeWithAnnotations;
+
+#nullable enable
+        /// <summary>If null, binding+flow analysis of getter is required to determine null resilience. If non-null, then whether the getter is null-resilient is trivially known.</summary>
+        private bool? IsGetterTriviallyNullResilient
+        {
+            get
+            {
+                // getter is vacuously null-resilient, since it doesn't exist.
+                if (_property.GetMethod is not SourcePropertyAccessorSymbol getMethod)
+                    return true;
+
+                // auto-implemented getter is not null-resilient.
+                if (getMethod.IsAutoPropertyAccessor)
+                    return false;
+
+                // getter exists and is manually implemented.
+                return null;
+            }
+        }
+
+        internal bool InfersNullableAnnotation
+        {
+            get
+            {
+                var propertyType = _property.TypeWithAnnotations;
+                if (propertyType.NullableAnnotation != NullableAnnotation.NotAnnotated
+                    || !_property.UsesFieldKeyword)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+        }
+
+        // TODO2: thread safe
+        private NullableAnnotation? _inferredNullableAnnotation;
+        internal NullableAnnotation GetInferredNullableAnnotation() => _inferredNullableAnnotation ??= ComputeInferredNullableAnnotation();
+
+        private NullableAnnotation ComputeInferredNullableAnnotation()
+        {
+            if (IsGetterTriviallyNullResilient is { } isNullResilient)
+                return isNullResilient ? NullableAnnotation.Annotated : NullableAnnotation.NotAnnotated;
+
+            var getAccessor = (SourcePropertyAccessorSymbol?)_property.GetMethod;
+            Debug.Assert(getAccessor is not null);
+            getAccessor = (SourcePropertyAccessorSymbol?)getAccessor.PartialImplementationPart ?? getAccessor;
+
+            var binder = getAccessor.TryGetBodyBinder() ?? throw ExceptionUtilities.UnexpectedValue(getAccessor);
+            var boundGetAccessor = binder.BindMethodBody(getAccessor.SyntaxNode, BindingDiagnosticBag.Discarded);
+
+            var nullableDiagnostics = DiagnosticBag.GetInstance();
+            NullableWalker.AnalyzeIfNeeded(binder, boundGetAccessor, boundGetAccessor.Syntax, nullableDiagnostics, getMethodForNullResilienceAnalysis: getAccessor);
+
+            if (nullableDiagnostics.IsEmptyWithoutResolution)
+            {
+                // getter is null-resilient.
+                return NullableAnnotation.Annotated;
+            }
+
+            return NullableAnnotation.NotAnnotated;
+        }
+#nullable disable
 
         internal override bool HasPointerType
             => _property.HasPointerType;

@@ -653,7 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal bool IsAutoPropertyOrUsesFieldKeyword
             => IsAutoProperty || UsesFieldKeyword;
 
-        protected bool UsesFieldKeyword
+        internal bool UsesFieldKeyword
             => (_propertyFlags & Flags.UsesFieldKeyword) != 0;
 
         protected bool HasExplicitAccessModifier
