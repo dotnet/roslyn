@@ -659,7 +659,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             implicitReceiver,
                             diagnostics) :
                         BindCollectionInitializerElementAddMethod(
-                            (ExpressionSyntax)element.Syntax,
+                            element.Syntax,
                             ImmutableArray.Create((BoundExpression)element),
                             hasEnumerableInitializerType: true,
                             collectionInitializerAddMethodBinder,
