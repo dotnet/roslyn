@@ -25,9 +25,9 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
     private readonly ImmutableArray<IAnalyzerAssemblyResolver> _externalResolvers;
     private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
 
-    public AbstractAnalyzerAssemblyLoaderProvider(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+    public AbstractAnalyzerAssemblyLoaderProvider(IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
     {
-        _externalResolvers = externalResolvers;
+        _externalResolvers = externalResolvers.ToImmutableArray();
         _shadowCopyLoader = new(CreateShadowCopyLoader);
     }
 
@@ -48,4 +48,4 @@ internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemb
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class DefaultAnalyzerAssemblyLoaderProvider(
     [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
-    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers.ToImmutableArray());
+    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers);
