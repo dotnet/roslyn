@@ -1250,7 +1250,7 @@ namespace System.Diagnostics.CodeAnalysis
             }
             else
             {
-                allReferences = [.. NetStandard20.References.All, NetStandard20.ExtraReferences.SystemThreadingTasksExtensions];
+                allReferences = [.. TargetFrameworkUtil.Mscorlib461ExtendedReferences, Net461.ExtraReferences.SystemThreadingTasksExtensions];
             }
 
             if (references != null)
