@@ -31,22 +31,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 /// code that can be used).
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
+    : AbstractBuiltInCodeStyleDiagnosticAnalyzer(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
+        EnforceOnBuildValues.InlineIsTypeWithoutName,
+        CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck,
+        new LocalizableResourceString(
+            nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
 {
     private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
     private const string CS0103 = nameof(CS0103); // Name of the variable doesn't live in context
     private static readonly SyntaxAnnotation s_referenceAnnotation = new();
 
     public static readonly CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer Instance = new();
-
-    public CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer()
-        : base(IDEDiagnosticIds.InlineIsTypeWithoutNameCheckDiagnosticsId,
-               EnforceOnBuildValues.InlineIsTypeWithoutName,
-               CSharpCodeStyleOptions.PreferPatternMatchingOverIsWithCastCheck,
-               new LocalizableResourceString(
-                   nameof(CSharpAnalyzersResources.Use_pattern_matching), CSharpAnalyzersResources.ResourceManager, typeof(CSharpAnalyzersResources)))
-    {
-    }
 
     public override DiagnosticAnalyzerCategory GetAnalyzerCategory()
         => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
