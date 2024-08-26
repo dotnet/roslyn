@@ -3084,6 +3084,48 @@ format:
 ");
         }
 
+        [Fact, WorkItem("https://github.com/dotnet/roslyn/issues/74733")]
+        public void InterpolatedString()
+        {
+            var source = """
+                using System;
+                using System.Collections.Generic;
+                using System.Runtime.CompilerServices;
+
+                C.M("xyz");
+
+                [InterpolatedStringHandler]
+                public class C
+                {
+                    public C(int literalLength, int formattedCount)
+                    {
+                        Console.WriteLine($"literal:{literalLength}, formatted:{formattedCount}");
+                    }
+
+                    public void AppendLiteral(params List<string> s)
+                    {
+                        Console.WriteLine($"append:'{(string.Join(",", s))}'");
+                    }
+
+                    public void AppendFormatted(string s)
+                    {
+                        Console.WriteLine($"formatted:'{s}'");
+                    }
+
+                    public static void M(string s)
+                    {
+                        C c = $"abc {s} def";
+                    }
+                }
+                """;
+            CompileAndVerify([source, InterpolatedStringHandlerAttribute], expectedOutput: """
+                literal:8, formatted:1
+                append:'abc '
+                formatted:'xyz'
+                append:' def'
+                """).VerifyDiagnostics();
+        }
+
         [Fact]
         public void OrderOfEvaluation_01_NamedArguments()
         {
