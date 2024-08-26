@@ -847,7 +847,7 @@ internal sealed partial class ProjectSystemProjectFactory
 
                 var project = solution.GetRequiredProject(projectId);
                 var oldAnalyzerReference = project.AnalyzerReferences.First(r => r.FullPath == oldReferenceFullPath);
-                var newAnalyzerReference = new AnalyzerFileReference(oldReferenceFullPath, assemblyLoaderProvider.GetShadowCopyLoader());
+                var newAnalyzerReference = new AnalyzerFileReference(oldReferenceFullPath, assemblyLoaderProvider.SharedShadowCopyLoader);
 
                 var newSolution = solution
                     .RemoveAnalyzerReference(projectId, oldAnalyzerReference)
