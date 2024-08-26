@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UsePatternMatching;
 /// code that can be used).
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-internal class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
+internal sealed class CSharpIsAndCastCheckWithoutNameDiagnosticAnalyzer : AbstractBuiltInCodeStyleDiagnosticAnalyzer
 {
     private const string CS0165 = nameof(CS0165); // Use of unassigned local variable 's'
     private const string CS0103 = nameof(CS0103); // Name of the variable doesn't live in context
