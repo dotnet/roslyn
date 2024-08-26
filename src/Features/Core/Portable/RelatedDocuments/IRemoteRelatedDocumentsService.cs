@@ -19,7 +19,7 @@ internal interface IRemoteRelatedDocumentsService
         ValueTask ReportRelatedDocumentAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
     }
 
-    public ValueTask GetRelatedDocumentIdsAsync(
+    ValueTask GetRelatedDocumentIdsAsync(
         Checksum solutionChecksum, DocumentId documentId, int position, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
 }
 
