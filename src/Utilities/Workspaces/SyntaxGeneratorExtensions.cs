@@ -455,5 +455,39 @@ namespace Analyzer.Utilities
 
             return node;
         }
+
+        /// <summary>
+        /// Creates the first unused identifier name based on the provided base name.
+        /// </summary>
+        /// <param name="generator">The <see cref="SyntaxGenerator"/> used to create the identifier name.</param>
+        /// <param name="semanticModel">The semantic model.</param>
+        /// <param name="position">The position in the code.</param>
+        /// <param name="baseName">The base name to use.</param>
+        /// <param name="maxTries">Maximum number of tries.</param>
+        /// <returns>
+        /// A <see cref="SyntaxNode"/> representing an unused identifier name.
+        /// This can be either the base name itself or a variation of it with a number appended to make it unique.
+        /// </returns>
+        public static SyntaxNode FirstUnusedIdentifierName(this SyntaxGenerator generator, SemanticModel semanticModel, int position, string baseName, int maxTries = int.MaxValue)
+        {
+            var identifierName = generator.IdentifierName(baseName);
+
+            if (semanticModel.GetSpeculativeSymbolInfo(position, identifierName, SpeculativeBindingOption.BindAsExpression).Symbol is null)
+            {
+                return identifierName;
+            }
+
+            for (int i = 1; i < maxTries; i++)
+            {
+                identifierName = generator.IdentifierName($"{baseName}{i}");
+
+                if (semanticModel.GetSpeculativeSymbolInfo(position, identifierName, SpeculativeBindingOption.BindAsExpression).Symbol is null)
+                {
+                    break;
+                }
+            }
+
+            return identifierName;
+        }
     }
 }
