@@ -14,10 +14,10 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
     {
         private readonly LoadContext _inMemoryAssemblyContext;
 
-        internal CoreAssemblyLoaderImpl(InteractiveAssemblyLoader loader)
+        internal CoreAssemblyLoaderImpl(InteractiveAssemblyLoader loader, bool isCollectible)
             : base(loader)
         {
-            _inMemoryAssemblyContext = new LoadContext(Loader, null);
+            _inMemoryAssemblyContext = new LoadContext(Loader, null, isCollectible);
         }
 
         public override Assembly LoadFromStream(Stream peStream, Stream pdbStream)
@@ -30,14 +30,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             // Create a new context that knows the directory where the assembly was loaded from
             // and uses it to resolve dependencies of the assembly. We could create one context per directory,
             // but there is no need to reuse contexts.
-            var assembly = new LoadContext(Loader, Path.GetDirectoryName(path)).LoadFromAssemblyPath(path);
+            var assembly = new LoadContext(Loader, Path.GetDirectoryName(path), false).LoadFromAssemblyPath(path);
 
             return new AssemblyAndLocation(assembly, path, GlobalAssemblyCache: false);
         }
 
         public override void Dispose()
         {
-            // nop
+            _inMemoryAssemblyContext.Unload();
         }
 
         private sealed class LoadContext : AssemblyLoadContext
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             private readonly string? _loadDirectory;
             private readonly InteractiveAssemblyLoader _loader;
 
-            internal LoadContext(InteractiveAssemblyLoader loader, string? loadDirectory)
+            internal LoadContext(InteractiveAssemblyLoader loader, string? loadDirectory, bool isCollectible) : base(isCollectible)
             {
                 _loader = loader;
                 _loadDirectory = loadDirectory;

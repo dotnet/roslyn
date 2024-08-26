@@ -7,6 +7,11 @@
         <target state="translated">Seçenekler zaten farklı bir dil için yapılandırıldığından {0}'e özgü {1} seçeneği ayarlanamıyor.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CollectibleAssembliesNotSupported">
+        <source>The current platform does not support collectible assemblies</source>
+        <target state="new">The current platform does not support collectible assemblies</target>
+        <note />
+      </trans-unit>
       <trans-unit id="StackOverflowWhileEvaluating">
         <source>!&lt;Stack overflow while evaluating object&gt;</source>
         <target state="translated">!&lt;Nesne değerlendirilirken yığın taşması&gt;</target>

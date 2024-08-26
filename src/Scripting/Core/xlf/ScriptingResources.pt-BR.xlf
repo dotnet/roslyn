@@ -7,6 +7,11 @@
         <target state="translated">Não é possível definir a opção {1} específica de {0} porque as opções já foram configuradas para um idioma diferente.</target>
         <note />
       </trans-unit>
+      <trans-unit id="CollectibleAssembliesNotSupported">
+        <source>The current platform does not support collectible assemblies</source>
+        <target state="new">The current platform does not support collectible assemblies</target>
+        <note />
+      </trans-unit>
       <trans-unit id="StackOverflowWhileEvaluating">
         <source>!&lt;Stack overflow while evaluating object&gt;</source>
         <target state="translated">!&lt;Estouro de pilha durante a avaliação do objeto&gt;</target>

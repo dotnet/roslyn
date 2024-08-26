@@ -5,7 +5,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -82,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             private string GetDebuggerDisplay() => IsDefault ? "uninitialized" : Identity.GetDisplayName() + (Location != null ? " @ " + Location : "");
         }
 
-        public InteractiveAssemblyLoader(MetadataShadowCopyProvider? shadowCopyProvider = null)
+        public InteractiveAssemblyLoader(MetadataShadowCopyProvider? shadowCopyProvider = null, bool isCollectible = false)
         {
             _shadowCopyProvider = shadowCopyProvider;
 
@@ -91,11 +90,25 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             _loadedAssembliesBySimpleName = new Dictionary<string, List<LoadedAssemblyInfo>>(AssemblyIdentityComparer.SimpleNameComparer);
             _dependenciesWithLocationBySimpleName = new Dictionary<string, List<AssemblyIdentityAndLocation>>();
 
-            _runtimeAssemblyLoader = AssemblyLoaderImpl.Create(this);
+#if NET
+            _runtimeAssemblyLoader = new CoreAssemblyLoaderImpl(this, isCollectible);
+#else
+            if (isCollectible)
+            {
+                throw new InteractiveAssemblyLoaderException(ScriptingResources.CollectibleAssembliesNotSupported);
+            }
+
+            _runtimeAssemblyLoader = new DesktopAssemblyLoaderImpl(this);
+#endif
         }
 
         public void Dispose()
         {
+#if NET
+            // This field reference loaded assemblies, so it must be cleared before the loader is disposed.
+            // Otherwise, AssemblyLoadContext.Unload in CoreAssemblyLoaderImpl would not working
+            _loadedAssembliesBySimpleName.Clear();
+#endif
             _runtimeAssemblyLoader.Dispose();
         }
 

@@ -190,4 +190,7 @@ Script directives:
   <data name="CannotSetLanguageSpecificOption" xml:space="preserve">
     <value>Cannot set {0} specific option {1} because the options were already configured for a different language.</value>
   </data>
+  <data name="CollectibleAssembliesNotSupported" xml:space="preserve">
+    <value>The current platform does not support collectible assemblies</value>
+  </data>
 </root>
