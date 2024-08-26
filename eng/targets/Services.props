@@ -18,6 +18,7 @@
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.DocumentHighlights" ClassName="Microsoft.CodeAnalysis.Remote.RemoteDocumentHighlightsService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.EncapsulateField" ClassName="Microsoft.CodeAnalysis.Remote.RemoteEncapsulateFieldService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.KeepAlive" ClassName="Microsoft.CodeAnalysis.Remote.RemoteKeepAliveService+Factory" />
+    <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.RelatedDocuments" ClassName="Microsoft.CodeAnalysis.Remote.RemoteRelatedDocumentsService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.Renamer" ClassName="Microsoft.CodeAnalysis.Remote.RemoteRenamerService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.ConvertTupleToStructCodeRefactoring" ClassName="Microsoft.CodeAnalysis.Remote.RemoteConvertTupleToStructCodeRefactoringService+Factory" />
     <ServiceHubService Include="Microsoft.VisualStudio.LanguageServices.SymbolFinder" ClassName="Microsoft.CodeAnalysis.Remote.RemoteSymbolFinderService+Factory" />
