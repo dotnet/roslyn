@@ -75,11 +75,6 @@ internal static class DartTest
 
             await remoteConnections.DevDivConnection.TryRunPipelineAsync(product.DartLabPipelineName, repositoryParams, runPipelineParameters, logger).ConfigureAwait(false);
         }
-        catch (Exception e)
-        {
-            logger.LogError(e, e.Message);
-            return -1;
-        }
         finally
         {
             CleanupDirectory(targetDirectory, logger);
