@@ -76,7 +76,7 @@ public class LspMiscellaneousFilesWorkspaceTests : AbstractLanguageServerProtoco
         await testLspServer.InsertTextAsync(looseFileUri, (0, 0, source)).ConfigureAwait(false);
         var caret = new LSP.Location { Range = new() { Start = new(0, 6), End = new(0, 7) }, Uri = looseFileUri };
         var hover = await RunGetHoverAsync(testLspServer, caret).ConfigureAwait(false);
-        Assert.Contains("class A", hover.Contents!.Value.Fourth.Value);
+        Assert.Contains("class A", hover.Contents.Fourth.Value);
         await AssertFileInMiscWorkspaceAsync(testLspServer, looseFileUri).ConfigureAwait(false);
 
         // Assert that the misc workspace contains the updated document.

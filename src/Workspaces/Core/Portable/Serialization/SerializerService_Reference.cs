@@ -44,20 +44,16 @@ internal partial class SerializerService
             return s_analyzerImageReferenceMap.TryGetKey(guid, out imageReference);
     }
 
-    public static Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
+    private static Checksum CreateChecksum(MetadataReference reference)
     {
         if (reference is PortableExecutableReference portable)
-        {
-            return CreatePortableExecutableReferenceChecksum(portable, cancellationToken);
-        }
+            return CreatePortableExecutableReferenceChecksum(portable);
 
         throw ExceptionUtilities.UnexpectedValue(reference.GetType());
     }
 
-    public static Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
+    protected virtual Checksum CreateChecksum(AnalyzerReference reference)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         using var stream = SerializableBytes.CreateWritableStream();
 
         using (var writer = new ObjectWriter(stream, leaveOpen: true))
@@ -83,39 +79,34 @@ internal partial class SerializerService
         return Checksum.Create(stream);
     }
 
-    public virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    protected virtual void WriteMetadataReferenceTo(MetadataReference reference, ObjectWriter writer)
     {
         if (reference is PortableExecutableReference portable)
         {
             if (portable is ISupportTemporaryStorage { StorageHandles: { Count: > 0 } handles } &&
-                TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
-                    portable, handles, writer, cancellationToken))
+                TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(portable, handles, writer))
             {
                 return;
             }
 
-            WritePortableExecutableReferenceTo(portable, writer, cancellationToken);
+            WritePortableExecutableReferenceTo(portable, writer);
             return;
         }
 
         throw ExceptionUtilities.UnexpectedValue(reference.GetType());
     }
 
-    public virtual MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+    protected virtual MetadataReference ReadMetadataReferenceFrom(ObjectReader reader)
     {
         var type = reader.ReadString();
         if (type == nameof(PortableExecutableReference))
-        {
-            return ReadPortableExecutableReferenceFrom(reader, cancellationToken);
-        }
+            return ReadPortableExecutableReferenceFrom(reader);
 
         throw ExceptionUtilities.UnexpectedValue(type);
     }
 
-    public virtual void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    protected virtual void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         switch (reference)
         {
             case AnalyzerFileReference file:
@@ -159,10 +150,8 @@ internal partial class SerializerService
         }
     }
 
-    public virtual AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+    protected virtual AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         switch (reader.ReadString())
         {
             case nameof(AnalyzerFileReference):
@@ -184,35 +173,35 @@ internal partial class SerializerService
     }
 
     protected static void WritePortableExecutableReferenceHeaderTo(
-        PortableExecutableReference reference, SerializationKinds kind, ObjectWriter writer, CancellationToken cancellationToken)
+        PortableExecutableReference reference, SerializationKinds kind, ObjectWriter writer)
     {
         writer.WriteString(nameof(PortableExecutableReference));
         writer.WriteInt32((int)kind);
 
-        WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
+        WritePortableExecutableReferencePropertiesTo(reference, writer);
     }
 
-    private static void WritePortableExecutableReferencePropertiesTo(PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+    private static void WritePortableExecutableReferencePropertiesTo(PortableExecutableReference reference, ObjectWriter writer)
     {
-        WriteTo(reference.Properties, writer, cancellationToken);
+        WriteTo(reference.Properties, writer);
         writer.WriteString(reference.FilePath);
     }
 
-    private static Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference, CancellationToken cancellationToken)
+    private static Checksum CreatePortableExecutableReferenceChecksum(PortableExecutableReference reference)
     {
         using var stream = SerializableBytes.CreateWritableStream();
 
         using (var writer = new ObjectWriter(stream, leaveOpen: true))
         {
-            WritePortableExecutableReferencePropertiesTo(reference, writer, cancellationToken);
-            WriteMvidsTo(TryGetMetadata(reference), writer, cancellationToken);
+            WritePortableExecutableReferencePropertiesTo(reference, writer);
+            WriteMvidsTo(TryGetMetadata(reference), writer);
         }
 
         stream.Position = 0;
         return Checksum.Create(stream);
     }
 
-    private static void WriteMvidsTo(Metadata? metadata, ObjectWriter writer, CancellationToken cancellationToken)
+    private static void WriteMvidsTo(Metadata? metadata, ObjectWriter writer)
     {
         if (metadata == null)
         {
@@ -230,18 +219,14 @@ internal partial class SerializerService
             }
 
             writer.WriteInt32((int)assemblyMetadata.Kind);
-
             writer.WriteInt32(modules.Length);
-
             foreach (var module in modules)
-            {
-                WriteMvidTo(module, writer, cancellationToken);
-            }
+                WriteMvidTo(module, writer);
 
             return;
         }
 
-        WriteMvidTo((ModuleMetadata)metadata, writer, cancellationToken);
+        WriteMvidTo((ModuleMetadata)metadata, writer);
     }
 
     private static bool TryGetModules(AssemblyMetadata assemblyMetadata, out ImmutableArray<ModuleMetadata> modules)
@@ -261,10 +246,8 @@ internal partial class SerializerService
         }
     }
 
-    private static void WriteMvidTo(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
+    private static void WriteMvidTo(ModuleMetadata metadata, ObjectWriter writer)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         writer.WriteInt32((int)metadata.Kind);
         writer.WriteGuid(GetMetadataGuid(metadata));
     }
@@ -278,31 +261,30 @@ internal partial class SerializerService
     }
 
     private static void WritePortableExecutableReferenceTo(
-        PortableExecutableReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        PortableExecutableReference reference, ObjectWriter writer)
     {
-        WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.Bits, writer, cancellationToken);
-
-        WriteTo(TryGetMetadata(reference), writer, cancellationToken);
+        WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.Bits, writer);
+        WriteTo(TryGetMetadata(reference), writer);
 
         // TODO: what I should do with documentation provider? it is not exposed outside
     }
 
-    private PortableExecutableReference ReadPortableExecutableReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+    private PortableExecutableReference ReadPortableExecutableReferenceFrom(ObjectReader reader)
     {
         var kind = (SerializationKinds)reader.ReadInt32();
         Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
 
-        var properties = ReadMetadataReferencePropertiesFrom(reader, cancellationToken);
+        var properties = ReadMetadataReferencePropertiesFrom(reader);
 
         var filePath = reader.ReadString();
 
-        if (TryReadMetadataFrom(reader, kind, cancellationToken) is not (var metadata, var storageHandles))
+        if (TryReadMetadataFrom(reader, kind) is not (var metadata, var storageHandles))
         {
             // TODO: deal with xml document provider properly
             //       should we shadow copy xml doc comment?
 
             // image doesn't exist
-            return new MissingMetadataReference(properties, filePath, XmlDocumentationProvider.Default);
+            return new MissingMetadataReference(properties, filePath, DocumentationProvider.Default);
         }
 
         // for now, we will use IDocumentationProviderService to get DocumentationProvider for metadata
@@ -315,23 +297,19 @@ internal partial class SerializerService
         var documentProvider = filePath != null && _documentationService != null ?
             _documentationService.GetDocumentationProvider(filePath) : XmlDocumentationProvider.Default;
 
-        return new SerializedMetadataReference(
+        return new SerializedPortableExecutableReference(
             properties, filePath, metadata, storageHandles, documentProvider);
     }
 
-    private static void WriteTo(MetadataReferenceProperties properties, ObjectWriter writer, CancellationToken cancellationToken)
+    private static void WriteTo(MetadataReferenceProperties properties, ObjectWriter writer)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         writer.WriteInt32((int)properties.Kind);
         writer.WriteArray(properties.Aliases, static (w, a) => w.WriteString(a));
         writer.WriteBoolean(properties.EmbedInteropTypes);
     }
 
-    private static MetadataReferenceProperties ReadMetadataReferencePropertiesFrom(ObjectReader reader, CancellationToken cancellationToken)
+    private static MetadataReferenceProperties ReadMetadataReferencePropertiesFrom(ObjectReader reader)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         var kind = (MetadataImageKind)reader.ReadInt32();
         var aliases = reader.ReadArray(static r => r.ReadRequiredString());
         var embedInteropTypes = reader.ReadBoolean();
@@ -339,7 +317,7 @@ internal partial class SerializerService
         return new MetadataReferenceProperties(kind, aliases, embedInteropTypes);
     }
 
-    private static void WriteTo(Metadata? metadata, ObjectWriter writer, CancellationToken cancellationToken)
+    private static void WriteTo(Metadata? metadata, ObjectWriter writer)
     {
         if (metadata == null)
         {
@@ -358,29 +336,25 @@ internal partial class SerializerService
             }
 
             writer.WriteInt32((int)assemblyMetadata.Kind);
-
             writer.WriteInt32(modules.Length);
 
             foreach (var module in modules)
-            {
-                WriteTo(module, writer, cancellationToken);
-            }
+                WriteTo(module, writer);
 
             return;
         }
 
-        WriteTo((ModuleMetadata)metadata, writer, cancellationToken);
+        WriteTo((ModuleMetadata)metadata, writer);
     }
 
     private static bool TryWritePortableExecutableReferenceBackedByTemporaryStorageTo(
         PortableExecutableReference reference,
         IReadOnlyList<ITemporaryStorageStreamHandle> handles,
-        ObjectWriter writer,
-        CancellationToken cancellationToken)
+        ObjectWriter writer)
     {
         Contract.ThrowIfTrue(handles.Count == 0);
 
-        WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.MemoryMapFile, writer, cancellationToken);
+        WritePortableExecutableReferenceHeaderTo(reference, SerializationKinds.MemoryMapFile, writer);
 
         writer.WriteInt32((int)MetadataImageKind.Assembly);
         writer.WriteInt32(handles.Count);
@@ -395,7 +369,7 @@ internal partial class SerializerService
     }
 
     private (Metadata metadata, ImmutableArray<TemporaryStorageStreamHandle> storageHandles)? TryReadMetadataFrom(
-        ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
+        ObjectReader reader, SerializationKinds kind)
     {
         var imageKind = reader.ReadInt32();
         if (imageKind == MetadataFailed)
@@ -417,7 +391,7 @@ internal partial class SerializerService
                 metadataKind = (MetadataImageKind)reader.ReadInt32();
                 Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
-                var (metadata, storageHandle) = ReadModuleMetadataFrom(reader, kind, cancellationToken);
+                var (metadata, storageHandle) = ReadModuleMetadataFrom(reader, kind);
 
                 allMetadata.Add(metadata);
                 allHandles.Add(storageHandle);
@@ -429,16 +403,14 @@ internal partial class SerializerService
         {
             Contract.ThrowIfFalse(metadataKind == MetadataImageKind.Module);
 
-            var moduleInfo = ReadModuleMetadataFrom(reader, kind, cancellationToken);
+            var moduleInfo = ReadModuleMetadataFrom(reader, kind);
             return (moduleInfo.metadata, [moduleInfo.storageHandle]);
         }
     }
 
     private (ModuleMetadata metadata, TemporaryStorageStreamHandle storageHandle) ReadModuleMetadataFrom(
-        ObjectReader reader, SerializationKinds kind, CancellationToken cancellationToken)
+        ObjectReader reader, SerializationKinds kind)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         Contract.ThrowIfFalse(kind is SerializationKinds.Bits or SerializationKinds.MemoryMapFile);
 
         return kind == SerializationKinds.Bits
@@ -459,10 +431,10 @@ internal partial class SerializerService
             // Host is sending us all the data as bytes.  Take that and write that out to a memory mapped file on the
             // server side so that we can refer to this data uniformly.
             using var stream = SerializableBytes.CreateWritableStream();
-            CopyByteArrayToStream(reader, stream, cancellationToken);
+            CopyByteArrayToStream(reader, stream);
 
             var length = stream.Length;
-            var storageHandle = _storageService.Value.WriteToTemporaryStorage(stream, cancellationToken);
+            var storageHandle = _storageService.Value.WriteToTemporaryStorage(stream);
             Contract.ThrowIfTrue(length != storageHandle.Identifier.Size);
             return ReadModuleMetadataFromStorage(storageHandle);
         }
@@ -476,7 +448,7 @@ internal partial class SerializerService
             //
             // The ITemporaryStorageStreamHandle should have given us an UnmanagedMemoryStream
             // since this only runs on Windows for VS.
-            var unmanagedStream = (UnmanagedMemoryStream)storageHandle.ReadFromTemporaryStorage(cancellationToken);
+            var unmanagedStream = (UnmanagedMemoryStream)storageHandle.ReadFromTemporaryStorage();
             Contract.ThrowIfFalse(storageHandle.Identifier.Size == unmanagedStream.Length);
 
             // For an unmanaged memory stream, ModuleMetadata can take ownership directly.  Stream will be kept alive as
@@ -491,26 +463,21 @@ internal partial class SerializerService
         }
     }
 
-    private static void CopyByteArrayToStream(ObjectReader reader, Stream stream, CancellationToken cancellationToken)
+    private static void CopyByteArrayToStream(ObjectReader reader, Stream stream)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         // TODO: make reader be able to read byte[] chunk
         var content = reader.ReadByteArray();
         stream.Write(content, 0, content.Length);
     }
 
-    private static void WriteTo(ModuleMetadata metadata, ObjectWriter writer, CancellationToken cancellationToken)
+    private static void WriteTo(ModuleMetadata metadata, ObjectWriter writer)
     {
         writer.WriteInt32((int)metadata.Kind);
-
-        WriteTo(metadata.GetMetadataReader(), writer, cancellationToken);
+        WriteTo(metadata.GetMetadataReader(), writer);
     }
 
-    private static unsafe void WriteTo(MetadataReader reader, ObjectWriter writer, CancellationToken cancellationToken)
+    private static unsafe void WriteTo(MetadataReader reader, ObjectWriter writer)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
         writer.WriteSpan(new ReadOnlySpan<byte>(reader.MetadataPointer, reader.MetadataLength));
     }
 

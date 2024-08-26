@@ -7,8 +7,8 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-
 Imports Roslyn.Test.Utilities
+Imports Basic.Reference.Assemblies
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -4549,7 +4549,7 @@ Namespace Global.Microsoft.CodeAnalysis.VisualBasic
     End Class
 End Namespace
     ]]></file>
-</compilation>, {TestMetadata.Net40.SystemCore}, options:=TestOptions.DebugDll.WithRootNamespace("Microsoft.CodeAnalysis.VisualBasic.UnitTests"))
+</compilation>, {Net40.References.SystemCore}, options:=TestOptions.DebugDll.WithRootNamespace("Microsoft.CodeAnalysis.VisualBasic.UnitTests"))
 
             Dim semanticModel = CompilationUtils.GetSemanticModel(compilation, "a.vb")
 

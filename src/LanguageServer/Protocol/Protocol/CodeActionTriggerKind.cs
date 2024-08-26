@@ -6,9 +6,11 @@ namespace Roslyn.LanguageServer.Protocol
 {
     /// <summary>
     /// Enum which represents the various reason why code actions were requested.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#codeActionTriggerKind">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.17</remarks>
     internal enum CodeActionTriggerKind
     {
         /// <summary>
@@ -18,7 +20,9 @@ namespace Roslyn.LanguageServer.Protocol
 
         /// <summary>
         /// Code actions were requested automatically.
+        /// <para>
         /// This typically happens when current selection in a file changes, but can also be triggered when file content changes.
+        /// </para>
         /// </summary>
         Automatic = 2,
     }

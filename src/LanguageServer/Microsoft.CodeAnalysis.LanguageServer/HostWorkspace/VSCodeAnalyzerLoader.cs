@@ -24,7 +24,7 @@ internal sealed class VSCodeAnalyzerLoaderProvider(
     private readonly ExtensionAssemblyManager _extensionAssemblyManager = extensionAssemblyManager;
     private readonly ILoggerFactory _loggerFactory = loggerFactory;
 
-    protected override IAnalyzerAssemblyLoader CreateShadowCopyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+    protected override IAnalyzerAssemblyLoaderInternal CreateShadowCopyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
     {
         var baseLoader = base.CreateShadowCopyLoader(externalResolvers);
         return new VSCodeExtensionAssemblyAnalyzerLoader(baseLoader, _extensionAssemblyManager, _loggerFactory.CreateLogger<VSCodeExtensionAssemblyAnalyzerLoader>());
@@ -33,12 +33,19 @@ internal sealed class VSCodeAnalyzerLoaderProvider(
     /// <summary>
     /// Analyzer loader that will re-use already loaded assemblies from the extension load context.
     /// </summary>
-    private class VSCodeExtensionAssemblyAnalyzerLoader(IAnalyzerAssemblyLoader defaultLoader, ExtensionAssemblyManager extensionAssemblyManager, ILogger logger) : IAnalyzerAssemblyLoader
+    private sealed class VSCodeExtensionAssemblyAnalyzerLoader(
+        IAnalyzerAssemblyLoaderInternal defaultLoader,
+        ExtensionAssemblyManager extensionAssemblyManager,
+        ILogger logger) : IAnalyzerAssemblyLoaderInternal
     {
         public void AddDependencyLocation(string fullPath)
-        {
-            defaultLoader.AddDependencyLocation(fullPath);
-        }
+            => defaultLoader.AddDependencyLocation(fullPath);
+
+        public string? GetOriginalDependencyLocation(AssemblyName assembly)
+            => defaultLoader.GetOriginalDependencyLocation(assembly);
+
+        public bool IsHostAssembly(Assembly assembly)
+            => defaultLoader.IsHostAssembly(assembly);
 
         public Assembly LoadFromPath(string fullPath)
         {
@@ -51,5 +58,8 @@ internal sealed class VSCodeAnalyzerLoaderProvider(
 
             return defaultLoader.LoadFromPath(fullPath);
         }
+
+        public void Dispose()
+            => defaultLoader.Dispose();
     }
 }

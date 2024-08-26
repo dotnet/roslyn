@@ -8,6 +8,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Serialization;
@@ -18,16 +19,20 @@ namespace Microsoft.CodeAnalysis.Remote;
 /// <summary>
 /// This service provide a way to get roslyn objects from checksum
 /// </summary>
-internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionAssetCache assetCache, IAssetSource assetSource, ISerializerService serializerService)
+internal sealed partial class AssetProvider(
+    Checksum solutionChecksum,
+    SolutionAssetCache assetCache,
+    IAssetSource assetSource,
+    SolutionServices solutionServices)
     : AbstractAssetProvider
 {
     private const int PooledChecksumArraySize = 1024;
     private static readonly ObjectPool<Checksum[]> s_checksumPool = new(() => new Checksum[PooledChecksumArraySize], 16);
 
     private readonly Checksum _solutionChecksum = solutionChecksum;
-    private readonly ISerializerService _serializerService = serializerService;
     private readonly SolutionAssetCache _assetCache = assetCache;
     private readonly IAssetSource _assetSource = assetSource;
+    private readonly SolutionServices _solutionServices = solutionServices;
 
     public override async ValueTask<T> GetAssetAsync<T>(
         AssetPath assetPath, Checksum checksum, CancellationToken cancellationToken)
@@ -289,14 +294,15 @@ internal sealed partial class AssetProvider(Checksum solutionChecksum, SolutionA
                     var missingChecksumsMemory = new ReadOnlyMemory<Checksum>(missingChecksums, 0, missingChecksumsCount);
                     Contract.ThrowIfTrue(missingChecksumsMemory.Length == 0);
 
-#if NETCOREAPP
+#if NET
                     Contract.ThrowIfTrue(missingChecksumsMemory.Span.Contains(Checksum.Null));
 #else
                     Contract.ThrowIfTrue(missingChecksumsMemory.Span.IndexOf(Checksum.Null) >= 0);
 #endif
 
+                    var serializerService = _solutionServices.GetRequiredService<ISerializerService>();
                     await _assetSource.GetAssetsAsync(
-                        _solutionChecksum, assetPath, missingChecksumsMemory, _serializerService,
+                        _solutionChecksum, assetPath, missingChecksumsMemory, serializerService,
                         static (
                             Checksum missingChecksum,
                             T missingAsset,

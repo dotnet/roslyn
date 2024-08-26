@@ -4075,7 +4075,7 @@ class C { }
             bool initialization = false)
         {
             var expectedMessage =
-#if NETCOREAPP
+#if NET
                 $"{message} (Parameter '{parameterName}')";
 #else
                 $"{message}{Environment.NewLine}Parameter name: {parameterName}";

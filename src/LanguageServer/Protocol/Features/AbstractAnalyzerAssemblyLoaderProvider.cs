@@ -14,31 +14,30 @@ namespace Microsoft.CodeAnalysis.Host;
 /// </summary>
 internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemblyLoaderProvider
 {
-    private readonly Lazy<IAnalyzerAssemblyLoader> _shadowCopyLoader;
-    private readonly Lazy<IAnalyzerAssemblyLoader> _directLoader;
+    private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
+    private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _directLoader;
 
     public AbstractAnalyzerAssemblyLoaderProvider(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
     {
         // We use a lazy here in case creating the loader requires MEF imports in the derived constructor.
-        _shadowCopyLoader = new Lazy<IAnalyzerAssemblyLoader>(() => CreateShadowCopyLoader(externalResolvers));
-        _directLoader = new Lazy<IAnalyzerAssemblyLoader>(() => CreateDirectLoader(externalResolvers));
+        _shadowCopyLoader = new(() => CreateShadowCopyLoader(externalResolvers));
+        _directLoader = new(() => CreateDirectLoader(externalResolvers));
     }
 
-    public IAnalyzerAssemblyLoader GetShadowCopyLoader()
+    public IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader()
         => _shadowCopyLoader.Value;
 
-    public IAnalyzerAssemblyLoader GetDirectLoader()
+    public IAnalyzerAssemblyLoaderInternal GetDirectLoader()
         => _directLoader.Value;
 
-    protected virtual IAnalyzerAssemblyLoader CreateShadowCopyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
-    {
-        return DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
-            Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"),
+    protected virtual IAnalyzerAssemblyLoaderInternal CreateShadowCopyLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+        => DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
+            GetDefaultShadowCopyPath(),
             externalResolvers: externalResolvers);
-    }
 
-    protected virtual IAnalyzerAssemblyLoader CreateDirectLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
-    {
-        return new DefaultAnalyzerAssemblyLoader(externalResolvers);
-    }
+    public static string GetDefaultShadowCopyPath()
+        => Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader");
+
+    protected virtual IAnalyzerAssemblyLoaderInternal CreateDirectLoader(ImmutableArray<IAnalyzerAssemblyResolver> externalResolvers)
+        => new DefaultAnalyzerAssemblyLoader(externalResolvers);
 }

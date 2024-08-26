@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
 #nullable enable
         private static readonly string s_projectDir = Path.GetDirectoryName(typeof(SolutionTests).Assembly.Location)!;
-        private static readonly MetadataReference s_mscorlib = TestMetadata.Net451.mscorlib;
+        private static readonly MetadataReference s_mscorlib = NetFramework.mscorlib;
         private static readonly DocumentId s_unrelatedDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
         private static Workspace CreateWorkspaceWithProjectAndDocuments(string? editorConfig = null)
@@ -2794,7 +2794,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task TestAddMetadataReferencesAsync()
         {
-            var mefReference = TestMetadata.Net451.SystemCore;
+            var mefReference = NetFramework.SystemCore;
             using var workspace = CreateWorkspace();
             var solution = workspace.CurrentSolution;
             var project1 = ProjectId.CreateNewId();
@@ -4683,7 +4683,7 @@ public class C : A {
             var sourceDocumentId = DocumentId.CreateNewId(projectId);
 
             solution = solution.AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp)
-                .WithProjectMetadataReferences(projectId, new[] { TestMetadata.Net451.mscorlib })
+                .WithProjectMetadataReferences(projectId, new[] { NetFramework.mscorlib })
                 .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithNullableContextOptions(NullableContextOptions.Enable));
             var src = @"
 class C

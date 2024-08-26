@@ -453,7 +453,7 @@ namespace Microsoft.CodeAnalysis.LanguageServer
                 }
             }
 
-            var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => uriAndEdit.TextEdit, (uri, edits) => new LSP.TextDocumentEdit
+            var documentEdits = uriToTextEdits.GroupBy(uriAndEdit => uriAndEdit.Uri, uriAndEdit => new LSP.SumType<LSP.TextEdit, LSP.AnnotatedTextEdit>(uriAndEdit.TextEdit), (uri, edits) => new LSP.TextDocumentEdit
             {
                 TextDocument = new LSP.OptionalVersionedTextDocumentIdentifier { Uri = uri },
                 Edits = edits.ToArray(),

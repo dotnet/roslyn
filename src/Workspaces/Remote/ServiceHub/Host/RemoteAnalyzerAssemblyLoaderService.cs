@@ -27,13 +27,13 @@ internal sealed class RemoteAnalyzerAssemblyLoaderService : IAnalyzerAssemblyLoa
         [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
     {
         var externalResolversImmutable = externalResolvers.ToImmutableArray();
-        _shadowCopyLoader = new(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"), externalResolversImmutable);
+        _shadowCopyLoader = new(AbstractAnalyzerAssemblyLoaderProvider.GetDefaultShadowCopyPath(), externalResolversImmutable);
         _directLoader = new(externalResolversImmutable);
     }
 
-    public IAnalyzerAssemblyLoader GetShadowCopyLoader()
+    public IAnalyzerAssemblyLoaderInternal GetShadowCopyLoader()
         => _shadowCopyLoader;
 
-    public IAnalyzerAssemblyLoader GetDirectLoader()
+    public IAnalyzerAssemblyLoaderInternal GetDirectLoader()
         => _directLoader;
 }
