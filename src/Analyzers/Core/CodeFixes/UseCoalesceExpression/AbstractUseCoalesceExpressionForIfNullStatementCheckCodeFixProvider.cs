@@ -57,6 +57,8 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckCode
 
         SyntaxNode TryAddExplicitCast(SyntaxNode expressionToCoalesce, SyntaxNode whenTrueStatement)
         {
+            // This can be either SimpleAssignmentStatement or ThrowStatement
+            // We only care about casting in the former case.
             if (!syntaxFacts.IsSimpleAssignmentStatement(whenTrueStatement))
                 return expressionToCoalesce;
 
