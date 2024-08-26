@@ -33,11 +33,13 @@ internal sealed class RemoteRelatedDocumentsService(
             var document = solution.GetRequiredDocument(documentId);
 
             var service = document.GetRequiredLanguageService<IRelatedDocumentsService>();
-            await foreach (var relatedDocument in service.GetRelatedDocumentIdsAsync(document, position, cancellationToken))
-            {
-                await callback.InvokeAsync((callback, cancellationToken) => callback.ReportRelatedDocumentAsync(
-                    callbackId, relatedDocument, cancellationToken), cancellationToken).ConfigureAwait(false);
-            }
+            await service.GetRelatedDocumentIdsAsync(
+                document,
+                position,
+                async (documentId, cancellationToken) => await callback.InvokeAsync(
+                    (callback, cancellationToken) => callback.ReportRelatedDocumentAsync(
+                        callbackId, documentId, cancellationToken), cancellationToken).ConfigureAwait(false),
+                cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
     }
 }
