@@ -19,6 +19,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.RoslynTools.Products;
 using Microsoft.RoslynTools.Utilities;
 using Microsoft.RoslynTools.VS;
+using Microsoft.TeamFoundation.Common;
 using Microsoft.TeamFoundation.SourceControl.WebApi;
 using static System.Net.WebRequestMethods;
 
@@ -115,7 +116,8 @@ internal static class DartTest
         var addGithubRemoteCommand = $"remote add {product.Name.ToLower()} {product.RepoHttpBaseUrl}.git";
         await RunGitCommandAsync(addGithubRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
-        var addInternalRemoteCommand = $"remote add internal {product.InternalRepoBaseUrl ?? product.RepoHttpBaseUrl}";
+        var repoBaseUrl = string.IsNullOrEmpty(product.InternalRepoBaseUrl) ? product.RepoHttpBaseUrl : product.InternalRepoBaseUrl;
+        var addInternalRemoteCommand = $"remote add internal {repoBaseUrl}";
         await RunGitCommandAsync(addInternalRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
         var fetchCommand = $"fetch {product.Name.ToLower()} pull/{prNumber}/head";
