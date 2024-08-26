@@ -114,8 +114,13 @@ internal readonly struct ISmartRenameSessionWrapper : INotifyPropertyChanged, ID
             }
         }
 
-        var toImmutableArrayMethod = typeof(ImmutableArray).GetMethod("CreateRange", new[] { typeof(IEnumerable<>).MakeGenericType(s_wrappedRenameContextType) });
-        return s_getSuggestionsAsync_WithContext(_instance, toImmutableArrayMethod.Invoke(null, new[] { renameContextList }), cancellationToken);
+        var createRangeMethod = typeof(ImmutableArray).GetMethods()
+           .Where(m => m.Name == "CreateRange" && m.GetParameters().Length == 1 && m.GetParameters().First().ParameterType.Name.Contains("IEnumerable"))
+           .First().MakeGenericMethod(s_wrappedRenameContextType);
+
+        var renameContextArray = createRangeMethod.Invoke(null, new[] { renameContextList });
+
+        return s_getSuggestionsAsync_WithContext(_instance, renameContextArray, cancellationToken);
     }
 
     public void OnCancel()
