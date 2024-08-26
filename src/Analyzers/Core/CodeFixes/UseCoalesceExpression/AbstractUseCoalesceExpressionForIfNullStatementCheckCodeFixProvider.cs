@@ -27,8 +27,8 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckCode
     }
 
     protected virtual ITypeSymbol? TryGetExplicitCast(
-        ISyntaxFactsService syntaxFacts, SemanticModel semanticModel,
-        SyntaxNode expressionToCoalesce, SyntaxNode whenTrueStatement,
+        SemanticModel semanticModel, SyntaxNode expressionToCoalesce,
+        SyntaxNode leftAssignmentPart, SyntaxNode rightAssignmentPart,
         CancellationToken cancellationToken) => null;
 
     protected override async Task FixAllAsync(
@@ -45,23 +45,31 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckCode
             var ifStatement = diagnostic.AdditionalLocations[1].FindNode(getInnermostNodeForTie: true, cancellationToken);
             var whenTrueStatement = diagnostic.AdditionalLocations[2].FindNode(getInnermostNodeForTie: true, cancellationToken);
 
-            var left = expressionToCoalesce.WithoutTrivia();
-
-            if (TryGetExplicitCast(syntaxFacts, semanticModel, expressionToCoalesce,
-                whenTrueStatement, cancellationToken) is { } castTo)
-            {
-                left = generator.CastExpression(castTo, left);
-            }
-
             editor.RemoveNode(ifStatement);
             editor.ReplaceNode(
                 expressionToCoalesce,
                 generator.CoalesceExpression(
-                    left,
+                    TryAddExplicitCast(expressionToCoalesce, whenTrueStatement).WithoutTrivia(),
                     GetWhenNullExpression(whenTrueStatement).WithoutTrailingTrivia()).WithTriviaFrom(expressionToCoalesce));
         }
 
         return;
+
+        SyntaxNode TryAddExplicitCast(SyntaxNode expressionToCoalesce, SyntaxNode whenTrueStatement)
+        {
+            if (!syntaxFacts.IsSimpleAssignmentStatement(whenTrueStatement))
+                return expressionToCoalesce;
+
+            syntaxFacts.GetPartsOfAssignmentStatement(whenTrueStatement, out var left, out var right);
+
+            var castTo = TryGetExplicitCast(semanticModel, expressionToCoalesce, left, right, cancellationToken);
+            if (castTo is null)
+            {
+                return expressionToCoalesce;
+            }
+
+            return generator.CastExpression(castTo, expressionToCoalesce);
+        }
 
         SyntaxNode GetWhenNullExpression(SyntaxNode whenTrueStatement)
         {

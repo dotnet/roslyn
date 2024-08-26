@@ -3,11 +3,8 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Composition
-Imports System.Diagnostics.CodeAnalysis
-Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.LanguageService
 Imports Microsoft.CodeAnalysis.UseCoalesceExpression
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression

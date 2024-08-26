@@ -20,18 +20,13 @@ internal sealed class CSharpUseCoalesceExpressionForIfNullStatementCheckCodeFixP
     : AbstractUseCoalesceExpressionForIfNullStatementCheckCodeFixProvider
 {
     protected override ITypeSymbol? TryGetExplicitCast(
-        ISyntaxFactsService syntaxFacts, SemanticModel semanticModel,
-        SyntaxNode expressionToCoalesce, SyntaxNode whenTrueStatement,
+        SemanticModel semanticModel, SyntaxNode expressionToCoalesce,
+        SyntaxNode leftAssignmentPart, SyntaxNode rightAssignmentPart,
         CancellationToken cancellationToken)
     {
-        if (!syntaxFacts.IsSimpleAssignmentStatement(whenTrueStatement))
-            return null;
-
-        syntaxFacts.GetPartsOfAssignmentStatement(whenTrueStatement, out var left, out var right);
-
         var leftPartTypeSymbol = semanticModel.GetTypeInfo(expressionToCoalesce, cancellationToken).Type;
-        var rightPartTypeSymbol = semanticModel.GetTypeInfo(right, cancellationToken).Type;
-        var finalDestinationTypeSymbol = semanticModel.GetTypeInfo(left, cancellationToken).Type;
+        var rightPartTypeSymbol = semanticModel.GetTypeInfo(rightAssignmentPart, cancellationToken).Type;
+        var finalDestinationTypeSymbol = semanticModel.GetTypeInfo(leftAssignmentPart, cancellationToken).Type;
 
         if (leftPartTypeSymbol == null || rightPartTypeSymbol == null || finalDestinationTypeSymbol == null)
             return null;
