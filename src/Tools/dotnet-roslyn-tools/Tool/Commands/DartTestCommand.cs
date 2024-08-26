@@ -17,7 +17,7 @@ namespace Microsoft.RoslynTools.Commands;
 
 internal static class DartTestCommand
 {
-    private static readonly string[] s_allProductNames = VSBranchInfo.AllProducts.Select(p => p.Name.ToLower()).ToArray();
+    private static readonly string[] s_allProductNames = VSBranchInfo.AllProducts.Where(p => p.DartLabPipelineName != null).Select(p => p.Name.ToLower()).ToArray();
 
     private static readonly DartTestCommandDefaultHandler s_dartTestCommandHandler = new();
     private static readonly Option<int> prNumber = new(["--prNumber", "-n"], "PR number") { IsRequired = true };
@@ -50,9 +50,9 @@ It works by cloning the PR into the internal mirror and then running the dartlab
             var logger = context.SetupLogging();
             var settings = context.ParseResult.LoadSettings(logger);
 
+            var isMissingAzDOToken = string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) || string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken);
             if (string.IsNullOrEmpty(settings.GitHubToken) ||
-                (settings.IsCI &&
-                (string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) || string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken))))
+                (settings.IsCI && isMissingAzDOToken))
             {
                 logger.LogError("Missing authentication token.");
                 return -1;

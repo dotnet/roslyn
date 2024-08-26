@@ -124,7 +124,7 @@ internal static class DartTest
             var addGithubRemoteCommand = $"remote add {product.Name.ToLower()} {product.RepoHttpBaseUrl}.git";
             await RunGitCommandAsync(addGithubRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
-            var addInternalRemoteCommand = $"remote add internal {product.InternalRepoBaseUrl}";
+            var addInternalRemoteCommand = $"remote add internal {product.InternalRepoBaseUrl ?? product.RepoHttpBaseUrl}";
             await RunGitCommandAsync(addInternalRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
             var fetchCommand = $"fetch {product.Name.ToLower()} pull/{prNumber}/head";
