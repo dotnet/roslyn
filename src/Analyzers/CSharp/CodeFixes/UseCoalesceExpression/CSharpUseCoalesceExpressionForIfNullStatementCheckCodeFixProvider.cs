@@ -4,13 +4,10 @@
 
 using System;
 using System.Composition;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.LanguageService;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.UseCoalesceExpression;
 
 namespace Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression;
@@ -22,16 +19,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UseCoalesceExpression;
 internal sealed class CSharpUseCoalesceExpressionForIfNullStatementCheckCodeFixProvider()
     : AbstractUseCoalesceExpressionForIfNullStatementCheckCodeFixProvider
 {
-    protected override bool ShouldAddExplicitCast(
+    protected override ITypeSymbol? TryGetExplicitCast(
         ISyntaxFactsService syntaxFacts, SemanticModel semanticModel,
         SyntaxNode expressionToCoalesce, SyntaxNode whenTrueStatement,
-        [NotNullWhen(true)] out ITypeSymbol? castTo,
         CancellationToken cancellationToken)
     {
-        castTo = null;
-
         if (!syntaxFacts.IsSimpleAssignmentStatement(whenTrueStatement))
-            return false;
+            return null;
 
         syntaxFacts.GetPartsOfAssignmentStatement(whenTrueStatement, out var left, out var right);
 
@@ -40,18 +34,17 @@ internal sealed class CSharpUseCoalesceExpressionForIfNullStatementCheckCodeFixP
         var finalDestinationTypeSymbol = semanticModel.GetTypeInfo(left, cancellationToken).Type;
 
         if (leftPartTypeSymbol == null || rightPartTypeSymbol == null || finalDestinationTypeSymbol == null)
-            return false;
+            return null;
 
         if (leftPartTypeSymbol.Equals(rightPartTypeSymbol))
-            return false;
+            return null;
 
         if (semanticModel.Compilation.HasImplicitConversion(leftPartTypeSymbol, rightPartTypeSymbol) ||
             semanticModel.Compilation.HasImplicitConversion(rightPartTypeSymbol, leftPartTypeSymbol))
         {
-            return false;
+            return null;
         }
 
-        castTo = finalDestinationTypeSymbol;
-        return true;
+        return finalDestinationTypeSymbol;
     }
 }

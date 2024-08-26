@@ -20,9 +20,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCoalesceExpression
         <Obsolete(MefConstruction.ImportingConstructorMessage, True)>
         Public Sub New()
         End Sub
-
-        Protected Overrides Function ShouldAddExplicitCast(syntaxFacts As ISyntaxFactsService, semanticModel As SemanticModel, expressionToCoalesce As SyntaxNode, whenTrueStatement As SyntaxNode, <NotNullWhen(True)> ByRef castTo As ITypeSymbol, cancellationToken As CancellationToken) As Boolean
-            Return False
-        End Function
     End Class
 End Namespace

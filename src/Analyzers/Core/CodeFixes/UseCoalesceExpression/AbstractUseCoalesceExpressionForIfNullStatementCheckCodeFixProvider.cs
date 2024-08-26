@@ -26,11 +26,10 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckCode
         return Task.CompletedTask;
     }
 
-    protected abstract bool ShouldAddExplicitCast(
+    protected virtual ITypeSymbol? TryGetExplicitCast(
         ISyntaxFactsService syntaxFacts, SemanticModel semanticModel,
         SyntaxNode expressionToCoalesce, SyntaxNode whenTrueStatement,
-        [NotNullWhen(true)] out ITypeSymbol? castTo,
-        CancellationToken cancellationToken);
+        CancellationToken cancellationToken) => null;
 
     protected override async Task FixAllAsync(
         Document document, ImmutableArray<Diagnostic> diagnostics,
@@ -48,8 +47,8 @@ internal abstract class AbstractUseCoalesceExpressionForIfNullStatementCheckCode
 
             var left = expressionToCoalesce.WithoutTrivia();
 
-            if (ShouldAddExplicitCast(syntaxFacts, semanticModel, expressionToCoalesce,
-                whenTrueStatement, out var castTo, cancellationToken))
+            if (TryGetExplicitCast(syntaxFacts, semanticModel, expressionToCoalesce,
+                whenTrueStatement, cancellationToken) is { } castTo)
             {
                 left = generator.CastExpression(castTo, left);
             }
