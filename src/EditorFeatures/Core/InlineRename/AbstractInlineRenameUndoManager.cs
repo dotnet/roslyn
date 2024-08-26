@@ -75,7 +75,7 @@ internal abstract class AbstractInlineRenameUndoManager<TBufferState>
 
     private void InlineRenameSession_ReplacementTextChanged(object sender, System.EventArgs e)
     {
-        if (currentState.ReplacementText != _trackedSession.ReplacementText)
+        if (currentState?.ReplacementText != _trackedSession.ReplacementText)
         {
             // No need to update anchor points here, just make sure the state in the undo stack
             // ends up with the correct replacement text. This can happen if the text buffer isn't
