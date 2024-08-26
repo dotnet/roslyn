@@ -25,11 +25,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Rename
     [Trait(Traits.Feature, Traits.Features.Rename)]
     public class CSharpInlineRenameServiceTests
     {
-        private class ContextDictionaryComparer : IEqualityComparer<ImmutableDictionary<string, ImmutableArray<string>>?>
+        private class ContextDictionaryComparer : IEqualityComparer<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>?>
         {
             public static ContextDictionaryComparer Instance = new();
 
-            public bool Equals(ImmutableDictionary<string, ImmutableArray<string>>? x, ImmutableDictionary<string, ImmutableArray<string>>? y)
+            public bool Equals(ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>? x, ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>? y)
             {
                 if (x == y)
                     return true;
@@ -52,8 +52,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Rename
                 return true;
             }
 
-            public int GetHashCode(ImmutableDictionary<string, ImmutableArray<string>>? obj)
-                => EqualityComparer<ImmutableDictionary<string, ImmutableArray<string>>?>.Default.GetHashCode(obj);
+            public int GetHashCode(ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>? obj)
+                => EqualityComparer<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>?>.Default.GetHashCode(obj);
         }
 
         private static async Task VerifyGetRenameContextAsync(
@@ -67,8 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Rename
             var inlineRenameInfo = await inlineRenameService.GetRenameInfoAsync(document, cursorPosition, cancellationToken).ConfigureAwait(false);
             var inlineRenameLocationSet = await inlineRenameInfo.FindRenameLocationsAsync(options, cancellationToken).ConfigureAwait(false);
             var context = await inlineRenameService.GetRenameContextAsync(inlineRenameInfo, inlineRenameLocationSet, cancellationToken).ConfigureAwait(false);
-            var expectedContext = JsonSerializer.Deserialize<ImmutableDictionary<string, ImmutableArray<string>>>(expectedContextJson);
-            AssertEx.AreEqual(expectedContext, context, comparer: ContextDictionaryComparer.Instance);
+            var expectedContext = JsonSerializer.Deserialize<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>>(expectedContextJson);
+            AssertEx.AreEqual<ImmutableDictionary<string, ImmutableArray<(string filePath, string content)>>?>(expectedContext, context, comparer: ContextDictionaryComparer.Instance);
         }
 
         [Fact]
