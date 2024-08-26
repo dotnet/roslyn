@@ -2,6 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System.Collections.Immutable;
 using System.Composition;
 using System.Reflection;
 using Microsoft.CodeAnalysis.Host;
@@ -11,14 +12,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.HostWorkspace;
 
-[ExportWorkspaceServiceFactory(typeof(IAnalyzerAssemblyLoaderProvider), [WorkspaceKind.Host]), Shared]
+[ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider), [WorkspaceKind.Host]), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class VSCodeAnalyzerLoaderProviderFactory(
     ExtensionAssemblyManager extensionAssemblyManager,
     ILoggerFactory loggerFactory,
     [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
-    : AbstractAnalyzerAssemblyLoaderProviderFactory(externalResolvers)
+    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers.ToImmutableArray())
 {
     protected override IAnalyzerAssemblyLoaderInternal WrapLoader(IAnalyzerAssemblyLoaderInternal baseLoader)
         => new VSCodeExtensionAssemblyAnalyzerLoader(baseLoader, extensionAssemblyManager, loggerFactory.CreateLogger<VSCodeExtensionAssemblyAnalyzerLoader>());
