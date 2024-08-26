@@ -507,6 +507,11 @@
         <target state="translated">无法使用集合表达式初始化类型“{0}”，因为该类型不可构造。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">类型参数“{1}”具有 "unmanaged" 约束，因此“{1}”不能用作“{0}”的约束</target>

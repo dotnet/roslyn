@@ -507,6 +507,11 @@
         <target state="translated">型が構築可能でないため、コレクション式で型 '{0}' を初期化できません。</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">型パラメーター '{1}' は 'unmanaged' 制約を含むので、'{0}' の制約として '{1}' を使用することはできません</target>

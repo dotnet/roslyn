@@ -507,6 +507,11 @@
         <target state="translated">Der Typ "{0}" kann nicht mit einem Sammlungsausdruck initialisiert werden, da der Typ nicht konstruiert werden kann.</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_CollectionInitializerInfiniteChainOfAddCalls">
+        <source>Collection initializer results in an infinite chain of instantiations of collection '{0}'.</source>
+        <target state="new">Collection initializer results in an infinite chain of instantiations of collection '{0}'.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_ConWithUnmanagedCon">
         <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
         <target state="translated">Der {1}-Typparameter enthält die Einschränkung "unmanaged". "{1}" kann daher nicht als Einschränkung für "{0}" verwendet werden.</target>
