@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -14,6 +15,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RelatedDocuments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RelatedDocuments;
 
@@ -37,6 +39,11 @@ internal sealed class CSharpRelatedDocumentsService() : AbstractRelatedDocuments
 
         using var _1 = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
         using var _2 = PooledHashSet<string>.GetInstance(out var seenTypeNames);
+
+        await ProducerConsumer<(ExpressionSyntax expression, SyntaxToken nameToken)>.RunParallelAsync(
+            IteratePotentialTypeNodes().OrderBy(t => t.expression.SpanStart - position),
+
+            )
 
         // Order the nodes by the distance from the requested position.
         foreach (var (expression, nameToken) in IteratePotentialTypeNodes().OrderBy(t => t.expression.SpanStart - position))

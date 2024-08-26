@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ internal interface IRemoteRelatedDocumentsService
 {
     public interface ICallback
     {
-        ValueTask ReportRelatedDocumentAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken);
+        ValueTask ReportRelatedDocumentAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
     }
 
     public ValueTask GetRelatedDocumentIdsAsync(
@@ -30,14 +31,14 @@ internal sealed class RelatedDocumentsServiceServerCallbackDispatcher() : Remote
     private new RemoteRelatedDocumentsServiceCallback GetCallback(RemoteServiceCallbackId callbackId)
         => (RemoteRelatedDocumentsServiceCallback)base.GetCallback(callbackId);
 
-    public ValueTask ReportRelatedDocumentAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken)
-        => GetCallback(callbackId).ReportRelatedDocumentAsync(documentId);
+    public ValueTask ReportRelatedDocumentAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
+        => GetCallback(callbackId).ReportRelatedDocumentAsync(documentIds);
 }
 
 internal sealed class RemoteRelatedDocumentsServiceCallback(
-    Func<DocumentId, CancellationToken, ValueTask> onRelatedDocumentFoundAsync,
+    Func<ImmutableArray<DocumentId>, CancellationToken, ValueTask> onRelatedDocumentFoundAsync,
     CancellationToken cancellationToken)
 {
-    public ValueTask ReportRelatedDocumentAsync(DocumentId documentId)
-        => onRelatedDocumentFoundAsync(documentId, cancellationToken);
+    public ValueTask ReportRelatedDocumentAsync(ImmutableArray<DocumentId> documentIds)
+        => onRelatedDocumentFoundAsync(documentIds, cancellationToken);
 }
