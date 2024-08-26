@@ -40,9 +40,6 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                 // priorities active,visible, opened files and etc
                 private Solution? _lastSolution = null;
 
-                // whether this processor is running or not
-                private Task _running;
-
                 public UnitTestingNormalPriorityProcessor(
                     IAsynchronousOperationListener listener,
                     UnitTestingIncrementalAnalyzerProcessor processor,
@@ -52,7 +49,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                     CancellationToken shutdownToken)
                     : base(listener, processor, lazyAnalyzers, globalOperationNotificationService, backOffTimeSpan, shutdownToken)
                 {
-                    _running = Task.CompletedTask;
+                    Running = Task.CompletedTask;
                     _workItemQueue = new UnitTestingAsyncDocumentWorkItemQueue(processor._registration.ProgressReporter);
                     _higherPriorityDocumentsNotProcessed = new ConcurrentDictionary<DocumentId, object?>(concurrencyLevel: 2, capacity: 20);
 
@@ -98,7 +95,8 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                 protected override Task WaitAsync(CancellationToken cancellationToken)
                     => _workItemQueue.WaitAsync(cancellationToken);
 
-                public Task Running => _running;
+                /// <summary>whether this processor is running or not</summary>
+                public Task Running { get; private set; }
                 public int WorkItemCount => _workItemQueue.WorkItemCount;
                 public bool HasAnyWork => _workItemQueue.HasAnyWork;
 
@@ -113,7 +111,7 @@ internal sealed partial class UnitTestingSolutionCrawlerRegistrationService
                     try
                     {
                         // mark it as running
-                        _running = source.Task;
+                        Running = source.Task;
 
                         await WaitForHigherPriorityOperationsAsync().ConfigureAwait(false);
 

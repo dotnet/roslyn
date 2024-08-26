@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using Basic.Reference.Assemblies;
 using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -1381,7 +1382,7 @@ class C
         this.goo(); // OK
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(
+            var comp = CreateCompilationWithMscorlib461(
                 new[] { SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script) });
             comp.VerifyDiagnostics(
                 // (4,9): error CS0027: Keyword 'this' is not available in the current context
@@ -3908,7 +3909,7 @@ class C
         const int x = x + x;
     }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyDiagnostics(
                 // (5,27): error CS0110: The evaluation of the constant value for 'x' involves a circular definition
                 //         const int x = x + x;
                 Diagnostic(ErrorCode.ERR_CircConstValue, "x").WithArguments("x").WithLocation(5, 27),
@@ -6807,7 +6808,7 @@ class Test
     }
 }
 ";
-            CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45).VerifyDiagnostics(
+            CreateCompilation(source, targetFramework: TargetFramework.Mscorlib461).VerifyDiagnostics(
                 // (9,9): error CS0176: Member 'Delegate.CreateDelegate(Type, object, string)' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         D.CreateDelegate(null, null, null); // CS0176
                 Diagnostic(ErrorCode.ERR_ObjectProhibited, "D.CreateDelegate").WithArguments("System.Delegate.CreateDelegate(System.Type, object, string)").WithLocation(9, 9)
@@ -7236,7 +7237,7 @@ public class C
     M(__arglist);
   }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib45);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.Mscorlib461);
             comp.VerifyDiagnostics(
                 // (11,7): error CS0190: The __arglist construct is valid only within a variable argument method
                 //     M(__arglist);
@@ -7303,7 +7304,7 @@ public class C
   {
   }
 }";
-            CreateCompilationWithMscorlib45(source).VerifyEmitDiagnostics(
+            CreateCompilationWithMscorlib461(source).VerifyEmitDiagnostics(
                 // (10,34): error CS4013: Instance of type 'RuntimeArgumentHandle' cannot be used inside a nested function, query expression, iterator block or async method
                 //       RuntimeArgumentHandle h2 = h; // Bad use of h
                 Diagnostic(ErrorCode.ERR_SpecialByRefInLambda, "h").WithArguments("System.RuntimeArgumentHandle").WithLocation(10, 34),
@@ -9936,7 +9937,7 @@ struct S
             // Note that none of these errors except the first one are reported by the native compiler, because
             // it does not report additional errors after an error is found in a parameter of a method.
 
-            CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics(
                 // (9,36): error CS0310: 'U' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'D<T>'
                 //     internal static void E<U>(D<U> d) { } // Error: missing constraint on E<U> to satisfy constraint on D<U>
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "d").WithArguments("D<T>", "T", "U").WithLocation(9, 36),
@@ -10046,7 +10047,7 @@ static class S
 {
     internal static void E<T>(this T t) where T : new() { }
 }";
-            CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(text, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics(
                 // (15,9): error CS0310: 'B' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'V' in the generic type or method 'C<T, U>.M<V>(V)'
                 //         M(b);
                 Diagnostic(ErrorCode.ERR_NewConstraintNotSatisfied, "M").WithArguments("C<T, U>.M<V>(V)", "V", "B").WithLocation(15, 9),
@@ -11525,7 +11526,7 @@ public class Test
     public System.RuntimeArgumentHandle[][] y;
 }
 ";
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib45);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib461);
             comp.VerifyDiagnostics(
                 // (4,12): error CS0611: Array elements cannot be of type 'System.TypedReference'
                 //     public System.TypedReference[] x;
@@ -11550,7 +11551,7 @@ class C
         var z = new[] { new RuntimeArgumentHandle() };
     }
 }";
-            var comp = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib45);
+            var comp = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib461);
             comp.VerifyDiagnostics(
                 // (6,17): error CS0611: Array elements cannot be of type 'System.ArgIterator'
                 //         var x = new[] { new ArgIterator() };
@@ -11697,7 +11698,7 @@ class C
         [Fact]
         public void CS0670ERR_FieldCantHaveVoidType_Var()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 var x = default(void); 
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (2,17): error CS1547: Keyword 'void' cannot be used in this context
@@ -11873,7 +11874,7 @@ class Code
         [Fact]
         public void CS0723ERR_VarDeclIsStaticClass_Fields()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 static class SC {} 
 
 var sc2 = new SC();
@@ -12137,7 +12138,7 @@ class Test
         [Fact]
         public void CS0815ERR_ImplicitlyTypedVariableAssignedBadValue_Field()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 static void M() {}
 
 var m = M;       
@@ -12184,7 +12185,7 @@ class A
         [Fact]
         public void CS0818ERR_ImplicitlyTypedVariableWithNoInitializer_Fields()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 var a; // CS0818
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (1,5): error CS0818: Implicitly-typed variables must be initialized
@@ -12219,7 +12220,7 @@ class A
         [Fact]
         public void CS0819ERR_ImplicitlyTypedVariableMultipleDeclarator_Fields()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 var goo = 4, bar = 4.5;
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (2,1): error CS0819: Implicitly-typed fields cannot have multiple declarators
@@ -12251,7 +12252,7 @@ class G
         [Fact]
         public void CS0820ERR_ImplicitlyTypedVariableAssignedArrayInitializer_Fields()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 var y = { 1, 2, 3 };
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
             // (1,5): error CS0820: Cannot initialize an implicitly-typed variable with an array initializer
@@ -12316,7 +12317,7 @@ class A
         [Fact]
         public void CS0822ERR_ImplicitlyTypedVariableCannotBeConst_Fields()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 const var x = 0; // CS0822.cs
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (2,7): error CS0822: Implicitly-typed variables cannot be constant
@@ -12326,7 +12327,7 @@ const var x = 0; // CS0822.cs
         [Fact]
         public void CS0825ERR_ImplicitlyTypedVariableCannotBeUsedAsTheTypeOfAParameter_Fields()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 void goo(var arg) { }
 var goo(int arg) { return 2; }
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
@@ -12339,7 +12340,7 @@ var goo(int arg) { return 2; }
         [Fact]
         public void CS0825ERR_ImplicitlyTypedVariableCannotBeUsedAsTheTypeOfAParameter_Fields2()
         {
-            CreateCompilationWithMscorlib45(@"
+            CreateCompilationWithMscorlib461(@"
 T goo<T>() { return default(T); }
 goo<var>();
 ", parseOptions: TestOptions.Script).VerifyDiagnostics(
@@ -12899,7 +12900,7 @@ namespace TestNamespace
         [Fact]
         public void CS0841ERR_VariableUsedBeforeDeclaration04()
         {
-            var systemRef = Net451.System;
+            var systemRef = NetFramework.System;
             CreateCompilationWithMscorlib40AndSystemCore(
 @"using System.Collections.Generic;
 class Base
@@ -13740,7 +13741,7 @@ static class SC
     static void M4(this S s) { }
     static void M5(this double d) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics(
                 // (24,29): error CS1113: Extension methods 'SC.M3(E)' defined on value type 'E' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "e.M3").WithArguments("SC.M3(E)", "E").WithLocation(24, 29),
                 // (26,29): error CS1113: Extension methods 'SC.M4(S)' defined on value type 'S' cannot be used to create delegates
@@ -13786,7 +13787,7 @@ static class E
     internal static void M1<T>(this T t) { }
     internal static void M2<T, U>(this T t) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics(
                 // (13,13): error CS1113: Extension methods 'E.M1<int>(int)' defined on value type 'int' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "i.M1").WithArguments("E.M1<int>(int)", "int").WithLocation(13, 13),
                 // (14,13): error CS1113: Extension methods 'E.M2<int, object>(int)' defined on value type 'int' cannot be used to create delegates
@@ -13847,7 +13848,7 @@ static class E
     internal static void M1<T>(this T t) { }
     internal static void M2<T, U>(this T t) { }
 }";
-            CreateCompilation(source, references: new[] { Net40.SystemCore }).VerifyDiagnostics(
+            CreateCompilation(source, references: new[] { Net40.References.SystemCore }).VerifyDiagnostics(
                 // (12,11): error CS1113: Extension methods 'E.M1<int>(int)' defined on value type 'int' cannot be used to create delegates
                 Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "i.M1").WithArguments("E.M1<int>(int)", "int").WithLocation(12, 11),
                 // (13,11): error CS1113: Extension methods 'E.M2<int, object>(int)' defined on value type 'int' cannot be used to create delegates
@@ -16974,7 +16975,7 @@ static class S
 {
     internal static void F(this double d) { }
 }";
-            var compilation = CreateCompilationWithMscorlib40(text, references: new[] { Net40.SystemCore });
+            var compilation = CreateCompilationWithMscorlib40(text, references: new[] { Net40.References.SystemCore });
             // Previously ERR_BadExtensionArgTypes.
             compilation.VerifyDiagnostics(
                 // (5,9): error CS1929: 'float' does not contain a definition for 'F' and the best extension method overload 'S.F(double)' requires a receiver of type 'double'
@@ -16997,7 +16998,7 @@ static class S
 {
     internal static void E(this B b) { }
 }";
-            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore });
+            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore });
             compilation.VerifyDiagnostics(
                 // (6,9): error CS1929: 'A' does not contain a definition for 'E' and the best extension method overload 'S.E(B)' requires a receiver of type 'B'
                 //         a.E();
@@ -21579,7 +21580,7 @@ namespace TestNamespace
 }
 ";
 
-            var compilation = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib45, options: TestOptions.DebugExe);
+            var compilation = CreateCompilation(text, targetFramework: TargetFramework.Mscorlib461, options: TestOptions.DebugExe);
 
             var exebits = new System.IO.MemoryStream();
             var pdbbits = new System.IO.MemoryStream();
@@ -22579,7 +22580,7 @@ static class C
     }
     static void E(this object o) { }
 }";
-            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // (20,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'object' is null
                 //         default(object).GetHashCode();
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(object).GetHashCode").WithArguments("object").WithLocation(20, 9),
@@ -22592,7 +22593,7 @@ static class C
                 // (28,9): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'T6' is null
                 //         default(T6).P = null;
                 Diagnostic(ErrorCode.WRN_DotOnDefault, "default(T6).P").WithArguments("T6").WithLocation(28, 9));
-            CreateCompilationWithMscorlib40(source, references: new[] { Net40.SystemCore }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Disable)).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40(source, references: new[] { Net40.References.SystemCore }, options: TestOptions.ReleaseDll.WithNullableContextOptions(NullableContextOptions.Disable)).VerifyDiagnostics(
                 );
         }
 
@@ -22686,13 +22687,13 @@ class C
     }
 }
 ";
-            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { Net40.SystemCore }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { Net40.References.SystemCore }, parseOptions: TestOptions.Regular7_3).VerifyDiagnostics(
                 // Do not report the following warning:
                 // (5,34): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'string' is null
                 //         System.Console.WriteLine(default(string).IsNull());
                 // Diagnostic(ErrorCode.WRN_DotOnDefault, "default(string).IsNull").WithArguments("string").WithLocation(5, 34)
                 );
-            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { Net40.SystemCore }).VerifyDiagnostics();
+            CompileAndVerifyWithMscorlib40(source, expectedOutput: "True", references: new[] { Net40.References.SystemCore }).VerifyDiagnostics();
         }
 
         [Fact]
@@ -24093,7 +24094,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
     // (13,21): error CS0023: Operator '?' cannot be applied to operand of type 'int'
     //         var x = 123 ?.ToString();
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "int").WithLocation(13, 21),
@@ -24161,7 +24162,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
                 // (14,24): error CS8977: 'method group' cannot be made nullable.
                 //         var x1 = p.P1 ?.ToString;
                 Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToString").WithArguments("method group").WithLocation(14, 24)
@@ -24200,7 +24201,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            var compilation = CreateCompilationWithMscorlib461(text).VerifyDiagnostics(
     // (11,18): error CS0175: Use of keyword 'base' is not valid in this context
     //         var x6 = base?.ToString();
     Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(11, 18),
@@ -24258,7 +24259,7 @@ class Program
 }
 
 ";
-            CreateCompilationWithMscorlib45(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,24): error CS8977: 'void*' cannot be made nullable.
                 //         var p = intPtr?.ToPointer();
                 Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".ToPointer()").WithArguments("void*").WithLocation(9, 24)
@@ -24290,7 +24291,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp }, options: TestOptions.ReleaseDll).VerifyDiagnostics(
     // (9,44): error CS8072: An expression tree lambda may not contain a null propagating operator.
     //         Expression<Func<string>> s = () => x?.ToString();
     Diagnostic(ErrorCode.ERR_NullPropagatingOpInExpressionTree, "x?.ToString()").WithLocation(9, 44),
@@ -24331,7 +24332,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp }).VerifyDiagnostics(
     // (10,87): error CS8073: An expression tree lambda may not contain a dictionary initializer.
     //         Expression<Func<Dictionary<int, int>>> s = () => new Dictionary<int, int> () {[1] = 2};
     Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, "[1]").WithLocation(10, 87)
@@ -24371,7 +24372,7 @@ namespace ConsoleApplication31
 }
 
 ";
-            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp }).VerifyDiagnostics(
     // (25,72): error CS8075: An expression tree lambda may not contain an extension collection element initializer.
     //         public Expression<Func<Stack<int>>> E = () => new Stack<int> { 42 };
     Diagnostic(ErrorCode.ERR_ExtensionCollectionElementInitializerInExpressionTree, "42").WithLocation(25, 72)
@@ -24399,7 +24400,7 @@ class C
 }
 
 ";
-            CreateCompilationWithMscorlib45(text, new[] { Net451.System, Net451.SystemCore, Net451.MicrosoftCSharp }).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, new[] { NetFramework.System, NetFramework.SystemCore, NetFramework.MicrosoftCSharp }).VerifyDiagnostics(
     // (9,53): error CS8073: An expression tree lambda may not contain a dictionary initializer.
     //         Expression<Func<C>> e = () => new C { H = { ["Key"] = "Value" } };
     Diagnostic(ErrorCode.ERR_DictionaryInitializerInExpressionTree, @"[""Key""]").WithLocation(9, 53)
@@ -24553,7 +24554,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text,
+            CreateCompilationWithMscorlib461(text,
                 new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef },
                 parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5)).VerifyDiagnostics(
                     // (8,46): error CS8026: Feature 'dictionary initializer' is not available in C# 5. Please use language version 6 or greater.
@@ -24587,7 +24588,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text,
+            CreateCompilationWithMscorlib461(text,
                 new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929, CSharpRef },
                 parseOptions: TestOptions.Regular).VerifyDiagnostics(
     // (9,47): error CS0165: Use of unassigned local variable 'i'
@@ -24612,7 +24613,7 @@ class Program
     }
 }
 ";
-            CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
     // (8,9): error CS0201: Only assignment, call, increment, decrement, await, and new object expressions can be used as a statement
     //         x?.Length;
     Diagnostic(ErrorCode.ERR_IllegalStatement, "x?.Length").WithLocation(8, 9),
@@ -24658,7 +24659,7 @@ public ref struct S2
     public S1 field;
 }
 ";
-            CreateCompilationWithMscorlib45(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib461(text, options: TestOptions.ReleaseDll).VerifyDiagnostics(
                 // (10,19): error CS8977: 'S2' cannot be made nullable.
                 //         var x = o?.F();
                 Diagnostic(ErrorCode.ERR_CannotBeMadeNullable, ".F()").WithArguments("S2").WithLocation(10, 19),

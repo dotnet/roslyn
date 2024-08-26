@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Formatting;
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     {
 #nullable enable
         private static readonly string s_projectDir = Path.GetDirectoryName(typeof(SolutionTests).Assembly.Location)!;
-        private static readonly MetadataReference s_mscorlib = TestMetadata.Net451.mscorlib;
+        private static readonly MetadataReference s_mscorlib = NetFramework.mscorlib;
         private static readonly DocumentId s_unrelatedDocumentId = DocumentId.CreateNewId(ProjectId.CreateNewId());
 
         private static Workspace CreateWorkspaceWithProjectAndDocuments(string? editorConfig = null)
@@ -981,6 +982,362 @@ namespace Microsoft.CodeAnalysis.UnitTests
         }
 
         [Fact]
+        public void WithProjectInfo()
+        {
+            var projectId = ProjectId.CreateNewId();
+            var projectId2 = ProjectId.CreateNewId();
+
+            using var workspace = CreateWorkspace();
+
+            var d1 = DocumentId.CreateNewId(projectId);
+            var d2 = DocumentId.CreateNewId(projectId);
+            var d3 = DocumentId.CreateNewId(projectId);
+            var a1 = DocumentId.CreateNewId(projectId);
+            var a2 = DocumentId.CreateNewId(projectId);
+            var a3 = DocumentId.CreateNewId(projectId);
+            var c1 = DocumentId.CreateNewId(projectId);
+            var c2 = DocumentId.CreateNewId(projectId);
+            var c3 = DocumentId.CreateNewId(projectId);
+
+            var solution = workspace.CurrentSolution
+                .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, "proj1", "proj1", LanguageNames.CSharp, Path.Combine(s_projectDir, "proj1.dll")))
+                .AddProject(ProjectInfo.Create(projectId2, VersionStamp.Default, "proj2", "proj2", LanguageNames.CSharp, Path.Combine(s_projectDir, "proj2.dll")))
+                .AddDocument(d1, "d1.cs", SourceText.From("class D1;", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: Path.Combine(s_projectDir, "d1.cs"))
+                .AddDocument(d2, "d2.cs", SourceText.From("class D2;", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: Path.Combine(s_projectDir, "d2.cs"))
+                .AddAdditionalDocument(a1, "a1.txt", SourceText.From("text1", Encoding.UTF8, SourceHashAlgorithms.Default))
+                .AddAdditionalDocument(a2, "a2.txt", SourceText.From("text2", Encoding.UTF8, SourceHashAlgorithms.Default))
+                .AddAnalyzerConfigDocument(c1, "c1", SourceText.From("#empty1", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: Path.Combine(s_projectDir, "editorcfg"))
+                .AddAnalyzerConfigDocument(c2, "c2", SourceText.From("#empty2", Encoding.UTF8, SourceHashAlgorithms.Default), filePath: Path.Combine(s_projectDir, "editorcfg"));
+
+            var oldProject = solution.GetRequiredProject(projectId);
+            var documentIds = oldProject.DocumentIds;
+
+            var newDocumentInfo1 = DocumentInfo.Create(
+                d1,
+                name: "newD1",
+                folders: ["f", "g"],
+                sourceCodeKind: SourceCodeKind.Script,
+                loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class NewD1;", Encoding.UTF32, SourceHashAlgorithm.Sha256), VersionStamp.Create(), filePath: Path.Combine(s_projectDir, "newD1.cs"))),
+                filePath: Path.Combine(s_projectDir, "newD1.cs"),
+                isGenerated: true);
+
+            var newDocumentInfo3 = DocumentInfo.Create(
+                d3,
+                name: "newD3",
+                folders: null,
+                sourceCodeKind: SourceCodeKind.Regular,
+                loader: TextLoader.From(TextAndVersion.Create(SourceText.From("class NewD3;", Encoding.UTF8, SourceHashAlgorithms.Default), VersionStamp.Create(), filePath: Path.Combine(s_projectDir, "newD3.cs"))),
+                filePath: Path.Combine(s_projectDir, "newD3.cs"),
+                isGenerated: false)
+                .WithDocumentServiceProvider(new TestDocumentServiceProvider());
+
+            var newAddDocumentInfo1 = DocumentInfo.Create(
+                a1,
+                name: "newA1",
+                folders: ["af", "ag"],
+                sourceCodeKind: SourceCodeKind.Script,
+                loader: TextLoader.From(TextAndVersion.Create(SourceText.From("new text1", Encoding.UTF32, SourceHashAlgorithm.Sha256), VersionStamp.Create(), filePath: Path.Combine(s_projectDir, "newD1.cs"))),
+                filePath: Path.Combine(s_projectDir, "newA1.txt"),
+                isGenerated: true);
+
+            var newAddDocumentInfo3 = DocumentInfo.Create(
+                a3,
+                name: "newA3",
+                folders: null,
+                sourceCodeKind: SourceCodeKind.Regular,
+                loader: TextLoader.From(TextAndVersion.Create(SourceText.From("new text3", Encoding.UTF8, SourceHashAlgorithms.Default), VersionStamp.Create(), filePath: Path.Combine(s_projectDir, "newD3.cs"))),
+                filePath: Path.Combine(s_projectDir, "newA3.txt"),
+                isGenerated: false)
+                .WithDocumentServiceProvider(new TestDocumentServiceProvider());
+
+            var newConfigDocumentInfo1 = DocumentInfo.Create(
+                c1,
+                name: "newC1",
+                folders: ["cf", "cg"],
+                sourceCodeKind: SourceCodeKind.Script,
+                loader: TextLoader.From(TextAndVersion.Create(SourceText.From("#new empty1", Encoding.UTF32, SourceHashAlgorithm.Sha256), VersionStamp.Create(), filePath: Path.Combine(s_projectDir, "newD1.cs"))),
+                filePath: Path.Combine(s_projectDir, "newC1"),
+                isGenerated: true);
+
+            var newConfigDocumentInfo3 = DocumentInfo.Create(
+                c3,
+                name: "newC3",
+                folders: null,
+                sourceCodeKind: SourceCodeKind.Regular,
+                loader: TextLoader.From(TextAndVersion.Create(SourceText.From("#new empty3", Encoding.UTF8, SourceHashAlgorithms.Default), VersionStamp.Create(), filePath: Path.Combine(s_projectDir, "newD3.cs"))),
+                filePath: Path.Combine(s_projectDir, "newC3"),
+                isGenerated: false)
+                .WithDocumentServiceProvider(new TestDocumentServiceProvider());
+
+            var metadataReference = MetadataReference.CreateFromImage([], filePath: "meta");
+            var projectReference = new ProjectReference(projectId2);
+            var analyzerReference = new TestAnalyzerReference();
+
+            var newInfo = ProjectInfo.Create(
+                projectId,
+                VersionStamp.Create(),
+                name: "newProjectName",
+                assemblyName: "newAssemblyName",
+                language: LanguageNames.CSharp,
+                filePath: "newFilePath.cs",
+                outputFilePath: "newOutputFilePath",
+                outputRefFilePath: "newOutputRef",
+                compilationOptions: new CSharpCompilationOptions(OutputKind.WindowsApplication, moduleName: "newModuleName"),
+                parseOptions: new CSharpParseOptions(CS.LanguageVersion.CSharp5),
+                documents:
+                [
+                    // update existing document:
+                    newDocumentInfo1,
+                    // add new document:
+                    newDocumentInfo3,
+                    // remove existing document (d2)
+                ],
+                additionalDocuments:
+                [
+                    // update existing document:
+                    newAddDocumentInfo1,
+                    // add new document:
+                    newAddDocumentInfo3,
+                    // remove existing document (a2)
+                ],
+                projectReferences: [projectReference],
+                metadataReferences: [metadataReference],
+                analyzerReferences: [analyzerReference],
+                isSubmission: false,
+                hostObjectType: null)
+                .WithAnalyzerConfigDocuments(
+                [
+                    // update existing document:
+                    newConfigDocumentInfo1,
+                    // add new document:
+                    newConfigDocumentInfo3,
+                    // remove existing document (c2)
+                ]);
+
+            var newSolution = solution.WithProjectInfo(newInfo);
+            var newProject = newSolution.GetRequiredProject(projectId);
+
+            // attributes:
+            Assert.True(newProject.Version.GetTestAccessor().IsNewerThan(oldProject.Version));
+            Assert.Equal(newInfo.Name, newProject.Name);
+            Assert.Equal(newInfo.AssemblyName, newProject.AssemblyName);
+            Assert.Equal(newInfo.Language, newProject.Language);
+            Assert.Equal(newInfo.FilePath, newProject.FilePath);
+            Assert.Equal(newInfo.OutputFilePath, newProject.OutputFilePath);
+            Assert.Equal(newInfo.CompilationOptions!.OutputKind, newProject.CompilationOptions!.OutputKind);
+            Assert.Equal(newInfo.CompilationOptions!.ModuleName, newProject.CompilationOptions!.ModuleName);
+            Assert.Equal(newInfo.ParseOptions!.LanguageVersion, newProject.ParseOptions!.LanguageVersion);
+            Assert.Equal(newInfo.OutputRefFilePath, newProject.OutputRefFilePath);
+
+            AssertEx.AreEqual([projectReference], newProject.ProjectReferences);
+            AssertEx.AreEqual([metadataReference], newProject.MetadataReferences);
+            AssertEx.AreEqual([analyzerReference], newProject.AnalyzerReferences);
+
+            // documents:
+            AssertEx.SetEqual([d1, d3], newProject.DocumentIds);
+
+            var newDocument1 = newProject.GetRequiredDocument(d1);
+            var newText1 = newDocument1.GetTextSynchronously(CancellationToken.None);
+            Assert.Equal(newDocumentInfo1.Name, newDocument1.Name);
+            Assert.Equal(newDocumentInfo1.FilePath, newDocument1.FilePath);
+            Assert.Same(DefaultTextDocumentServiceProvider.Instance, newDocument1.DocumentServiceProvider);
+            Assert.Equal("class NewD1;", newText1.ToString());
+            Assert.Same(Encoding.UTF32, newText1.Encoding);
+            Assert.Equal(SourceHashAlgorithm.Sha256, newText1.ChecksumAlgorithm);
+
+            var newDocument3 = newProject.GetRequiredDocument(d3);
+            var newText3 = newDocument3.GetTextSynchronously(CancellationToken.None);
+            Assert.Equal(newDocumentInfo3.Name, newDocument3.Name);
+            Assert.Equal(newDocumentInfo3.FilePath, newDocument3.FilePath);
+            Assert.Same(newDocumentInfo3.DocumentServiceProvider, newDocument3.DocumentServiceProvider);
+            Assert.Equal("class NewD3;", newDocument3.GetTextSynchronously(CancellationToken.None).ToString());
+            Assert.Same(Encoding.UTF8, newText3.Encoding);
+            Assert.Equal(SourceHashAlgorithms.Default, newText3.ChecksumAlgorithm);
+
+            // additional documents:
+            AssertEx.SetEqual([a1, a3], newProject.AdditionalDocumentIds);
+
+            var newAddDocument1 = newProject.GetRequiredAdditionalDocument(a1);
+            var newAddText1 = newAddDocument1.GetTextSynchronously(CancellationToken.None);
+            Assert.Equal(newAddDocumentInfo1.Name, newAddDocument1.Name);
+            Assert.Equal(newAddDocumentInfo1.FilePath, newAddDocument1.FilePath);
+            Assert.Same(DefaultTextDocumentServiceProvider.Instance, newAddDocument1.DocumentServiceProvider);
+            Assert.Equal("new text1", newAddText1.ToString());
+            Assert.Same(Encoding.UTF32, newAddText1.Encoding);
+            Assert.Equal(SourceHashAlgorithm.Sha256, newAddText1.ChecksumAlgorithm);
+
+            var newAddDocument3 = newProject.GetRequiredAdditionalDocument(a3);
+            var newAddText3 = newAddDocument3.GetTextSynchronously(CancellationToken.None);
+            Assert.Equal(newAddDocumentInfo3.Name, newAddDocument3.Name);
+            Assert.Equal(newAddDocumentInfo3.FilePath, newAddDocument3.FilePath);
+            Assert.Same(newAddDocumentInfo3.DocumentServiceProvider, newAddDocument3.DocumentServiceProvider);
+            Assert.Equal("new text3", newAddDocument3.GetTextSynchronously(CancellationToken.None).ToString());
+            Assert.Same(Encoding.UTF8, newAddText3.Encoding);
+            Assert.Equal(SourceHashAlgorithms.Default, newAddText3.ChecksumAlgorithm);
+
+            // analyzer config documents:
+            AssertEx.SetEqual([c1, c3], newProject.AnalyzerConfigDocumentIds);
+
+            var newConfigDocument1 = newProject.GetRequiredAnalyzerConfigDocument(c1);
+            var newConfigText1 = newConfigDocument1.GetTextSynchronously(CancellationToken.None);
+            Assert.Equal(newConfigDocumentInfo1.Name, newConfigDocument1.Name);
+            Assert.Equal(newConfigDocumentInfo1.FilePath, newConfigDocument1.FilePath);
+            Assert.Same(DefaultTextDocumentServiceProvider.Instance, newConfigDocument1.DocumentServiceProvider);
+            Assert.Equal("#new empty1", newConfigText1.ToString());
+            Assert.Same(Encoding.UTF32, newConfigText1.Encoding);
+            Assert.Equal(SourceHashAlgorithm.Sha256, newConfigText1.ChecksumAlgorithm);
+
+            var newConfigDocument3 = newProject.GetRequiredAnalyzerConfigDocument(c3);
+            var newConfigText3 = newConfigDocument3.GetTextSynchronously(CancellationToken.None);
+            Assert.Equal(newConfigDocumentInfo3.Name, newConfigDocument3.Name);
+            Assert.Equal(newConfigDocumentInfo3.FilePath, newConfigDocument3.FilePath);
+            Assert.Same(newConfigDocumentInfo3.DocumentServiceProvider, newConfigDocument3.DocumentServiceProvider);
+            Assert.Equal("#new empty3", newConfigDocument3.GetTextSynchronously(CancellationToken.None).ToString());
+            Assert.Same(Encoding.UTF8, newConfigText3.Encoding);
+            Assert.Equal(SourceHashAlgorithms.Default, newConfigText3.ChecksumAlgorithm);
+        }
+
+        [Fact]
+        public void WithProjectInfo_Unsupported_RemovingCompilationOptions()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            using var workspace = CreateWorkspace();
+
+            var solution = workspace.CurrentSolution
+                .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, "proj1", "proj1", LanguageNames.CSharp, Path.Combine(s_projectDir, "proj1.dll")));
+
+            var oldProject = solution.GetRequiredProject(projectId);
+            var documentIds = oldProject.DocumentIds;
+
+            var newInfo = ProjectInfo.Create(
+                projectId,
+                VersionStamp.Create(),
+                name: "newProjectName",
+                assemblyName: "newAssemblyName",
+                language: LanguageNames.CSharp,
+                filePath: "newFilePath.cs",
+                outputFilePath: "newOutputFilePath",
+                outputRefFilePath: "newOutputRef",
+                compilationOptions: new CSharpCompilationOptions(OutputKind.WindowsApplication, moduleName: "newModuleName"),
+                parseOptions: null,
+                documents: [],
+                additionalDocuments: [],
+                projectReferences: [],
+                metadataReferences: [],
+                analyzerReferences: [],
+                isSubmission: false,
+                hostObjectType: null);
+
+            Assert.Throws<NotSupportedException>(() => solution.WithProjectInfo(newInfo));
+        }
+
+        [Fact]
+        public void WithProjectInfo_Unsupported_RemovingParseOptions()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            using var workspace = CreateWorkspace();
+
+            var solution = workspace.CurrentSolution
+                .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, "proj1", "proj1", LanguageNames.CSharp, Path.Combine(s_projectDir, "proj1.dll")));
+
+            var oldProject = solution.GetRequiredProject(projectId);
+            var documentIds = oldProject.DocumentIds;
+
+            var newInfo = ProjectInfo.Create(
+                projectId,
+                VersionStamp.Create(),
+                name: "newProjectName",
+                assemblyName: "newAssemblyName",
+                language: LanguageNames.CSharp,
+                filePath: "newFilePath.cs",
+                outputFilePath: "newOutputFilePath",
+                outputRefFilePath: "newOutputRef",
+                compilationOptions: null,
+                parseOptions: new CSharpParseOptions(CS.LanguageVersion.CSharp5),
+                documents: [],
+                additionalDocuments: [],
+                projectReferences: [],
+                metadataReferences: [],
+                analyzerReferences: [],
+                isSubmission: false,
+                hostObjectType: null);
+
+            Assert.Throws<NotSupportedException>(() => solution.WithProjectInfo(newInfo));
+        }
+
+        [Fact]
+        public void WithProjectInfo_Unsupported_ChangingLanguage()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            using var workspace = CreateWorkspace();
+
+            var solution = workspace.CurrentSolution
+                .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, "proj1", "proj1", LanguageNames.CSharp, Path.Combine(s_projectDir, "proj1.dll")));
+
+            var oldProject = solution.GetRequiredProject(projectId);
+            var documentIds = oldProject.DocumentIds;
+
+            var newInfo = ProjectInfo.Create(
+                projectId,
+                VersionStamp.Create(),
+                name: "newProjectName",
+                assemblyName: "newAssemblyName",
+                language: LanguageNames.VisualBasic,
+                filePath: "newFilePath.cs",
+                outputFilePath: "newOutputFilePath",
+                outputRefFilePath: "newOutputRef",
+                compilationOptions: null,
+                parseOptions: null,
+                documents: [],
+                additionalDocuments: [],
+                projectReferences: [],
+                metadataReferences: [],
+                analyzerReferences: [],
+                isSubmission: false,
+                hostObjectType: null);
+
+            Assert.Throws<NotSupportedException>(() => solution.WithProjectInfo(newInfo));
+        }
+
+        [Fact]
+        public void WithProjectInfo_Unsupported_ChangingIsSubmission()
+        {
+            var projectId = ProjectId.CreateNewId();
+
+            using var workspace = CreateWorkspace();
+
+            var solution = workspace.CurrentSolution
+                .AddProject(ProjectInfo.Create(projectId, VersionStamp.Default, "proj1", "proj1", LanguageNames.CSharp, Path.Combine(s_projectDir, "proj1.dll")));
+
+            var oldProject = solution.GetRequiredProject(projectId);
+            var documentIds = oldProject.DocumentIds;
+
+            var newInfo = ProjectInfo.Create(
+                projectId,
+                VersionStamp.Create(),
+                name: "newProjectName",
+                assemblyName: "newAssemblyName",
+                language: LanguageNames.CSharp,
+                filePath: "newFilePath.cs",
+                outputFilePath: "newOutputFilePath",
+                outputRefFilePath: "newOutputRef",
+                compilationOptions: new CSharpCompilationOptions(OutputKind.WindowsApplication, moduleName: "newModuleName"),
+                parseOptions: CS.CSharpParseOptions.Default,
+                documents: [],
+                additionalDocuments: [],
+                projectReferences: [],
+                metadataReferences: [],
+                analyzerReferences: [],
+                isSubmission: true,
+                hostObjectType: null);
+
+            Assert.Throws<NotSupportedException>(() => solution.WithProjectInfo(newInfo));
+        }
+
+        [Fact]
         public void WithProjectAssemblyName()
         {
             var projectId = ProjectId.CreateNewId();
@@ -1242,6 +1599,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var options = new CSharpCompilationOptions(OutputKind.NetModule);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectCompilationOptions(null!, options));
+            Assert.Throws<ArgumentNullException>("options", () => solution.WithProjectCompilationOptions(projectId, options: null!));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectCompilationOptions(ProjectId.CreateNewId(), options));
         }
 
@@ -1290,6 +1648,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 defaultThrows: true);
 
             Assert.Throws<ArgumentNullException>("projectId", () => solution.WithProjectParseOptions(null!, options));
+            Assert.Throws<ArgumentNullException>("options", () => solution.WithProjectParseOptions(projectId, options: null!));
             Assert.Throws<InvalidOperationException>(() => solution.WithProjectParseOptions(ProjectId.CreateNewId(), options));
         }
 
@@ -2435,7 +2794,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public async Task TestAddMetadataReferencesAsync()
         {
-            var mefReference = TestMetadata.Net451.SystemCore;
+            var mefReference = NetFramework.SystemCore;
             using var workspace = CreateWorkspace();
             var solution = workspace.CurrentSolution;
             var project1 = ProjectId.CreateNewId();
@@ -4324,7 +4683,7 @@ public class C : A {
             var sourceDocumentId = DocumentId.CreateNewId(projectId);
 
             solution = solution.AddProject(projectId, "Test", "Test.dll", LanguageNames.CSharp)
-                .WithProjectMetadataReferences(projectId, new[] { TestMetadata.Net451.mscorlib })
+                .WithProjectMetadataReferences(projectId, new[] { NetFramework.mscorlib })
                 .WithProjectCompilationOptions(projectId, new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithNullableContextOptions(NullableContextOptions.Enable));
             var src = @"
 class C

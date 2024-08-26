@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
     using static TemporaryStorageService;
 
     [UseExportProvider]
-#if NETCOREAPP
+#if NET
     [SupportedOSPlatform("windows")]
 #endif
     [Trait(Traits.Feature, Traits.Features.Workspace)]
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 data.WriteByte((byte)(i % 2));
             }
 
-            var handle = service.WriteToTemporaryStorage(data, CancellationToken.None);
+            var handle = service.WriteToTemporaryStorage(data);
 
-            using var result = handle.ReadFromTemporaryStorage(CancellationToken.None);
+            using var result = handle.ReadFromTemporaryStorage();
             Assert.Equal(data.Length, result.Length);
 
             for (var i = 0; i < SharedPools.ByteBufferSize; i++)
@@ -95,10 +95,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
             TemporaryStorageStreamHandle handle;
             using (var stream1 = new MemoryStream())
             {
-                handle = service.WriteToTemporaryStorage(stream1, CancellationToken.None);
+                handle = service.WriteToTemporaryStorage(stream1);
             }
 
-            using var stream2 = handle.ReadFromTemporaryStorage(CancellationToken.None);
+            using var stream2 = handle.ReadFromTemporaryStorage();
             Assert.Equal(0, stream2.Length);
         }
 
@@ -119,15 +119,15 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 for (var j = 1; j < 5; j++)
                 {
-                    var handle1 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i - 1), CancellationToken.None);
-                    var handle2 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i), CancellationToken.None);
-                    var handle3 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i + 1), CancellationToken.None);
+                    var handle1 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i - 1));
+                    var handle2 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i));
+                    var handle3 = service.WriteToTemporaryStorage(new MemoryStream(buffer.GetBuffer(), 0, 1024 * i + 1));
 
                     await Task.Yield();
 
-                    using var s1 = handle1.ReadFromTemporaryStorage(CancellationToken.None);
-                    using var s2 = handle2.ReadFromTemporaryStorage(CancellationToken.None);
-                    using var s3 = handle3.ReadFromTemporaryStorage(CancellationToken.None);
+                    using var s1 = handle1.ReadFromTemporaryStorage();
+                    using var s2 = handle2.ReadFromTemporaryStorage();
+                    using var s3 = handle3.ReadFromTemporaryStorage();
                     Assert.Equal(1024 * i - 1, s1.Length);
                     Assert.Equal(1024 * i, s2.Length);
                     Assert.Equal(1024 * i + 1, s3.Length);
@@ -162,13 +162,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 var storageHandles = new List<TemporaryStorageStreamHandle>(fileCount);
                 for (var i = 0; i < fileCount; i++)
                 {
-                    var handle = service.WriteToTemporaryStorage(data, CancellationToken.None);
+                    var handle = service.WriteToTemporaryStorage(data);
                     storageHandles.Add(handle);
                 }
 
                 for (var i = 0; i < 1024 * 5; i++)
                 {
-                    using var s = storageHandles[i].ReadFromTemporaryStorage(CancellationToken.None);
+                    using var s = storageHandles[i].ReadFromTemporaryStorage();
                     Assert.Equal(1, s.ReadByte());
                 }
             }
@@ -187,10 +187,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expected.WriteByte((byte)(i % byte.MaxValue));
             }
 
-            var handle = service.WriteToTemporaryStorage(expected, CancellationToken.None);
+            var handle = service.WriteToTemporaryStorage(expected);
 
             expected.Position = 0;
-            using var stream = handle.ReadFromTemporaryStorage(CancellationToken.None);
+            using var stream = handle.ReadFromTemporaryStorage();
             Assert.Equal(expected.Length, stream.Length);
 
             for (var i = 0; i < expected.Length; i++)
@@ -212,10 +212,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expected.WriteByte((byte)(i % byte.MaxValue));
             }
 
-            var handle = service.WriteToTemporaryStorage(expected, CancellationToken.None);
+            var handle = service.WriteToTemporaryStorage(expected);
 
             expected.Position = 0;
-            using var stream = handle.ReadFromTemporaryStorage(CancellationToken.None);
+            using var stream = handle.ReadFromTemporaryStorage();
             Assert.Equal(expected.Length, stream.Length);
 
             var index = 0;
@@ -252,10 +252,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 expected.WriteByte(value);
             }
 
-            var handle = service.WriteToTemporaryStorage(expected, CancellationToken.None);
+            var handle = service.WriteToTemporaryStorage(expected);
 
             expected.Position = 0;
-            using var stream = handle.ReadFromTemporaryStorage(CancellationToken.None);
+            using var stream = handle.ReadFromTemporaryStorage();
             Assert.Equal(expected.Length, stream.Length);
 
             for (var i = 0; i < expected.Length; i++)

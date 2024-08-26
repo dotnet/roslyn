@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
             await AssertTemplateProjectLoadsCleanlyAsync(templateName, LanguageNames.CSharp);
         }
 
-        [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled))]
+        [ConditionalTheory(typeof(DotNetSdkMSBuildInstalled), AlwaysSkip = "https://github.com/dotnet/roslyn/issues/74827")]
         [MemberData(nameof(GetVisualBasicProjectTemplateNames), DisableDiscoveryEnumeration = false)]
         public async Task ValidateVisualBasicTemplateProjects(string templateName)
         {
