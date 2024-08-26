@@ -17,10 +17,10 @@ namespace Microsoft.RoslynTools.Commands;
 
 internal static class DartTestCommand
 {
-    private static readonly string[] s_allProductNames = VSBranchInfo.AllProducts.Select(p => p.Name.ToLower()).Concat(new[] { "all" }).ToArray();
+    private static readonly string[] s_allProductNames = VSBranchInfo.AllProducts.Select(p => p.Name.ToLower()).ToArray();
 
     private static readonly DartTestCommandDefaultHandler s_dartTestCommandHandler = new();
-    private static readonly Option<int> prNumber = new(["--prNumber", "-pr"], "PR number") { IsRequired = true };
+    private static readonly Option<int> prNumber = new(["--prNumber", "-n"], "PR number") { IsRequired = true };
     private static readonly Option<string> sha = new(["--sha", "-s"], "Relevant SHA") { IsRequired = false };
     private static readonly Option<string> productOption = new Option<string>(new[] { "--product", "-p" }, () => "roslyn", "Which product to get info for").FromAmong(s_allProductNames);
 
@@ -28,7 +28,7 @@ internal static class DartTestCommand
     {
         var command = new Command("dart-test",
             @"Runs the dartlab pipeline for a given PR number and SHA.
-It works by cloning the PR from the dotnet/roslyn repo into the internal mirror and then running the dartlab pipeline from it.")
+It works by cloning the PR into the internal mirror and then running the dartlab pipeline from it.")
         {
             prNumber,
             sha,
@@ -36,6 +36,7 @@ It works by cloning the PR from the dotnet/roslyn repo into the internal mirror 
             CommonOptions.GitHubTokenOption,
             CommonOptions.DevDivAzDOTokenOption,
             CommonOptions.DncEngAzDOTokenOption,
+            CommonOptions.IsCIOption,
         };
 
         command.Handler = s_dartTestCommandHandler;
@@ -49,7 +50,9 @@ It works by cloning the PR from the dotnet/roslyn repo into the internal mirror 
             var logger = context.SetupLogging();
             var settings = context.ParseResult.LoadSettings(logger);
 
-            if (string.IsNullOrEmpty(settings.GitHubToken))
+            if (string.IsNullOrEmpty(settings.GitHubToken) ||
+                (settings.IsCI &&
+                (string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) || string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken))))
             {
                 logger.LogError("Missing authentication token.");
                 return -1;

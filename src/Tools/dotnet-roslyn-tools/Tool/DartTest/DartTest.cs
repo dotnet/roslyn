@@ -33,28 +33,27 @@ internal static class DartTest
         int prNumber,
         string? sha)
     {
-        var cancellationToken = CancellationToken.None;
-        var azureBranchName = $"dart-test/{prNumber}";
-        var product = VSBranchInfo.AllProducts.Single(p => p.Name.Equals(productName, StringComparison.OrdinalIgnoreCase));
-
-        // If the user doesn't pass the SHA, retrieve the most recent from the PR.
-        if (sha is null)
+        string? targetDirectory = null;
+        try
         {
-            sha = await GetLatestShaFromPullRequest(product, remoteConnections.GitHubClient, prNumber, logger, cancellationToken).ConfigureAwait(false);
+            var cancellationToken = CancellationToken.None;
+            var azureBranchName = $"dart-test/{prNumber}";
+            var product = VSBranchInfo.AllProducts.Single(p => p.Name.Equals(productName, StringComparison.OrdinalIgnoreCase));
+
+            // If the user doesn't pass the SHA, retrieve the most recent from the PR.
             if (sha is null)
             {
-                logger.LogError("Could not find a SHA for the given PR number.");
-                return -1;
+                sha = await GetLatestShaFromPullRequestAsync(product, remoteConnections.GitHubClient, prNumber, logger, cancellationToken).ConfigureAwait(false);
+                if (sha is null)
+                {
+                    logger.LogError("Could not find a SHA for the given PR number.");
+                    return -1;
+                }
             }
-            else
-            {
-                logger.LogError("A SHA is required for the given product.");
-                return -1;
-            }
-        }
 
-        var directory = await PushPRToInternal(product, prNumber, azureBranchName, logger, sha, cancellationToken).ConfigureAwait(false);
-        var repositoryParams = new Dictionary<string, RepositoryResourceParameters>
+            targetDirectory = CreateDirectory(prNumber);
+            await PushPRToInternalAsync(product, prNumber, azureBranchName, logger, sha, targetDirectory, cancellationToken).ConfigureAwait(false);
+            var repositoryParams = new Dictionary<string, RepositoryResourceParameters>
             {
                 {
                     "self", new RepositoryResourceParameters
@@ -65,21 +64,31 @@ internal static class DartTest
                 }
             };
 
-        var runPipelineParameters = new RunPipelineParameters
-        {
-            Resources = new RunResourcesParameters
+            var runPipelineParameters = new RunPipelineParameters
             {
+                Resources = new RunResourcesParameters
+                {
 
-            },
-            TemplateParameters = new Dictionary<string, string> { { "prNumber", prNumber.ToString() }, { "sha", sha } }
-        };
+                },
+                TemplateParameters = new Dictionary<string, string> { { "prNumber", prNumber.ToString() }, { "sha", sha } }
+            };
 
-        await remoteConnections.DevDivConnection.TryRunPipelineAsync(product.DartLabPipelineName, repositoryParams, runPipelineParameters, logger).ConfigureAwait(false);
-        CleanupDirectory(directory, logger);
+            await remoteConnections.DevDivConnection.TryRunPipelineAsync(product.DartLabPipelineName, repositoryParams, runPipelineParameters, logger).ConfigureAwait(false);
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, e.Message);
+            return -1;
+        }
+        finally
+        {
+            CleanupDirectory(targetDirectory, logger);
+        }
+
         return 0;
     }
 
-    private static async Task<string?> GetLatestShaFromPullRequest(IProduct product, HttpClient gitHubClient, int prNumber, ILogger logger, CancellationToken cancellationToken)
+    private static async Task<string?> GetLatestShaFromPullRequestAsync(IProduct product, HttpClient gitHubClient, int prNumber, ILogger logger, CancellationToken cancellationToken)
     {
         try
         {
@@ -105,52 +114,38 @@ internal static class DartTest
     }
 
 
-    private static async Task<string?> PushPRToInternal(IProduct product, int prNumber, string azureBranchName, ILogger logger, string sha, CancellationToken cancellationToken)
+    private static async Task PushPRToInternalAsync(IProduct product, int prNumber, string azureBranchName, ILogger logger, string sha, string targetDirectory, CancellationToken cancellationToken)
     {
-        string? targetDirectory = null;
-
         try
         {
-            targetDirectory = Path.Combine(Path.GetTempPath(), $"pr-{prNumber}");
-            var counter = 1;
-            while (Directory.Exists(targetDirectory))
-            {
-                targetDirectory = Path.Combine(Path.GetTempPath(), $"pr-{prNumber}-{counter}");
-                counter++;
-            }
-
-            Directory.CreateDirectory(targetDirectory);
-
             var initCommand = $"init";
-            await RunGitCommand(initCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false); ;
+            await RunGitCommandAsync(initCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false); ;
 
             var addGithubRemoteCommand = $"remote add {product.Name.ToLower()} {product.RepoHttpBaseUrl}.git";
-            await RunGitCommand(addGithubRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+            await RunGitCommandAsync(addGithubRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
             var addInternalRemoteCommand = $"remote add internal {product.InternalRepoBaseUrl}";
-            await RunGitCommand(addInternalRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+            await RunGitCommandAsync(addInternalRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
             var fetchCommand = $"fetch {product.Name.ToLower()} pull/{prNumber}/head";
-            await RunGitCommand(fetchCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+            await RunGitCommandAsync(fetchCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
             var checkoutCommand = $"checkout {sha}";
-            await RunGitCommand(checkoutCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+            await RunGitCommandAsync(checkoutCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
             var checkoutNewBranchCommand = $"checkout -b {azureBranchName}";
-            await RunGitCommand(checkoutNewBranchCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+            await RunGitCommandAsync(checkoutNewBranchCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
             var pushCommand = $"push internal {azureBranchName}";
-            await RunGitCommand(pushCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+            await RunGitCommandAsync(pushCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception e)
         {
             logger.LogError(e, e.Message);
         }
-
-        return targetDirectory;
     }
 
-    private static async Task RunGitCommand(string command, ILogger logger, string workingDirectory, CancellationToken cancellationToken)
+    private static async Task RunGitCommandAsync(string command, ILogger logger, string workingDirectory, CancellationToken cancellationToken)
     {
         try
         {
@@ -189,19 +184,33 @@ internal static class DartTest
 
             if (process.ExitCode == 0)
             {
-                logger.LogInformation($"Command succeeded: {command}");
+                logger.LogInformation($"Command succeeded!");
                 logger.LogInformation(output);
             }
             else
             {
-                logger.LogError($"Command failed: {command}");
+                logger.LogError($"Command failed!");
                 logger.LogError(error);
             }
         }
         catch (Exception e)
         {
-            logger.LogError(e, $"Exception while running command: {command}");
+            logger.LogError(e, $"Exception while running command.");
         }
+    }
+
+    private static string CreateDirectory(int prNumber)
+    {
+        var targetDirectory = Path.Combine(Path.GetTempPath(), $"pr-{prNumber}");
+        var counter = 1;
+        while (Directory.Exists(targetDirectory))
+        {
+            targetDirectory = Path.Combine(Path.GetTempPath(), $"pr-{prNumber}-{counter}");
+            counter++;
+        }
+
+        Directory.CreateDirectory(targetDirectory);
+        return targetDirectory;
     }
 
     private static void CleanupDirectory(string? directory, ILogger logger)
