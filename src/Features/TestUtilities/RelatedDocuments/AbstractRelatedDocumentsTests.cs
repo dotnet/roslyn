@@ -5,11 +5,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.RelatedDocuments;
+using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
@@ -17,11 +17,14 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Test.Utilities.RelatedDocuments;
 
-internal abstract class AbstractRelatedDocumentsTests
+[UseExportProvider]
+public abstract class AbstractRelatedDocumentsTests
 {
-    protected static async Task TestAsync(string testMarkup)
+    protected static async Task TestAsync(string testMarkup, TestHost testHost)
     {
-        using var workspace = TestWorkspace.CreateWorkspace(XElement.Parse(testMarkup));
+        using var workspace = TestWorkspace.CreateWorkspace(
+            XElement.Parse(testMarkup),
+            composition: FeaturesTestCompositions.Features.WithTestHostParts(testHost));
 
         var caretDocument = workspace.Documents.Single(d => d.CursorPosition.HasValue);
         var caretPosition = caretDocument.CursorPosition!.Value;
