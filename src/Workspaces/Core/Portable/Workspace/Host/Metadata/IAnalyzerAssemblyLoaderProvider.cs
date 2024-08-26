@@ -33,45 +33,32 @@ internal interface IAnalyzerAssemblyLoaderProvider : IWorkspaceService
 /// Abstract implementation of an analyzer assembly loader that can be used by VS/VSCode to provide a <see
 /// cref="IAnalyzerAssemblyLoader"/> with an appropriate path.
 /// </summary>
-internal abstract class AbstractAnalyzerAssemblyLoaderProviderFactory(
-    IEnumerable<IAnalyzerAssemblyResolver> externalResolvers) : IWorkspaceServiceFactory
+internal abstract class AbstractAnalyzerAssemblyLoaderProvider : IAnalyzerAssemblyLoaderProvider
 {
-    private readonly ImmutableArray<IAnalyzerAssemblyResolver> _externalResolvers = externalResolvers.ToImmutableArray();
+    private readonly ImmutableArray<IAnalyzerAssemblyResolver> _externalResolvers;
+    private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
 
-    public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        => new DefaultAnalyzerAssemblyLoaderProvider(this, workspaceServices.Workspace.Kind ?? "Default");
+    public AbstractAnalyzerAssemblyLoaderProvider(IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
+    {
+        _externalResolvers = externalResolvers.ToImmutableArray();
+        _shadowCopyLoader = new(CreateNewShadowCopyLoader);
+    }
+
+    public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader
+        => _shadowCopyLoader.Value;
+
+    public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
+        => this.WrapLoader(DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
+                Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader"),
+                _externalResolvers));
 
     protected virtual IAnalyzerAssemblyLoaderInternal WrapLoader(IAnalyzerAssemblyLoaderInternal loader)
         => loader;
-
-    private sealed class DefaultAnalyzerAssemblyLoaderProvider : IAnalyzerAssemblyLoaderProvider
-    {
-        private readonly AbstractAnalyzerAssemblyLoaderProviderFactory _factory;
-        private readonly string _workspaceKind;
-        private readonly Lazy<IAnalyzerAssemblyLoaderInternal> _shadowCopyLoader;
-
-        public DefaultAnalyzerAssemblyLoaderProvider(
-            AbstractAnalyzerAssemblyLoaderProviderFactory factory,
-            string workspaceKind)
-        {
-            _factory = factory;
-            _workspaceKind = workspaceKind;
-            _shadowCopyLoader = new(CreateNewShadowCopyLoader);
-        }
-
-        public IAnalyzerAssemblyLoaderInternal SharedShadowCopyLoader
-            => _shadowCopyLoader.Value;
-
-        public IAnalyzerAssemblyLoaderInternal CreateNewShadowCopyLoader()
-            => _factory.WrapLoader(DefaultAnalyzerAssemblyLoader.CreateNonLockingLoader(
-                    Path.Combine(Path.GetTempPath(), nameof(Roslyn), "AnalyzerAssemblyLoader", _workspaceKind),
-                    _factory._externalResolvers));
-    }
 }
 
-[ExportWorkspaceServiceFactory(typeof(IAnalyzerAssemblyLoaderProvider)), Shared]
+[ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider)), Shared]
 [method: ImportingConstructor]
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class DefaultAnalyzerAssemblyLoaderService(
+internal sealed class DefaultAnalyzerAssemblyLoaderProvider(
     [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
-    : AbstractAnalyzerAssemblyLoaderProviderFactory(externalResolvers);
+    : AbstractAnalyzerAssemblyLoaderProvider(externalResolvers);
