@@ -36,9 +36,9 @@ internal sealed class RemoteRelatedDocumentsService(
             await service.GetRelatedDocumentIdsAsync(
                 document,
                 position,
-                async (documentId, cancellationToken) => await callback.InvokeAsync(
+                async (documentIds, cancellationToken) => await callback.InvokeAsync(
                     (callback, cancellationToken) => callback.ReportRelatedDocumentAsync(
-                        callbackId, documentId, cancellationToken), cancellationToken).ConfigureAwait(false),
+                        callbackId, documentIds, cancellationToken), cancellationToken).ConfigureAwait(false),
                 cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
     }

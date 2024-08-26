@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Remote;
@@ -12,19 +13,13 @@ namespace Microsoft.CodeAnalysis.RelatedDocuments;
 internal abstract class AbstractRelatedDocumentsService : IRelatedDocumentsService
 {
     public async ValueTask GetRelatedDocumentIdsAsync(
-        Document document, int position, Func<DocumentId, CancellationToken, ValueTask> callbackAsync, CancellationToken cancellationToken)
+        Document document, int position, Func<ImmutableArray<DocumentId>, CancellationToken, ValueTask> callbackAsync, CancellationToken cancellationToken)
     {
         var project = document.Project;
         var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
         if (client != null)
         {
-            var remoteCallback = new RemoteRelatedDocumentsServiceCallback(
-                async (documentIds, cancellationToken) =>
-                {
-                    foreach (var documentId in documentIds)
-                        await callbackAsync(documentId, cancellationToken).ConfigureAwait(false);
-                },
-                cancellationToken);
+            var remoteCallback = new RemoteRelatedDocumentsServiceCallback(callbackAsync, cancellationToken);
 
             var result = await client.TryInvokeAsync<IRemoteRelatedDocumentsService>(
                 // We don't need to sync the entire solution (only the project) to ask for the related files for a
@@ -43,5 +38,5 @@ internal abstract class AbstractRelatedDocumentsService : IRelatedDocumentsServi
     }
 
     protected abstract ValueTask GetRelatedDocumentIdsInCurrentProcessAsync(
-        Document document, int position, Func<DocumentId, CancellationToken, ValueTask> callbackAsync, CancellationToken cancellationToken);
+        Document document, int position, Func<ImmutableArray<DocumentId>, CancellationToken, ValueTask> callbackAsync, CancellationToken cancellationToken);
 }

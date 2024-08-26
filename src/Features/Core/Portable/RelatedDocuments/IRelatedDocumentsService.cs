@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
@@ -17,5 +18,6 @@ internal interface IRelatedDocumentsService : ILanguageService
     /// examples might be checking to see which symbols are used at that particular location and prioritizing documents
     /// those symbols are defined in.
     /// </summary>
-    ValueTask GetRelatedDocumentIdsAsync(Document document, int position, Func<DocumentId, CancellationToken, ValueTask> callbackAsync, CancellationToken cancellationToken);
+    ValueTask GetRelatedDocumentIdsAsync(
+        Document document, int position, Func<ImmutableArray<DocumentId>, CancellationToken, ValueTask> callbackAsync, CancellationToken cancellationToken);
 }

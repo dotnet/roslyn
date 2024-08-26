@@ -4,6 +4,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Linq;
 using System.Linq.Expressions;
@@ -16,6 +17,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.RelatedDocuments;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.RelatedDocuments;
 
@@ -27,7 +29,7 @@ internal sealed class CSharpRelatedDocumentsService() : AbstractRelatedDocuments
     protected override async ValueTask GetRelatedDocumentIdsInCurrentProcessAsync(
         Document document,
         int position,
-        Func<DocumentId, CancellationToken, ValueTask> callbackAsync,
+        Func<ImmutableArray<DocumentId>, CancellationToken, ValueTask> callbackAsync,
         CancellationToken cancellationToken)
     {
         var solution = document.Project.Solution;
@@ -37,40 +39,32 @@ internal sealed class CSharpRelatedDocumentsService() : AbstractRelatedDocuments
         var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
-        using var _1 = PooledHashSet<DocumentId>.GetInstance(out var seenDocumentIds);
-        using var _2 = PooledHashSet<string>.GetInstance(out var seenTypeNames);
+        var seenDocumentIds = new ConcurrentSet<DocumentId>();
+        var seenTypeNames = new ConcurrentSet<string>();
 
-        await ProducerConsumer<(ExpressionSyntax expression, SyntaxToken nameToken)>.RunParallelAsync(
+        // Bind as much as we can in parallel to get the results as quickly as possible.  We call into the
+        // ProducerConsumer overload that will batch up values into arrays, and call into the callback with them.  While
+        // that callback is executing, the ProducerConsumer continues to run, computing more results and getting them
+        // ready for when that call returns.  This approach ensures that we're not pausing while we're reporting the
+        // results to whatever client is calling into us.
+        await ProducerConsumer<DocumentId>.RunParallelAsync(
+            // Order the nodes by the distance from the requested position.
             IteratePotentialTypeNodes().OrderBy(t => t.expression.SpanStart - position),
-
-            )
-
-        // Order the nodes by the distance from the requested position.
-        foreach (var (expression, nameToken) in IteratePotentialTypeNodes().OrderBy(t => t.expression.SpanStart - position))
-        {
-            if (nameToken.Kind() != SyntaxKind.IdentifierName)
-                continue;
-
-            if (nameToken.ValueText == "")
-                continue;
-
-            // Don't rebind a type name we've already seen.  Note: this is a conservative/inaccurate check.
-            // Specifically, there could be different types with the same last name portion (from different namespaces).
-            // In that case, we'll miss the one that is further away.  We can revisit this in the future if we think it's necessary.
-            if (!seenTypeNames.Add(nameToken.ValueText))
-                continue;
-
-            var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
-            if (symbol is not ITypeSymbol)
-                continue;
-
-            foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
+            produceItems: static (tuple, callback, args, cancellationToken) =>
             {
-                var documentId = solution.GetDocument(syntaxReference.SyntaxTree)?.Id;
-                if (documentId != null && seenDocumentIds.Add(documentId))
-                    await callbackAsync(documentId, cancellationToken).ConfigureAwait(false);
-            }
-        }
+                var (solution, semanticModel, seenDocumentIds, seenTypeNames, callbackAsync) = args;
+                ProductItems(
+                    solution, semanticModel, tuple.expression, tuple.nameToken, callback, seenDocumentIds, seenTypeNames, cancellationToken);
+
+                return Task.CompletedTask;
+            },
+            consumeItems: static async (array, args, cancellationToken) =>
+            {
+                var (solution, semanticModel, seenDocumentIds, seenTypeNames, callbackAsync) = args;
+                await callbackAsync(array, cancellationToken).ConfigureAwait(false);
+            },
+            args: (solution, semanticModel, seenDocumentIds, seenTypeNames, callbackAsync),
+            cancellationToken).ConfigureAwait(false);
 
         return;
 
@@ -131,6 +125,40 @@ internal sealed class CSharpRelatedDocumentsService() : AbstractRelatedDocuments
 
             nameToken = name.GetNameToken();
             return true;
+        }
+
+        static void ProductItems(
+            Solution solution,
+            SemanticModel semanticModel,
+            ExpressionSyntax expression,
+            SyntaxToken nameToken,
+            Action<DocumentId> callback,
+            ConcurrentSet<DocumentId> seenDocumentIds,
+            ConcurrentSet<string> seenTypeNames,
+            CancellationToken cancellationToken)
+        {
+            if (nameToken.Kind() != SyntaxKind.IdentifierName)
+                return;
+
+            if (nameToken.ValueText == "")
+                return;
+            // Don't rebind a type name we've already seen.  Note: this is a conservative/inaccurate check.
+            // Specifically, there could be different types with the same last name portion (from different
+            // namespaces). In that case, we'll miss the one that is further away.  We can revisit this in the
+            // future if we think it's necessary.
+            if (!seenTypeNames.Add(nameToken.ValueText))
+                return;
+
+            var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
+            if (symbol is not ITypeSymbol)
+                return;
+
+            foreach (var syntaxReference in symbol.DeclaringSyntaxReferences)
+            {
+                var documentId = solution.GetDocument(syntaxReference.SyntaxTree)?.Id;
+                if (documentId != null && seenDocumentIds.Add(documentId))
+                    callback(documentId);
+            }
         }
     }
 }
