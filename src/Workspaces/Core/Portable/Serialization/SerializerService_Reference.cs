@@ -65,7 +65,7 @@ internal partial class SerializerService
             switch (reference)
             {
                 case AnalyzerFileReference file:
-                    writer.WriteString(file.FullPath);
+                    writer.WriteString(file.OriginalFullPath ?? file.FullPath);
                     writer.WriteGuid(TryGetAnalyzerFileReferenceMvid(file));
                     break;
 
@@ -120,7 +120,12 @@ internal partial class SerializerService
         {
             case AnalyzerFileReference file:
                 writer.WriteString(nameof(AnalyzerFileReference));
-                writer.WriteString(file.FullPath);
+                var location = file.GetAssembly().Location;
+                var (fullPath, originalFullPath) = string.IsNullOrEmpty(location)
+                    ? (file.FullPath, file.OriginalFullPath)
+                    : (location, file.FullPath);
+                writer.WriteString(fullPath);
+                writer.WriteString(originalFullPath);
 
                 // Note: it is intentional that we are not writing the MVID of the analyzer file reference over (even
                 // though we mixed it into the checksum).  We don't actually need the data on the other side as it will
@@ -162,7 +167,11 @@ internal partial class SerializerService
         {
             case nameof(AnalyzerFileReference):
                 var fullPath = reader.ReadRequiredString();
-                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetShadowCopyLoader());
+                var originalFullPath = reader.ReadString();
+                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetDirectLoader())
+                {
+                    OriginalFullPath = originalFullPath,
+                };
 
             case nameof(AnalyzerImageReference):
                 var guid = reader.ReadGuid();
@@ -529,7 +538,7 @@ internal partial class SerializerService
     {
         try
         {
-            return AssemblyUtilities.ReadMvid(file.FullPath);
+            return AssemblyUtilities.ReadMvid(file.OriginalFullPath ?? file.FullPath);
         }
         catch
         {

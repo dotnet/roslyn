@@ -16,15 +16,24 @@ namespace Microsoft.CodeAnalysis.Remote.Diagnostics;
 /// Customizes the path where to store shadow-copies of analyzer assemblies.
 /// </summary>
 [ExportWorkspaceService(typeof(IAnalyzerAssemblyLoaderProvider), [WorkspaceKind.RemoteWorkspace]), Shared]
-[method: ImportingConstructor]
-[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
-internal sealed class RemoteAnalyzerAssemblyLoaderService(
-    [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
-    : IAnalyzerAssemblyLoaderProvider
+internal sealed class RemoteAnalyzerAssemblyLoaderService : IAnalyzerAssemblyLoaderProvider
 {
-    private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader =
-        new(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"), externalResolvers.ToImmutableArray());
+    private readonly ShadowCopyAnalyzerAssemblyLoader _shadowCopyLoader;
+    private readonly DefaultAnalyzerAssemblyLoader _directLoader;
+
+    [ImportingConstructor]
+    [Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+    public RemoteAnalyzerAssemblyLoaderService(
+        [ImportMany] IEnumerable<IAnalyzerAssemblyResolver> externalResolvers)
+    {
+        var externalResolversImmutable = externalResolvers.ToImmutableArray();
+        _shadowCopyLoader = new(Path.Combine(Path.GetTempPath(), "VS", "AnalyzerAssemblyLoader"), externalResolversImmutable);
+        _directLoader = new(externalResolversImmutable);
+    }
 
     public IAnalyzerAssemblyLoader GetShadowCopyLoader()
         => _shadowCopyLoader;
+
+    public IAnalyzerAssemblyLoader GetDirectLoader()
+        => _directLoader;
 }

@@ -34,6 +34,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private delegate ImmutableArray<string> AttributeLanguagesFunc(PEModule module, CustomAttributeHandle attribute);
 
         public override string FullPath { get; }
+        public string? OriginalFullPath { get; init; }
 
         private readonly IAnalyzerAssemblyLoader _assemblyLoader;
         private readonly Extensions<DiagnosticAnalyzer> _diagnosticAnalyzers;
