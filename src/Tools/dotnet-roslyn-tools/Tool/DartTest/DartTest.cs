@@ -75,6 +75,11 @@ internal static class DartTest
 
             await remoteConnections.DevDivConnection.TryRunPipelineAsync(product.DartLabPipelineName, repositoryParams, runPipelineParameters, logger).ConfigureAwait(false);
         }
+        catch (Exception e)
+        {
+            logger.LogError(e, e.Message);
+            return -1;
+        }
         finally
         {
             CleanupDirectory(targetDirectory, logger);
@@ -85,24 +90,17 @@ internal static class DartTest
 
     private static async Task<string?> GetLatestShaFromPullRequestAsync(IProduct product, HttpClient gitHubClient, int prNumber, ILogger logger, CancellationToken cancellationToken)
     {
-        try
-        {
-            var requestUri = $"/repos/dotnet/{product.Name.ToLower()}/pulls/{prNumber}";
-            var response = await gitHubClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false);
+        var requestUri = $"/repos/dotnet/{product.Name.ToLower()}/pulls/{prNumber}";
+        var response = await gitHubClient.GetAsync(requestUri, cancellationToken).ConfigureAwait(false);
 
-            if (response.IsSuccessStatusCode)
-            {
-                var prData = await response.Content.ReadFromJsonAsync<JsonObject>(cancellationToken: cancellationToken).ConfigureAwait(false);
-                return prData?["head"]?["sha"]?.ToString();
-            }
-            else
-            {
-                logger.LogError($"Failed to retrieve PR data from GitHub. Status code: {response.StatusCode}");
-            }
-        }
-        catch (Exception e)
+        if (response.IsSuccessStatusCode)
         {
-            logger.LogError(e, "Exception while retrieving the latest SHA from GitHub.");
+            var prData = await response.Content.ReadFromJsonAsync<JsonObject>(cancellationToken: cancellationToken).ConfigureAwait(false);
+            return prData?["head"]?["sha"]?.ToString();
+        }
+        else
+        {
+            logger.LogError($"Failed to retrieve PR data from GitHub. Status code: {response.StatusCode}");
         }
 
         return null;
@@ -111,86 +109,72 @@ internal static class DartTest
 
     private static async Task PushPRToInternalAsync(IProduct product, int prNumber, string azureBranchName, ILogger logger, string sha, string targetDirectory, CancellationToken cancellationToken)
     {
-        try
-        {
-            var initCommand = $"init";
-            await RunGitCommandAsync(initCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false); ;
+        var initCommand = $"init";
+        await RunGitCommandAsync(initCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false); ;
 
-            var addGithubRemoteCommand = $"remote add {product.Name.ToLower()} {product.RepoHttpBaseUrl}.git";
-            await RunGitCommandAsync(addGithubRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+        var addGithubRemoteCommand = $"remote add {product.Name.ToLower()} {product.RepoHttpBaseUrl}.git";
+        await RunGitCommandAsync(addGithubRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
-            var addInternalRemoteCommand = $"remote add internal {product.InternalRepoBaseUrl ?? product.RepoHttpBaseUrl}";
-            await RunGitCommandAsync(addInternalRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+        var addInternalRemoteCommand = $"remote add internal {product.InternalRepoBaseUrl ?? product.RepoHttpBaseUrl}";
+        await RunGitCommandAsync(addInternalRemoteCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
-            var fetchCommand = $"fetch {product.Name.ToLower()} pull/{prNumber}/head";
-            await RunGitCommandAsync(fetchCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+        var fetchCommand = $"fetch {product.Name.ToLower()} pull/{prNumber}/head";
+        await RunGitCommandAsync(fetchCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
-            var checkoutCommand = $"checkout {sha}";
-            await RunGitCommandAsync(checkoutCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+        var checkoutCommand = $"checkout {sha}";
+        await RunGitCommandAsync(checkoutCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
-            var checkoutNewBranchCommand = $"checkout -b {azureBranchName}";
-            await RunGitCommandAsync(checkoutNewBranchCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
+        var checkoutNewBranchCommand = $"checkout -b {azureBranchName}";
+        await RunGitCommandAsync(checkoutNewBranchCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
 
-            var pushCommand = $"push internal {azureBranchName}";
-            await RunGitCommandAsync(pushCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, e.Message);
-        }
+        var pushCommand = $"push internal {azureBranchName}";
+        await RunGitCommandAsync(pushCommand, logger, targetDirectory, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task RunGitCommandAsync(string command, ILogger logger, string workingDirectory, CancellationToken cancellationToken)
     {
-        try
+        logger.LogInformation($"Running command: {command}");
+        var processStartInfo = new ProcessStartInfo
         {
-            logger.LogInformation($"Running command: {command}");
-            var processStartInfo = new ProcessStartInfo
-            {
-                FileName = "git",
-                Arguments = $"{command}",
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true,
-                WorkingDirectory = workingDirectory
-            };
+            FileName = "git",
+            Arguments = $"{command}",
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WorkingDirectory = workingDirectory
+        };
 
-            using var process = new Process
-            {
-                StartInfo = processStartInfo
-            };
+        using var process = new Process
+        {
+            StartInfo = processStartInfo
+        };
 
-            var outputBuilder = new StringBuilder();
-            var errorBuilder = new StringBuilder();
+        var outputBuilder = new StringBuilder();
+        var errorBuilder = new StringBuilder();
 
-            process.OutputDataReceived += (sender, args) => outputBuilder.AppendLine(args.Data);
-            process.ErrorDataReceived += (sender, args) => errorBuilder.AppendLine(args.Data);
+        process.OutputDataReceived += (sender, args) => outputBuilder.AppendLine(args.Data);
+        process.ErrorDataReceived += (sender, args) => errorBuilder.AppendLine(args.Data);
 
-            process.Start();
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
+        process.Start();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
 
-            // Ensure the output and error streams are fully read
-            await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+        // Ensure the output and error streams are fully read
+        await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
-            var output = outputBuilder.ToString();
-            var error = errorBuilder.ToString();
+        var output = outputBuilder.ToString();
+        var error = errorBuilder.ToString();
 
-            if (process.ExitCode == 0)
-            {
-                logger.LogInformation($"Command succeeded!");
-                logger.LogInformation(output);
-            }
-            else
-            {
-                logger.LogError($"Command failed!");
-                logger.LogError(error);
-            }
+        if (process.ExitCode == 0)
+        {
+            logger.LogInformation($"Command succeeded!");
+            logger.LogInformation(output);
         }
-        catch (Exception e)
+        else
         {
-            logger.LogError(e, $"Exception while running command.");
+            logger.LogError($"Command failed!");
+            logger.LogError(error);
         }
     }
 
