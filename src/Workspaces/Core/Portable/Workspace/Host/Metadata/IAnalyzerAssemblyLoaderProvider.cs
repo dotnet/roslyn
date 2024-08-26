@@ -8,9 +8,9 @@ using System.Collections.Immutable;
 using System.Composition;
 using System.IO;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.Diagnostics;
 
 #if NET
+using Microsoft.CodeAnalysis.Diagnostics;
 using System.Runtime.Loader;
 #endif
 
