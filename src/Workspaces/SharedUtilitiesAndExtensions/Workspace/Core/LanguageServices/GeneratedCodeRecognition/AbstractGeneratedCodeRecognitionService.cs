@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageService;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 
@@ -28,7 +27,12 @@ internal abstract class AbstractGeneratedCodeRecognitionService : IGeneratedCode
         return IsGeneratedCode(syntaxTree, document, cancellationToken);
     }
 
-    private static bool IsGeneratedCode(SyntaxTree syntaxTree, Document document, CancellationToken cancellationToken)
+    public bool IsGeneratedCode(AdditionalText additionalText, TextDocument document)
+    {
+        return additionalText.IsGeneratedCode(document.Project.AnalyzerOptions);
+    }
+
+    private static bool IsGeneratedCode(SyntaxTree syntaxTree, TextDocument document, CancellationToken cancellationToken)
     {
         var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
         return syntaxTree.IsGeneratedCode(document.Project.AnalyzerOptions, syntaxFacts, cancellationToken);

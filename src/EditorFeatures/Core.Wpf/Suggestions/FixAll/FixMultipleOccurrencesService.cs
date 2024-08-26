@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         }
 
         public Solution GetFix(
-            ImmutableDictionary<Document, ImmutableArray<Diagnostic>> diagnosticsToFix,
+            ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>> diagnosticsToFix,
             Workspace workspace,
             CodeFixProvider fixProvider,
             FixAllProvider fixAllProvider,

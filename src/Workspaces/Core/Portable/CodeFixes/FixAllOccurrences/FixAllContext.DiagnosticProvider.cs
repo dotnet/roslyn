@@ -30,6 +30,17 @@ public partial class FixAllContext
         public abstract Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(Document document, CancellationToken cancellationToken);
 
         /// <summary>
+        /// Gets all the diagnostics to fix in the given document in a <see cref="FixAllContext"/>.
+        /// </summary>
+        public virtual Task<IEnumerable<Diagnostic>> GetDocumentDiagnosticsAsync(TextDocument document, CancellationToken cancellationToken)
+        {
+            if (document is Document sourceDocument)
+                return GetDocumentDiagnosticsAsync(sourceDocument, cancellationToken);
+
+            return SpecializedTasks.EmptyEnumerable<Diagnostic>();
+        }
+
+        /// <summary>
         /// Gets all the project-level diagnostics to fix, i.e. diagnostics with no source location, in the given project in a <see cref="FixAllContext"/>.
         /// </summary>
         public abstract Task<IEnumerable<Diagnostic>> GetProjectDiagnosticsAsync(Project project, CancellationToken cancellationToken);
@@ -40,14 +51,14 @@ public partial class FixAllContext
         /// </summary>
         public abstract Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken);
 
-        internal static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
+        internal static async Task<ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(FixAllContext fixAllContext)
         {
             var result = await GetDocumentDiagnosticsToFixWorkerAsync(fixAllContext).ConfigureAwait(false);
 
             // Filter out any documents that we don't have any diagnostics for.
             return result.Where(kvp => !kvp.Value.IsDefaultOrEmpty).ToImmutableDictionary();
 
-            static async Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(FixAllContext fixAllContext)
+            static async Task<ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixWorkerAsync(FixAllContext fixAllContext)
             {
                 if (fixAllContext.State.DiagnosticProvider is FixAllState.FixMultipleDiagnosticProvider fixMultipleDiagnosticProvider)
                 {

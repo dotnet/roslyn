@@ -14,7 +14,7 @@ using FixAllScope = Microsoft.CodeAnalysis.CodeFixes.FixAllScope;
 namespace Microsoft.CodeAnalysis.CodeRefactorings;
 
 /// <summary>
-/// Context for "Fix all occurrences" for code refactorings provided by each <see cref="CodeRefactoringProvider"/>.
+/// Context for "Fix all occurrences" for code refactorings provided by each <see cref="CodeRefactorings.CodeRefactoringProvider"/>.
 /// </summary>
 /// <remarks>
 /// TODO: Make public, tracked with https://github.com/dotnet/roslyn/issues/60703
@@ -28,7 +28,23 @@ internal sealed class FixAllContext : IFixAllContext
     /// <summary>
     /// Document within which fix all occurrences was triggered.
     /// </summary>
-    public Document Document => State.Document!;
+    public Document Document
+    {
+        get
+        {
+            if (TextDocument is not Document document)
+            {
+                throw new InvalidOperationException(WorkspacesResources.Use_TextDocument_property_instead_of_Document_property_as_the_provider_supports_non_source_text_documents);
+            }
+
+            return document;
+        }
+    }
+
+    /// <summary>
+    /// Document within which fix all occurrences was triggered.
+    /// </summary>
+    public TextDocument TextDocument => State.Document!;
 
     /// <summary>
     /// Underlying <see cref="CodeRefactoringProvider"/> which triggered this fix all.
@@ -54,9 +70,9 @@ internal sealed class FixAllContext : IFixAllContext
 
     /// <summary>
     /// Project to fix all occurrences.
-    /// Note that this property will always be the containing project of <see cref="Document"/>
+    /// Note that this property will always be the containing project of <see cref="TextDocument"/>
     /// for publicly exposed FixAllContext instance. However, we might create an intermediate FixAllContext
-    /// with null <see cref="Document"/> and non-null Project, so we require this internal property for intermediate computation.
+    /// with null <see cref="TextDocument"/> and non-null Project, so we require this internal property for intermediate computation.
     /// </summary>
     public Project Project => State.Project;
 
@@ -72,7 +88,7 @@ internal sealed class FixAllContext : IFixAllContext
     string IFixAllContext.GetDefaultFixAllTitle() => this.GetDefaultFixAllTitle();
 
     IFixAllContext IFixAllContext.With(
-        Optional<(Document? document, Project project)> documentAndProject,
+        Optional<(TextDocument? document, Project project)> documentAndProject,
         Optional<FixAllScope> scope,
         Optional<string?> codeActionEquivalenceKey,
         Optional<CancellationToken> cancellationToken)
@@ -93,11 +109,11 @@ internal sealed class FixAllContext : IFixAllContext
     /// Gets the spans to fix by document for the <see cref="Scope"/> for this fix all occurences fix.
     /// If no spans are specified, it indicates the entire document needs to be fixed.
     /// </summary>
-    public Task<ImmutableDictionary<Document, Optional<ImmutableArray<TextSpan>>>> GetFixAllSpansAsync(CancellationToken cancellationToken)
+    public Task<ImmutableDictionary<TextDocument, Optional<ImmutableArray<TextSpan>>>> GetFixAllSpansAsync(CancellationToken cancellationToken)
         => State.GetFixAllSpansAsync(cancellationToken);
 
     internal FixAllContext With(
-        Optional<(Document? document, Project project)> documentAndProject = default,
+        Optional<(TextDocument? document, Project project)> documentAndProject = default,
         Optional<FixAllScope> scope = default,
         Optional<string?> codeActionEquivalenceKey = default,
         Optional<CancellationToken> cancellationToken = default)
@@ -111,5 +127,5 @@ internal sealed class FixAllContext : IFixAllContext
     }
 
     internal string GetDefaultFixAllTitle()
-        => FixAllHelper.GetDefaultFixAllTitle(this.Scope, this.State.CodeActionTitle, this.Document, this.Project);
+        => FixAllHelper.GetDefaultFixAllTitle(this.Scope, this.State.CodeActionTitle, this.TextDocument, this.Project);
 }

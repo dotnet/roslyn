@@ -3,6 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -16,11 +17,11 @@ namespace Microsoft.CodeAnalysis.CodeFixesAndRefactorings;
 
 internal abstract class AbstractFixAllSpanMappingService : IFixAllSpanMappingService
 {
-    protected abstract Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansIfWithinGlobalStatementAsync(
+    protected abstract Task<ImmutableDictionary<TextDocument, ImmutableArray<TextSpan>>> GetFixAllSpansIfWithinGlobalStatementAsync(
         Document document, TextSpan span, CancellationToken cancellationToken);
 
-    public Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
-        Document document, TextSpan triggerSpan, FixAllScope fixAllScope, CancellationToken cancellationToken)
+    public Task<ImmutableDictionary<TextDocument, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
+        TextDocument document, TextSpan triggerSpan, FixAllScope fixAllScope, CancellationToken cancellationToken)
     {
         Contract.ThrowIfFalse(fixAllScope is FixAllScope.ContainingMember or FixAllScope.ContainingType);
 
@@ -28,16 +29,19 @@ internal abstract class AbstractFixAllSpanMappingService : IFixAllSpanMappingSer
         return GetFixAllSpansAsync(document, triggerSpan, fixAllInContainingMember, cancellationToken);
     }
 
-    private async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
-        Document document, TextSpan span, bool fixAllInContainingMember, CancellationToken cancellationToken)
+    private async Task<ImmutableDictionary<TextDocument, ImmutableArray<TextSpan>>> GetFixAllSpansAsync(
+        TextDocument textDocument, TextSpan span, bool fixAllInContainingMember, CancellationToken cancellationToken)
     {
+        if (textDocument is not Document document)
+            return ImmutableDictionary<TextDocument, ImmutableArray<TextSpan>>.Empty;
+
         var decl = await GetContainingMemberOrTypeDeclarationAsync(document, fixAllInContainingMember, span, cancellationToken).ConfigureAwait(false);
         if (decl == null)
             return await GetFixAllSpansIfWithinGlobalStatementAsync(document, span, cancellationToken).ConfigureAwait(false);
 
         if (fixAllInContainingMember)
         {
-            return ImmutableDictionary.CreateRange([KeyValuePairUtil.Create(document, ImmutableArray.Create(decl.FullSpan))]);
+            return ImmutableDictionary.CreateRange([KeyValuePairUtil.Create(textDocument, ImmutableArray.Create(decl.FullSpan))]);
         }
         else
         {
@@ -46,7 +50,7 @@ internal abstract class AbstractFixAllSpanMappingService : IFixAllSpanMappingSer
             if (symbol?.DeclaringSyntaxReferences.Length > 1)
             {
                 var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
-                var builder = PooledDictionary<Document, ArrayBuilder<TextSpan>>.GetInstance();
+                var builder = PooledDictionary<TextDocument, ArrayBuilder<TextSpan>>.GetInstance();
                 foreach (var syntaxRef in symbol.DeclaringSyntaxReferences)
                 {
                     var documentForLocation = document.Project.GetDocument(syntaxRef.SyntaxTree);
@@ -63,7 +67,7 @@ internal abstract class AbstractFixAllSpanMappingService : IFixAllSpanMappingSer
             }
             else
             {
-                return ImmutableDictionary.CreateRange([KeyValuePairUtil.Create(document, ImmutableArray.Create(decl.FullSpan))]);
+                return ImmutableDictionary.CreateRange([KeyValuePairUtil.Create(textDocument, ImmutableArray.Create(decl.FullSpan))]);
             }
         }
     }

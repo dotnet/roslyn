@@ -29,7 +29,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
 {
     public override async Task<CodeAction?> GetFixAsync(FixAllContext fixAllContext)
     {
-        if (fixAllContext.Document != null)
+        if (fixAllContext.TextDocument != null)
         {
             var documentsAndDiagnosticsToFixMap = await fixAllContext.GetDocumentDiagnosticsToFixAsync().ConfigureAwait(false);
             return await GetFixAsync(documentsAndDiagnosticsToFixMap, fixAllContext).ConfigureAwait(false);
@@ -42,7 +42,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
     }
 
     private async Task<CodeAction?> GetFixAsync(
-        ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
+        ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
         FixAllContext fixAllContext)
     {
         var cancellationToken = fixAllContext.CancellationToken;
@@ -72,7 +72,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
     }
 
     private async Task<ImmutableArray<(Diagnostic diagnostic, CodeAction action)>> GetDiagnosticsAndCodeActionsAsync(
-        ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
+        ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
         FixAllContext fixAllContext)
     {
         var cancellationToken = fixAllContext.CancellationToken;
@@ -109,7 +109,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
     }
 
     protected virtual async Task AddDocumentFixesAsync(
-        Document document, ImmutableArray<Diagnostic> diagnostics,
+        TextDocument textDocument, ImmutableArray<Diagnostic> diagnostics,
         Action<(Diagnostic diagnostic, CodeAction action)> onItemFound,
         FixAllState fixAllState, CancellationToken cancellationToken)
     {
@@ -122,7 +122,7 @@ internal abstract class AbstractSuppressionBatchFixAllProvider : FixAllProvider
             cancellationToken,
             async (diagnostic, cancellationToken) =>
             {
-                var context = new CodeFixContext(document, diagnostic, registerCodeFix, cancellationToken);
+                var context = new CodeFixContext(textDocument, diagnostic, registerCodeFix, cancellationToken);
 
                 // TODO: Wrap call to RegisterCodeFixesAsync() below in IExtensionManager.PerformFunctionAsync() so that
                 // a buggy extension that throws can't bring down the host?

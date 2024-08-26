@@ -47,7 +47,7 @@ internal abstract class FixAllProvider : IFixAllProvider
     /// <summary>
     /// Create a <see cref="FixAllProvider"/> that fixes documents independently.
     /// This can be used in the case where refactoring(s) registered by this provider
-    /// only affect a single <see cref="Document"/>.
+    /// only affect a single <see cref="TextDocument"/>.
     /// </summary>
     /// <param name="fixAllAsync">
     /// Callback that will apply the refactorings present in the provided document.  The document returned will only be
@@ -55,13 +55,13 @@ internal abstract class FixAllProvider : IFixAllProvider
     /// of it (like attributes), or changes to the <see cref="Project"/> or <see cref="Solution"/> it points at
     /// will be considered.
     /// </param>
-    public static FixAllProvider Create(Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync)
+    public static FixAllProvider Create(Func<FixAllContext, TextDocument, Optional<ImmutableArray<TextSpan>>, Task<TextDocument?>> fixAllAsync)
         => Create(fixAllAsync, DefaultSupportedFixAllScopes);
 
     /// <summary>
     /// Create a <see cref="FixAllProvider"/> that fixes documents independently.
     /// This can be used in the case where refactoring(s) registered by this provider
-    /// only affect a single <see cref="Document"/>.
+    /// only affect a single <see cref="TextDocument"/>.
     /// </summary>
     /// <param name="fixAllAsync">
     /// Callback that will apply the refactorings present in the provided document.  The document returned will only be
@@ -75,7 +75,7 @@ internal abstract class FixAllProvider : IFixAllProvider
     /// and should not be part of the supported scopes.
     /// </param>
     public static FixAllProvider Create(
-        Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync,
+        Func<FixAllContext, TextDocument, Optional<ImmutableArray<TextSpan>>, Task<TextDocument?>> fixAllAsync,
         ImmutableArray<FixAllScope> supportedFixAllScopes)
     {
         if (fixAllAsync is null)
@@ -91,10 +91,10 @@ internal abstract class FixAllProvider : IFixAllProvider
     }
 
     private sealed class CallbackDocumentBasedFixAllProvider(
-        Func<FixAllContext, Document, Optional<ImmutableArray<TextSpan>>, Task<Document?>> fixAllAsync,
+        Func<FixAllContext, TextDocument, Optional<ImmutableArray<TextSpan>>, Task<TextDocument?>> fixAllAsync,
         ImmutableArray<FixAllScope> supportedFixAllScopes) : DocumentBasedFixAllProvider(supportedFixAllScopes)
     {
-        protected override Task<Document?> FixAllAsync(FixAllContext context, Document document, Optional<ImmutableArray<TextSpan>> fixAllSpans)
+        protected override Task<TextDocument?> FixAllAsync(FixAllContext context, TextDocument document, Optional<ImmutableArray<TextSpan>> fixAllSpans)
             => fixAllAsync(context, document, fixAllSpans);
     }
 }

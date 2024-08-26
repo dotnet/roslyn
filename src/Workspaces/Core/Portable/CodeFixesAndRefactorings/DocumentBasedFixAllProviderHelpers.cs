@@ -25,7 +25,7 @@ internal static class DocumentBasedFixAllProviderHelpers
         ImmutableArray<TFixAllContext> fixAllContexts,
         IProgress<CodeAnalysisProgress> progressTracker,
         string progressTrackerDescription,
-        Func<TFixAllContext, Func<Document, Document?, ValueTask>, Task> getFixedDocumentsAsync)
+        Func<TFixAllContext, Func<TextDocument, TextDocument?, ValueTask>, Task> getFixedDocumentsAsync)
         where TFixAllContext : IFixAllContext
     {
         var cancellationToken = originalFixAllContext.CancellationToken;
@@ -87,8 +87,8 @@ internal static class DocumentBasedFixAllProviderHelpers
                             if (newDocument == null || newDocument == originalDocument)
                                 return;
 
-                            var newRoot = newDocument.SupportsSyntaxTree ? await newDocument.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
-                            var newText = newDocument.SupportsSyntaxTree ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
+                            var newRoot = newDocument is Document { SupportsSyntaxTree: true } document ? await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false) : null;
+                            var newText = newRoot is not null ? null : await newDocument.GetValueTextAsync(cancellationToken).ConfigureAwait(false);
                             callback((newDocument.Id, (newRoot, newText)));
                         }).ConfigureAwait(false);
                 },

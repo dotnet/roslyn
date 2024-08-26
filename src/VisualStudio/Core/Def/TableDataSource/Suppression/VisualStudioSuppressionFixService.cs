@@ -419,9 +419,9 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
         return cancelled ? UIThreadOperationStatus.Canceled : result;
     }
 
-    private static ImmutableDictionary<Document, ImmutableArray<Diagnostic>> GetDocumentDiagnosticsMappedToNewSolution(ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentDiagnosticsToFixMap, Solution newSolution, string language)
+    private static ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>> GetDocumentDiagnosticsMappedToNewSolution(ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentDiagnosticsToFixMap, Solution newSolution, string language)
     {
-        ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Builder? builder = null;
+        ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>>.Builder? builder = null;
         foreach (var (oldDocument, diagnostics) in documentDiagnosticsToFixMap)
         {
             if (oldDocument.Project.Language != language)
@@ -430,12 +430,12 @@ internal sealed class VisualStudioSuppressionFixService : IVisualStudioSuppressi
             var document = newSolution.GetDocument(oldDocument.Id);
             if (document != null)
             {
-                builder ??= ImmutableDictionary.CreateBuilder<Document, ImmutableArray<Diagnostic>>();
+                builder ??= ImmutableDictionary.CreateBuilder<TextDocument, ImmutableArray<Diagnostic>>();
                 builder.Add(document, diagnostics);
             }
         }
 
-        return builder != null ? builder.ToImmutable() : ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
+        return builder != null ? builder.ToImmutable() : ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>>.Empty;
     }
 
     private static ImmutableDictionary<Project, ImmutableArray<Diagnostic>> GetProjectDiagnosticsMappedToNewSolution(ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectDiagnosticsToFixMap, Solution newSolution, string language)

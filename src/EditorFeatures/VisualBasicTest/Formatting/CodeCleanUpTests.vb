@@ -638,7 +638,7 @@ End Class
                                                Dim toFix = Await fixAllContext.GetDocumentDiagnosticsToFixAsync()
                                                Dim project As Project = Nothing
                                                For Each kvp In toFix
-                                                   Dim document = kvp.Key
+                                                   Dim document = CType(kvp.Key, Document)
                                                    project = document.Project
                                                    Dim diagnostics = kvp.Value
                                                    Dim root = Await document.GetSyntaxRootAsync(cancellationToken)
@@ -683,7 +683,7 @@ End Class
                                                Dim toFix = Await fixAllContext.GetDocumentDiagnosticsToFixAsync()
                                                Dim project As Project = Nothing
                                                For Each kvp In toFix
-                                                   Dim document = kvp.Key
+                                                   Dim document = CType(kvp.Key, Document)
                                                    project = document.Project
                                                    Dim diagnostics = kvp.Value
                                                    Dim root = Await document.GetSyntaxRootAsync(cancellationToken)

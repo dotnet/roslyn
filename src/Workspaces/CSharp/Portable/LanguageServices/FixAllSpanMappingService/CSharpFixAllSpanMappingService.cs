@@ -25,13 +25,13 @@ internal sealed class CSharpFixAllSpanMappingService : AbstractFixAllSpanMapping
     {
     }
 
-    protected override async Task<ImmutableDictionary<Document, ImmutableArray<TextSpan>>> GetFixAllSpansIfWithinGlobalStatementAsync(
+    protected override async Task<ImmutableDictionary<TextDocument, ImmutableArray<TextSpan>>> GetFixAllSpansIfWithinGlobalStatementAsync(
         Document document, TextSpan span, CancellationToken cancellationToken)
     {
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
         var node = root.FindNode(span);
         if (node.GetAncestorOrThis<GlobalStatementSyntax>() is null)
-            return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
+            return ImmutableDictionary<TextDocument, ImmutableArray<TextSpan>>.Empty;
 
         // Compute the fix all span for the global statements to be fixed.
         // If the file has type or namespace declaration towards the end, they need to be excluded
@@ -44,12 +44,12 @@ internal sealed class CSharpFixAllSpanMappingService : AbstractFixAllSpanMapping
             // C# compiler requires all global statements to preceed type and namespace declarations.
             var globalStatements = root.ChildNodes().OfType<GlobalStatementSyntax>();
             if (globalStatements.Any(g => firstTypeOrNamespaceDecl.SpanStart < g.SpanStart))
-                return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty;
+                return ImmutableDictionary<TextDocument, ImmutableArray<TextSpan>>.Empty;
 
             fixAllSpan = new TextSpan(root.FullSpan.Start, firstTypeOrNamespaceDecl.FullSpan.Start - 1);
         }
 
-        return ImmutableDictionary<Document, ImmutableArray<TextSpan>>.Empty
+        return ImmutableDictionary<TextDocument, ImmutableArray<TextSpan>>.Empty
             .Add(document, [fixAllSpan]);
     }
 }

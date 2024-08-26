@@ -37,7 +37,26 @@ public partial class FixAllContext : IFixAllContext
     /// <summary>
     /// Document within which fix all occurrences was triggered, null if the <see cref="FixAllContext"/> is scoped to a project.
     /// </summary>
-    public Document? Document => State.Document;
+    public Document? Document
+    {
+        get
+        {
+            if (TextDocument is null)
+                return null;
+
+            if (TextDocument is not Document document)
+            {
+                throw new InvalidOperationException(WorkspacesResources.Use_TextDocument_property_instead_of_Document_property_as_the_provider_supports_non_source_text_documents);
+            }
+
+            return document;
+        }
+    }
+
+    /// <summary>
+    /// Document within which fix all occurrences was triggered, null if the <see cref="FixAllContext"/> is scoped to a project.
+    /// </summary>
+    public TextDocument? TextDocument => State.Document;
 
     /// <summary>
     /// Underlying <see cref="CodeFixes.CodeFixProvider"/> which triggered this fix all.
@@ -82,7 +101,7 @@ public partial class FixAllContext : IFixAllContext
         => this.GetDefaultFixAllTitle();
 
     IFixAllContext IFixAllContext.With(
-        Optional<(Document? document, Project project)> documentAndProject,
+        Optional<(TextDocument? document, Project project)> documentAndProject,
         Optional<FixAllScope> scope,
         Optional<string?> codeActionEquivalenceKey,
         Optional<CancellationToken> cancellationToken)
@@ -222,7 +241,13 @@ public partial class FixAllContext : IFixAllContext
     /// <summary>
     /// Gets all the diagnostics in the given document filtered by <see cref="DiagnosticIds"/>.
     /// </summary>
-    public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document)
+    public Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(Document document)
+        => GetDocumentDiagnosticsAsync((TextDocument)document);
+
+    /// <summary>
+    /// Gets all the diagnostics in the given document filtered by <see cref="DiagnosticIds"/>.
+    /// </summary>
+    public async Task<ImmutableArray<Diagnostic>> GetDocumentDiagnosticsAsync(TextDocument document)
     {
         if (document == null)
         {
@@ -259,7 +284,7 @@ public partial class FixAllContext : IFixAllContext
     /// <summary>
     /// Gets all the diagnostics in the given <paramref name="filterSpan"/> for the given <paramref name="document"/> filtered by <see cref="DiagnosticIds"/>.
     /// </summary>
-    internal async Task<ImmutableArray<Diagnostic>> GetDocumentSpanDiagnosticsAsync(Document document, TextSpan filterSpan)
+    internal async Task<ImmutableArray<Diagnostic>> GetDocumentSpanDiagnosticsAsync(TextDocument document, TextSpan filterSpan)
     {
         if (document == null)
         {
@@ -331,7 +356,7 @@ public partial class FixAllContext : IFixAllContext
         => With(cancellationToken: cancellationToken);
 
     internal FixAllContext With(
-        Optional<(Document? document, Project project)> documentAndProject = default,
+        Optional<(TextDocument? document, Project project)> documentAndProject = default,
         Optional<FixAllScope> scope = default,
         Optional<string?> codeActionEquivalenceKey = default,
         Optional<CancellationToken> cancellationToken = default)
@@ -344,7 +369,7 @@ public partial class FixAllContext : IFixAllContext
             : new FixAllContext(newState, this.Progress, newCancellationToken);
     }
 
-    internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync()
+    internal Task<ImmutableDictionary<TextDocument, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync()
         => DiagnosticProvider.GetDocumentDiagnosticsToFixAsync(this);
 
     internal Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync()
