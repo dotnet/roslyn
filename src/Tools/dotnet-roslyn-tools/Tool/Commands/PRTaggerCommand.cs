@@ -45,7 +45,9 @@ The checking build list is created:
             var logger = context.SetupLogging();
             var settings = context.ParseResult.LoadSettings(logger);
 
-            if (string.IsNullOrEmpty(settings.GitHubToken))
+            var isMissingAzDOToken = string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) || string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken);
+            if (string.IsNullOrEmpty(settings.GitHubToken) ||
+                (settings.IsCI && isMissingAzDOToken))
             {
                 logger.LogError("Missing authentication token.");
                 return -1;
