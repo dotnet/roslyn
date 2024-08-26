@@ -4,7 +4,9 @@
 
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.RelatedDocuments;
 
@@ -17,4 +19,24 @@ internal interface IRelatedDocumentsService : ILanguageService
     /// those symbols are defined in.
     /// </summary>
     IAsyncEnumerable<DocumentId> GetRelatedDocumentIdsAsync(Document document, int position, CancellationToken cancellationToken);
+}
+
+internal interface IRemoteRelatedDocumentsService
+{
+    public interface ICallback
+    {
+        ValueTask ReportRelatedDocumentAsync(RemoteServiceCallbackId callbackId, DocumentId documentId, CancellationToken cancellationToken);
+    }
+
+    public ValueTask GetRelatedDocumentIdsAsync(
+        Checksum solutionChecksum, DocumentId documentId, int position, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
+}
+
+internal abstract class AbstractRelatedDocumentsService : IRelatedDocumentsService
+{
+    public async IAsyncEnumerable<DocumentId> GetRelatedDocumentIdsAsync(Document document, int position, CancellationToken cancellationToken)
+    {
+        var client = await RemoteHostClient.TryGetClientAsync(document.Project, cancellationToken).ConfigureAwait(false);
+
+    }
 }
