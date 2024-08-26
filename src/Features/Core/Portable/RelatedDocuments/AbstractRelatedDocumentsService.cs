@@ -19,7 +19,7 @@ internal abstract class AbstractRelatedDocumentsService : IRelatedDocumentsServi
         var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
         if (client != null)
         {
-            var remoteCallback = new RemoteRelatedDocumentsServiceCallback(callbackAsync, cancellationToken);
+            var remoteCallback = new RelatedDocumentsServiceCallback(callbackAsync, cancellationToken);
 
             var result = await client.TryInvokeAsync<IRemoteRelatedDocumentsService>(
                 // We don't need to sync the entire solution (only the project) to ask for the related files for a
