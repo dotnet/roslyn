@@ -28,14 +28,14 @@ internal interface IRemoteRelatedDocumentsService
 [method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
 internal sealed class RelatedDocumentsServiceServerCallbackDispatcher() : RemoteServiceCallbackDispatcher, IRemoteRelatedDocumentsService.ICallback
 {
-    private new RemoteRelatedDocumentsServiceCallback GetCallback(RemoteServiceCallbackId callbackId)
-        => (RemoteRelatedDocumentsServiceCallback)base.GetCallback(callbackId);
+    private new RelatedDocumentsServiceCallback GetCallback(RemoteServiceCallbackId callbackId)
+        => (RelatedDocumentsServiceCallback)base.GetCallback(callbackId);
 
     public ValueTask ReportRelatedDocumentAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken)
         => GetCallback(callbackId).ReportRelatedDocumentAsync(documentIds);
 }
 
-internal sealed class RemoteRelatedDocumentsServiceCallback(
+internal sealed class RelatedDocumentsServiceCallback(
     Func<ImmutableArray<DocumentId>, CancellationToken, ValueTask> onRelatedDocumentFoundAsync,
     CancellationToken cancellationToken)
 {
