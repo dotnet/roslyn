@@ -39,7 +39,6 @@ using Xunit;
 using Basic.Reference.Assemblies;
 using static Microsoft.CodeAnalysis.CommonDiagnosticAnalyzers;
 using static Roslyn.Test.Utilities.SharedResourceHelpers;
-using static Roslyn.Test.Utilities.TestMetadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.CommandLine.UnitTests
 {

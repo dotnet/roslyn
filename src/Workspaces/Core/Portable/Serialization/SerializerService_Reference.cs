@@ -157,7 +157,7 @@ internal partial class SerializerService
             case nameof(AnalyzerFileReference):
                 var fullPath = reader.ReadRequiredString();
                 var originalFullPath = reader.ReadString();
-                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.GetDirectLoader())
+                return new AnalyzerFileReference(fullPath, _analyzerLoaderProvider.SharedDirectLoader)
                 {
                     OriginalFullPath = originalFullPath,
                 };
