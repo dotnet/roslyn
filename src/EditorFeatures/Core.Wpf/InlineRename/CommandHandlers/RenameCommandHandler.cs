@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
         {
             try
             {
-                base.CommitAndSetFocus(activeSession, textView);
+                base.CommitAndSetFocus(activeSession, textView, operationContext);
             }
             catch (NotSupportedException ex)
             {
