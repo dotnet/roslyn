@@ -2,11 +2,14 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.RelatedDocuments;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -17,10 +20,19 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServer.Handler.RelatedDocuments;
 
+[ExportCSharpVisualBasicLspServiceFactory(typeof(RelatedDocumentsHandler)), Shared]
+[method: ImportingConstructor]
+[method: Obsolete(MefConstruction.ImportingConstructorMessage, error: true)]
+internal sealed class RelatedDocumentsHandlerFactory() : ILspServiceFactory
+{
+    public ILspService CreateILspService(LspServices lspServices, WellKnownLspServerKinds serverKind)
+        => new RelatedDocumentsHandler();
+}
+
 [Method(VSInternalMethods.CopilotRelatedDocumentsName)]
 internal sealed class RelatedDocumentsHandler
     : ILspServiceRequestHandler<VSInternalRelatedDocumentParams, VSInternalRelatedDocumentReport[]?>,
-      ITextDocumentIdentifierHandler<VSInternalRelatedDocumentParams, TextDocumentIdentifier?>
+      ITextDocumentIdentifierHandler<VSInternalRelatedDocumentParams, TextDocumentIdentifier>
 {
     /// <summary>
     /// Cache where we store the data produced by prior requests so that they can be returned if nothing of significance
@@ -43,7 +55,7 @@ internal sealed class RelatedDocumentsHandler
         return (parseOptionsChecksum, textChecksum);
     }
 
-    public TextDocumentIdentifier? GetTextDocumentIdentifier(VSInternalRelatedDocumentParams requestParams)
+    public TextDocumentIdentifier GetTextDocumentIdentifier(VSInternalRelatedDocumentParams requestParams)
         => requestParams.TextDocument;
 
     /// <summary>
@@ -63,15 +75,7 @@ internal sealed class RelatedDocumentsHandler
         // The progress object we will stream reports to.
         using var progress = BufferedProgress.Create(requestParams.PartialResultToken);
 
-        // Get the set of results the request said were previously reported.  We can use this to determine both
-        // what to skip, and what files we have to tell the client have been removed.
-        var previousResults = GetPreviousResults(requestParams) ?? [];
-        context.TraceInformation($"previousResults.Length={previousResults.Length}");
-
-        // Create a mapping from documents to the previous results the client says it has for them.  That way as we
-        // process documents we know if we should tell the client it should stay the same, or we can tell it what
-        // the updated spans are.
-        var documentToPreviousParams = GetDocumentToPreviousParams(context, previousResults);
+        context.TraceInformation($"PreviousResultId={requestParams.PreviousResultId}");
 
         var solution = context.Solution;
         var document = context.Document;
@@ -87,6 +91,10 @@ internal sealed class RelatedDocumentsHandler
         }
         else
         {
+            var documentToPreviousParams = new Dictionary<Document, PreviousPullResult>();
+            if (requestParams.PreviousResultId != null)
+                documentToPreviousParams.Add(document, new PreviousPullResult(requestParams.PreviousResultId, requestParams.TextDocument));
+
             var newResultId = await _versionedCache.GetNewResultIdAsync(
                 documentToPreviousParams,
                 document,
@@ -108,6 +116,8 @@ internal sealed class RelatedDocumentsHandler
                     position,
                     (relatedDocumentIds, cancellationToken) =>
                     {
+                        // As the related docs services reports document ids to us, stream those immediately through our
+                        // progress reporter.
                         progress.Report(new VSInternalRelatedDocumentReport
                         {
                             ResultId = newResultId,
@@ -125,8 +135,7 @@ internal sealed class RelatedDocumentsHandler
                 // Nothing changed between the last request and this one.  Report a (null-file-paths, same-result-id)
                 // response to the client as that means they should just preserve the current related file paths they
                 // have for this file.
-                var previousParams = documentToPreviousParams[document];
-                progress.Report(new VSInternalRelatedDocumentReport { ResultId = previousParams.PreviousResultId });
+                progress.Report(new VSInternalRelatedDocumentReport { ResultId = requestParams.PreviousResultId });
             }
         }
 
@@ -134,24 +143,5 @@ internal sealed class RelatedDocumentsHandler
         // collecting and return that.
         context.TraceInformation($"{this.GetType()} finished getting related documents");
         return progress.GetFlattenedValues();
-    }
-
-    private static Dictionary<Document, PreviousPullResult> GetDocumentToPreviousParams(
-        RequestContext context, ImmutableArray<PreviousPullResult> previousResults)
-    {
-        Contract.ThrowIfNull(context.Solution);
-
-        var result = new Dictionary<Document, PreviousPullResult>();
-        foreach (var requestParams in previousResults)
-        {
-            if (requestParams.TextDocument != null)
-            {
-                var document = context.Solution.GetDocument(requestParams.TextDocument);
-                if (document != null)
-                    result[document] = requestParams;
-            }
-        }
-
-        return result;
     }
 }
