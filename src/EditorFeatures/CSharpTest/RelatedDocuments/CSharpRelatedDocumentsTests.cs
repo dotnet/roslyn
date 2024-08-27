@@ -20,4 +20,19 @@ public sealed class CSharpRelatedDocumentsTests : AbstractRelatedDocumentsTests
                 </Project>
             </Workspace>
             """, testHost);
+
+    [Theory, CombinatorialData]
+    public async Task TestReferenceToSameDocDocument(TestHost testHost)
+        => await TestAsync("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>[||]$$
+                    class C
+                    {
+                        C c;
+                    }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, testHost);
 }
