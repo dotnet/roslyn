@@ -10462,7 +10462,7 @@ class C
 
             void RunWithCache() => VerifyOutput(dir, src, includeCurrentAssemblyAsAnalyzerReference: false, additionalFlags: new[] { "/langversion:preview", "/features:enable-generator-cache" }, generators: new[] { generator.AsSourceGenerator() }, driverCache: cache, analyzers: null);
         }
-        
+
         [Fact]
         public void Compiler_DoesNot_RunHostOutputs()
         {
