@@ -76,9 +76,8 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             }
             else
             {
-                uIThreadOperationContext.TakeOwnership();
                 // Otherwise, commit the existing session and start a new one.
-                _renameService.ActiveSession.Commit();
+                Commit(uIThreadOperationContext);
             }
         }
 

@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Utilities;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename;
 
@@ -56,7 +57,7 @@ internal abstract partial class AbstractRenameCommandHandler
     private CommandState GetCommandState()
         => _renameService.ActiveSession != null ? CommandState.Available : CommandState.Unspecified;
 
-    private void HandlePossibleTypingCommand<TArgs>(TArgs args, Action nextHandler, IUIThreadOperationContext operationContext, Action<InlineRenameSession, SnapshotSpan> actionIfInsideActiveSpan)
+    private void HandlePossibleTypingCommand<TArgs>(TArgs args, Action nextHandler, IUIThreadOperationContext operationContext, Action<InlineRenameSession, IUIThreadOperationContext, SnapshotSpan> actionIfInsideActiveSpan)
         where TArgs : EditorCommandArgs
     {
         if (_renameService.ActiveSession == null)
@@ -79,7 +80,7 @@ internal abstract partial class AbstractRenameCommandHandler
         if (_renameService.ActiveSession.TryGetContainingEditableSpan(singleSpan.Start, out var containingSpan) &&
             containingSpan.Contains(singleSpan))
         {
-            actionIfInsideActiveSpan(_renameService.ActiveSession, containingSpan);
+            actionIfInsideActiveSpan(_renameService.ActiveSession, operationContext, containingSpan);
         }
         else if (_renameService.ActiveSession.IsInOpenTextBuffer(singleSpan.Start))
         {
@@ -101,8 +102,7 @@ internal abstract partial class AbstractRenameCommandHandler
         {
             var selection = args.TextView.Selection.VirtualSelectedSpans.First();
 
-            operationContext.TakeOwnership();
-            _renameService.ActiveSession.Commit();
+            Commit(operationContext);
 
             var translatedSelection = selection.TranslateTo(args.TextView.TextBuffer.CurrentSnapshot);
             args.TextView.Selection.Select(translatedSelection.Start, translatedSelection.End);
@@ -114,5 +114,13 @@ internal abstract partial class AbstractRenameCommandHandler
     {
         CommitIfActive(args, operationContext);
         nextHandler();
+    }
+
+    private void Commit(IUIThreadOperationContext operationContext)
+    {
+        // Take ownership from editor to make sure it can rename commit could be controlled by its own IUIThreadOperationContext
+        operationContext.TakeOwnership();
+        RoslynDebug.AssertNotNull(_renameService.ActiveSession);
+        _renameService.ActiveSession.Commit();
     }
 }

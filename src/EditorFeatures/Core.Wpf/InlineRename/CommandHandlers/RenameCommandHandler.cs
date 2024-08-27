@@ -94,11 +94,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             }
         }
 
-        protected override void Commit(InlineRenameSession activeSession, ITextView textView)
+        protected override void CommitAndSetFocus(InlineRenameSession activeSession, ITextView textView)
         {
             try
             {
-                base.Commit(activeSession, textView);
+                base.CommitAndSetFocus(activeSession, textView);
             }
             catch (NotSupportedException ex)
             {

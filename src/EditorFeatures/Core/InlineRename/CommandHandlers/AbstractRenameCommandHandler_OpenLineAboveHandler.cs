@@ -15,10 +15,9 @@ internal abstract partial class AbstractRenameCommandHandler : IChainedCommandHa
 
     public void ExecuteCommand(OpenLineAboveCommandArgs args, Action nextHandler, CommandExecutionContext context)
     {
-        HandlePossibleTypingCommand(args, nextHandler, context.OperationContext, (activeSession, span) =>
+        HandlePossibleTypingCommand(args, nextHandler, context.OperationContext, (activeSession, operationContext, span) =>
         {
-            context.OperationContext.TakeOwnership();
-            activeSession.Commit();
+            Commit(operationContext);
             nextHandler();
         });
     }

@@ -21,14 +21,14 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             // InlineRenameSession will call IUIThreadOperationExecutor to sets up our own IUIThreadOperationContext
             context.OperationContext.TakeOwnership();
 
-            Commit(_renameService.ActiveSession, args.TextView);
+            CommitAndSetFocus(_renameService.ActiveSession, args.TextView);
             return true;
         }
 
         return false;
     }
 
-    protected virtual void Commit(InlineRenameSession activeSession, ITextView textView)
+    protected virtual void CommitAndSetFocus(InlineRenameSession activeSession, ITextView textView)
     {
         activeSession.Commit();
         SetFocusToTextView(textView);
