@@ -939,7 +939,7 @@ public sealed class SolutionWithSourceGeneratorTests : TestBase
         }
 
         public Assembly LoadFromPath(string fullPath)
-            => throw new InvalidOperationException();
+            => throw new InvalidOperationException("These tests should not be loading analyzer assemblies in those host workspace, only in the remote one.");
     }
 
     [Fact]
