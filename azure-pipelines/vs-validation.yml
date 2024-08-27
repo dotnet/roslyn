@@ -15,7 +15,7 @@ resources:
 variables:
 - template: GlobalVariables.yml
 - name: MicroBuild_NuPkgSigningEnabled
-  value: false # test-signed nuget packages fail to restore in the VS insertion PR validations. Just don't sign the *at all*.
+  value: false # test-signed nuget packages fail to restore in the VS insertion PR validations. Just don't sign them *at all*.
 
 extends:
   template: azure-pipelines/MicroBuild.1ES.Unofficial.yml@MicroBuildTemplate
@@ -29,7 +29,7 @@ extends:
         DOTNET_SKIP_FIRST_TIME_EXPERIENCE: true
         NUGET_PACKAGES: $(Agent.TempDirectory)/.nuget/packages/
         BuildConfiguration: Release
-        ValidationBuild: true
+        SkipCodesignVerify: true
 
       jobs:
       - template: /azure-pipelines/build.yml@self
@@ -48,7 +48,7 @@ extends:
             os: macOS
           EnableMacOSBuild: false
           RunTests: false
-          ValidationBuild: true
+          SkipCodesignVerify: true
 
     - template: /azure-pipelines/prepare-insertion-stages.yml@self
       parameters:

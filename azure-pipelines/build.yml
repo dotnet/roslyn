@@ -66,7 +66,7 @@ parameters:
   default: true
 
 # Whether this is a special one-off build for inserting into VS for a validation insertion PR (that will never be merged).
-- name: ValidationBuild
+- name: SkipCodesignVerify
   type: boolean
   default: false
 
@@ -196,7 +196,7 @@ jobs:
       parameters:
         EnableOptProf: ${{ parameters.EnableOptProf }}
         IsOptProf: ${{ parameters.IsOptProf }}
-        ValidationBuild: ${{ parameters.ValidationBuild }}
+        SkipCodesignVerify: ${{ parameters.SkipCodesignVerify }}
 
   - template: expand-template.yml
 

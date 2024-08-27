@@ -29,6 +29,8 @@ variables:
   value: false # avoid using nice version since we're building a preliminary/unoptimized package
 - name: IsOptProf
   value: true
+- name: MicroBuild_NuPkgSigningEnabled
+  value: false # test-signed nuget packages fail to restore in the VS insertion PR validations. Just don't sign them *at all*.
 
 stages:
 - stage: Library
@@ -40,12 +42,13 @@ stages:
   - template: build.yml
     parameters:
       Is1ESPT: false
-      RealSign: true
+      RealSign: false
       windowsPool: VSEngSS-MicroBuild2022-1ES
       EnableMacOSBuild: false
       ShouldSkipOptimize: ${{ parameters.ShouldSkipOptimize }}
       IsOptProf: true
       RunTests: false
+      SkipCodesignVerify: true
 - stage: QueueVSBuild
   jobs:
   - job: QueueOptProf

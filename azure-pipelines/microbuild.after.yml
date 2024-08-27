@@ -5,11 +5,11 @@ parameters:
 - name: IsOptProf
   type: boolean
   default: false
-- name: ValidationBuild
+- name: SkipCodesignVerify
   type: boolean
 
 steps:
-- ${{ if not(parameters.ValidationBuild) }}: # skip CodesignVerify on validation builds because we don't even test-sign nupkg's.
+- ${{ if not(parameters.SkipCodesignVerify) }}: # skip CodesignVerify on validation builds because we don't even test-sign nupkg's.
   - task: MicroBuildCodesignVerify@3
     displayName: 🔍 Verify Signed Files
     inputs:
