@@ -673,7 +673,7 @@ public struct X1
                 // (3,16): error CS8773: Feature 'struct field initializers' is not available in C# 9.0. Please use language version 10.0 or greater.
                 //     public int I { get { throw null; } set {} } = 9;
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion9, "I").WithArguments("struct field initializers", "10.0").WithLocation(3, 16),
-                // (3,16): error CS8050: Only auto-implemented properties can have initializers.
+                // (3,16): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public int I { get { throw null; } set {} } = 9;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithLocation(3, 16));
 
@@ -682,7 +682,7 @@ public struct X1
                 // (1,8): error CS8983: A 'struct' with field initializers must include an explicitly declared constructor.
                 // struct S
                 Diagnostic(ErrorCode.ERR_StructHasInitializersAndNoDeclaredConstructor, "S").WithLocation(1, 8),
-                // (3,16): error CS8050: Only auto-implemented properties can have initializers.
+                // (3,16): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     public int I { get { throw null; } set {} } = 9;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithLocation(3, 16));
         }

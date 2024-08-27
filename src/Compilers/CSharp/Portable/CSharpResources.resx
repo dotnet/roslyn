@@ -4891,7 +4891,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>Expected identifier or numeric literal</value>
   </data>
   <data name="ERR_InitializerOnNonAutoProperty" xml:space="preserve">
-    <value>Only auto-implemented properties can have initializers.</value>
+    <value>Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.</value>
   </data>
   <data name="ERR_InstancePropertyInitializerInInterface" xml:space="preserve">
     <value>Instance properties in interfaces cannot have initializers.</value>

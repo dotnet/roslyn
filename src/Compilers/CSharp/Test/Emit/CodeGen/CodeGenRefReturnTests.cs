@@ -1258,7 +1258,7 @@ class Program
 {
     int field = 0;
 
-    ref int P { get { return ref field; } }
+    ref int P { get { return ref @field; } }
 
     ref int this[int i] { get { return ref field; } }
 
@@ -1455,7 +1455,7 @@ class Program
 {
     int field = 0;
 
-    ref int P { get { return ref field; } }
+    ref int P { get { return ref @field; } }
 
     ref int this[int i] { get { return ref field; } }
 
