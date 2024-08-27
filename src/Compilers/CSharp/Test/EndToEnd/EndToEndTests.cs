@@ -583,7 +583,7 @@ $@"        if (F({i}))
                     """, $"C{i}.cs"));
             }
 
-            var verifier = CompileAndVerify(files.ToArrayAndFree(), parseOptions: TestOptions.Regular.WithFeature("InterceptorsPreviewNamespaces", "global"), expectedOutput: makeExpectedOutput());
+            var verifier = CompileAndVerify(files.ToArrayAndFree(), parseOptions: TestOptions.Regular.WithFeature("InterceptorsNamespaces", "global"), expectedOutput: makeExpectedOutput());
             verifier.VerifyDiagnostics();
 
             string makeExpectedOutput()
