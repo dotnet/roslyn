@@ -7,8 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Xml.Linq;
-using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.RelatedDocuments;
 using Microsoft.CodeAnalysis.Remote.Testing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -23,9 +21,9 @@ public abstract class AbstractRelatedDocumentsTests
 {
     protected static async Task TestAsync(string testMarkup, TestHost testHost)
     {
-        using var workspace = EditorTestWorkspace.Create(
+        using var workspace = TestWorkspace.Create(
             testMarkup,
-            composition: EditorTestCompositions.EditorFeatures.WithTestHostParts(testHost));
+            composition: FeaturesTestCompositions.Features.WithTestHostParts(testHost));
 
         var caretDocument = workspace.Documents.Single(d => d.CursorPosition.HasValue);
         var caretPosition = caretDocument.CursorPosition!.Value;

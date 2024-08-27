@@ -48,11 +48,11 @@ internal sealed class CSharpRelatedDocumentsService() : AbstractRelatedDocuments
         // results to whatever client is calling into us.
         await ProducerConsumer<DocumentId>.RunParallelAsync(
             // Order the nodes by the distance from the requested position.
-            IteratePotentialTypeNodes().OrderBy(t => t.expression.SpanStart - position),
+            IteratePotentialTypeNodes(root).OrderBy(t => t.expression.SpanStart - position),
             produceItems: static (tuple, callback, args, cancellationToken) =>
             {
                 var (solution, semanticModel, seenDocumentIds, seenTypeNames, callbackAsync) = args;
-                ProductItems(
+                ProduceItems(
                     solution, semanticModel, tuple.expression, tuple.nameToken, callback, seenDocumentIds, seenTypeNames, cancellationToken);
 
                 return Task.CompletedTask;
@@ -67,7 +67,7 @@ internal sealed class CSharpRelatedDocumentsService() : AbstractRelatedDocuments
 
         return;
 
-        IEnumerable<(ExpressionSyntax expression, SyntaxToken nameToken)> IteratePotentialTypeNodes()
+        static IEnumerable<(ExpressionSyntax expression, SyntaxToken nameToken)> IteratePotentialTypeNodes(SyntaxNode root)
         {
             using var _ = ArrayBuilder<SyntaxNode>.GetInstance(out var stack);
             stack.Push(root);
@@ -126,7 +126,7 @@ internal sealed class CSharpRelatedDocumentsService() : AbstractRelatedDocuments
             return true;
         }
 
-        static void ProductItems(
+        static void ProduceItems(
             Solution solution,
             SemanticModel semanticModel,
             ExpressionSyntax expression,
@@ -136,7 +136,7 @@ internal sealed class CSharpRelatedDocumentsService() : AbstractRelatedDocuments
             ConcurrentSet<string> seenTypeNames,
             CancellationToken cancellationToken)
         {
-            if (nameToken.Kind() != SyntaxKind.IdentifierName)
+            if (nameToken.Kind() != SyntaxKind.IdentifierToken)
                 return;
 
             if (nameToken.ValueText == "")
