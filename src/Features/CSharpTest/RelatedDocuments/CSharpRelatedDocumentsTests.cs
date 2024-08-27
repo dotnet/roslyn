@@ -208,4 +208,31 @@ public sealed class CSharpRelatedDocumentsTests : AbstractRelatedDocumentsTests
                 </Project>
             </Workspace>
             """, testHost);
+
+    [Theory, CombinatorialData]
+    public async Task ReferenceAcrossProjects(TestHost testHost)
+        => await TestAsync("""
+            <Workspace>
+                <Project Language="C#" AssemblyName="Assembly1" CommonReferences="true">
+                    <Document>[||]
+                    namespace N;
+            
+                    public class D
+                    {
+                    }
+                    </Document>
+                </Project>
+                <Project Language="C#" AssemblyName="Assembly2" CommonReferences="true">
+                    <ProjectReference>Assembly1</ProjectReference>
+                    <Document>$$
+                    using N;
+
+                    class C
+                    {
+                        D d;
+                    }
+                    </Document>
+                </Project>
+            </Workspace>
+            """, testHost);
 }
