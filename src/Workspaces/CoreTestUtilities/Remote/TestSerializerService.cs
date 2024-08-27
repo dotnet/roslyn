@@ -63,9 +63,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Remote
                 : base.ReadMetadataReferenceFrom(reader);
 
         protected override Checksum CreateChecksum(AnalyzerReference reference)
-            => reference is TestGeneratorReference generatorReference
+        {
+#if NET
+            // If we're in the oop side and we're being asked to produce our local checksum (so we can compare it to the
+            // host checksum), then we want to just defer to the underlying analyzer reference of our isolated reference.
+            // This underlying reference corresponds to the reference that the host has, and we do not want to make any
+            // changes as long as they're both in agreement.
+            if (reference is IsolatedAnalyzerFileReference { UnderlyingAnalyzerFileReference: var underlyingReference })
+                reference = underlyingReference;
+#endif
+
+            return reference is TestGeneratorReference generatorReference
                 ? generatorReference.Checksum
                 : base.CreateChecksum(reference);
+        }
 
         protected override void WriteAnalyzerReferenceTo(AnalyzerReference reference, ObjectWriter writer)
         {
