@@ -22,7 +22,6 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Basic.Reference.Assemblies;
-using static Roslyn.Test.Utilities.TestMetadata;
 using static TestResources.NetFX.ValueTuple;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
