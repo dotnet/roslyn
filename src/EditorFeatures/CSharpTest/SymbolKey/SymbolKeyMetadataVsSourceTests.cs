@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.TestMetadata;
+using Basic.Reference.Assemblies;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId;
 
@@ -231,7 +231,7 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
                 }
             }
             """;
-        var comp20 = (Compilation)CreateEmptyCompilation(src1, new[] { Net40.mscorlib });
+        var comp20 = (Compilation)CreateEmptyCompilation(src1, new[] { Net40.References.mscorlib });
 
         // "Compilation 2 Assembly"
         var comp40 = (Compilation)CreateCompilation(src2, new MetadataReference[] { comp20.EmitToImageReference() });
@@ -331,7 +331,7 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
                 public void MyEveHandler(object o) { }
             }
             """;
-        var comp20 = CreateEmptyCompilation(src1, new[] { Net40.mscorlib });
+        var comp20 = CreateEmptyCompilation(src1, new[] { Net40.References.mscorlib });
 
         // "Compilation ref Compilation"
         var comp40 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp20) });
@@ -415,7 +415,7 @@ public partial class SymbolKeyTest : SymbolKeyTestBase
                 }
             }
             """;
-        var comp20 = CreateEmptyCompilation(src1, new[] { Net40.mscorlib });
+        var comp20 = CreateEmptyCompilation(src1, new[] { Net40.References.mscorlib });
 
         // "Compilation ref Compilation"
         var comp40 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp20) });

@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Reflection;
 
-#if NETCOREAPP
+#if NET
 using System.Runtime.Loader;
 #endif
 
@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis
 
         internal int CopyCount => _mvidPathMap.Count;
 
-#if NETCOREAPP
+#if NET
         public ShadowCopyAnalyzerAssemblyLoader(string baseDirectory, ImmutableArray<IAnalyzerAssemblyResolver>? externalResolvers = null)
             : this(null, baseDirectory, externalResolvers)
         {

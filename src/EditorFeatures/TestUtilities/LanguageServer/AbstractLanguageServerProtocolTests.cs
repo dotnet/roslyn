@@ -181,6 +181,7 @@ namespace Roslyn.Test.Utilities
         {
             var imageId = glyph.GetImageId();
 
+#pragma warning disable CS0618 // SymbolInformation is obsolete, need to switch to DocumentSymbol/WorkspaceSymbol
             var info = new LSP.VSSymbolInformation()
             {
                 Kind = kind,
@@ -191,6 +192,7 @@ namespace Roslyn.Test.Utilities
 
             if (containerName != null)
                 info.ContainerName = containerName;
+#pragma warning restore CS0618
 
             return info;
         }

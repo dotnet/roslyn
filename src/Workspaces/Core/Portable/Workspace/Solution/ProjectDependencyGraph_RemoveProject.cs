@@ -11,11 +11,11 @@ public partial class ProjectDependencyGraph
 {
     internal ProjectDependencyGraph WithProjectRemoved(ProjectId projectId)
     {
-        Contract.ThrowIfFalse(_projectIds.Contains(projectId));
+        Contract.ThrowIfFalse(ProjectIds.Contains(projectId));
 
         // Project ID set and direct forward references are trivially updated by removing the key corresponding to
         // the project getting removed.
-        var projectIds = _projectIds.Remove(projectId);
+        var projectIds = ProjectIds.Remove(projectId);
         var referencesMap = ComputeNewReferencesMapForRemovedProject(
             existingForwardReferencesMap: _referencesMap,
             existingReverseReferencesMap: _lazyReverseReferencesMap,

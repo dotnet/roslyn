@@ -7,11 +7,12 @@ namespace Roslyn.LanguageServer.Protocol
     using System.Text.Json.Serialization;
 
     /// <summary>
-    /// Client settings for semantic tokens related to the
-    /// `textDocument/semanticTokens/full` message.
-    ///
+    /// Client capabilities specific to the <c>textDocument/semanticTokens/full</c> request.
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokensClientCapabilities">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
     internal class SemanticTokensRequestsFullSetting
     {
         /// <summary>
@@ -19,7 +20,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// <c>textDocument/semanticTokens/full/delta</c> request if the server
         /// provides a corresponding handler.
         /// </summary>
-        [JsonPropertyName("range")]
+        [JsonPropertyName("delta")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool Delta { get; set; }
     }

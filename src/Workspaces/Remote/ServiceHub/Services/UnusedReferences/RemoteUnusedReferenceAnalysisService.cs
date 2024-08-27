@@ -8,34 +8,33 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.UnusedReferences;
 using Microsoft.CodeAnalysis.UnusedReferences.ProjectAssets;
 
-namespace Microsoft.CodeAnalysis.Remote
+namespace Microsoft.CodeAnalysis.Remote;
+
+internal sealed class RemoteUnusedReferenceAnalysisService : BrokeredServiceBase, IRemoteUnusedReferenceAnalysisService
 {
-    internal sealed class RemoteUnusedReferenceAnalysisService : BrokeredServiceBase, IRemoteUnusedReferenceAnalysisService
+    internal sealed class Factory : FactoryBase<IRemoteUnusedReferenceAnalysisService>
     {
-        internal sealed class Factory : FactoryBase<IRemoteUnusedReferenceAnalysisService>
+        protected override IRemoteUnusedReferenceAnalysisService CreateService(in ServiceConstructionArguments arguments)
+            => new RemoteUnusedReferenceAnalysisService(arguments);
+    }
+
+    public RemoteUnusedReferenceAnalysisService(ServiceConstructionArguments arguments)
+        : base(arguments)
+    {
+    }
+
+    public ValueTask<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(Checksum solutionChecksum, string projectFilePath, string projectAssetsFilePath, ImmutableArray<ReferenceInfo> projectReferences, CancellationToken cancellationToken)
+    {
+        return RunServiceAsync(solutionChecksum, async solution =>
         {
-            protected override IRemoteUnusedReferenceAnalysisService CreateService(in ServiceConstructionArguments arguments)
-                => new RemoteUnusedReferenceAnalysisService(arguments);
-        }
+            // Read specified references with dependency information from the project assets file.
+            var references = await ProjectAssetsFileReader.ReadReferencesAsync(projectReferences, projectAssetsFilePath).ConfigureAwait(false);
 
-        public RemoteUnusedReferenceAnalysisService(ServiceConstructionArguments arguments)
-            : base(arguments)
-        {
-        }
+            // Determine unused references
+            var unusedReferences = await UnusedReferencesRemover.GetUnusedReferencesAsync(solution, projectFilePath, references, cancellationToken).ConfigureAwait(false);
 
-        public ValueTask<ImmutableArray<ReferenceInfo>> GetUnusedReferencesAsync(Checksum solutionChecksum, string projectFilePath, string projectAssetsFilePath, ImmutableArray<ReferenceInfo> projectReferences, CancellationToken cancellationToken)
-        {
-            return RunServiceAsync(solutionChecksum, async solution =>
-            {
-                // Read specified references with dependency information from the project assets file.
-                var references = await ProjectAssetsFileReader.ReadReferencesAsync(projectReferences, projectAssetsFilePath).ConfigureAwait(false);
-
-                // Determine unused references
-                var unusedReferences = await UnusedReferencesRemover.GetUnusedReferencesAsync(solution, projectFilePath, references, cancellationToken).ConfigureAwait(false);
-
-                // Remove dependency information before returning.
-                return unusedReferences.SelectAsArray(reference => reference.WithDependencies(null));
-            }, cancellationToken);
-        }
+            // Remove dependency information before returning.
+            return unusedReferences.SelectAsArray(reference => reference.WithDependencies(null));
+        }, cancellationToken);
     }
 }

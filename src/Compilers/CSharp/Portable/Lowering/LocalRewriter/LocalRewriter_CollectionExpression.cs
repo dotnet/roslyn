@@ -1067,6 +1067,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (addRangeMethod is null)
                             return false;
 
+                        if (spreadElement.EnumeratorInfoOpt is { } enumeratorInfo)
+                        {
+                            var iCollectionOfTType = _compilation.GetSpecialType(SpecialType.System_Collections_Generic_ICollection_T);
+                            var iCollectionOfElementType = iCollectionOfTType.Construct(enumeratorInfo.ElementType);
+                            var discardedUseSiteInfo = CompoundUseSiteInfo<AssemblySymbol>.Discarded;
+
+                            // If collection has a struct enumerator but doesn't implement ICollection<T>
+                            // then manual `foreach` is always more efficient then using `AddRange` method
+                            if (enumeratorInfo.GetEnumeratorInfo.Method.ReturnType.IsValueType &&
+                                !enumeratorInfo.CollectionType.ImplementsInterface(iCollectionOfElementType, ref discardedUseSiteInfo))
+                            {
+                                return false;
+                            }
+                        }
+
                         var type = rewrittenSpreadOperand.Type!;
 
                         var useSiteInfo = GetNewCompoundUseSiteInfo();

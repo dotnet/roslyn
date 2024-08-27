@@ -161,7 +161,8 @@ internal abstract partial class AbstractFindUsagesService
         OptionsProvider<ClassificationOptions> classificationOptions,
         CancellationToken cancellationToken)
     {
-        var progress = new FindReferencesProgressAdapter(project.Solution, context, searchOptions, classificationOptions);
+        var progress = new FindReferencesProgressAdapter(
+            project.Solution, symbol, context, searchOptions, classificationOptions);
         return SymbolFinder.FindReferencesAsync(
             symbol, project.Solution, progress, documents: null, searchOptions, cancellationToken);
     }
