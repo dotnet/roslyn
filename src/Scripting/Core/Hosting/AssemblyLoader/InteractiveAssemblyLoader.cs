@@ -104,11 +104,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
 
         public void Dispose()
         {
-#if NET
             // This field reference loaded assemblies, so it must be cleared before the loader is disposed.
             // Otherwise, AssemblyLoadContext.Unload in CoreAssemblyLoaderImpl would not working
             _loadedAssembliesBySimpleName.Clear();
-#endif
             _runtimeAssemblyLoader.Dispose();
         }
 
