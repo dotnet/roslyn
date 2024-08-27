@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 var submission = GetSelectedText(args, context.OperationContext.UserCancellationToken);
                 if (!string.IsNullOrWhiteSpace(submission))
                 {
-                    window.SubmitAsync(new string[] { submission });
+                    window.SubmitAsync([submission]);
                 }
             }
 

@@ -1736,12 +1736,12 @@ End Class
         var sourceV1 = "[assembly: System.Reflection.AssemblyVersion(\"1.0.0.0\")] public class T {}";
         var sourceV2 = "[assembly: System.Reflection.AssemblyVersion(\"2.0.0.0\")] public class T {}";
 
-        var a1 = (Compilation)CS.CSharpCompilation.Create("a", new[] { CS.SyntaxFactory.ParseSyntaxTree(source) }, references, CSharpDllOptions);
-        var a2 = (Compilation)CS.CSharpCompilation.Create("a", new[] { CS.SyntaxFactory.ParseSyntaxTree(source) }, references, CSharpDllOptions);
+        var a1 = (Compilation)CS.CSharpCompilation.Create("a", [CS.SyntaxFactory.ParseSyntaxTree(source)], references, CSharpDllOptions);
+        var a2 = (Compilation)CS.CSharpCompilation.Create("a", [CS.SyntaxFactory.ParseSyntaxTree(source)], references, CSharpDllOptions);
 
-        var b1 = (Compilation)CS.CSharpCompilation.Create("b", new[] { CS.SyntaxFactory.ParseSyntaxTree(sourceV1) }, references, CSharpSignedDllOptions);
-        var b2 = (Compilation)CS.CSharpCompilation.Create("b", new[] { CS.SyntaxFactory.ParseSyntaxTree(sourceV2) }, references, CSharpSignedDllOptions);
-        var b3 = (Compilation)CS.CSharpCompilation.Create("b", new[] { CS.SyntaxFactory.ParseSyntaxTree(sourceV2) }, references, CSharpSignedDllOptions);
+        var b1 = (Compilation)CS.CSharpCompilation.Create("b", [CS.SyntaxFactory.ParseSyntaxTree(sourceV1)], references, CSharpSignedDllOptions);
+        var b2 = (Compilation)CS.CSharpCompilation.Create("b", [CS.SyntaxFactory.ParseSyntaxTree(sourceV2)], references, CSharpSignedDllOptions);
+        var b3 = (Compilation)CS.CSharpCompilation.Create("b", [CS.SyntaxFactory.ParseSyntaxTree(sourceV2)], references, CSharpSignedDllOptions);
 
         var ta1 = (ITypeSymbol)a1.GlobalNamespace.GetMembers("T").Single();
         var ta2 = (ITypeSymbol)a2.GlobalNamespace.GetMembers("T").Single();
@@ -1830,8 +1830,8 @@ End Class
             r2 = MetadataReference.CreateFromImage(bytes);
         }
 
-        var c1 = (Compilation)CS.CSharpCompilation.Create("comp1", Array.Empty<SyntaxTree>(), new[] { NetFramework.mscorlib, r1 });
-        var c2 = (Compilation)CS.CSharpCompilation.Create("comp2", Array.Empty<SyntaxTree>(), new[] { NetFramework.mscorlib, r2 });
+        var c1 = (Compilation)CS.CSharpCompilation.Create("comp1", Array.Empty<SyntaxTree>(), [NetFramework.mscorlib, r1]);
+        var c2 = (Compilation)CS.CSharpCompilation.Create("comp2", Array.Empty<SyntaxTree>(), [NetFramework.mscorlib, r2]);
         var type1 = (ITypeSymbol)c1.GlobalNamespace.GetMembers("C").Single();
         var type2 = (ITypeSymbol)c2.GlobalNamespace.GetMembers("C").Single();
 
