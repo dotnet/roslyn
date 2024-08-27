@@ -4535,10 +4535,11 @@ class C { }
             var runResult = driver.GetRunResult();
             var result = Assert.Single(runResult.Results);
 
-            Assert.Collection(result.HostOutputs,
-                (e) => { Assert.Equal("a", e.Key); Assert.Equal("value", e.Value); },
-                (e) => { Assert.Equal("b", e.Key); Assert.Equal("value2", e.Value); }
-            );
+            Assert.Equal(2, result.HostOutputs.Keys.Count());
+            Assert.Contains("a", (IDictionary<string, object>)result.HostOutputs);
+            Assert.Equal("value", result.HostOutputs["a"]);
+            Assert.Contains("b", (IDictionary<string, object>)result.HostOutputs);
+            Assert.Equal("value2", result.HostOutputs["b"]);
         }
 
         [Fact]
