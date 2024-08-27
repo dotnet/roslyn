@@ -172,15 +172,31 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 Debug.Assert(!IsIndexer);
                 string fieldName = GeneratedNames.MakeBackingFieldName(_name);
-                BackingField = new SynthesizedBackingFieldSymbol(this,
-                                                                      fieldName,
-                                                                      // Synthesized backing field for 'field' should not be marked 'initonly'
-                                                                      // since the field might be modified in the get accessor.
-                                                                      // PROTOTYPE: Should the backing field be 'initonly' when the containing
-                                                                      // type, property, or accessor is declared 'readonly'?
-                                                                      isReadOnly: !usesFieldKeyword && ((hasGetAccessor && !hasSetAccessor) || isInitOnly),
-                                                                      this.IsStatic,
-                                                                      hasInitializer);
+
+                // The backing field is readonly if any of the following holds:
+                // - The containing type is declared readonly and the property is an instance property.
+                bool isReadOnly;
+                if (!IsStatic && containingType.IsReadOnly)
+                {
+                    isReadOnly = true;
+                }
+                // - The property is declared readonly.
+                else if (HasReadOnlyModifier)
+                {
+                    isReadOnly = true;
+                }
+                // - The property has no set accessor (but may have an init accessor) and
+                // the get accessor, if any, is automatically implemented.
+                else if ((!hasSetAccessor || isInitOnly) && (!hasGetAccessor || hasAutoPropertyGet))
+                {
+                    isReadOnly = true;
+                }
+                else
+                {
+                    isReadOnly = false;
+                }
+
+                BackingField = new SynthesizedBackingFieldSymbol(this, fieldName, isReadOnly: isReadOnly, this.IsStatic, hasInitializer);
             }
 
             if (hasGetAccessor)
