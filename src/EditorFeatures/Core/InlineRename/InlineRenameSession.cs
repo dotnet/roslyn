@@ -386,12 +386,19 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     {
         if (args.Kind != WorkspaceChangeKind.DocumentChanged)
         {
-            Logger.Log(FunctionId.Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange, KeyValueLogMessage.Create(m =>
+            // Make sure only call Cancel() when there is real document changes.
+            // Sometimes, WorkspaceChangeKind.SolutionChanged might be triggered because of SourceGeneratorVersion get updated.
+            // We don't want to cancel rename when there is no changed documents.
+            var changedDocuments = args.NewSolution.GetChangedDocuments(args.OldSolution);
+            if (changedDocuments.Any())
             {
-                m["Kind"] = Enum.GetName(typeof(WorkspaceChangeKind), args.Kind);
-            }));
+                Logger.Log(FunctionId.Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange, KeyValueLogMessage.Create(m =>
+                {
+                    m["Kind"] = Enum.GetName(typeof(WorkspaceChangeKind), args.Kind);
+                }));
 
-            Cancel();
+                Cancel();
+            }
         }
     }
 
