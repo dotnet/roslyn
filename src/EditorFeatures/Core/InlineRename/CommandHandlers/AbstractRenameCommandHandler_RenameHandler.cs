@@ -48,7 +48,7 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
         return true;
     }
 
-    private async Task ExecuteCommandAsync(RenameCommandArgs args, IUIThreadOperationContext uIThreadOperationContext)
+    private async Task ExecuteCommandAsync(RenameCommandArgs args, IUIThreadOperationContext editorOperationContext)
     {
         _threadingContext.ThrowIfNotOnUIThread();
 
@@ -77,7 +77,7 @@ internal abstract partial class AbstractRenameCommandHandler : ICommandHandler<R
             else
             {
                 // Otherwise, commit the existing session and start a new one.
-                Commit(uIThreadOperationContext);
+                Commit(editorOperationContext);
             }
         }
 
