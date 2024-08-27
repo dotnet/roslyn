@@ -41,7 +41,7 @@ internal static class Program
         catch (CultureNotFoundException)
         {
             // We couldn't find the culture, log a warning and fallback to the OS configured value.
-            logger.LogInformation($"Culture {locale} was not found, falling back to OS culture");
+            logger.LogWarning($"Culture {locale} was not found, falling back to OS culture");
         }
 
         logger.LogInformation($"BuildHost Runtime Version: {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}");
