@@ -169,7 +169,7 @@ internal sealed partial class ProjectSystemProject
         var provider = _projectSystemProjectFactory.SolutionServices.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
         // NOTE: The provider will always return the same singleton, shadow copying, analyzer loader instance, which is
         // important to ensure that analyzer dependencies are correctly loaded.
-        _analyzerAssemblyLoader = provider.GetShadowCopyLoader();
+        _analyzerAssemblyLoader = provider.SharedShadowCopyLoader;
 
         _sourceFiles = new BatchingDocumentCollection(
             this,
@@ -752,7 +752,7 @@ internal sealed partial class ProjectSystemProject
                 projectUpdateState = projectUpdateState.WithIncrementalAnalyzerReferencesAdded(analyzersAddedInBatch);
 
                 var loaderProvider = solutionChanges.Solution.Services.GetRequiredService<IAnalyzerAssemblyLoaderProvider>();
-                var shadowCopyLoader = loaderProvider.GetShadowCopyLoader();
+                var shadowCopyLoader = loaderProvider.SharedShadowCopyLoader;
 
                 solutionChanges.UpdateSolutionForProjectAction(
                     projectId,
