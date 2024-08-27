@@ -723,6 +723,10 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         }
     }
 
+    /// <remarks>
+    /// This method would create its own UIThreadOperationContext to handle cancellation.
+    /// Caller must make sure to call IUIThreadOperationContext.TakeOwnership() before calling this, otherwise it won't be able to cancel the rename operation.
+    /// </remarks>
     public void Commit(bool previewChanges = false)
         => CommitSynchronously(previewChanges);
 
@@ -738,6 +742,10 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false));
     }
 
+    /// <remarks>
+    /// This method would create its own UIThreadOperationContext to handle cancellation.
+    /// Caller must make sure to call IUIThreadOperationContext.TakeOwnership() before calling this, otherwise it won't be able to cancel the rename operation.
+    /// </remarks>
     public async Task CommitAsync(bool previewChanges)
     {
         if (this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
