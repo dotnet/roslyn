@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using System;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.RelatedDocuments;
@@ -23,6 +25,12 @@ internal sealed class RemoteRelatedDocumentsService(
 
     private readonly RemoteCallback<IRemoteRelatedDocumentsService.ICallback> _callback = callback;
 
+    private Func<ImmutableArray<DocumentId>, CancellationToken, ValueTask> GetCallbackFunction(RemoteServiceCallbackId callbackId)
+        // When the callback is invoked on our side (the remote side), forward the values back to the host.
+        => (documentIds, cancellationToken) => _callback.InvokeAsync(
+            (callback, cancellationToken) => callback.ReportRelatedDocumentAsync(callbackId, documentIds, cancellationToken),
+            cancellationToken);
+
     public ValueTask GetRelatedDocumentIdsAsync(
         Checksum solutionChecksum,
         DocumentId documentId,
@@ -33,15 +41,10 @@ internal sealed class RemoteRelatedDocumentsService(
         return RunServiceAsync(solutionChecksum, async solution =>
         {
             var document = solution.GetRequiredDocument(documentId);
-
             var service = document.GetRequiredLanguageService<IRelatedDocumentsService>();
+
             await service.GetRelatedDocumentIdsAsync(
-                document,
-                position,
-                async (documentIds, cancellationToken) => await _callback.InvokeAsync(
-                    (callback, cancellationToken) => callback.ReportRelatedDocumentAsync(
-                        callbackId, documentIds, cancellationToken), cancellationToken).ConfigureAwait(false),
-                cancellationToken).ConfigureAwait(false);
+                document, position, GetCallbackFunction(callbackId), cancellationToken).ConfigureAwait(false);
         }, cancellationToken);
     }
 }
