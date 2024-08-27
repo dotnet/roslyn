@@ -27,9 +27,9 @@ internal sealed class RemoteRelatedDocumentsService(
 
     private Func<ImmutableArray<DocumentId>, CancellationToken, ValueTask> GetCallbackFunction(RemoteServiceCallbackId callbackId)
         // When the callback is invoked on our side (the remote side), forward the values back to the host.
-        => (documentIds, cancellationToken) => _callback.InvokeAsync(
-            (callback, cancellationToken) => callback.ReportRelatedDocumentAsync(callbackId, documentIds, cancellationToken),
-            cancellationToken);
+        => async (documentIds, cancellationToken) => await _callback.InvokeAsync(
+            async (callback, cancellationToken) => await callback.ReportRelatedDocumentAsync(callbackId, documentIds, cancellationToken).ConfigureAwait(false),
+            cancellationToken).ConfigureAwait(false);
 
     public ValueTask GetRelatedDocumentIdsAsync(
         Checksum solutionChecksum,

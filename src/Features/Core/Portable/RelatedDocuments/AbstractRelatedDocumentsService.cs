@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,17 +28,7 @@ internal abstract class AbstractRelatedDocumentsService<
         private static readonly ObjectPool<ConcurrentSet<T>> s_pool = new(() => []);
 
         public static PooledObject<ConcurrentSet<T>> GetInstance(out ConcurrentSet<T> set)
-        {
-            var obj = s_pool.GetPooledObject();
-            set = obj.Object;
-            return obj;
-        }
-
-        public static void ClearAndFree(ConcurrentSet<T> set)
-        {
-            set.Clear();
-            s_pool.Free(set);
-        }
+            => s_pool.GetPooledObject(out set);
     }
 
     protected abstract IEnumerable<(TExpressionSyntax expression, SyntaxToken nameToken)> IteratePotentialTypeNodes(SyntaxNode root);
@@ -88,6 +79,9 @@ internal abstract class AbstractRelatedDocumentsService<
 
         using var _1 = ConcurrentSetPool<DocumentId>.GetInstance(out var seenDocumentIds);
         using var _2 = ConcurrentSetPool<string>.GetInstance(out var seenTypeNames);
+
+        Debug.Assert(seenDocumentIds.Count == 0);
+        Debug.Assert(seenTypeNames.Count == 0);
 
         var syntaxFacts = document.GetRequiredLanguageService<ISyntaxFactsService>();
         var syntaxKinds = syntaxFacts.SyntaxKinds;
