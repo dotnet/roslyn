@@ -45,6 +45,9 @@ internal abstract class AbstractRelatedDocumentsService<
     public async ValueTask GetRelatedDocumentIdsAsync(
         Document document, int position, Func<ImmutableArray<DocumentId>, CancellationToken, ValueTask> callbackAsync, CancellationToken cancellationToken)
     {
+        // This feature will bind a lot of the nodes in the file.  Call out to the remote host to do this work if
+        // available, so that we won't cause resource contention within our host.
+
         var project = document.Project;
         var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
         if (client != null)
