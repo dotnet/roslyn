@@ -767,7 +767,7 @@ internal sealed partial class ProjectSystemProject
             // In .Net Core, we must have IsolatedAnalyzerFileReferences for all analyzers.
             initialReferenceList.Add(((IsolatedAnalyzerFileReference)analyzerReference).UnderlyingAnalyzerFileReference);
 #else
-            // In .Net Core, we must have AnalyzerFileReferences for all analyzers.
+            // In .NET Framework, we must have AnalyzerFileReferences for all analyzers.
             initialReferenceList.Add((AnalyzerFileReference)analyzerReference);
 #endif
         }
