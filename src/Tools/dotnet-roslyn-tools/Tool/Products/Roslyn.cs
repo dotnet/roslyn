@@ -9,6 +9,8 @@ internal class Roslyn : IProduct
     public string Name => "Roslyn";
 
     public string RepoHttpBaseUrl => "https://github.com/dotnet/roslyn";
+    public string InternalRepoBaseUrl => "https://dnceng.visualstudio.com/internal/_git/dotnet-roslyn";
+
     public string RepoSshBaseUrl => "git@github.com:dotnet/roslyn.git";
     public string GitUserName => "dotnet bot";
     public string GitEmail => "dotnet-bot@microsoft.com";
@@ -17,9 +19,9 @@ internal class Roslyn : IProduct
     public string ComponentName => "Microsoft.CodeAnalysis.LanguageServices";
     public string? PackageName => "VS.ExternalAPIs.Roslyn";
     public string? PackagePropsFileName => "src/ConfigData/Packages/roslyn.props";
+    public string? DartLabPipelineName => "Roslyn Integration CI DartLab";
     public string? ArtifactsFolderName => "PackageArtifacts";
     public string[] ArtifactsSubFolderNames => new[] { "PackageArtifacts/PreRelease", "PackageArtifacts/Release" };
-
 
     public string? GetBuildPipelineName(string buildProjectName)
         => buildProjectName switch

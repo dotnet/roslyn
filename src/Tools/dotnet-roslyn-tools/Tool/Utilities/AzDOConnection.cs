@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the License.txt file in the project root for more information.
 
+using System.Reflection;
+using Microsoft.Azure.Pipelines.WebApi;
 using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.Build.WebApi;
 using Microsoft.TeamFoundation.Core.WebApi;
@@ -23,6 +25,7 @@ internal sealed class AzDOConnection : IDisposable
     public HttpClient NuGetClient { get; }
     public FileContainerHttpClient ContainerClient { get; }
     public ProjectHttpClient ProjectClient { get; }
+    public PipelinesHttpClient PipelinesHttpClient { get; }
 
     public AzDOConnection(VssConnection vssConnection, string projectName)
     {
@@ -37,6 +40,8 @@ internal sealed class AzDOConnection : IDisposable
         ContainerClient = Connection.GetClient<FileContainerHttpClient>();
 
         ProjectClient = Connection.GetClient<ProjectHttpClient>();
+
+        PipelinesHttpClient = Connection.GetClient<PipelinesHttpClient>();
     }
 
     public async Task<List<Build>?> TryGetBuildsAsync(string pipelineName, string? buildNumber = null, ILogger? logger = null, int? maxFetchingVsBuildNumber = null, BuildResult? resultsFilter = null, BuildQueryOrder? buildQueryOrder = null)
@@ -61,6 +66,23 @@ internal sealed class AzDOConnection : IDisposable
         catch
         {
             return null;
+        }
+    }
+
+    public async Task TryRunPipelineAsync(string? pipelineName, Dictionary<string, RepositoryResourceParameters> repositoryParams, RunPipelineParameters runPipelineParams, ILogger logger)
+    {
+        try
+        {
+            var buildDefinition = (await BuildClient.GetDefinitionsAsync(BuildProjectName, name: pipelineName)).Single();
+
+            var repositoryField = runPipelineParams.Resources.GetType().GetField("m_repositories", BindingFlags.NonPublic | BindingFlags.Instance);
+            repositoryField?.SetValue(runPipelineParams.Resources, repositoryParams);
+            var run = await PipelinesHttpClient.RunPipelineAsync(runPipelineParams, BuildProjectName, buildDefinition.Id);
+            logger.LogInformation($"Pipeline running at: {((ReferenceLink)run.Links.Links["web"]).Href}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error running pipeline: {ex.Message}");
         }
     }
 

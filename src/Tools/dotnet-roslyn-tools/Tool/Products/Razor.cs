@@ -9,6 +9,8 @@ internal class Razor : IProduct
     public string Name => "Razor";
 
     public string RepoHttpBaseUrl => "https://github.com/dotnet/razor";
+    public string InternalRepoBaseUrl => "";
+
     public string RepoSshBaseUrl => "git@github.com:dotnet/razor.git";
     public string GitUserName => "dotnet bot";
     public string GitEmail => "dotnet-bot@microsoft.com";
@@ -17,9 +19,9 @@ internal class Razor : IProduct
     public string ComponentName => "Microsoft.VisualStudio.RazorExtension";
     public string? PackageName => null;
     public string? PackagePropsFileName => null;
+    public string? DartLabPipelineName => null;
     public string? ArtifactsFolderName => null;
     public string[] ArtifactsSubFolderNames => Array.Empty<string>();
-
 
     public string? GetBuildPipelineName(string buildProjectName)
         => buildProjectName switch

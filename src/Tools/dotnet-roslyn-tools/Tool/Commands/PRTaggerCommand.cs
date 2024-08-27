@@ -5,7 +5,7 @@
 using System.CommandLine;
 using System.CommandLine.Invocation;
 using Microsoft.Extensions.Logging;
-using Microsoft.RoslynTools.PRTagger;
+using Microsoft.RoslynTools.Utilities;
 
 namespace Microsoft.RoslynTools.Commands;
 
@@ -45,9 +45,9 @@ The checking build list is created:
             var logger = context.SetupLogging();
             var settings = context.ParseResult.LoadSettings(logger);
 
+            var isMissingAzDOToken = string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) || string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken);
             if (string.IsNullOrEmpty(settings.GitHubToken) ||
-                string.IsNullOrEmpty(settings.DevDivAzureDevOpsToken) ||
-                string.IsNullOrEmpty(settings.DncEngAzureDevOpsToken))
+                (settings.IsCI && isMissingAzDOToken))
             {
                 logger.LogError("Missing authentication token.");
                 return -1;

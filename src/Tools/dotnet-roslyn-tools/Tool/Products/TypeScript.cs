@@ -9,6 +9,7 @@ internal class TypeScript : IProduct
     public string Name => "TypeScript";
 
     public string RepoHttpBaseUrl => "https://devdiv.visualstudio.com/DevDiv/_git/TypeScript-VS";
+    public string InternalRepoBaseUrl => "";
     public string RepoSshBaseUrl => "devdiv@vs-ssh.visualstudio.com:v3/devdiv/DevDiv/TypeScript-VS";
     public string GitUserName => "";
     public string GitEmail => "";
@@ -16,6 +17,7 @@ internal class TypeScript : IProduct
     public string ComponentJsonFileName => @".corext\Configs\components.json";
     public string ComponentName => "TypeScript_Tools";
     public string? PackageName => "VS.ExternalAPIs.TypeScript.SourceMapReader.dev15";
+    public string? DartLabPipelineName => null;
     public string? ArtifactsFolderName => null;
     public string[] ArtifactsSubFolderNames => Array.Empty<string>();
 
