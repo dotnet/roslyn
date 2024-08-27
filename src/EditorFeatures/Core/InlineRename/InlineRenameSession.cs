@@ -761,13 +761,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     private async Task<bool> CommitWorkerAsync(bool previewChanges, bool canUseBackgroundWorkIndicator, IUIThreadOperationContext editorUIOperationContext)
     {
         await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
-        if (editorUIOperationContext is not null)
-        {
-            // Prevent Editor's typing responsiveness auto canceling the rename operation.
-            // InlineRenameSession will call IUIThreadOperationExecutor to sets up our own IUIThreadOperationContext
-            editorUIOperationContext.TakeOwnership();
-        }
-
         VerifyNotDismissed();
 
         // If the identifier was deleted (or didn't change at all) then cancel the operation.
@@ -787,6 +780,13 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         }
 
         previewChanges = previewChanges || PreviewChanges;
+
+        if (editorUIOperationContext is not null)
+        {
+            // Prevent Editor's typing responsiveness auto canceling the rename operation.
+            // InlineRenameSession will call IUIThreadOperationExecutor to sets up our own IUIThreadOperationContext
+            editorUIOperationContext.TakeOwnership();
+        }
 
         try
         {
