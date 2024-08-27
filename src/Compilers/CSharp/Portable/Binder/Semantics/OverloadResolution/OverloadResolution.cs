@@ -2850,15 +2850,16 @@ outerDefault:
             if (conv1.Kind == ConversionKind.CollectionExpression &&
                 conv2.Kind == ConversionKind.CollectionExpression)
             {
-                if (IsBetterCollectionExpressionConversion(t1, conv1, t2, conv2, ref useSiteInfo))
-                {
-                    return BetterResult.Left;
-                }
-                if (IsBetterCollectionExpressionConversion(t2, conv2, t1, conv1, ref useSiteInfo))
-                {
-                    return BetterResult.Right;
-                }
-                return BetterResult.Neither;
+                return IsBetterCollectionExpressionConversion((BoundUnconvertedCollectionExpression)node, t1, conv1, t2, conv2, ref useSiteInfo);
+                // if (IsBetterCollectionExpressionConversion( t1, conv1, t2, conv2, ref useSiteInfo))
+                // {
+                //     return BetterResult.Left;
+                // }
+                // if (IsBetterCollectionExpressionConversion(t2, conv2, t1, conv1, ref useSiteInfo))
+                // {
+                //     return BetterResult.Right;
+                // }
+                // return BetterResult.Neither;
             }
 
             // - T1 is a better conversion target than T2 and either C1 and C2 are both conditional expression
@@ -2868,16 +2869,117 @@ outerDefault:
 
         // Implements the rules for
         // - E is a collection expression and one of the following holds: ...
-        private bool IsBetterCollectionExpressionConversion(TypeSymbol t1, Conversion conv1, TypeSymbol t2, Conversion conv2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
+        private BetterResult IsBetterCollectionExpressionConversion(BoundUnconvertedCollectionExpression collectionExpression, TypeSymbol t1, Conversion conv1, TypeSymbol t2, Conversion conv2, ref CompoundUseSiteInfo<AssemblySymbol> useSiteInfo)
         {
-            TypeSymbol elementType1;
-            var kind1 = conv1.GetCollectionExpressionTypeKind(out elementType1, out _, out _);
-            TypeSymbol elementType2;
-            var kind2 = conv2.GetCollectionExpressionTypeKind(out elementType2, out _, out _);
+            // Given:
+            // - `E` is a collection expression with element expressions `[EL₁, EL₂, ..., ELₙ]`
+            // - `T₁` and `T₂` are collection types
+            // - `E₁` is the element type of `T₁`
+            // - `E₂` is the element type of `T₂`
+            // - `CE₁ᵢ` are the series of conversions from `ELᵢ` to `E₁`
+            // - `CE₂ᵢ` are the series of conversions from `ELᵢ` to `E₂`
 
-            return IsBetterCollectionExpressionConversion(t1, kind1, elementType1, t2, kind2, elementType2, ref useSiteInfo);
+            var kind1 = conv1.GetCollectionExpressionTypeKind(out TypeSymbol elementType1, out _, out _);
+            var kind2 = conv2.GetCollectionExpressionTypeKind(out TypeSymbol elementType2, out _, out _);
+
+            var t1IsSpanType = kind1 is CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span;
+            var t2IsSpanType = kind2 is CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span;
+
+            // `C₁` is a ***better collection conversion from expression*** than `C₂` if:
+            // - `T₁` or `T₂` is not a *span type*, and `T₁` is implicitly convertible to `T₂`, and `T₂` is not implicitly convertible to `T₁`, or
+            if (!t1IsSpanType && !t2IsSpanType)
+            {
+                var betterConversion = BetterConversionTarget(t1, t2, ref useSiteInfo);
+
+                if (betterConversion != BetterResult.Neither)
+                {
+                    return betterConversion;
+                }
+            }
+
+            // - `E₁` does not have an identity conversion to `E₂`, and the element conversions to `E₁` are better than the element conversions to `E₂`, or
+            // - `E₁` has an identity conversion to `E₂`, and one of the following holds:
+
+            // `E₁` is compared to `E₂` as follows:
+            // If there is an identity conversion from `E₁` to `E₂`, then the element conversions are as good as each other. Otherwise, the element conversions to `E₁` are better than the element conversions to `E₂` if:
+            // - For every `ELᵢ`, `CE₁ᵢ` is at least as good as `CE₂ᵢ`, and
+            // - There is at least one i where `CE₁ᵢ` is better than `CE₂ᵢ`
+            // Otherwise, neither set of element conversions is better than the other, and they are also not as good as each other.  
+            // Conversion comparisons are made using better conversion from expression if `ELᵢ` is not a spread element. If `ELᵢ` is a spread element, we use better conversion from the element type of the spread collection to `E₁` or `E₂`, respectively.
+
+            if (!Conversions.HasIdentityConversion(elementType1, elementType2))
+            {
+                var betterResult = BetterResult.Neither;
+                var e1Results = conv1.UnderlyingConversions;
+                var e2Results = conv2.UnderlyingConversions;
+                Debug.Assert(e1Results.Length == e2Results.Length && e1Results.Length == collectionExpression.Elements.Length);
+
+                // PROTOTYPE: Confirm empty rule with LDM
+                if (e1Results.Length == 0)
+                {
+                    return BetterConversionTarget(elementType1, elementType2, ref useSiteInfo);
+                }
+
+                for (int i = 0; i < e1Results.Length; i++)
+                {
+                    // Conversion comparisons are made using better conversion from expression if `ELᵢ` is not a spread element. If `ELᵢ` is a spread element, we use better conversion from the element type of the spread collection to `E₁` or `E₂`, respectively.
+                    var node = collectionExpression.Elements[i];
+
+                    BetterResult elementBetterResult;
+                    if (node is BoundCollectionExpressionSpreadElement { Conversion: var spreadConversion })
+                    {
+                        // PROTOTYPE
+                        elementBetterResult = BetterResult.Neither;
+                    }
+                    else
+                    {
+                        elementBetterResult = BetterConversionFromExpression((BoundExpression)node, elementType1, e1Results[i], elementType2, e2Results[i], ref useSiteInfo, out _);
+                    }
+
+                    if (elementBetterResult == BetterResult.Neither)
+                    {
+                        continue;
+                    }
+
+                    if (betterResult != BetterResult.Neither)
+                    {
+                        if (betterResult != elementBetterResult)
+                        {
+                            return BetterResult.Neither;
+                        }
+                    }
+                    else
+                    {
+                        betterResult = elementBetterResult;
+                    }
+                }
+
+                return betterResult;
+            }
+
+            // - `T₁` is `System.ReadOnlySpan<E₁>`, and `T₂` is `System.Span<E₂>`, or
+            // - `T₁` is `System.ReadOnlySpan<E₁>` or `System.Span<E₁>`, and `T₂` is an *array_or_array_interface* with *element type* `E₂`
+
+            if (!t1IsSpanType || !t2IsSpanType)
+            {
+                return BetterResult.Neither;
+            }
+
+            switch ((kind1, kind2))
+            {
+                case (CollectionExpressionTypeKind.ReadOnlySpan, CollectionExpressionTypeKind.Span):
+                case (CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span, _) when IsSZArrayOrArrayInterface(t2, out _):
+                    return BetterResult.Left;
+
+                case (CollectionExpressionTypeKind.Span, CollectionExpressionTypeKind.ReadOnlySpan):
+                case (_, CollectionExpressionTypeKind.ReadOnlySpan or CollectionExpressionTypeKind.Span) when IsSZArrayOrArrayInterface(t1, out _):
+                    return BetterResult.Right;
+            }
+
+            return BetterResult.Neither;
         }
 
+        // PROTOTYPE: remove? Condition on C# 12?
         private bool IsBetterCollectionExpressionConversion(
             TypeSymbol t1, CollectionExpressionTypeKind kind1, TypeSymbol elementType1,
             TypeSymbol t2, CollectionExpressionTypeKind kind2, TypeSymbol elementType2,
