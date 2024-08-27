@@ -240,6 +240,9 @@ internal sealed class BuildHostProcessManager : IAsyncDisposable
             AddArgument(processStartInfo, _binaryLogPath);
         }
 
+        AddArgument(processStartInfo, "--locale");
+        AddArgument(processStartInfo, System.Globalization.CultureInfo.CurrentUICulture.Name);
+
         // MSBUILD_EXE_PATH is read by MSBuild to find related tasks and targets. We don't want this to be inherited by our build process, or otherwise
         // it might try to load targets that aren't appropriate for the build host.
         processStartInfo.Environment.Remove("MSBUILD_EXE_PATH");

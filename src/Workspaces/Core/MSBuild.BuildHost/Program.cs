@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Immutable;
 using System.CommandLine;
+using System.Globalization;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
@@ -16,10 +17,12 @@ internal static class Program
     {
         var propertyOption = new CliOption<string[]>("--property") { Arity = ArgumentArity.ZeroOrMore };
         var binaryLogOption = new CliOption<string?>("--binlog") { Required = false };
-        var command = new CliRootCommand { binaryLogOption, propertyOption };
+        var localeOption = new CliOption<string>("--locale") { Required = true };
+        var command = new CliRootCommand { binaryLogOption, propertyOption, localeOption };
         var parsedArguments = command.Parse(args);
         var properties = parsedArguments.GetValue(propertyOption)!;
         var binaryLogPath = parsedArguments.GetValue(binaryLogOption);
+        var locale = parsedArguments.GetValue(localeOption)!;
 
         var propertiesBuilder = ImmutableDictionary.CreateBuilder<string, string>();
 
@@ -30,6 +33,16 @@ internal static class Program
         }
 
         var logger = new BuildHostLogger(Console.Error);
+
+        try
+        {
+            CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(locale);
+        }
+        catch (CultureNotFoundException)
+        {
+            // We couldn't find the culture, log a warning and fallback to the OS configured value.
+            logger.LogInformation($"Culture {locale} was not found, falling back to OS culture");
+        }
 
         logger.LogInformation($"BuildHost Runtime Version: {System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}");
 
