@@ -17,7 +17,7 @@ internal interface IRemoteRelatedDocumentsService
     ValueTask GetRelatedDocumentIdsAsync(
         Checksum solutionChecksum, DocumentId documentId, int position, RemoteServiceCallbackId callbackId, CancellationToken cancellationToken);
 
-    public interface ICallback
+    internal interface ICallback
     {
         ValueTask ReportRelatedDocumentAsync(RemoteServiceCallbackId callbackId, ImmutableArray<DocumentId> documentIds, CancellationToken cancellationToken);
     }
