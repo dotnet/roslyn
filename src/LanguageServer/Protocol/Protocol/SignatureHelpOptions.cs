@@ -8,8 +8,9 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing the options for signature help support.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#signatureHelpOptions">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class SignatureHelpOptions : IWorkDoneProgressOptions
     {
@@ -28,6 +29,7 @@ namespace Roslyn.LanguageServer.Protocol
         /// Gets or sets the characters that re-trigger signature help
         /// when signature help is already showing.
         /// </summary>
+        /// <remarks>Since LSP 3.15</remarks>
         [JsonPropertyName("retriggerCharacters")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string[]? RetriggerCharacters
@@ -36,9 +38,7 @@ namespace Roslyn.LanguageServer.Protocol
             set;
         }
 
-        /// <summary>
-        /// Gets or sets a value indicating whether work done progress is supported.
-        /// </summary>
+        /// <inheritdoc/>
         [JsonPropertyName("workDoneProgress")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
         public bool WorkDoneProgress { get; init; }

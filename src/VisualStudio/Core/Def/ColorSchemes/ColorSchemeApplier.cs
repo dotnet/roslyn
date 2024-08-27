@@ -13,12 +13,15 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Threading;
+using Microsoft.Win32;
+using Roslyn.Utilities;
 using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.CodeAnalysis.ColorSchemes;
@@ -35,6 +38,7 @@ internal sealed partial class ColorSchemeApplier
     private readonly ColorSchemeSettings _settings;
     private readonly ClassificationVerifier _classificationVerifier;
     private readonly ImmutableDictionary<ColorSchemeName, ColorScheme> _colorSchemes;
+    private readonly AsyncBatchingWorkQueue _workQueue;
 
     private readonly object _gate = new();
 
@@ -47,7 +51,8 @@ internal sealed partial class ColorSchemeApplier
         IThreadingContext threadingContext,
         IVsService<SVsFontAndColorStorage, IVsFontAndColorStorage> fontAndColorStorage,
         IGlobalOptionService globalOptions,
-        SVsServiceProvider serviceProvider)
+        SVsServiceProvider serviceProvider,
+        IAsynchronousOperationListenerProvider listenerProvider)
     {
         _threadingContext = threadingContext;
         _serviceProvider = serviceProvider;
@@ -56,6 +61,11 @@ internal sealed partial class ColorSchemeApplier
         _settings = new ColorSchemeSettings(threadingContext, _serviceProvider, globalOptions);
         _colorSchemes = ColorSchemeSettings.GetColorSchemes();
         _classificationVerifier = new ClassificationVerifier(threadingContext, fontAndColorStorage, _colorSchemes);
+        _workQueue = new(
+            DelayTimeSpan.Idle,
+            QueueColorSchemeUpdateAsync,
+            listenerProvider.GetListener(FeatureAttribute.ColorScheme),
+            threadingContext.DisposalToken);
     }
 
     public async Task InitializeAsync(CancellationToken cancellationToken)
@@ -106,15 +116,18 @@ internal sealed partial class ColorSchemeApplier
     }
 
     private void VSColorTheme_ThemeChanged(ThemeChangedEventArgs e)
-        => QueueColorSchemeUpdateAsync().Forget();
+        => _workQueue.AddWork();
 
     private Task ColorSchemeChangedAsync(object sender, PropertyChangedEventArgs args)
-        => QueueColorSchemeUpdateAsync();
+    {
+        _workQueue.AddWork();
+        return Task.CompletedTask;
+    }
 
-    private async Task QueueColorSchemeUpdateAsync()
+    private async ValueTask QueueColorSchemeUpdateAsync(CancellationToken cancellationToken)
     {
         // Wait until things have settled down from the theme change, since we will potentially be changing theme colors.
-        await VsTaskLibraryHelper.StartOnIdle(_threadingContext.JoinableTaskFactory, () => UpdateColorSchemeAsync(_threadingContext.DisposalToken));
+        await VsTaskLibraryHelper.StartOnIdle(_threadingContext.JoinableTaskFactory, () => UpdateColorSchemeAsync(cancellationToken));
     }
 
     /// <summary>
@@ -171,7 +184,27 @@ internal sealed partial class ColorSchemeApplier
             return KnownColorThemes.Blue;
         }
 
-        return Guid.Parse(currentThemeString);
+        var themeId = Guid.Parse(currentThemeString);
+
+        if (themeId == KnownColorThemes.System)
+        {
+            themeId = ShouldAppsUseLightTheme()
+                ? KnownColorThemes.Light
+                : KnownColorThemes.Dark;
+        }
+
+        return themeId;
+    }
+
+    private static bool ShouldAppsUseLightTheme()
+    {
+        const string PersonalizeKey = @"Software\Microsoft\Windows\CurrentVersion\Themes\Personalize";
+        const string AppsUseLightThemeValue = "AppsUseLightTheme";
+        const string appsUseDarkTheme = "0";
+
+        using var personalizeKey = Registry.CurrentUser.OpenSubKey(PersonalizeKey, writable: false);
+        var appsThemeValue = personalizeKey?.GetValue(AppsUseLightThemeValue)?.ToString();
+        return appsThemeValue != appsUseDarkTheme;
     }
 
     // NOTE: This service is not public or intended for use by teams/individuals outside of Microsoft. Any data stored is subject to deletion without warning.

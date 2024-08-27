@@ -21,11 +21,11 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
     {
         public async Task<object[]> HandleAsync(object param, RequestContext<Solution> requestContext, CancellationToken cancellationToken)
         {
-            var projects = new ArrayBuilder<CustomProtocol.Project>();
+            using var _1 = ArrayBuilder<CustomProtocol.Project>.GetInstance(out var projects);
+            using var _2 = ArrayBuilder<Uri>.GetInstance(out var externalUris);
             var solution = requestContext.Context;
             foreach (var project in solution.Projects)
             {
-                var externalUris = new ArrayBuilder<Uri>();
                 foreach (var sourceFile in project.Documents)
                 {
                     var uri = new Uri(sourceFile.FilePath);
@@ -37,7 +37,7 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                     }
                 }
 #pragma warning disable 0612
-                await requestContext.ProtocolConverter.RegisterExternalFilesAsync(externalUris.ToArrayAndFree()).ConfigureAwait(false);
+                await requestContext.ProtocolConverter.RegisterExternalFilesAsync(externalUris.ToArray()).ConfigureAwait(false);
 #pragma warning restore 0612
 
                 var lspProject = new CustomProtocol.Project
@@ -48,9 +48,10 @@ namespace Microsoft.VisualStudio.LanguageServices.LiveShare
                 };
 
                 projects.Add(lspProject);
+                externalUris.Clear();
             }
 
-            return projects.ToArrayAndFree();
+            return projects.ToArray();
         }
     }
 }

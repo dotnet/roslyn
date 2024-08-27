@@ -20,20 +20,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         {
             internal readonly struct SignatureHelpSelection
             {
-                private readonly SignatureHelpItem _selectedItem;
-                private readonly bool _userSelected;
                 private readonly int? _selectedParameter;
 
                 public SignatureHelpSelection(SignatureHelpItem selectedItem, bool userSelected, int? selectedParameter) : this()
                 {
-                    _selectedItem = selectedItem;
-                    _userSelected = userSelected;
+                    SelectedItem = selectedItem;
+                    UserSelected = userSelected;
                     _selectedParameter = selectedParameter;
                 }
 
                 public int? SelectedParameter => _selectedParameter;
-                public SignatureHelpItem SelectedItem => _selectedItem;
-                public bool UserSelected => _userSelected;
+                public SignatureHelpItem SelectedItem { get; }
+                public bool UserSelected { get; }
             }
 
             internal static class DefaultSignatureHelpSelector
@@ -42,13 +40,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     IList<SignatureHelpItem> items,
                     SignatureHelpItem selectedItem,
                     bool userSelected,
-                    int argumentIndex,
-                    int argumentCount,
+                    int semanticParameterIndex,
+                    int syntacticArgumentCount,
                     string argumentName,
                     bool isCaseSensitive)
                 {
-                    SelectBestItem(ref selectedItem, ref userSelected, items, argumentIndex, argumentCount, argumentName, isCaseSensitive);
-                    var selectedParameter = GetSelectedParameter(selectedItem, argumentIndex, argumentName, isCaseSensitive);
+                    SelectBestItem(ref selectedItem, ref userSelected, items, semanticParameterIndex, syntacticArgumentCount, argumentName, isCaseSensitive);
+                    var selectedParameter = GetSelectedParameter(selectedItem, semanticParameterIndex, argumentName, isCaseSensitive);
                     return new SignatureHelpSelection(selectedItem, userSelected, selectedParameter);
                 }
 
@@ -67,12 +65,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     return parameterIndex;
                 }
 
-                private static void SelectBestItem(ref SignatureHelpItem currentItem, ref bool userSelected,
-                    IList<SignatureHelpItem> filteredItems, int selectedParameter, int argumentCount, string name, bool isCaseSensitive)
+                private static void SelectBestItem(
+                    ref SignatureHelpItem currentItem,
+                    ref bool userSelected,
+                    IList<SignatureHelpItem> filteredItems,
+                    int semanticParameterIndex,
+                    int syntacticArgumentCount,
+                    string name,
+                    bool isCaseSensitive)
                 {
                     // If the current item is still applicable, then just keep it.
                     if (filteredItems.Contains(currentItem) &&
-                        IsApplicable(currentItem, argumentCount, name, isCaseSensitive))
+                        IsApplicable(currentItem, syntacticArgumentCount, name, isCaseSensitive))
                     {
                         // If the current item was user-selected, we keep it as such.
                         return;
@@ -86,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     // selected parameter was outside the bounds of all methods.  i.e. all methods only
                     // went up to 3 parameters, and selected parameter is 3 or higher.  In that case,
                     // just pick the very last item as it is closest in parameter count.
-                    var result = filteredItems.FirstOrDefault(i => IsApplicable(i, argumentCount, name, isCaseSensitive));
+                    var result = filteredItems.FirstOrDefault(i => IsApplicable(i, syntacticArgumentCount, name, isCaseSensitive));
                     if (result != null)
                     {
                         currentItem = result;
@@ -97,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     // a name.
                     if (name != null)
                     {
-                        SelectBestItem(ref currentItem, ref userSelected, filteredItems, selectedParameter, argumentCount, null, isCaseSensitive);
+                        SelectBestItem(ref currentItem, ref userSelected, filteredItems, semanticParameterIndex, syntacticArgumentCount, null, isCaseSensitive);
                         return;
                     }
 
@@ -112,7 +116,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     currentItem = lastItem;
                 }
 
-                private static bool IsApplicable(SignatureHelpItem item, int argumentCount, string name, bool isCaseSensitive)
+                private static bool IsApplicable(SignatureHelpItem item, int syntacticArgumentCount, string name, bool isCaseSensitive)
                 {
                     // If they provided a name, then the item is only valid if it has a parameter that
                     // matches that name.
@@ -126,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     // parameter index.  i.e. if it has 2 parameters and we're at index 0 or 1 then it's
                     // applicable.  However, if it has 2 parameters and we're at index 2, then it's not
                     // applicable.  
-                    if (item.Parameters.Length >= argumentCount)
+                    if (item.Parameters.Length >= syntacticArgumentCount)
                     {
                         return true;
                     }
@@ -141,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                     // Also, we special case 0.  that's because if the user has "Goo(" and goo takes no
                     // arguments, then we'll see that it's arg count is 0.  We still want to consider
                     // any item applicable here though.
-                    return argumentCount == 0;
+                    return syntacticArgumentCount == 0;
                 }
             }
         }

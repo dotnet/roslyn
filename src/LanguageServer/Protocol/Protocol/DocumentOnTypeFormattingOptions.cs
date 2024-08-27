@@ -8,15 +8,17 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Class representing the options for on type formatting.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentOnTypeFormattingOptions">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
     internal class DocumentOnTypeFormattingOptions
     {
         /// <summary>
-        /// Gets or sets the first trigger character.
+        /// A character on which formatting should be triggered, like <c>{</c>.
         /// </summary>
         [JsonPropertyName("firstTriggerCharacter")]
+        [JsonRequired]
         public string FirstTriggerCharacter
         {
             get;
@@ -24,7 +26,7 @@ namespace Roslyn.LanguageServer.Protocol
         }
 
         /// <summary>
-        /// Gets or sets additional trigger characters.
+        /// Optional additional trigger characters.
         /// </summary>
         [JsonPropertyName("moreTriggerCharacter")]
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

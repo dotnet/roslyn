@@ -191,7 +191,7 @@ internal class OrganizeDocumentCommandHandler(
                 var removeImportsService = document.GetRequiredLanguageService<IRemoveUnnecessaryImportsService>();
                 var organizeImportsService = document.GetRequiredLanguageService<IOrganizeImportsService>();
 
-                var newDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(document, formattingOptions, cancellationToken).ConfigureAwait(false);
+                var newDocument = await removeImportsService.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
                 var options = await document.GetOrganizeImportsOptionsAsync(cancellationToken).ConfigureAwait(false);
                 return await organizeImportsService.OrganizeImportsAsync(newDocument, options, cancellationToken).ConfigureAwait(false);
             });

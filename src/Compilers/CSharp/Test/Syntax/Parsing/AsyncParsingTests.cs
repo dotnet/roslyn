@@ -1681,21 +1681,15 @@ class C
 {
     async partial implicit operator
 ",
-                // (4,11): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // (4,11): error CS1553: Declaration is not valid; use 'implicit operator <dest-type> (...' instead
                 //     async partial implicit operator
-                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "partial").WithArguments("+").WithLocation(4, 11),
-                // (4,19): error CS1003: Syntax error, 'operator' expected
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "partial").WithArguments("implicit").WithLocation(4, 11),
+                // (4,36): error CS1031: Type expected
                 //     async partial implicit operator
-                Diagnostic(ErrorCode.ERR_SyntaxError, "implicit").WithArguments("operator").WithLocation(4, 19),
-                // (4,19): error CS1037: Overloadable operator expected
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(4, 36),
+                // (4,36): error CS1003: Syntax error, '(' expected
                 //     async partial implicit operator
-                Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "implicit").WithLocation(4, 19),
-                // (4,28): error CS1003: Syntax error, '(' expected
-                //     async partial implicit operator
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(").WithLocation(4, 28),
-                // (4,28): error CS1041: Identifier expected; 'operator' is a keyword
-                //     async partial implicit operator
-                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(4, 36),
                 // (4,36): error CS1026: ) expected
                 //     async partial implicit operator
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 36),
@@ -1712,15 +1706,15 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.OperatorDeclaration);
+                    N(SyntaxKind.ConversionOperatorDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.ImplicitKeyword);
+                        N(SyntaxKind.OperatorKeyword);
+                        M(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            M(SyntaxKind.IdentifierToken);
                         }
-                        M(SyntaxKind.OperatorKeyword);
-                        M(SyntaxKind.PlusToken);
                         M(SyntaxKind.ParameterList);
                         {
                             M(SyntaxKind.OpenParenToken);
@@ -1798,21 +1792,15 @@ class C
 {
     async partial explicit operator
 ",
-                // (4,11): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
+                // (4,11): error CS1553: Declaration is not valid; use 'explicit operator <dest-type> (...' instead
                 //     async partial explicit operator
-                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "partial").WithArguments("+").WithLocation(4, 11),
-                // (4,19): error CS1003: Syntax error, 'operator' expected
+                Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "partial").WithArguments("explicit").WithLocation(4, 11),
+                // (4,36): error CS1031: Type expected
                 //     async partial explicit operator
-                Diagnostic(ErrorCode.ERR_SyntaxError, "explicit").WithArguments("operator").WithLocation(4, 19),
-                // (4,19): error CS1037: Overloadable operator expected
+                Diagnostic(ErrorCode.ERR_TypeExpected, "").WithLocation(4, 36),
+                // (4,36): error CS1003: Syntax error, '(' expected
                 //     async partial explicit operator
-                Diagnostic(ErrorCode.ERR_OvlOperatorExpected, "explicit").WithLocation(4, 19),
-                // (4,28): error CS1003: Syntax error, '(' expected
-                //     async partial explicit operator
-                Diagnostic(ErrorCode.ERR_SyntaxError, "operator").WithArguments("(").WithLocation(4, 28),
-                // (4,28): error CS1041: Identifier expected; 'operator' is a keyword
-                //     async partial explicit operator
-                Diagnostic(ErrorCode.ERR_IdentifierExpectedKW, "operator").WithArguments("", "operator").WithLocation(4, 28),
+                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("(").WithLocation(4, 36),
                 // (4,36): error CS1026: ) expected
                 //     async partial explicit operator
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(4, 36),
@@ -1822,6 +1810,7 @@ class C
                 // (4,36): error CS1513: } expected
                 //     async partial explicit operator
                 Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(4, 36));
+
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -1829,15 +1818,15 @@ class C
                     N(SyntaxKind.ClassKeyword);
                     N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
-                    N(SyntaxKind.OperatorDeclaration);
+                    N(SyntaxKind.ConversionOperatorDeclaration);
                     {
                         N(SyntaxKind.AsyncKeyword);
-                        N(SyntaxKind.IdentifierName);
+                        N(SyntaxKind.ExplicitKeyword);
+                        N(SyntaxKind.OperatorKeyword);
+                        M(SyntaxKind.IdentifierName);
                         {
-                            N(SyntaxKind.IdentifierToken, "partial");
+                            M(SyntaxKind.IdentifierToken);
                         }
-                        M(SyntaxKind.OperatorKeyword);
-                        M(SyntaxKind.PlusToken);
                         M(SyntaxKind.ParameterList);
                         {
                             M(SyntaxKind.OpenParenToken);

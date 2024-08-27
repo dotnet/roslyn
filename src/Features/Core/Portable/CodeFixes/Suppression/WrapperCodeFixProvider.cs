@@ -14,26 +14,25 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression;
 internal sealed class WrapperCodeFixProvider(IConfigurationFixProvider suppressionFixProvider, IEnumerable<string> diagnosticIds) : CodeFixProvider
 {
     private readonly ImmutableArray<string> _originalDiagnosticIds = diagnosticIds.Distinct().ToImmutableArray();
-    private readonly IConfigurationFixProvider _suppressionFixProvider = suppressionFixProvider;
 
-    public IConfigurationFixProvider SuppressionFixProvider => _suppressionFixProvider;
+    public IConfigurationFixProvider SuppressionFixProvider { get; } = suppressionFixProvider;
     public override ImmutableArray<string> FixableDiagnosticIds => _originalDiagnosticIds;
 
     public override async Task RegisterCodeFixesAsync(CodeFixContext context)
     {
-        var diagnostics = context.Diagnostics.Where(_suppressionFixProvider.IsFixableDiagnostic);
+        var diagnostics = context.Diagnostics.Where(SuppressionFixProvider.IsFixableDiagnostic);
 
         var documentDiagnostics = diagnostics.Where(d => d.Location.IsInSource).ToImmutableArray();
         if (!documentDiagnostics.IsEmpty)
         {
-            var suppressionFixes = await _suppressionFixProvider.GetFixesAsync(context.Document, context.Span, documentDiagnostics, context.CancellationToken).ConfigureAwait(false);
+            var suppressionFixes = await SuppressionFixProvider.GetFixesAsync(context.Document, context.Span, documentDiagnostics, context.CancellationToken).ConfigureAwait(false);
             RegisterSuppressionFixes(context, suppressionFixes);
         }
 
         var projectDiagnostics = diagnostics.Where(d => !d.Location.IsInSource).ToImmutableArray();
         if (!projectDiagnostics.IsEmpty)
         {
-            var suppressionFixes = await _suppressionFixProvider.GetFixesAsync(context.Document.Project, projectDiagnostics, context.CancellationToken).ConfigureAwait(false);
+            var suppressionFixes = await SuppressionFixProvider.GetFixesAsync(context.Document.Project, projectDiagnostics, context.CancellationToken).ConfigureAwait(false);
             RegisterSuppressionFixes(context, suppressionFixes);
         }
     }
@@ -50,5 +49,5 @@ internal sealed class WrapperCodeFixProvider(IConfigurationFixProvider suppressi
     }
 
     public override FixAllProvider GetFixAllProvider()
-        => _suppressionFixProvider.GetFixAllProvider();
+        => SuppressionFixProvider.GetFixAllProvider();
 }

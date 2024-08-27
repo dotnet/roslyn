@@ -3,6 +3,7 @@
 ' See the LICENSE file in the project root for more information.
 
 Imports System.Threading.Tasks
+Imports Basic.Reference.Assemblies
 Imports Microsoft.CodeAnalysis.Scripting
 Imports Roslyn.Test.Utilities
 Imports Xunit
@@ -17,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Scripting.UnitTests
         ''' will attempt to validate file paths and one does not exist for this reference as it's an in
         ''' memory item.
         ''' </summary>
-        Private Shared ReadOnly s_msvbReference As PortableExecutableReference = AssemblyMetadata.CreateFromImage(TestMetadata.ResourcesNet451.MicrosoftVisualBasic).GetReference()
+        Private Shared ReadOnly s_msvbReference As PortableExecutableReference = AssemblyMetadata.CreateFromImage(Net461.Resources.MicrosoftVisualBasic).GetReference()
 
         ' It shouldn't be necessary to include VB runtime assembly
         ' explicitly in VisualBasicScript.Create.

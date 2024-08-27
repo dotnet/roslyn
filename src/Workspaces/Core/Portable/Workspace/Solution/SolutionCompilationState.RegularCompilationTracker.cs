@@ -872,7 +872,7 @@ namespace Microsoft.CodeAnalysis
 
                 foreach (var result in driverRunResult.Results)
                 {
-                    if (!IsGeneratorRunResultToIgnore(result))
+                    if (!result.Diagnostics.IsDefaultOrEmpty)
                     {
                         builder.AddRange(result.Diagnostics);
                     }
@@ -902,41 +902,11 @@ namespace Microsoft.CodeAnalysis
                 return state is FinalCompilationTrackerState finalState ? finalState.GeneratorInfo.Documents.GetState(documentId) : null;
             }
 
-            // HACK HACK HACK HACK around a problem introduced by https://github.com/dotnet/sdk/pull/24928. The Razor generator is
-            // controlled by a flag that lives in an .editorconfig file; in the IDE we generally don't run the generator and instead use
-            // the design-time files added through the legacy IDynamicFileInfo API. When we're doing Hot Reload we then
-            // remove those legacy files and remove the .editorconfig file that is supposed to disable the generator, for the Hot
-            // Reload pass we then are running the generator. This is done in the CompileTimeSolutionProvider.
-            //
-            // https://github.com/dotnet/sdk/pull/24928 introduced an issue where even though the Razor generator is being told to not
-            // run, it still runs anyways. As a tactical fix rather than reverting that PR, for Visual Studio 17.3 Preview 2 we are going
-            // to do a hack here which is to rip out generated files.
-
-            private bool IsGeneratorRunResultToIgnore(GeneratorRunResult result)
-            {
-                var globalOptions = this.ProjectState.AnalyzerOptions.AnalyzerConfigOptionsProvider.GlobalOptions;
-
-                // This matches the implementation in https://github.com/chsienki/sdk/blob/4696442a24e3972417fb9f81f182420df0add107/src/RazorSdk/SourceGenerators/RazorSourceGenerator.RazorProviders.cs#L27-L28
-                var suppressGenerator = globalOptions.TryGetValue("build_property.SuppressRazorSourceGenerator", out var option) && option == "true";
-
-                if (!suppressGenerator)
-                    return false;
-
-                var generatorType = result.Generator.GetGeneratorType();
-                return generatorType.FullName == "Microsoft.NET.Sdk.Razor.SourceGenerators.RazorSourceGenerator" &&
-                       generatorType.Assembly.GetName().Name is "Microsoft.NET.Sdk.Razor.SourceGenerators" or
-                            "Microsoft.CodeAnalysis.Razor.Compiler.SourceGenerators" or
-                            "Microsoft.CodeAnalysis.Razor.Compiler";
-            }
-
             public SkeletonReferenceCache GetClonedSkeletonReferenceCache()
                 => _skeletonReferenceCache.Clone();
 
             public Task<MetadataReference?> GetOrBuildSkeletonReferenceAsync(SolutionCompilationState compilationState, MetadataReferenceProperties properties, CancellationToken cancellationToken)
                 => _skeletonReferenceCache.GetOrBuildReferenceAsync(this, compilationState, properties, cancellationToken);
-
-            // END HACK HACK HACK HACK, or the setup of it at least; once this hack is removed the calls to IsGeneratorRunResultToIgnore
-            // need to be cleaned up.
 
             /// <summary>
             /// Validates the compilation is consistent and we didn't have a bug in producing it. This only runs under a feature flag.

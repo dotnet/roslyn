@@ -31,14 +31,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         public static async Task<LSP.CodeAction[]> GetVSCodeActionsAsync(
             CodeActionParams request,
             TextDocument document,
-            CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             bool hasVsLspCapability,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
-                document, fallbackOptions, codeFixService, codeRefactoringService, request.Range, cancellationToken).ConfigureAwait(false);
+                document, codeFixService, codeRefactoringService, request.Range, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
                 return [];
 
@@ -305,14 +304,13 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
         public static async Task<ImmutableArray<CodeAction>> GetCodeActionsAsync(
             TextDocument document,
             LSP.Range selection,
-            CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             string? fixAllScope,
             CancellationToken cancellationToken)
         {
             var actionSets = await GetActionSetsAsync(
-                document, fallbackOptions, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
+                document, codeFixService, codeRefactoringService, selection, cancellationToken).ConfigureAwait(false);
             if (actionSets.IsDefaultOrEmpty)
                 return [];
 
@@ -383,7 +381,6 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
 
         private static async ValueTask<ImmutableArray<UnifiedSuggestedActionSet>> GetActionSetsAsync(
             TextDocument document,
-            CodeActionOptionsProvider fallbackOptions,
             ICodeFixService codeFixService,
             ICodeRefactoringService codeRefactoringService,
             LSP.Range selection,
@@ -395,10 +392,10 @@ namespace Microsoft.CodeAnalysis.LanguageServer.Handler.CodeActions
             var codeFixes = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeFixesAsync(
                 document.Project.Solution.Workspace, codeFixService, document, textSpan,
                 new DefaultCodeActionRequestPriorityProvider(),
-                fallbackOptions, cancellationToken).ConfigureAwait(false);
+                cancellationToken).ConfigureAwait(false);
 
             var codeRefactorings = await UnifiedSuggestedActionsSource.GetFilterAndOrderCodeRefactoringsAsync(
-                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, priority: null, fallbackOptions,
+                document.Project.Solution.Workspace, codeRefactoringService, document, textSpan, priority: null,
                 filterOutsideSelection: false, cancellationToken).ConfigureAwait(false);
 
             var actionSets = UnifiedSuggestedActionsSource.FilterAndOrderActionSets(

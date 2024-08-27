@@ -33,18 +33,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
 
         public async Task<TextEdit[]> HandleRequestAsync(DocumentOnTypeFormattingParams request, RequestContext context, CancellationToken cancellationToken)
         {
-            var edits = new ArrayBuilder<TextEdit>();
             if (string.IsNullOrEmpty(request.Character))
             {
-                return edits.ToArrayAndFree();
+                return [];
             }
 
+            using var _ = ArrayBuilder<TextEdit>.GetInstance(out var edits);
             var document = context.Document;
             var formattingService = document?.Project.Services.GetService<IXamlFormattingService>();
             if (document != null && formattingService != null)
             {
                 var position = await document.GetPositionFromLinePositionAsync(ProtocolConversions.PositionToLinePosition(request.Position), cancellationToken).ConfigureAwait(false);
-                var options = new XamlFormattingOptions { InsertSpaces = request.Options.InsertSpaces, TabSize = request.Options.TabSize, OtherOptions = request.Options.OtherOptions };
+                var options = new XamlFormattingOptions { InsertSpaces = request.Options.InsertSpaces, TabSize = request.Options.TabSize, OtherOptions = request.Options.OtherOptions?.AsUntyped() };
                 var textChanges = await formattingService.GetFormattingChangesAsync(document, options, request.Character[0], position, cancellationToken).ConfigureAwait(false);
                 if (textChanges != null)
                 {
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Xaml.LanguageServer.Handler
                 }
             }
 
-            return edits.ToArrayAndFree();
+            return edits.ToArray();
         }
     }
 }

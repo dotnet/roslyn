@@ -29,6 +29,7 @@ Imports Roslyn.Test.Utilities.SharedResourceHelpers
 Imports Roslyn.Test.Utilities.TestGenerators
 Imports Roslyn.Utilities
 Imports TestResources.Analyzers
+Imports Basic.Reference.Assemblies
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
@@ -4937,7 +4938,7 @@ End Class
 
         <Fact()>
         Public Sub BinaryFile()
-            Dim binaryPath = Temp.CreateFile().WriteAllBytes(TestMetadata.ResourcesNet451.mscorlib).Path
+            Dim binaryPath = Temp.CreateFile().WriteAllBytes(Net461.Resources.mscorlib).Path
             Dim outWriter As New StringWriter()
             Dim exitCode As Integer = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/nologo", "/preferreduilang:en", binaryPath}).Run(outWriter, Nothing)
             Assert.Equal(1, exitCode)

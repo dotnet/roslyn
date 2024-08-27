@@ -49,6 +49,7 @@
           "msbuild",
           "-p:RunAnalyzersDuringBuild=false",
           "-p:GenerateFullPaths=true",
+          "-tl:off",
           "src/Compilers/CSharp/csc/AnyCpu/csc.csproj"
         ],
         "problemMatcher": "$msCompile",
@@ -62,6 +63,7 @@
           "build",
           "-p:RunAnalyzersDuringBuild=false",
           "-p:GenerateFullPaths=true",
+          "-tl:off",
           "Compilers.slnf"
         ],
         "problemMatcher": "$msCompile",
@@ -75,6 +77,7 @@
           "build",
           "-p:RunAnalyzersDuringBuild=false",
           "-p:GenerateFullPaths=true",
+          "-tl:off",
           "Roslyn.sln"
         ],
         "problemMatcher": "$msCompile",
@@ -145,7 +148,7 @@
         "build",
         "-c",
         "Debug",
-        "src/Features/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Microsoft.CodeAnalysis.LanguageServer.csproj"
+        "src/LanguageServer/Microsoft.CodeAnalysis.LanguageServer/Microsoft.CodeAnalysis.LanguageServer.csproj"
       ],
       "problemMatcher": "$msCompile",
       "group": "build"

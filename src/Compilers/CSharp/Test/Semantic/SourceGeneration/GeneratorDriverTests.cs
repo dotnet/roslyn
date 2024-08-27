@@ -4075,7 +4075,7 @@ class C { }
             bool initialization = false)
         {
             var expectedMessage =
-#if NETCOREAPP
+#if NET
                 $"{message} (Parameter '{parameterName}')";
 #else
                 $"{message}{Environment.NewLine}Parameter name: {parameterName}";
@@ -4108,7 +4108,7 @@ class C { }
         {
             var generator = new IncrementalGeneratorWrapper(new InterceptorGenerator1());
 
-            var parseOptions = TestOptions.RegularPreview.WithFeature("InterceptorsPreviewNamespaces", "global");
+            var parseOptions = TestOptions.RegularPreview.WithFeature("InterceptorsNamespaces", "global");
 
             var source1 = ("""
                 public class Program
