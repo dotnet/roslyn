@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(ErrorCode.ERR_InstancePropertyInitializerInInterface, Location);
             }
-            else if (!IsAutoProperty)
+            else if (!IsAutoPropertyOrUsesFieldKeyword)
             {
                 diagnostics.Add(ErrorCode.ERR_InitializerOnNonAutoProperty, Location);
             }
@@ -666,8 +666,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             => (_propertyFlags & Flags.AccessorsHaveImplementation) != 0;
 
         /// <summary>
-        /// Backing field for automatically implemented property, or
-        /// for a property with an initializer.
+        /// Backing field for an automatically implemented property, or
+        /// a property with an accessor using the 'field' keyword, or
+        /// a property with an initializer.
         /// </summary>
         internal SynthesizedBackingFieldSymbol BackingField { get; }
 
@@ -715,9 +716,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_RefReturningPropertiesCannotBeRequired, Location);
             }
 
-            if (IsAutoProperty)
+            if (IsAutoPropertyOrUsesFieldKeyword)
             {
-                if (!IsStatic && SetMethod is { IsInitOnly: false })
+                if (!IsStatic && ((_propertyFlags & Flags.HasAutoPropertySet) != 0) && SetMethod is { IsInitOnly: false })
                 {
                     if (ContainingType.IsReadOnly)
                     {
@@ -738,10 +739,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnostics.Add(ErrorCode.ERR_AutoPropertyCannotBeRefReturning, Location);
                 }
 
-                // get-only auto property should not override settable properties
-                if (this.IsOverride && SetMethod is null && !this.IsReadOnly)
+                // Auto property should override both accessors.
+                if (this.IsOverride)
                 {
-                    diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, Location);
+                    var overriddenProperty = (PropertySymbol)this.GetLeastOverriddenMember(this.ContainingType);
+                    if ((overriddenProperty.GetMethod is { } && GetMethod is null) ||
+                        (overriddenProperty.SetMethod is { } && SetMethod is null))
+                    {
+                        diagnostics.Add(ErrorCode.ERR_AutoPropertyMustOverrideSet, Location);
+                    }
                 }
             }
 
@@ -791,6 +797,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                     else if (!hasGetAccessor && IsAutoProperty)
                     {
+                        // The only forms of auto-property that are disallowed are { set; } and { init; }.
+                        // Other forms of auto- or manually-implemented accessors are allowed
+                        // including equivalent field cases such as { set { field = value; } }.
                         diagnostics.Add(ErrorCode.ERR_AutoPropertyMustHaveGetAccessor, _setMethod!.GetFirstLocation());
                     }
 

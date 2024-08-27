@@ -16859,13 +16859,13 @@ namespace N1
     protected int P { get { throw null; } set {  } } = 1;
 }";
             CreateCompilation(source).VerifyDiagnostics(
-                // (5,9): error CS8050: Only auto-implemented properties can have initializers.
+                // (5,9): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     int I { get { throw null; } set {  } } = 1;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "I").WithLocation(5, 9),
-                // (6,16): error CS8050: Only auto-implemented properties can have initializers.
+                // (6,16): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     static int S { get { throw null; } set {  } } = 1;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "S").WithLocation(6, 16),
-                // (7,19): error CS8050: Only auto-implemented properties can have initializers.
+                // (7,19): error CS8050: Only auto-implemented properties, or properties that use the 'field' keyword, can have initializers.
                 //     protected int P { get { throw null; } set {  } } = 1;
                 Diagnostic(ErrorCode.ERR_InitializerOnNonAutoProperty, "P").WithLocation(7, 19)
             );

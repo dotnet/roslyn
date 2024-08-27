@@ -1754,7 +1754,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AccessingAutoPropertyFromConstructor(propertyAccess.ReceiverOpt, propertyAccess.PropertySymbol, fromMember);
         }
 
-        private static bool AccessingAutoPropertyFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember)
+        // PROTOTYPE: Review all callers for allowFieldKeyword.
+        private static bool AccessingAutoPropertyFromConstructor(BoundExpression receiver, PropertySymbol propertySymbol, Symbol fromMember, bool allowFieldKeyword = false)
         {
             if (!propertySymbol.IsDefinition && propertySymbol.ContainingType.Equals(propertySymbol.ContainingType.OriginalDefinition, TypeCompareKind.IgnoreNullableModifiersForReferenceTypes))
             {
@@ -1765,7 +1766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var propertyIsStatic = propertySymbol.IsStatic;
 
             return (object)sourceProperty != null &&
-                    sourceProperty.IsAutoProperty &&
+                    (allowFieldKeyword ? sourceProperty.IsAutoPropertyOrUsesFieldKeyword : sourceProperty.IsAutoProperty) &&
                     TypeSymbol.Equals(sourceProperty.ContainingType, fromMember.ContainingType, TypeCompareKind.AllIgnoreOptions) &&
                     IsConstructorOrField(fromMember, isStatic: propertyIsStatic) &&
                     (propertyIsStatic || receiver.Kind == BoundKind.ThisReference);
