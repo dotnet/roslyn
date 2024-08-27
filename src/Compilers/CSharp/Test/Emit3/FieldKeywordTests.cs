@@ -1194,23 +1194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Nullable_00()
-        {
-            var source = """
-                #nullable enable
-                class C
-                {
-                    private string? _field;
-                    public string? Prop { get => _field; } // 1
-                }
-                """;
-
-            var comp = CreateCompilation(source);
-            comp.VerifyEmitDiagnostics();
-        }
-
-        [Fact]
-        public void Nullable_01()
+        public void Nullable_NotResilient_NotInitialized_01()
         {
             var source = """
                 #nullable enable
@@ -1225,13 +1209,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void Nullable_02()
+        public void Nullable_NotResilient_Initialized_01()
         {
             var source = """
                 #nullable enable
                 class C
                 {
-                    public string Prop => field ??= "a"; // 1
+                    public string Prop { get => field; set => field = value; } = "a";
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Nullable_Resilient_NotInitialized_01()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    public string Prop => field ??= "a";
+                }
+                """;
+
+            var comp = CreateCompilation(source);
+            comp.VerifyEmitDiagnostics();
+        }
+
+        [Fact]
+        public void Nullable_Resilient_Initialized_01()
+        {
+            var source = """
+                #nullable enable
+                class C
+                {
+                    public string Prop { get => field ??= "a"; } = "b";
                 }
                 """;
 

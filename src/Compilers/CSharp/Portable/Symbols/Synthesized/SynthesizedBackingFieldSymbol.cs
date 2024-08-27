@@ -138,6 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
+                // TODO2: also if any nullable attributes are used, we don't infer.
                 var propertyType = _property.TypeWithAnnotations;
                 if (propertyType.NullableAnnotation != NullableAnnotation.NotAnnotated
                     || !_property.UsesFieldKeyword)
