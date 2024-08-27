@@ -118,9 +118,9 @@ internal abstract partial class AbstractRenameCommandHandler
 
     private void Commit(IUIThreadOperationContext operationContext)
     {
+        RoslynDebug.AssertNotNull(_renameService.ActiveSession);
         // Take ownership from editor to make sure it can rename commit could be controlled by its own IUIThreadOperationContext
         operationContext.TakeOwnership();
-        RoslynDebug.AssertNotNull(_renameService.ActiveSession);
         _renameService.ActiveSession.Commit();
     }
 }
