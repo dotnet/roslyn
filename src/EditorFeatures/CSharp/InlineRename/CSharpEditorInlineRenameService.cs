@@ -68,7 +68,7 @@ internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<I
             }
 
             var documentText = await renameDefinition.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            AddSpanOfInterest(documentText, renameDefinition.SourceSpan, containingStatementOrDeclarationSpan, definitions);
+            AddSpanOfInterest(documentText, renameDefinition.Document.FilePath, renameDefinition.SourceSpan, containingStatementOrDeclarationSpan, definitions);
         }
 
         foreach (var renameLocation in inlineRenameLocationSet.Locations.Take(MaxReferenceCount))
@@ -80,7 +80,7 @@ internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<I
                 await TryGetSurroundingNodeSpanAsync<StatementSyntax>(renameLocation.Document, renameLocation.TextSpan, cancellationToken).ConfigureAwait(false);
 
             var documentText = await renameLocation.Document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            AddSpanOfInterest(documentText, renameLocation.TextSpan, containingStatementOrDeclarationSpan, references);
+            AddSpanOfInterest(documentText, renameLocation.Document.FilePath, renameLocation.TextSpan, containingStatementOrDeclarationSpan, references);
         }
 
         var contextBuilder = ImmutableDictionary.CreateBuilder<string, ImmutableArray<(string filePath, string content)>>();
@@ -99,7 +99,7 @@ internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<I
 
         return contextBuilder.ToImmutableDictionary();
 
-        void AddSpanOfInterest(SourceText documentText, TextSpan fallbackSpan, TextSpan? surroundingSpanOfInterest, ArrayBuilder<(string filePath, string content)> resultBuilder)
+        void AddSpanOfInterest(SourceText documentText, string? filePath, TextSpan fallbackSpan, TextSpan? surroundingSpanOfInterest, ArrayBuilder<(string filePath, string content)> resultBuilder)
         {
             int startPosition, endPosition, startLine = 0, endLine = 0, lineCount = 0;
             if (surroundingSpanOfInterest is not null)
@@ -155,7 +155,6 @@ internal sealed class CSharpEditorInlineRenameService([ImportMany] IEnumerable<I
             surroundingSpanOfInterest = new TextSpan(startPosition, length);
             if (seen.Add(surroundingSpanOfInterest.Value))
             {
-                var filePath = documentText.GetDocumentWithFrozenPartialSemantics(cancellationToken)?.FilePath;
                 if (filePath != null)
                 {
                     resultBuilder.Add((filePath, documentText.GetSubText(surroundingSpanOfInterest.Value).ToString()));
