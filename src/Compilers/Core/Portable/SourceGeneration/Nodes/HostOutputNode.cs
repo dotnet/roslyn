@@ -10,13 +10,13 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using TOutput = System.Collections.Immutable.ImmutableArray<(string, object)>;
+using OutputType = System.Collections.Immutable.ImmutableArray<(string, object)>;
 
 #pragma warning disable RSEXPERIMENTAL004 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
 
 namespace Microsoft.CodeAnalysis
 {
-    internal sealed class HostOutputNode<TInput> : IIncrementalGeneratorOutputNode, IIncrementalGeneratorNode<TOutput>
+    internal sealed class HostOutputNode<TInput> : IIncrementalGeneratorOutputNode, IIncrementalGeneratorNode<OutputType>
     {
         private readonly IIncrementalGeneratorNode<TInput> _source;
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis
 
         public IncrementalGeneratorOutputKind Kind => IncrementalGeneratorOutputKind.Host;
 
-        public NodeStateTable<TOutput> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<TOutput>? previousTable, CancellationToken cancellationToken)
+        public NodeStateTable<OutputType> UpdateStateTable(DriverStateTable.Builder graphState, NodeStateTable<OutputType>? previousTable, CancellationToken cancellationToken)
         {
             string stepName = "HostOutput";
             var sourceTable = graphState.GetLatestStateTableForNode(_source);
@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis
             {
                 if (graphState.DriverState.TrackIncrementalSteps)
                 {
-                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName, EqualityComparer<TOutput>.Default);
+                    return previousTable.CreateCachedTableWithUpdatedSteps(sourceTable, stepName, EqualityComparer<OutputType>.Default);
                 }
                 return previousTable;
             }
 
-            var nodeTable = graphState.CreateTableBuilder(previousTable, stepName, EqualityComparer<TOutput>.Default);
+            var nodeTable = graphState.CreateTableBuilder(previousTable, stepName, EqualityComparer<OutputType>.Default);
             foreach (var entry in sourceTable)
             {
                 var inputs = nodeTable.TrackIncrementalSteps ? ImmutableArray.Create((entry.Step!, entry.OutputIndex)) : default;
@@ -95,10 +95,10 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        IIncrementalGeneratorNode<TOutput> IIncrementalGeneratorNode<TOutput>.WithComparer(IEqualityComparer<TOutput> comparer) => throw ExceptionUtilities.Unreachable();
+        IIncrementalGeneratorNode<OutputType> IIncrementalGeneratorNode<OutputType>.WithComparer(IEqualityComparer<OutputType> comparer) => throw ExceptionUtilities.Unreachable();
 
-        public IIncrementalGeneratorNode<TOutput> WithTrackingName(string name) => throw ExceptionUtilities.Unreachable();
+        public IIncrementalGeneratorNode<OutputType> WithTrackingName(string name) => throw ExceptionUtilities.Unreachable();
 
-        void IIncrementalGeneratorNode<TOutput>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable();
+        void IIncrementalGeneratorNode<OutputType>.RegisterOutput(IIncrementalGeneratorOutputNode output) => throw ExceptionUtilities.Unreachable();
     }
 }
