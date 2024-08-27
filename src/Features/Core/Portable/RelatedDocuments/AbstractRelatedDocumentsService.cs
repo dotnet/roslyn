@@ -46,7 +46,7 @@ internal abstract class AbstractRelatedDocumentsService<
         Document document, int position, Func<ImmutableArray<DocumentId>, CancellationToken, ValueTask> callbackAsync, CancellationToken cancellationToken)
     {
         // This feature will bind a lot of the nodes in the file.  Call out to the remote host to do this work if
-        // available, so that we won't cause resource contention within our host.
+        // available, so that we won't cause resource/gc contention within our host.
 
         var project = document.Project;
         var client = await RemoteHostClient.TryGetClientAsync(project, cancellationToken).ConfigureAwait(false);
@@ -83,6 +83,9 @@ internal abstract class AbstractRelatedDocumentsService<
         var semanticModel = await document.GetRequiredNullableDisabledSemanticModelAsync(cancellationToken).ConfigureAwait(false);
         var root = await document.GetRequiredSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
+        // The core logic here is that we defer to the language to give us nodes of interest.  We then bind those nodes
+        // (trying to avoid binding of nodes we don't think will change the resultant set). 
+
         using var _1 = ConcurrentSetPool<DocumentId>.GetInstance(out var seenDocumentIds);
         using var _2 = ConcurrentSetPool<string>.GetInstance(out var seenTypeNames);
 
@@ -100,15 +103,11 @@ internal abstract class AbstractRelatedDocumentsService<
             IteratePotentialTypeNodes(root).OrderBy(t => t.expression.SpanStart - position),
             produceItems: (tuple, callback, _, cancellationToken) =>
             {
-                ProduceItems(
-                    tuple.expression, tuple.nameToken, callback, cancellationToken);
-
+                ProduceItems(tuple.expression, tuple.nameToken, callback, cancellationToken);
                 return Task.CompletedTask;
             },
             consumeItems: static async (array, callbackAsync, cancellationToken) =>
-            {
-                await callbackAsync(array, cancellationToken).ConfigureAwait(false);
-            },
+                await callbackAsync(array, cancellationToken).ConfigureAwait(false),
             args: callbackAsync,
             cancellationToken).ConfigureAwait(false);
 
@@ -123,6 +122,7 @@ internal abstract class AbstractRelatedDocumentsService<
             if (nameToken.RawKind != identifierTokenKind)
                 return;
 
+            // Ignore emtpy named types that appear in error scenarios.
             if (nameToken.ValueText == "")
                 return;
 
@@ -133,6 +133,7 @@ internal abstract class AbstractRelatedDocumentsService<
             if (!seenTypeNames.Add(nameToken.ValueText))
                 return;
 
+            // For now, we only care about binding to types.  We can expand this in the future if we want.
             var symbol = semanticModel.GetSymbolInfo(expression, cancellationToken).GetAnySymbol();
             if (symbol is not ITypeSymbol)
                 return;
