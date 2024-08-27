@@ -111,7 +111,7 @@ internal partial class SerializerService
         {
             case AnalyzerFileReference file:
                 writer.WriteString(nameof(AnalyzerFileReference));
-                var location = file.GetAssembly().Location;
+                var location = TryGetAssemblyLocation(file);
                 var (fullPath, originalFullPath) = string.IsNullOrEmpty(location)
                     ? (file.FullPath, file.OriginalFullPath)
                     : (location, file.FullPath);
@@ -512,6 +512,18 @@ internal partial class SerializerService
             // We have a reference but the file the reference is pointing to might not actually exist on disk. In that
             // case, rather than crashing, we will handle it gracefully.
             return Guid.Empty;
+        }
+    }
+
+    private static string? TryGetAssemblyLocation(AnalyzerFileReference file)
+    {
+        try
+        {
+            return file.GetAssembly().Location;
+        }
+        catch
+        {
+            return null;
         }
     }
 
