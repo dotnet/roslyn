@@ -8,7 +8,11 @@ namespace Roslyn.LanguageServer.Protocol
 
     /// <summary>
     /// Well-known semantic token modifiers.
+    /// <para>
+    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#semanticTokenModifiers">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
+    /// <remarks>Since LSP 3.16</remarks>
     internal static class SemanticTokenModifiers
     {
         /// <summary>

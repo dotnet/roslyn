@@ -4,14 +4,16 @@
 
 namespace Roslyn.LanguageServer.Protocol
 {
+    using System;
     using System.Text.Json.Serialization;
 
     /// <summary>
     /// Class representing the parameters sent from client to server for the workspace/executeCommand request.
-    ///
+    /// <para>
     /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#executeCommandParams">Language Server Protocol specification</see> for additional information.
+    /// </para>
     /// </summary>
-    internal class ExecuteCommandParams
+    internal class ExecuteCommandParams : IWorkDoneProgressParams
     {
         /// <summary>
         /// Gets or sets the command identifier associated with the command handler.
@@ -33,5 +35,10 @@ namespace Roslyn.LanguageServer.Protocol
             get;
             set;
         }
+
+        /// <inheritdoc/>
+        [JsonPropertyName(Methods.WorkDoneTokenName)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
     }
 }

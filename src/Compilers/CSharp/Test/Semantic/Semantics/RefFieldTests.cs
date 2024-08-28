@@ -335,7 +335,7 @@ ref struct B
 {
     A A;
 }";
-            comp = CreateCompilation(sourceB, new[] { refA }, targetFramework: TargetFramework.Mscorlib45);
+            comp = CreateCompilation(sourceB, new[] { refA }, targetFramework: TargetFramework.Mscorlib461);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, verify: Verification.Skipped);
 
@@ -4931,7 +4931,7 @@ class Program
         return ref r;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics(
                 // (11,20): error CS8157: Cannot return 'r' by reference because it was initialized to a value that cannot be returned by reference
                 //         return ref r;
@@ -4958,7 +4958,7 @@ class Program
         return ref F1(__arglist(ref i));
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular.WithLanguageVersion(languageVersion));
             comp.VerifyEmitDiagnostics(
                 // (7,20): error CS8156: An expression cannot be used in this context because it may not be passed or returned by reference
                 //         return ref __refvalue(args.GetNextArg(), int);
@@ -4989,10 +4989,10 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular10);
+            var comp = CreateCompilationWithMscorlib461(source, parseOptions: TestOptions.Regular10);
             comp.VerifyEmitDiagnostics();
 
-            comp = CreateCompilationWithMscorlib45(source);
+            comp = CreateCompilationWithMscorlib461(source);
             comp.VerifyEmitDiagnostics(
                 // (12,16): error CS8347: Cannot use a result of 'R<int>.R(ref int)' in this context because it may expose variables referenced by parameter 't' outside of their declaration scope
                 //         return new R<int>(ref i);
@@ -11540,7 +11540,7 @@ public class A
         A.F(default, 0);
     }
 }";
-            comp = CreateCompilation(sourceB, new[] { refA }, targetFramework: TargetFramework.Mscorlib45);
+            comp = CreateCompilation(sourceB, new[] { refA }, targetFramework: TargetFramework.Mscorlib461);
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp);
 
@@ -22447,7 +22447,7 @@ public ref struct R2<T>
         return ref r2[0]; // 2
     }
 }";
-            comp = CreateCompilation(sourceB, new[] { refA }, targetFramework: TargetFramework.Mscorlib45);
+            comp = CreateCompilation(sourceB, new[] { refA }, targetFramework: TargetFramework.Mscorlib461);
             comp.VerifyEmitDiagnostics(
                 // (12,27): error CS8168: Cannot return local 'r2' by reference because it is not a ref local
                 //         if (b) return ref r2.Get(); // 1

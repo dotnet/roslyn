@@ -165,12 +165,7 @@ internal static class MakeLocalFunctionStaticCodeFixHelper
             }
         }
 
-#if CODE_STYLE
-        var info = new CSharpCodeGenerationContextInfo(
-            CodeGenerationContext.Default, CSharpCodeGenerationOptions.Default, new CSharpCodeGenerationService(document.Project.GetExtendedLanguageServices().LanguageServices), root.SyntaxTree.Options.LanguageVersion());
-#else
         var info = await document.GetCodeGenerationInfoAsync(CodeGenerationContext.Default, cancellationToken).ConfigureAwait(false);
-#endif
 
         // Updates the local function declaration with variables passed in as parameters
         syntaxEditor.ReplaceNode(

@@ -124,7 +124,7 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     /// <summary>
     /// The cancellation source for <see cref="_conflictResolutionTask"/>.
     /// </summary>
-    private CancellationTokenSource _conflictResolutionTaskCancellationSource = new CancellationTokenSource();
+    private CancellationTokenSource _conflictResolutionTaskCancellationSource = new();
 
     /// <summary>
     /// The initial text being renamed.
@@ -386,12 +386,19 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
     {
         if (args.Kind != WorkspaceChangeKind.DocumentChanged)
         {
-            Logger.Log(FunctionId.Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange, KeyValueLogMessage.Create(m =>
+            // Make sure only call Cancel() when there is real document changes.
+            // Sometimes, WorkspaceChangeKind.SolutionChanged might be triggered because of SourceGeneratorVersion get updated.
+            // We don't want to cancel rename when there is no changed documents.
+            var changedDocuments = args.NewSolution.GetChangedDocuments(args.OldSolution);
+            if (changedDocuments.Any())
             {
-                m["Kind"] = Enum.GetName(typeof(WorkspaceChangeKind), args.Kind);
-            }));
+                Logger.Log(FunctionId.Rename_InlineSession_Cancel_NonDocumentChangedWorkspaceChange, KeyValueLogMessage.Create(m =>
+                {
+                    m["Kind"] = Enum.GetName(typeof(WorkspaceChangeKind), args.Kind);
+                }));
 
-            Cancel();
+                Cancel();
+            }
         }
     }
 
@@ -723,29 +730,44 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         }
     }
 
-    public void Commit(bool previewChanges = false)
-        => CommitWorker(previewChanges);
+    /// <remarks>
+    /// Caller should pass in the IUIThreadOperationContext if it is called from editor so rename commit operation could set up the its own context correctly.
+    /// </remarks>
+    public void Commit(bool previewChanges = false, IUIThreadOperationContext editorOperationContext = null)
+        => CommitSynchronously(previewChanges, editorOperationContext);
 
     /// <returns><see langword="true"/> if the rename operation was committed, <see
     /// langword="false"/> otherwise</returns>
-    private bool CommitWorker(bool previewChanges)
+    private bool CommitSynchronously(bool previewChanges, IUIThreadOperationContext operationContext = null)
     {
         // We're going to synchronously block the UI thread here.  So we can't use the background work indicator (as
         // it needs the UI thread to update itself.  This will force us to go through the Threaded-Wait-Dialog path
         // which at least will allow the user to cancel the rename if they want.
         //
         // In the future we should remove this entrypoint and have all callers use CommitAsync instead.
-        return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false, CancellationToken.None));
+        return _threadingContext.JoinableTaskFactory.Run(() => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: false, operationContext));
     }
 
-    public Task CommitAsync(bool previewChanges, CancellationToken cancellationToken)
-       => CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, cancellationToken);
-
-    /// <returns><see langword="true"/> if the rename operation was commited, <see
-    /// langword="false"/> otherwise</returns>
-    private async Task<bool> CommitWorkerAsync(bool previewChanges, bool canUseBackgroundWorkIndicator, CancellationToken cancellationToken)
+    /// <remarks>
+    /// Caller should pass in the IUIThreadOperationContext if it is called from editor so rename commit operation could set up the its own context correctly.
+    /// </remarks>
+    public async Task CommitAsync(bool previewChanges, IUIThreadOperationContext editorOperationContext = null)
     {
-        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync(cancellationToken);
+        if (this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
+        {
+            await CommitWorkerAsync(previewChanges, canUseBackgroundWorkIndicator: true, editorOperationContext).ConfigureAwait(false);
+        }
+        else
+        {
+            CommitSynchronously(previewChanges, editorOperationContext);
+        }
+    }
+
+    /// <returns><see langword="true"/> if the rename operation was committed, <see
+    /// langword="false"/> otherwise</returns>
+    private async Task<bool> CommitWorkerAsync(bool previewChanges, bool canUseBackgroundWorkIndicator, IUIThreadOperationContext editorUIOperationContext)
+    {
+        await _threadingContext.JoinableTaskFactory.SwitchToMainThreadAsync();
         VerifyNotDismissed();
 
         // If the identifier was deleted (or didn't change at all) then cancel the operation.
@@ -766,9 +788,16 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
 
         previewChanges = previewChanges || PreviewChanges;
 
+        if (editorUIOperationContext is not null)
+        {
+            // Prevent Editor's typing responsiveness auto canceling the rename operation.
+            // InlineRenameSession will call IUIThreadOperationExecutor to sets up our own IUIThreadOperationContext
+            editorUIOperationContext.TakeOwnership();
+        }
+
         try
         {
-            if (canUseBackgroundWorkIndicator && this.RenameService.GlobalOptions.GetOption(InlineRenameSessionOptionsStorage.RenameAsynchronously))
+            if (canUseBackgroundWorkIndicator)
             {
                 // We do not cancel on edit because as part of the rename system we have asynchronous work still
                 // occurring that itself may be asynchronously editing the buffer (for example, updating reference
@@ -975,6 +1004,6 @@ internal partial class InlineRenameSession : IInlineRenameSession, IFeatureContr
         private readonly InlineRenameSession _inlineRenameSession = inlineRenameSession;
 
         public bool CommitWorker(bool previewChanges)
-            => _inlineRenameSession.CommitWorker(previewChanges);
+            => _inlineRenameSession.CommitSynchronously(previewChanges);
     }
 }

@@ -2,51 +2,48 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
-namespace Roslyn.LanguageServer.Protocol
+using System.Text.Json.Serialization;
+
+namespace Roslyn.LanguageServer.Protocol;
+
+/// <summary>
+/// A color presentation for a textDocument/colorPresentation response.
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#colorPresentation">Language Server Protocol specification</see> for additional information.
+/// </para>
+/// </summary>
+/// <remarks>Since LSP 3.6</remarks>
+internal class ColorPresentation
 {
-    using System.Text.Json.Serialization;
+    /// <summary>
+    /// The label of this color presentation. It will be shown on the color picker header.
+    /// <para>
+    /// By default this is also the text that is inserted when selecting this color presentation.
+    /// </para>
+    /// </summary>
+    [JsonPropertyName("label")]
+    [JsonRequired]
+    public string Label { get; init; }
 
     /// <summary>
-    /// Class representing the parameters sent for a textDocument/colorPresentation request.
-    ///
-    /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#colorPresentation">Language Server Protocol specification</see> for additional information.
+    /// A <see cref="Protocol.TextEdit"/> which is applied to a document when selecting this presentation for the color.
+    /// <para>
+    /// When omitted the [label](#ColorPresentation.label) is used.
+    /// </para>
     /// </summary>
-    internal class ColorPresentation
-    {
-        /// <summary>
-        /// Gets or sets the label value, i.e. display text to users.
-        /// </summary>
-        [JsonPropertyName("label")]
-        [JsonRequired]
-        public string Label
-        {
-            get;
-            set;
-        }
+    [JsonPropertyName("textEdit")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TextEdit? TextEdit { get; init; }
 
-        /// <summary>
-        /// Gets or sets the text edit.
-        /// </summary>
-        [JsonPropertyName("textEdit")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public SumType<TextEdit, InsertReplaceEdit>? TextEdit
-        {
-            get;
-            set;
-        }
+    /// <summary>
+    /// An optional array of additional <see cref="Protocol.TextEdit"/> that are applied
+    /// when selecting this color presentation.
+    /// <para>
+    /// Edits must not overlap with the main <see cref="TextEdit"/> nor with themselves.
+    /// </para>
+    /// </summary>
+    [JsonPropertyName("additionalTextEdits")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TextEdit[]? AdditionalTextEdits { get; init; }
 
-        /// <summary>
-        /// Gets or sets any additional text edits.
-        /// </summary>
-        /// <remarks>
-        /// Additional text edits must not interfere with the main text edit.
-        /// </remarks>
-        [JsonPropertyName("additionalTextEdits")]
-        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public TextEdit[]? AdditionalTextEdits
-        {
-            get;
-            set;
-        }
-    }
 }

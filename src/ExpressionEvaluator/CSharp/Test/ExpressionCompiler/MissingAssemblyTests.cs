@@ -739,7 +739,7 @@ class UseLinq
                 var context = CreateMethodContext(runtime, "C.M");
 
                 var systemCore = SystemCoreRef.ToModuleInstance();
-                var fakeSystemLinq = CreateCompilationWithMscorlib45("", assemblyName: "System.Linq").
+                var fakeSystemLinq = CreateCompilationWithMscorlib461("", assemblyName: "System.Linq").
                     EmitToImageReference().ToModuleInstance();
 
                 string errorMessage;

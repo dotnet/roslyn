@@ -13,23 +13,17 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities;
 
 internal partial class SymbolEquivalenceComparer
 {
-    private class EquivalenceVisitor(
+    private sealed class EquivalenceVisitor(
         SymbolEquivalenceComparer symbolEquivalenceComparer,
-        bool compareMethodTypeParametersByIndex,
-        bool objectAndDynamicCompareEqually)
+        bool compareMethodTypeParametersByIndex)
     {
-
         public bool AreEquivalent(ISymbol? x, ISymbol? y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies)
         {
             if (ReferenceEquals(x, y))
-            {
                 return true;
-            }
 
             if (x == null || y == null)
-            {
                 return false;
-            }
 
             var xKind = GetKindAndUnwrapAlias(ref x);
             var yKind = GetKindAndUnwrapAlias(ref y);
@@ -37,13 +31,15 @@ internal partial class SymbolEquivalenceComparer
             // Normally, if they're different types, then they're not the same.
             if (xKind != yKind)
             {
-                // Special case.  If we're comparing signatures then we want to compare 'object'
-                // and 'dynamic' as the same.  However, since they're different types, we don't
-                // want to bail out using the above check.
-                if (objectAndDynamicCompareEqually)
+                // Special case.  If we're comparing signatures then we want to compare 'object' and 'dynamic' as the
+                // same.  However, since they're different types, we don't want to bail out using the above check.
+                if (symbolEquivalenceComparer._objectAndDynamicCompareEqually)
                 {
-                    return (xKind == SymbolKind.DynamicType && IsObjectType(y)) ||
-                           (yKind == SymbolKind.DynamicType && IsObjectType(x));
+                    if ((xKind == SymbolKind.DynamicType && IsObjectType(y)) ||
+                        (yKind == SymbolKind.DynamicType && IsObjectType(x)))
+                    {
+                        return true;
+                    }
                 }
 
                 return false;

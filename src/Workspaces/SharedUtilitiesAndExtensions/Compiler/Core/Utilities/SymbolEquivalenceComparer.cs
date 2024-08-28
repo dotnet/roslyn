@@ -73,20 +73,18 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         using var equivalenceVisitors = TemporaryArray<EquivalenceVisitor>.Empty;
         using var getHashCodeVisitors = TemporaryArray<GetHashCodeVisitor>.Empty;
 
-        AddVisitors(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: true);
-        AddVisitors(compareMethodTypeParametersByIndex: true, objectAndDynamicCompareEqually: false);
-        AddVisitors(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: true);
-        AddVisitors(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false);
+        AddVisitors(compareMethodTypeParametersByIndex: true);
+        AddVisitors(compareMethodTypeParametersByIndex: false);
 
         _equivalenceVisitors = equivalenceVisitors.ToImmutableAndClear();
         _getHashCodeVisitors = getHashCodeVisitors.ToImmutableAndClear();
 
         return;
 
-        void AddVisitors(bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
+        void AddVisitors(bool compareMethodTypeParametersByIndex)
         {
-            equivalenceVisitors.Add(new(this, compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually));
-            getHashCodeVisitors.Add(new(this, compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually));
+            equivalenceVisitors.Add(new(this, compareMethodTypeParametersByIndex));
+            getHashCodeVisitors.Add(new(this, compareMethodTypeParametersByIndex));
         }
     }
 
@@ -107,27 +105,21 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
     // here.  So, instead, when asking if parameters are equal, we pass an appropriate flag so
     // that method type parameters are just compared by index and nothing else.
     private EquivalenceVisitor GetEquivalenceVisitor(
-        bool compareMethodTypeParametersByIndex = false, bool objectAndDynamicCompareEqually = false)
+        bool compareMethodTypeParametersByIndex = false)
     {
-        var visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually);
+        var visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex);
         return _equivalenceVisitors[visitorIndex];
     }
 
     private GetHashCodeVisitor GetGetHashCodeVisitor(
-        bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
+        bool compareMethodTypeParametersByIndex)
     {
-        var visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually);
+        var visitorIndex = GetVisitorIndex(compareMethodTypeParametersByIndex);
         return _getHashCodeVisitors[visitorIndex];
     }
 
-    private static int GetVisitorIndex(bool compareMethodTypeParametersByIndex, bool objectAndDynamicCompareEqually)
-        => (compareMethodTypeParametersByIndex, objectAndDynamicCompareEqually) switch
-        {
-            (true, true) => 0,
-            (true, false) => 1,
-            (false, true) => 2,
-            (false, false) => 3,
-        };
+    private static int GetVisitorIndex(bool compareMethodTypeParametersByIndex)
+        => compareMethodTypeParametersByIndex ? 0 : 1;
 
     public bool ReturnTypeEquals(IMethodSymbol x, IMethodSymbol y, Dictionary<INamedTypeSymbol, INamedTypeSymbol>? equivalentTypesWithDifferingAssemblies = null)
         => GetEquivalenceVisitor().ReturnTypesAreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
@@ -154,7 +146,7 @@ internal sealed partial class SymbolEquivalenceComparer : IEqualityComparer<ISym
         => GetEquivalenceVisitor().AreEquivalent(x, y, equivalentTypesWithDifferingAssemblies);
 
     public int GetHashCode(ISymbol? x)
-        => GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: false, objectAndDynamicCompareEqually: false).GetHashCode(x, currentHash: 0);
+        => GetGetHashCodeVisitor(compareMethodTypeParametersByIndex: false).GetHashCode(x, currentHash: 0);
 
     private static ISymbol UnwrapAlias(ISymbol symbol)
         => symbol.IsKind(SymbolKind.Alias, out IAliasSymbol? alias) ? alias.Target : symbol;

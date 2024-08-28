@@ -7,19 +7,21 @@ using System.Text.Json.Serialization;
 namespace Roslyn.LanguageServer.Protocol;
 
 /// <summary>
-/// Class representing the registration options for document color support.
-///
+/// Subclass of <see cref="DocumentColorOptions"/> that allows scoping the registration.
+/// <para>
 /// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#documentColorRegistrationOptions">Language Server Protocol specification</see> for additional information.
+/// </para>
 /// </summary>
-internal class DocumentColorRegistrationOptions : DocumentColorOptions, ITextDocumentRegistrationOptions
+/// <remarks>Since LSP 3.6</remarks>
+internal class DocumentColorRegistrationOptions : DocumentColorOptions, ITextDocumentRegistrationOptions, IStaticRegistrationOptions
 {
-    /// <summary>
-    /// Gets or sets the document filters for this registration option.
-    /// </summary>
+    /// <inheritdoc/>
     [JsonPropertyName("documentSelector")]
-    public DocumentFilter[]? DocumentSelector
-    {
-        get;
-        set;
-    }
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DocumentFilter[]? DocumentSelector { get; set; }
+
+    /// <inheritdoc/>
+    [JsonPropertyName("id")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Id { get; set; }
 }

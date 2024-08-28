@@ -8,29 +8,35 @@ using System;
 using System.Text.Json.Serialization;
 
 /// <summary>
-/// Class representing the workspace diagnostic request parameters
-///
-/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#workspaceDiagnosticParams">Language Server Protocol specification</see> for additional information.
+/// Parameters of the 'workspace/diagnostic' request
+/// <para>
+/// See the <see href="https://microsoft.github.io/language-server-protocol/specifications/specification-current/#workspaceDiagnosticParams">Language Server Protocol specification</see> for additional information.
+/// </para>
 /// </summary>
 /// <remarks>
-/// Note that the first literal send needs to be a <see cref="WorkspaceDiagnosticReport"/>
-/// followed by n <see cref="WorkspaceDiagnosticReportPartialResult"/> literals.
+/// Since LSP 3.17
 /// </remarks>
-internal class WorkspaceDiagnosticParams : IPartialResultParams<SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>>
+internal class WorkspaceDiagnosticParams : IWorkDoneProgressParams, IPartialResultParams<SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>>
 {
     /// <summary>
-    /// Gets or sets the value of the Progress instance.
+    /// An <see cref="IProgress{T}"/> instance that can be used to report partial results
+    /// via the <c>$/progress</c> notification.
+    /// <para>
+    /// Note that the first literal sent needs to be a <see cref="WorkspaceDiagnosticReport"/>
+    /// followed by n <see cref="WorkspaceDiagnosticReportPartialResult"/> literals.
+    /// </para>
     /// </summary>
     [JsonPropertyName(Methods.PartialResultTokenName)]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public IProgress<SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>>? PartialResultToken
-    {
-        get;
-        set;
-    }
+    public IProgress<SumType<WorkspaceDiagnosticReport, WorkspaceDiagnosticReportPartialResult>>? PartialResultToken { get; set; }
+
+    /// <inheritdoc/>
+    [JsonPropertyName(Methods.WorkDoneTokenName)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IProgress<WorkDoneProgress>? WorkDoneToken { get; set; }
 
     /// <summary>
-    /// Gets or sets the identifier for which the client is requesting diagnostics for.
+    /// The additional identifier provided during registration.
     /// </summary>
     [JsonPropertyName("identifier")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -41,7 +47,7 @@ internal class WorkspaceDiagnosticParams : IPartialResultParams<SumType<Workspac
     }
 
     /// <summary>
-    /// Gets or sets the result id of a previous diagnostics response if provided.
+    /// The currently known diagnostic reports with their previous result ids.
     /// </summary>
     [JsonPropertyName("previousResultIds")]
     public PreviousResultId[] PreviousResultId
