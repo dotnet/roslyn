@@ -57,7 +57,6 @@ internal abstract class AbstractSpeculationAnalyzer<
 
     private static readonly SymbolEquivalenceComparer s_arrayAndReadOnlySpanCompareEqually = s_includeNullabilityComparer.With(arrayAndReadOnlySpanCompareEqually: true);
 
-
     /// <summary>
     /// Creates a semantic analyzer for speculative syntax replacement.
     /// </summary>
