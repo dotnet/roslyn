@@ -157,6 +157,30 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
             testLspServer,
             project.Documents.First().GetURI(),
             useProgress: useProgress);
-        AssertJsonEquals(results, new VSInternalRelatedDocumentReport[0]);
+
+        AssertJsonEquals(results, new VSInternalRelatedDocumentReport[]
+        {
+            new()
+            {
+                ResultId = "RelatedDocumentsHandler:0",
+                FilePaths = [project.Documents.Last().FilePath!],
+            }
+        });
+
+        // Calling again, without a change, should return the old result id and no filepaths.
+        var results1 = await RunGetRelatedDocumentsAsync(
+            testLspServer,
+            project.Documents.First().GetURI(),
+            previousResultId: results.Single().ResultId,
+            useProgress: useProgress);
+
+        AssertJsonEquals(results, new VSInternalRelatedDocumentReport[]
+        {
+            new()
+            {
+                ResultId = "RelatedDocumentsHandler:0",
+                FilePaths = null,
+            }
+        });
     }
 }
