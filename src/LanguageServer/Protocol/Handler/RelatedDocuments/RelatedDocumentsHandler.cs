@@ -71,10 +71,6 @@ internal sealed class RelatedDocumentsHandler
         VSInternalRelatedDocumentParams requestParams, RequestContext context, CancellationToken cancellationToken)
     {
         context.TraceInformation($"{this.GetType()} started getting related documents");
-
-        // The progress object we will stream reports to.
-        using var progress = BufferedProgress.Create(requestParams.PartialResultToken);
-
         context.TraceInformation($"PreviousResultId={requestParams.PreviousResultId}");
 
         var solution = context.Solution;
@@ -88,8 +84,11 @@ internal sealed class RelatedDocumentsHandler
         if (relatedDocumentsService == null)
         {
             context.TraceInformation($"Ignoring document '{document.FilePath}' because it does not support related documents");
-            return;
+            return [];
         }
+
+        // The progress object we will stream reports to.
+        using var progress = BufferedProgress.Create(requestParams.PartialResultToken);
 
         var documentToPreviousParams = new Dictionary<Document, PreviousPullResult>();
         if (requestParams.PreviousResultId != null)

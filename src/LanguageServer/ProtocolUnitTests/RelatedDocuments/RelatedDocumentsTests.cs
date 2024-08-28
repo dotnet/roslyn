@@ -134,4 +134,30 @@ public sealed class RelatedDocumentsTests(ITestOutputHelper testOutputHelper)
         Assert.Equal(2, results[0].FilePaths!.Length);
         AssertEx.SetEqual([.. project.Documents.Skip(1).Select(d => d.FilePath)], results[0].FilePaths);
     }
+
+    [Theory, CombinatorialData]
+    public async Task TestResultIds(bool mutatingLspWorkspace, bool useProgress)
+    {
+        var markup1 = """
+            class X
+            {
+                Y y;
+            }
+            """;
+
+        var markup2 = """
+            class Y
+            {
+            }
+            """;
+
+        await using var testLspServer = await CreateTestLspServerAsync([markup1, markup2], mutatingLspWorkspace);
+
+        var project = testLspServer.TestWorkspace.CurrentSolution.Projects.Single();
+        var results = await RunGetRelatedDocumentsAsync(
+            testLspServer,
+            project.Documents.First().GetURI(),
+            useProgress: useProgress);
+        AssertJsonEquals(results, new VSInternalRelatedDocumentReport[0]);
+    }
 }
